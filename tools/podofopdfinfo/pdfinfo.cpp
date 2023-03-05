@@ -218,7 +218,7 @@ string PdfInfoHelper::GuessFormat()
     {
         auto& currPage = m_doc->GetPages().GetPageAt(i);
         rect = currPage.GetMediaBox();
-        Format s(rect.GetWidth() - rect.GetLeft(), rect.GetHeight() - rect.GetBottom());
+        Format s(rect.Width - rect.X, rect.Height - rect.Y);
         it = sizes.find(s);
         if (it == sizes.end())
             sizes.insert(pair<Format, int>(s, 1));

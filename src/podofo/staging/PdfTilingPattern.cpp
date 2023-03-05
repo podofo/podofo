@@ -78,18 +78,18 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     PdfRect rect;
-    rect.SetLeft(0);
-    rect.SetBottom(0);
+    rect.X = 0;
+    rect.Y = 0;
 
     if (image != nullptr)
     {
-        rect.SetWidth(image->GetWidth());
-        rect.SetHeight(image->GetHeight()); // CHECK-ME: It was -image->GetHeight() but that appears to be wrong anyway
+        rect.Width = image->GetWidth();
+        rect.Height = image->GetHeight(); // CHECK-ME: It was -image->Height but that appears to be wrong anyway
     }
     else
     {
-        rect.SetWidth(8);
-        rect.SetHeight(8);
+        rect.Width = 8;
+        rect.Height = 8;
     }
 
     PdfArray arr;
@@ -99,8 +99,8 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
     this->GetObject().GetDictionary().AddKey("PaintType", static_cast<int64_t>(1)); // Colored
     this->GetObject().GetDictionary().AddKey("TilingType", static_cast<int64_t>(1)); // Constant spacing
     this->GetObject().GetDictionary().AddKey("BBox", arr);
-    this->GetObject().GetDictionary().AddKey("XStep", static_cast<int64_t>(rect.GetWidth()));
-    this->GetObject().GetDictionary().AddKey("YStep", static_cast<int64_t>(rect.GetHeight()));
+    this->GetObject().GetDictionary().AddKey("XStep", static_cast<int64_t>(rect.Width));
+    this->GetObject().GetDictionary().AddKey("YStep", static_cast<int64_t>(rect.Height));
     this->GetObject().GetDictionary().AddKey("Resources", PdfDictionary());
 
     if (offsetX < -1e-9 || offsetX > 1e-9 || offsetY < -1e-9 || offsetY > 1e-9)
@@ -123,7 +123,7 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
         if (doFill)
         {
             out << fillR << " " << fillG << " " << fillB << " rg" << " ";
-            out << rect.GetLeft() << " " << rect.GetBottom() << " " << rect.GetWidth() << " " << rect.GetHeight() << " re" << " ";
+            out << rect.X << " " << rect.Y << " " << rect.Width << " " << rect.Height << " re" << " ";
             out << "f" << " "; //fill rect
         }
 
@@ -132,12 +132,12 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
         out << "0.5 w" << " "; //line width
 
         double left, bottom, right, top, whalf, hhalf;
-        left = rect.GetLeft();
-        bottom = rect.GetBottom();
-        right = left + rect.GetWidth();
-        top = bottom + rect.GetHeight();
-        whalf = rect.GetWidth() / 2;
-        hhalf = rect.GetHeight() / 2;
+        left = rect.X;
+        bottom = rect.Y;
+        right = left + rect.Width;
+        top = bottom + rect.Height;
+        whalf = rect.Width / 2;
+        hhalf = rect.Height / 2;
 
         switch (tilingType)
         {
@@ -179,10 +179,10 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
     {
         AddToResources(image->GetIdentifier(), image->GetObject().GetIndirectReference(), "XObject");
 
-        out << rect.GetWidth() << " 0 0 "
-            << rect.GetHeight() << " "
-            << rect.GetLeft() << " "
-            << rect.GetBottom() << " cm" << std::endl;
+        out << rect.Width << " 0 0 "
+            << rect.Height << " "
+            << rect.X << " "
+            << rect.Y << " cm" << std::endl;
         out << "/" << image->GetIdentifier().GetString() << " Do" << std::endl;
     }
 

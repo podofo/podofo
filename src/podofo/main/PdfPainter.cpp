@@ -276,7 +276,7 @@ void PdfPainter::SetStrokeStyle(const cspan<double>& dashArray, double phase)
 
 void PdfPainter::SetClipRect(const PdfRect& rect)
 {
-    this->SetClipRect(rect.GetLeft(), rect.GetBottom(), rect.GetWidth(), rect.GetHeight());
+    this->SetClipRect(rect.X, rect.Y, rect.Width, rect.Height);
 }
 
 void PdfPainter::SetClipRect(double x, double y, double width, double height)
@@ -345,7 +345,7 @@ void PdfPainter::DrawRectangle(double x, double y, double width, double height, 
 
 void PdfPainter::DrawRectangle(const PdfRect& rect, PdfPathDrawMode mode, double roundX, double roundY)
 {
-    drawRectangle(rect.GetLeft(), rect.GetBottom(), rect.GetWidth(), rect.GetHeight(), mode, roundX, roundY);
+    drawRectangle(rect.X, rect.Y, rect.Width, rect.Height, mode, roundX, roundY);
 }
 
 void PdfPainter::DrawText(const string_view& str, double x, double y,
@@ -405,8 +405,7 @@ void PdfPainter::drawText(const string_view& str, double x, double y, bool isUnd
 void PdfPainter::DrawTextMultiLine(const string_view& str, const PdfRect& rect,
     const PdfDrawTextMultiLineParams& params)
 {
-    this->DrawTextMultiLine(str, rect.GetLeft(), rect.GetBottom(), rect.GetWidth(), rect.GetHeight(),
-        params);
+    this->DrawTextMultiLine(str, rect.X, rect.Y, rect.Width, rect.Height, params);
 }
 
 void PdfPainter::DrawTextMultiLine(const string_view& str, double x, double y, double width, double height,
@@ -685,8 +684,8 @@ void PdfPainter::drawTextAligned(const string_view& str, double x, double y, dou
 void PdfPainter::DrawImage(const PdfImage& obj, double x, double y, double scaleX, double scaleY)
 {
     this->DrawXObject(obj, x, y,
-        scaleX * obj.GetRect().GetWidth(),
-        scaleY * obj.GetRect().GetHeight());
+        scaleX * obj.GetRect().Width,
+        scaleY * obj.GetRect().Height);
 }
 
 void PdfPainter::DrawXObject(const PdfXObject& obj, double x, double y, double scaleX, double scaleY)

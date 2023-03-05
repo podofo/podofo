@@ -253,10 +253,10 @@ void PdfFontMetricsStandard14::GetBoundingBox(std::vector<double>& bbox) const
 {
     // Convert to PDF units
     bbox.clear();
-    bbox.push_back(m_data.BBox.GetLeft() / 1000.0);
-    bbox.push_back(m_data.BBox.GetBottom() / 1000.0);
-    bbox.push_back(m_data.BBox.GetWidth() / 1000.0);
-    bbox.push_back(m_data.BBox.GetHeight() / 1000.0);
+    bbox.push_back(m_data.BBox.X / 1000.0);
+    bbox.push_back(m_data.BBox.Y / 1000.0);
+    bbox.push_back(m_data.BBox.Width / 1000.0);
+    bbox.push_back(m_data.BBox.Height / 1000.0);
 }
 
 datahandle PdfFontMetricsStandard14::getFontFileDataHandle() const

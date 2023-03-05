@@ -19,6 +19,12 @@ class Matrix;
 class PODOFO_API PdfRect final
 {
 public:
+    double X;
+    double Y;
+    double Width;
+    double Height;
+
+public:
     /** Create an empty rectangle with bottom=left=with=height=0
      */
     PdfRect();
@@ -27,12 +33,12 @@ public:
      *  All values are in PDF units
      *	NOTE: since PDF is bottom-left origined, we pass the bottom instead of the top
      */
-    PdfRect(double left, double bottom, double width, double height);
+    PdfRect(double x, double y, double width, double height);
 
     /** Create a rectangle from an array
      *  All values are in PDF units
      */
-    PdfRect(const PdfArray& inArray);
+    PdfRect(const PdfArray& arr);
 
     /** Copy constructor
      */
@@ -68,67 +74,26 @@ public:
      */
     void Intersect(const PdfRect& rect);
 
-    PdfRect operator*(const Matrix& m) const;
-
 public:
+    /** Get the left coordinate of the rectangle
+     */
+    double GetLeft() const { return X; }
+
+    /** Get the bottom coordinate of the rectangle
+     */
+    double GetBottom() const { return Y; }
+
     /** Get the right coordinate of the rectangle
-     *  \returns bottom
      */
     double GetRight() const;
 
     /** Get the top coordinate of the rectangle
-     *  \returns bottom
      */
     double GetTop() const;
 
-    /** Get the bottom coordinate of the rectangle
-     *  \returns bottom
-     */
-    inline double GetBottom() const { return m_Bottom; }
-
-    /** Set the bottom coordinate of the rectangle
-     *  \param bottom
-     */
-    inline void SetBottom(double bottom) { m_Bottom = bottom; }
-
-    /** Get the left coordinate of the rectangle
-     *  \returns left in PDF units
-     */
-    inline double GetLeft() const { return m_Left; }
-
-    /** Set the left coordinate of the rectangle
-     *  \param left in PDF units
-     */
-    inline void SetLeft(double left) { m_Left = left; }
-
-    /** Get the width of the rectangle
-     *  \returns width in PDF units
-     */
-    inline double GetWidth() const { return m_Width; }
-
-    /** Set the width of the rectangle
-     *  \param lWidth in PDF units
-     */
-    inline void SetWidth(double width) { m_Width = width; }
-
-    /** Get the height of the rectangle
-     *  \returns height in PDF units
-     */
-    inline double GetHeight() const { return m_Height; }
-
-    /** Set the height of the rectangle
-     *  \param lHeight in PDF units
-     */
-    inline void SetHeight(double height) { m_Height = height; }
-
 public:
+    PdfRect operator*(const Matrix& m) const;
     PdfRect& operator=(const PdfRect& rhs) = default;
-
-private:
-    double m_Left;
-    double m_Bottom;
-    double m_Width;
-    double m_Height;
 };
 
 };

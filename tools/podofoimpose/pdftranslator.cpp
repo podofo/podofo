@@ -132,8 +132,8 @@ void PdfTranslator::setSource(const string& source)
 
         PdfRect rect(firstPage.GetMediaBox());
         // keep in mind it’s just a hint since PDF can have different page sizes in a same doc
-        sourceWidth = rect.GetWidth() - rect.GetLeft();
-        sourceHeight = rect.GetHeight() - rect.GetBottom();
+        sourceWidth = rect.Width - rect.X;
+        sourceHeight = rect.Height - rect.Y;
     }
 }
 

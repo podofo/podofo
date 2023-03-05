@@ -132,13 +132,13 @@ void PdfXObjectForm::initAfterPageInsertion(const PdfPage& page)
         {
             double temp;
 
-            temp = m_Rect.GetWidth();
-            m_Rect.SetWidth(m_Rect.GetHeight());
-            m_Rect.SetHeight(temp);
+            temp = m_Rect.Width;
+            m_Rect.Width = m_Rect.Height;
+            m_Rect.Height = temp;
 
-            temp = m_Rect.GetLeft();
-            m_Rect.SetLeft(m_Rect.GetBottom());
-            m_Rect.SetBottom(temp);
+            temp = m_Rect.X;
+            m_Rect.X = m_Rect.Y;
+            m_Rect.Y = temp;
         }
         break;
 
@@ -159,24 +159,24 @@ void PdfXObjectForm::initAfterPageInsertion(const PdfPage& page)
     switch (rotation)
     {
         case 90:
-            e = -m_Rect.GetLeft();
-            f = m_Rect.GetBottom() + m_Rect.GetHeight();
+            e = -m_Rect.X;
+            f = m_Rect.Y + m_Rect.Height;
             break;
 
         case 180:
-            e = m_Rect.GetLeft() + m_Rect.GetWidth();
-            f = m_Rect.GetBottom() + m_Rect.GetHeight();
+            e = m_Rect.X + m_Rect.Width;
+            f = m_Rect.Y + m_Rect.Height;
             break;
 
         case 270:
-            e = m_Rect.GetLeft() + m_Rect.GetWidth();
-            f = -m_Rect.GetBottom();
+            e = m_Rect.X + m_Rect.Width;
+            f = -m_Rect.Y;
             break;
 
         case 0:
         default:
-            e = -m_Rect.GetLeft();
-            f = -m_Rect.GetBottom();
+            e = -m_Rect.X;
+            f = -m_Rect.Y;
             break;
     }
 

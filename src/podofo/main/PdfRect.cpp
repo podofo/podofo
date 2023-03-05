@@ -20,39 +20,42 @@ static void NormalizeCoordinates(double& coord1, double& coord2);
 using namespace std;
 using namespace PoDoFo;
 
-PdfRect::PdfRect()
+PdfRect::PdfRect() :
+    X(0),
+    Y(0),
+    Width(0),
+    Height(0)
 {
-    m_Bottom = m_Left = m_Width = m_Height = 0;
 }
 
-PdfRect::PdfRect(double left, double bottom, double width, double height)
+PdfRect::PdfRect(double x, double y, double width, double height) :
+    X(x),
+    Y(y),
+    Width(width),
+    Height(height)
 {
-    m_Bottom = bottom;
-    m_Left = left;
-    m_Width = width;
-    m_Height = height;
 }
 
 PdfRect PdfRect::FromCorners(double x1, double y1, double x2, double y2)
 {
     PdfRect rect;
-    CreateRect(x1, y1, x2, y2, rect.m_Left, rect.m_Bottom, rect.m_Width, rect.m_Height);
+    CreateRect(x1, y1, x2, y2, rect.X, rect.Y, rect.Width, rect.Height);
     return rect;
 }
 
 PdfRect::PdfRect(const PdfArray& arr)
 {
-    m_Bottom = m_Left = m_Width = m_Height = 0;
+    Y = X = Width = Height = 0;
     FromArray(arr);
 }
 
 void PdfRect::ToArray(PdfArray& arr) const
 {
     arr.Clear();
-    arr.Add(PdfObject(m_Left));
-    arr.Add(PdfObject(m_Bottom));
-    arr.Add(PdfObject((m_Width + m_Left)));
-    arr.Add(PdfObject((m_Height + m_Bottom)));
+    arr.Add(PdfObject(X));
+    arr.Add(PdfObject(Y));
+    arr.Add(PdfObject((Width + X)));
+    arr.Add(PdfObject((Height + Y)));
 }
 
 string PdfRect::ToString() const
@@ -66,8 +69,8 @@ string PdfRect::ToString() const
 
 bool PdfRect::Contains(double x, double y) const
 {
-	return x >= m_Left && x <= m_Left + m_Width
-		&& y >= m_Bottom && y <= m_Bottom + m_Height;
+	return x >= X && x <= X + Width
+		&& y >= Y && y <= Y + Height;
 }
 
 void PdfRect::FromArray(const PdfArray& arr)
@@ -79,7 +82,7 @@ void PdfRect::FromArray(const PdfArray& arr)
         double x2 = arr[2].GetReal();
         double y2 = arr[3].GetReal();
 
-        CreateRect(x1, y1, x2, y2, m_Left, m_Bottom, m_Width, m_Height);
+        CreateRect(x1, y1, x2, y2, X, Y, Width, Height);
     }
     else
     {
@@ -89,51 +92,51 @@ void PdfRect::FromArray(const PdfArray& arr)
 
 double PdfRect::GetRight() const
 {
-    return m_Left + m_Width;
+    return X + Width;
 }
 
 double PdfRect::GetTop() const
 {
-    return m_Bottom + m_Height;
+    return Y + Height;
 }
 
 void PdfRect::Intersect(const PdfRect& rect)
 {
-    if (rect.GetBottom() != 0 || rect.GetHeight() != 0 || rect.GetLeft() != 0 || rect.GetWidth() != 0)
+    if (rect.Y != 0 || rect.Height != 0 || rect.X != 0 || rect.Width != 0)
     {
         double diff;
 
-        diff = rect.m_Left - m_Left;
+        diff = rect.X - X;
         if (diff > 0.0)
         {
-            m_Left += diff;
-            m_Width -= diff;
+            X += diff;
+            Width -= diff;
         }
 
-        diff = (m_Left + m_Width) - (rect.m_Left + rect.m_Width);
+        diff = (X + Width) - (rect.X + rect.Width);
         if (diff > 0.0)
         {
-            m_Width -= diff;
+            Width -= diff;
         }
 
-        diff = rect.m_Bottom - m_Bottom;
+        diff = rect.Y - Y;
         if (diff > 0.0)
         {
-            m_Bottom += diff;
-            m_Height -= diff;
+            Y += diff;
+            Height -= diff;
         }
 
-        diff = (m_Bottom + m_Height) - (rect.m_Bottom + rect.m_Height);
+        diff = (Y + Height) - (rect.Y + rect.Height);
         if (diff > 0.0)
         {
-            m_Height -= diff;
+            Height -= diff;
         }
     }
 }
 
 PdfRect PdfRect::operator*(const Matrix& m) const
 {
-    Vector2 corner1(m_Left, m_Bottom);
+    Vector2 corner1(X, Y);
     Vector2 corner2(GetRight(), GetTop());
     corner1 = corner1 * m;
     corner2 = corner2 * m;

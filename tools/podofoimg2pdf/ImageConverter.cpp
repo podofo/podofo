@@ -34,8 +34,8 @@ void ImageConverter::Work()
             size = PdfRect(0.0, 0.0, image->GetWidth(), image->GetHeight());
 
         auto& page = document.GetPages().CreatePage(size);
-        scaleX = size.GetWidth() / image->GetWidth();
-        scaleY = size.GetHeight() / image->GetHeight();
+        scaleX = size.Width / image->GetWidth();
+        scaleY = size.Height / image->GetHeight();
         scale = std::min(scaleX, scaleY);
 
         painter.SetCanvas(page);
@@ -46,8 +46,8 @@ void ImageConverter::Work()
         else
         {
             // Center Image
-            double x = (size.GetWidth() - image->GetWidth()) / 2.0;
-            double y = (size.GetHeight() - image->GetHeight()) / 2.0;
+            double x = (size.Width - image->GetWidth()) / 2.0;
+            double y = (size.Height - image->GetHeight()) / 2.0;
             painter.DrawImage(*image, x, y);
         }
 

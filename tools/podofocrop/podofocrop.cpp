@@ -36,10 +36,10 @@ void crop_page(PdfPage& page, const PdfRect& cropBox)
     PdfArray arr;
     /*
     printf("%f %f %f %f\n",
-           rCropBox.GetLeft(),
-           rCropBox.GetBottom(),
-           rCropBox.GetWidth(),
-           rCropBox.GetHeight());
+           rCropBox.X,
+           rCropBox.Y,
+           rCropBox.Width,
+           rCropBox.Height);
     */
     cropBox.ToArray(arr);
     page.GetDictionary().AddKey("MediaBox", arr);
@@ -156,10 +156,10 @@ vector<PdfRect> get_crop_boxes(const string_view& input)
             {
                 // I have no idea, while gs writes BoundingBoxes twice to stdout ..
                 printf("Using bounding box: [ %f %f %f %f ]\n",
-                    curRect.GetLeft(),
-                    curRect.GetBottom(),
-                    curRect.GetWidth(),
-                    curRect.GetHeight());
+                    curRect.X,
+                    curRect.Y,
+                    curRect.Width,
+                    curRect.Height);
                 rects.push_back(curRect);
                 haveRect = false;
             }

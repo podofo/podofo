@@ -258,7 +258,7 @@ Matrix PoDoFo::GetFrameRotationTransform(const PdfRect& rect, double teta)
     auto rect_1 = PdfRect::FromCorners(corner1.X, corner1.Y, corner2.X, corner2.Y);
 
     // Find the axis align translation
-    Vector2 leftBottom_1(rect_1.GetLeft(), rect_1.GetBottom());
+    Vector2 leftBottom_1(rect_1.X, rect_1.Y);
     Vector2 alignTx_1 = leftBottom - leftBottom_1;
     return  R * Matrix::CreateTranslation(alignTx_1);
 }
@@ -277,7 +277,7 @@ Matrix PoDoFo::GetFrameRotationTransformInverse(const PdfRect& rect, double teta
     auto rect_1 = PdfRect::FromCorners(corner1.X, corner1.Y, corner2.X, corner2.Y);
 
     // Find the axis align translation in the canonical frame
-    Vector2 leftBottom_1(rect_1.GetLeft(), rect_1.GetBottom());
+    Vector2 leftBottom_1(rect_1.X, rect_1.Y);
     Vector2 alignTx_1 = leftBottom_1 - leftBottom;
     return Matrix::CreateTranslation(alignTx_1) * R_inv;
 }

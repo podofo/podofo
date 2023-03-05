@@ -40,7 +40,7 @@ void draw(const char* buffer, PdfDocument& document, const string_view& fontName
     size = PdfPage::CreateStandardPageSize(PdfPageSize::A4);
     auto font = document.GetFonts().SearchFont(fontName);
     auto page = &document.GetPages().CreatePage(size);
-    y = size.GetHeight() - y;
+    y = size.Height - y;
     if (font == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
@@ -58,7 +58,7 @@ void draw(const char* buffer, PdfDocument& document, const string_view& fontName
             {
                 page = &document.GetPages().CreatePage(size);
                 painter.SetCanvas(*page);
-                y = size.GetHeight() - y;
+                y = size.Height - y;
             }
         }
         else

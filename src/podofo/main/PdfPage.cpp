@@ -98,53 +98,53 @@ PdfRect PdfPage::CreateStandardPageSize(const PdfPageSize pageSize, bool landsca
     switch (pageSize)
     {
         case PdfPageSize::A0:
-            rect.SetWidth(2384.0);
-            rect.SetHeight(3370.0);
+            rect.Width = 2384;
+            rect.Height = 3370;
             break;
 
         case PdfPageSize::A1:
-            rect.SetWidth(1684.0);
-            rect.SetHeight(2384.0);
+            rect.Width = 1684;
+            rect.Height = 2384;
             break;
 
         case PdfPageSize::A2:
-            rect.SetWidth(1191.0);
-            rect.SetHeight(1684.0);
+            rect.Width = 1191;
+            rect.Height = 1684;
             break;
 
         case PdfPageSize::A3:
-            rect.SetWidth(842.0);
-            rect.SetHeight(1190.0);
+            rect.Width = 842;
+            rect.Height = 1190;
             break;
 
         case PdfPageSize::A4:
-            rect.SetWidth(595.0);
-            rect.SetHeight(842.0);
+            rect.Width = 595;
+            rect.Height = 842;
             break;
 
         case PdfPageSize::A5:
-            rect.SetWidth(420.0);
-            rect.SetHeight(595.0);
+            rect.Width = 420;
+            rect.Height = 595;
             break;
 
         case PdfPageSize::A6:
-            rect.SetWidth(297.0);
-            rect.SetHeight(420.0);
+            rect.Width = 297;
+            rect.Height = 420;
             break;
 
         case PdfPageSize::Letter:
-            rect.SetWidth(612.0);
-            rect.SetHeight(792.0);
+            rect.Width = 612;
+            rect.Height = 792;
             break;
 
         case PdfPageSize::Legal:
-            rect.SetWidth(612.0);
-            rect.SetHeight(1008.0);
+            rect.Width = 612;
+            rect.Height = 1008;
             break;
 
         case PdfPageSize::Tabloid:
-            rect.SetWidth(792.0);
-            rect.SetHeight(1224.0);
+            rect.Width = 792;
+            rect.Height = 1224;
             break;
 
         default:
@@ -153,9 +153,9 @@ PdfRect PdfPage::CreateStandardPageSize(const PdfPageSize pageSize, bool landsca
 
     if (landscape)
     {
-        double dTmp = rect.GetWidth();
-        rect.SetWidth(rect.GetHeight());
-        rect.SetHeight(dTmp);
+        double tmp = rect.Width;
+        rect.Width = rect.Height;
+        rect.Height = tmp;
     }
 
     return rect;

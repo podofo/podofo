@@ -40,7 +40,7 @@ namespace PoDoFo {
  *  PdfPainter painter;
  *  painter.SetPage(page);
  *  painter.SetFont(font);
- *  painter.DrawText(56.69, page->GetRect().GetHeight() - 56.69, "Hello World!");
+ *  painter.DrawText(56.69, page->GetRect().Height - 56.69, "Hello World!");
  *  painter.FinishPage();
  *
  *  document.Close();

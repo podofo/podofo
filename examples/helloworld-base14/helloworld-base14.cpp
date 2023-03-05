@@ -98,7 +98,7 @@ void HelloWorld(const string_view& filename)
         // The position specifies the start of the baseline of the text.
         //
         // All coordinates in PoDoFo are in PDF units.
-        painter.DrawText("Hello World!", 56.69, page.GetRect().GetHeight() - 56.69);
+        painter.DrawText("Hello World!", 56.69, page.GetRect().Height - 56.69);
 
         DemoBase14Fonts(painter, page, document, params);
 
@@ -216,7 +216,7 @@ void DrawRedFrame(PdfPainter& painter, double x, double y, double width, double 
 
 void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, const PdfFontSearchParams& params)
 {
-    double x = 56, y = page.GetRect().GetHeight() - 56.69;
+    double x = 56, y = page.GetRect().Height - 56.69;
     string_view demo_text = "abcdefgABCDEFG12345!#$%&+-@?        ";
     double height = 0.0f, width = 0.0f;
 

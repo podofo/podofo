@@ -72,8 +72,8 @@ void PdfPainterPath::AddCircle(double x, double y, double radius)
 void PdfPainterPath::AddRectangle(const PdfRect& rect, double roundX, double roundY)
 {
     open(m_CurrentPoint.X, m_CurrentPoint.Y);
-    PoDoFo::WriteRectangle(m_stream, rect.GetLeft(), rect.GetBottom(),
-        rect.GetWidth(), rect.GetHeight(), roundX, roundY, m_CurrentPoint);
+    PoDoFo::WriteRectangle(m_stream, rect.X, rect.Y,
+        rect.Width, rect.Height, roundX, roundY, m_CurrentPoint);
 }
 
 void PdfPainterPath::AddPath(const PdfPainterPath& path, bool connect)
