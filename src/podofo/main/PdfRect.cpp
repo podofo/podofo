@@ -9,7 +9,7 @@
 
 #include "PdfArray.h"
 #include "PdfVariant.h"
-#include "PdfMath.h"
+#include "Matrix.h"
 
 #include <iomanip>
 

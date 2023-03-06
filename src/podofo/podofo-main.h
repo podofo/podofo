@@ -11,6 +11,8 @@
 #include "main/PdfDeclarations.h"
 #include "main/PdfError.h"
 #include "main/PdfCommon.h"
+#include "main/Vector2.h"
+#include "main/Matrix.h"
 #include "main/PdfMath.h"
 #include "main/PdfOperatorUtils.h"
 #include "main/PdfArray.h"

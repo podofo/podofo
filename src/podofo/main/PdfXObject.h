@@ -10,7 +10,7 @@
 #include "PdfElement.h"
 #include "PdfArray.h"
 #include "PdfRect.h"
-#include "PdfMath.h"
+#include "Matrix.h"
 
 namespace PoDoFo {
 
@@ -18,7 +18,6 @@ class PdfObject;
 class PdfImage;
 class PdfXObjectForm;
 class PdfXObjectPostScript;
-class Matrix;
 
 /** A XObject is a content stream with several drawing commands and data
  *  which can be used throughout a PDF document.

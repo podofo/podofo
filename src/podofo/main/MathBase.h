@@ -7,8 +7,6 @@
 #ifndef PDF_MATH_BASE_H
 #define PDF_MATH_BASE_H
 
-#include "PdfDeclarations.h"
-
 namespace PoDoFo
 {
     enum class AlgebraicTrait
