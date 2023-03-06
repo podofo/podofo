@@ -171,7 +171,7 @@ PdfRect PdfPage::getPageBox(const string_view& inBox) const
     // assign the value of the box from the array
     if (obj != nullptr && obj->IsArray())
     {
-        pageBox.FromArray(obj->GetArray());
+        pageBox = PdfRect::FromArray(obj->GetArray());
     }
     else if (inBox == "ArtBox" ||
         inBox == "BleedBox" ||
