@@ -20,11 +20,11 @@
 #include "auxiliary/OutputStream.h"
 #include "auxiliary/OutputDevice.h"
 #include "auxiliary/StreamDevice.h"
+#include "auxiliary/MathBase.h"
+#include "auxiliary/Vector2.h"
+#include "auxiliary/Matrix.h"
 
 // Main headers
-#include "main/Vector2.h"
-#include "main/Matrix.h"
-#include "main/PdfMath.h"
 #include "main/PdfDeclarations.h"
 #include "main/PdfError.h"
 #include "main/PdfCommon.h"

@@ -7,7 +7,7 @@
 #ifndef PDF_VECTOR2_H
 #define PDF_VECTOR2_H
 
-#include "PdfDeclarations.h"
+#include <podofo/main/basedefs.h>
 
 namespace PoDoFo
 {

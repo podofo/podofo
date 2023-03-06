@@ -8,7 +8,7 @@
 #define PDF_MATH_H
 
 #include "PdfDeclarations.h"
-#include "Matrix.h"
+#include <podofo/auxiliary/Matrix.h>
 
 namespace PoDoFo
 {

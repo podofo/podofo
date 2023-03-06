@@ -10,7 +10,7 @@
 #include "PdfElement.h"
 #include "PdfArray.h"
 #include "PdfRect.h"
-#include "Matrix.h"
+#include <podofo/auxiliary/Matrix.h>
 
 namespace PoDoFo {
 

@@ -9,7 +9,7 @@
 
 #include "PdfArray.h"
 #include "PdfVariant.h"
-#include "Matrix.h"
+#include <podofo/auxiliary/Matrix.h>
 
 #include <iomanip>
 

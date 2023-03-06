@@ -6,7 +6,7 @@
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "Matrix.h"
-#include "PdfArray.h"
+#include <podofo/main/PdfArray.h>
 
 using namespace PoDoFo;
 

@@ -7,7 +7,6 @@
 #ifndef PDF_MATRIX_H
 #define PDF_MATRIX_H
 
-#include "PdfDeclarations.h"
 #include "MathBase.h"
 #include "Vector2.h"
 
