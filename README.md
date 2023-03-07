@@ -265,9 +265,11 @@ as re-using the already loaded document is still untested (this may change later
 
 ## No warranty
 
-PoDoFo may or may not work for your needs and comes with absolutely no warranty.
-Serious bugs, including security flaws, may be fixed at arbitrary
-timeframes, or not fixed at all.
+PoDoFo may or may not work for your needs and comes with absolutely no
+warranty. Serious bugs, including security flaws, may be fixed at arbitrary
+timeframes, or not fixed at all. Priority of implementing new features
+and bug fixing are decided according to the interests and personal
+preferences of the maintainers.
 
 ## Contributions
 
@@ -282,6 +284,7 @@ of the project. As a minimum requisite, any contribution should be:
 
 Other reasons for the rejection, or hold, of a pull request may be:
 
+* the proposed code is incomplete or hacky;
 * the change doesn't fit the scope of PoDoFo;
 * the change shows lack of knowledge/mastery of the PDF specification and/or C++ language;
 * the change breaks automatic tests performed by the maintainer;
