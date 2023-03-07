@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#ifndef INPUT_STREAM_H
-#define INPUT_STREAM_H
+#ifndef AUX_INPUT_STREAM_H
+#define AUX_INPUT_STREAM_H
 
 #include "basedefs.h"
 
@@ -84,4 +84,4 @@ private:
 
 };
 
-#endif // INPUT_STREAM_H
+#endif // AUX_INPUT_STREAM_H

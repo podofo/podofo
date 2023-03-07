@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-#ifndef PDF_VECTOR2_H
-#define PDF_VECTOR2_H
+#ifndef AUX_VECTOR2_H
+#define AUX_VECTOR2_H
 
 #include "basedefs.h"
 
@@ -45,4 +45,4 @@ namespace PoDoFo
     };
 }
 
-#endif // PDF_VECTOR2_H
+#endif // AUX_VECTOR2_H

@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-#ifndef PDF_MATRIX_H
-#define PDF_MATRIX_H
+#ifndef AUX_MATRIX_H
+#define AUX_MATRIX_H
 
 #include "MathBase.h"
 #include "Vector2.h"
@@ -89,4 +89,4 @@ namespace PoDoFo
     };
 }
 
-#endif // PDF_MATRIX_H
+#endif // AUX_MATRIX_H

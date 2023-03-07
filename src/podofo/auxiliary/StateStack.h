@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-#ifndef STATE_STACK_H
-#define STATE_STACK_H
+#ifndef AUX_STATE_STACK_H
+#define AUX_STATE_STACK_H
 
 #include <stack>
 #include <stdexcept>
@@ -105,4 +105,4 @@ namespace PoDoFo
     }
 }
 
-#endif // STATE_STACK_H
+#endif // AUX_STATE_STACK_H

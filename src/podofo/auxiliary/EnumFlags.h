@@ -1,5 +1,5 @@
-#ifndef ENUM_FLAGS_H
-#define ENUM_FLAGS_H
+#ifndef AUX_ENUM_FLAGS_H
+#define AUX_ENUM_FLAGS_H
 
 #include <type_traits>
 
@@ -99,4 +99,4 @@ operator |=(Enum& lhs, Enum rhs) noexcept
     return lhs;
 }
 
-#endif // ENUM_FLAGS_H
+#endif // AUX_ENUM_FLAGS_H

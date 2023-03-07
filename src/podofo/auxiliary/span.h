@@ -1,5 +1,5 @@
-#ifndef COMMON_SPAN_H
-#define COMMON_SPAN_H
+#ifndef AUX_SPAN_H
+#define AUX_SPAN_H
 #pragma once
 
 #include "span.hpp"
@@ -18,4 +18,4 @@ namespace PoDoFo
     using mspan = tcb::span<T, Extent>;
 }
 
-#endif // COMMON_SPAN_H
+#endif // AUX_SPAN_H

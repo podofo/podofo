@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-#ifndef BASE_TYPES_H
-#define BASE_TYPES_H
+#ifndef PODOFO_BASE_TYPES_H
+#define PODOFO_BASE_TYPES_H
 #pragma once
 
 #include <string>
@@ -160,4 +160,4 @@ namespace PoDoFo
     constexpr bool always_false = false;
 }
 
-#endif // BASE_TYPES_H
+#endif // PODOFO_BASE_TYPES_H

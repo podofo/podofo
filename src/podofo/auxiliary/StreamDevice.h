@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#ifndef STREAM_DEVICE_H
-#define STREAM_DEVICE_H
+#ifndef AUX_STREAM_DEVICE_H
+#define AUX_STREAM_DEVICE_H
 
 #include <ostream>
 #include <fstream>
@@ -279,4 +279,4 @@ using BufferStreamDevice = ContainerStreamDevice<charbuff>;
 
 }
 
-#endif // STREAM_DEVICE_H
+#endif // AUX_STREAM_DEVICE_H

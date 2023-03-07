@@ -31,7 +31,7 @@ public:
 
     /** Create a rectangle with a given size and position
      *  All values are in PDF units
-     *	NOTE: since PDF is bottom-left origined, we pass the bottom instead of the top
+     *	NOTE: PDF rect is normally bottom-left origined
      */
     PdfRect(double x, double y, double width, double height);
 

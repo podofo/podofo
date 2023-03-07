@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-#ifndef COMMON_NULLABLE_H
-#define COMMON_NULLABLE_H
+#ifndef AUX_NULLABLE_H
+#define AUX_NULLABLE_H
 #pragma once
 
 #include <cstddef>
@@ -406,4 +406,4 @@ namespace PoDoFo
     }
 }
 
-#endif // COMMON_NULLABLE_H
+#endif // AUX_NULLABLE_H
