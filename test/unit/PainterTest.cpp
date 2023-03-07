@@ -33,7 +33,7 @@ namespace
         /** Get the current canvas size in PDF Units
          *  \returns a Rect containing the page size available for drawing
          */
-        Rect GetRect() const override
+        Rect GetRectRaw() const override
         {
             PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
         }

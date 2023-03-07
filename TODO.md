@@ -12,7 +12,6 @@
 - PdfFilterFactory: Move CreateFilterList somewhere else (PdfFilter), make it private
 - Rename NameToColorSpaceRaw/ColorSpaceToNameRaw to something more consistent?
 - More enum <-> strings functions and make them public
-- Add PdfAnnotation::GetRectRaw, make GetRect() return normalized rotation rect
 - Make PdfObjectStream not flate filter by default in PdfMemDocument?
 - PdfElement: Optimize, keep dictionary/array pointer. Add GetObjectPtr()
 - PdfPageCollection: Fix caching (it's very slow at the moment)

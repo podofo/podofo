@@ -43,6 +43,31 @@ PdfPage::PdfPage(PdfObject& obj, unsigned index, const deque<PdfObject*>& listOf
 
 Rect PdfPage::GetRect() const
 {
+    auto rect = this->GetMediaBox();
+    switch (GetRotationRaw())
+    {
+        case 90:
+        case 270:
+        case -90:
+        case -270:
+        {
+            double temp = rect.Width;
+            rect.Width = rect.Height;
+            rect.Height = temp;
+            break;
+        }
+        case 0:
+        case 180:
+        case -180:
+            break;
+        default:
+            throw runtime_error("Invalid rotation");
+    }
+    return rect;
+}
+
+Rect PdfPage::GetRectRaw() const
+{
     return this->GetMediaBox();
 }
 

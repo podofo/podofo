@@ -93,6 +93,16 @@ double Rect::GetTop() const
     return Y + Height;
 }
 
+bool Rect::operator==(const Rect& rect) const
+{
+    return X == rect.X && Y == rect.Y && Width == rect.Width && Height == rect.Height;
+}
+
+bool Rect::operator!=(const Rect& rect) const
+{
+    return X != rect.X || Y != rect.Y || Width != rect.Width || Height != rect.Height;
+}
+
 void Rect::Intersect(const Rect& rect)
 {
     if (rect.Y != 0 || rect.Height != 0 || rect.X != 0 || rect.Width != 0)

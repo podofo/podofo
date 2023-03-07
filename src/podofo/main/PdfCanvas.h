@@ -79,7 +79,7 @@ public:
     /** Get the current canvas size in PDF Units
      *  \returns a Rect containing the page size available for drawing
      */
-    virtual Rect GetRect() const = 0;
+    virtual Rect GetRectRaw() const = 0;
 
     /** Get the current canvas rotation
      * \param teta counterclockwise rotation in radians

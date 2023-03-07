@@ -74,7 +74,9 @@ public:
         const std::string_view& pattern = { },
         const PdfTextExtractParams& params = { }) const;
 
-    Rect GetRect() const override;
+    Rect GetRect() const;
+
+    Rect GetRectRaw() const override;
 
     bool HasRotation(double& teta) const override;
 

@@ -81,6 +81,11 @@ Rect PdfXObjectForm::GetRect() const
     return m_Rect;
 }
 
+Rect PdfXObjectForm::GetRectRaw() const
+{
+    return m_Rect;
+}
+
 PdfObject* PdfXObjectForm::getContentsObject()
 {
     return &const_cast<PdfXObjectForm&>(*this).GetObject();

@@ -33,17 +33,16 @@ namespace PoDoFo {
  *
  *  Example of using PdfStreamedDocument:
  *
- *  PdfStreamedDocument document("outputfile.pdf");
- *  PdfPage* page = document.CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
- *  PdfFont* font = document.CreateFont("Arial");
+ *  PdfStreamedDocument document;
+ *  document.Load("outputfile.pdf");
+ *  PdfPage& page = document.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+ *  PdfFont* font = document.GetFonts().SearchFont("Arial");
  *
  *  PdfPainter painter;
- *  painter.SetPage(page);
- *  painter.SetFont(font);
- *  painter.DrawText(56.69, page->GetRect().Height - 56.69, "Hello World!");
- *  painter.FinishPage();
- *
- *  document.Close();
+ *  painter.SetCanvas(page);
+ *  painter.TextState.SetFont(*font, 18);
+ *  painter.DrawText("Hello World!", 56.69, page.GetRect().Height - 56.69);
+ *  painter.FinishDrawing();
  */
 class PODOFO_API PdfStreamedDocument final : public PdfDocument
 {

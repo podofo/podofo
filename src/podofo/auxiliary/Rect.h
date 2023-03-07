@@ -84,6 +84,10 @@ public:
     double GetTop() const;
 
 public:
+    bool operator==(const Rect& rect) const;
+    bool operator!=(const Rect& rect) const;
+
+public:
     Rect operator*(const Matrix& m) const;
     Rect& operator=(const Rect& rhs) = default;
 };

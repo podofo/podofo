@@ -64,6 +64,7 @@ private:
     PdfXObjectForm(PdfObject& obj);
 
 private:
+    Rect GetRectRaw() const override;
     PdfObject* getContentsObject() override;
     PdfResources* getResources() override;
     PdfElement& getElement() override;
