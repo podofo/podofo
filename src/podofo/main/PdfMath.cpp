@@ -6,11 +6,10 @@
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfMath.h"
-#include "PdfRect.h"
 
 using namespace PoDoFo;
 
-Matrix PoDoFo::GetFrameRotationTransform(const PdfRect& rect, double teta)
+Matrix PoDoFo::GetFrameRotationTransform(const Rect& rect, double teta)
 {
     auto R = Matrix::CreateRotation(teta);
 
@@ -20,7 +19,7 @@ Matrix PoDoFo::GetFrameRotationTransform(const PdfRect& rect, double teta)
     // Rotate the rect
     auto corner1 = leftBottom * R;
     auto corner2 = rightTop * R;
-    auto rect_1 = PdfRect::FromCorners(corner1.X, corner1.Y, corner2.X, corner2.Y);
+    auto rect_1 = Rect::FromCorners(corner1.X, corner1.Y, corner2.X, corner2.Y);
 
     // Find the axis align translation
     Vector2 leftBottom_1(rect_1.X, rect_1.Y);
@@ -28,7 +27,7 @@ Matrix PoDoFo::GetFrameRotationTransform(const PdfRect& rect, double teta)
     return  R * Matrix::CreateTranslation(alignTx_1);
 }
 
-Matrix PoDoFo::GetFrameRotationTransformInverse(const PdfRect& rect, double teta)
+Matrix PoDoFo::GetFrameRotationTransformInverse(const Rect& rect, double teta)
 {
     auto R = Matrix::CreateRotation(teta);
     auto R_inv = Matrix::CreateRotation(-teta);
@@ -39,7 +38,7 @@ Matrix PoDoFo::GetFrameRotationTransformInverse(const PdfRect& rect, double teta
     // Rotate rect to the canonical frame
     auto corner1 = leftBottom * R;
     auto corner2 = rightTop * R;
-    auto rect_1 = PdfRect::FromCorners(corner1.X, corner1.Y, corner2.X, corner2.Y);
+    auto rect_1 = Rect::FromCorners(corner1.X, corner1.Y, corner2.X, corner2.Y);
 
     // Find the axis align translation in the canonical frame
     Vector2 leftBottom_1(rect_1.X, rect_1.Y);

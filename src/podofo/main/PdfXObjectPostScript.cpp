@@ -15,7 +15,7 @@ PdfXObjectPostScript::PdfXObjectPostScript(PdfObject& obj)
 
 }
 
-PdfRect PdfXObjectPostScript::GetRect() const
+Rect PdfXObjectPostScript::GetRect() const
 {
-    return PdfRect();
+    return Rect();
 }

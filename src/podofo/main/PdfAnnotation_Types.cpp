@@ -89,7 +89,7 @@ bool PdfAnnotationText::GetOpen() const
     return GetDictionary().GetKeyAs<bool>("Open", false);
 }
 
-PdfAnnotationTextMarkupBase::PdfAnnotationTextMarkupBase(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect)
+PdfAnnotationTextMarkupBase::PdfAnnotationTextMarkupBase(PdfPage& page, PdfAnnotationType annotType, const Rect& rect)
     : PdfAnnotation(page, annotType, rect)
 {
 }
@@ -99,7 +99,7 @@ PdfAnnotationTextMarkupBase::PdfAnnotationTextMarkupBase(PdfObject& obj, PdfAnno
 {
 }
 
-PdfAnnotationLink::PdfAnnotationLink(PdfPage& page, const PdfRect& rect)
+PdfAnnotationLink::PdfAnnotationLink(PdfPage& page, const Rect& rect)
     : PdfAnnotationActionBase(page, PdfAnnotationType::Link, rect)
 {
 }
@@ -109,7 +109,7 @@ PdfAnnotationLink::PdfAnnotationLink(PdfObject& obj)
 {
 }
 
-PdfAnnotationPopup::PdfAnnotationPopup(PdfPage& page, const PdfRect& rect)
+PdfAnnotationPopup::PdfAnnotationPopup(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::Popup, rect)
 {
 }
@@ -119,7 +119,7 @@ PdfAnnotationPopup::PdfAnnotationPopup(PdfObject& obj)
 {
 }
 
-PdfAnnotationText::PdfAnnotationText(PdfPage& page, const PdfRect& rect)
+PdfAnnotationText::PdfAnnotationText(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::Text, rect)
 {
 }
@@ -129,7 +129,7 @@ PdfAnnotationText::PdfAnnotationText(PdfObject& obj)
 {
 }
 
-PdfAnnotationCaret::PdfAnnotationCaret(PdfPage& page, const PdfRect& rect)
+PdfAnnotationCaret::PdfAnnotationCaret(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::Caret, rect)
 {
 }
@@ -139,7 +139,7 @@ PdfAnnotationCaret::PdfAnnotationCaret(PdfObject& obj)
 {
 }
 
-PdfAnnotationFileAttachement::PdfAnnotationFileAttachement(PdfPage& page, const PdfRect& rect)
+PdfAnnotationFileAttachement::PdfAnnotationFileAttachement(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::FileAttachement, rect)
 {
 }
@@ -149,7 +149,7 @@ PdfAnnotationFileAttachement::PdfAnnotationFileAttachement(PdfObject& obj)
 {
 }
 
-PdfAnnotationFreeText::PdfAnnotationFreeText(PdfPage& page, const PdfRect& rect)
+PdfAnnotationFreeText::PdfAnnotationFreeText(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::FreeText, rect)
 {
 }
@@ -159,7 +159,7 @@ PdfAnnotationFreeText::PdfAnnotationFreeText(PdfObject& obj)
 {
 }
 
-PdfAnnotationHighlight::PdfAnnotationHighlight(PdfPage& page, const PdfRect& rect)
+PdfAnnotationHighlight::PdfAnnotationHighlight(PdfPage& page, const Rect& rect)
     : PdfAnnotationTextMarkupBase(page, PdfAnnotationType::Highlight, rect)
 {
 }
@@ -169,7 +169,7 @@ PdfAnnotationHighlight::PdfAnnotationHighlight(PdfObject& obj)
 {
 }
 
-PdfAnnotationInk::PdfAnnotationInk(PdfPage& page, const PdfRect& rect)
+PdfAnnotationInk::PdfAnnotationInk(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::Ink, rect)
 {
 }
@@ -179,7 +179,7 @@ PdfAnnotationInk::PdfAnnotationInk(PdfObject& obj)
 {
 }
 
-PdfAnnotationLine::PdfAnnotationLine(PdfPage& page, const PdfRect& rect)
+PdfAnnotationLine::PdfAnnotationLine(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::Line, rect)
 {
 }
@@ -189,7 +189,7 @@ PdfAnnotationLine::PdfAnnotationLine(PdfObject& obj)
 {
 }
 
-PdfAnnotationModel3D::PdfAnnotationModel3D(PdfPage& page, const PdfRect& rect)
+PdfAnnotationModel3D::PdfAnnotationModel3D(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::Model3D, rect)
 {
 }
@@ -199,7 +199,7 @@ PdfAnnotationModel3D::PdfAnnotationModel3D(PdfObject& obj)
 {
 }
 
-PdfAnnotationMovie::PdfAnnotationMovie(PdfPage& page, const PdfRect& rect)
+PdfAnnotationMovie::PdfAnnotationMovie(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::Movie, rect)
 {
 }
@@ -209,7 +209,7 @@ PdfAnnotationMovie::PdfAnnotationMovie(PdfObject& obj)
 {
 }
 
-PdfAnnotationPolygon::PdfAnnotationPolygon(PdfPage& page, const PdfRect& rect)
+PdfAnnotationPolygon::PdfAnnotationPolygon(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::Polygon, rect)
 {
 }
@@ -219,7 +219,7 @@ PdfAnnotationPolygon::PdfAnnotationPolygon(PdfObject& obj)
 {
 }
 
-PdfAnnotationPolyLine::PdfAnnotationPolyLine(PdfPage& page, const PdfRect& rect)
+PdfAnnotationPolyLine::PdfAnnotationPolyLine(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::PolyLine, rect)
 {
 }
@@ -229,7 +229,7 @@ PdfAnnotationPolyLine::PdfAnnotationPolyLine(PdfObject& obj)
 {
 }
 
-PdfAnnotationPrinterMark::PdfAnnotationPrinterMark(PdfPage& page, const PdfRect& rect)
+PdfAnnotationPrinterMark::PdfAnnotationPrinterMark(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::PrinterMark, rect)
 {
 }
@@ -239,7 +239,7 @@ PdfAnnotationPrinterMark::PdfAnnotationPrinterMark(PdfObject& obj)
 {
 }
 
-PdfAnnotationRichMedia::PdfAnnotationRichMedia(PdfPage& page, const PdfRect& rect)
+PdfAnnotationRichMedia::PdfAnnotationRichMedia(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::RichMedia, rect)
 {
 }
@@ -249,7 +249,7 @@ PdfAnnotationRichMedia::PdfAnnotationRichMedia(PdfObject& obj)
 {
 }
 
-PdfAnnotationScreen::PdfAnnotationScreen(PdfPage& page, const PdfRect& rect)
+PdfAnnotationScreen::PdfAnnotationScreen(PdfPage& page, const Rect& rect)
     : PdfAnnotationActionBase(page, PdfAnnotationType::Screen, rect)
 {
 }
@@ -259,7 +259,7 @@ PdfAnnotationScreen::PdfAnnotationScreen(PdfObject& obj)
 {
 }
 
-PdfAnnotationSquiggly::PdfAnnotationSquiggly(PdfPage& page, const PdfRect& rect)
+PdfAnnotationSquiggly::PdfAnnotationSquiggly(PdfPage& page, const Rect& rect)
     : PdfAnnotationTextMarkupBase(page, PdfAnnotationType::Squiggly, rect)
 {
 }
@@ -269,7 +269,7 @@ PdfAnnotationSquiggly::PdfAnnotationSquiggly(PdfObject& obj)
 {
 }
 
-PdfAnnotationStrikeOut::PdfAnnotationStrikeOut(PdfPage& page, const PdfRect& rect)
+PdfAnnotationStrikeOut::PdfAnnotationStrikeOut(PdfPage& page, const Rect& rect)
     : PdfAnnotationTextMarkupBase(page, PdfAnnotationType::StrikeOut, rect)
 {
 }
@@ -279,7 +279,7 @@ PdfAnnotationStrikeOut::PdfAnnotationStrikeOut(PdfObject& obj)
 {
 }
 
-PdfAnnotationSound::PdfAnnotationSound(PdfPage& page, const PdfRect& rect)
+PdfAnnotationSound::PdfAnnotationSound(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::Sound, rect)
 {
 }
@@ -289,7 +289,7 @@ PdfAnnotationSound::PdfAnnotationSound(PdfObject& obj)
 {
 }
 
-PdfAnnotationSquare::PdfAnnotationSquare(PdfPage& page, const PdfRect& rect)
+PdfAnnotationSquare::PdfAnnotationSquare(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::Square, rect)
 {
 }
@@ -299,7 +299,7 @@ PdfAnnotationSquare::PdfAnnotationSquare(PdfObject& obj)
 {
 }
 
-PdfAnnotationCircle::PdfAnnotationCircle(PdfPage& page, const PdfRect& rect)
+PdfAnnotationCircle::PdfAnnotationCircle(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::Circle, rect)
 {
 }
@@ -309,7 +309,7 @@ PdfAnnotationCircle::PdfAnnotationCircle(PdfObject& obj)
 {
 }
 
-PdfAnnotationStamp::PdfAnnotationStamp(PdfPage& page, const PdfRect& rect)
+PdfAnnotationStamp::PdfAnnotationStamp(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::Stamp, rect)
 {
 }
@@ -319,7 +319,7 @@ PdfAnnotationStamp::PdfAnnotationStamp(PdfObject& obj)
 {
 }
 
-PdfAnnotationTrapNet::PdfAnnotationTrapNet(PdfPage& page, const PdfRect& rect)
+PdfAnnotationTrapNet::PdfAnnotationTrapNet(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::TrapNet, rect)
 {
 }
@@ -329,7 +329,7 @@ PdfAnnotationTrapNet::PdfAnnotationTrapNet(PdfObject& obj)
 {
 }
 
-PdfAnnotationUnderline::PdfAnnotationUnderline(PdfPage& page, const PdfRect& rect)
+PdfAnnotationUnderline::PdfAnnotationUnderline(PdfPage& page, const Rect& rect)
     : PdfAnnotationTextMarkupBase(page, PdfAnnotationType::Underline, rect)
 {
 }
@@ -339,7 +339,7 @@ PdfAnnotationUnderline::PdfAnnotationUnderline(PdfObject& obj)
 {
 }
 
-PdfAnnotationWatermark::PdfAnnotationWatermark(PdfPage& page, const PdfRect& rect)
+PdfAnnotationWatermark::PdfAnnotationWatermark(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::Watermark, rect)
 {
 }
@@ -349,7 +349,7 @@ PdfAnnotationWatermark::PdfAnnotationWatermark(PdfObject& obj)
 {
 }
 
-PdfAnnotationWebMedia::PdfAnnotationWebMedia(PdfPage& page, const PdfRect& rect)
+PdfAnnotationWebMedia::PdfAnnotationWebMedia(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::WebMedia, rect)
 {
 }
@@ -359,7 +359,7 @@ PdfAnnotationWebMedia::PdfAnnotationWebMedia(PdfObject& obj)
 {
 }
 
-PdfAnnotationRedact::PdfAnnotationRedact(PdfPage& page, const PdfRect& rect)
+PdfAnnotationRedact::PdfAnnotationRedact(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::Redact, rect)
 {
 }
@@ -369,7 +369,7 @@ PdfAnnotationRedact::PdfAnnotationRedact(PdfObject& obj)
 {
 }
 
-PdfAnnotationProjection::PdfAnnotationProjection(PdfPage& page, const PdfRect& rect)
+PdfAnnotationProjection::PdfAnnotationProjection(PdfPage& page, const Rect& rect)
     : PdfAnnotation(page, PdfAnnotationType::Projection, rect)
 {
 }

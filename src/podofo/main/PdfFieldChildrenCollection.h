@@ -8,7 +8,7 @@
 #define PDF_FIELD_CHILDREN_COLLECTION_H
 
 #include "PdfObject.h"
-#include "PdfRect.h"
+#include <podofo/auxiliary/Rect.h>
 
 namespace PoDoFo
 {
@@ -24,7 +24,7 @@ namespace PoDoFo
 
     public:
         PdfField& CreateChild();
-        PdfField& CreateChild(PdfPage& page, const PdfRect& rect);
+        PdfField& CreateChild(PdfPage& page, const Rect& rect);
 
         PdfField& GetFieldAt(unsigned index);
 

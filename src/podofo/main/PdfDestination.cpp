@@ -40,7 +40,7 @@ PdfDestination::PdfDestination(const PdfPage& page, PdfDestinationFit fit)
     arr.Add(type);
 }
 
-PdfDestination::PdfDestination(const PdfPage& page, const PdfRect& rect)
+PdfDestination::PdfDestination(const PdfPage& page, const Rect& rect)
     : PdfDestination(page.GetDocument())
 {
     PdfArray rectArr;
@@ -220,13 +220,13 @@ double PdfDestination::GetLeft() const
     return GetArray()[2].GetReal();
 }
 
-PdfRect PdfDestination::GetRect() const
+Rect PdfDestination::GetRect() const
 {
     if (GetType() != PdfDestinationType::FitR)
         PODOFO_RAISE_ERROR(PdfErrorCode::WrongDestinationType);
 
     auto& arr = GetArray();
-    return PdfRect(arr[2].GetReal(), arr[3].GetReal(),
+    return Rect(arr[2].GetReal(), arr[3].GetReal(),
         arr[4].GetReal(), arr[5].GetReal());
 }
 

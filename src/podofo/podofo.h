@@ -23,6 +23,7 @@
 #include "auxiliary/MathBase.h"
 #include "auxiliary/Vector2.h"
 #include "auxiliary/Matrix.h"
+#include "auxiliary/Rect.h"
 
 // Main headers
 #include "main/PdfDeclarations.h"
@@ -59,7 +60,6 @@
 #include "main/PdfParser.h"
 #include "main/PdfParserObject.h"
 #include "main/PdfXRefStreamParserObject.h"
-#include "main/PdfRect.h"
 #include "main/PdfReference.h"
 #include "main/PdfSigner.h"
 #include "main/PdfObjectStream.h"

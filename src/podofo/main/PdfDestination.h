@@ -8,7 +8,7 @@
 
 #include "PdfDeclarations.h"
 
-#include "PdfRect.h"
+#include <podofo/auxiliary/Rect.h>
 #include "PdfElement.h"
 
 namespace PoDoFo {
@@ -70,7 +70,7 @@ public:
      *  \param page a page which is the destination
      *  \param rect magnify the page so that the contents of the rectangle are visible
      */
-    PdfDestination(const PdfPage& page, const PdfRect& rect);
+    PdfDestination(const PdfPage& page, const Rect& rect);
 
     /** Create a new destination to a page with specified left
      *  and top coordinates and a zoom factor.
@@ -120,7 +120,7 @@ public:
      *
      *  \returns the destination rect
      */
-    PdfRect GetRect() const;
+    Rect GetRect() const;
 
     /** Get the destination Top position
      *  Destination must be of type XYZ, FitH, FitR, FitBH

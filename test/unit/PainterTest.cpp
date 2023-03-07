@@ -31,9 +31,9 @@ namespace
         }
 
         /** Get the current canvas size in PDF Units
-         *  \returns a PdfRect containing the page size available for drawing
+         *  \returns a Rect containing the page size available for drawing
          */
-        PdfRect GetRect() const override
+        Rect GetRect() const override
         {
             PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
         }
@@ -356,7 +356,7 @@ TEST_CASE("TestPainter6")
     painter.SetCanvas(page);
     REQUIRE(painter.GetStateStack().Current->CurrentPoint == nullptr);
     PdfPainterPath path;
-    path.AddRectangle(PdfRect(10,10, 100, 50));
+    path.AddRectangle(Rect(10,10, 100, 50));
     painter.Save();
     painter.DrawPath(path);
     path.GetCurrentPoint() == Vector2(10, 10);

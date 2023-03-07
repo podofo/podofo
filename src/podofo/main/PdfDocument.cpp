@@ -344,7 +344,7 @@ PdfInfo& PdfDocument::GetOrCreateInfo()
     return *m_Info;
 }
 
-PdfRect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page, bool useTrimBox)
+Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page, bool useTrimBox)
 {
     unsigned difference = 0;
     auto& sourceDoc = page.GetDocument();
@@ -358,7 +358,7 @@ PdfRect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& pa
 
     auto& pageObj = m_Objects.MustGetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
         + difference, page.GetObject().GetIndirectReference().GenerationNumber()));
-    PdfRect box = page.GetMediaBox();
+    Rect box = page.GetMediaBox();
 
     // intersect with crop-box
     box.Intersect(page.GetCropBox());
@@ -612,7 +612,7 @@ unique_ptr<PdfImage> PdfDocument::CreateImage(const string_view& prefix)
     return unique_ptr<PdfImage>(new PdfImage(*this, prefix));
 }
 
-unique_ptr<PdfXObjectForm> PdfDocument::CreateXObjectForm(const PdfRect& rect, const string_view& prefix)
+unique_ptr<PdfXObjectForm> PdfDocument::CreateXObjectForm(const Rect& rect, const string_view& prefix)
 {
     return unique_ptr<PdfXObjectForm>(new PdfXObjectForm(*this, rect, prefix));
 }

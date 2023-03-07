@@ -329,7 +329,7 @@ static void draw_annotation(PdfDocument& document,
     PdfPainter& painter,
     int argc,
     char* argv[],
-    const PdfRect& annot_rect)
+    const Rect& annot_rect)
 {
     const char* annot_units = "mm";
     double font_size = convert_to_pdf_units("mm", 5.0);
@@ -909,10 +909,10 @@ int main(int argc, char* argv[])
         else
         {
             auto& page = document.GetPages().GetPageAt(annot_page);
-            PdfRect annot_rect;
+            Rect annot_rect;
             if (annot_position)
             {
-                annot_rect = PdfRect(annot_left, page.GetMediaBox().Height - annot_top - annot_height, annot_width, annot_height);
+                annot_rect = Rect(annot_left, page.GetMediaBox().Height - annot_top - annot_height, annot_width, annot_height);
             }
 
             signature = &page.CreateField<PdfSignature>(name, annot_rect);
@@ -923,7 +923,7 @@ int main(int argc, char* argv[])
 
             if (annot_position)
             {
-                PdfRect annotSize(0.0, 0.0, annot_rect.Width, annot_rect.Height);
+                Rect annotSize(0.0, 0.0, annot_rect.Width, annot_rect.Height);
                 auto sigXObject = document.CreateXObjectForm(annotSize);
                 PdfPainter painter;
 

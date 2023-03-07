@@ -20,7 +20,7 @@ using namespace PoDoFo;
 
 static PdfName GetAppearanceName(PdfAppearanceType appearance);
 
-PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect)
+PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const Rect& rect)
     : PdfDictionaryElement(page.GetDocument(), "Annot"), m_AnnotationType(annotType), m_Page(&page)
 {
     const PdfName name(PoDoFo::AnnotationTypeToName(annotType));
@@ -45,15 +45,15 @@ PdfAnnotation::PdfAnnotation(PdfObject& obj, PdfAnnotationType annotType)
 {
 }
 
-PdfRect PdfAnnotation::GetRect() const
+Rect PdfAnnotation::GetRect() const
 {
     if (GetDictionary().HasKey(PdfName::KeyRect))
-        return PdfRect::FromArray(GetDictionary().MustFindKey(PdfName::KeyRect).GetArray());
+        return Rect::FromArray(GetDictionary().MustFindKey(PdfName::KeyRect).GetArray());
 
-    return PdfRect();
+    return Rect();
 }
 
-void PdfAnnotation::SetRect(const PdfRect& rect)
+void PdfAnnotation::SetRect(const Rect& rect)
 {
     PdfArray arr;
     rect.ToArray(arr);
@@ -99,7 +99,7 @@ void PoDoFo::SetAppearanceStreamForObject(PdfObject& obj, PdfXObjectForm& xobj,
     }
 }
 
-unique_ptr<PdfAnnotation> PdfAnnotation::Create(PdfPage& page, const type_info& typeInfo, const PdfRect& rect)
+unique_ptr<PdfAnnotation> PdfAnnotation::Create(PdfPage& page, const type_info& typeInfo, const Rect& rect)
 {
     return Create(page, getAnnotationType(typeInfo), rect);
 }
@@ -120,7 +120,7 @@ const PdfPage& PdfAnnotation::MustGetPage() const
     return *m_Page;
 }
 
-unique_ptr<PdfAnnotation> PdfAnnotation::Create(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect)
+unique_ptr<PdfAnnotation> PdfAnnotation::Create(PdfPage& page, PdfAnnotationType annotType, const Rect& rect)
 {
     switch (annotType)
     {

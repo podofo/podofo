@@ -16,7 +16,7 @@
 namespace PoDoFo {
 
 class PdfObject;
-class PdfRect;
+class Rect;
 
 /** Class for managing the tree of Pages in a PDF document
  *  Don't use this class directly. Use PdfDocument instead.
@@ -72,20 +72,20 @@ public:
      *  The returned page is owned by the pages tree and will get deleted along
      *  with it!
      *
-     *  \param size a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
+     *  \param size a Rect specifying the size of the page (i.e the /MediaBox key) in PDF units
      *  \returns a pointer to a PdfPage object
      */
-    PdfPage& CreatePage(const PdfRect& size);
+    PdfPage& CreatePage(const Rect& size);
 
     /** Creates a new page object and inserts it at index atIndex.
      *  The returned page is owned by the pages tree and will get deleted along
      *  with it!
      *
-     *  \param size a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
+     *  \param size a Rect specifying the size of the page (i.e the /MediaBox key) in PDF units
      *  \param atIndex index where to insert the new page (0-based)
      *  \returns a pointer to a PdfPage object
      */
-    PdfPage& CreatePageAt(unsigned atIndex, const PdfRect& size);
+    PdfPage& CreatePageAt(unsigned atIndex, const Rect& size);
 
     /** Appends another PdfDocument to this document.
      *  \param doc the document to append

@@ -15,7 +15,7 @@ TEST_CASE("testEmptyContentsStream")
 {
     PdfMemDocument doc;
     auto& page1 = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
-    auto& annot1 = page1.GetAnnotations().CreateAnnot<PdfAnnotationPopup>(PdfRect(300.0, 20.0, 250.0, 50.0));
+    auto& annot1 = page1.GetAnnotations().CreateAnnot<PdfAnnotationPopup>(Rect(300.0, 20.0, 250.0, 50.0));
     PdfString title("Author: Dominik Seichter");
     annot1.SetContents(title);
     annot1.SetOpen(true);

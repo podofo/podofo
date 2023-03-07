@@ -437,7 +437,7 @@ enum class PdfSaveOptions
 
 /**
  * Enum holding the supported page sizes by PoDoFo.
- * Can be used to construct a PdfRect structure with
+ * Can be used to construct a Rect structure with
  * measurements of a page object.
  *
  * \see PdfPage

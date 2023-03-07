@@ -4,19 +4,19 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#ifndef PDF_RECT_H
-#define PDF_RECT_H
+#ifndef AUX_RECT_H
+#define AUX_RECT_H
 
-#include "PdfDeclarations.h"
+#include "basedefs.h"
 
 namespace PoDoFo {
 
 class PdfArray;
 class Matrix;
 
-/** A rectangle as defined by the PDF reference
+/** A rectangle defined by position and size
  */
-class PODOFO_API PdfRect final
+class PODOFO_API Rect final
 {
 public:
     double X;
@@ -27,36 +27,33 @@ public:
 public:
     /** Create an empty rectangle with bottom=left=with=height=0
      */
-    PdfRect();
+    Rect();
 
     /** Create a rectangle with a given size and position
-     *  All values are in PDF units
-     *	NOTE: PDF rect is normally bottom-left origined
      */
-    PdfRect(double x, double y, double width, double height);
+    Rect(double x, double y, double width, double height);
 
     /** Copy constructor
      */
-    PdfRect(const PdfRect& rhs) = default;
+    Rect(const Rect& rhs) = default;
 
 public:
-    /** Create a PdfRect from a couple of arbitrary points
-     * \returns the created PdfRect
+    /** Create a Rect from a couple of arbitrary points
+     * \returns the created Rect
      */
-    static PdfRect FromCorners(double x1, double y1, double x2, double y2);
+    static Rect FromCorners(double x1, double y1, double x2, double y2);
 
-    /** Create a PdfRect from a the 4 values in the array
+    /** Create a Rect from a the 4 values in the array
      *  \param arr the array to load the values from
      */
-    static PdfRect FromArray(const PdfArray& arr);
+    static Rect FromArray(const PdfArray& arr);
 
     /** Converts the rectangle into an array
-     *  based on PDF units
      *  \param var the array to store the Rect
      */
     void ToArray(PdfArray& arr) const;
 
-    /** Returns a string representation of the PdfRect
+    /** Returns a string representation of the Rect
      * \returns std::string representation as [ left bottom right top ]
      */
     std::string ToString() const;
@@ -67,7 +64,7 @@ public:
     /** Intersect with another rect
      *  \param rect the rect to intersect with
      */
-    void Intersect(const PdfRect& rect);
+    void Intersect(const Rect& rect);
 
 public:
     /** Get the left coordinate of the rectangle
@@ -87,10 +84,10 @@ public:
     double GetTop() const;
 
 public:
-    PdfRect operator*(const Matrix& m) const;
-    PdfRect& operator=(const PdfRect& rhs) = default;
+    Rect operator*(const Matrix& m) const;
+    Rect& operator=(const Rect& rhs) = default;
 };
 
 };
 
-#endif // PDF_RECT_H
+#endif // AUX_RECT_H

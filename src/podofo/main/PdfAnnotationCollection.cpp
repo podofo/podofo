@@ -16,7 +16,7 @@ PdfAnnotationCollection::PdfAnnotationCollection(PdfPage& page)
 {
 }
 
-PdfAnnotation& PdfAnnotationCollection::CreateAnnot(PdfAnnotationType annotType, const PdfRect& rect)
+PdfAnnotation& PdfAnnotationCollection::CreateAnnot(PdfAnnotationType annotType, const Rect& rect)
 {
     return addAnnotation(PdfAnnotation::Create(*m_Page, annotType, rect));
 }
@@ -104,7 +104,7 @@ PdfAnnotationCollection::const_iterator PdfAnnotationCollection::end() const
     return m_Annots.end();
 }
 
-PdfAnnotation& PdfAnnotationCollection::createAnnotation(const type_info& typeInfo, const PdfRect& rect)
+PdfAnnotation& PdfAnnotationCollection::createAnnotation(const type_info& typeInfo, const Rect& rect)
 {
     return addAnnotation(PdfAnnotation::Create(*m_Page, typeInfo, rect));
 }

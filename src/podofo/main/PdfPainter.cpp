@@ -274,7 +274,7 @@ void PdfPainter::SetStrokeStyle(const cspan<double>& dashArray, double phase)
     PoDoFo::WriteOperator_d(m_stream, dashArray, phase);
 }
 
-void PdfPainter::SetClipRect(const PdfRect& rect)
+void PdfPainter::SetClipRect(const Rect& rect)
 {
     this->SetClipRect(rect.X, rect.Y, rect.Width, rect.Height);
 }
@@ -343,7 +343,7 @@ void PdfPainter::DrawRectangle(double x, double y, double width, double height, 
     drawRectangle(x, y, width, height, mode, roundX, roundY);
 }
 
-void PdfPainter::DrawRectangle(const PdfRect& rect, PdfPathDrawMode mode, double roundX, double roundY)
+void PdfPainter::DrawRectangle(const Rect& rect, PdfPathDrawMode mode, double roundX, double roundY)
 {
     drawRectangle(rect.X, rect.Y, rect.Width, rect.Height, mode, roundX, roundY);
 }
@@ -402,7 +402,7 @@ void PdfPainter::drawText(const string_view& str, double x, double y, bool isUnd
         !font.GetEncoding().IsSimpleEncoding());
 }
 
-void PdfPainter::DrawTextMultiLine(const string_view& str, const PdfRect& rect,
+void PdfPainter::DrawTextMultiLine(const string_view& str, const Rect& rect,
     const PdfDrawTextMultiLineParams& params)
 {
     this->DrawTextMultiLine(str, rect.X, rect.Y, rect.Width, rect.Height, params);

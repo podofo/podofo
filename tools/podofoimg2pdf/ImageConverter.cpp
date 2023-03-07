@@ -19,7 +19,7 @@ void ImageConverter::Work()
 {
     PdfMemDocument document;
 
-    PdfRect size = PdfPage::CreateStandardPageSize(PdfPageSize::A4, false);
+    Rect size = PdfPage::CreateStandardPageSize(PdfPageSize::A4, false);
     PdfPainter painter;
     double scaleX = 1.0;
     double scaleY = 1.0;
@@ -31,7 +31,7 @@ void ImageConverter::Work()
         image->Load(file);
 
         if (m_useImageSize)
-            size = PdfRect(0.0, 0.0, image->GetWidth(), image->GetHeight());
+            size = Rect(0.0, 0.0, image->GetWidth(), image->GetHeight());
 
         auto& page = document.GetPages().CreatePage(size);
         scaleX = size.Width / image->GetWidth();

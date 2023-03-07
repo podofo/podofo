@@ -5,13 +5,11 @@
  */
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
-#include "PdfRect.h"
+#include "Rect.h"
 
-#include "PdfArray.h"
-#include "PdfVariant.h"
+#include <podofo/main/PdfArray.h>
+#include <podofo/main/PdfVariant.h>
 #include <podofo/auxiliary/Matrix.h>
-
-#include <iomanip>
 
 static void CreateRect(double x1, double y1, double x2, double y2,
     double& left, double& bottom, double& width, double& height);
@@ -20,7 +18,7 @@ static void NormalizeCoordinates(double& coord1, double& coord2);
 using namespace std;
 using namespace PoDoFo;
 
-PdfRect::PdfRect() :
+Rect::Rect() :
     X(0),
     Y(0),
     Width(0),
@@ -28,7 +26,7 @@ PdfRect::PdfRect() :
 {
 }
 
-PdfRect::PdfRect(double x, double y, double width, double height) :
+Rect::Rect(double x, double y, double width, double height) :
     X(x),
     Y(y),
     Width(width),
@@ -36,14 +34,14 @@ PdfRect::PdfRect(double x, double y, double width, double height) :
 {
 }
 
-PdfRect PdfRect::FromCorners(double x1, double y1, double x2, double y2)
+Rect Rect::FromCorners(double x1, double y1, double x2, double y2)
 {
-    PdfRect rect;
+    Rect rect;
     CreateRect(x1, y1, x2, y2, rect.X, rect.Y, rect.Width, rect.Height);
     return rect;
 }
 
-void PdfRect::ToArray(PdfArray& arr) const
+void Rect::ToArray(PdfArray& arr) const
 {
     arr.Clear();
     arr.Add(PdfObject(X));
@@ -52,7 +50,7 @@ void PdfRect::ToArray(PdfArray& arr) const
     arr.Add(PdfObject((Height + Y)));
 }
 
-string PdfRect::ToString() const
+string Rect::ToString() const
 {
     PdfArray arr;
     string str;
@@ -61,13 +59,13 @@ string PdfRect::ToString() const
     return str;
 }
 
-bool PdfRect::Contains(double x, double y) const
+bool Rect::Contains(double x, double y) const
 {
 	return x >= X && x <= X + Width
 		&& y >= Y && y <= Y + Height;
 }
 
-PdfRect PdfRect::FromArray(const PdfArray& arr)
+Rect Rect::FromArray(const PdfArray& arr)
 {
     if (arr.size() != 4)
         PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
@@ -82,20 +80,20 @@ PdfRect PdfRect::FromArray(const PdfArray& arr)
     double width;
     double height;
     CreateRect(x1, y1, x2, y2, x, y, width, height);
-    return PdfRect(x, y, width, height);
+    return Rect(x, y, width, height);
 }
 
-double PdfRect::GetRight() const
+double Rect::GetRight() const
 {
     return X + Width;
 }
 
-double PdfRect::GetTop() const
+double Rect::GetTop() const
 {
     return Y + Height;
 }
 
-void PdfRect::Intersect(const PdfRect& rect)
+void Rect::Intersect(const Rect& rect)
 {
     if (rect.Y != 0 || rect.Height != 0 || rect.X != 0 || rect.Width != 0)
     {
@@ -129,13 +127,13 @@ void PdfRect::Intersect(const PdfRect& rect)
     }
 }
 
-PdfRect PdfRect::operator*(const Matrix& m) const
+Rect Rect::operator*(const Matrix& m) const
 {
     Vector2 corner1(X, Y);
     Vector2 corner2(GetRight(), GetTop());
     corner1 = corner1 * m;
     corner2 = corner2 * m;
-    return PdfRect::FromCorners(corner1.X, corner1.Y, corner2.X, corner2.Y);
+    return Rect::FromCorners(corner1.X, corner1.Y, corner2.X, corner2.Y);
 }
 
 void CreateRect(double x1, double y1, double x2, double y2, double& left, double& bottom, double& width, double& height)

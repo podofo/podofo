@@ -24,9 +24,9 @@ namespace PoDoFo
 
     public:
         template <typename TAnnotation>
-        TAnnotation& CreateAnnot(const PdfRect& rect);
+        TAnnotation& CreateAnnot(const Rect& rect);
 
-        PdfAnnotation& CreateAnnot(PdfAnnotationType annotType, const PdfRect& rect);
+        PdfAnnotation& CreateAnnot(PdfAnnotationType annotType, const Rect& rect);
 
         PdfAnnotation& GetAnnotAt(unsigned index);
 
@@ -97,7 +97,7 @@ namespace PoDoFo
         const_iterator end() const;
 
     private:
-        PdfAnnotation& createAnnotation(const std::type_info& typeInfo, const PdfRect& rect);
+        PdfAnnotation& createAnnotation(const std::type_info& typeInfo, const Rect& rect);
         PdfAnnotation& addAnnotation(std::unique_ptr<PdfAnnotation>&& annot);
         PdfArray* getAnnotationsArray() const;
         void initAnnotations();
@@ -116,7 +116,7 @@ namespace PoDoFo
     };
 
     template<typename TAnnotation>
-    TAnnotation& PdfAnnotationCollection::CreateAnnot(const PdfRect& rect)
+    TAnnotation& PdfAnnotationCollection::CreateAnnot(const Rect& rect)
     {
         return static_cast<TAnnotation&>(createAnnotation(typeid(TAnnotation), rect));
     }

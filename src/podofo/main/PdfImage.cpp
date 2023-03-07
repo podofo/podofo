@@ -1307,9 +1307,9 @@ void PdfImage::SetInterpolate(bool value)
     this->GetDictionary().AddKey("Interpolate", value);
 }
 
-PdfRect PdfImage::GetRect() const
+Rect PdfImage::GetRect() const
 {
-    return PdfRect(0, 0, m_Width, m_Height);
+    return Rect(0, 0, m_Width, m_Height);
 }
 
 unsigned PdfImage::GetWidth() const

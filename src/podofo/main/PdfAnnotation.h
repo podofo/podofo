@@ -8,7 +8,7 @@
 #define PDF_ANNOTATION_H
 
 #include "PdfElement.h"
-#include "PdfRect.h"
+#include <podofo/auxiliary/Rect.h>
 #include "PdfColor.h"
 
 namespace PoDoFo {
@@ -33,7 +33,7 @@ class PODOFO_API PdfAnnotation : public PdfDictionaryElement
     friend class PdfAnnotationCollection;
 
 protected:
-    PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect);
+    PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const Rect& rect);
     PdfAnnotation(PdfObject& obj, PdfAnnotationType annotType);
 
 public:
@@ -75,12 +75,12 @@ public:
     /** Get the rectangle of this annotation.
      *  \returns a rectangle
      */
-    PdfRect GetRect() const;
+    Rect GetRect() const;
 
     /** Set the rectangle of this annotation.
      * \param rect rectangle to set
      */
-    void SetRect(const PdfRect& rect);
+    void SetRect(const Rect& rect);
 
     /** Set the flags of this annotation.
      *  \see GetFlags
@@ -169,9 +169,9 @@ public:
     const PdfPage& MustGetPage() const;
 
 private:
-    static std::unique_ptr<PdfAnnotation> Create(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect);
+    static std::unique_ptr<PdfAnnotation> Create(PdfPage& page, PdfAnnotationType annotType, const Rect& rect);
 
-    static std::unique_ptr<PdfAnnotation> Create(PdfPage& page, const std::type_info& typeInfo, const PdfRect& rect);
+    static std::unique_ptr<PdfAnnotation> Create(PdfPage& page, const std::type_info& typeInfo, const Rect& rect);
 
     void SetPage(PdfPage& page) { m_Page = &page; }
 

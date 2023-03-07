@@ -12,7 +12,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfAnnotationActionBase::PdfAnnotationActionBase(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect)
+PdfAnnotationActionBase::PdfAnnotationActionBase(PdfPage& page, PdfAnnotationType annotType, const Rect& rect)
     : PdfAnnotation(page, annotType, rect)
 {
 }

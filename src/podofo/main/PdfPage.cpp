@@ -8,7 +8,6 @@
 #include "PdfPage.h"
 
 #include "PdfDictionary.h"
-#include "PdfRect.h"
 #include "PdfVariant.h"
 #include "PdfWriter.h"
 #include "PdfObjectStream.h"
@@ -21,7 +20,7 @@ using namespace PoDoFo;
 static int normalize(int value, int start, int end);
 static PdfResources* getResources(PdfObject& obj, const deque<PdfObject*>& listOfParents);
 
-PdfPage::PdfPage(PdfDocument& parent, unsigned index, const PdfRect& size) :
+PdfPage::PdfPage(PdfDocument& parent, unsigned index, const Rect& size) :
     PdfDictionaryElement(parent, "Page"),
     m_Index(index),
     m_Contents(nullptr),
@@ -42,7 +41,7 @@ PdfPage::PdfPage(PdfObject& obj, unsigned index, const deque<PdfObject*>& listOf
         m_Contents.reset(new PdfContents(*this, *contents));
 }
 
-PdfRect PdfPage::GetRect() const
+Rect PdfPage::GetRect() const
 {
     return this->GetMediaBox();
 }
@@ -62,7 +61,7 @@ bool PdfPage::HasRotation(double& teta) const
     return true;
 }
 
-void PdfPage::initNewPage(const PdfRect& size)
+void PdfPage::initNewPage(const Rect& size)
 {
     SetMediaBox(size);
 }
@@ -91,9 +90,9 @@ PdfObjectStream& PdfPage::GetStreamForAppending(PdfStreamAppendFlags flags)
     return m_Contents->GetStreamForAppending(flags);
 }
 
-PdfRect PdfPage::CreateStandardPageSize(const PdfPageSize pageSize, bool landscape)
+Rect PdfPage::CreateStandardPageSize(const PdfPageSize pageSize, bool landscape)
 {
-    PdfRect rect;
+    Rect rect;
 
     switch (pageSize)
     {
@@ -161,9 +160,9 @@ PdfRect PdfPage::CreateStandardPageSize(const PdfPageSize pageSize, bool landsca
     return rect;
 }
 
-PdfRect PdfPage::getPageBox(const string_view& inBox) const
+Rect PdfPage::getPageBox(const string_view& inBox) const
 {
-    PdfRect	pageBox;
+    Rect	pageBox;
 
     // Take advantage of inherited values - walking up the tree if necessary
     auto obj = GetDictionary().FindKeyParent(inBox);
@@ -171,7 +170,7 @@ PdfRect PdfPage::getPageBox(const string_view& inBox) const
     // assign the value of the box from the array
     if (obj != nullptr && obj->IsArray())
     {
-        pageBox = PdfRect::FromArray(obj->GetArray());
+        pageBox = Rect::FromArray(obj->GetArray());
     }
     else if (inBox == "ArtBox" ||
         inBox == "BleedBox" ||
@@ -228,13 +227,13 @@ void PdfPage::MoveAt(unsigned index)
     m_Index = fromIndex;
 }
 
-PdfField& PdfPage::CreateField(const string_view& name, PdfFieldType fieldType, const PdfRect& rect)
+PdfField& PdfPage::CreateField(const string_view& name, PdfFieldType fieldType, const Rect& rect)
 {
     auto& annotation = static_cast<PdfAnnotationWidget&>(GetAnnotations().CreateAnnot(PdfAnnotationType::Widget, rect));
     return PdfField::Create(name, annotation, fieldType);
 }
 
-PdfField& PdfPage::createField(const string_view& name, const type_info& typeInfo, const PdfRect& rect)
+PdfField& PdfPage::createField(const string_view& name, const type_info& typeInfo, const Rect& rect)
 {
     auto& annotation = static_cast<PdfAnnotationWidget&>(GetAnnotations().CreateAnnot(PdfAnnotationType::Widget, rect));
     return PdfField::Create(name, annotation, typeInfo);
@@ -250,7 +249,7 @@ bool PdfPage::SetPageWidth(int newWidth)
     {
         auto& mediaBoxArr = mediaBoxObj->GetArray();
 
-        // in PdfRect::FromArray(), the Left value is subtracted from Width
+        // in Rect::FromArray(), the Left value is subtracted from Width
         double dLeftMediaBox = mediaBoxArr[0].GetReal();
         mediaBoxArr[2] = PdfObject(newWidth + dLeftMediaBox);
 
@@ -260,7 +259,7 @@ bool PdfPage::SetPageWidth(int newWidth)
         if (cropBoxObj != nullptr && cropBoxObj->IsArray())
         {
             auto& cropBoxArr = cropBoxObj->GetArray();
-            // in PdfRect::FromArray(), the Left value is subtracted from Width
+            // in Rect::FromArray(), the Left value is subtracted from Width
             double dLeftCropBox = cropBoxArr[0].GetReal();
             cropBoxArr[2] = PdfObject(newWidth + dLeftCropBox);
             return true;
@@ -285,7 +284,7 @@ bool PdfPage::SetPageHeight(int newHeight)
     if (obj != nullptr && obj->IsArray())
     {
         auto& mediaBoxArr = obj->GetArray();
-        // in PdfRect::FromArray(), the Bottom value is subtracted from Height
+        // in Rect::FromArray(), the Bottom value is subtracted from Height
         double bottom = mediaBoxArr[1].GetReal();
         mediaBoxArr[3] = PdfObject(newHeight + bottom);
 
@@ -295,7 +294,7 @@ bool PdfPage::SetPageHeight(int newHeight)
         if (cropBoxObj != nullptr && cropBoxObj->IsArray())
         {
             auto& cropBoxArr = cropBoxObj->GetArray();
-            // in PdfRect::FromArray(), the Bottom value is subtracted from Height
+            // in Rect::FromArray(), the Bottom value is subtracted from Height
             double dBottomCropBox = cropBoxArr[1].GetReal();
             cropBoxArr[3] = PdfObject(newHeight + dBottomCropBox);
             return true;
@@ -311,14 +310,14 @@ bool PdfPage::SetPageHeight(int newHeight)
     }
 }
 
-void PdfPage::SetMediaBox(const PdfRect& size)
+void PdfPage::SetMediaBox(const Rect& size)
 {
     PdfArray mediaBox;
     size.ToArray(mediaBox);
     this->GetDictionary().AddKey("MediaBox", mediaBox);
 }
 
-void PdfPage::SetTrimBox(const PdfRect& size)
+void PdfPage::SetTrimBox(const Rect& size)
 {
     PdfArray trimbox;
     size.ToArray(trimbox);
@@ -475,27 +474,27 @@ PdfResources& PdfPage::MustGetResources()
     return *m_Resources;
 }
 
-PdfRect PdfPage::GetMediaBox() const
+Rect PdfPage::GetMediaBox() const
 {
     return getPageBox("MediaBox");
 }
 
-PdfRect PdfPage::GetCropBox() const
+Rect PdfPage::GetCropBox() const
 {
     return getPageBox("CropBox");
 }
 
-PdfRect PdfPage::GetTrimBox() const
+Rect PdfPage::GetTrimBox() const
 {
     return getPageBox("TrimBox");
 }
 
-PdfRect PdfPage::GetBleedBox() const
+Rect PdfPage::GetBleedBox() const
 {
     return getPageBox("BleedBox");
 }
 
-PdfRect PdfPage::GetArtBox() const
+Rect PdfPage::GetArtBox() const
 {
     return getPageBox("ArtBox");
 }

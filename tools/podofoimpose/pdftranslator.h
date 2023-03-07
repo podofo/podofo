@@ -84,10 +84,10 @@ namespace PoDoFo::Impose
 
         std::map<int, PdfXObjectForm*> xobjects;
         std::map<int, PdfObject*> resources;
-        std::map<int, PdfRect> cropRect;
-        std::map<int, PdfRect> bleedRect;
-        std::map<int, PdfRect> trimRect;
-        std::map<int, PdfRect> artRect;
+        std::map<int, Rect> cropRect;
+        std::map<int, Rect> bleedRect;
+        std::map<int, Rect> trimRect;
+        std::map<int, Rect> artRect;
         std::map<int, PdfDictionary*> pDict;
         std::map<int, int> virtualMap;
         // 		int maxPageDest;

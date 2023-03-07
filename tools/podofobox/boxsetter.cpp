@@ -8,7 +8,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-BoxSetter::BoxSetter(const string_view& in, const string& out, const string_view& box, const PdfRect& rect)
+BoxSetter::BoxSetter(const string_view& in, const string& out, const string_view& box, const Rect& rect)
     : m_box(box), m_rect(rect)
 {
     PdfMemDocument source;
@@ -38,7 +38,7 @@ void BoxSetter::SetBox(PdfPage& page)
     // TODO check that box sizes are ordered
 }
 
-bool BoxSetter::CompareBox(const PdfRect &rect1, const PdfRect &rect2)
+bool BoxSetter::CompareBox(const Rect &rect1, const Rect &rect2)
 {
 	return rect1.ToString() == rect2.ToString();
 }

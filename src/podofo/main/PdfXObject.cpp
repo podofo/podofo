@@ -8,7 +8,6 @@
 #include "PdfXObject.h"
 
 #include "PdfDictionary.h"
-#include "PdfRect.h"
 #include "PdfVariant.h"
 #include "PdfImage.h"
 #include "PdfPage.h"

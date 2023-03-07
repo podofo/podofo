@@ -8,7 +8,7 @@
 #define PDF_GRAPHICS_PATH_H
 
 #include "PdfStringStream.h"
-#include "PdfRect.h"
+#include <podofo/auxiliary/Rect.h>
 
 namespace PoDoFo {
 
@@ -118,7 +118,7 @@ public:
      * \param roundX rounding factor, x direction
      * \param roundY rounding factor, y direction
      */
-    void AddRectangle(const PdfRect& rect, double roundX = 0.0, double roundY = 0.0);
+    void AddRectangle(const Rect& rect, double roundX = 0.0, double roundY = 0.0);
 
     /**
      * Add a path to the current path

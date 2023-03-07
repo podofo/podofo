@@ -130,7 +130,7 @@ void PdfTranslator::setSource(const string& source)
     {
         auto& firstPage = sourceDoc->GetPages().GetPageAt(0);
 
-        PdfRect rect(firstPage.GetMediaBox());
+        Rect rect(firstPage.GetMediaBox());
         // keep in mind it’s just a hint since PDF can have different page sizes in a same doc
         sourceWidth = rect.Width - rect.X;
         sourceHeight = rect.Height - rect.Y;
@@ -460,9 +460,9 @@ void PdfTranslator::impose()
         throw invalid_argument("impose() called with empty target");
 
     //			PdfObject trimbox;
-    //			PdfRect trim ( 0, 0, destWidth, destHeight );
+    //			Rect trim ( 0, 0, destWidth, destHeight );
     //			trim.ToVariant ( trimbox );
-    map<int, PdfRect>* bbIndex = nullptr;
+    map<int, Rect>* bbIndex = nullptr;
     if (boundingBox.size() > 0)
     {
         if (boundingBox.find("crop") != string::npos)
@@ -500,7 +500,7 @@ void PdfTranslator::impose()
         unsigned int curPlate(git->first);
         while (lastPlate != curPlate)
         {
-            newpage = &targetDoc->GetPages().CreatePage(PdfRect(0.0, 0.0, destWidth, destHeight));
+            newpage = &targetDoc->GetPages().CreatePage(Rect(0.0, 0.0, destWidth, destHeight));
             lastPlate++;
         }
         // 		newpage->GetObject()->GetDictionary().AddKey ( PdfName ( "TrimBox" ), trimbox );

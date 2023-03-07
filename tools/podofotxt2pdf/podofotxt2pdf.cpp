@@ -31,7 +31,7 @@ void print_help()
 void draw(const char* buffer, PdfDocument& document, const string_view& fontName)
 {
     PdfPainter painter;
-    PdfRect size;
+    Rect size;
 
     double x = BORDER_LEFT;
     double y = BORDER_TOP;

@@ -21,7 +21,7 @@ namespace PoDoFo {
         friend class PdfField;
         friend class PdfPage;
     private:
-        PdfAnnotationWidget(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationWidget(PdfPage& page, const Rect& rect);
         PdfAnnotationWidget(PdfObject& obj);
     public:
         const PdfField& GetField() const;

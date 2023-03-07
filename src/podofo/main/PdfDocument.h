@@ -106,7 +106,7 @@ public:
      */
     std::unique_ptr<PdfImage> CreateImage(const std::string_view& prefix = { });
 
-    std::unique_ptr<PdfXObjectForm> CreateXObjectForm(const PdfRect& rect, const std::string_view& prefix = { });
+    std::unique_ptr<PdfXObjectForm> CreateXObjectForm(const Rect& rect, const std::string_view& prefix = { });
 
     /** Checks if printing this document is allowed.
      *  Every PDF-consuming application has to adhere to this value!
@@ -303,7 +303,7 @@ private:
     void AppendDocumentPages(const PdfDocument& doc, unsigned pageIndex, unsigned pageCount);
 
     // Called by PdfXObjectForm
-    PdfRect FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page, bool useTrimBox);
+    Rect FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page, bool useTrimBox);
 
 private:
     void append(const PdfDocument& doc, bool appendAll);

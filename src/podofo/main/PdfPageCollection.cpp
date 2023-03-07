@@ -159,7 +159,7 @@ void PdfPageCollection::InsertPagesAt(unsigned atIndex, const vector<PdfObject*>
     m_cache.InsertPlaceHolders(atIndex, (unsigned)pages.size());
 }
 
-PdfPage& PdfPageCollection::CreatePage(const PdfRect& size)
+PdfPage& PdfPageCollection::CreatePage(const Rect& size)
 {
     unsigned index = this->GetCount();
     auto page = new PdfPage(*GetRoot().GetDocument(), index, size);
@@ -168,7 +168,7 @@ PdfPage& PdfPageCollection::CreatePage(const PdfRect& size)
     return *page;
 }
 
-PdfPage& PdfPageCollection::CreatePageAt(unsigned atIndex, const PdfRect& size)
+PdfPage& PdfPageCollection::CreatePageAt(unsigned atIndex, const Rect& size)
 {
     unsigned pageCount = this->GetCount();
     if (atIndex > pageCount)

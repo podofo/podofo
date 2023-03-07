@@ -11,7 +11,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfAnnotationWidget::PdfAnnotationWidget(PdfPage& page, const PdfRect& rect)
+PdfAnnotationWidget::PdfAnnotationWidget(PdfPage& page, const Rect& rect)
     : PdfAnnotationActionBase(page, PdfAnnotationType::Widget, rect)
 {
 }

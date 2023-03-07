@@ -28,7 +28,7 @@ private:
      *  \param rect the size of the XObject
      *  \param prefix optional prefix for XObject-name
      */
-    PdfXObjectForm(PdfDocument& doc, const PdfRect& rect,
+    PdfXObjectForm(PdfDocument& doc, const Rect& rect,
         const std::string_view& prefix);
 
 public:
@@ -49,12 +49,12 @@ public:
 
     bool HasRotation(double& teta) const override;
 
-    PdfRect GetRect() const override;
+    Rect GetRect() const override;
 
     /** Set the rectangle of this xobject
      *  \param rect a rectangle
      */
-    void SetRect(const PdfRect& rect);
+    void SetRect(const Rect& rect);
 
 public:
     inline PdfResources* GetResources() { return m_Resources.get(); }
@@ -68,7 +68,7 @@ private:
     PdfResources* getResources() override;
     PdfElement& getElement() override;
     PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
-    void initXObject(const PdfRect& rect);
+    void initXObject(const Rect& rect);
     void initAfterPageInsertion(const PdfPage& page);
 
 private:
@@ -78,7 +78,7 @@ private:
     const PdfObject* GetContentsObject() const = delete;
 
 private:
-    PdfRect m_Rect;
+    Rect m_Rect;
     PdfArray m_Matrix;
     std::unique_ptr<PdfResources> m_Resources;
 };

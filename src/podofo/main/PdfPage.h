@@ -9,9 +9,10 @@
 
 #include "PdfDeclarations.h"
 
+#include <podofo/auxiliary/Rect.h>
+
 #include "PdfAnnotationCollection.h"
 #include "PdfCanvas.h"
-#include "PdfRect.h"
 #include "PdfContents.h"
 #include "PdfField.h"
 #include "PdfResources.h"
@@ -30,12 +31,12 @@ struct PdfTextEntry final
     double X;
     double Y;
     double Length;
-    nullable<PdfRect> BoundingBox;
+    nullable<Rect> BoundingBox;
 };
 
 struct PdfTextExtractParams
 {
-    nullable<PdfRect> ClipRect;
+    nullable<Rect> ClipRect;
     PdfTextExtractFlags Flags;
 };
 
@@ -50,10 +51,10 @@ class PODOFO_API PdfPage final : public PdfDictionaryElement, public PdfCanvas
 
 private:
     /** Create a new PdfPage object.
-     *  \param size a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
+     *  \param size a Rect specifying the size of the page (i.e the /MediaBox key) in PDF units
      *  \param parent add the page to this parent
      */
-    PdfPage(PdfDocument& parent, unsigned index, const PdfRect& size);
+    PdfPage(PdfDocument& parent, unsigned index, const Rect& size);
 
     /** Create a PdfPage based on an existing PdfObject
      *  \param obj an existing PdfObject
@@ -73,7 +74,7 @@ public:
         const std::string_view& pattern = { },
         const PdfTextExtractParams& params = { }) const;
 
-    PdfRect GetRect() const override;
+    Rect GetRect() const override;
 
     bool HasRotation(double& teta) const override;
 
@@ -94,14 +95,14 @@ public:
     bool SetPageHeight(int newHeight);
 
     /** Set the mediabox in PDF Units
-    *  \param size a PdfRect specifying the mediabox of the page (i.e the /TrimBox key) in PDF units
+    *  \param size a Rect specifying the mediabox of the page (i.e the /TrimBox key) in PDF units
     */
-    void SetMediaBox(const PdfRect& size);
+    void SetMediaBox(const Rect& size);
 
     /** Set the trimbox in PDF Units
-     *  \param size a PdfRect specifying the trimbox of the page (i.e the /TrimBox key) in PDF units
+     *  \param size a Rect specifying the trimbox of the page (i.e the /TrimBox key) in PDF units
      */
-    void SetTrimBox(const PdfRect& size);
+    void SetTrimBox(const Rect& size);
 
     /** Page number inside of the document. The  first page
      *  has the number 1, the last page has the number
@@ -113,39 +114,39 @@ public:
      */
     unsigned GetPageNumber() const;
 
-    /** Creates a PdfRect with the page size as values which is needed to create a PdfPage object
+    /** Creates a Rect with the page size as values which is needed to create a PdfPage object
      *  from an enum which are defined for a few standard page sizes.
      *
      *  \param pageSize the page size you want
      *  \param landscape create a landscape pagesize instead of portrait (by exchanging width and height)
-     *  \returns a PdfRect object which can be passed to the PdfPage constructor
+     *  \returns a Rect object which can be passed to the PdfPage constructor
      */
-    static PdfRect CreateStandardPageSize(const PdfPageSize pageSize, bool landscape = false);
+    static Rect CreateStandardPageSize(const PdfPageSize pageSize, bool landscape = false);
 
     /** Get the current MediaBox (physical page size) in PDF units.
-     *  \returns PdfRect the page box
+     *  \returns Rect the page box
      */
-    PdfRect GetMediaBox() const;
+    Rect GetMediaBox() const;
 
     /** Get the current CropBox (visible page size) in PDF units.
-     *  \returns PdfRect the page box
+     *  \returns Rect the page box
      */
-    PdfRect GetCropBox() const;
+    Rect GetCropBox() const;
 
     /** Get the current TrimBox (cut area) in PDF units.
-     *  \returns PdfRect the page box
+     *  \returns Rect the page box
      */
-    PdfRect GetTrimBox() const;
+    Rect GetTrimBox() const;
 
     /** Get the current BleedBox (extra area for printing purposes) in PDF units.
-     *  \returns PdfRect the page box
+     *  \returns Rect the page box
      */
-    PdfRect GetBleedBox() const;
+    Rect GetBleedBox() const;
 
     /** Get the current ArtBox in PDF units.
-     *  \returns PdfRect the page box
+     *  \returns Rect the page box
      */
-    PdfRect GetArtBox() const;
+    Rect GetArtBox() const;
 
     /** Get the current page rotation (if any), it's a clockwise rotation
      *  \returns int 0, 90, 180 or 270
@@ -162,9 +163,9 @@ public:
     void MoveAt(unsigned index);
 
     template <typename TField>
-    TField& CreateField(const std::string_view& name, const PdfRect& rect);
+    TField& CreateField(const std::string_view& name, const Rect& rect);
 
-    PdfField& CreateField(const std::string_view& name, PdfFieldType fieldType, const PdfRect& rect);
+    PdfField& CreateField(const std::string_view& name, PdfFieldType fieldType, const Rect& rect);
 
     /** Set an ICC profile for this page
      *
@@ -194,7 +195,7 @@ public:
     inline const PdfAnnotationCollection& GetAnnotations() const { return m_Annotations; }
 
 private:
-    PdfField& createField(const std::string_view& name, const std::type_info& typeInfo, const PdfRect& rect);
+    PdfField& createField(const std::string_view& name, const std::type_info& typeInfo, const Rect& rect);
 
     PdfResources* getResources() override;
 
@@ -210,16 +211,16 @@ private:
      *
      * \param size page size
      */
-    void initNewPage(const PdfRect& size);
+    void initNewPage(const Rect& size);
 
     void ensureContentsCreated();
     void ensureResourcesCreated();
 
     /** Get the bounds of a specified page box in PDF units.
      * This function is internal, since there are wrappers for all standard boxes
-     *  \returns PdfRect the page box
+     *  \returns Rect the page box
      */
-    PdfRect getPageBox(const std::string_view& inBox) const;
+    Rect getPageBox(const std::string_view& inBox) const;
 
 private:
     PdfElement& GetElement() = delete;
@@ -235,7 +236,7 @@ private:
 };
 
 template<typename TField>
-TField& PdfPage::CreateField(const std::string_view& name, const PdfRect & rect)
+TField& PdfPage::CreateField(const std::string_view& name, const Rect & rect)
 {
     return static_cast<TField&>(createField(name, typeid(TField), rect));
 }

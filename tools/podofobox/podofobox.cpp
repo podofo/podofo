@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
     double bottom = double(atol(argv[5])) / 100.0;
     double width = double(atol(argv[6])) / 100.0;
     double height = double(atol(argv[7])) / 100.0;
-    PdfRect rect(left, bottom, width, height);
+    Rect rect(left, bottom, width, height);
 
     try
     {

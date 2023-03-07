@@ -69,7 +69,7 @@ void PdfPainterPath::AddCircle(double x, double y, double radius)
     PoDoFo::WriteCircle(m_stream, x, y, radius, m_CurrentPoint);
 }
 
-void PdfPainterPath::AddRectangle(const PdfRect& rect, double roundX, double roundY)
+void PdfPainterPath::AddRectangle(const Rect& rect, double roundX, double roundY)
 {
     open(m_CurrentPoint.X, m_CurrentPoint.Y);
     PoDoFo::WriteRectangle(m_stream, rect.X, rect.Y,

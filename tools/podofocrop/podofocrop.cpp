@@ -31,7 +31,7 @@ void print_help()
     printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
-void crop_page(PdfPage& page, const PdfRect& cropBox)
+void crop_page(PdfPage& page, const Rect& cropBox)
 {
     PdfArray arr;
     /*
@@ -125,14 +125,14 @@ string get_ghostscript_output(const string_view& inputPath)
     return output;
 }
 
-vector<PdfRect> get_crop_boxes(const string_view& input)
+vector<Rect> get_crop_boxes(const string_view& input)
 {
-    vector<PdfRect> rects;
+    vector<Rect> rects;
     string output = get_ghostscript_output(input);
 
     stringstream ss(output);
     string line;
-    PdfRect curRect;
+    Rect curRect;
     bool haveRect = false;
     while (std::getline(ss, line))
     {
@@ -144,7 +144,7 @@ vector<PdfRect> get_crop_boxes(const string_view& input)
                 printf("Failed to read bounding box's four numbers from '%s'\n", line.c_str() + 15);
                 exit(1);
             }
-            curRect = PdfRect(static_cast<double>(x),
+            curRect = Rect(static_cast<double>(x),
                 static_cast<double>(y),
                 static_cast<double>(w - x),
                 static_cast<double>(h - y));
@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
         printf("Cropping file:\t%s\n", inputPath);
         printf("Writing to   :\t%s\n", outputPath);
 
-        vector<PdfRect> cropBoxes = get_crop_boxes(inputPath);
+        vector<Rect> cropBoxes = get_crop_boxes(inputPath);
 
         PdfMemDocument doc;
         doc.Load(inputPath);

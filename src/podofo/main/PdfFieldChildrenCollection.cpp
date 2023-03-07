@@ -23,7 +23,7 @@ PdfField& PdfFieldChildrenCollectionBase::CreateChild()
     return AddChild(m_field->CreateChild());
 }
 
-PdfField& PdfFieldChildrenCollectionBase::CreateChild(PdfPage& page, const PdfRect& rect)
+PdfField& PdfFieldChildrenCollectionBase::CreateChild(PdfPage& page, const Rect& rect)
 {
     return AddChild(m_field->CreateChild(page, rect));
 }

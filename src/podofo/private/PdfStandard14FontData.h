@@ -29,7 +29,7 @@ struct Standard14FontData
     int16_t StemH;
     int16_t StrikeThroughPos;
     int16_t UnderlinePos;
-    PdfRect BBox;
+    Rect BBox;
 };
 
 using Std14CPToGIDMap = std::unordered_map<unsigned short, unsigned char>;

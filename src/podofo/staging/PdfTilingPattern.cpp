@@ -6,14 +6,11 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfTilingPattern.h"
 
-#include <iomanip>
-
 #include <podofo/auxiliary/StreamDevice.h>
 #include <podofo/main/PdfDocument.h>
 #include <podofo/main/PdfArray.h>
 #include <podofo/main/PdfColor.h>
 #include <podofo/main/PdfDictionary.h>
-#include <podofo/main/PdfRect.h>
 #include <podofo/main/PdfObjectStream.h>
 #include <podofo/main/PdfWriter.h>
 #include <podofo/main/PdfImage.h>
@@ -77,7 +74,7 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
     if (tilingType != PdfTilingPatternType::Image && image != nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    PdfRect rect;
+    Rect rect;
     rect.X = 0;
     rect.Y = 0;
 

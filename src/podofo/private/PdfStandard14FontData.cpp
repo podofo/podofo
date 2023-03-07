@@ -7037,7 +7037,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             262,
             -100,
-            PdfRect(-168, -218, 1000, 898)
+            Rect(-168, -218, 1000, 898)
         },
         {
             CHAR_DATA_TIMES_ITALIC,
@@ -7055,7 +7055,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             262,
             -100,
-            PdfRect(-169, -217, 1010, 883)
+            Rect(-169, -217, 1010, 883)
         },
         {
             CHAR_DATA_TIMES_BOLD,
@@ -7073,7 +7073,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             262,
             -100,
-            PdfRect(-168, -218, 1000, 935)
+            Rect(-168, -218, 1000, 935)
         },
         {
             CHAR_DATA_TIMES_BOLD_ITALIC,
@@ -7091,7 +7091,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             262,
             -100,
-            PdfRect(-200, -218, 996, 921)
+            Rect(-200, -218, 996, 921)
         },
         {
             CHAR_DATA_HELVETICA,
@@ -7109,7 +7109,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             290,
             -100,
-            PdfRect(-166, -225, 1000, 931)
+            Rect(-166, -225, 1000, 931)
         },
         {
             CHAR_DATA_HELVETICA_OBLIQUE,
@@ -7127,7 +7127,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             290,
             -100,
-            PdfRect(-170, -225, 1116, 931)
+            Rect(-170, -225, 1116, 931)
         },
         {
             CHAR_DATA_HELVETICA_BOLD,
@@ -7145,7 +7145,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             290,
             -100,
-            PdfRect(-170, -228, 1003, 962)
+            Rect(-170, -228, 1003, 962)
         },
         {
             CHAR_DATA_HELVETICA_BOLD_OBLIQUE,
@@ -7163,7 +7163,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             290,
             -100,
-            PdfRect(-174, -228, 1114, 962)
+            Rect(-174, -228, 1114, 962)
         },
         {
             CHAR_DATA_COURIER,
@@ -7181,7 +7181,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             261,
             -224,
-            PdfRect(-23, -250, 715, 805)
+            Rect(-23, -250, 715, 805)
         },
         {
             CHAR_DATA_COURIER_OBLIQUE,
@@ -7199,7 +7199,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             261,
             -224,
-            PdfRect(-27, -250, 849, 805)
+            Rect(-27, -250, 849, 805)
         },
         {
             CHAR_DATA_COURIER_BOLD,
@@ -7217,7 +7217,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             261,
             -224,
-            PdfRect(-113, -250, 749, 801)
+            Rect(-113, -250, 749, 801)
         },
         {
             CHAR_DATA_COURIER_BOLD_OBLIQUE,
@@ -7235,7 +7235,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             261,
             -224,
-            PdfRect(-57, -250, 869, 801)
+            Rect(-57, -250, 869, 801)
         },
         {
             CHAR_DATA_SYMBOL,
@@ -7253,7 +7253,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             92,
             341,
             -100,
-            PdfRect(-180, -293, 1090, 1010)
+            Rect(-180, -293, 1090, 1010)
         },
         {
             CHAR_DATA_ZAPF_DINGBATS,
@@ -7271,7 +7271,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             50,
             341,
             -100,
-            PdfRect(-1, -143, 981, 820)
+            Rect(-1, -143, 981, 820)
         }
     };
 

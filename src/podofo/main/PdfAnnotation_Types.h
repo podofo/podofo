@@ -69,7 +69,7 @@ namespace PoDoFo {
         friend class PdfAnnotationStrikeOut;
         friend class PdfAnnotationUnderline;
     private:
-        PdfAnnotationTextMarkupBase(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect);
+        PdfAnnotationTextMarkupBase(PdfPage& page, PdfAnnotationType annotType, const Rect& rect);
         PdfAnnotationTextMarkupBase(PdfObject& obj, PdfAnnotationType annotType);
 
     };
@@ -78,7 +78,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationCaret(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationCaret(PdfPage& page, const Rect& rect);
         PdfAnnotationCaret(PdfObject& obj);
     };
 
@@ -87,7 +87,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationFileAttachement(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationFileAttachement(PdfPage& page, const Rect& rect);
         PdfAnnotationFileAttachement(PdfObject& obj);
 
     public:
@@ -118,7 +118,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationFreeText(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationFreeText(PdfPage& page, const Rect& rect);
         PdfAnnotationFreeText(PdfObject& obj);
     };
 
@@ -126,7 +126,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationHighlight(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationHighlight(PdfPage& page, const Rect& rect);
         PdfAnnotationHighlight(PdfObject& obj);
     };
 
@@ -134,7 +134,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationInk(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationInk(PdfPage& page, const Rect& rect);
         PdfAnnotationInk(PdfObject& obj);
     };
 
@@ -142,7 +142,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationLine(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationLine(PdfPage& page, const Rect& rect);
         PdfAnnotationLine(PdfObject& obj);
     };
 
@@ -150,7 +150,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationLink(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationLink(PdfPage& page, const Rect& rect);
         PdfAnnotationLink(PdfObject& obj);
     public:
         /** Set the destination for link annotations
@@ -178,7 +178,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationModel3D(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationModel3D(PdfPage& page, const Rect& rect);
         PdfAnnotationModel3D(PdfObject& obj);
     };
 
@@ -186,7 +186,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationMovie(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationMovie(PdfPage& page, const Rect& rect);
         PdfAnnotationMovie(PdfObject& obj);
     };
 
@@ -194,7 +194,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationPolygon(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationPolygon(PdfPage& page, const Rect& rect);
         PdfAnnotationPolygon(PdfObject& obj);
     };
 
@@ -202,7 +202,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationPolyLine(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationPolyLine(PdfPage& page, const Rect& rect);
         PdfAnnotationPolyLine(PdfObject& obj);
     };
 
@@ -210,7 +210,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationPopup(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationPopup(PdfPage& page, const Rect& rect);
         PdfAnnotationPopup(PdfObject& obj);
     public:
         /** Sets whether this annotation is initialy open.
@@ -230,7 +230,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationPrinterMark(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationPrinterMark(PdfPage& page, const Rect& rect);
         PdfAnnotationPrinterMark(PdfObject& obj);
     };
 
@@ -240,7 +240,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationScreen(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationScreen(PdfPage& page, const Rect& rect);
         PdfAnnotationScreen(PdfObject& obj);
     };
 
@@ -248,7 +248,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationSquiggly(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationSquiggly(PdfPage& page, const Rect& rect);
         PdfAnnotationSquiggly(PdfObject& obj);
 
     };
@@ -257,7 +257,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationStrikeOut(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationStrikeOut(PdfPage& page, const Rect& rect);
         PdfAnnotationStrikeOut(PdfObject& obj);
     };
 
@@ -265,7 +265,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationSound(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationSound(PdfPage& page, const Rect& rect);
         PdfAnnotationSound(PdfObject& obj);
     };
 
@@ -273,7 +273,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationSquare(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationSquare(PdfPage& page, const Rect& rect);
         PdfAnnotationSquare(PdfObject& obj);
     };
 
@@ -281,7 +281,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationCircle(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationCircle(PdfPage& page, const Rect& rect);
         PdfAnnotationCircle(PdfObject& obj);
     };
 
@@ -289,7 +289,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationStamp(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationStamp(PdfPage& page, const Rect& rect);
         PdfAnnotationStamp(PdfObject& obj);
     };
 
@@ -297,7 +297,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationText(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationText(PdfPage& page, const Rect& rect);
         PdfAnnotationText(PdfObject& obj);
     public:
         /** Sets whether this annotation is initialy open.
@@ -317,7 +317,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationTrapNet(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationTrapNet(PdfPage& page, const Rect& rect);
         PdfAnnotationTrapNet(PdfObject& obj);
     };
 
@@ -325,7 +325,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationUnderline(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationUnderline(PdfPage& page, const Rect& rect);
         PdfAnnotationUnderline(PdfObject& obj);
 
     };
@@ -334,7 +334,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationWatermark(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationWatermark(PdfPage& page, const Rect& rect);
         PdfAnnotationWatermark(PdfObject& obj);
     };
 
@@ -342,7 +342,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationWebMedia(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationWebMedia(PdfPage& page, const Rect& rect);
         PdfAnnotationWebMedia(PdfObject& obj);
     };
 
@@ -350,7 +350,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationRedact(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationRedact(PdfPage& page, const Rect& rect);
         PdfAnnotationRedact(PdfObject& obj);
     };
 
@@ -358,7 +358,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationProjection(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationProjection(PdfPage& page, const Rect& rect);
         PdfAnnotationProjection(PdfObject& obj);
     };
 
@@ -366,7 +366,7 @@ namespace PoDoFo {
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationRichMedia(PdfPage& page, const PdfRect& rect);
+        PdfAnnotationRichMedia(PdfPage& page, const Rect& rect);
         PdfAnnotationRichMedia(PdfObject& obj);
     };
 }

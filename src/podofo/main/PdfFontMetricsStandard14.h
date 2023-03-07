@@ -10,8 +10,7 @@
 #include "PdfDeclarations.h"
 
 #include "PdfFontMetrics.h"
-#include "PdfRect.h"
-#include "PdfVariant.h"
+#include <podofo/auxiliary/Rect.h>
 
 namespace PoDoFo {
 

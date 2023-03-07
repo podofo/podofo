@@ -272,7 +272,7 @@ private:
 
     // To be called by PdfFieldChildrenCollectionBase
     std::unique_ptr<PdfField> CreateChild();
-    std::unique_ptr<PdfField> CreateChild(PdfPage& page, const PdfRect& rect);
+    std::unique_ptr<PdfField> CreateChild(PdfPage& page, const Rect& rect);
     void SetParent(const std::shared_ptr<PdfField>& parent) { m_Parent = parent; }
 
 private:
@@ -295,7 +295,7 @@ private:
     void addAlternativeAction(const PdfName& name, const PdfAction& action);
     static bool tryCreateField(PdfObject& obj, PdfFieldType type,
         std::unique_ptr<PdfField>& field);
-    std::unique_ptr<PdfField> createChildField(PdfPage* page, const PdfRect& rect);
+    std::unique_ptr<PdfField> createChildField(PdfPage* page, const Rect& rect);
     static PdfFieldType getFieldType(const PdfObject& obj);
     static PdfFieldType getFieldType(const std::type_info& typeInfo);
     std::shared_ptr<PdfField> GetPtr();

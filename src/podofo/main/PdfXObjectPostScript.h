@@ -16,7 +16,7 @@ class PODOFO_API PdfXObjectPostScript : public PdfXObject
     friend class PdfXObject;
 
 public:
-    PdfRect GetRect() const override;
+    Rect GetRect() const override;
 
 private:
     PdfXObjectPostScript(PdfObject& obj);

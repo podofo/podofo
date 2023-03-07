@@ -159,7 +159,7 @@ public:
      */
     void SetInterpolate(bool value);
 
-    PdfRect GetRect() const override;
+    Rect GetRect() const override;
 
 private:
     /** Construct an image from an existing PdfObject

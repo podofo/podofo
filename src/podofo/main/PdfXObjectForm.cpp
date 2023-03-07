@@ -13,7 +13,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfXObjectForm::PdfXObjectForm(PdfDocument& doc, const PdfRect& rect, const string_view& prefix)
+PdfXObjectForm::PdfXObjectForm(PdfDocument& doc, const Rect& rect, const string_view& prefix)
     : PdfXObject(doc, PdfXObjectType::Form, prefix), m_Rect(rect)
 {
     initXObject(rect);
@@ -23,7 +23,7 @@ PdfXObjectForm::PdfXObjectForm(PdfObject& obj)
     : PdfXObject(obj, PdfXObjectType::Form)
 {
     if (obj.GetDictionary().HasKey("BBox"))
-        m_Rect = PdfRect::FromArray(obj.GetDictionary().MustFindKey("BBox").GetArray());
+        m_Rect = Rect::FromArray(obj.GetDictionary().MustFindKey("BBox").GetArray());
 
     auto resources = obj.GetDictionary().FindKey("Resources");
     if (resources != nullptr)
@@ -52,7 +52,7 @@ bool PdfXObjectForm::HasRotation(double& teta) const
     return false;
 }
 
-void PdfXObjectForm::SetRect(const PdfRect& rect)
+void PdfXObjectForm::SetRect(const Rect& rect)
 {
     PdfArray bbox;
     rect.ToArray(bbox);
@@ -76,7 +76,7 @@ inline PdfObjectStream& PdfXObjectForm::GetStreamForAppending(PdfStreamAppendFla
     return GetObject().GetOrCreateStream();
 }
 
-PdfRect PdfXObjectForm::GetRect() const
+Rect PdfXObjectForm::GetRect() const
 {
     return m_Rect;
 }
@@ -92,7 +92,7 @@ PdfResources& PdfXObjectForm::GetOrCreateResources()
     return *m_Resources;
 }
 
-void PdfXObjectForm::initXObject(const PdfRect& rect)
+void PdfXObjectForm::initXObject(const Rect& rect)
 {
     // Initialize static data
     if (m_Matrix.IsEmpty())

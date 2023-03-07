@@ -7,7 +7,6 @@
 #ifndef PDF_PAINTER_H
 #define PDF_PAINTER_H
 
-#include "PdfRect.h"
 #include "PdfCanvas.h"
 #include "PdfTextState.h"
 #include "PdfGraphicsState.h"
@@ -293,7 +292,7 @@ public:
      *
      *  \param rect rectangle
      */
-    void SetClipRect(const PdfRect& rect);
+    void SetClipRect(const Rect& rect);
 
     /** Stroke a line with current color and line settings.
      *  \param x1 x coordinate of the starting point
@@ -358,7 +357,7 @@ public:
      *  \param roundX rounding factor, x direction
      *  \param roundY rounding factor, y direction
      */
-    void DrawRectangle(const PdfRect& rect, PdfPathDrawMode mode = PdfPathDrawMode::Stroke,
+    void DrawRectangle(const Rect& rect, PdfPathDrawMode mode = PdfPathDrawMode::Stroke,
         double roundX = 0.0, double roundY = 0.0);
 
     /** Draw a single-line text string on a page using a given font object.
@@ -392,7 +391,7 @@ public:
      *  \param rect bounding rectangle of the text
      *  \param params parameters of the draw operation
      */
-    void DrawTextMultiLine(const std::string_view& str, const PdfRect& rect,
+    void DrawTextMultiLine(const std::string_view& str, const Rect& rect,
         const PdfDrawTextMultiLineParams& params = { });
 
     /** Draw a single line of text horizontally aligned.

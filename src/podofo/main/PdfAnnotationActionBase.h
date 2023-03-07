@@ -93,7 +93,7 @@ namespace PoDoFo {
         friend class PdfAnnotationScreen;
 
     private:
-        PdfAnnotationActionBase(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect);
+        PdfAnnotationActionBase(PdfPage& page, PdfAnnotationType annotType, const Rect& rect);
         PdfAnnotationActionBase(PdfObject& obj, PdfAnnotationType annotType);
 
     public:

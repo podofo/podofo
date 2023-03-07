@@ -8,19 +8,18 @@
 #define PDF_MATH_H
 
 #include "PdfDeclarations.h"
+#include <podofo/auxiliary/Rect.h>
 #include <podofo/auxiliary/Matrix.h>
 
 namespace PoDoFo
 {
-    class PdfRect;
-
     /** Get a rotation trasformation that aligns the rectangle to the axis after the rotation
      */
-    Matrix PODOFO_API GetFrameRotationTransform(const PdfRect& rect, double teta);
+    Matrix PODOFO_API GetFrameRotationTransform(const Rect& rect, double teta);
 
     /** Get an inverse rotation trasformation that aligns the rectangle to the axis after the rotation
      */
-    Matrix PODOFO_API GetFrameRotationTransformInverse(const PdfRect& rect, double teta);
+    Matrix PODOFO_API GetFrameRotationTransformInverse(const Rect& rect, double teta);
 }
 
 #endif // PDF_MATH_H
