@@ -7,6 +7,7 @@
 #ifndef AUX_STREAM_DEVICE_H
 #define AUX_STREAM_DEVICE_H
 
+#include <cstring>
 #include <ostream>
 #include <fstream>
 #include <vector>
