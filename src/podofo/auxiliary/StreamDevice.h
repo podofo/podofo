@@ -4,11 +4,14 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#ifndef PDF_INPUT_OUTPUT_DEVICE_H
-#define PDF_INPUT_OUTPUT_DEVICE_H
+#ifndef STREAM_DEVICE_H
+#define STREAM_DEVICE_H
 
 #include <ostream>
 #include <fstream>
+#include <vector>
+
+#include "basetypes.h"
 
 #include "InputDevice.h"
 #include "OutputDevice.h"
@@ -276,4 +279,4 @@ using BufferStreamDevice = ContainerStreamDevice<charbuff>;
 
 }
 
-#endif // PDF_INPUT_OUTPUT_DEVICE_H
+#endif // STREAM_DEVICE_H

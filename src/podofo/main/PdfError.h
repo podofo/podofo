@@ -9,8 +9,8 @@
 
 // NOTE: PdfError.h should not include PdfDeclarations.h, since it is included by it.
 // It should avoid depending on anything defined in PdfDeclarations.h .
-#include "basedefs.h"
-#include "baseincludes.h"
+#include <podofo/auxiliary/basedefs.h>
+#include <podofo/auxiliary/baseincludes.h>
 
 /** \file PdfError.h
  *  Error information and logging is implemented in this file.

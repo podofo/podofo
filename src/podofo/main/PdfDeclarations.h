@@ -4,23 +4,27 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#ifndef PDF_DEFINES_H
-#define PDF_DEFINES_H
+#ifndef PDF_DECLARATIONS_H
+#define PDF_DECLARATIONS_H
 
-/** \file PdfDeclarations.h
- *        This file should be included as the FIRST file in every header of
- *        PoDoFo lib. It includes all standard files, defines some useful
- *        macros, some datatypes and all important enumeration types. On
- *        supporting platforms it will be precompiled to speed compilation.
+#ifdef PDF_ERROR_H
+    #error Don't include PdfDeclarations.h in PdfError.h
+#endif
+
+/**
+ * \file PdfDeclarations.h
+ *      This file should be included as the FIRST file in every header of
+ *      PoDoFo lib. It includes all standard files, defines some useful
+ *      macros, some datatypes and all important enumeration types. On
+ *      supporting platforms it will be precompiled to speed compilation.
  */
 
  // Include some base macro definitions
-#include "basedefs.h"
+#include <podofo/auxiliary/basedefs.h>
 
-// Include common system files
-#include "baseincludes.h"
+// Include common system headers
+#include <podofo/auxiliary/baseincludes.h>
 
-#include "PdfCompilerCompat.h"
 #include "PdfVersion.h"
 
 // Error Handling Defines
@@ -795,4 +799,4 @@ ENABLE_BITMASK_OPERATORS(PoDoFo::PdfAnnotationFlags);
  *
  */
 
-#endif // PDF_DEFINES_H
+#endif // PDF_DECLARATIONS_H

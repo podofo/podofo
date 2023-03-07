@@ -4,7 +4,7 @@
 
 #include "span.hpp"
 
-namespace COMMON_NAMESPACE
+namespace PoDoFo
 {
     // https://stackoverflow.com/questions/56845801/what-happened-to-stdcspan
     /** Constant span

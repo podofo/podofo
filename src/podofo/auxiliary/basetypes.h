@@ -4,14 +4,14 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-#ifndef COMMON_TYPES_H
-#define COMMON_TYPES_H
+#ifndef BASE_TYPES_H
+#define BASE_TYPES_H
 #pragma once
 
 #include <string>
 #include "span.h"
 
-namespace COMMON_NAMESPACE
+namespace PoDoFo
 {
     /** Convenient read-only char buffer span
      */
@@ -160,4 +160,4 @@ namespace COMMON_NAMESPACE
     constexpr bool always_false = false;
 }
 
-#endif // COMMON_TYPES_H
+#endif // BASE_TYPES_H

@@ -10,7 +10,7 @@
 #include <stack>
 #include <stdexcept>
 
-namespace COMMON_NAMESPACE
+namespace PoDoFo
 {
     template <typename StateT>
     class StateStack final

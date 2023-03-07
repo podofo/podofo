@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#ifndef PODOFO_DEFS_H
-#define PODOFO_DEFS_H
+#ifndef PODOFO_BASE_DEFS_H
+#define PODOFO_BASE_DEFS_H
 
 /*
  * This header provides a macro to handle correct symbol imports/exports
@@ -103,10 +103,10 @@
 #define PODOFO_UNIT_TEST(classname)
 #endif
 
-// Disable warnings
-#ifdef _MSC_VER
-#pragma warning(disable: 4251)
-#pragma warning(disable: 4309)
-#endif // _WIN32
+// Include some useful compatibility defines
+#include "basecompat.h"
 
-#endif // PODOFO_DEFS_H
+// Include the configuration file
+#include "podofo_config.h"
+
+#endif // PODOFO_BASE_DEFS_H

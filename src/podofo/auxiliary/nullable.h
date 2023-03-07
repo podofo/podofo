@@ -12,7 +12,7 @@
 #include <stdexcept>
 #include <type_traits>
 
-namespace COMMON_NAMESPACE
+namespace PoDoFo
 {
     class bad_nullable_access : public std::runtime_error
     {

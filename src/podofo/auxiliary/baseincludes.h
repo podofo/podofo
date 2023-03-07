@@ -1,7 +1,12 @@
 #ifndef PODOFO_BASE_INCLUDES_H
 #define PODOFO_BASE_INCLUDES_H
 
-// Include common STL files
+// Include common C headers
+#include <cstdint>
+#include <cstddef>
+#include <cstring>
+
+// Include common STL headers
 #include <memory>
 #include <string>
 #include <string_view>
@@ -17,13 +22,9 @@
 #include <exception>
 
 // Include some common headers
-
-#define COMMON_NAMESPACE PoDoFo
-#include <podofo/auxiliary/EnumFlags.h>
-#include <podofo/auxiliary/span.h>
-#include <podofo/auxiliary/nullable.h>
-#include <podofo/auxiliary/types.h>
-
-#include "podofo_config.h"
+#include "basetypes.h"
+#include "EnumFlags.h"
+#include "span.h"
+#include "nullable.h"
 
 #endif // PODOFO_BASE_INCLUDES

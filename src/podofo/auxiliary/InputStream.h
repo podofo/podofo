@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#ifndef PDF_INPUT_STREAM_H
-#define PDF_INPUT_STREAM_H
+#ifndef INPUT_STREAM_H
+#define INPUT_STREAM_H
 
-#include <podofo/main/PdfDeclarations.h>
+#include "basedefs.h"
 
 namespace PoDoFo {
 
@@ -84,4 +84,4 @@ private:
 
 };
 
-#endif // PDF_INPUT_STREAM_H
+#endif // INPUT_STREAM_H

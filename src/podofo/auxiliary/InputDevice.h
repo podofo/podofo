@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#ifndef PDF_INPUT_DEVICE_H
-#define PDF_INPUT_DEVICE_H
+#ifndef INPUT_DEVICE_H
+#define INPUT_DEVICE_H
 
 #include <istream>
 #include <fstream>
@@ -42,4 +42,4 @@ protected:
 
 };
 
-#endif // PDF_INPUT_DEVICE_H
+#endif // INPUT_DEVICE_H
