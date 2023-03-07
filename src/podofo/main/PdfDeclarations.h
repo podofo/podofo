@@ -8,7 +8,7 @@
 #define PDF_DECLARATIONS_H
 
 #ifdef PDF_ERROR_H
-    #error Don't include PdfDeclarations.h in PdfError.h
+    #error "Don't include PdfDeclarations.h in PdfError.h"
 #endif
 
 /**

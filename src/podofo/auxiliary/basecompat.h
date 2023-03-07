@@ -35,7 +35,6 @@ typedef SSIZE_T ssize_t;
 #ifdef _MSC_VER
 #pragma warning(disable: 4251)
 #pragma warning(disable: 4275)
-#pragma warning(disable: 4309)
 #endif // _MSC_VER
 
 #endif // PODOFO_BASE_COMPAT_H
