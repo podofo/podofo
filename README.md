@@ -128,7 +128,9 @@ cmake --build . --config Debug
 
 - `-DPODOFO_BUILD_LIB_ONLY=TRUE`: Build only the library component, ignoring tests, examples and tools targets;
 
-- `-DPODOFO_STATIC=TRUE`: Build the library as a static object.
+- `-DPODOFO_STATIC=TRUE`: Build the library as a static object;
+
+- `-DPODOFO_ENABLE_TOOLS=TRUE`: Build the PoDoFo tools. See the [section](https://github.com/podofo/podofo/#podofo-tools).
 
 ## String encoding and buffer conventions
 
