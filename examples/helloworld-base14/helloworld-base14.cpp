@@ -31,7 +31,7 @@ void PrintHelp()
 }
 
 const char* GetBase14FontName(unsigned i);
-void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, const PdfFontSearchParams& params);
+void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document);
 
 void HelloWorld(const string_view& filename)
 {
@@ -71,13 +71,17 @@ void HelloWorld(const string_view& filename)
         // PDF file. If Arial is not available, a default font will be used.
         // 
         // The created PdfFont will be deleted by the PdfDocument.
-        PdfFontSearchParams params;
-        params.AutoSelect = PdfFontAutoSelectBehavior::Standard14;
-        font = document.GetFonts().SearchFont("Helvetica", params);
+        font = document.GetFonts().SearchFont("Arial");
 
         // If the PdfFont object cannot be allocated return an error.
         if (font == nullptr)
             throw runtime_error("Invalid handle");
+
+        auto& metrics = font->GetMetrics();
+        cout << "The font name is " << metrics.GetFontName() << endl;
+        cout << "The family font name is " << metrics.GetFontFamilyName() << endl;
+        cout << "The font file path is " << metrics.GetFilePath() << endl;
+        cout << "The font face index is " << metrics.GetFaceIndex() << endl;
 
         // Set the font as default font for drawing.
         // A font has to be set before you can draw text on
@@ -100,7 +104,8 @@ void HelloWorld(const string_view& filename)
         // All coordinates in PoDoFo are in PDF units.
         painter.DrawText("Hello World!", 56.69, page.GetRect().Height - 56.69);
 
-        DemoBase14Fonts(painter, page, document, params);
+
+        DemoBase14Fonts(painter, page, document);
 
         painter.FinishDrawing();
 
@@ -214,8 +219,11 @@ void DrawRedFrame(PdfPainter& painter, double x, double y, double width, double 
     painter.GraphicsState.SetStrokeColor(PdfColor(0.0f, 0.0f, 0.0f));
 }
 
-void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, const PdfFontSearchParams& params)
+void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document)
 {
+    PdfFontSearchParams params;
+    params.AutoSelect = PdfFontAutoSelectBehavior::Standard14;
+
     double x = 56, y = page.GetRect().Height - 56.69;
     string_view demo_text = "abcdefgABCDEFG12345!#$%&+-@?        ";
     double height = 0.0f, width = 0.0f;
@@ -224,8 +232,22 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
     for (unsigned i = 0; i < std::size(s_base14fonts); i++)
     {
         x = 56; y = y - 25;
-        string text = (string)demo_text;
-        text.append(GetBase14FontName(i));
+        string text;
+        if (i == 12)
+        {
+            // Or u8"♠♣♥♦": Symbol font doesn't support regular characters
+            text = u8"\u2660\u2663\u2665\u2666";
+        }
+        else if (i == 13)
+        {
+            // Or u8"❏❑▲▼": ZapfDingbats font doesn't support regular characters
+            text = u8"\u274f\u2751\u25b2\u25bc";
+        }
+        else
+        {
+            text = demo_text;
+            text.append(GetBase14FontName(i));
+        }
 
         PdfFont* font = document.GetFonts().SearchFont(GetBase14FontName(i), params);
         if (font == nullptr)
@@ -234,7 +256,7 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
         painter.TextState.SetFont(*font, 12.0);
 
         width = font->GetStringLength(text, painter.TextState);
-        height = font->GetMetrics().GetLineSpacing();
+        height = font->GetLineSpacing(painter.TextState);
 
         std::cout << GetBase14FontName(i) << " Width = " << width << " Height = " << height << std::endl;
 
@@ -248,8 +270,9 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
     // draw some individual characters:
     string_view demo_text2 = " @_1jiPlg .;";
 
-    auto font2 = document.GetFonts().SearchFont("Arial", params);
-    auto& metrics = font2->GetMetrics();
+    auto helveticaStd14 = document.GetFonts().SearchFont("Helvetica", params);
+    auto arialImported = document.GetFonts().SearchFont("Arial");
+    auto& metrics = arialImported->GetMetrics();
     cout << "Non base 14 font characteristics" << endl;
     cout << "Font name: " << metrics.GetFontName() << endl;
     cout << "Family font name: " << metrics.GetFontFamilyName() << endl;
@@ -266,10 +289,10 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
         else
             text = (string)demo_text2.substr(i, 1);
 
-        PdfFont* font = document.GetFonts().SearchFont("Helvetica", params);
-        painter.TextState.SetFont(*font, 12);
-        height = font->GetMetrics().GetLineSpacing();
-        width = font->GetStringLength(text, painter.TextState);
+
+        painter.TextState.SetFont(*helveticaStd14, 12);
+        height = helveticaStd14->GetLineSpacing(painter.TextState);
+        width = helveticaStd14->GetStringLength(text, painter.TextState);
 
         // draw red box
         DrawRedFrame(painter, x, y, width, height);
@@ -280,9 +303,9 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
         if (i > 0)
         {
             // draw again, with non-Base14 font
-            painter.TextState.SetFont(*font2, 12);
-            height = font2->GetMetrics().GetLineSpacing();
-            width = font2->GetStringLength((string_view)text, painter.TextState);
+            painter.TextState.SetFont(*arialImported, 12);
+            height = arialImported->GetLineSpacing(painter.TextState);
+            width = arialImported->GetStringLength((string_view)text, painter.TextState);
 
             // draw red box
             DrawRedFrame(painter, x + 100, y, width, height);
