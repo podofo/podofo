@@ -126,12 +126,18 @@ cmake --build . --config Debug
 
 ### CMake switches
 
-- `-DPODOFO_BUILD_LIB_ONLY=TRUE`: Build only the library component, ignoring tests, examples and tools targets;
+- `PODOFO_BUILD_TEST`: Build the unit tests, defaults to TRUE;
 
-- `-DPODOFO_STATIC=TRUE`: Build the library as a static object and use it in tests, examples and tools. By default,
-a shared library is built;
+- `PODOFO_BUILD_EXAMPLES`: Build the examples, defaults to TRUE;
 
-- `-DPODOFO_ENABLE_TOOLS=TRUE`: Build the PoDoFo tools. See the [section](https://github.com/podofo/podofo/#podofo-tools).
+- `PODOFO_BUILD_TOOLS`: Build the PoDoFo tools, defaults to FALSE. See
+the relevant [section](https://github.com/podofo/podofo/#podofo-tools) in the Readme;
+
+- `PODOFO_BUILD_LIB_ONLY`: If TRUE, it will build only the library component.
+This unconditionally disable building tests, examples and tools;
+
+- `PODOFO_STATIC`: If TRUE, build the library as a static object and use it in tests,
+examples and tools. By default a shared library is built.
 
 ## String encoding and buffer conventions
 
@@ -154,7 +160,7 @@ See [API Stability](https://github.com/podofo/podofo/wiki/API-Stability) for mor
 PoDoFo tools are still available in the source [tree](https://github.com/podofo/podofo/)
 but their compilation is disabled by default because they are unsted/unmaintained,
 and will not receive support until their status is cleared. It's not recommended to include them in software distributions.
-If you want to build them make sure to bootstrap the CMake project with ```-DPODOFO_ENABLE_TOOLS=TRUE```.
+If you want to build them make sure to bootstrap the CMake project with ```-DPODOFO_BUILD_TOOLS=TRUE```.
 Tools are conveniently enabled in the [playground](https://github.com/podofo/podofo/tree/master/playground)
 at least to ensure library changes won't break their compilation.
 

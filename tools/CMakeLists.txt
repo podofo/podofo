@@ -1,4 +1,4 @@
-if (PODOFO_ENABLE_TOOLS)
+if (PODOFO_BUILD_TOOLS)
     message(WARNING "PoDoFo tools are enabled: tools are currently untested and unsupported")
 else()
     return()

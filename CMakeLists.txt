@@ -43,7 +43,23 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules" "${CMA
 # variable here that we require to be set elsewhere, otherwise we'll complain.
 set(PODOFO_MAIN_CMAKELISTS_READ TRUE)
 
-if(NOT PODOFO_BUILD_LIB_ONLY)
+if(PODOFO_BUILD_LIB_ONLY)
+    set(PODOFO_BUILD_TEST FALSE)
+    set(PODOFO_BUILD_EXAMPLES FALSE)
+    set(PODOFO_BUILD_TOOLS FALSE)
+else()
+    if (NOT DEFINED PODOFO_BUILD_TEST)
+        set(PODOFO_BUILD_TEST TRUE)
+    endif()
+
+    if (NOT DEFINED PODOFO_BUILD_EXAMPLES)
+        set(PODOFO_BUILD_EXAMPLES TRUE)
+    endif()
+
+    if (NOT DEFINED PODOFO_BUILD_TOOLS)
+        set(PODOFO_BUILD_TOOLS FALSE)
+    endif()
+
     # We assume a standalone build so we set output
     # path to a fixed location
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/target)
@@ -223,10 +239,16 @@ file(APPEND
 add_subdirectory(src/podofo)
 include_directories(${PODOFO_INCLUDE_DIRS})
 
-if(NOT PODOFO_BUILD_LIB_ONLY)
+if(PODOFO_BUILD_TEST)
     enable_testing()
     add_subdirectory(test)
+endif()
+
+if(PODOFO_BUILD_EXAMPLES)
     add_subdirectory(examples)
+endif()
+
+if(PODOFO_BUILD_TOOLS)
     add_subdirectory(tools)
 endif()
 
