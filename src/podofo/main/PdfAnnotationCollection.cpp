@@ -7,6 +7,7 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfAnnotationCollection.h"
 #include "PdfPage.h"
+#include "PdfMath.h"
 
 using namespace std;
 using namespace PoDoFo;
@@ -16,9 +17,13 @@ PdfAnnotationCollection::PdfAnnotationCollection(PdfPage& page)
 {
 }
 
-PdfAnnotation& PdfAnnotationCollection::CreateAnnot(PdfAnnotationType annotType, const Rect& rect)
+PdfAnnotation& PdfAnnotationCollection::CreateAnnot(PdfAnnotationType annotType, const Rect& rect, bool rawRect)
 {
-    return addAnnotation(PdfAnnotation::Create(*m_Page, annotType, rect));
+    Rect actualRect = rect;
+    if (!rawRect)
+        actualRect = PoDoFo::TransformRectPage(actualRect, *m_Page, false);
+
+    return addAnnotation(PdfAnnotation::Create(*m_Page, annotType, actualRect));
 }
 
 PdfAnnotation& PdfAnnotationCollection::GetAnnotAt(unsigned index)
@@ -104,9 +109,13 @@ PdfAnnotationCollection::const_iterator PdfAnnotationCollection::end() const
     return m_Annots.end();
 }
 
-PdfAnnotation& PdfAnnotationCollection::createAnnotation(const type_info& typeInfo, const Rect& rect)
+PdfAnnotation& PdfAnnotationCollection::createAnnotation(const type_info& typeInfo, const Rect& rect, bool rawRect)
 {
-    return addAnnotation(PdfAnnotation::Create(*m_Page, typeInfo, rect));
+    Rect actualRect = rect;
+    if (!rawRect)
+        actualRect = PoDoFo::TransformRectPage(actualRect, *m_Page, false);
+
+    return addAnnotation(PdfAnnotation::Create(*m_Page, typeInfo, actualRect));
 }
 
 PdfAnnotation& PdfAnnotationCollection::addAnnotation(unique_ptr<PdfAnnotation>&& annot)

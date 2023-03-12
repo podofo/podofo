@@ -13,13 +13,24 @@
 
 namespace PoDoFo
 {
-    /** Get a rotation trasformation that aligns the rectangle to the axis after the rotation
+    class PdfPage;
+
+    /**
+     * Get a rotation trasformation that aligns the rectangle to the axis after the rotation
      */
     Matrix PODOFO_API GetFrameRotationTransform(const Rect& rect, double teta);
 
-    /** Get an inverse rotation trasformation that aligns the rectangle to the axis after the rotation
+    /**
+     * Get an inverse rotation trasformation that aligns the rectangle to the axis after the rotation
      */
     Matrix PODOFO_API GetFrameRotationTransformInverse(const Rect& rect, double teta);
+
+    /**
+     * Transform the given rect accordingly to the page rotation
+     * \param inputIsTransformed if true the input rectangle is already transformed,
+     *   if false the input is canonically oriented in top-right quandrant
+     */
+    Rect PODOFO_API TransformRectPage(const Rect& rect, const PdfPage& page, bool inputIsTransformed);
 }
 
 #endif // PDF_MATH_H

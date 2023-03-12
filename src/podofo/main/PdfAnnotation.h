@@ -75,12 +75,12 @@ public:
     /** Get the rectangle of this annotation.
      *  \returns a rectangle
      */
-    Rect GetRect() const;
+    Rect GetRect(bool rawRect = false) const;
 
     /** Set the rectangle of this annotation.
      * \param rect rectangle to set
      */
-    void SetRect(const Rect& rect);
+    void SetRect(const Rect& rect, bool rawRect = false);
 
     /** Set the flags of this annotation.
      *  \see GetFlags

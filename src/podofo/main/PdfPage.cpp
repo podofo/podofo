@@ -41,9 +41,12 @@ PdfPage::PdfPage(PdfObject& obj, unsigned index, const deque<PdfObject*>& listOf
         m_Contents.reset(new PdfContents(*this, *contents));
 }
 
-Rect PdfPage::GetRect() const
+Rect PdfPage::GetRect(bool rawRect) const
 {
     auto rect = this->GetMediaBox();
+    if (rawRect)
+        return rect;
+
     switch (GetRotationRaw())
     {
         case 90:
@@ -64,6 +67,38 @@ Rect PdfPage::GetRect() const
             throw runtime_error("Invalid rotation");
     }
     return rect;
+}
+
+void PdfPage::SetRect(const Rect& rect, bool rawRect)
+{
+    if (rawRect)
+    {
+        SetMediaBox(rect);
+    }
+    else
+    {
+        auto actualRect = rect;
+        switch (GetRotationRaw())
+        {
+            case 90:
+            case 270:
+            case -90:
+            case -270:
+            {
+                actualRect.Width = rect.Height;
+                actualRect.Height = rect.Width;
+                break;
+            }
+            case 0:
+            case 180:
+            case -180:
+                break;
+            default:
+                throw runtime_error("Invalid rotation");
+        }
+
+        SetMediaBox(actualRect);
+    }
 }
 
 Rect PdfPage::GetRectRaw() const
@@ -252,15 +287,17 @@ void PdfPage::MoveAt(unsigned index)
     m_Index = fromIndex;
 }
 
-PdfField& PdfPage::CreateField(const string_view& name, PdfFieldType fieldType, const Rect& rect)
+PdfField& PdfPage::CreateField(const string_view& name, PdfFieldType fieldType, const Rect& rect, bool rawRect)
 {
-    auto& annotation = static_cast<PdfAnnotationWidget&>(GetAnnotations().CreateAnnot(PdfAnnotationType::Widget, rect));
+    auto& annotation = static_cast<PdfAnnotationWidget&>(GetAnnotations()
+        .CreateAnnot(PdfAnnotationType::Widget, rect, rawRect));
     return PdfField::Create(name, annotation, fieldType);
 }
 
-PdfField& PdfPage::createField(const string_view& name, const type_info& typeInfo, const Rect& rect)
+PdfField& PdfPage::createField(const string_view& name, const type_info& typeInfo, const Rect& rect, bool rawRect)
 {
-    auto& annotation = static_cast<PdfAnnotationWidget&>(GetAnnotations().CreateAnnot(PdfAnnotationType::Widget, rect));
+    auto& annotation = static_cast<PdfAnnotationWidget&>(GetAnnotations()
+        .CreateAnnot(PdfAnnotationType::Widget, rect, rawRect));
     return PdfField::Create(name, annotation, typeInfo);
 }
 

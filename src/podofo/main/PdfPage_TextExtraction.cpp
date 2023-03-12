@@ -854,7 +854,7 @@ ExtractionContext::ExtractionContext(vector<PdfTextEntry>& entries, const PdfPag
     // Determine page rotation transformation
     double teta;
     if (page.HasRotation(teta))
-        Rotation = std::make_unique<Matrix>(PoDoFo::GetFrameRotationTransform(page.GetRectRaw(), teta));
+        Rotation = std::make_unique<Matrix>(PoDoFo::GetFrameRotationTransform(page.GetRect(true), teta));
 }
 
 void ExtractionContext::BeginText()

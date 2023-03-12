@@ -625,9 +625,9 @@ private:
     template <>
     struct Object<const PdfName*>
     {
-        static PdfName Get(const PdfObject& obj)
+        static const PdfName* Get(const PdfObject& obj)
         {
-            return obj.GetName();
+            return &obj.GetName();
         }
 
         static bool TryGet(const PdfObject& obj, const PdfName*& value)
@@ -653,14 +653,70 @@ private:
     template <>
     struct Object<const PdfString*>
     {
-        static PdfString Get(const PdfObject& obj)
+        static const PdfString* Get(const PdfObject& obj)
         {
-            return obj.GetString();
+            return &obj.GetString();
         }
 
         static bool TryGet(const PdfObject& obj, const PdfString*& value)
         {
             return obj.TryGetString(value);
+        }
+    };
+
+    template <>
+    struct Object<const PdfDictionary*>
+    {
+        static const PdfDictionary* Get(const PdfObject& obj)
+        {
+            return &obj.GetDictionary();
+        }
+
+        static bool TryGet(const PdfObject& obj, const PdfDictionary*& value)
+        {
+            return obj.TryGetDictionary(value);
+        }
+    };
+
+    template <>
+    struct Object<PdfDictionary*>
+    {
+        static PdfDictionary* Get(PdfObject& obj)
+        {
+            return &obj.GetDictionary();
+        }
+
+        static bool TryGet(PdfObject& obj, PdfDictionary*& value)
+        {
+            return obj.TryGetDictionary(value);
+        }
+    };
+
+    template <>
+    struct Object<const PdfArray*>
+    {
+        static const PdfArray* Get(const PdfObject& obj)
+        {
+            return &obj.GetArray();
+        }
+
+        static bool TryGet(const PdfObject& obj, const PdfArray*& value)
+        {
+            return obj.TryGetArray(value);
+        }
+    };
+
+    template <>
+    struct Object<PdfArray*>
+    {
+        static PdfArray* Get(PdfObject& obj)
+        {
+            return &obj.GetArray();
+        }
+
+        static bool TryGet(PdfObject& obj, PdfArray*& value)
+        {
+            return obj.TryGetArray(value);
         }
     };
 };

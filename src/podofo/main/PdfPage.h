@@ -74,9 +74,9 @@ public:
         const std::string_view& pattern = { },
         const PdfTextExtractParams& params = { }) const;
 
-    Rect GetRect() const;
+    Rect GetRect(bool rawRect = false) const;
 
-    Rect GetRectRaw() const override;
+    void SetRect(const Rect& rect, bool rawRect = false);
 
     bool HasRotation(double& teta) const override;
 
@@ -165,9 +165,9 @@ public:
     void MoveAt(unsigned index);
 
     template <typename TField>
-    TField& CreateField(const std::string_view& name, const Rect& rect);
+    TField& CreateField(const std::string_view& name, const Rect& rect, bool rawRect = false);
 
-    PdfField& CreateField(const std::string_view& name, PdfFieldType fieldType, const Rect& rect);
+    PdfField& CreateField(const std::string_view& name, PdfFieldType fieldType, const Rect& rect, bool rawRect = false);
 
     /** Set an ICC profile for this page
      *
@@ -197,7 +197,7 @@ public:
     inline const PdfAnnotationCollection& GetAnnotations() const { return m_Annotations; }
 
 private:
-    PdfField& createField(const std::string_view& name, const std::type_info& typeInfo, const Rect& rect);
+    PdfField& createField(const std::string_view& name, const std::type_info& typeInfo, const Rect& rect, bool rawRect);
 
     PdfResources* getResources() override;
 
@@ -224,6 +224,8 @@ private:
      */
     Rect getPageBox(const std::string_view& inBox) const;
 
+    Rect GetRectRaw() const override;
+
 private:
     PdfElement& GetElement() = delete;
     const PdfElement& GetElement() const = delete;
@@ -238,9 +240,9 @@ private:
 };
 
 template<typename TField>
-TField& PdfPage::CreateField(const std::string_view& name, const Rect & rect)
+TField& PdfPage::CreateField(const std::string_view& name, const Rect & rect, bool rawRect)
 {
-    return static_cast<TField&>(createField(name, typeid(TField), rect));
+    return static_cast<TField&>(createField(name, typeid(TField), rect, rawRect));
 }
 
 };

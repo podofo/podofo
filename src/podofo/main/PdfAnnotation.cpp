@@ -14,6 +14,7 @@
 #include "PdfXObjectForm.h"
 #include "PdfAnnotationWidget.h"
 #include "PdfAnnotation_Types.h"
+#include "PdfMath.h"
 
 using namespace std;
 using namespace PoDoFo;
@@ -45,18 +46,31 @@ PdfAnnotation::PdfAnnotation(PdfObject& obj, PdfAnnotationType annotType)
 {
 }
 
-Rect PdfAnnotation::GetRect() const
+Rect PdfAnnotation::GetRect(bool rawRect) const
 {
-    if (GetDictionary().HasKey(PdfName::KeyRect))
-        return Rect::FromArray(GetDictionary().MustFindKey(PdfName::KeyRect).GetArray());
+    const PdfArray* arr;
+    if (!GetDictionary().TryFindKeyAs(PdfName::KeyRect, arr))
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Missing /Rect element");
 
-    return Rect();
+    auto rect = Rect::FromArray(*arr);
+    if (rawRect)
+        return rect;
+    else
+        return PoDoFo::TransformRectPage(rect, MustGetPage(), true);
 }
 
-void PdfAnnotation::SetRect(const Rect& rect)
+void PdfAnnotation::SetRect(const Rect& rect, bool rawRect)
 {
     PdfArray arr;
-    rect.ToArray(arr);
+    if (rawRect)
+    {
+        rect.ToArray(arr);
+    }
+    else
+    {
+        auto transformed = PoDoFo::TransformRectPage(rect, MustGetPage(), false);
+        transformed.ToArray(arr);
+    }
     GetDictionary().AddKey(PdfName::KeyRect, arr);
 }
 

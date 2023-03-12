@@ -6,6 +6,7 @@
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfMath.h"
+#include "PdfPage.h"
 
 using namespace PoDoFo;
 
@@ -44,4 +45,25 @@ Matrix PoDoFo::GetFrameRotationTransformInverse(const Rect& rect, double teta)
     Vector2 leftBottom_1(rect_1.X, rect_1.Y);
     Vector2 alignTx_1 = leftBottom_1 - leftBottom;
     return Matrix::CreateTranslation(alignTx_1) * R_inv;
+}
+
+Rect PoDoFo::TransformRectPage(const Rect& rect, const PdfPage& page, bool inputIsTransformed)
+{
+    double teta;
+    if (page.HasRotation(teta))
+    {
+        // NOTE: The canonical coordinate system is the one with the origin
+        // on the left-bottom corner
+        Matrix transform;
+        if (inputIsTransformed)
+            transform = PoDoFo::GetFrameRotationTransform(page.GetMediaBox(), teta);
+        else
+            transform = PoDoFo::GetFrameRotationTransformInverse(page.GetMediaBox(), teta);
+
+        return rect * transform;
+    }
+    else
+    {
+        return rect;
+    }
 }

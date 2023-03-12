@@ -41,13 +41,29 @@ TEST_CASE("TestRotations")
 {
     // The two documents are rotated but still portrait
     PdfMemDocument doc;
-    doc.Load(TestUtils::GetTestInputFilePath("blank-rotated-90.pdf"));
-    auto rect = doc.GetPages().GetPageAt(0).GetRect();
-    
-    REQUIRE(rect == Rect(0, 0, 595, 842));
+    {
+        doc.Load(TestUtils::GetTestInputFilePath("blank-rotated-90.pdf"));
+        auto& page = doc.GetPages().GetPageAt(0);
+        REQUIRE(page.GetRect() == Rect(0, 0, 595, 842));
+        REQUIRE(page.GetRect(true) == Rect(0, 0, 842, 595));
+        auto& annot = page.GetAnnotations().CreateAnnot<PdfAnnotationWatermark>(Rect(100, 600, 80, 20));
+        REQUIRE(annot.GetRect() == Rect(100, 600, 80, 20));
+        REQUIRE(annot.GetRect(true) == Rect(222, 99.999999999999986, 20, 79.999999999999986));
+        page.SetRect(Rect(0, 0, 500, 800));
+        REQUIRE(page.GetRect() == Rect(0, 0, 500, 800));
+        REQUIRE(page.GetRect(true) == Rect(0, 0, 800, 500));
+    }
 
-    doc.Load(TestUtils::GetTestInputFilePath("blank-rotated-270.pdf"));
-    rect = doc.GetPages().GetPageAt(0).GetRect();
-
-    REQUIRE(rect == Rect(0, 0, 595, 842));
+    {
+        doc.Load(TestUtils::GetTestInputFilePath("blank-rotated-270.pdf"));
+        auto& page = doc.GetPages().GetPageAt(0);
+        REQUIRE(page.GetRect() == Rect(0, 0, 595, 842));
+        REQUIRE(page.GetRect(true) == Rect(0, 0, 842, 595));
+        auto& annot = page.GetAnnotations().CreateAnnot<PdfAnnotationWatermark>(Rect(100, 600, 80, 20));
+        REQUIRE(annot.GetRect() == Rect(100, 600, 80, 20));
+        REQUIRE(annot.GetRect(true) == Rect(600.00000000000011, 415, 20, 80));
+        annot.SetRect(Rect(100, 500, 100, 30));
+        REQUIRE(annot.GetRect() == Rect(100, 500.00000000000006, 100, 29.999999999999943));
+        REQUIRE(annot.GetRect(true) == Rect(500.00000000000011, 395, 30, 100));
+    }
 }
