@@ -31,7 +31,7 @@ install(FILES ${PODOFO_BASE_HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/po
 install(FILES ${PODOFO_CONFIG_HEADER} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/podofo/auxiliary")
 
 set(PODOFO_SOURCES ${PODOFO_BASE_HEADERS} ${PODOFO_CONFIG_HEADER})
-if(PODOFO_SHARED AND WIN32)
+if(PODOFO_BUILD_SHARED AND WIN32)
     # If we build for windows systems, we also include the resource file
     list(APPEND PODOFO_SOURCES podofo.rc)
 endif()
@@ -67,7 +67,7 @@ add_source("3rdparty/pdfium" "${PROJECT_SOURCE_DIR}/3rdparty/pdfium")
 
 add_compile_definitions(PODOFO_BUILD)
 
-if(PODOFO_STATIC)
+if(PODOFO_BUILD_STATIC)
     message("Building static podofo library")
     add_library(podofo_static STATIC ${PODOFO_SOURCES})
     target_link_libraries(podofo_static podofo_private ${PODOFO_LIB_DEPENDS})
@@ -86,7 +86,7 @@ if(PODOFO_STATIC)
         CACHE INTERNAL "Which podofo library variant to depend on")
 endif()
 
-if(PODOFO_SHARED)
+if(PODOFO_BUILD_SHARED)
     message("Building shared podofo library")
     add_library(podofo_shared SHARED ${PODOFO_SOURCES})
     target_link_libraries(podofo_shared PRIVATE podofo_private ${PODOFO_LIB_DEPENDS})
@@ -132,7 +132,7 @@ endif()
 # Use these flags when compiling code that includes podofo headers.
 # Failure to do so will result in compilation or link-time errors
 # on some platforms, and can even cause undefined results at runtime.
-if(PODOFO_STATIC)
+if(PODOFO_BUILD_STATIC)
     set(PODOFO_CFLAGS "-DPODOFO_STATIC" CACHE INTERNAL "Extra flags required when linking to podofo")
 else()
     set(PODOFO_CFLAGS "" CACHE INTERNAL "Extra flags required when linking to podofo")

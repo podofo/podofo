@@ -48,7 +48,10 @@
 #define PODOFO_EXPORT
 #define PODOFO_IMPORT
 
-#elif PODOFO_SHARED
+#else // PODOFO_SHARED
+#ifndef PODOFO_SHARED
+#define PODOFO_SHARED
+#endif
 
 #if defined(_MSC_VER)
     #define PODOFO_EXPORT __declspec(dllexport)
@@ -69,8 +72,6 @@
 #define PODOFO_API PODOFO_IMPORT
 #endif
 
-#else
-#error Neither PODOFO_STATIC or PODOFO_SHARED defined
 #endif
 
 // Throwable classes must always be exported by all binaries when

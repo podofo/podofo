@@ -68,16 +68,16 @@ else()
     message(STATUS "Binary output directory is \"${CMAKE_BINARY_DIR}/target\"")
 endif()
 
-if (DEFINED PODOFO_SHARED)
-    message(FATAL_ERROR "PODOFO_SHARED shouldn't be defined externally. Set PODOFO_STATIC to TRUE if you need a static build")
+if (DEFINED PODOFO_BUILD_SHARED)
+    message(FATAL_ERROR "PODOFO_BUILD_SHARED shouldn't be defined externally. Set PODOFO_BUILD_STATIC to TRUE if you need a static build")
 endif()
 
-option(PODOFO_STATIC "Build static libraries (.a/.lib)" FALSE)
-if(PODOFO_STATIC)
-    set(PODOFO_SHARED FALSE)
+option(PODOFO_BUILD_STATIC "Build static libraries (.a/.lib)" FALSE)
+if(PODOFO_BUILD_STATIC)
+    set(PODOFO_BUILD_SHARED FALSE)
     add_compile_definitions(PODOFO_STATIC)
 else()
-    set(PODOFO_SHARED TRUE)
+    set(PODOFO_BUILD_SHARED TRUE)
     add_compile_definitions(PODOFO_SHARED)
 endif()
 
@@ -258,7 +258,7 @@ endif()
 # To use these dependencies set PODOFO_DIR to the podofo BUILD directory in
 # your build (eg -DPODOFO_DIR=/path/to/podofo when running cmake to configure
 # the app that'll use podofo). See: find_package(...) in the cmake docs.
-if(PODOFO_SHARED)
+if(PODOFO_BUILD_SHARED)
     export(TARGETS podofo_shared FILE "${PROJECT_BINARY_DIR}/podofoConfig.cmake")
 else()
     export(TARGETS podofo_static podofo_private FILE "${PROJECT_BINARY_DIR}/podofoConfig.cmake")

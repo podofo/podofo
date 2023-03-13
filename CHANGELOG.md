@@ -1,4 +1,7 @@
 ## Version 0.10.0
+- PdfPage/PdfAnnotationCollection/PdfAnnotation: Now functions with
+  rect input assume it to be using the canonical coordinate system
+  with no rotation
 - PdfImage: Added support for CYMK jpeg
 - PdfParser: Cleaned FindToken2 -> FindTokenBackward
 - Renamed base source folder -> main
@@ -40,7 +43,7 @@
   for media ones). Added proper copy and move assignment operators
 - PdfImage: Added DecodeTo(pixelFormat)
 
-## Version 0.9.22
+## Version 0.9.22 (pdfmm)
 - Fixed serialization of strings with non ASCII PdfDocEncoding
   characters
 - Removed PdfLocaleImbue
@@ -48,11 +51,11 @@
 - Removed use of std::ostringstream. Added efficient outstringstream
 - Added PdfMath functionalities (matrix transformations and so on)
 
-## Version 0.9.21
+## Version 0.9.21 (pdfmm)
 - Fixed serialization of UTF-16BE strings
 - More lenient PdfDate parsing
 
-## Version 0.9.20
+## Version 0.9.20 (pdfmm)
 
 - The project is now a C++17 library
 - Added move semantics for PdfVariant, PdfObject, PdfArray, PdfDictionary

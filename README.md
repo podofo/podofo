@@ -136,7 +136,7 @@ the relevant [section](https://github.com/podofo/podofo/#podofo-tools) in the Re
 - `PODOFO_BUILD_LIB_ONLY`: If TRUE, it will build only the library component.
 This unconditionally disable building tests, examples and tools;
 
-- `PODOFO_STATIC`: If TRUE, build the library as a static object and use it in tests,
+- `PODOFO_BUILD_STATIC`: If TRUE, build the library as a static object and use it in tests,
 examples and tools. By default a shared library is built.
 
 ## String encoding and buffer conventions
