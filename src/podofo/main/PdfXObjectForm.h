@@ -40,11 +40,11 @@ public:
      */
     void FillFromPage(const PdfPage& page, bool useTrimBox = false);
 
-public:
     /** Ensure resources initialized on this XObject
-    */
-    void EnsureResourcesCreated();
+     */
+    void EnsureResourcesCreated() override;
 
+public:
     PdfResources& GetOrCreateResources() override;
 
     bool HasRotation(double& teta) const override;

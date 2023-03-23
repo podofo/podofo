@@ -120,7 +120,7 @@ PdfXObjectType PdfXObject::getPdfXObjectType(const PdfObject& obj)
 
 Matrix PdfXObject::GetMatrix() const
 {
-    auto matrixObj = GetObject().GetDictionary().GetKey("Matrix");
+    auto matrixObj = GetDictionary().GetKey("Matrix");
     if (matrixObj == nullptr)
         return Matrix();
 
@@ -138,7 +138,7 @@ void PdfXObject::SetMatrix(const Matrix& m)
     arr.Add(m[4]);
     arr.Add(m[5]);
 
-    GetObject().GetDictionary().AddKey("Matrix", std::move(arr));
+    GetDictionary().AddKey("Matrix", std::move(arr));
 }
 
 bool PdfXObject::tryCreateFromObject(const PdfObject& obj, const type_info& typeInfo, PdfXObject*& xobj)

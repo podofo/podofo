@@ -76,6 +76,10 @@ public:
      */
     virtual PdfResources& GetOrCreateResources() = 0;
 
+    /** Ensure resources initialized on this canvas
+     */
+    virtual void EnsureResourcesCreated() = 0;
+
     /** Get the current canvas size in PDF Units
      *  \returns a Rect containing the page size available for drawing
      */
@@ -86,11 +90,6 @@ public:
      * \returns true if the canvas has a rotation
      */
     virtual bool HasRotation(double& teta) const = 0;
-
-    /** Get a copy of procset PdfArray.
-     *  \returns a procset PdfArray
-     */
-    static PdfArray GetProcSet();
 
 protected:
     virtual PdfObject* getContentsObject() = 0;

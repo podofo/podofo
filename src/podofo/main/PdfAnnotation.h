@@ -54,7 +54,7 @@ public:
      *  \param appearance an apperance type to set
      *  \param state the state for which set it the obj; states depend on the annotation type
      */
-    void SetAppearanceStream(PdfXObjectForm& obj, PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
+    void SetAppearanceStream(const PdfXObjectForm& obj, PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
 
     void GetAppearanceStreams(std::vector<PdfAppearanceIdentity>& streams) const;
 
@@ -209,9 +209,6 @@ bool PdfAnnotation::TryCreateFromObject(const PdfObject& obj, std::unique_ptr<co
     xobj.reset((const TAnnotation*)xobj_);
     return true;
 }
-
-// helper function, to avoid code duplication
-void SetAppearanceStreamForObject(PdfObject& obj, PdfXObjectForm& xobj, PdfAppearanceType appearance, const PdfName& state);
 
 };
 

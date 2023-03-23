@@ -55,6 +55,7 @@ void PdfPainter::SetCanvas(PdfCanvas& canvas)
 
     finishDrawing();
     reset();
+    canvas.EnsureResourcesCreated();
     m_canvas = &canvas;
     m_objStream = nullptr;
 }

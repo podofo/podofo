@@ -199,6 +199,8 @@ public:
 private:
     PdfField& createField(const std::string_view& name, const std::type_info& typeInfo, const Rect& rect, bool rawRect);
 
+    void EnsureResourcesCreated() override;
+
     PdfResources* getResources() override;
 
     PdfObject* getContentsObject() override;

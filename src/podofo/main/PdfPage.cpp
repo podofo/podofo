@@ -301,6 +301,11 @@ PdfField& PdfPage::createField(const string_view& name, const type_info& typeInf
     return PdfField::Create(name, annotation, typeInfo);
 }
 
+void PdfPage::EnsureResourcesCreated()
+{
+    ensureResourcesCreated();
+}
+
 bool PdfPage::SetPageWidth(int newWidth)
 {
     // Take advantage of inherited values - walking up the tree if necessary

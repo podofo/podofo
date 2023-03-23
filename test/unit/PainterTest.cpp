@@ -49,6 +49,11 @@ namespace
             return m_resourceObj.MustGetStream().GetCopy();
         }
 
+        void EnsureResourcesCreated() override
+        {
+            // Do nothing
+        }
+
     protected:
         PdfObject* getContentsObject() override
         {

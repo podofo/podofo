@@ -66,14 +66,3 @@ PdfObject* PdfCanvas::getFromResources(const string_view& type, const string_vie
     return resources->GetResource(type, key);
 
 }
-
-PdfArray PdfCanvas::GetProcSet()
-{
-    PdfArray procset;
-    procset.Add(PdfName("PDF"));
-    procset.Add(PdfName("Text"));
-    procset.Add(PdfName("ImageB"));
-    procset.Add(PdfName("ImageC"));
-    procset.Add(PdfName("ImageI"));
-    return procset;
-}
