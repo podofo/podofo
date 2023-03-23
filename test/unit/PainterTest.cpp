@@ -408,6 +408,43 @@ TEST_CASE("TestAppend")
     REQUIRE(out == "q\nBT (Hello) Tj ET\nQ\nq\n1 1 1 rg\nQ\n");
 }
 
+TEST_CASE("TestRotate")
+{
+    unordered_map<int, Matrix> matrices = {
+        { 90, Matrix::FromCoefficients(6.1232339957367660e-17, 1, -1, 6.1232339957367660e-17, 9.9999999999999982, 0) },
+        { 270, Matrix::FromCoefficients(-1.8369701987210297e-16, -1, 1,-1.8369701987210297e-16, 0, 20.000000000000004) },
+    };
+
+    auto test = [&](int angle)
+    {
+        PdfMemDocument doc;
+        doc.Load(TestUtils::GetTestInputFilePath(utls::Format("blank-rotated-{}.pdf", angle)));
+        auto& page = doc.GetPages().GetPageAt(0);
+        page.SetRect(Rect(0, 0, 5, 7));
+
+        auto& signature = page.CreateField<PdfSignature>("Test", Rect(2, 1, 2, 1));
+        auto xobj = doc.CreateXObjectForm(Rect(0, 0, 20, 10));
+        PdfPainter painter;
+        painter.SetCanvas(*xobj);
+        PdfPainterPath path;
+        path.MoveTo(1, 1);
+        path.AddLineTo(19, 1);
+        path.AddLineTo(10, 9);
+        path.Close();
+        painter.DrawPath(path, PdfPathDrawMode::Fill);
+        painter.FinishDrawing();
+        signature.MustGetWidget().SetAppearanceStream(*xobj);
+        auto apObj = signature.MustGetWidget().GetAppearanceStream();
+        unique_ptr<PdfXObjectForm> form;
+        (void)PdfXObject::TryCreateFromObject(*apObj, form);
+        REQUIRE(form->GetMatrix() == matrices[angle]);
+        doc.Save(TestUtils::GetTestOutputFilePath(utls::Format("Rotated-{}.pdf", angle)));
+    };
+
+    test(90);
+    test(270);
+}
+
 static void drawSample(PdfPainter& painter)
 {
     painter.DrawCircle(100, 500, 20, PdfPathDrawMode::Fill);
