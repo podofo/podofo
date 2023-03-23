@@ -50,11 +50,13 @@ public:
 public:
     /** Set an appearance stream for this object
      *  to specify its visual appearance
-     *  \param obj an XObject
+     *  \param xobj an XObject form
+     *  \param raw true to set the form without handling the page rotation
      *  \param appearance an apperance type to set
      *  \param state the state for which set it the obj; states depend on the annotation type
      */
-    void SetAppearanceStream(const PdfXObjectForm& obj, PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
+    void SetAppearanceStream(const PdfXObjectForm& xobj, bool raw, PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
+    void SetAppearanceStream(const PdfXObjectForm& xobj, PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
 
     void GetAppearanceStreams(std::vector<PdfAppearanceIdentity>& streams) const;
 

@@ -166,9 +166,18 @@ unique_ptr<PdfAnnotation> PdfAnnotation::Create(PdfPage& page, PdfAnnotationType
 
 void PdfAnnotation::SetAppearanceStream(const PdfXObjectForm& xobj, PdfAppearanceType appearance, const PdfName& state)
 {
+    SetAppearanceStream(xobj, false, appearance, state);
+}
+
+void PdfAnnotation::SetAppearanceStream(const PdfXObjectForm& xobj, bool raw, PdfAppearanceType appearance, const PdfName& state)
+{
     const PdfObject* apObj;
     double teta;
-    if (MustGetPage().HasRotation(teta))
+    if (raw || !MustGetPage().HasRotation(teta))
+    {
+        apObj = &xobj.GetObject();
+    }
+    else
     {
         // If the page has a rotation, add a preample object that
         // will transform the input xobject and adjust the orientation
@@ -181,10 +190,6 @@ void PdfAnnotation::SetAppearanceStream(const PdfXObjectForm& xobj, PdfAppearanc
         actualXobj->GetObject().GetOrCreateStream().SetData(sstream.GetString());
         actualXobj->SetMatrix(newMat);
         apObj = &actualXobj->GetObject();
-    }
-    else
-    {
-        apObj = &xobj.GetObject();
     }
 
     PdfName name;
