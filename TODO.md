@@ -1,6 +1,8 @@
 ### 0.11
 - PdfFontManager: Add font hash to cache descriptor
 - Add high-level signing API
+- Add special SetAppearance for PdfSignature respecting
+  "Digital Signature Appearances" document specification
 
 ### 1.0
 - Restore manuals
