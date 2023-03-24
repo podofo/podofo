@@ -56,9 +56,9 @@ Rect PoDoFo::TransformRectPage(const Rect& rect, const PdfPage& page, bool input
         // on the left-bottom corner
         Matrix transform;
         if (inputIsTransformed)
-            transform = PoDoFo::GetFrameRotationTransform(page.GetMediaBox(), teta);
+            transform = PoDoFo::GetFrameRotationTransform(page.GetMediaBox(true), teta);
         else
-            transform = PoDoFo::GetFrameRotationTransformInverse(page.GetMediaBox(), teta);
+            transform = PoDoFo::GetFrameRotationTransformInverse(page.GetMediaBox(true), teta);
 
         return rect * transform;
     }

@@ -51,12 +51,18 @@ public:
     /** Set an appearance stream for this object
      *  to specify its visual appearance
      *  \param xobj an XObject form
-     *  \param raw true to set the form without handling the page rotation
      *  \param appearance an apperance type to set
      *  \param state the state for which set it the obj; states depend on the annotation type
      */
-    void SetAppearanceStream(const PdfXObjectForm& xobj, bool raw, PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
     void SetAppearanceStream(const PdfXObjectForm& xobj, PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
+
+    /** Set an appearance stream for this object
+     *  to specify its visual appearance withot handling page rotations
+     *  \param xobj an XObject form
+     *  \param appearance an apperance type to set
+     *  \param state the state for which set it the obj; states depend on the annotation type
+     */
+    void SetAppearanceStreamRaw(const PdfXObjectForm& xobj, PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
 
     void GetAppearanceStreams(std::vector<PdfAppearanceIdentity>& streams) const;
 
@@ -77,12 +83,14 @@ public:
     /** Get the rectangle of this annotation.
      *  \returns a rectangle
      */
-    Rect GetRect(bool rawRect = false) const;
+    Rect GetRect() const;
+    Rect GetRectRaw() const;
 
     /** Set the rectangle of this annotation.
      * \param rect rectangle to set
      */
-    void SetRect(const Rect& rect, bool rawRect = false);
+    void SetRect(const Rect& rect);
+    void SetRectRaw(const Rect& rect);
 
     /** Set the flags of this annotation.
      *  \see GetFlags

@@ -74,9 +74,13 @@ public:
         const std::string_view& pattern = { },
         const PdfTextExtractParams& params = { }) const;
 
-    Rect GetRect(bool rawRect = false) const;
+    Rect GetRect() const;
 
-    void SetRect(const Rect& rect, bool rawRect = false);
+    Rect GetRectRaw() const override;
+
+    void SetRect(const Rect& rect);
+
+    void SetRectRaw(const Rect& rect);
 
     bool HasRotation(double& teta) const override;
 
@@ -96,15 +100,30 @@ public:
      */
     bool SetPageHeight(int newHeight);
 
-    /** Set the mediabox in PDF Units
-    *  \param size a Rect specifying the mediabox of the page (i.e the /TrimBox key) in PDF units
-    */
-    void SetMediaBox(const Rect& size);
-
-    /** Set the trimbox in PDF Units
-     *  \param size a Rect specifying the trimbox of the page (i.e the /TrimBox key) in PDF units
+    /** Set the /MediaBox in PDF Units
+     * \param rect a Rect in PDF units
      */
-    void SetTrimBox(const Rect& size);
+    void SetMediaBox(const Rect& rect, bool raw = false);
+
+    /** Set the /CropBox in PDF Units
+     * \param rect a Rect in PDF units
+     */
+    void SetCropBox(const Rect& rect, bool raw = false);
+
+    /** Set the /TrimBox in PDF Units
+     * \param rect a Rect in PDF units
+     */
+    void SetTrimBox(const Rect& rect, bool raw = false);
+
+    /** Set the /BleedBox in PDF Units
+     * \param rect a Rect in PDF units
+     */
+    void SetBleedBox(const Rect& rect, bool raw = false);
+
+    /** Set the /ArtBox in PDF Units
+     * \param rect a Rect in PDF units
+     */
+    void SetArtBox(const Rect& rect, bool raw = false);
 
     /** Page number inside of the document. The  first page
      *  has the number 1, the last page has the number
@@ -128,27 +147,27 @@ public:
     /** Get the current MediaBox (physical page size) in PDF units.
      *  \returns Rect the page box
      */
-    Rect GetMediaBox() const;
+    Rect GetMediaBox(bool raw = false) const;
 
     /** Get the current CropBox (visible page size) in PDF units.
      *  \returns Rect the page box
      */
-    Rect GetCropBox() const;
+    Rect GetCropBox(bool raw = false) const;
 
     /** Get the current TrimBox (cut area) in PDF units.
      *  \returns Rect the page box
      */
-    Rect GetTrimBox() const;
+    Rect GetTrimBox(bool raw = false) const;
 
     /** Get the current BleedBox (extra area for printing purposes) in PDF units.
      *  \returns Rect the page box
      */
-    Rect GetBleedBox() const;
+    Rect GetBleedBox(bool raw = false) const;
 
     /** Get the current ArtBox in PDF units.
      *  \returns Rect the page box
      */
-    Rect GetArtBox() const;
+    Rect GetArtBox(bool raw = false) const;
 
     /** Get the current page rotation (if any), it's a clockwise rotation
      *  \returns int 0, 90, 180 or 270
@@ -224,9 +243,9 @@ private:
      * This function is internal, since there are wrappers for all standard boxes
      *  \returns Rect the page box
      */
-    Rect getPageBox(const std::string_view& inBox) const;
+    Rect getPageBox(const std::string_view& inBox, bool raw) const;
 
-    Rect GetRectRaw() const override;
+    void setPageBox(const std::string_view& inBox, const Rect& rect, bool raw);
 
 private:
     PdfElement& GetElement() = delete;
