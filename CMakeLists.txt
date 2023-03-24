@@ -22,7 +22,7 @@ set(PODOFO_VERSION_MAJOR "0" CACHE STRING "Major part of podofo version number")
 set(PODOFO_VERSION_MINOR "10" CACHE STRING "Minor part of podofo version number")
 set(PODOFO_VERSION_PATCH "0" CACHE STRING "Patchlevel part of podofo version number")
 set(PODOFO_LIBVERSION "${PODOFO_VERSION_MAJOR}.${PODOFO_VERSION_MINOR}.${PODOFO_VERSION_PATCH}")
-set(PODOFO_SOVERSION "10")
+set(PODOFO_SOVERSION "1")
 
 #
 # Main includes
