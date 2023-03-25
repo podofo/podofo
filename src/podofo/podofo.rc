@@ -1,6 +1,6 @@
 #define PODOFO_COMPILE_RC
 
-#include "main/PdfVersion.h"
+#include "auxiliary/Version.h"
 #include "winresrc.h"
 
 #undef PODOFO_COMPILE_RC

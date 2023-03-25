@@ -25,7 +25,7 @@
 // Include common system headers
 #include <podofo/auxiliary/baseincludes.h>
 
-#include "PdfVersion.h"
+#include <podofo/auxiliary/Version.h>
 
 // Error Handling Defines
 #include "PdfError.h"
