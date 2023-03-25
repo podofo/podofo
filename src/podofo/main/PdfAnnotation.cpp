@@ -175,7 +175,6 @@ void PdfAnnotation::SetAppearanceStream(const PdfXObjectForm& xobj, PdfAppearanc
     {
         // If the page has a rotation, add a preample object that
         // will transform the input xobject and adjust the orientation
-        auto objMat = xobj.GetMatrix();
         auto newMat = PoDoFo::GetFrameRotationTransform(xobj.GetRect(), -teta);
         auto actualXobj = GetDocument().CreateXObjectForm(xobj.GetRect());
         actualXobj->GetOrCreateResources().AddResource("XObject", "XOb1", xobj.GetObject());
