@@ -8,7 +8,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-BoxSetter::BoxSetter(const string_view& in, const string& out, const string_view& box, const Rect& rect)
+BoxSetter::BoxSetter(const string_view& in, const string_view& out, const string_view& box, const Rect& rect)
     : m_box(box), m_rect(rect)
 {
     PdfMemDocument source;

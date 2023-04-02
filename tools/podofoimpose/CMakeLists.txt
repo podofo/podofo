@@ -21,5 +21,6 @@ target_link_libraries(podofoimpose
 	${PODOFO_LIBRARIES}
 	podofo_private
 	${IMPOSE_EXTRA_LIBS}
+	tools_private
 )
 install(TARGETS podofoimpose RUNTIME DESTINATION "bin")

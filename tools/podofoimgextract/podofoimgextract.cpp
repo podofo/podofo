@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <cstdlib>
 
+using namespace std;
 using namespace PoDoFo;
 
 void print_help()
@@ -16,34 +17,21 @@ void print_help()
     printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
-int main(int argc, char* argv[])
+void Main(const cspan<string_view>& args)
 {
-    char* input;
-    char* output;
-
     ImageExtractor extractor;
 
-    if (argc != 3)
+    if (args.size() != 3)
     {
         print_help();
         exit(-1);
     }
 
-    input = argv[1];
-    output = argv[2];
+    auto input = args[1];
+    auto output = args[2];
 
-    try
-    {
-        extractor.Init(input, output);
-    }
-    catch (PdfError& e)
-    {
-        fprintf(stderr, "Error: An error %i ocurred during processing the pdf file.\n", (int)e.GetCode());
-        e.PrintErrorMsg();
-        return (int)e.GetCode();
-    }
+    extractor.Init(input, output);
 
     unsigned imageCount = extractor.GetNumImagesExtracted();
     printf("Extracted %u images successfully from the PDF file.\n", imageCount);
-    return 0;
 }

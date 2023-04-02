@@ -169,51 +169,39 @@ vector<Rect> get_crop_boxes(const string_view& input)
     return rects;
 }
 
-int main(int argc, char* argv[])
+void Main(const cspan<string_view>& args)
 {
     PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::None);
 
-    if (argc != 3)
+    if (args.size() != 3)
     {
         print_help();
         exit(-1);
     }
 
-    const char* inputPath = argv[1];
-    const char* outputPath = argv[2];
+    auto inputPath = args[1];
+    auto outputPath = args[2];
 
-    try
+    printf("Cropping file:\t%s\n", inputPath.data());
+    printf("Writing to   :\t%s\n", outputPath.data());
+
+    vector<Rect> cropBoxes = get_crop_boxes(inputPath);
+
+    PdfMemDocument doc;
+    doc.Load(inputPath);
+
+    if (cropBoxes.size() != doc.GetPages().GetCount())
     {
-        printf("Cropping file:\t%s\n", inputPath);
-        printf("Writing to   :\t%s\n", outputPath);
-
-        vector<Rect> cropBoxes = get_crop_boxes(inputPath);
-
-        PdfMemDocument doc;
-        doc.Load(inputPath);
-
-        if (cropBoxes.size() != doc.GetPages().GetCount())
-        {
-            printf("Number of cropboxes obtained form ghostscript does not match with page count (%u, %u)\n",
-                static_cast<unsigned>(cropBoxes.size()), doc.GetPages().GetCount());
-            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-        }
-
-        for (unsigned i = 0; i < doc.GetPages().GetCount(); i++)
-        {
-            auto& page = doc.GetPages().GetPageAt(i);
-            crop_page(page, cropBoxes[i]);
-        }
-
-        doc.Save(outputPath);
-
-    }
-    catch (PdfError& e)
-    {
-        fprintf(stderr, "Error: An error %i ocurred during croppping pages in the pdf file.\n", (int)e.GetCode());
-        e.PrintErrorMsg();
-        return (int)e.GetCode();
+        printf("Number of cropboxes obtained form ghostscript does not match with page count (%u, %u)\n",
+            static_cast<unsigned>(cropBoxes.size()), doc.GetPages().GetCount());
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
     }
 
-    return 0;
+    for (unsigned i = 0; i < doc.GetPages().GetCount(); i++)
+    {
+        auto& page = doc.GetPages().GetPageAt(i);
+        crop_page(page, cropBoxes[i]);
+    }
+
+    doc.Save(outputPath);
 }

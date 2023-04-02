@@ -5,5 +5,5 @@ add_executable(podofopages podofopages.cpp
     MoveOperation.h
     Operation.h
 )
-target_link_libraries(podofopages ${PODOFO_LIBRARIES})
+target_link_libraries(podofopages ${PODOFO_LIBRARIES} tools_private)
 install(TARGETS podofopages RUNTIME DESTINATION "bin")

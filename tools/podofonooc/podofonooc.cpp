@@ -20,110 +20,98 @@
 using namespace std;
 using namespace PoDoFo;
 
-int main(int argc, char* argv[])
+void Main(const cspan<string_view>& args)
 {
     using namespace PoDoFo;
     PdfMemDocument* doc = nullptr;
-    int result = 0;
 
-    try
+    PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::None);
+    if (args.size() < 3)
     {
-        PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::None);
-        if (argc < 3)
-        {
-            cout << "Usage" << endl;
-            cout << "  " << argv[0] << " <in.pdf> <out.pdf> [OC_name]..." << endl;
-            return EXIT_FAILURE;
-        }
+        cout << "Usage" << endl;
+        cout << "  " << args[0] << " <in.pdf> <out.pdf> [OC_name]..." << endl;
+        exit(-1);
+    }
 
-        if (argv[1] == string_view("-"))
-        {
-            cin >> std::noskipws;
+    if (args[1] == "-")
+    {
+        cin >> std::noskipws;
 #ifdef _MSC_VER
-            _setmode(_fileno(stdin), _O_BINARY); // @TODO: MSVC specific binary setmode -- not sure if other platforms need it
-            cin.sync_with_stdio();
+        _setmode(_fileno(stdin), _O_BINARY); // @TODO: MSVC specific binary setmode -- not sure if other platforms need it
+        cin.sync_with_stdio();
 #endif
-            istream_iterator<char> it(std::cin);
-            istream_iterator<char> end;
-            string buffer(it, end);
-            doc = new PdfMemDocument();
-            doc->LoadFromBuffer(buffer);
-        }
-        else
-        {
-            doc = new PdfMemDocument();
-            doc->Load(argv[1]);
-        }
+        istream_iterator<char> it(std::cin);
+        istream_iterator<char> end;
+        string buffer(it, end);
+        doc = new PdfMemDocument();
+        doc->LoadFromBuffer(buffer);
+    }
+    else
+    {
+        doc = new PdfMemDocument();
+        doc->Load(args[1]);
+    }
 
-        vector<string> ocToRemove;
-        for (int i = 3; i < argc; i++)
-        {
-            ocToRemove.push_back(string(argv[i]));
-        }
+    vector<string> ocToRemove;
+    for (unsigned i = 3; i < args.size(); i++)
+    {
+        ocToRemove.push_back(string(args[i]));
+    }
 
-        int ocCount = 0;
-        PdfObject* ocProperties = doc->GetTrailer().GetDictionary().MustFindKey("Root").GetDictionary().FindKey("OCProperties");
+    int ocCount = 0;
+    PdfObject* ocProperties = doc->GetTrailer().GetDictionary().MustFindKey("Root").GetDictionary().FindKey("OCProperties");
 
-        if (ocProperties)
+    if (ocProperties)
+    {
+        auto ocgs = ocProperties->GetDictionary().FindKey("OCGs");
+        if (ocgs)
         {
-            auto ocgs = ocProperties->GetDictionary().FindKey("OCGs");
-            if (ocgs)
+            auto& objects = doc->GetObjects();
+            PdfArray ocgsArr = ocgs->GetArray();
+            for (PdfArray::iterator it1 = ocgsArr.begin(); it1 != ocgsArr.end(); it1++)
             {
-                auto& objects = doc->GetObjects();
-                PdfArray ocgsArr = ocgs->GetArray();
-                for (PdfArray::iterator it1 = ocgsArr.begin(); it1 != ocgsArr.end(); it1++)
+                PdfReference ocgRef = (*it1).GetReference();
+                if (!objects.GetObject(ocgRef))
+                    continue;
+
+                const string& ocgName = objects.MustGetObject(ocgRef).GetDictionary().MustFindKey("Name").GetString().GetString();
+
+                if (!ocToRemove.empty() && find(ocToRemove.begin(), ocToRemove.end(), ocgName) == ocToRemove.end())
+                    continue;
+
+                for (auto it2 = objects.rbegin(); it2 != objects.rend(); it2++)
                 {
-                    PdfReference ocgRef = (*it1).GetReference();
-                    if (!objects.GetObject(ocgRef))
-                        continue;
-
-                    const string& ocgName = objects.MustGetObject(ocgRef).GetDictionary().MustFindKey("Name").GetString().GetString();
-
-                    if (!ocToRemove.empty() && find(ocToRemove.begin(), ocToRemove.end(), ocgName) == ocToRemove.end())
-                        continue;
-
-                    for (auto it2 = objects.rbegin(); it2 != objects.rend(); it2++)
+                    auto ob = *it2;
+                    if (ob->IsDictionary())
                     {
-                        auto ob = *it2;
-                        if (ob->IsDictionary())
+                        auto oc = ob->GetDictionary().GetKey("OC");
+                        if (oc != nullptr)
                         {
-                            auto oc = ob->GetDictionary().GetKey("OC");
-                            if (oc != nullptr)
+                            PdfReference ocRef = oc->GetReference();
+                            if (ocRef == ocgRef || ((ocgs = objects.MustGetObject(ocRef).GetDictionary().GetKey("OCGs")) != nullptr
+                                && ocgs->GetReference() == ocgRef))
                             {
-                                PdfReference ocRef = oc->GetReference();
-                                if (ocRef == ocgRef || ((ocgs = objects.MustGetObject(ocRef).GetDictionary().GetKey("OCGs")) != nullptr
-                                    && ocgs->GetReference() == ocgRef))
-                                {
-                                    objects.RemoveObject(ob->GetIndirectReference());
-                                    ocCount++;
-                                }
+                                objects.RemoveObject(ob->GetIndirectReference());
+                                ocCount++;
                             }
                         }
                     }
-
-                    objects.RemoveObject(ocgRef);
                 }
+
+                objects.RemoveObject(ocgRef);
             }
         }
-
-        if (ocCount)
-        {
-            doc->Save(argv[2]);
-        }
-        else
-        {
-            cout << "No optional content in this PDF" << endl;
-        }
     }
-    catch (PdfError& e)
+
+    if (ocCount)
     {
-        std::cerr << "Error: An error " << (int)e.GetCode() << " occurred during the process of the pdf file:" << std::endl;
-        e.PrintErrorMsg();
-        result = (int)e.GetCode();
+        doc->Save(args[2]);
+    }
+    else
+    {
+        cout << "No optional content in this PDF" << endl;
     }
 
     if (doc)
         delete doc;
-
-    return result;
 }

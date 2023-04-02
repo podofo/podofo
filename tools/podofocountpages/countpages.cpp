@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <cstdio>
 
+using namespace std;
 using namespace PoDoFo;
 
 void print_help()
@@ -20,66 +21,54 @@ void print_help()
     printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
-int count_pages(const char* filename, const bool& shortFormat)
+int count_pages(const string_view filename, const bool& shortFormat)
 {
     PdfMemDocument document;
     document.Load(filename);
-    int nPages = document.GetPages().GetCount();
-
+    unsigned nPages = document.GetPages().GetCount();
+    
     if (shortFormat)
         printf("%i\n", nPages);
     else
-        printf("%s:\t%i\n", filename, nPages);
+        printf("%s:\t%u\n", filename.data(), nPages);
 
     return nPages;
 }
 
-int main(int argc, char* argv[])
+void Main(const cspan<string_view>& args)
 {
     PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::None);
 
-    if (argc <= 1)
+    if (args.size() <= 1)
     {
         print_help();
         exit(-1);
     }
 
+    bool total = false;
+    bool shortFormat = false;
+    int sum = 0;
 
-    try
+    for (unsigned i = 1; i < args.size(); i++)
     {
-        bool total = false;
-        bool shortFormat = false;
-        int sum = 0;
+        auto arg = args[i];
 
-        for (int i = 1; i < argc; i++)
+        if (arg == "-s")
         {
-            const char* arg = argv[i];
-
-            if (strcmp(arg, "-s") == 0)
-            {
-                shortFormat = true;
-            }
-            else if (strcmp(arg, "-t") == 0)
-            {
-                total = true;
-            }
-            else
-            {
-                sum += count_pages(arg, shortFormat);
-            }
+            shortFormat = true;
         }
-
-        if (total)
+        else if (arg == "-t")
         {
-            printf("Total:\t%i\n", sum);
+            total = true;
+        }
+        else
+        {
+            sum += count_pages(arg, shortFormat);
         }
     }
-    catch (PdfError& e)
-    {
-        fprintf(stderr, "Error: An error %i ocurred during counting pages in the pdf file.\n", (int)e.GetCode());
-        e.PrintErrorMsg();
-        return (int)e.GetCode();
-    }
 
-    return 0;
+    if (total)
+    {
+        printf("Total:\t%i\n", sum);
+    }
 }

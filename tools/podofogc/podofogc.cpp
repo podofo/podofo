@@ -12,64 +12,55 @@
 using namespace std;
 using namespace PoDoFo;
 
-int main(int argc, char* argv[])
+void Main(const cspan<string_view>& args)
 {
     PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::None);
 
     PdfMemDocument document;
 
-    if (argc != 3)
+    if (args.size() != 3)
     {
         cerr << "Usage: podofogc <input_filename> <output_filename>\n"
             << "    Performs garbage collection on a PDF file.\n"
             << "    All objects that are not reachable from within\n"
             << "    the trailer are deleted.\n"
             << flush;
-        return 0;
+        return;
     }
 
-    try
-    {
-        cerr << "Parsing  " << argv[1] << " ... (this might take a while)"
-            << flush;
+    cerr << "Parsing  " << args[1] << " ... (this might take a while)"
+        << flush;
 
-        bool incorrectPw = false;
-        string pw;
-        do
+    bool incorrectPw = false;
+    string pw;
+    do
+    {
+        try
         {
-            try
+            document.Load(args[1], pw);
+        }
+        catch (PdfError& e)
+        {
+            if (e.GetCode() == PdfErrorCode::InvalidPassword)
             {
-                document.Load(argv[1]);
+                cout << endl << "Password :";
+                std::getline(cin, pw);
+                cout << endl;
+
+                // try to continue with the new password
+                incorrectPw = true;
             }
-            catch (PdfError& e)
+            else
             {
-                if (e.GetCode() == PdfErrorCode::InvalidPassword)
-                {
-                    cout << endl << "Password :";
-                    std::getline(cin, pw);
-                    cout << endl;
-
-                    // try to continue with the new password
-                    incorrectPw = true;
-                }
-                else
-                {
-                    throw e;
-                }
+                throw e;
             }
-        } while (incorrectPw);
+        }
+    } while (incorrectPw);
 
-        cerr << " done" << endl;
+    cerr << " done" << endl;
 
-        cerr << "Writing..." << flush;
-        document.Save(argv[2]);
-    }
-    catch (PdfError& e)
-    {
-        e.PrintErrorMsg();
-        return (int)e.GetCode();
-    }
+    cerr << "Writing..." << flush;
+    document.Save(args[2]);
 
     cerr << "Parsed and wrote successfully" << endl;
-    return EXIT_SUCCESS;
 }

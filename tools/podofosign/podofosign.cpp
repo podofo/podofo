@@ -248,13 +248,13 @@ static void print_help(bool bOnlyUsage)
     cout << "No drawing is done when using existing field." << endl;
 }
 
-static float convert_to_pdf_units(const char* annot_units, float value)
+static float convert_to_pdf_units(const string_view& annot_units, float value)
 {
-    if (strcmp(annot_units, "mm") == 0)
+    if (annot_units == "mm")
     {
         return 72.f * value / 25.4f;
     }
-    else if (strcmp(annot_units, "inch") == 0)
+    else if (annot_units == "inch")
     {
         return 72.f * value;
     }
@@ -268,8 +268,8 @@ static float convert_to_pdf_units(const char* annot_units, float value)
     }
 }
 
-static bool parse_annot_position(const char* annot_position,
-    const char* annot_units,
+static bool parse_annot_position(const string_view& annot_position,
+    const string_view& annot_units,
     int& annot_page,
     double& annot_left,
     double& annot_top,
@@ -278,7 +278,7 @@ static bool parse_annot_position(const char* annot_position,
 {
     float fLeft, fTop, fWidth, fHeight;
 
-    if (sscanf(annot_position, "%d,%f,%f,%f,%f", &annot_page, &fLeft, &fTop, &fWidth, &fHeight) != 5)
+    if (sscanf(annot_position.data(), "%d,%f,%f,%f,%f", &annot_page, &fLeft, &fTop, &fWidth, &fHeight) != 5)
     {
         return false;
     }
@@ -296,16 +296,16 @@ static bool parse_annot_position(const char* annot_position,
     return true;
 }
 
-static const char* skip_commas(const char* text, int ncommas)
+static const char* skip_commas(const string_view& text, int ncommas)
 {
-    if (!text)
+    if (text.empty())
     {
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
     }
 
-    const char* res = text;
+    const char* res = text.data();
 
-    while (*res && ncommas > 0)
+    while (*res != '\0' && ncommas > 0)
     {
         if (*res == ',')
             ncommas--;
@@ -318,7 +318,6 @@ static const char* skip_commas(const char* text, int ncommas)
         string err = "The text '";
         err += text;
         err += "' does not conform to the specified format (no enougt commas)";
-
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, err.c_str());
     }
 
@@ -327,32 +326,29 @@ static const char* skip_commas(const char* text, int ncommas)
 
 static void draw_annotation(PdfDocument& document,
     PdfPainter& painter,
-    int argc,
-    char* argv[],
+    const cspan<string_view>& args,
     const Rect& annot_rect)
 {
-    const char* annot_units = "mm";
+    string_view annot_units = "mm";
     double font_size = convert_to_pdf_units("mm", 5.0);
     PdfColor font_color(0.0, 0.0, 0.0);
     const char* font_name = "Helvetica";
     bool updateFont = true;
-    int ii;
-
-    for (ii = 1; ii < argc; ii++)
+    for (unsigned i = 1; i < args.size(); i++)
     {
-        if (strcmp(argv[ii], "-annot-units") == 0)
+        if (args[i] == "-annot-units")
         {
-            annot_units = argv[ii + 1];
+            annot_units = args[i + 1];
         }
-        else if (strcmp(argv[ii], "-annot-font") == 0)
+        else if (args[i] == "-annot-font")
         {
             float fSize;
             int rr, gg, bb;
 
-            if (sscanf(argv[ii + 1], "%f,%02x%02x%02x,", &fSize, &rr, &gg, &bb) != 4)
+            if (sscanf(args[i + 1].data(), "%f,%02x%02x%02x,", &fSize, &rr, &gg, &bb) != 4)
             {
                 string err = "The value for -annot-font '";
-                err += argv[ii + 1];
+                err += args[i + 1];
                 err += "' doesn't conform to format 'size,rrggbb,name'";
 
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, err.c_str());
@@ -360,23 +356,23 @@ static void draw_annotation(PdfDocument& document,
 
             font_size = convert_to_pdf_units(annot_units, fSize);
             font_color = PdfColor(static_cast<double>(rr) / 255.0, static_cast<double>(gg) / 255.0, static_cast<double>(bb) / 255.0);
-            font_name = skip_commas(argv[ii + 1], 2);
+            font_name = skip_commas(args[i + 1], 2);
             updateFont = true;
         }
-        else if (strcmp(argv[ii], "-annot-text") == 0)
+        else if (args[i] == "-annot-text")
         {
             float left, top;
 
-            if (sscanf(argv[ii + 1], "%f,%f,", &left, &top) != 2)
+            if (sscanf(args[i + 1].data(), "%f,%f,", &left, &top) != 2)
             {
                 string err = "The value for -annot-text '";
-                err += argv[ii + 1];
+                err += args[i + 1];
                 err += "' doesn't conform to format 'left,top,text'";
 
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, err.c_str());
             }
 
-            const char* text = skip_commas(argv[ii + 1], 2);
+            const char* text = skip_commas(args[i + 1], 2);
 
             if (updateFont)
             {
@@ -404,20 +400,20 @@ static void draw_annotation(PdfDocument& document,
                 annot_rect.Width - left,
                 annot_rect.Height - top);
         }
-        else if (strcmp(argv[ii], "-annot-image") == 0)
+        else if (args[i] == "-annot-image")
         {
             float left, top, width, height;
 
-            if (sscanf(argv[ii + 1], "%f,%f,%f,%f,", &left, &top, &width, &height) != 4)
+            if (sscanf(args[i + 1].data(), "%f,%f,%f,%f,", &left, &top, &width, &height) != 4)
             {
                 string err = "The value for -annot-image '";
-                err += argv[ii + 1];
+                err += args[i + 1];
                 err += "' doesn't conform to format 'left,top,width,height,filename'";
 
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, err.c_str());
             }
 
-            const char* filename = skip_commas(argv[ii + 1], 4);
+            const char* filename = skip_commas(args[i + 1], 4);
 
             left = convert_to_pdf_units(annot_units, left);
             top = convert_to_pdf_units(annot_units, top);
@@ -434,9 +430,11 @@ static void draw_annotation(PdfDocument& document,
         }
 
         // these are the only parameters without additional value
-        if (strcmp(argv[ii], "-annot-print") != 0 &&
-            strcmp(argv[ii], "-field-use-existing") != 0)
-            ii++;
+        if (args[i] != "-annot-print" &&
+            args[i] != "-field-use-existing")
+        {
+            i++;
+        }
     }
 }
 
@@ -609,120 +607,114 @@ static void update_default_appearance_streams(PdfAcroForm* pAcroForm)
 }
 #endif
 
-int main(int argc, char* argv[])
+void Main(const cspan<string_view>& args)
 {
-    const char* inputfile = NULL;
-    const char* outputfile = NULL;
-    const char* certfile = NULL;
-    const char* pkeyfile = NULL;
-    const char* password = NULL;
-    const char* digest = NULL;
-    const char* reason = "I agree";
-    const char* sigsizestr = NULL;
-    const char* annot_units = "mm";
-    const char* annot_position = NULL;
-    const char* field_name = NULL;
+    string_view inputfile;
+    string_view outputfile;
+    string_view certfile;
+    string_view pkeyfile;
+    string_view password;
+    string_view digest;
+    string_view reason = "I agree";
+    string_view sigsizestr;
+    string_view annot_units = "mm";
+    string_view annot_position;
+    string_view field_name;
     int annot_page = 0;
     double annot_left = 0.0, annot_top = 0.0, annot_width = 0.0, annot_height = 0.0;
     bool annot_print = false;
     bool field_use_existing = false;
-    int ii;
 
     PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::None);
 
-    for (ii = 1; ii < argc; ii++)
+    for (unsigned i = 1; i < args.size(); i++)
     {
-        const char** value = NULL;
+        string_view* value = nullptr;
 
-        if (strcmp(argv[ii], "-in") == 0)
+        if (args[i] == "-in")
         {
             value = &inputfile;
         }
-        else if (strcmp(argv[ii], "-out") == 0)
+        else if (args[i] == "-out")
         {
             value = &outputfile;
         }
-        else if (strcmp(argv[ii], "-cert") == 0)
+        else if (args[i] == "-cert")
         {
             value = &certfile;
         }
-        else if (strcmp(argv[ii], "-pkey") == 0)
+        else if (args[i] == "-pkey")
         {
             value = &pkeyfile;
         }
-        else if (strcmp(argv[ii], "-digest") == 0)
+        else if (args[i] == "-digest")
         {
             value = &digest;
         }
-        else if (strcmp(argv[ii], "-password") == 0)
+        else if (args[i] == "-password")
         {
             value = &password;
         }
-        else if (strcmp(argv[ii], "-reason") == 0)
+        else if (args[i] == "-reason")
         {
             value = &reason;
         }
-        else if (strcmp(argv[ii], "-sigsize") == 0)
+        else if (args[i] == "-sigsize")
         {
             value = &sigsizestr;
         }
-        else if (strcmp(argv[ii], "-annot-units") == 0)
+        else if (args[i] == "-annot-units")
         {
             value = &annot_units;
         }
-        else if (strcmp(argv[ii], "-annot-position") == 0)
+        else if (args[i] == "-annot-position")
         {
-            if (annot_position)
+            if (!annot_position.empty())
             {
                 cerr << "Only one -annot-position can be specified" << endl;
-
-                return -1;
+                exit(-1);
             }
 
             value = &annot_position;
         }
-        else if (strcmp(argv[ii], "-annot-print") == 0)
+        else if (args[i] == "-annot-print")
         {
-            if (!annot_position)
+            if (annot_position.empty())
             {
-                cerr << "Missing -annot-position argument, which should be defined before '" << argv[ii] << "'" << endl;
-
-                return -2;
+                cerr << "Missing -annot-position argument, which should be defined before '" << args[i] << "'" << endl;
+                exit(-2);
             }
 
             if (annot_print)
             {
                 cerr << "Only one -annot-print can be specified" << endl;
-
-                return -1;
+                exit(-1);
             }
 
             annot_print = !annot_print;
             continue;
         }
-        else if (strcmp(argv[ii], "-annot-font") == 0 ||
-            strcmp(argv[ii], "-annot-text") == 0 ||
-            strcmp(argv[ii], "-annot-image") == 0)
+        else if (args[i] == "-annot-font" ||
+            args[i] == "-annot-text" ||
+            args[i] == "-annot-image")
         {
-            if (!annot_position)
+            if (annot_position.empty())
             {
-                cerr << "Missing -annot-position argument, which should be defined before '" << argv[ii] << "'" << endl;
-
-                return -2;
+                cerr << "Missing -annot-position argument, which should be defined before '" << args[i] << "'" << endl;
+                exit(-2);
             }
             // value is left NULL, these are parsed later
         }
-        else if (strcmp(argv[ii], "-field-name") == 0)
+        else if (args[i] == "-field-name")
         {
             value = &field_name;
         }
-        else if (strcmp(argv[ii], "-field-use-existing") == 0)
+        else if (args[i] == "-field-use-existing")
         {
             if (field_use_existing)
             {
                 cerr << "Only one -field-use-existing can be specified" << endl;
-
-                return -1;
+                exit(-1);
             }
 
             field_use_existing = !field_use_existing;
@@ -730,29 +722,26 @@ int main(int argc, char* argv[])
         }
         else
         {
-            cerr << "Unknown argument '" << argv[ii] << "'" << endl;
+            cerr << "Unknown argument '" << args[i] << "'" << endl;
             print_help(true);
-
-            return -3;
+            exit(-3);
         }
 
-        if (ii + 1 >= argc)
+        if (i + 1 >= args.size())
         {
-            cerr << "Missing value for argument '" << argv[ii] << "'" << endl;
+            cerr << "Missing value for argument '" << args[i] << "'" << endl;
             print_help(true);
-
-            return -4;
+            exit(-4);
         }
 
         if (value)
         {
-            *value = argv[ii + 1];
+            *value = args[i + 1];
 
-            if (*value == annot_units && strcmp(annot_units, "mm") != 0 && strcmp(annot_units, "inch") != 0)
+            if (*value == annot_units && annot_units != "mm" && annot_units != "inch")
             {
                 cerr << "Invalid -annot-units value '" << *value << "', only 'mm' and 'inch' are supported" << endl;
-
-                return -5;
+                exit(-5);
             }
 
             try
@@ -760,218 +749,205 @@ int main(int argc, char* argv[])
                 if (*value == annot_position && !parse_annot_position(annot_position, annot_units, annot_page, annot_left, annot_top, annot_width, annot_height))
                 {
                     cerr << "Invalid -annot-position value '" << *value << "', expected format \"page,left,top,width,height\"" << endl;
-
-                    return -6;
+                    exit(-6);
                 }
             }
             catch (...)
             {
                 cerr << "Invalid -annot-position value '" << *value << "', expected format \"page,left,top,width,height\"" << endl;
-
-                return -6;
+                exit(-6);
             }
         }
-        ii++;
+        i++;
     }
 
-    if (!inputfile || !certfile || !pkeyfile)
+    if (inputfile.empty() || certfile.empty() || pkeyfile.empty())
     {
-        if (argc != 1)
+        if (args.size() != 1)
             cerr << "Not all required arguments specified." << endl;
+
         print_help(true);
 
-        return -7;
+        exit(-7);
     }
 
     int sigsize = -1;
 
-    if (sigsizestr)
+    if (!sigsizestr.empty())
     {
-        sigsize = atoi(sigsizestr);
+        sigsize = atoi(sigsizestr.data());
 
         if (sigsize <= 0)
         {
             cerr << "Invalid value for signature size specified (" << sigsizestr << "), use a positive integer, please" << endl;
-            return -8;
+            exit(-8);
         }
     }
 
-    if (outputfile && strcmp(outputfile, inputfile) == 0)
+    if (!outputfile.empty() && outputfile == inputfile)
     {
         // even I told you not to do it, you still specify the same output file
         // as the input file. Just ignore that.
-        outputfile = NULL;
+        outputfile = { };
     }
 
     OPENSSL_init_crypto(0, NULL);
 
     X509* cert = NULL;
     EVP_PKEY* pkey = NULL;
-    if (!load_cert_and_key(certfile, pkeyfile, password, &cert, &pkey))
+    if (!load_cert_and_key(certfile.data(), pkeyfile.data(), password.data(), &cert, &pkey))
     {
-        return -9;
+        exit(-9);
     }
 
-    int result = 0;
     PdfSignature* signature = NULL;
 
-    try
+    const EVP_MD* md_digest;
+
+    if (!digest.empty())
     {
-        const EVP_MD* md_digest;
-
-        if (digest != NULL)
+        md_digest = EVP_get_digestbyname(digest.data());
+        if (!md_digest)
         {
-            md_digest = EVP_get_digestbyname(digest);
-            if (!md_digest)
-            {
-                string err = "Unknown digest '";
-                err += digest;
-                err += "'";
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidName, err.c_str());
-            }
+            string err = "Unknown digest '";
+            err += digest;
+            err += "'";
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidName, err.c_str());
         }
-        else
-        {
-            md_digest = EVP_sha512();
-            if (!md_digest)
-                cerr << "Cannot get SHA512 digest, using default OpenSSL digest instead." << endl;
-        }
+    }
+    else
+    {
+        md_digest = EVP_sha512();
+        if (!md_digest)
+            cerr << "Cannot get SHA512 digest, using default OpenSSL digest instead." << endl;
+    }
 
-        PdfMemDocument document;
+    PdfMemDocument document;
 
-        document.Load(inputfile);
+    document.Load(inputfile);
 
-        if (!document.GetPages().GetCount())
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::PageNotFound, "The document has no page. Only documents with at least one page can be signed");
+    if (!document.GetPages().GetCount())
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::PageNotFound, "The document has no page. Only documents with at least one page can be signed");
 
-        auto& acroForm = document.GetOrCreateAcroForm();
-        if (!acroForm.GetObject().GetDictionary().HasKey("SigFlags") ||
-            !acroForm.GetObject().GetDictionary().MustGetKey("SigFlags").IsNumber() ||
-            acroForm.GetObject().GetDictionary().FindKeyAsSafe<int64_t>("SigFlags") != 3)
-        {
-            if (acroForm.GetObject().GetDictionary().HasKey("SigFlags"))
-                acroForm.GetObject().GetDictionary().RemoveKey("SigFlags");
+    auto& acroForm = document.GetOrCreateAcroForm();
+    if (!acroForm.GetObject().GetDictionary().HasKey("SigFlags") ||
+        !acroForm.GetObject().GetDictionary().MustGetKey("SigFlags").IsNumber() ||
+        acroForm.GetObject().GetDictionary().FindKeyAsSafe<int64_t>("SigFlags") != 3)
+    {
+        if (acroForm.GetObject().GetDictionary().HasKey("SigFlags"))
+            acroForm.GetObject().GetDictionary().RemoveKey("SigFlags");
 
-            int64_t val = 3;
-            acroForm.GetObject().GetDictionary().AddKey("SigFlags", val);
-        }
+        int64_t val = 3;
+        acroForm.GetObject().GetDictionary().AddKey("SigFlags", val);
+    }
 
-        if (acroForm.GetNeedAppearances())
-        {
+    if (acroForm.GetNeedAppearances())
+    {
 #if 0 /* TODO */
-            update_default_appearance_streams(pAcroForm);
+        update_default_appearance_streams(pAcroForm);
 #endif
 
-            acroForm.SetNeedAppearances(false);
-        }
-
-        PdfString name;
-        PdfObject* existingSigField = NULL;
-
-        if (field_name)
-        {
-            name = PdfString(field_name);
-
-            existingSigField = find_existing_signature_field(acroForm, name);
-            if (existingSigField && !field_use_existing)
-            {
-                string err = "Signature field named '";
-                err += name.GetString();
-                err += "' already exists";
-
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::WrongDestinationType, err.c_str());
-            }
-        }
-        else
-        {
-            char fldName[96]; // use bigger buffer to make sure sprintf does not overflow
-            sprintf(fldName, "PodofoSignatureField%u", document.GetObjects().GetObjectCount());
-
-            name = PdfString(fldName);
-        }
-
-        if (existingSigField)
-        {
-            if (!existingSigField->GetDictionary().HasKey("P"))
-            {
-                string err = "Signature field named '";
-                err += name.GetString();
-                err += "' doesn't have a page reference";
-
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::PageNotFound, err.c_str());
-            }
-
-            auto& page = document.GetPages().GetPage(existingSigField->GetDictionary().GetKey("P")->GetReference());
-            signature = &static_cast<PdfSignature&>(
-                static_cast<PdfAnnotationWidget&>(page.GetAnnotations().GetAnnot(existingSigField->GetIndirectReference())).GetField());
-            signature->EnsureValueObject();
-        }
-        else
-        {
-            auto& page = document.GetPages().GetPageAt(annot_page);
-            Rect annot_rect;
-            if (annot_position)
-            {
-                annot_rect = Rect(annot_left, page.GetMediaBox().Height - annot_top - annot_height, annot_width, annot_height);
-            }
-
-            signature = &page.CreateField<PdfSignature>(name, annot_rect);
-            if (annot_position && annot_print)
-                signature->MustGetWidget().SetFlags(PdfAnnotationFlags::Print);
-            else if (!annot_position && (!field_name || !field_use_existing))
-                signature->MustGetWidget().SetFlags(PdfAnnotationFlags::Invisible | PdfAnnotationFlags::Hidden);
-
-            if (annot_position)
-            {
-                Rect annotSize(0.0, 0.0, annot_rect.Width, annot_rect.Height);
-                auto sigXObject = document.CreateXObjectForm(annotSize);
-                PdfPainter painter;
-
-                try
-                {
-                    painter.SetCanvas(*sigXObject);
-
-                    /* Workaround Adobe's reader error 'Expected a dict object.' when the stream
-                       contains only one object which does Save()/Restore() on its own, like
-                       the image XObject. */
-                    painter.Save();
-                    painter.Restore();
-
-                    draw_annotation(document, painter, argc, argv, annot_rect);
-
-                    signature->SetAppearanceStream(*sigXObject);
-                }
-                catch (...)
-                {
-                }
-
-                painter.FinishDrawing();
-            }
-        }
-
-        signature->SetSignatureReason(PdfString(reason));
-        signature->SetSignatureDate(PdfDate());
-
-        MySigner signer(cert, pkey, md_digest);
-
-        FileStreamDevice device(outputfile ? outputfile : inputfile, FileMode::Open, DeviceAccess::Write);
-
-        PoDoFo::SignDocument(document, device, signer, *signature);
+        acroForm.SetNeedAppearances(false);
     }
-    catch (PdfError& e)
+
+    PdfString name;
+    PdfObject* existingSigField = NULL;
+
+    if (!field_name.empty())
     {
-        cerr << "Error: An error " << (int)e.GetCode() << " occurred during the sign of the pdf file:" << endl;
-        e.PrintErrorMsg();
-        result = (int)e.GetCode();
+        name = PdfString(field_name);
+
+        existingSigField = find_existing_signature_field(acroForm, name);
+        if (existingSigField && !field_use_existing)
+        {
+            string err = "Signature field named '";
+            err += name.GetString();
+            err += "' already exists";
+
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::WrongDestinationType, err.c_str());
+        }
     }
+    else
+    {
+        char fldName[96]; // use bigger buffer to make sure sprintf does not overflow
+        sprintf(fldName, "PodofoSignatureField%u", document.GetObjects().GetObjectCount());
+
+        name = PdfString(fldName);
+    }
+
+    if (existingSigField)
+    {
+        if (!existingSigField->GetDictionary().HasKey("P"))
+        {
+            string err = "Signature field named '";
+            err += name.GetString();
+            err += "' doesn't have a page reference";
+
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::PageNotFound, err.c_str());
+        }
+
+        auto& page = document.GetPages().GetPage(existingSigField->GetDictionary().GetKey("P")->GetReference());
+        signature = &static_cast<PdfSignature&>(
+            static_cast<PdfAnnotationWidget&>(page.GetAnnotations().GetAnnot(existingSigField->GetIndirectReference())).GetField());
+        signature->EnsureValueObject();
+    }
+    else
+    {
+        auto& page = document.GetPages().GetPageAt(annot_page);
+        Rect annot_rect;
+        if (!annot_position.empty())
+        {
+            annot_rect = Rect(annot_left, page.GetMediaBox().Height - annot_top - annot_height, annot_width, annot_height);
+        }
+
+        signature = &page.CreateField<PdfSignature>(name, annot_rect);
+        if (!annot_position.empty() && annot_print)
+            signature->MustGetWidget().SetFlags(PdfAnnotationFlags::Print);
+        else if (annot_position.empty() && (field_name.empty() || !field_use_existing))
+            signature->MustGetWidget().SetFlags(PdfAnnotationFlags::Invisible | PdfAnnotationFlags::Hidden);
+
+        if (!annot_position.empty())
+        {
+            Rect annotSize(0.0, 0.0, annot_rect.Width, annot_rect.Height);
+            auto sigXObject = document.CreateXObjectForm(annotSize);
+            PdfPainter painter;
+
+            try
+            {
+                painter.SetCanvas(*sigXObject);
+
+                /* Workaround Adobe's reader error 'Expected a dict object.' when the stream
+                   contains only one object which does Save()/Restore() on its own, like
+                   the image XObject. */
+                painter.Save();
+                painter.Restore();
+
+                draw_annotation(document, painter, args, annot_rect);
+
+                signature->SetAppearanceStream(*sigXObject);
+            }
+            catch (...)
+            {
+            }
+
+            painter.FinishDrawing();
+        }
+    }
+
+    signature->SetSignatureReason(PdfString(reason));
+    signature->SetSignatureDate(PdfDate());
+
+    MySigner signer(cert, pkey, md_digest);
+
+    FileStreamDevice device(outputfile.empty() ? inputfile : outputfile, FileMode::Open, DeviceAccess::Write);
+
+    PoDoFo::SignDocument(document, device, signer, *signature);
 
     if (pkey)
         EVP_PKEY_free(pkey);
 
     if (cert)
         X509_free(cert);
-
-    return result;
 }
 
 // TODO: Optmize so the process is buffered

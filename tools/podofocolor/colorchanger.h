@@ -81,7 +81,7 @@ public:
      * @param sInput the input PDF file
      * @param sOutput write output to this filename
      */
-    ColorChanger(IConverter* convert, const std::string& input, const std::string& output);
+    ColorChanger(IConverter* convert, const std::string_view& input, const std::string_view& output);
 
     /**
      * Start processing the input file.

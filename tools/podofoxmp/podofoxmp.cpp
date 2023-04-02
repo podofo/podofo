@@ -21,7 +21,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-int main(int argc, char* argv[])
+void Main(const cspan<string_view>& args)
 {
     PdfMemDocument* doc = nullptr;
     int result = 0;
@@ -29,16 +29,16 @@ int main(int argc, char* argv[])
     try
     {
         PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::None);
-        if (argc != 2 && argc != 4)
+        if (args.size() != 2 && args.size() != 4)
         {
             cout << "Syntax" << endl;
-            cout << "  " << argv[0] << " <pdf file> - display the XMP in a file (use \"-\" to specify stdin)" << endl;
+            cout << "  " << args[0] << " <pdf file> - display the XMP in a file (use \"-\" to specify stdin)" << endl;
             cout << "or" << endl;
-            cout << "  " << argv[0] << " <src pdf file> <xmp file> <new pdf file> - create a new PDF with the XMP in" << endl;
-            return EXIT_FAILURE;
+            cout << "  " << args[0] << " <src pdf file> <xmp file> <new pdf file> - create a new PDF with the XMP in" << endl;
+            exit(-1);
         }
 
-        if (string_view("-") == argv[1])
+        if (args[1] == "-")
         {
             cin >> noskipws;
 #ifdef _MSC_VER
@@ -54,11 +54,11 @@ int main(int argc, char* argv[])
         else
         {
             doc = new PdfMemDocument();
-            doc->Load(argv[1]);
+            doc->Load(args[1]);
         }
 
 
-        if (argc == 2)
+        if (args.size() == 2)
         {
             auto metadata = doc->GetCatalog().GetMetadataObject();
             if (metadata == nullptr)
@@ -78,13 +78,13 @@ int main(int argc, char* argv[])
             }
         }
 
-        if (argc == 4)
+        if (args.size() == 4)
         {
             char* xmpBuf;
             FILE* fp;
 
-            if ((fp = fopen(argv[2], "rb")) == nullptr)
-                cout << "Cannot open " << argv[2] << endl;
+            if ((fp = fopen(args[2].data(), "rb")) == nullptr)
+                cout << "Cannot open " << args[2] << endl;
             else
             {
                 if (fseek(fp, 0, SEEK_END) == -1)
@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
                 }
 
                 delete[] xmpBuf;
-                doc->Save(argv[3]);
+                doc->Save(args[3]);
             }
         }
     }
@@ -151,6 +151,4 @@ int main(int argc, char* argv[])
 
     if (doc)
         delete doc;
-
-    return result;
 }

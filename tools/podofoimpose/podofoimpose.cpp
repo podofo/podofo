@@ -34,33 +34,31 @@ void usage()
     cerr << "PoDoFo Version: " << PODOFO_VERSION_STRING << endl << endl;
 }
 
-int parseCommandLine(int argc, char* argv[])
+void parseCommandLine(const cspan<string_view>& args)
 {
-    params.executablePath = argv[0];
+    params.executablePath = args[0];
 
-    if (argc < 4)
+    if (args.size() < 4)
     {
         usage();
-        return 1;
+        exit(-1);
     }
 
-    params.inFilePath = argv[1];
-    params.outFilePath = argv[2];
-    params.planFilePath = argv[3];
+    params.inFilePath = args[1];
+    params.outFilePath = args[2];
+    params.planFilePath = args[3];
     params.planReader = PlanReader::Legacy;
-    if (argc >= 5)
+    if (args.size() >= 5)
     {
         string native("native");
         string lua("lua");
-        string interpreter(argv[4]);
+        string interpreter(args[4]);
 
         if (!interpreter.compare(native))
             params.planReader = PlanReader::Legacy;
         else if (!interpreter.compare(lua))
             params.planReader = PlanReader::Lua;
     }
-
-    return 0;
 }
 
 /**
@@ -69,42 +67,24 @@ int parseCommandLine(int argc, char* argv[])
  * 0 : success
  * 1 : bad command line arguments
  */
-int main(int argc, char* argv[])
+void Main(const cspan<string_view>& args)
 {
 #if 0
     PdfError::EnableDebug(false);
     PdfError::EnableLogging(false);
 #endif
-    int ret = parseCommandLine(argc, argv);
-    if (ret)
-        return ret;
+    parseCommandLine(args);
 
     cerr << "Source : " << params.inFilePath << endl;
     cerr << "Target : " << params.outFilePath << endl;
     cerr << "Plan   : " << params.planFilePath << endl;
 
 
-    try
-    {
-        PdfTranslator* translator = new  PdfTranslator;
+    PdfTranslator* translator = new  PdfTranslator;
 
-        translator->setSource(params.inFilePath);
-        translator->setTarget(params.outFilePath);
-        translator->loadPlan(params.planFilePath, params.planReader);
+    translator->setSource(params.inFilePath);
+    translator->setTarget(params.outFilePath);
+    translator->loadPlan(params.planFilePath, params.planReader);
 
-        translator->impose();
-    }
-    catch (PdfError& e)
-    {
-        e.GetCallStack();
-        e.PrintErrorMsg();
-        return 3;
-    }
-    catch (exception& e)
-    {
-        cerr << e.what() << endl;
-        return 4;
-    }
-
-    return 0;
+    translator->impose();
 }

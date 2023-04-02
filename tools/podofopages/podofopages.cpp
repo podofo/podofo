@@ -68,21 +68,21 @@ void work(const string_view& inputPath, const string_view& outputPath, const vec
     cout << "Done." << endl;
 }
 
-double convertToInt(const string& s)
+double convertToInt(const string_view& s)
 {
-    istringstream i(s);
+    istringstream i((string)s);
     int x;
     if (!(i >> x))
-        throw BadConversion("convertToInt(\"" + s + "\")");
+        throw BadConversion("convertToInt()");
     return x;
 }
 
-int main(int argc, char* argv[])
+void Main(const cspan<string_view>& args)
 {
-    char* inputPath = NULL;
-    char* outputPath = NULL;
+    string_view inputPath;
+    string_view outputPath;
 
-    if (argc < 3)
+    if (args.size() < 3)
     {
         print_help();
         exit(-1);
@@ -90,19 +90,19 @@ int main(int argc, char* argv[])
 
     // Fill operations vector
     vector<Operation*> operations;
-    for (int i = 1; i < argc; i++)
+    for (unsigned i = 1; i < args.size(); i++)
     {
-        string argument = argv[i];
+        string_view argument = args[i];
         if (argument == "--delete" || argument == "-delete")
         {
-            int page = static_cast<int>(convertToInt(string(argv[i + 1])));
+            int page = static_cast<int>(convertToInt(args[i + 1]));
             operations.push_back(new DeleteOperation(page));
             i++;
         }
         else if (argument == "--move" || argument == "-move")
         {
-            int from = static_cast<int>(convertToInt(string(argv[i + 1])));
-            int to = static_cast<int>(convertToInt(string(argv[i + 2])));
+            int from = static_cast<int>(convertToInt(args[i + 1]));
+            int to = static_cast<int>(convertToInt(args[i + 2]));
             operations.push_back(new MoveOperation(from, to));
             i++;
             i++;
@@ -111,11 +111,11 @@ int main(int argc, char* argv[])
         {
             if (inputPath == NULL)
             {
-                inputPath = argv[i];
+                inputPath = args[i];
             }
             else if (outputPath == NULL)
             {
-                outputPath = argv[i];
+                outputPath = args[i];
             }
             else
             {
@@ -124,13 +124,13 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (!inputPath)
+    if (args.empty())
     {
         cerr << "Please specify an input file." << endl;
         exit(-2);
     }
 
-    if (!outputPath)
+    if (outputPath.empty())
     {
         cerr << "Please specify an output file." << endl;
         exit(-3);
@@ -142,21 +142,7 @@ int main(int argc, char* argv[])
         exit(-4);
     }
 
-    try
-    {
-        work(inputPath, outputPath, operations);
-    }
-    catch (PdfError& e)
-    {
-        cerr << "Error: An error " << (int)e.GetCode() << " ocurred." << endl;
-        e.PrintErrorMsg();
-        return (int)e.GetCode();
-    }
-    catch (runtime_error& re)
-    {
-        cerr << "Error: An error " << re.what() << " ocurred." << endl;
-        return -1;
-    }
+    work(inputPath, outputPath, operations);
 
     // Delete operations vectore
     vector<Operation*>::iterator it = operations.begin();
@@ -165,7 +151,5 @@ int main(int argc, char* argv[])
         delete (*it);
         it++;
     }
-
-    return 0;
 }
 

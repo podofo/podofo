@@ -21,6 +21,7 @@ target_link_libraries(podofocolor
   ${PODOFO_LIBRARIES}
   ${color_extra_libs}
   podofo_private
+  tools_private
 )
 
 install(TARGETS podofocolor RUNTIME DESTINATION "bin")

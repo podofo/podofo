@@ -130,44 +130,33 @@ void init(const string_view& inputPath, const string_view& outputPath, const str
     free(buffer);
 }
 
-int main(int argc, char* argv[])
+void Main(const cspan<string_view>& args)
 {
-    const char* inputPath = NULL;
-    const char* outputPath = NULL;
-    const char* fontName = DEFAULT_FONT;
-
-    if (argc < 3)
+    if (args.size() < 3)
     {
         print_help();
         exit(-1);
     }
 
-    for (int i = 1; i < argc; i++)
+    string_view inputPath;
+    string_view outputPath;
+    string_view fontName = DEFAULT_FONT;
+
+    for (unsigned i = 1; i < args.size(); i++)
     {
 
-        if (strcmp("-fontname", argv[i]) == 0)
+        if ("-fontname" == args[i])
         {
-            fontName = argv[++i];
+            fontName = args[++i];
         }
         else
         {
             if (inputPath == NULL)
-                inputPath = argv[i];
+                inputPath = args[i];
             else
-                outputPath = argv[i];
+                outputPath = args[i];
         }
     }
 
-    try
-    {
-        init(inputPath, outputPath, fontName);
-    }
-    catch (PdfError& e)
-    {
-        fprintf(stderr, "Error %i occurred!\n", (int)e.GetCode());
-        e.PrintErrorMsg();
-        return (int)e.GetCode();
-    }
-
-    return 0;
+    init(inputPath, outputPath, fontName);
 }

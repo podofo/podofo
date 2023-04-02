@@ -21,34 +21,23 @@ void print_help()
     cerr << endl << endl << "PoDoFo Version: " << PODOFO_VERSION_STRING << endl << endl;
 }
 
-int main(int argc, char* argv[])
+void Main(const cspan<string_view>& args)
 {
-    if (argc != 8)
+    if (args.size() != 8)
     {
         print_help();
         exit(-1);
     }
 
-    string input = argv[1];
-    string output = argv[2];
-    string box = argv[3];
+    string_view input = args[1];
+    string_view output = args[2];
+    string_view box = args[3];
 
-    double left = double(atol(argv[4])) / 100.0;
-    double bottom = double(atol(argv[5])) / 100.0;
-    double width = double(atol(argv[6])) / 100.0;
-    double height = double(atol(argv[7])) / 100.0;
+    double left = double(atol(args[4].data())) / 100.0;
+    double bottom = double(atol(args[5].data())) / 100.0;
+    double width = double(atol(args[6].data())) / 100.0;
+    double height = double(atol(args[7].data())) / 100.0;
     Rect rect(left, bottom, width, height);
 
-    try
-    {
-        BoxSetter bs(input, output, box, rect);
-    }
-    catch (PdfError& e)
-    {
-        cerr << "Error: An error " << e.what() << " ocurred during processing the pdf file" << endl;
-        e.PrintErrorMsg();
-        return (int)e.GetCode();
-    }
-
-    return 0;
+    BoxSetter bs(input, output, box, rect);
 }

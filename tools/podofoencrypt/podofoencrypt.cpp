@@ -75,119 +75,119 @@ void print_help()
     printf("\n\n");
 }
 
-int main(int argc, char* argv[])
+void Main(const cspan<string_view>& args)
 {
-    const char* inputPath = NULL;
-    const char* outputPath = NULL;
+    string_view inputPath;
+    string_view outputPath;
     PdfEncryptAlgorithm algorithm = PdfEncryptAlgorithm::AESV2;
     PdfPermissions permissions = PdfPermissions::None;
     string userPass;
     string ownerPass;
 
-    if (argc < 3)
+    if (args.size() < 3)
     {
         print_help();
         exit(-1);
     }
 
     // Parse the commandline options
-    for (int i = 1; i < argc; i++)
+    for (unsigned i = 1; i < args.size(); i++)
     {
-        if (argv[i][0] == '-')
+        if (args[i][0] == '-')
         {
 #ifndef PODOFO_HAVE_OPENSSL_NO_RC4
-            if (strcmp(argv[i], "--rc4v1") == 0)
+            if (args[i] == "--rc4v1")
                 algorithm = PdfEncryptAlgorithm::RC4V1;
-            else if (strcmp(argv[i], "--rc4v2") == 0)
+            else if (args[i] == "--rc4v2")
                 algorithm = PdfEncryptAlgorithm::RC4V2;
             else
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
-                if (strcmp(argv[i], "--aesv2") == 0)
+                if (args[i] == "--aesv2")
                     algorithm = PdfEncryptAlgorithm::AESV2;
 #ifdef PODOFO_HAVE_LIBIDN
-                else if (strcmp(argv[i], "--aesv3") == 0)
+                else if (args[i] == "--aesv3")
                     algorithm = PdfEncryptAlgorithm::AESV3;
 #endif // PODOFO_HAVE_LIBIDN
-                else if (strcmp(argv[i], "-u") == 0)
+                else if (args[i] == "-u")
                 {
                     i++;
-                    if (i < argc)
-                        userPass = argv[i];
+                    if (i < args.size())
+                        userPass = args[i];
                     else
                     {
                         fprintf(stderr, "ERROR: -u given on the commandline but no userpassword!\n");
                         exit(-1);
                     }
                 }
-                else if (strcmp(argv[i], "-o") == 0)
+                else if (args[i] == "-o")
                 {
                     i++;
-                    if (i < argc)
-                        ownerPass = argv[i];
+                    if (i < args.size())
+                        ownerPass = args[i];
                     else
                     {
                         fprintf(stderr, "ERROR: -o given on the commandline but no ownerpassword!\n");
                         exit(-1);
                     }
                 }
-                else if (strcmp(argv[i], "--help") == 0)
+                else if (args[i] == "--help")
                 {
                     print_help();
                     exit(-1);
                 }
-                else if (strcmp(argv[i], "--print") == 0)
+                else if (args[i] == "--print")
                     permissions |= PdfPermissions::Print;
-                else if (strcmp(argv[i], "--edit") == 0)
+                else if (args[i] == "--edit")
                     permissions |= PdfPermissions::Edit;
-                else if (strcmp(argv[i], "--copy") == 0)
+                else if (args[i] == "--copy")
                     permissions |= PdfPermissions::Copy;
-                else if (strcmp(argv[i], "--editnotes") == 0)
+                else if (args[i] == "--editnotes")
                     permissions |= PdfPermissions::EditNotes;
-                else if (strcmp(argv[i], "--fillandsign") == 0)
+                else if (args[i] == "--fillandsign")
                     permissions |= PdfPermissions::FillAndSign;
-                else if (strcmp(argv[i], "--accessible") == 0)
+                else if (args[i] == "--accessible")
                     permissions |= PdfPermissions::Accessible;
-                else if (strcmp(argv[i], "--assemble") == 0)
+                else if (args[i] == "--assemble")
                     permissions |= PdfPermissions::DocAssembly;
-                else if (strcmp(argv[i], "--highprint") == 0)
+                else if (args[i] == "--highprint")
                     permissions |= PdfPermissions::HighPrint;
                 else
                 {
-                    fprintf(stderr, "WARNING: Do not know what to do with argument: %s\n", argv[i]);
+                    fprintf(stderr, "WARNING: Do not know what to do with argument: %s\n", args[i].data());
                 }
         }
         else
         {
-            if (!inputPath)
+            if (inputPath.empty())
             {
-                inputPath = argv[i];
+                inputPath = args[i];
             }
-            else if (!outputPath)
+            else if (outputPath.empty())
             {
-                outputPath = argv[i];
+                outputPath = args[i];
             }
             else
             {
-                fprintf(stderr, "WARNING: Do not know what to do with argument: %s\n", argv[i]);
+                fprintf(stderr, "WARNING: Do not know what to do with argument: %s\n", args[i].data());
             }
 
         }
     }
 
     // Check for errors in the commandline options
-    if (!inputPath)
+    if (inputPath.empty())
     {
         fprintf(stderr, "ERROR: No input file specified\n");
         exit(-1);
     }
 
-    if (!outputPath)
+    if (outputPath.empty())
     {
         fprintf(stderr, "ERROR: No output file specified\n");
         exit(-1);
     }
 
-    if (!ownerPass.length())
+    if (ownerPass.empty())
     {
         fprintf(stderr, "ERROR: No owner password specified\n");
         exit(-1);
@@ -195,18 +195,7 @@ int main(int argc, char* argv[])
 
 
     // Do the actual encryption
-    try
-    {
-        encrypt(inputPath, outputPath, userPass, ownerPass, algorithm, permissions);
-    }
-    catch (PdfError& e)
-    {
-        fprintf(stderr, "Error: An error %i ocurred during encrypting the pdf file.\n", (int)e.GetCode());
-        e.PrintErrorMsg();
-        return (int)e.GetCode();
-    }
+    encrypt(inputPath, outputPath, userPass, ownerPass, algorithm, permissions);
 
-
-    printf("%s was successfully encrypted to: %s\n", inputPath, outputPath);
-    return 0;
+    printf("%s was successfully encrypted to: %s\n", inputPath.data(), outputPath.data());
 }

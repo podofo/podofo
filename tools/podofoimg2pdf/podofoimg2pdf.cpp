@@ -49,45 +49,34 @@ void print_help()
     printf("\n");
 }
 
-int main(int argc, char* argv[])
+void Main(const cspan<string_view>& args)
 {
-    char* outputFilename;
-    if (argc < 3)
+    string_view outputFilename;
+    if (args.size() < 3)
     {
         print_help();
         exit(-1);
     }
 
-    outputFilename = argv[1];
-    printf("Output filename: %s\n", outputFilename);
+    outputFilename = args[1];
+    printf("Output filename: %s\n", outputFilename.data());
 
     ImageConverter converter;
     converter.SetOutputFilename(outputFilename);
-    for (int i = 2; i < argc; i++)
+    for (unsigned i = 2; i < args.size(); i++)
     {
-        string option = argv[i];
+        string_view option = args[i];
         if (option == "-useimgsize")
         {
             converter.SetUseImageSize(true);
         }
         else
         {
-            printf("Adding image: %s\n", argv[i]);
-            converter.AddImage(argv[i]);
+            printf("Adding image: %s\n", args[i].data());
+            converter.AddImage(args[i]);
         }
     }
 
-    try
-    {
-        converter.Work();
-    }
-    catch (PdfError& e)
-    {
-        fprintf(stderr, "Error: An error %i ocurred during processing the pdf file.\n", (int)e.GetCode());
-        e.PrintErrorMsg();
-        return (int)e.GetCode();
-    }
-
-    printf("Wrote PDF successfully: %s.\n", outputFilename);
-    return 0;
+    converter.Work();
+    printf("Wrote PDF successfully: %s.\n", outputFilename.data());
 }

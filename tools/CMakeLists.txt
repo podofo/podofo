@@ -4,7 +4,12 @@ else()
     return()
 endif()
 
-if (NOT MSVC)
+add_subdirectory(private)
+
+if (MSVC)
+    # Force requirement for unicode entry point
+    add_link_options(/ENTRY:wmainCRTStartup)
+else()
     # TODO: Remove me when all the tools are cleaned of use of C functions
     add_compile_options(-Wno-deprecated-declarations)
 endif()

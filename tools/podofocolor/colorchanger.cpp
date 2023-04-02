@@ -82,7 +82,7 @@ static const ColorChanger::KWInfo kwInfo[] = {
 //  q Push
 //  Q Pop
 
-ColorChanger::ColorChanger(IConverter* convert, const string& sInput, const string& sOutput)
+ColorChanger::ColorChanger(IConverter* convert, const string_view& sInput, const string_view& sOutput)
     : m_converter(convert), m_input(sInput), m_output(sOutput)
 {
     if (!m_converter)

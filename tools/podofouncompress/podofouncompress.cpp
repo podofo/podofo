@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <cstdio>
 
+using namespace std;
 using namespace PoDoFo;
 
 void print_help()
@@ -18,35 +19,21 @@ void print_help()
     printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
-int main(int argc, char* argv[])
+void Main(const cspan<string_view>& args)
 {
-    char* input;
-    char* output;
-
-    UnCompress unc;
-
-    if (argc != 3)
+    if (args.size() != 3)
     {
         print_help();
         exit(-1);
     }
 
-    input = argv[1];
-    output = argv[2];
+    UnCompress unc;
 
-    try
-    {
-        unc.Init(input, output);
-    }
-    catch (PdfError& e)
-    {
-        fprintf(stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", (int)e.GetCode());
-        e.PrintErrorMsg();
-        return (int)e.GetCode();
-    }
+    auto input = args[1];
+    auto output = args[2];
 
-    printf("%s was successfully uncompressed to: %s\n", input, output);
+    unc.Init(input, output);
 
-    return 0;
+    printf("%s was successfully uncompressed to: %s\n", input.data(), output.data());
 }
 

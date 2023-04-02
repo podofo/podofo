@@ -48,43 +48,30 @@ void extract(const string_view& filePath, int requestedNthUpdate, const string_v
     exit(-2);
 }
 
-int main(int argc, char* argv[])
+void Main(const cspan<string_view>& args)
 {
     PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::None);
 
-    if (argc != 2 && argc != 5)
+    if (args.size() != 2 && args.size() != 5)
     {
         print_help();
         exit(-1);
     }
 
-    try
+    string_view inputPath;
+    string_view outputPath;
+    int requestedNthUpdate = -1;
+
+    if (args.size() == 2)
     {
-        const char* inputPath;
-        const char* outputPath;
-        int requestedNthUpdate = -1;
-
-        if (argc == 2)
-        {
-            inputPath = argv[1];
-            get_info(inputPath);
-        }
-        else if (argc == 5)
-        {
-            requestedNthUpdate = strtol(argv[2], NULL, 10);
-            outputPath = argv[3];
-            inputPath = argv[4];
-            extract(inputPath, requestedNthUpdate, outputPath);
-        }
-
-
+        inputPath = args[1];
+        get_info(inputPath);
     }
-    catch (PdfError& e)
+    else if (args.size() == 5)
     {
-        fprintf(stderr, "Error: An error %i ocurred during counting pages in the pdf file.\n", (int)e.GetCode());
-        e.PrintErrorMsg();
-        return (int)e.GetCode();
+        requestedNthUpdate = strtol(args[2].data(), NULL, 10);
+        outputPath = args[3];
+        inputPath = args[4];
+        extract(inputPath, requestedNthUpdate, outputPath);
     }
-
-    return 0;
 }

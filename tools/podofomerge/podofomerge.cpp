@@ -17,12 +17,12 @@ void print_help()
     printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
-void merge(const char* input1Path, const char* input2Path, const char* outputPath)
+void merge(const string_view input1Path, const string_view input2Path, const string_view outputPath)
 {
-    printf("Reading file: %s\n", input1Path);
+    printf("Reading file: %s\n", input1Path.data());
     PdfMemDocument input1;
     input1.Load(input1Path);
-    printf("Reading file: %s\n", input2Path);
+    printf("Reading file: %s\n", input2Path.data());
     PdfMemDocument input2;
     input2.Load(input2Path);
 
@@ -50,36 +50,21 @@ void merge(const char* input1Path, const char* input2Path, const char* outputPat
     input1.GetCatalog().SetPageLayout(PdfPageLayout::TwoColumnLeft);
 #endif
 
-    printf("Writing file: %s\n", outputPath);
+    printf("Writing file: %s\n", outputPath.data());
     input1.Save(outputPath);
 }
 
-int main(int argc, char* argv[])
+void Main(const cspan<string_view>& args)
 {
-    char* input1Path;
-    char* input2Path;
-    char* outputPath;
-
-    if (argc != 4)
+    if (args.size() != 4)
     {
         print_help();
         exit(-1);
     }
 
-    input1Path = argv[1];
-    input2Path = argv[2];
-    outputPath = argv[3];
+    auto input1Path = args[1];
+    auto input2Path = args[2];
+    auto outputPath = args[3];
 
-    try
-    {
-        merge(input1Path, input2Path, outputPath);
-    }
-    catch (PdfError& e)
-    {
-        fprintf(stderr, "Error %i occurred!\n", (int)e.GetCode());
-        e.PrintErrorMsg();
-        return (int)e.GetCode();
-    }
-
-    return 0;
+    merge(input1Path, input2Path, outputPath);
 }

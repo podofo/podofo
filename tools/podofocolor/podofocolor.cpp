@@ -34,7 +34,7 @@ static void print_help()
 /**
  * @return a converter implementation or NULL if unknown
  */
-static IConverter* ConverterForName(const string& converterName, const string& lua)
+static IConverter* ConverterForName(const string_view& converterName, const string_view& lua)
 {
     IConverter* converter = NULL;
     if (converterName == "dummy")
@@ -57,26 +57,26 @@ static IConverter* ConverterForName(const string& converterName, const string& l
     return converter;
 }
 
-int main(int argc, char* argv[])
+void Main(const cspan<string_view>& args)
 {
-    if (!(argc == 4 || argc == 5))
+    if (!(args.size() == 4 || args.size() == 5))
     {
         print_help();
         exit(-1);
     }
 
-    string converterName = argv[1];
-    string input = argv[2];
-    string output = argv[3];
-    string lua;
+    string_view converterName = args[1];
+    string_view input = args[2];
+    string_view output = args[3];
+    string_view lua;
 
-    if (argc == 4 && converterName != "lua")
+    if (args.size() == 4 && converterName != "lua")
     {
-        input = argv[2];
-        output = argv[3];
+        input = args[2];
+        output = args[3];
     }
 #ifdef PODOFO_HAVE_LUA
-    else if (argc == 5 && converterName == "lua")
+    else if (args.size() == 5 && converterName == "lua")
     {
         lua = argv[2];
         input = argv[3];
@@ -97,18 +97,7 @@ int main(int argc, char* argv[])
         exit(-2);
     }
 
-    try
-    {
-        ColorChanger cc(converter, input, output);
-        cc.start();
-    }
-    catch (PoDoFo::PdfError& e)
-    {
-        cerr << "Error: An error " << e.what() << " ocurred during processing the pdf file\n";
-        e.PrintErrorMsg();
-        return (int)e.GetCode();
-    }
-
+    ColorChanger cc(converter, input, output);
+    cc.start();
     delete converter;
-    return 0;
 }
