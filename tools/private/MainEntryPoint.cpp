@@ -2,7 +2,7 @@
 #include <string>
 #include <iostream>
 
-#include <utfcpp/utf8.h>
+#include <utf8cpp/utf8.h>
 #include <podofo/auxiliary/span.hpp>
 #include <podofo/main/PdfError.h>
 

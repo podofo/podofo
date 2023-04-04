@@ -7,7 +7,7 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfCMapEncoding.h"
 
-#include <utfcpp/utf8.h>
+#include <utf8cpp/utf8.h>
 
 #include "PdfDictionary.h"
 #include "PdfObjectStream.h"

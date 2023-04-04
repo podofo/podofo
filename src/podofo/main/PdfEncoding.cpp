@@ -8,7 +8,7 @@
 #include "PdfEncoding.h"
 
 #include <atomic>
-#include <utfcpp/utf8.h>
+#include <utf8cpp/utf8.h>
 
 #include <podofo/private/PdfEncodingPrivate.h>
 

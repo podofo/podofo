@@ -9,7 +9,7 @@
 
 #include <podofo/private/PdfDrawingOperations.h>
 
-#include <utfcpp/utf8.h>
+#include <utf8cpp/utf8.h>
 
 #include "PdfExtGState.h"
 #include "PdfFont.h"

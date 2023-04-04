@@ -11,7 +11,7 @@
 #include <deque>
 #include <stack>
 
-#include <utfcpp/utf8.h>
+#include <utf8cpp/utf8.h>
 
 #include "PdfDocument.h"
 #include "PdfTextState.h"

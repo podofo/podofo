@@ -3,7 +3,7 @@
 
 #include <cstddef>
 #include <stdexcept>
-#include <utfcpp/utf8.h>
+#include <utf8cpp/utf8.h>
 
 namespace utf8
 {
