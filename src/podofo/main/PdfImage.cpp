@@ -13,7 +13,7 @@ extern "C" {
 }
 #endif // PODOFO_HAVE_TIFF_LIB
 
-#include <utfcpp/utf8.h>
+#include <utf8cpp/utf8.h>
 
 #include <podofo/private/FileSystem.h>
 #include <podofo/private/PdfFiltersPrivate.h>

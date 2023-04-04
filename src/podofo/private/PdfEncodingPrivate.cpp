@@ -7,7 +7,7 @@
 #include "PdfDeclarationsPrivate.h"
 #include "PdfEncodingPrivate.h"
 
-#include <utfcpp/utf8.h>
+#include <utf8cpp/utf8.h>
 
 using namespace std;
 using namespace PoDoFo;

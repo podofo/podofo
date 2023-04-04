@@ -16,7 +16,7 @@
 
 #include <podofo/private/FreetypePrivate.h>
 #include FT_TRUETYPE_TABLES_H
-#include <utfcpp/utf8.h>
+#include <utf8cpp/utf8.h>
 
 #include "PdfDictionary.h"
 #include <podofo/auxiliary/InputDevice.h>

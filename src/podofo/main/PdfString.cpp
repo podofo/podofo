@@ -7,7 +7,7 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfString.h"
 
-#include <utfcpp/utf8.h>
+#include <utf8cpp/utf8.h>
 
 #include <podofo/private/PdfEncodingPrivate.h>
 
