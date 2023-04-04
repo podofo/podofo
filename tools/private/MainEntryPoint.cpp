@@ -24,6 +24,7 @@ int main(int argc, char* argv[])
     {
         args_[i] = utf8::utf16to8(u16string_view((const char16_t*)argv[i],
             char_traits<char16_t>::length((const char16_t*)argv[i])));
+        args[i] = args_[i];
     }
 #else // !_WIN32
     for (int i = 0; i < argc; i++)
