@@ -147,11 +147,9 @@ accept UTF-8 encoded strings by default (`PdfName` accept only characters in the
 `PdfDocEncoding` char set, though). `charbuff` abd `bufferview`
 instead represent a generic octet buffer.
 
-## API stability
+## API migration
 
-PoDoFo has an unstable API that is the result of an extensive API review of PoDoFo 0.9.x.
-It is expected to converge to a stable API as soon as the review process is completed.
-See [API Stability](https://github.com/podofo/podofo/wiki/API-Stability) for more details.
+PoDoFo has an unstable API that is the result of an extensive API review of PoDoFo 0.9.x. At this [link](https://github.com/podofo/podofo/wiki/PoDoFo-API-migration-guide/#098---0100) you can find an incomplete guide on migrating 0.9.8 code to 0.10.0. It is expected PoDoFo will converge to a stable API as soon as the review process is completed. See [API Stability](https://github.com/podofo/podofo/wiki/API-Stability) for more details.
 
 ## PoDoFo Tools
 
