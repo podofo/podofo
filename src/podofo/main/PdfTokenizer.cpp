@@ -25,13 +25,13 @@ static char getEscapedCharacter(char ch);
 static void readHexString(InputStreamDevice& device, charbuff& buffer);
 static bool isOctalChar(char ch);
 
-PdfTokenizer::PdfTokenizer(bool readReferences)
-    : PdfTokenizer(std::make_shared<charbuff>(BufferSize), readReferences)
+PdfTokenizer::PdfTokenizer(const PdfTokenizerOptions& options)
+    : PdfTokenizer(std::make_shared<charbuff>(BufferSize), options)
 {
 }
 
-PdfTokenizer::PdfTokenizer(const shared_ptr<charbuff>& buffer, bool readReferences)
-    : m_buffer(buffer), m_readReferences(readReferences)
+PdfTokenizer::PdfTokenizer(const shared_ptr<charbuff>& buffer, const PdfTokenizerOptions& options)
+    : m_buffer(buffer), m_options(options)
 {
     if (buffer == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
@@ -116,12 +116,14 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
             if (ch2 == ch1)
             {
                 (void)device.ReadChar();
-                buffer[count] = ch2;
+                buffer[count++] = ch2;
+                if ((int)m_options.LanguageLevel < 2)
+                    continue;
+
                 if (ch1 == '<')
                     tokenType = PdfTokenType::DoubleAngleBracketsLeft;
                 else
                     tokenType = PdfTokenType::DoubleAngleBracketsRight;
-                count++;
             }
             else
             {
@@ -313,7 +315,7 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevi
                 }
 
                 variant = PdfVariant(num);
-                if (!m_readReferences)
+                if (!m_options.ReadReferences)
                     return PdfLiteralDataType::Number;
 
                 // read another two tokens to see if it is a reference

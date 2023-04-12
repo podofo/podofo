@@ -34,6 +34,18 @@ enum class PdfTokenType
     Slash,
 };
 
+enum class PdfPostScriptLanguageLevel
+{
+    L1 = 1,
+    L2 = 2,
+};
+
+struct PdfTokenizerOptions
+{
+    PdfPostScriptLanguageLevel LanguageLevel = PdfPostScriptLanguageLevel::L2;
+    bool ReadReferences = true;
+};
+
 /**
  * A simple tokenizer for PDF files and PDF content streams
  */
@@ -45,8 +57,8 @@ public:
     static constexpr unsigned BufferSize = 4096;
 
 public:
-    PdfTokenizer(bool readReferences = true);
-    PdfTokenizer(const std::shared_ptr<charbuff>& buffer, bool readReferences = true);
+    PdfTokenizer(const PdfTokenizerOptions& options = { });
+    PdfTokenizer(const std::shared_ptr<charbuff>& buffer, const PdfTokenizerOptions& options = { });
 
     /** Reads the next token from the current file position
      *  ignoring all comments.
@@ -233,7 +245,7 @@ private:
 
 private:
     std::shared_ptr<charbuff> m_buffer;
-    bool m_readReferences;
+    PdfTokenizerOptions m_options;
     TokenizerQueque m_tokenQueque;
     charbuff m_charBuffer;
 };

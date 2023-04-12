@@ -34,8 +34,9 @@ enum class PdfPostScriptTokenType
 class PODOFO_API PdfPostScriptTokenizer final : private PdfTokenizer
 {
 public:
-    PdfPostScriptTokenizer();
-    PdfPostScriptTokenizer(const std::shared_ptr<charbuff>& buffer);
+    PdfPostScriptTokenizer(PdfPostScriptLanguageLevel level = PdfPostScriptLanguageLevel::L2);
+    PdfPostScriptTokenizer(const std::shared_ptr<charbuff>& buffer,
+        PdfPostScriptLanguageLevel level = PdfPostScriptLanguageLevel::L2);
 public:
     bool TryReadNext(InputStreamDevice& device, PdfPostScriptTokenType& tokenType, std::string_view& keyword, PdfVariant& variant);
     void ReadNextVariant(InputStreamDevice& device, PdfVariant& variant);

@@ -37,7 +37,7 @@ static unsigned s_MaxObjectCount = (1U << 23) - 1;
 
 PdfParser::PdfParser(PdfIndirectObjectList& objects) :
     m_buffer(std::make_shared<charbuff>(PdfTokenizer::BufferSize)),
-    m_tokenizer(m_buffer, true),
+    m_tokenizer(m_buffer),
     m_Objects(&objects),
     m_StrictParsing(false)
 {

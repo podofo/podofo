@@ -108,7 +108,19 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
     stream.CopyTo(streamBuffer);
 
     SpanStreamDevice device(streamBuffer);
-    PdfPostScriptTokenizer tokenizer;
+    // NOTE: Found a CMap like this
+    // /CIDSystemInfo
+    // <<
+    //   /Registry (Adobe) def
+    //   /Ordering (UCS) def
+    //   /Supplement 0 def
+    // >> def
+    // which should be invalid Postscript (any language level). Adobe
+    // doesn't crash wich such CMap(s), but crashes if such syntax is
+    // used elsewere. Assuming the CMap(s) uses only PS Level 1, which
+    // doesn't, support << syntax, is a workaround to read these CMap(s)
+    // without crashing.
+    PdfPostScriptTokenizer tokenizer(PdfPostScriptLanguageLevel::L1);
     deque<unique_ptr<PdfVariant>> tokens;
     PdfString str;
     auto var = make_unique<PdfVariant>();
