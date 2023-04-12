@@ -83,10 +83,8 @@ void Main(const cspan<string_view>& args)
         format = ParseFormat(args[1]);
     }
 
-    if (input != nullptr)
-    {
+    if (!input.empty())
         filepath = input;
-    }
     //else leave empty
 
     PdfInfoHelper info(filepath);
