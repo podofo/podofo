@@ -146,18 +146,19 @@ PdfObject* PdfDictionary::findKey(const string_view& key) const
 PdfObject* PdfDictionary::findKeyParent(const string_view& key) const
 {
     utls::RecursionGuard guard;
-    PdfObject* obj = findKey(key);
+    auto obj = findKey(key);
     if (obj == nullptr)
     {
-        PdfObject* parent = findKey("Parent");
-        if (parent == nullptr)
+        auto parent = findKey("Parent");
+        if (parent == nullptr || parent->GetIndirectReference() == GetOwner()->GetIndirectReference())
         {
             return nullptr;
         }
         else
         {
-            if (parent->IsDictionary())
-                return parent->GetDictionary().findKeyParent(key);
+            PdfDictionary* parentDict;
+            if (parent->TryGetDictionary(parentDict))
+                return parentDict->findKeyParent(key);
             else
                 return nullptr;
         }
