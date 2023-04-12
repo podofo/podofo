@@ -579,9 +579,9 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreateFromObject(const PdfObject& encryptObj)
             (rValue == 5 && PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3))
             || (rValue == 6 && PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3R6))))
         {
-            PdfString permsValue = encryptObj.GetDictionary().GetKey("Perms")->GetString();
-            PdfString oeValue = encryptObj.GetDictionary().GetKey("OE")->GetString();
-            PdfString ueValue = encryptObj.GetDictionary().GetKey("UE")->GetString();
+            PdfString permsValue = encryptObj.GetDictionary().MustFindKey("Perms").GetString();
+            PdfString oeValue = encryptObj.GetDictionary().MustFindKey("OE").GetString();
+            PdfString ueValue = encryptObj.GetDictionary().MustFindKey("UE").GetString();
 
             return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(oValue, oeValue, uValue,
                 ueValue, pValue, permsValue, (PdfAESV3Revision)rValue));
