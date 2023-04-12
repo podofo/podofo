@@ -127,6 +127,7 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
     PdfPostScriptTokenType tokenType;
     string_view token;
     bool endOfSequence;
+    vector<char32_t> mappedCodes;
     while (tokenizer.TryReadNext(device, tokenType, token, *var))
     {
         switch (tokenType)
@@ -197,7 +198,6 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
                 // see Adobe tecnichal notes #5014
                 else if (token == "beginbfchar")
                 {
-                    vector<char32_t> mappedCodes;
                     while (true)
                     {
                         readNextVariantSequence(tokenizer, device, *var, "endbfchar", endOfSequence);
@@ -245,7 +245,6 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
                         char32_t dstCIDLo = (char32_t)getCodeFromVariant(*var, limits);
 
                         unsigned rangeSize = srcCodeHi - srcCodeLo + 1;
-                        vector<char32_t> mappedCodes;
                         for (unsigned i = 0; i < rangeSize; i++)
                         {
                             char32_t newbackchar = dstCIDLo + i;
@@ -261,7 +260,7 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
                         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidStream, "CMap missing object number before begincidchar");
 
                     int charCount = (int)tokens.front()->GetNumber();
-                    vector<char32_t> mappedCodes;
+
                     for (int i = 0; i < charCount; i++)
                     {
                         tokenizer.TryReadNext(device, tokenType, token, *var);
