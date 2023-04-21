@@ -1060,7 +1060,7 @@ void testReadXRefSubsection()
     }
 }
 
-TEST_CASE("testReadXRefStreamContents")
+TEST_CASE("TestReadXRefStreamContents")
 {
     // test valid stream
     try
@@ -1157,7 +1157,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::NoXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefStream);
     }
     catch (exception&)
     {
@@ -1210,7 +1210,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::NoXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefStream);
     }
     catch (exception&)
     {
@@ -1314,7 +1314,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefType);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefStream);
     }
     catch (exception&)
     {
@@ -1363,7 +1363,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::NoXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefStream);
     }
     catch (exception&)
     {
@@ -1722,7 +1722,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::NoXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefStream);
     }
     catch (exception&)
     {
@@ -1772,7 +1772,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::NoXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefStream);
     }
     catch (exception&)
     {

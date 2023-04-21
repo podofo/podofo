@@ -8,7 +8,7 @@ endif()
 unset(CMAKE_CONFIGURATION_TYPES CACHE) # It will also remove it from GUI
 set(CMAKE_CONFIGURATION_TYPES "${CMAKE_BUILD_TYPE}")
 
-project(PoDoFo)
+project(podofo)
 enable_testing() # Needed to enable "make test" from binary dir
 
 # An useful variable to check if we are running from playground

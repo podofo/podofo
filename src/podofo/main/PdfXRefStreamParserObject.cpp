@@ -67,7 +67,7 @@ void PdfXRefStreamParserObject::ReadXRefTable()
     // all of them have to be integers
     const PdfArray* arr;
     if (!arrObj.TryGetArray(arr) || arr->size() != 3)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoXRef, "Invalid XRef stream /W array");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRefStream, "Invalid XRef stream /W array");
 
     int64_t wArray[W_ARRAY_SIZE] = { 0, 0, 0 };
     int64_t num;
@@ -75,7 +75,7 @@ void PdfXRefStreamParserObject::ReadXRefTable()
     {
 
         if (!(*arr)[i].TryGetNumber(num))
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoXRef, "Invalid XRef stream /W array");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRefStream, "Invalid XRef stream /W array");
 
         wArray[i] = num;
     }
@@ -92,12 +92,12 @@ void PdfXRefStreamParserObject::parseStream(const int64_t wArray[W_ARRAY_SIZE], 
     {
         if (wArray[i] < 0)
         {
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoXRef,
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRefStream,
                 "Negative field length in XRef stream");
         }
         if (numeric_limits<int64_t>::max() - lengthSum < wArray[i])
         {
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoXRef,
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRefStream,
                 "Invalid entry length in XRef stream");
         }
         else
@@ -112,24 +112,24 @@ void PdfXRefStreamParserObject::parseStream(const int64_t wArray[W_ARRAY_SIZE], 
     this->GetOrCreateStream().CopyTo(buffer);
 
     vector<int64_t>::const_iterator it = indices.begin();
-    char* cursor = buffer.data();
+    size_t offset = 0;
     while (it != indices.end())
     {
         int64_t firstObj = *it++;
         int64_t count = *it++;
 
+        if ((offset + count * entryLen) > buffer.size())
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRefStream, "Invalid count in XRef stream");
+
         m_entries->Enlarge(firstObj + count);
         for (unsigned index = 0; index < (unsigned)count; index++)
         {
-            if ((size_t)(cursor - buffer.data()) >= buffer.size())
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoXRef, "Invalid count in XRef stream");
-
             unsigned objIndex = (unsigned)firstObj + index;
             auto& entry = (*m_entries)[objIndex];
             if (objIndex < m_entries->GetSize() && !entry.Parsed)
-                readXRefStreamEntry(entry, cursor, wArray);
+                readXRefStreamEntry(entry, buffer.data() + offset, wArray);
 
-            cursor += entryLen;
+            offset += entryLen;
         }
     }
 }
@@ -149,7 +149,7 @@ void PdfXRefStreamParserObject::getIndices(vector<int64_t>& indices, int64_t siz
     {
         const PdfArray* arr;
         if (!indexObj->TryGetArray(arr))
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoXRef, "Invalid XRef Stream /Index");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRefStream, "Invalid XRef Stream /Index");
 
         for (auto index : *arr)
             indices.push_back(index.GetNumber());
@@ -157,7 +157,7 @@ void PdfXRefStreamParserObject::getIndices(vector<int64_t>& indices, int64_t siz
 
     // indices must be a multiple of 2
     if (indices.size() % 2 != 0)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoXRef, "Invalid XRef Stream /Index");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRefStream, "Invalid XRef Stream /Index");
 }
 
 void PdfXRefStreamParserObject::readXRefStreamEntry(PdfXRefEntry& entry, char* buffer, const int64_t wArray[W_ARRAY_SIZE])
