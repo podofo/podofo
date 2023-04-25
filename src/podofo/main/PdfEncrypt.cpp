@@ -1128,8 +1128,17 @@ PdfEncryptRC4::PdfEncryptRC4(PdfString oValue, PdfString uValue, PdfPermissions 
     m_eKeyLength = static_cast<PdfKeyLength>(length);
     m_keyLength = length / 8;
     m_EncryptMetadata = encryptMetadata;
-    std::memcpy(m_oValue, oValue.GetRawData().data(), 32);
-    std::memcpy(m_uValue, uValue.GetRawData().data(), 32);
+
+    auto oValueData = oValue.GetRawData();
+    if (oValueData.size() < 32)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, "/O value is invalid");
+
+    auto uValueData = uValue.GetRawData();
+    if (uValueData.size() < 32)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, "/U value is invalid");
+
+    std::memcpy(m_oValue, oValueData.data(), 32);
+    std::memcpy(m_uValue, uValueData.data(), 32);
 
     // Init buffers
     std::memset(m_rc4key, 0, 16);
