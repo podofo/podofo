@@ -276,7 +276,10 @@ PoDoFo may or may not work for your needs and comes with absolutely no
 warranty. Serious bugs, including security flaws, may be fixed at arbitrary
 timeframes, or not fixed at all. Priority of implementing new features
 and bug fixing are decided according to the interests and personal
-preferences of the maintainers.
+preferences of the maintainers. If you need PoDoFo to integrate a feature
+or bug fix that is critical to your workflow, the most welcome and fastest
+approach is to [contribute](https://github.com/podofo/podofo/edit/master/README.md#contributions)
+high-quality patches.
 
 ## Contributions
 
