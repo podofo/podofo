@@ -244,7 +244,7 @@ namespace PoDoFo
             return false;
 
         if (lhs.m_hasValue)
-            return lhs.m_value != *rhs.m_value;
+            return lhs.m_value == *rhs.m_value;
         else
             return true;
     }
