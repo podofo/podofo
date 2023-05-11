@@ -241,12 +241,12 @@ namespace PoDoFo
     bool operator==(const nullable<std::decay_t<T2>>& lhs, const nullable<T2&>& rhs)
     {
         if (lhs.m_hasValue != rhs.m_hasValue)
-            return true;
+            return false;
 
         if (lhs.m_hasValue)
             return lhs.m_value != *rhs.m_value;
         else
-            return false;
+            return true;
     }
 
     template <typename T2>
