@@ -40,4 +40,8 @@ TEST_CASE("TestMetadataSet")
     auto& metadata = doc.GetMetadata();
     metadata.SetTitle(PdfString("TestTitle"));
     REQUIRE(metadata.GetTitle()->GetString() == "TestTitle");
+    metadata.SetTitle(PdfString("TestTitle2"));
+    REQUIRE(metadata.GetTitle()->GetString() == "TestTitle2");
+    metadata.SetTitle(nullptr);
+    REQUIRE(metadata.GetTitle() == nullptr);
 }
