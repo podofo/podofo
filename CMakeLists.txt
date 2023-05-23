@@ -12,7 +12,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}
     endif()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "15.9")
-        message(FATAL_ERROR "MSVC version bust be at least 15.9")
+        message(FATAL_ERROR "MSVC version must be at least 15.9")
     endif()
 else()
     message(WARNING "You are using an unsupported compiler!")
