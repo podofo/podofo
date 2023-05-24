@@ -31,7 +31,7 @@ void UnCompress::Init(const string_view& input, const string_view& output)
     this->UncompressObjects();
 
     m_document->Save(output, PdfSaveOptions::Clean
-        | PdfSaveOptions::NoModifyDateUpdate | PdfSaveOptions::NoFlateCompress);
+        | PdfSaveOptions::NoMetadataUpdate | PdfSaveOptions::NoFlateCompress);
 }
 
 void UnCompress::UncompressObjects()

@@ -431,8 +431,21 @@ enum class PdfSaveOptions
     _Reserved2 = 2,
     NoFlateCompress = 4,
     NoCollectGarbage = 8,
-    NoModifyDateUpdate = 16,
+    /**
+     * Don't update the trailer "/Info/ModDate" with current
+     * time and synchronize XMP metadata "/Catalog/Metadata"
+     *
+     * Use this option to produce deterministic PDF output, or
+     * if you want to manually handle the manipulation of the
+     * XMP packet
+     */
+    NoMetadataUpdate = 16,
     Clean = 32,
+
+    /**
+      * \deprecated Use NoMetadataUpdate instead
+      */
+    NoModifyDateUpdate = NoMetadataUpdate
 };
 
 /**

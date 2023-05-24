@@ -297,7 +297,7 @@ void PdfMemDocument::SaveUpdate(OutputStreamDevice& device, PdfSaveOptions opts)
 
 void PdfMemDocument::beforeWrite(PdfSaveOptions opts)
 {
-    if ((opts & PdfSaveOptions::NoModifyDateUpdate) ==
+    if ((opts & PdfSaveOptions::NoMetadataUpdate) ==
         PdfSaveOptions::None)
     {
         GetMetadata().SetModifyDate(PdfDate::LocalNow(), true);
