@@ -330,18 +330,18 @@ TEST_CASE("TestPainter5")
     doc.Save(TestUtils::GetTestOutputFilePath("TestPainter5.pdf"));
 
     auto expected = R"(q
-BT
-/Ft5 15 Tf
 q
 100 600 100 40 re
 W
 n
+BT
+/Ft5 15 Tf
 100 628.75 Td
 (Hello) Tj
 0 -15 Td
 (World) Tj
-Q
 ET
+Q
 Q
 )";
 
