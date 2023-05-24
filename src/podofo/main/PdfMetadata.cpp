@@ -19,7 +19,7 @@ PdfMetadata::PdfMetadata(PdfDocument& doc)
 {
 }
 
-void PdfMetadata::SetTitle(nullable<const PdfString&> title, bool syncXMP)
+void PdfMetadata::SetTitle(nullable<const PdfString&> title, bool trySyncXMP)
 {
     ensureInitialized();
     if (m_metadata.Title == title)
@@ -30,8 +30,8 @@ void PdfMetadata::SetTitle(nullable<const PdfString&> title, bool syncXMP)
         m_metadata.Title = nullptr;
     else
         m_metadata.Title = *title;
-    if (syncXMP)
-        syncXMPMetadata(false);
+    if (trySyncXMP)
+        trySyncXMPMetadata(false);
     else
         m_xmpSynced = false;
 }
@@ -42,7 +42,7 @@ const nullable<PdfString>& PdfMetadata::GetTitle() const
     return m_metadata.Title;
 }
 
-void PdfMetadata::SetAuthor(nullable<const PdfString&> author, bool syncXMP)
+void PdfMetadata::SetAuthor(nullable<const PdfString&> author, bool trySyncXMP)
 {
     if (m_metadata.Author == author)
         return;
@@ -52,8 +52,8 @@ void PdfMetadata::SetAuthor(nullable<const PdfString&> author, bool syncXMP)
         m_metadata.Author = nullptr;
     else
         m_metadata.Author = *author;
-    if (syncXMP)
-        syncXMPMetadata(false);
+    if (trySyncXMP)
+        trySyncXMPMetadata(false);
     else
         m_xmpSynced = false;
 }
@@ -64,7 +64,7 @@ const nullable<PdfString>& PdfMetadata::GetAuthor() const
     return m_metadata.Author;
 }
 
-void PdfMetadata::SetSubject(nullable<const PdfString&> subject, bool syncXMP)
+void PdfMetadata::SetSubject(nullable<const PdfString&> subject, bool trySyncXMP)
 {
     ensureInitialized();
     if (m_metadata.Subject == subject)
@@ -75,8 +75,8 @@ void PdfMetadata::SetSubject(nullable<const PdfString&> subject, bool syncXMP)
         m_metadata.Subject = nullptr;
     else
         m_metadata.Subject = *subject;
-    if (syncXMP)
-        syncXMPMetadata(false);
+    if (trySyncXMP)
+        trySyncXMPMetadata(false);
     else
         m_xmpSynced = false;
 }
@@ -93,15 +93,15 @@ const nullable<PdfString>& PdfMetadata::GetKeywordsRaw() const
     return m_metadata.Keywords;
 }
 
-void PdfMetadata::SetKeywords(vector<string> keywords, bool syncXMP)
+void PdfMetadata::SetKeywords(vector<string> keywords, bool trySyncXMP)
 {
     if (keywords.size() == 0)
-        setKeywords(nullptr, syncXMP);
+        setKeywords(nullptr, trySyncXMP);
     else
-        setKeywords(PdfString(PoDoFo::ToPdfKeywordsString(keywords)), syncXMP);
+        setKeywords(PdfString(PoDoFo::ToPdfKeywordsString(keywords)), trySyncXMP);
 }
 
-void PdfMetadata::setKeywords(nullable<const PdfString&> keywords, bool syncXMP)
+void PdfMetadata::setKeywords(nullable<const PdfString&> keywords, bool trySyncXMP)
 {
     ensureInitialized();
     if (m_metadata.Keywords == keywords)
@@ -112,8 +112,8 @@ void PdfMetadata::setKeywords(nullable<const PdfString&> keywords, bool syncXMP)
         m_metadata.Keywords = nullptr;
     else
         m_metadata.Keywords = *keywords;
-    if (syncXMP)
-        syncXMPMetadata(false);
+    if (trySyncXMP)
+        trySyncXMPMetadata(false);
     else
         m_xmpSynced = false;
 }
@@ -127,7 +127,7 @@ vector<string> PdfMetadata::GetKeywords() const
         return PoDoFo::ToPdfKeywordsList(*m_metadata.Keywords);
 }
 
-void PdfMetadata::SetCreator(nullable<const PdfString&> creator, bool syncXMP)
+void PdfMetadata::SetCreator(nullable<const PdfString&> creator, bool trySyncXMP)
 {
     ensureInitialized();
     if (m_metadata.Creator == creator)
@@ -138,8 +138,8 @@ void PdfMetadata::SetCreator(nullable<const PdfString&> creator, bool syncXMP)
         m_metadata.Creator = nullptr;
     else
         m_metadata.Creator = *creator;
-    if (syncXMP)
-        syncXMPMetadata(false);
+    if (trySyncXMP)
+        trySyncXMPMetadata(false);
     else
         m_xmpSynced = false;
 }
@@ -150,7 +150,7 @@ const nullable<PdfString>& PdfMetadata::GetCreator() const
     return m_metadata.Creator;
 }
 
-void PdfMetadata::SetProducer(nullable<const PdfString&> producer, bool syncXMP)
+void PdfMetadata::SetProducer(nullable<const PdfString&> producer, bool trySyncXMP)
 {
     ensureInitialized();
     if (m_metadata.Producer == producer)
@@ -161,8 +161,8 @@ void PdfMetadata::SetProducer(nullable<const PdfString&> producer, bool syncXMP)
         m_metadata.Producer = nullptr;
     else
         m_metadata.Producer = *producer;
-    if (syncXMP)
-        syncXMPMetadata(false);
+    if (trySyncXMP)
+        trySyncXMPMetadata(false);
     else
         m_xmpSynced = false;
 }
@@ -173,7 +173,7 @@ const nullable<PdfString>& PdfMetadata::GetProducer() const
     return m_metadata.Producer;
 }
 
-void PdfMetadata::SetCreationDate(nullable<PdfDate> date, bool syncXMP)
+void PdfMetadata::SetCreationDate(nullable<PdfDate> date, bool trySyncXMP)
 {
     ensureInitialized();
     if (m_metadata.CreationDate == date)
@@ -181,8 +181,8 @@ void PdfMetadata::SetCreationDate(nullable<PdfDate> date, bool syncXMP)
 
     m_doc->GetOrCreateInfo().SetCreationDate(date);
     m_metadata.CreationDate = date;
-    if (syncXMP)
-        syncXMPMetadata(false);
+    if (trySyncXMP)
+        trySyncXMPMetadata(false);
     else
         m_xmpSynced = false;
 }
@@ -193,7 +193,7 @@ const nullable<PdfDate>& PdfMetadata::GetCreationDate() const
     return m_metadata.CreationDate;
 }
 
-void PdfMetadata::SetModifyDate(nullable<PdfDate> date, bool syncXMP)
+void PdfMetadata::SetModifyDate(nullable<PdfDate> date, bool trySyncXMP)
 {
     ensureInitialized();
     if (m_metadata.ModDate == date)
@@ -201,8 +201,8 @@ void PdfMetadata::SetModifyDate(nullable<PdfDate> date, bool syncXMP)
 
     m_doc->GetOrCreateInfo().SetModDate(date);
     m_metadata.ModDate = date;
-    if (syncXMP)
-        syncXMPMetadata(false);
+    if (trySyncXMP)
+        trySyncXMPMetadata(false);
     else
         m_xmpSynced = false;
 }
@@ -257,7 +257,7 @@ PdfALevel PdfMetadata::GetPdfALevel() const
     return m_metadata.PdfaLevel;
 }
 
-void PdfMetadata::SetPdfALevel(PdfALevel level, bool syncXMP)
+void PdfMetadata::SetPdfALevel(PdfALevel level, bool trySyncXMP)
 {
     ensureInitialized();
     if (m_metadata.PdfaLevel == level)
@@ -271,8 +271,8 @@ void PdfMetadata::SetPdfALevel(PdfALevel level, bool syncXMP)
     }
 
     m_metadata.PdfaLevel = level;
-    if (syncXMP)
-        syncXMPMetadata(false);
+    if (trySyncXMP)
+        trySyncXMPMetadata(false);
     else
         m_xmpSynced = false;
 }
@@ -283,7 +283,7 @@ void PdfMetadata::SyncXMPMetadata(bool forceCreationXMP)
     if (m_xmpSynced)
         return;
 
-    syncXMPMetadata(forceCreationXMP);
+    trySyncXMPMetadata(forceCreationXMP);
 }
 
 unique_ptr<PdfXMPPacket> PdfMetadata::TakeXMPPacket()
@@ -387,7 +387,7 @@ void PdfMetadata::ensureInitialized()
     m_initialized = true;
 }
 
-void PdfMetadata::syncXMPMetadata(bool forceCreationXMP)
+void PdfMetadata::trySyncXMPMetadata(bool forceCreationXMP)
 {
     if (m_packet == nullptr && !forceCreationXMP)
         return;
