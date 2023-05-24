@@ -419,12 +419,9 @@ void PdfPainter::DrawTextMultiLine(const string_view& str, double x, double y, d
     if (width <= 0 || height <= 0) // nonsense arguments
         return;
 
-    PoDoFo::WriteOperator_BT(m_stream);
-    writeTextState();
     drawMultiLineText(str, x, y, width, height,
         params.HorizontalAlignment, params.VerticalAlignment,
         params.Clip, params.SkipSpaces, params.Style);
-    PoDoFo::WriteOperator_ET(m_stream);
 }
 
 void PdfPainter::DrawTextAligned(const string_view& str, double x, double y, double width,
@@ -456,6 +453,8 @@ void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, d
 
     auto expanded = this->expandTabs(str);
 
+    PoDoFo::WriteOperator_BT(m_stream);
+    writeTextState();
     vector<string> lines = getMultiLineTextAsLines(expanded, width, skipSpaces);
     double lineGap = font.GetLineSpacing(textState) - font.GetAscent(textState) + font.GetDescent(textState);
     // Do vertical alignment
@@ -482,6 +481,7 @@ void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, d
         x = 0;
         y = -font.GetLineSpacing(textState);
     }
+    PoDoFo::WriteOperator_ET(m_stream);
     this->restore();
 }
 
