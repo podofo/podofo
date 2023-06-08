@@ -45,25 +45,25 @@ static void fetchPDFScanLineRGB(unsigned char* dstScanLine,
     unsigned width, const unsigned char* srcScanLine, PdfPixelFormat srcPixelFormat);
 
 PdfImage::PdfImage(PdfDocument& doc, const string_view& prefix)
-    : PdfXObject(doc, PdfXObjectType::Image, prefix), m_Width(0), m_Height(0)
+    : PdfXObject(doc, PdfXObjectType::Image, prefix), m_ColorSpace(PdfColorSpaceFactory::GetUnkownInstance()), m_Width(0), m_Height(0), m_BitsPerComponent(0)
 {
 }
 
-void PdfImage::DecodeTo(charbuff& buffer, PdfPixelFormat format, int rowSize) const
+void PdfImage::DecodeTo(charbuff& buffer, PdfPixelFormat format, int scanLineSize) const
 {
     buffer.resize(getBufferSize(format));
     SpanStreamDevice stream(buffer);
-    DecodeTo(stream, format, rowSize);
+    DecodeTo(stream, format, scanLineSize);
 }
 
-void PdfImage::DecodeTo(const bufferspan& buffer, PdfPixelFormat format, int rowSize) const
+void PdfImage::DecodeTo(const bufferspan& buffer, PdfPixelFormat format, int scanLineSize) const
 {
     SpanStreamDevice stream(buffer);
-    DecodeTo(stream, format, rowSize);
+    DecodeTo(stream, format, scanLineSize);
 }
 
 // TODO: Improve performance and format support
-void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize) const
+void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int scanLineSize) const
 {
     auto istream = GetObject().MustGetStream().GetInputStream();
     auto& mediaFilters = istream.GetMediaFilters();
@@ -71,22 +71,40 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize
     ContainerStreamDevice device(imageData);
     istream.CopyTo(device);
 
+    // TODO: Consider premultiplying alpha for buffer formats
+    //  that don't have an alpha chnanel. Consider also opt-out flag
     charbuff smaskData;
-    charbuff scanLine = initScanLine(format, rowSize, smaskData);
+    switch (format)
+    {
+        case PdfPixelFormat::RGBA:
+        case PdfPixelFormat::BGRA:
+        case PdfPixelFormat::ARGB:
+        case PdfPixelFormat::ABGR:
+        {
+            auto smaskObj = GetDictionary().FindKey("SMask");
+            if (smaskObj != nullptr)
+            {
+                unique_ptr<const PdfImage> smask;
+                if (!PdfXObject::TryCreateFromObject(*smaskObj, smask) ||
+                    (smask->GetObject().MustGetStream().CopyTo(smaskData), smaskData.size() < m_Width * m_Height))
+                {
+                    PoDoFo::LogMessage(PdfLogSeverity::Warning, "Invalid /SMask");
+                    smaskData.clear();
+                }
+            }
+            break;
+        }
+        default:
+            break;
+    }
 
     if (mediaFilters.size() == 0)
     {
-        switch (GetColorSpace())
-        {
-            case PdfColorSpace::DeviceRGB:
-                utls::FetchImageRGB(stream, m_Width, m_Height, format, (const unsigned char*)imageData.data(), smaskData, scanLine);
-                break;
-            case PdfColorSpace::DeviceGray:
-                utls::FetchImageGrayScale(stream, m_Width, m_Height, format, (const unsigned char*)imageData.data(), smaskData, scanLine);
-                break;
-            default:
-                PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
-        }
+        if (m_ColorSpace->GetSourceScanLineSize(m_Width, m_BitsPerComponent) * m_Height > imageData.size())
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The source buffer size is too small");
+
+        utls::FetchImage(stream, format, scanLineSize, (const unsigned char*)imageData.data(),
+            m_Width, m_Height, m_BitsPerComponent, *m_ColorSpace, smaskData);
     }
     else
     {
@@ -115,11 +133,7 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize
 
                     jpeg_start_decompress(&ctx);
 
-                    unsigned rowBytes = (unsigned)(ctx.output_width * ctx.output_components);
-
-                    // buffer will be deleted by jpeg_destroy_decompress
-                    JSAMPARRAY jScanLine = (*ctx.mem->alloc_sarray)(reinterpret_cast<j_common_ptr>(&ctx), JPOOL_IMAGE, rowBytes, 1);
-                    utls::FetchImageJPEG(stream, format, &ctx, jScanLine, smaskData, scanLine);
+                    utls::FetchImageJPEG(stream, format, scanLineSize, &ctx, m_Width, m_Height, smaskData);
                 }
                 catch (...)
                 {
@@ -155,8 +169,7 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize
                     pdfium::span<const uint8_t>((const uint8_t *)imageData.data(), imageData.size()),
                     (int)m_Width, (int)m_Height, k, endOfLine, encodedByteAlign, blackIs1, columns, rows);
 
-                utls::FetchImageBW(stream, m_Width, m_Height,
-                    format, *decoder, smaskData, scanLine);
+                utls::FetchImageCCITT(stream, format, scanLineSize, *decoder, m_Width, m_Height, smaskData);
                 break;
             }
             case PdfFilterType::JBIG2Decode:
@@ -177,77 +190,16 @@ charbuff PdfImage::GetDecodedCopy(PdfPixelFormat format)
 PdfImage::PdfImage(PdfObject& obj)
     : PdfXObject(obj, PdfXObjectType::Image)
 {
-    m_Width = static_cast<unsigned>(this->GetDictionary().MustFindKey("Width").GetNumber());
-    m_Height = static_cast<unsigned>(this->GetDictionary().MustFindKey("Height").GetNumber());
+    m_Width = static_cast<unsigned>(this->GetDictionary().FindKeyAsSafe<int64_t>("Width"));
+    m_Height = static_cast<unsigned>(this->GetDictionary().FindKeyAsSafe<int64_t>("Height"));
+    m_BitsPerComponent = static_cast<unsigned>(this->GetDictionary().FindKeyAsSafe<int64_t>("BitsPerComponent"));
+
+    auto csObj = GetDictionary().FindKey("ColorSpace");
+    if (csObj == nullptr || !PdfColorSpaceFactory::TryCreateFromObject(*csObj, m_ColorSpace))
+        m_ColorSpace = PdfColorSpaceFactory::GetUnkownInstance();
 }
 
-charbuff PdfImage::initScanLine(PdfPixelFormat format, int rowSize, charbuff& smaskData) const
-{
-    unsigned defaultRowSize;
-    switch (format)
-    {
-        case PdfPixelFormat::Grayscale:
-        {
-            defaultRowSize = 4 * ((m_Width + 3) / 4);;
-            break;
-        }
-        case PdfPixelFormat::RGB24:
-        case PdfPixelFormat::BGR24:
-        {
-            defaultRowSize = 4 * ((3 * m_Width + 3) / 4);
-            break;
-        }
-        case PdfPixelFormat::RGBA:
-        case PdfPixelFormat::BGRA:
-        case PdfPixelFormat::ARGB:
-        case PdfPixelFormat::ABGR:
-        {
-            auto smaskObj = GetObject().GetDictionary().FindKey("SMask");
-            if (smaskObj != nullptr)
-            {
-                unique_ptr<const PdfImage> smask;
-                if (PdfXObject::TryCreateFromObject(*smaskObj, smask))
-                    smask->GetObject().MustGetStream().CopyTo(smaskData);
-            }
-
-            defaultRowSize = 4 * m_Width;
-            break;
-        }
-        default:
-            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
-    }
-
-    if (rowSize < 0)
-    {
-        return charbuff(defaultRowSize);
-    }
-    else
-    {
-        if (rowSize < (int)defaultRowSize)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The buffer stride is too small");
-
-        return charbuff((size_t)rowSize);
-    }
-}
-
-PdfColorSpace PdfImage::GetColorSpace() const
-{
-    auto colorSpace = GetDictionary().FindKey("ColorSpace");
-    if (colorSpace == nullptr)
-        return PdfColorSpace::Unknown;
-
-    // CHECK-ME: Check if this is correct in the general case
-    if (colorSpace->IsArray())
-        return PdfColorSpace::Indexed;
-
-    const PdfName* name;
-    if (colorSpace->TryGetName(name))
-        return PoDoFo::NameToColorSpaceRaw(name->GetString());
-
-    return PdfColorSpace::Unknown;
-}
-
-void PdfImage::SetICCProfile(InputStream& stream, unsigned colorComponents, PdfColorSpace alternateColorSpace)
+void PdfImage::SetICCProfile(InputStream& stream, unsigned colorComponents, PdfColorSpaceType alternateColorSpace)
 {
     // Check lColorComponents for a valid value
     if (colorComponents != 1 &&
@@ -275,36 +227,38 @@ void PdfImage::SetSoftMask(const PdfImage& softmask)
     GetDictionary().AddKeyIndirect("SMask", softmask.GetObject());
 }
 
-void PdfImage::SetData(const bufferview& buffer, unsigned width, unsigned height, PdfPixelFormat format, int rowSize)
+void PdfImage::SetData(const bufferview& buffer, unsigned width, unsigned height, PdfPixelFormat format, int scanLineSize)
 {
     SpanStreamDevice stream(buffer);
-    SetData(stream, width, height, format, rowSize);
+    SetData(stream, width, height, format, scanLineSize);
 }
 
-void PdfImage::SetData(InputStream& stream, unsigned width, unsigned height, PdfPixelFormat format, int rowSize)
+void PdfImage::SetData(InputStream& stream, unsigned width, unsigned height, PdfPixelFormat format, int scanLineSize)
 {
     m_Width = width;
     m_Height = height;
-    PdfColorSpace colorSpace;
-    unsigned defaultRowSize;
-    unsigned pdfRowSize;
+    m_BitsPerComponent = 8;
+
+    PdfColorSpaceType colorSpace;
+    unsigned defaultScanLineSize;
+    unsigned pdfScanLineSize;
     bool needFetch = false;
     switch (format)
     {
         case PdfPixelFormat::Grayscale:
-            colorSpace = PdfColorSpace::DeviceGray;
-            defaultRowSize = 4 * ((width + 3) / 4);
-            pdfRowSize = width;
+            colorSpace = PdfColorSpaceType::DeviceGray;
+            defaultScanLineSize = 4 * ((width + 3) / 4);
+            pdfScanLineSize = width;
             break;
         case PdfPixelFormat::RGB24:
-            colorSpace = PdfColorSpace::DeviceRGB;
-            defaultRowSize = 4 * ((3 * width + 3) / 4);
-            pdfRowSize = 3 * width;
+            colorSpace = PdfColorSpaceType::DeviceRGB;
+            defaultScanLineSize = 4 * ((3 * width + 3) / 4);
+            pdfScanLineSize = 3 * width;
             break;
         case PdfPixelFormat::BGR24:
-            colorSpace = PdfColorSpace::DeviceRGB;
-            defaultRowSize = 4 * ((3 * width + 3) / 4);
-            pdfRowSize = 3 * width;
+            colorSpace = PdfColorSpaceType::DeviceRGB;
+            defaultScanLineSize = 4 * ((3 * width + 3) / 4);
+            pdfScanLineSize = 3 * width;
             needFetch = true;
             break;
         case PdfPixelFormat::RGBA:
@@ -317,16 +271,16 @@ void PdfImage::SetData(InputStream& stream, unsigned width, unsigned height, Pdf
     }
 
     auto output = GetObject().GetOrCreateStream().GetOutputStream();
-    charbuff lineBuffer(rowSize < 0 ? defaultRowSize : (unsigned)rowSize);
+    charbuff lineBuffer(scanLineSize < 0 ? defaultScanLineSize : (unsigned)scanLineSize);
     if (needFetch)
     {
         // The format is not compatible with PDF layout
-        charbuff pdfLineBuffer(pdfRowSize);
+        charbuff pdfLineBuffer(pdfScanLineSize);
         for (unsigned i = 0; i < height; i++)
         {
             stream.Read(lineBuffer.data(), lineBuffer.size());
             fetchPDFScanLineRGB((unsigned char*)pdfLineBuffer.data(), width, (const unsigned char*)lineBuffer.data(), format);
-            output.Write(pdfLineBuffer.data(), pdfRowSize);
+            output.Write(pdfLineBuffer.data(), pdfScanLineSize);
         }
     }
     else
@@ -334,7 +288,7 @@ void PdfImage::SetData(InputStream& stream, unsigned width, unsigned height, Pdf
         for (unsigned i = 0; i < height; i++)
         {
             stream.Read(lineBuffer.data(), lineBuffer.size());
-            output.Write(lineBuffer.data(), pdfRowSize);
+            output.Write(lineBuffer.data(), pdfScanLineSize);
         }
     }
 
@@ -355,29 +309,30 @@ void PdfImage::SetDataRaw(const bufferview& buffer, const PdfImageInfo& info)
 
 void PdfImage::SetDataRaw(InputStream& stream, const PdfImageInfo& info)
 {
+    m_ColorSpace = info.ColorSpace;
     m_Width = info.Width;
     m_Height = info.Height;
+    m_BitsPerComponent = info.BitsPerComponent;
 
     auto& dict = GetDictionary();
     dict.AddKey("Width", static_cast<int64_t>(info.Width));
     dict.AddKey("Height", static_cast<int64_t>(info.Height));
     dict.AddKey("BitsPerComponent", static_cast<int64_t>(info.BitsPerComponent));
-    if (info.Decode.GetSize() == 0)
+    if (info.DecodeArray.size() == 0)
+    {
         dict.RemoveKey("Decode");
+    }
     else
-        dict.AddKey("Decode", info.Decode);
+    {
+        PdfArray decodeArr;
+        for (unsigned i = 0; i < info.DecodeArray.size(); i++)
+            decodeArr.Add(PdfObject(info.DecodeArray[i]));
 
-    if (info.ColorSpaceArray.GetSize() == 0)
-    {
-        dict.AddKey("ColorSpace", PdfName(PoDoFo::ColorSpaceToNameRaw(info.ColorSpace)));
+        dict.AddKey("Decode", decodeArr);
     }
-    else
-    {
-        PdfArray arr;
-        arr.Add(PdfName(PoDoFo::ColorSpaceToNameRaw(info.ColorSpace)));
-        arr.insert(arr.begin() + 1, info.ColorSpaceArray.begin(), info.ColorSpaceArray.end());
-        dict.AddKey("ColorSpace", arr);
-    }
+
+    PdfObject colorSpace = info.ColorSpace->GetExportObject(GetDocument().GetObjects());
+    dict.AddKey("ColorSpace", colorSpace);
 
     if (info.Filters.size() == 0)
         GetObject().GetOrCreateStream().SetData(stream, true);
@@ -546,11 +501,11 @@ void PdfImage::exportToJpeg(charbuff& destBuff, const PdfArray& args) const
         jpeg_set_quality(&ctx, jquality, TRUE);
         jpeg_start_compress(&ctx, TRUE);
 
-        unsigned rowsize = 4 * ((m_Width * 3 + 3) / 4);
+        unsigned scanLineSize = 4 * ((m_Width * 3 + 3) / 4);
         JSAMPROW row_pointer[1];
         for (unsigned i = 0; i < m_Height; i++)
         {
-            row_pointer[0] = (unsigned char*)(inputBuff.data() + i * rowsize);
+            row_pointer[0] = (unsigned char*)(inputBuff.data() + i * scanLineSize);
             (void)jpeg_write_scanlines(&ctx, row_pointer, 1);
         }
 
@@ -612,31 +567,28 @@ void PdfImage::loadFromJpegInfo(jpeg_decompress_struct& ctx, PdfImageInfo& info)
     {
         case 3:
         {
-            info.ColorSpace = PdfColorSpace::DeviceRGB;
+            info.ColorSpace = PdfColorSpaceFactory::GetDeviceRGBInstace();
             break;
         }
         case 4:
         {
-            info.ColorSpace = PdfColorSpace::DeviceCMYK;
+            info.ColorSpace = PdfColorSpaceFactory::GetDeviceCMYKInstace();
 
             // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
             // in a inverted fashion. Fix by attaching a decode array
-            PdfArray decode;
-            decode.Add(1.0);
-            decode.Add(0.0);
-            decode.Add(1.0);
-            decode.Add(0.0);
-            decode.Add(1.0);
-            decode.Add(0.0);
-            decode.Add(1.0);
-            decode.Add(0.0);
-
-            info.Decode = decode;
+            info.DecodeArray.push_back(1.0);
+            info.DecodeArray.push_back(0.0);
+            info.DecodeArray.push_back(1.0);
+            info.DecodeArray.push_back(0.0);
+            info.DecodeArray.push_back(1.0);
+            info.DecodeArray.push_back(0.0);
+            info.DecodeArray.push_back(1.0);
+            info.DecodeArray.push_back(0.0);
             break;
         }
         default:
         {
-            info.ColorSpace = PdfColorSpace::DeviceGray;
+            info.ColorSpace = PdfColorSpaceFactory::GetDeviceGrayInstace();
             break;
         }
     }
@@ -711,14 +663,12 @@ void PdfImage::loadFromTiffHandle(void* handle)
         {
             if (bitsPixel == 1)
             {
-                PdfArray decode;
-                decode.insert(decode.end(), PdfObject(static_cast<int64_t>(0)));
-                decode.insert(decode.end(), PdfObject(static_cast<int64_t>(1)));
-                info.Decode = std::move(decode);
+                info.DecodeArray.push_back(0);
+                info.DecodeArray.push_back(1);
             }
             else if (bitsPixel == 8 || bitsPixel == 16)
             {
-                info.ColorSpace = PdfColorSpace::DeviceGray;
+                info.ColorSpace = PdfColorSpaceFactory::GetDeviceGrayInstace();
             }
             else
             {
@@ -731,14 +681,12 @@ void PdfImage::loadFromTiffHandle(void* handle)
         {
             if (bitsPixel == 1)
             {
-                PdfArray decode;
-                decode.insert(decode.end(), PdfObject(static_cast<int64_t>(1)));
-                decode.insert(decode.end(), PdfObject(static_cast<int64_t>(0)));
-                info.Decode = std::move(decode);
+                info.DecodeArray.push_back(1);
+                info.DecodeArray.push_back(0);
             }
             else if (bitsPixel == 8 || bitsPixel == 16)
             {
-                info.ColorSpace = PdfColorSpace::DeviceGray;
+                info.ColorSpace = PdfColorSpaceFactory::GetDeviceGrayInstace();
             }
             else
             {
@@ -754,7 +702,7 @@ void PdfImage::loadFromTiffHandle(void* handle)
                 TIFFClose(hInTiffHandle);
                 PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
             }
-            info.ColorSpace = PdfColorSpace::DeviceRGB;
+            info.ColorSpace = PdfColorSpaceFactory::GetDeviceRGBInstace();
             break;
         }
         case PHOTOMETRIC_SEPARATED:
@@ -764,17 +712,14 @@ void PdfImage::loadFromTiffHandle(void* handle)
                 TIFFClose(hInTiffHandle);
                 PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
             }
-            info.ColorSpace = PdfColorSpace::DeviceCMYK;
+            info.ColorSpace = PdfColorSpaceFactory::GetDeviceCMYKInstace();
             break;
         }
         case PHOTOMETRIC_PALETTE:
         {
             unsigned numColors = (1 << bitsPixel);
-
-            PdfArray decode;
-            decode.insert(decode.end(), PdfObject(static_cast<int64_t>(0)));
-            decode.insert(decode.end(), PdfObject(static_cast<int64_t>(numColors) - 1));
-            info.Decode = std::move(decode);
+            info.DecodeArray.push_back(0);
+            info.DecodeArray.push_back(numColors - 1);
 
             uint16_t* rgbRed;
             uint16_t* rgbGreen;
@@ -795,12 +740,7 @@ void PdfImage::loadFromTiffHandle(void* handle)
             idxObj.GetOrCreateStream().SetData(data);
 
             // Add the colorspace to our image
-            info.ColorSpace = PdfColorSpace::Indexed;
-            PdfArray colorSpace;
-            colorSpace.Add(PdfName("DeviceRGB"));
-            colorSpace.Add(static_cast<int64_t>(numColors) - 1);
-            colorSpace.Add(idxObj.GetIndirectReference());
-            info.ColorSpaceArray = std::move(colorSpace);
+            info.ColorSpace.reset(new PdfColorSpaceIndexed(PdfColorSpaceFactory::GetDeviceRGBInstace(), numColors, std::move(data)));
             break;
         }
 
@@ -1219,7 +1159,7 @@ void loadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
         smaksInfo.Width = (unsigned)width;
         smaksInfo.Height = (unsigned)height;
         smaksInfo.BitsPerComponent = (unsigned char)depth;
-        smaksInfo.ColorSpace = PdfColorSpace::DeviceGray;
+        smaksInfo.ColorSpace = PdfColorSpaceFactory::GetDeviceGrayInstace();
 
         auto smakeImage = image.GetDocument().CreateImage();
         smakeImage->SetDataRaw(smask, smaksInfo);
@@ -1244,23 +1184,16 @@ void loadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
             data[3 * i + 1] = colors->green;
             data[3 * i + 2] = colors->blue;
         }
-        auto& idxObj = image.GetDocument().GetObjects().CreateDictionaryObject();
-        idxObj.GetOrCreateStream().SetData(data);
 
-        info.ColorSpace = PdfColorSpace::Indexed;
-        PdfArray array;
-        array.Add(PdfName("DeviceRGB"));
-        array.Add(static_cast<int64_t>(colorCount - 1));
-        array.Add(idxObj.GetIndirectReference());
-        info.ColorSpaceArray = std::move(array);
+        info.ColorSpace.reset(new PdfColorSpaceIndexed(PdfColorSpaceFactory::GetDeviceRGBInstace(), colorCount, std::move(data)));
     }
     else if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
     {
-        info.ColorSpace = PdfColorSpace::DeviceGray;
+        info.ColorSpace = PdfColorSpaceFactory::GetDeviceGrayInstace();
     }
     else
     {
-        info.ColorSpace = PdfColorSpace::DeviceRGB;
+        info.ColorSpace = PdfColorSpaceFactory::GetDeviceRGBInstace();
     }
 
     // Set the image data and flate compress it

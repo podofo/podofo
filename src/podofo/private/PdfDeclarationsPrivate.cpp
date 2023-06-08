@@ -300,57 +300,99 @@ PdfAnnotationType PoDoFo::NameToAnnotationType(const string_view& str)
         PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
 }
 
-PdfColorSpace PoDoFo::NameToColorSpaceRaw(const string_view& name)
+PdfColorSpaceType PoDoFo::NameToColorSpaceRaw(const string_view& name)
 {
-    if (name == "DeviceGray")
-        return PdfColorSpace::DeviceGray;
-    else if (name == "DeviceRGB")
-        return PdfColorSpace::DeviceRGB;
-    else if (name == "DeviceCMYK")
-        return PdfColorSpace::DeviceCMYK;
-    else if (name == "CalGray")
-        return PdfColorSpace::CalGray;
-    else if (name == "Lab")
-        return PdfColorSpace::Lab;
-    else if (name == "ICCBased")
-        return PdfColorSpace::ICCBased;
-    else if (name == "Indexed")
-        return PdfColorSpace::Indexed;
-    else if (name == "Pattern")
-        return PdfColorSpace::Pattern;
-    else if (name == "Separation")
-        return PdfColorSpace::Separation;
-    else if (name == "DeviceN")
-        return PdfColorSpace::DeviceN;
-    else
+    PdfColorSpaceType colorSpace;
+    if (!PoDoFo::TryNameToColorSpaceRaw(name, colorSpace))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "Unsupported colorspace name: {}", name);
+
+    return colorSpace;
 }
 
-string_view PoDoFo::ColorSpaceToNameRaw(PdfColorSpace colorSpace)
+bool PoDoFo::TryNameToColorSpaceRaw(const string_view& name, PdfColorSpaceType& colorSpace)
+{
+    if (name == "DeviceGray")
+    {
+        colorSpace = PdfColorSpaceType::DeviceGray;
+        return true;
+    }
+    else if (name == "DeviceRGB")
+    {
+        colorSpace = PdfColorSpaceType::DeviceRGB;
+        return true;
+    }
+    else if (name == "DeviceCMYK")
+    {
+        colorSpace = PdfColorSpaceType::DeviceCMYK;
+        return true;
+    }
+    else if (name == "CalGray")
+    {
+        colorSpace = PdfColorSpaceType::CalGray;
+        return true;
+    }
+    else if (name == "Lab")
+    {
+        colorSpace = PdfColorSpaceType::Lab;
+        return true;
+    }
+    else if (name == "ICCBased")
+    {
+        colorSpace = PdfColorSpaceType::ICCBased;
+        return true;
+    }
+    else if (name == "Indexed")
+    {
+        colorSpace = PdfColorSpaceType::Indexed;
+        return true;
+    }
+    else if (name == "Pattern")
+    {
+        colorSpace = PdfColorSpaceType::Pattern;
+        return true;
+    }
+    else if (name == "Separation")
+    {
+        colorSpace = PdfColorSpaceType::Separation;
+        return true;
+    }
+    else if (name == "DeviceN")
+    {
+        colorSpace = PdfColorSpaceType::DeviceN;
+        return true;
+    }
+    else
+    {
+        colorSpace = PdfColorSpaceType::Unknown;
+        return false;
+    }
+}
+
+string_view PoDoFo::ColorSpaceToNameRaw(PdfColorSpaceType colorSpace)
 {
     switch (colorSpace)
     {
-        case PdfColorSpace::DeviceGray:
+        case PdfColorSpaceType::DeviceGray:
             return "DeviceGray"sv;
-        case PdfColorSpace::DeviceRGB:
+        case PdfColorSpaceType::DeviceRGB:
             return "DeviceRGB"sv;
-        case PdfColorSpace::DeviceCMYK:
+        case PdfColorSpaceType::DeviceCMYK:
             return "DeviceCMYK"sv;
-        case PdfColorSpace::CalGray:
+        case PdfColorSpaceType::CalGray:
             return "CalGray"sv;
-        case PdfColorSpace::Lab:
+        case PdfColorSpaceType::Lab:
             return "Lab"sv;
-        case PdfColorSpace::ICCBased:
+        case PdfColorSpaceType::ICCBased:
             return "ICCBased"sv;
-        case PdfColorSpace::Indexed:
+        case PdfColorSpaceType::Indexed:
             return "Indexed"sv;
-        case PdfColorSpace::Pattern:
+        case PdfColorSpaceType::Pattern:
             return "Pattern"sv;
-        case PdfColorSpace::Separation:
+        case PdfColorSpaceType::Separation:
             return "Separation"sv;
-        case PdfColorSpace::DeviceN:
+        case PdfColorSpaceType::DeviceN:
             return "DeviceN"sv;
-        case PdfColorSpace::Unknown:
+        case PdfColorSpaceType::Unknown:
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }

@@ -6,6 +6,7 @@
 
 ### 1.0
 - Restore manuals
+- Review refactor PdfColor: it should use new PdfColorSpace
 - Review all page import functions to check correct working/improve
   the code
 - PdfCanvas: Add CopyTo facilities, see PdfContents

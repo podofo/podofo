@@ -442,7 +442,7 @@ void PoDoFo::WriteOperator_Do(PdfStringStream& stream, const string_view& xobjna
     stream << '/' << xobjname << " Do\n";
 }
 
-void PoDoFo::WriteOperator_cs(PdfStringStream& stream, PdfColorSpace colorSpace)
+void PoDoFo::WriteOperator_cs(PdfStringStream& stream, PdfColorSpaceType colorSpace)
 {
     stream << PoDoFo::ColorSpaceToNameRaw(colorSpace) << " cs\n";
 }
@@ -452,7 +452,7 @@ void PoDoFo::WriteOperator_cs(PdfStringStream& stream, const string_view& name)
     stream << name << " cs\n";
 }
 
-void PoDoFo::WriteOperator_CS(PdfStringStream& stream, PdfColorSpace colorSpace)
+void PoDoFo::WriteOperator_CS(PdfStringStream& stream, PdfColorSpaceType colorSpace)
 {
     stream << PoDoFo::ColorSpaceToNameRaw(colorSpace) << " CS\n";
 }

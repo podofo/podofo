@@ -9,6 +9,8 @@
 
 #include "PdfXObject.h"
 
+#include "PdfColorSpace.h"
+
 #ifdef PODOFO_HAVE_JPEG_LIB
 struct jpeg_decompress_struct;
 #endif // PODOFO_HAVE_JPEG_LIB
@@ -24,10 +26,9 @@ struct PdfImageInfo
     unsigned Width = 0;
     unsigned Height = 0;
     PdfFilterList Filters;
-    PdfColorSpace ColorSpace = PdfColorSpace::Unknown;
-    PdfArray ColorSpaceArray;       ///< Additional /ColorSpace array entries. The first entry is always the one in ColorSpace
     unsigned char BitsPerComponent = 0;
-    PdfArray Decode;
+    PdfColorSpacePtr ColorSpace;
+    std::vector<double> DecodeArray;
 };
 
 /** A PdfImage object is needed when ever you want to embedd an image
@@ -53,17 +54,11 @@ private:
     PdfImage(PdfDocument& doc, const std::string_view& prefix);
 
 public:
-    void DecodeTo(charbuff& buff, PdfPixelFormat format, int rowSize = -1) const;
-    void DecodeTo(const bufferspan& buff, PdfPixelFormat format, int rowSize = -1) const;
-    void DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize = -1) const;
+    void DecodeTo(charbuff& buff, PdfPixelFormat format, int scanLineSize = -1) const;
+    void DecodeTo(const bufferspan& buff, PdfPixelFormat format, int scanLineSize = -1) const;
+    void DecodeTo(OutputStream& stream, PdfPixelFormat format, int scanLineSize = -1) const;
 
     charbuff GetDecodedCopy(PdfPixelFormat format);
-
-    /** Get the color space of the image
-    *
-    *  \returns the color space of the image
-    */
-    PdfColorSpace GetColorSpace() const;
 
     /** Set an ICC profile for this image.
      *
@@ -74,9 +69,7 @@ public:
      *  \see SetImageColorSpace to set an colorspace instead of an ICC profile for this image
      */
     void SetICCProfile(InputStream& stream, unsigned colorComponents,
-        PdfColorSpace alternateColorSpace = PdfColorSpace::DeviceRGB);
-
-    //PdfColorSpace GetImageColorSpace() const;
+        PdfColorSpaceType alternateColorSpace = PdfColorSpaceType::DeviceRGB);
 
     /** Set a softmask for this image.
      *  \param pSoftmask a PdfImage pointer to the image, which is to be set as softmask, must be 8-Bit-Grayscale
@@ -161,14 +154,17 @@ public:
 
     Rect GetRect() const override;
 
+    /** Get the color space of the image
+     * \returns the color space of the image
+     */
+    const PdfColorSpace& GetColorSpace() const { return *m_ColorSpace; }
+
 private:
     /** Construct an image from an existing PdfObject
      *
      *  \param obj a PdfObject that has to be an image
      */
     PdfImage(PdfObject& obj);
-
-    charbuff initScanLine(PdfPixelFormat format, int rowSize, charbuff& smask) const;
 
     unsigned getBufferSize(PdfPixelFormat format) const;
 
@@ -216,8 +212,10 @@ private:
 #endif // PODOFO_HAVE_PNG_LIB
 
 private:
+    PdfColorSpacePtr m_ColorSpace;
     unsigned m_Width;
     unsigned m_Height;
+    unsigned m_BitsPerComponent;
 };
 
 };

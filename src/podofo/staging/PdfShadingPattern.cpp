@@ -175,34 +175,34 @@ void PdfAxialShadingPattern::Init(double x0, double y0, double x1, double y1, co
 
     switch (start.GetColorSpace())
     {
-        case PdfColorSpace::DeviceRGB:
+        case PdfColorSpaceType::DeviceRGB:
             shading.AddKey("ColorSpace", PdfName("DeviceRGB"));
             break;
 
-        case PdfColorSpace::DeviceCMYK:
+        case PdfColorSpaceType::DeviceCMYK:
             shading.AddKey("ColorSpace", PdfName("DeviceCMYK"));
             break;
 
-        case PdfColorSpace::DeviceGray:
+        case PdfColorSpaceType::DeviceGray:
             shading.AddKey("ColorSpace", PdfName("DeviceGray"));
             break;
 
-        case PdfColorSpace::Lab:
+        case PdfColorSpaceType::Lab:
         {
             PdfObject* csp = start.BuildColorSpace(*this->GetObject().GetDocument());
             shading.AddKey("ColorSpace", csp->GetIndirectReference());
         }
         break;
 
-        case PdfColorSpace::Separation:
+        case PdfColorSpaceType::Separation:
         {
             PdfObject* csp = start.BuildColorSpace(*this->GetObject().GetDocument());
             shading.AddKey("ColorSpace", csp->GetIndirectReference());
         }
         break;
 
-        case PdfColorSpace::Indexed:
-        case PdfColorSpace::Unknown:
+        case PdfColorSpaceType::Indexed:
+        case PdfColorSpaceType::Unknown:
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "Colorspace not supported in PdfAxialShadingPattern");
             break;
@@ -236,7 +236,7 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& llCol, const PdfColor& 
 
     switch (llCol.GetColorSpace())
     {
-        case PdfColorSpace::DeviceRGB:
+        case PdfColorSpaceType::DeviceRGB:
         {
             range.Add(0.0);
             range.Add(1.0);
@@ -265,7 +265,7 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& llCol, const PdfColor& 
         }
         break;
 
-        case PdfColorSpace::DeviceCMYK:
+        case PdfColorSpaceType::DeviceCMYK:
         {
             range.Add(0.0);
             range.Add(1.0);
@@ -300,7 +300,7 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& llCol, const PdfColor& 
         }
         break;
 
-        case PdfColorSpace::DeviceGray:
+        case PdfColorSpaceType::DeviceGray:
         {
             range.Add(0.0);
             range.Add(1.0);
@@ -317,7 +317,7 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& llCol, const PdfColor& 
         }
         break;
 
-        case PdfColorSpace::Lab:
+        case PdfColorSpaceType::Lab:
         {
             range.Add(0.0);
             range.Add(100.0);
@@ -348,7 +348,7 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& llCol, const PdfColor& 
         }
         break;
 
-        case PdfColorSpace::Separation:
+        case PdfColorSpaceType::Separation:
         {
             range.Add(0.0);
             range.Add(1.0);
@@ -363,8 +363,8 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& llCol, const PdfColor& 
         }
         break;
 
-        case PdfColorSpace::Indexed:
-        case PdfColorSpace::Unknown:
+        case PdfColorSpaceType::Indexed:
+        case PdfColorSpaceType::Unknown:
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "Colorspace not supported in PdfFunctionBaseShadingPattern");
             break;
@@ -412,34 +412,34 @@ void PdfRadialShadingPattern::Init(double x0, double y0, double r0, double x1, d
 
     switch (start.GetColorSpace())
     {
-        case PdfColorSpace::DeviceRGB:
+        case PdfColorSpaceType::DeviceRGB:
             shading.AddKey("ColorSpace", PdfName("DeviceRGB"));
             break;
 
-        case PdfColorSpace::DeviceCMYK:
+        case PdfColorSpaceType::DeviceCMYK:
             shading.AddKey("ColorSpace", PdfName("DeviceCMYK"));
             break;
 
-        case PdfColorSpace::DeviceGray:
+        case PdfColorSpaceType::DeviceGray:
             shading.AddKey("ColorSpace", PdfName("DeviceGray"));
             break;
 
-        case PdfColorSpace::Lab:
+        case PdfColorSpaceType::Lab:
         {
             PdfObject* csp = start.BuildColorSpace(*this->GetObject().GetDocument());
             shading.AddKey("ColorSpace", csp->GetIndirectReference());
         }
         break;
 
-        case PdfColorSpace::Separation:
+        case PdfColorSpaceType::Separation:
         {
             PdfObject* csp = start.BuildColorSpace(*this->GetObject().GetDocument());
             shading.AddKey("ColorSpace", csp->GetIndirectReference());
         }
         break;
 
-        case PdfColorSpace::Indexed:
-        case PdfColorSpace::Unknown:
+        case PdfColorSpaceType::Indexed:
+        case PdfColorSpaceType::Unknown:
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "Colorspace not supported in PdfRadialShadingPattern");
             break;

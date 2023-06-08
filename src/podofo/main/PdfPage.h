@@ -198,7 +198,7 @@ public:
      *  \see PdfPainter::SetDependICCProfileColor()
      */
     void SetICCProfile(const std::string_view& csTag, InputStream& stream, int64_t colorComponents,
-        PdfColorSpace alternateColorSpace = PdfColorSpace::DeviceRGB);
+        PdfColorSpaceType alternateColorSpace = PdfColorSpaceType::DeviceRGB);
 
 public:
     unsigned GetIndex() const { return m_Index; }
