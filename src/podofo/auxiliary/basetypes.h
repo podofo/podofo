@@ -37,7 +37,7 @@ namespace PoDoFo
     class charbuff_t final : public std::string
     {
     public:
-        charbuff_t() { }
+        charbuff_t() noexcept { }
         charbuff_t(const charbuff_t&) = default;
         charbuff_t(charbuff_t&&) noexcept = default;
         charbuff_t(size_t size)
@@ -52,7 +52,6 @@ namespace PoDoFo
             : std::string(view) { }
         explicit charbuff_t(const std::string& str)
             : std::string(str) { }
-
     public:
         charbuff_t& operator=(const charbuff_t&) = default;
         charbuff_t& operator=(charbuff_t&&) noexcept = default;
@@ -71,7 +70,7 @@ namespace PoDoFo
             std::string::assign(view.data(), view.size());
             return *this;
         }
-        charbuff_t& operator=(std::string&& str)
+        charbuff_t& operator=(std::string&& str) noexcept
         {
             std::string::operator=(std::move(str));
             return *this;
@@ -87,49 +86,49 @@ namespace PoDoFo
     template <typename = void>
     bool operator==(const charbuff_t<>& lhs, const char* rhs)
     {
-        return std::operator==((std::string_view)lhs, rhs);
+        return static_cast<const std::string&>(lhs) == rhs;
     }
 
     template <typename = void>
     bool operator==(const char* lhs, const charbuff_t<>& rhs)
     {
-        return std::operator==(lhs, (std::string_view)rhs);
+        return lhs == static_cast<const std::string&>(rhs);
     }
 
     template <typename = void>
     bool operator==(const charbuff_t<>& lhs, const bufferview& rhs)
     {
-        return std::operator==((std::string_view)lhs, std::string_view(rhs.data(), rhs.size()));
+        return static_cast<const std::string&>(lhs) == std::string_view(rhs.data(), rhs.size());
     }
 
     template <typename = void>
     bool operator==(const bufferview& lhs, const charbuff_t<>& rhs)
     {
-        return std::operator==(std::string_view(lhs.data(), lhs.size()), (std::string_view)rhs);
+        return std::string_view(lhs.data(), lhs.size()) == static_cast<const std::string&>(rhs);
     }
 
     template <typename = void>
-    bool operator==(const charbuff_t<>& lhs, const std::string_view& rhs)
+    bool operator==(const charbuff_t<>& lhs, const std::string_view& rhs) noexcept
     {
-        return std::operator==((std::string_view)lhs, rhs);
+        return std::string_view{lhs} == rhs;
     }
 
     template <typename = void>
-    bool operator==(const std::string_view& lhs, const charbuff_t<>& rhs)
+    bool operator==(const std::string_view& lhs, const charbuff_t<>& rhs) noexcept
     {
-        return std::operator==(lhs, (std::string_view)rhs);
+        return lhs == std::string_view{rhs};
     }
 
     template <typename = void>
-    bool operator==(const charbuff_t<>& lhs, const std::string& rhs)
+    bool operator==(const charbuff_t<>& lhs, const std::string& rhs) noexcept
     {
-        return std::operator==((std::string)lhs, rhs);
+        return static_cast<const std::string&>(lhs) == rhs;
     }
 
     template <typename = void>
-    bool operator==(const std::string& lhs, const charbuff_t<>& rhs)
+    bool operator==(const std::string& lhs, const charbuff_t<>& rhs) noexcept
     {
-        return std::operator==(lhs, (std::string)rhs);
+        return lhs == static_cast<const std::string&>(rhs);
     }
 
     using charbuff = charbuff_t<>;
