@@ -110,13 +110,13 @@ namespace PoDoFo
     template <typename = void>
     bool operator==(const charbuff_t<>& lhs, const std::string_view& rhs) noexcept
     {
-        return std::string_view{lhs} == rhs;
+        return std::string_view(lhs) == rhs;
     }
 
     template <typename = void>
     bool operator==(const std::string_view& lhs, const charbuff_t<>& rhs) noexcept
     {
-        return lhs == std::string_view{rhs};
+        return lhs == std::string_view(rhs);
     }
 
     template <typename = void>
