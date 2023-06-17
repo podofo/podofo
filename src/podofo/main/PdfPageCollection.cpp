@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include <iostream>
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfPageCollection.h"
 
@@ -66,7 +67,7 @@ PdfPage& PdfPageCollection::getPage(unsigned index)
 
     // Not in cache -> search tree
     PdfObjectList parents;
-    PdfObject* pageObj = this->getPageNode(index, this->GetRoot(), parents);
+    PdfObject* pageObj = this->getPageNode(index, this->GetRoot(), parents, false);
     if (pageObj != nullptr)
     {
         page = new PdfPage(*pageObj, index, parents);
@@ -231,8 +232,30 @@ void PdfPageCollection::RemovePageAt(unsigned atIndex)
 }
 
 PdfObject* PdfPageCollection::getPageNode(unsigned index, PdfObject& parent,
-    PdfObjectList& parents)
+    PdfObjectList& parents, bool useCache)
 {
+    PdfPage *page;
+    if (useCache && (page = m_cache.GetPage(index)) != nullptr)
+    { // fast path use caches to find parents
+        PdfObject *ans = &page->GetObject();
+        PdfObject *parent, *p = ans;
+        while (p->IsDictionary() && (parent = p->GetDictionary().FindKey(PdfName::KeyParent)) != nullptr)
+        {
+            if (std::find(parents.begin(), parents.end(), parent) != parents.end())
+            {   // cycle in parent list detected, prevent infinite loop
+                parents.clear();
+                break;
+            }
+            if (!parent->IsDictionary() || parent->GetDictionary().GetKeyAs<PdfName>(PdfName::KeyType) != "Pages")
+            {   // parent is not a pages node
+                parents.clear();
+                break;
+            }
+            parents.push_front(parent);
+            p = parent;
+        }
+        if (parents.size()) return ans;
+    }
     utls::RecursionGuard guard;
     if (!parent.GetDictionary().HasKey("Kids"))
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidKey);
@@ -303,7 +326,7 @@ PdfObject* PdfPageCollection::getPageNode(unsigned index, PdfObject& parent,
                         childObj->GetIndirectReference().ToString());
                 }
 
-                return this->getPageNode(index, *childObj, parents);
+                return this->getPageNode(index, *childObj, parents, false);
             }
         }
         else if (this->isTypePage(*childObj))

@@ -31,6 +31,7 @@ const PdfName PdfName::KeySize = PdfName("Size");
 const PdfName PdfName::KeySubtype = PdfName("Subtype");
 const PdfName PdfName::KeyType = PdfName("Type");
 const PdfName PdfName::KeyFilter = PdfName("Filter");
+const PdfName PdfName::KeyParent = PdfName("Parent");
 
 PdfName::PdfName()
     : m_data(new NameData{ true, { }, nullptr })

@@ -111,7 +111,7 @@ public:
 
     /** Default cast to raw data string view
      *
-     * It's used in PdfDictionary lookup 
+     * It's used in PdfDictionary lookup
      */
     operator std::string_view() const;
 
@@ -125,6 +125,7 @@ public:
     static const PdfName KeySubtype;
     static const PdfName KeyType;
     static const PdfName KeyFilter;
+    static const PdfName KeyParent;
 
 private:
     void expandUtf8String() const;

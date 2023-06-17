@@ -138,7 +138,7 @@ private:
     PdfPage& getPage(unsigned index);
     PdfPage& getPage(const PdfReference& ref);
 
-    PdfObject* getPageNode(unsigned index, PdfObject& parent, PdfObjectList& parents);
+    PdfObject* getPageNode(unsigned index, PdfObject& parent, PdfObjectList& parents, bool useCache=true);
 
     unsigned getChildCount(const PdfObject& nodeObj) const;
 
