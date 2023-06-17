@@ -181,6 +181,18 @@ PdfPage& PdfPageCollection::CreatePageAt(unsigned atIndex, const Rect& size)
     return *page;
 }
 
+void PdfPageCollection::CreatePagesAt(unsigned atIndex, const Rect& size, unsigned count) {
+    std::vector<PdfPage*> pages(count);
+    std::vector<PdfObject*> objects(count);
+    for (unsigned i = 0; i < count; i++)
+    {
+        pages[i] = new PdfPage(*GetRoot().GetDocument(), atIndex + i, size);
+        objects[i] = &pages[i]->GetObject();
+    }
+    InsertPagesAt(atIndex, objects);
+    for (unsigned i = 0; i < count; i++) m_cache.SetPage(atIndex + i, pages[i]);
+}
+
 void PdfPageCollection::AppendDocumentPages(const PdfDocument& doc)
 {
     return GetDocument().AppendDocumentPages(doc);

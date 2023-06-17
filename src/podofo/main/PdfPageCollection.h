@@ -87,6 +87,15 @@ public:
      */
     PdfPage& CreatePageAt(unsigned atIndex, const Rect& size);
 
+    /** Create count new page objects and insert at the index atIndex. This is significantly faster
+     *  than calling CreatePageAt repeatedly.
+     *
+     *  \param size a Rect specifying the size of the page (i.e the /MediaBox key) in PDF units
+     *  \param atIndex index where to insert the new page (0-based)
+     *  \param count number of pages to create
+     */
+    void CreatePagesAt(unsigned atIndex, const Rect& size, unsigned count=1);
+
     /** Appends another PdfDocument to this document.
      *  \param doc the document to append
      */
