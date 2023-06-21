@@ -18,7 +18,6 @@
 - More enum <-> strings functions and make them public
 - Make PdfObjectStream not flate filter by default in PdfMemDocument?
 - PdfElement: Optimize, keep dictionary/array pointer. Add GetObjectPtr()
-- PdfPageCollection: Fix caching (it's very slow at the moment)
 - PdfPageCollection: Add iteration on PdfPage*. See PdfAnnotationCollection
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
 - PdfPage: Add GetFields() iteration
