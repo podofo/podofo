@@ -176,7 +176,7 @@ void PdfDocument::append(const PdfDocument& doc, bool appendAll)
                 inherited++;
             }
 
-            m_Pages->InsertPageAt(m_Pages->GetCount(), obj);
+            m_Pages->InsertPageAt(m_Pages->GetCount(), *new PdfPage(obj));
         }
 
         // append all outlines
@@ -265,7 +265,7 @@ void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc,
             inherited++;
         }
 
-        m_Pages->InsertPageAt(atIndex, obj);
+        m_Pages->InsertPageAt(atIndex, *new PdfPage(obj));
     }
 
     // append all outlines

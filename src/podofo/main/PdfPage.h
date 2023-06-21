@@ -48,13 +48,14 @@ class PODOFO_API PdfPage final : public PdfDictionaryElement, public PdfCanvas
 {
     PODOFO_UNIT_TEST(PdfPageTest);
     friend class PdfPageCollection;
+    friend class PdfDocument;
 
 private:
     /** Create a new PdfPage object.
      *  \param size a Rect specifying the size of the page (i.e the /MediaBox key) in PDF units
      *  \param parent add the page to this parent
      */
-    PdfPage(PdfDocument& parent, unsigned index, const Rect& size);
+    PdfPage(PdfDocument& parent, const Rect& size);
 
     /** Create a PdfPage based on an existing PdfObject
      *  \param obj an existing PdfObject
@@ -64,7 +65,8 @@ private:
      *                       The last object in the list is the
      *                       most direct parent of this page.
      */
-    PdfPage(PdfObject& obj, unsigned index, const std::deque<PdfObject*>& listOfParents);
+    PdfPage(PdfObject& obj);
+    PdfPage(PdfObject& obj, std::vector<PdfObject*>&& parents);
 
 public:
     void ExtractTextTo(std::vector<PdfTextEntry>& entries,
@@ -90,7 +92,7 @@ public:
      * \returns true if successful, false otherwise
      *
      */
-    bool SetPageWidth(int newWidth);
+    [[deprecated]] bool SetPageWidth(int newWidth);
 
     // added by Petr P. Petrov 21 Febrary 2010
     /** Set the current page height in PDF Units
@@ -98,7 +100,7 @@ public:
      * \returns true if successful, false otherwise
      *
      */
-    bool SetPageHeight(int newHeight);
+    [[deprecated]] bool SetPageHeight(int newHeight);
 
     /** Set the /MediaBox in PDF Units
      * \param rect a Rect in PDF units
@@ -126,12 +128,9 @@ public:
     void SetArtBox(const Rect& rect, bool raw = false);
 
     /** Page number inside of the document. The  first page
-     *  has the number 1, the last page has the number
-     *  PdfPageTree:GetTotalNumberOfPages()
+     *  has the number 1
      *
      *  \returns the number of the page inside of the document
-     *
-     *  \see PdfPageTree:GetTotalNumberOfPages()
      */
     unsigned GetPageNumber() const;
 
@@ -216,9 +215,15 @@ public:
     inline const PdfAnnotationCollection& GetAnnotations() const { return m_Annotations; }
 
 private:
-    PdfField& createField(const std::string_view& name, const std::type_info& typeInfo, const Rect& rect, bool rawRect);
+    // To be called by PdfPageCollection
+    void FlattenStructure();
+    void SetIndex(unsigned index) { m_Index = index; }
 
     void EnsureResourcesCreated() override;
+
+    PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
+
+    PdfField& createField(const std::string_view& name, const std::type_info& typeInfo, const Rect& rect, bool rawRect);
 
     PdfResources* getResources() override;
 
@@ -226,7 +231,9 @@ private:
 
     PdfElement& getElement() override;
 
-    PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
+    PdfObject* findInheritableAttribute(const std::string_view& name) const;
+
+    PdfObject* findInheritableAttribute(const std::string_view& name, bool& isShallow) const;
 
     /**
      * Initialize a new page object.
@@ -243,7 +250,7 @@ private:
      * This function is internal, since there are wrappers for all standard boxes
      *  \returns Rect the page box
      */
-    Rect getPageBox(const std::string_view& inBox, bool raw) const;
+    Rect getPageBox(const std::string_view& inBox, bool isInheritable, bool raw) const;
 
     void setPageBox(const std::string_view& inBox, const Rect& rect, bool raw);
 
@@ -255,6 +262,7 @@ private:
 
 private:
     unsigned m_Index;
+    std::vector<PdfObject*> m_parents;
     std::unique_ptr<PdfContents> m_Contents;
     std::unique_ptr<PdfResources> m_Resources;
     PdfAnnotationCollection m_Annotations;

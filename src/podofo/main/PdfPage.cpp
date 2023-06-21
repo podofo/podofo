@@ -13,32 +13,41 @@
 #include "PdfObjectStream.h"
 #include "PdfColor.h"
 #include "PdfDocument.h"
+#include "PdfPageCollection.h"
 
 using namespace std;
 using namespace PoDoFo;
 
 static int normalize(int value, int start, int end);
-static PdfResources* getResources(PdfObject& obj, const deque<PdfObject*>& listOfParents);
 
-PdfPage::PdfPage(PdfDocument& parent, unsigned index, const Rect& size) :
+PdfPage::PdfPage(PdfDocument& parent, const Rect& size) :
     PdfDictionaryElement(parent, "Page"),
-    m_Index(index),
+    m_Index(numeric_limits<unsigned>::max()),
     m_Contents(nullptr),
     m_Annotations(*this)
 {
     initNewPage(size);
 }
 
-PdfPage::PdfPage(PdfObject& obj, unsigned index, const deque<PdfObject*>& listOfParents) :
+PdfPage::PdfPage(PdfObject& obj)
+    : PdfPage(obj, vector<PdfObject*>())
+{
+}
+
+PdfPage::PdfPage(PdfObject& obj, vector<PdfObject*>&& parents) :
     PdfDictionaryElement(obj),
-    m_Index(index),
+    m_Index(numeric_limits<unsigned>::max()),
+    m_parents(std::move(parents)),
     m_Contents(nullptr),
-    m_Resources(::getResources(obj, listOfParents)),
     m_Annotations(*this)
 {
-    PdfObject* contents = obj.GetDictionary().FindKey("Contents");
+    auto contents = GetDictionary().FindKey("Contents");
     if (contents != nullptr)
         m_Contents.reset(new PdfContents(*this, *contents));
+
+    auto resources = findInheritableAttribute("Resources");
+    if (resources != nullptr)
+        m_Resources.reset(new PdfResources(*resources));
 }
 
 Rect PdfPage::GetRect() const
@@ -175,12 +184,16 @@ Rect PdfPage::CreateStandardPageSize(const PdfPageSize pageSize, bool landscape)
     return rect;
 }
 
-Rect PdfPage::getPageBox(const string_view& inBox, bool raw) const
+Rect PdfPage::getPageBox(const string_view& inBox, bool isInheritable, bool raw) const
 {
     Rect pageBox;
 
     // Take advantage of inherited values - walking up the tree if necessary
-    auto obj = GetDictionary().FindKeyParent(inBox);
+    const PdfObject* obj;
+    if (isInheritable)
+        obj = findInheritableAttribute(inBox);
+    else
+        obj = GetDictionary().FindKeyParent(inBox);
 
     // assign the value of the box from the array
     if (obj != nullptr && obj->IsArray())
@@ -193,13 +206,13 @@ Rect PdfPage::getPageBox(const string_view& inBox, bool raw) const
     {
         // If those page boxes are not specified then
         // default to CropBox per PDF Spec (3.6.2)
-        pageBox = getPageBox("CropBox", raw);
+        pageBox = getPageBox("CropBox", true, raw);
     }
     else if (inBox == "CropBox")
     {
         // If crop box is not specified then
         // default to MediaBox per PDF Spec (3.6.2)
-        pageBox = getPageBox("MediaBox", raw);
+        pageBox = getPageBox("MediaBox", true, raw);
     }
 
     if (!raw)
@@ -262,7 +275,7 @@ int PdfPage::GetRotationRaw() const
 {
     int rot = 0;
 
-    auto obj = GetDictionary().FindKeyParent("Rotate");
+    auto obj = findInheritableAttribute("Rotate");
     if (obj != nullptr && (obj->IsNumber() || obj->GetReal()))
         rot = static_cast<int>(obj->GetNumber());
 
@@ -307,6 +320,26 @@ PdfField& PdfPage::createField(const string_view& name, const type_info& typeInf
     auto& annotation = static_cast<PdfAnnotationWidget&>(GetAnnotations()
         .CreateAnnot(PdfAnnotationType::Widget, rect, rawRect));
     return PdfField::Create(name, annotation, typeInfo);
+}
+
+void PdfPage::FlattenStructure()
+{
+    if (m_parents.size() == 0)
+        return;
+
+    constexpr string_view inheritableAttributes[] = {"Resources"sv, "MediaBox"sv, "CropBox"sv, "Rotate"sv};
+
+    bool isShallow;
+    // Move inherited attributes to current dictionary
+    for (unsigned i = 0; i < std::size(inheritableAttributes); i++)
+    {
+        auto obj = findInheritableAttribute(inheritableAttributes[i], isShallow);
+        if (obj != nullptr && !isShallow)
+            GetDictionary().AddKeyIndirectSafe(inheritableAttributes[i], *obj);
+    }
+
+    // Finally clear the parents
+    m_parents.clear();
 }
 
 void PdfPage::EnsureResourcesCreated()
@@ -412,60 +445,7 @@ void PdfPage::SetArtBox(const Rect& rect, bool raw)
 
 unsigned PdfPage::GetPageNumber() const
 {
-    unsigned pageNumber = 0;
-    auto parent = this->GetDictionary().FindKey("Parent");
-    PdfReference ref = this->GetObject().GetIndirectReference();
-
-    // CVE-2017-5852 - prevent infinite loop if Parent chain contains a loop
-    // e.g. parent->GetIndirectKey( "Parent" ) == parent or parent->GetIndirectKey( "Parent" )->GetIndirectKey( "Parent" ) == parent
-    constexpr unsigned maxRecursionDepth = 1000;
-    unsigned depth = 0;
-
-    while (parent != nullptr)
-    {
-        auto kidsObj = parent->GetDictionary().FindKey("Kids");
-        if (kidsObj != nullptr)
-        {
-            const PdfArray& kids = kidsObj->GetArray();
-            for (auto& child : kids)
-            {
-                if (child.GetReference() == ref)
-                    break;
-
-                auto node = this->GetDocument().GetObjects().GetObject(child.GetReference());
-                if (node == nullptr)
-                {
-                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoObject,
-                        "Object {} not found from Kids array {}", child.GetReference().ToString(),
-                        kidsObj->GetIndirectReference().ToString());
-                }
-
-                if (node->GetDictionary().HasKey(PdfName::KeyType)
-                    && node->GetDictionary().MustFindKey(PdfName::KeyType).GetName() == "Pages")
-                {
-                    auto count = node->GetDictionary().FindKey("Count");
-                    if (count != nullptr)
-                        pageNumber += static_cast<int>(count->GetNumber());
-                }
-                else
-                {
-                    // if we do not have a page tree node, 
-                    // we most likely have a page object:
-                    // so the page count is 1
-                    pageNumber++;
-                }
-            }
-        }
-
-        ref = parent->GetIndirectReference();
-        parent = parent->GetDictionary().FindKey("Parent");
-        depth++;
-
-        if (depth > maxRecursionDepth)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile, "Loop in Parent chain");
-    }
-
-    return ++pageNumber;
+    return m_Index + 1;
 }
 
 void PdfPage::SetICCProfile(const string_view& csTag, InputStream& stream,
@@ -522,6 +502,33 @@ PdfElement& PdfPage::getElement()
     return const_cast<PdfPage&>(*this);
 }
 
+PdfObject* PdfPage::findInheritableAttribute(const string_view& name) const
+{
+    bool isShallow;
+    return findInheritableAttribute(name, isShallow);
+}
+
+PdfObject* PdfPage::findInheritableAttribute(const string_view& name, bool& isShallow) const
+{
+    auto& dict = const_cast<PdfPage&>(*this).GetDictionary();
+    auto obj = dict.FindKeyParent(name);
+    if (obj != nullptr)
+    {
+        isShallow = true;
+        return obj;
+    }
+
+    isShallow = false;
+    for (unsigned i = 0; i < m_parents.size(); i++)
+    {
+        obj = m_parents[i]->GetDictionary().FindKeyParent(name);
+        if (obj != nullptr)
+            return obj;
+    }
+
+    return nullptr;
+}
+
 PdfResources& PdfPage::GetOrCreateResources()
 {
     ensureResourcesCreated();
@@ -562,27 +569,27 @@ PdfResources& PdfPage::MustGetResources()
 
 Rect PdfPage::GetMediaBox(bool raw) const
 {
-    return getPageBox("MediaBox", raw);
+    return getPageBox("MediaBox", true, raw);
 }
 
 Rect PdfPage::GetCropBox(bool raw) const
 {
-    return getPageBox("CropBox", raw);
+    return getPageBox("CropBox", true, raw);
 }
 
 Rect PdfPage::GetTrimBox(bool raw) const
 {
-    return getPageBox("TrimBox", raw);
+    return getPageBox("TrimBox", false, raw);
 }
 
 Rect PdfPage::GetBleedBox(bool raw) const
 {
-    return getPageBox("BleedBox", raw);
+    return getPageBox("BleedBox", false, raw);
 }
 
 Rect PdfPage::GetArtBox(bool raw) const
 {
-    return getPageBox("ArtBox", raw);
+    return getPageBox("ArtBox", false, raw);
 }
 
 // https://stackoverflow.com/a/2021986/213871
@@ -593,20 +600,4 @@ int normalize(int value, int start, int end)
 
     // + start to reset back to start of original range
     return offsetValue - (offsetValue / width) * width + start;
-}
-
-PdfResources* getResources(PdfObject& obj, const deque<PdfObject*>& listOfParents)
-{
-    auto resources = obj.GetDictionary().FindKey("Resources");
-    if (resources == nullptr)
-    {
-        // Resources might be inherited
-        for (auto& parent : listOfParents)
-            resources = parent->GetDictionary().FindKey("Resources");
-    }
-
-    if (resources == nullptr)
-        return nullptr;
-
-    return new PdfResources(*resources);
 }

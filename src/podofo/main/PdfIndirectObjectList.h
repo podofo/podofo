@@ -8,7 +8,6 @@
 #define PDF_INDIRECT_OBJECT_LIST_H
 
 #include <list>
-#include <unordered_set>
 
 #include "PdfObject.h"
 

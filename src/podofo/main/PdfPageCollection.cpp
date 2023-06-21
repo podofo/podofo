@@ -19,82 +19,81 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfPageCollection::PdfPageCollection(PdfDocument& doc)
-    : PdfDictionaryElement(doc, "Pages"),
-    m_cache(0)
+namespace
 {
-    GetObject().GetDictionary().AddKey("Kids", PdfArray());
-    GetObject().GetDictionary().AddKey("Count", static_cast<int64_t>(0));
+    enum class PdfPageTreeNodeType
+    {
+        Unknown,
+        Node,
+        Page
+    };
+}
+
+static PdfPageTreeNodeType getPageTreeNodeType(const PdfObject& nodeObj);
+static unsigned getChildCount(const PdfObject& nodeObj);
+
+PdfPageCollection::PdfPageCollection(PdfDocument& doc)
+    : PdfDictionaryElement(doc, "Pages"), m_initialized(true)
+{
+    m_kidsArray = &GetDictionary().AddKey("Kids", PdfArray()).GetArray();
+    GetDictionary().AddKey("Count", static_cast<int64_t>(0));
 }
 
 PdfPageCollection::PdfPageCollection(PdfObject& pagesRoot)
-    : PdfDictionaryElement(pagesRoot),
-    m_cache(getChildCount(pagesRoot)) { }
+    : PdfDictionaryElement(pagesRoot), m_initialized(false), m_kidsArray(nullptr)
+{
+}
 
 PdfPageCollection::~PdfPageCollection()
 {
-    m_cache.ClearCache();
+    for (unsigned i = 0; i < m_Pages.size(); i++)
+        delete m_Pages[i];
 }
 
 unsigned PdfPageCollection::GetCount() const
 {
-    return getChildCount(GetObject());
+    const_cast<PdfPageCollection&>(*this).initPages();
+    return (unsigned)m_Pages.size();
 }
 
 PdfPage& PdfPageCollection::GetPageAt(unsigned index)
 {
-    if (index >= GetCount())
-        PODOFO_RAISE_ERROR(PdfErrorCode::PageNotFound);
+    const_cast<PdfPageCollection&>(*this).initPages();
+    if (index >= m_Pages.size())
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::PageNotFound, "Page with index {} not found", index);
 
-    return getPage(index);
+    return *m_Pages[index];
 }
 
 const PdfPage& PdfPageCollection::GetPageAt(unsigned index) const
 {
-    if (index >= GetCount())
-        PODOFO_RAISE_ERROR(PdfErrorCode::PageNotFound);
+    const_cast<PdfPageCollection&>(*this).initPages();
+    if (index >= m_Pages.size())
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::PageNotFound, "Page with index {} not found", index);
 
-    return const_cast<PdfPageCollection&>(*this).getPage(index);
-}
-
-PdfPage& PdfPageCollection::getPage(unsigned index)
-{
-    // Take a look into the cache first
-    auto page = m_cache.GetPage(index);
-    if (page != nullptr)
-        return *page;
-
-    // Not in cache -> search tree
-    PdfObjectList parents;
-    PdfObject* pageObj = this->getPageNode(index, this->GetRoot(), parents);
-    if (pageObj != nullptr)
-    {
-        page = new PdfPage(*pageObj, index, parents);
-        m_cache.SetPage(index, page);
-        return *page;
-    }
-
-    PODOFO_RAISE_ERROR(PdfErrorCode::PageNotFound);
+    return *m_Pages[index];
 }
 
 PdfPage& PdfPageCollection::GetPage(const PdfReference& ref)
 {
+    const_cast<PdfPageCollection&>(*this).initPages();
     return getPage(ref);
 }
 
 const PdfPage& PdfPageCollection::GetPage(const PdfReference& ref) const
 {
-    return const_cast<PdfPageCollection&>(*this).getPage(ref);
+    const_cast<PdfPageCollection&>(*this).initPages();
+    return getPage(ref);
 }
 
-PdfPage& PdfPageCollection::getPage(const PdfReference& ref)
+PdfPage& PdfPageCollection::getPage(const PdfReference& ref) const
 {
     // We have to search through all pages,
     // as this is the only way
     // to instantiate the PdfPage with a correct list of parents
-    for (unsigned i = 0; i < this->GetCount(); i++)
+    for (unsigned i = 0; i < m_Pages.size(); i++)
     {
-        auto& page = this->getPage(i);
+        auto& page = *m_Pages[i];
         if (page.GetObject().GetIndirectReference() == ref)
             return page;
     }
@@ -102,69 +101,35 @@ PdfPage& PdfPageCollection::getPage(const PdfReference& ref)
     PODOFO_RAISE_ERROR(PdfErrorCode::PageNotFound);
 }
 
-void PdfPageCollection::InsertPageAt(unsigned atIndex, PdfObject& pageObj)
+void PdfPageCollection::InsertPageAt(unsigned atIndex, PdfPage& pageObj)
 {
-    vector<PdfObject*> objs = { &pageObj };
+    vector<PdfPage*> objs = { &pageObj };
     InsertPagesAt(atIndex, objs);
 }
 
-void PdfPageCollection::InsertPagesAt(unsigned atIndex, const vector<PdfObject*>& pages)
+void PdfPageCollection::InsertPagesAt(unsigned atIndex, cspan<PdfPage*> pages)
 {
-    bool insertAfterPivot = false;
-    PdfObjectList parents;
-    PdfObject* pivotPage = nullptr;
-    unsigned pageCount = this->GetCount();
-    if (pageCount != 0)
-    {
-        if (atIndex >= pageCount)
-        {
-            // If atIndex is after the last page, normalize it
-            // and select the last page as the pivot
-            atIndex = pageCount;
-            insertAfterPivot = true;
-            pivotPage = this->getPageNode(pageCount - 1, this->GetRoot(), parents);
-        }
-        else
-        {
-            // The pivot page is the page exactly at the given index
-            pivotPage = this->getPageNode(atIndex, this->GetRoot(), parents);
-        }
-    }
+    flattenTreeStructure();
 
-    if (pivotPage == nullptr || parents.size() == 0)
-    {
-        if (this->GetCount() != 0)
-        {
-            PoDoFo::LogMessage(PdfLogSeverity::Error,
-                "Cannot find page {} or page {} has no parents. Cannot insert new page",
-                atIndex, atIndex);
-            return;
-        }
-        else
-        {
-            // We insert the first page into an empty pages tree
-            PdfObjectList pagesTree;
-            pagesTree.push_back(&this->GetObject());
-            // Use -1 as index to insert before the empty kids array
-            insertPagesIntoNode(this->GetObject(), pagesTree, -1, pages);
-        }
-    }
-    else
-    {
-        PdfObject* parentNode = parents.back();
-        int posInKids = this->getPosInKids(*pivotPage, parentNode);
-        insertPagesIntoNode(*parentNode, parents, insertAfterPivot ? posInKids : posInKids - 1, pages);
-    }
+    // Insert the pages and fix the indices
+    m_Pages.insert(m_Pages.begin() + atIndex, pages.begin(), pages.end());
+    for (unsigned i = atIndex; i < m_Pages.size(); i++)
+        m_Pages[i]->SetIndex(i);
 
-    m_cache.InsertPlaceHolders(atIndex, (unsigned)pages.size());
+    // Update the actual /Kids array
+    vector<PdfObject> pageObjects;
+    pageObjects.reserve(pages.size());
+    for (unsigned i = 0; i < pages.size(); i++)
+        pageObjects.push_back(pages[i]->GetObject().GetIndirectReference());
+
+    m_kidsArray->insert(m_kidsArray->begin() + atIndex, pageObjects.begin(), pageObjects.end());
+    GetDictionary().AddKey("Count", static_cast<int64_t>(m_Pages.size()));
 }
 
 PdfPage& PdfPageCollection::CreatePage(const Rect& size)
 {
-    unsigned index = this->GetCount();
-    auto page = new PdfPage(*GetRoot().GetDocument(), index, size);
-    InsertPageAt(index, page->GetObject());
-    m_cache.SetPage(index, page);
+    auto page = new PdfPage(GetDocument(), size);
+    InsertPageAt((unsigned)m_Pages.size(), *page);
     return *page;
 }
 
@@ -174,10 +139,22 @@ PdfPage& PdfPageCollection::CreatePageAt(unsigned atIndex, const Rect& size)
     if (atIndex > pageCount)
         atIndex = pageCount;
 
-    auto page = new PdfPage(*GetRoot().GetDocument(), atIndex, size);
-    InsertPageAt(atIndex, page->GetObject());
-    m_cache.SetPage(atIndex, page);
+    auto page = new PdfPage(GetDocument(), size);
+    InsertPageAt(atIndex, *page);
     return *page;
+}
+
+void PdfPageCollection::CreatePagesAt(unsigned atIndex, unsigned count, const Rect& size)
+{
+    unsigned pageCount = this->GetCount();
+    if (atIndex > pageCount)
+        atIndex = pageCount;
+
+    std::vector<PdfPage*> pages(count);
+    for (unsigned i = 0; i < count; i++)
+        pages[i] = new PdfPage(GetDocument(), size);
+
+    InsertPagesAt(atIndex, pages);
 }
 
 void PdfPageCollection::AppendDocumentPages(const PdfDocument& doc)
@@ -197,311 +174,147 @@ void PdfPageCollection::InsertDocumentPageAt(unsigned atIndex, const PdfDocument
 
 void PdfPageCollection::RemovePageAt(unsigned atIndex)
 {
-    // Delete from cache
-    m_cache.DeletePage(atIndex);
+    flattenTreeStructure();
+    if (atIndex >= m_Pages.size())
+        return;
 
-    // Delete from pages tree
-    PdfObjectList parents;
-    auto pageNode = this->getPageNode(atIndex, this->GetRoot(), parents);
-    if (pageNode == nullptr)
-    {
-        PoDoFo::LogMessage(PdfLogSeverity::Information,
-            "Invalid argument to PdfPageTree::DeletePage: {} - Page not found",
-            atIndex);
-        PODOFO_RAISE_ERROR(PdfErrorCode::PageNotFound);
-    }
+    m_Pages.erase(m_Pages.begin() + atIndex);
+    m_kidsArray->RemoveAt(atIndex);
 
-    if (parents.size() > 0)
-    {
-        PdfObject* parent = parents.back();
-        unsigned kidsIndex = (unsigned)this->getPosInKids(*pageNode, parent);
-        deletePageFromNode(*parent, parents, kidsIndex, *pageNode);
-    }
-    else
-    {
-        PoDoFo::LogMessage(PdfLogSeverity::Error,
-            "PdfPageTree::DeletePage: Page {} has no parent - cannot be deleted",
-            atIndex);
-        PODOFO_RAISE_ERROR(PdfErrorCode::PageNotFound);
-    }
+    // Fix page indices
+    for (unsigned i = atIndex; i < m_Pages.size(); i++)
+        m_Pages[i]->SetIndex(i);
+
+    GetDictionary().AddKey("Count", static_cast<int64_t>(m_Pages.size()));
 
     // After removing the page the /OpenAction entry may be invalidated,
     // prompting an error using Acrobat. Remove it for safer behavior
     GetDocument().GetCatalog().GetDictionary().RemoveKey("OpenAction");
 }
 
-PdfObject* PdfPageCollection::getPageNode(unsigned index, PdfObject& parent,
-    PdfObjectList& parents)
+void PdfPageCollection::initPages()
 {
+    if (m_initialized)
+        return;
+
+    vector<PdfObject*> parents;
+    unsigned count = getChildCount(GetObject());
+    if (count != 0)
+    {
+        m_Pages.reserve(count);
+        unordered_set<PdfObject*> visitedNodes;
+        (void)traversePageTreeNode(GetObject(), count, parents, visitedNodes);
+    }
+
+    m_initialized = true;
+}
+
+// Returns the count of the leaf page nodes found
+unsigned PdfPageCollection::traversePageTreeNode(PdfObject& obj, unsigned count,
+    vector<PdfObject*>& parents, unordered_set<PdfObject*>& visitedNodes)
+{
+    PODOFO_ASSERT(count != 0);
     utls::RecursionGuard guard;
-    if (!parent.GetDictionary().HasKey("Kids"))
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidKey);
 
-    auto kidsObj = parent.GetDictionary().FindKey("Kids");
-    if (kidsObj == nullptr || !kidsObj->IsArray())
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidDataType);
-
-    const PdfArray& kidsArray = kidsObj->GetArray();
-    const size_t numKids = getChildCount(parent);
-
-    if (index > numKids)
+    auto type = getPageTreeNodeType(obj);
+    switch (type)
     {
-        PoDoFo::LogMessage(PdfLogSeverity::Error,
-            "Cannot retrieve page {} from a document with only {} pages",
-            index, numKids);
-        return nullptr;
-    }
-
-    // We have to traverse the tree
-    //
-    // BEWARE: There is no valid shortcut for tree traversal.
-    // Even if eKidsArray.size()==numKids, this does not imply that
-    // eKidsArray can be accessed with the index of the page directly.
-    // The tree could have an arbitrary complex structure because
-    // internal nodes with no leaves (page objects) are not forbidden
-    // by the PDF spec.
-    for (auto& child : kidsArray)
-    {
-        if (!child.IsReference())
+        case PdfPageTreeNodeType::Node:
         {
-            PoDoFo::LogMessage(PdfLogSeverity::Error, "Requesting page index {}. Invalid datatype in kids array: {}",
-                index, child.GetDataTypeString());
-            return nullptr;
-        }
+            visitedNodes.insert(&obj);
 
-        PdfObject* childObj = GetRoot().GetDocument()->GetObjects().GetObject(child.GetReference());
-        if (childObj == nullptr)
-        {
-            PoDoFo::LogMessage(PdfLogSeverity::Error, "Requesting page index {}. Child not found: {}",
-                index, child.GetReference().ToString());
-            return nullptr;
-        }
+            auto kidsObj = obj.GetDictionary().FindKey("Kids");
+            PdfArray* kidsArr;
+            if (kidsObj == nullptr || !kidsObj->TryGetArray(kidsArr))
+                return 0;
 
-        if (this->isTypePages(*childObj))
-        {
-            unsigned childCount = getChildCount(*childObj);
-            if (childCount < index + 1) // Pages are 0 based
+            parents.push_back(&obj);
+
+            PdfReference ref;
+            for (unsigned i = 0; i < kidsArr->GetSize(); i++)
             {
-                // skip this page tree node
-                // and go to the next child in rKidsArray
-                index -= childCount;
-            }
-            else
-            {
-                // page is in the subtree of child
-                // => call GetPageNode() recursively
+                auto child = &(*kidsArr)[i];
+                if (child->TryGetReference(ref))
+                    child = obj.MustGetDocument().GetObjects().GetObject(ref);
 
-                parents.push_back(&parent);
+                if (child == nullptr)
+                    continue;
 
-                if (std::find(parents.begin(), parents.end(), childObj)
-                    != parents.end()) // cycle in parent list detected, fend
-                { // off security vulnerability similar to CVE-2017-8054 (infinite recursion)
-                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::PageNotFound,
-                        "Cycle in page tree: child in /Kids array of object {} back-references "
-                        "to object {} one of whose descendants the former is",
-                        (*(parents.rbegin()))->GetIndirectReference().ToString(),
-                        childObj->GetIndirectReference().ToString());
-                }
+                if (visitedNodes.find(child) != visitedNodes.end())
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile, "The page structure tree has loops");
 
-                return this->getPageNode(index, *childObj, parents);
-            }
-        }
-        else if (this->isTypePage(*childObj))
-        {
-            if (index == 0)
-            {
-                // page found
-                parents.push_back(&parent);
-                return childObj;
+                count = traversePageTreeNode(*child, count, parents, visitedNodes);
+                if (count == 0)
+                    break;
             }
 
-            // Skip a normal page
-            if (index > 0)
-                index--;
+            parents.pop_back();
+            return count;
         }
-        else
+        case PdfPageTreeNodeType::Page:
         {
-            const PdfReference& rLogRef = childObj->GetIndirectReference();
-            uint32_t nLogObjNum = rLogRef.ObjectNumber();
-            uint16_t nLogGenNum = rLogRef.GenerationNumber();
-            PoDoFo::LogMessage(PdfLogSeverity::Error,
-                "Requesting page index {}. "
-                "Invalid datatype referenced in kids array: {}. "
-                "Reference to invalid object: {} {} R", index,
-                childObj->GetDataTypeString(), nLogObjNum, nLogGenNum);
-            return nullptr;
+            unsigned index = (unsigned)m_Pages.size();
+            auto page = new PdfPage(obj, vector<PdfObject*>(parents));
+            m_Pages.push_back(page);
+            page->SetIndex(index);
+            return count - 1;
+        }
+        case PdfPageTreeNodeType::Unknown:
+        default:
+        {
+            // NOTE: This is a degenerate case
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile, "The page structure tree has invalid nodes");
         }
     }
-
-    return nullptr;
 }
 
-bool PdfPageCollection::isTypePage(const PdfObject& obj) const
+void PdfPageCollection::flattenTreeStructure()
 {
-    if (obj.GetDictionary().FindKeyAs<PdfName>("Type", PdfName()) == "Page")
-        return true;
+    if (m_kidsArray != nullptr)
+        return;
 
-    return false;
+    initPages();
+
+    // Flatten the document page structure by recreating a single /Pages
+    // node and insert all pages there. This is allowed by PDF
+    // Specification, see ISO 32000-2:2020, 7.7.3.2 Page tree nodes:
+    // "PDF processors shall not be required to preserve the existing
+    // structure of the page tree"
+    auto& kidsObj = GetDocument().GetObjects().CreateArrayObject();
+    GetDictionary().AddKeyIndirect("Pages", kidsObj);
+    m_kidsArray = &kidsObj.GetArray();
+    m_kidsArray->reserve(m_Pages.size());
+    for (unsigned i = 0; i < m_Pages.size(); i++)
+    {
+        auto page = m_Pages[i];
+        page->FlattenStructure();
+
+        // Fix pages parent and add them to /Kids
+        page->GetDictionary().AddKey(PdfName::KeyParent, GetObject().GetIndirectReference());
+        (*m_kidsArray).AddIndirect(page->GetObject());
+    }
 }
 
-bool PdfPageCollection::isTypePages(const PdfObject& obj) const
+PdfPageTreeNodeType getPageTreeNodeType(const PdfObject& obj)
 {
-    if (obj.GetDictionary().FindKeyAs<PdfName>("Type", PdfName()) == "Pages")
-        return true;
+    const PdfName* name;
+    if (!obj.GetDictionary().TryFindKeyAs("Type", name))
+        return PdfPageTreeNodeType::Unknown;
 
-    return false;
+    if (*name == "Page")
+        return PdfPageTreeNodeType::Page;
+    else if (*name == "Pages")
+        return PdfPageTreeNodeType::Node;
+    else
+        return PdfPageTreeNodeType::Unknown;
 }
 
-unsigned PdfPageCollection::getChildCount(const PdfObject& nodeObj) const
+unsigned getChildCount(const PdfObject& nodeObj)
 {
     auto countObj = nodeObj.GetDictionary().FindKey("Count");
-    if (countObj == nullptr)
-        return 0;
-    else
-        return (unsigned)countObj->GetNumber();
-}
+    int64_t num;
+    if (countObj == nullptr || !countObj->TryGetNumber(num) || num < 0)
+        return 1;
 
-int PdfPageCollection::getPosInKids(PdfObject& pageObj, PdfObject* pageParent)
-{
-    if (pageParent == nullptr)
-        return -1;
-
-    const PdfArray& kids = pageParent->GetDictionary().MustFindKey("Kids").GetArray();
-
-    unsigned index = 0;
-    for (auto& child : kids)
-    {
-        if (child.GetReference() == pageObj.GetIndirectReference())
-            return index;
-
-        index++;
-    }
-
-    return -1;
-}
-
-void PdfPageCollection::insertPagesIntoNode(PdfObject& parent, const PdfObjectList& parents,
-    int index, const vector<PdfObject*>& pages)
-{
-    if (pages.size() == 0)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
-    // 1. Add the reference of the new page to the kids array of parent
-    // 2. Increase count of every node in parents (which also includes parent)
-    // 3. Add Parent key to the page
-
-    // 1. Add reference
-    const PdfArray oldKids = parent.GetDictionary().MustFindKey("Kids").GetArray();
-    PdfArray newKids;
-    newKids.reserve(oldKids.GetSize() + pages.size());
-
-    bool isPushedIn = false;
-    int i = 0;
-    for (auto& oldKid : oldKids)
-    {
-        if (!isPushedIn && (index < i))    // Pushing before
-        {
-            for (vector<PdfObject*>::const_iterator itPages = pages.begin(); itPages != pages.end(); itPages++)
-            {
-                newKids.Add((*itPages)->GetIndirectReference());    // Push all new kids at once
-            }
-            isPushedIn = true;
-        }
-        newKids.Add(oldKid);    // Push in the old kids
-        i++;
-    }
-
-    // If new kids are still not pushed in then they may be appending to the end
-    if (!isPushedIn && ((index + 1) == (int)oldKids.size()))
-    {
-        for (vector<PdfObject*>::const_iterator itPages = pages.begin(); itPages != pages.end(); itPages++)
-        {
-            newKids.Add((*itPages)->GetIndirectReference());    // Push all new kids at once
-        }
-        isPushedIn = true;
-    }
-
-    parent.GetDictionary().AddKey("Kids", newKids);
-
-
-    // 2. increase count
-    for (PdfObjectList::const_reverse_iterator itParents = parents.rbegin(); itParents != parents.rend(); itParents++)
-        this->changePagesCount(**itParents, (int)pages.size());
-
-    // 3. add parent key to each of the pages
-    for (vector<PdfObject*>::const_iterator itPages = pages.begin(); itPages != pages.end(); itPages++)
-        (*itPages)->GetDictionary().AddKey("Parent", parent.GetIndirectReference());
-}
-
-void PdfPageCollection::deletePageFromNode(PdfObject& parent, const PdfObjectList& parents,
-    unsigned index, PdfObject& page)
-{
-    (void)page;
-
-    // 1. Delete the reference from the kids array of parent
-    // 2. Decrease count of every node in parents (which also includes parent)
-    // 3. Remove empty page nodes
-
-    // TODO: Tell cache to free page object
-
-    // 1. Delete reference
-    this->deletePageNode(parent, index);
-
-    // 2. Decrease count
-    PdfObjectList::const_reverse_iterator itParents = parents.rbegin();
-    while (itParents != parents.rend())
-    {
-        this->changePagesCount(**itParents, -1);
-        itParents++;
-    }
-
-    // 3. Remove empty pages nodes
-    itParents = parents.rbegin();
-    while (itParents != parents.rend())
-    {
-        // Never delete root node
-        if (isEmptyPageNode(**itParents) && *itParents != &GetRoot())
-        {
-            PdfObject* parentOfNode = *(itParents + 1);
-            unsigned kidsIndex = (unsigned)this->getPosInKids(**itParents, parentOfNode);
-            deletePageNode(*parentOfNode, kidsIndex);
-
-            // Delete empty page nodes
-            this->GetObject().GetDocument()->GetObjects().RemoveObject((*itParents)->GetIndirectReference());
-        }
-
-        itParents++;
-    }
-}
-
-void PdfPageCollection::deletePageNode(PdfObject& parent, unsigned index)
-{
-    auto& kids = parent.GetDictionary().MustFindKey("Kids").GetArray();
-    kids.erase(kids.begin() + index);
-}
-
-unsigned PdfPageCollection::changePagesCount(PdfObject& pageObj, int delta)
-{
-    // Increment or decrement inPagesDict's Count by inDelta, and return the new count.
-    // Simply return the current count if inDelta is 0.
-    int cnt = (int)getChildCount(pageObj);
-    if (delta != 0)
-    {
-        cnt += delta;
-        pageObj.GetDictionary().AddKey("Count", PdfVariant(static_cast<int64_t>(cnt)));
-    }
-
-    return cnt;
-}
-
-bool PdfPageCollection::isEmptyPageNode(PdfObject& pageNode)
-{
-    unsigned count = getChildCount(pageNode);
-    bool bKidsEmpty = true;
-
-    auto kids = pageNode.GetDictionary().FindKey("Kids");
-    if (kids != nullptr)
-        bKidsEmpty = kids->GetArray().IsEmpty();
-
-    return count == 0 || bKidsEmpty;
+    return (unsigned)num;
 }

@@ -112,7 +112,6 @@
 #include "main/PdfNameTree.h"
 #include "main/PdfOutlines.h"
 #include "main/PdfPage.h"
-#include "main/PdfPageTreeCache.h"
 #include "main/PdfPageCollection.h"
 #include "main/PdfPainterTextObject.h"
 #include "main/PdfPainterPath.h"

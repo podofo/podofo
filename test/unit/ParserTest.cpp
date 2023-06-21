@@ -2530,7 +2530,7 @@ TEST_CASE("testLoopingPageTree")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::PageNotFound);
+        REQUIRE(error.GetCode() == PdfErrorCode::BrokenFile);
     }
 
     // CVE-2021-30471 test for pages tree /Kids array that refer back to an ancestor (document root object)
@@ -2558,7 +2558,7 @@ TEST_CASE("testLoopingPageTree")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::PageNotFound);
+        REQUIRE(error.GetCode() == PdfErrorCode::BrokenFile);
     }
 }
 

@@ -11,7 +11,7 @@
 
 #include "PdfElement.h"
 #include "PdfArray.h"
-#include "PdfPageTreeCache.h"
+#include "PdfPage.h"
 
 namespace PoDoFo {
 
@@ -42,7 +42,7 @@ public:
      */
     virtual ~PdfPageCollection();
 
-    /** Return the number of pages in the entire tree
+    /** Return the number of pages in document
      *  \returns number of pages
      */
     unsigned GetCount() const;
@@ -87,6 +87,15 @@ public:
      */
     PdfPage& CreatePageAt(unsigned atIndex, const Rect& size);
 
+    /** Create count new page objects and insert at the index atIndex. This is significantly faster
+     *  than calling CreatePageAt repeatedly.
+     *
+     *  \param size a Rect specifying the size of the page (i.e the /MediaBox key) in PDF units
+     *  \param count number of pages to create
+     *  \param atIndex index where to insert the new page (0-based)
+     */
+    void CreatePagesAt(unsigned atIndex, unsigned count, const Rect& size);
+
     /** Appends another PdfDocument to this document.
      *  \param doc the document to append
      */
@@ -123,97 +132,28 @@ private:
      * Insert page at the given index
      * \remarks Can be used by PdfDocument
      */
-    void InsertPageAt(unsigned atIndex, PdfObject& pageObj);
+    void InsertPageAt(unsigned atIndex, PdfPage& page);
 
     /**
      * Insert pages at the given index
      * \remarks Can be used by PdfDocument
      */
-    void InsertPagesAt(unsigned atIndex, const std::vector<PdfObject*>& pages);
+    void InsertPagesAt(unsigned atIndex, cspan<PdfPage*> pages);
 
 private:
-    using PdfObjectList = std::deque<PdfObject*>;
+    PdfPage& getPage(const PdfReference& ref) const;
+
+    void initPages();
+
+    unsigned traversePageTreeNode(PdfObject& obj, unsigned count,
+        std::vector<PdfObject*>& parents, std::unordered_set<PdfObject*>& visitedNodes);
+
+    void flattenTreeStructure();
 
 private:
-    PdfPage& getPage(unsigned index);
-    PdfPage& getPage(const PdfReference& ref);
-
-    PdfObject* getPageNode(unsigned index, PdfObject& parent, PdfObjectList& parents);
-
-    unsigned getChildCount(const PdfObject& nodeObj) const;
-
-    /**
-     * Test if a PdfObject is a page node
-     * \return true if PdfObject is a page node
-     */
-    bool isTypePage(const PdfObject& obj) const;
-
-    /**
-     * Test if a PdfObject is a pages node
-     * \return true if PdfObject is a pages node
-     */
-    bool isTypePages(const PdfObject& obj) const;
-
-    /**
-     * Find the position of pageObj in the kids array of pageParent
-     *
-     * \returns the index in the kids array or -1 if pageObj is no child of pageParent
-     */
-    int getPosInKids(PdfObject& pageObj, PdfObject* pageParent);
-
-    /** Private method for adjusting the page count in a tree
-     */
-    unsigned changePagesCount(PdfObject& pageObj, int delta);
-
-    /**
-     * Insert a vector of page objects into a pages node
-     * Same as InsertPageIntoNode except that it allows for adding multiple pages at one time
-     * Note that adding many pages onto the same node will create an unbalanced page tree
-     *
-     * \param node the pages node whete page is to be inserted
-     * \param parents list of all (future) parent pages nodes in the pages tree
-     *                   of page
-     * \param index index where page is to be inserted in node's kids array
-     * \param pages a vector of the page objects which are to be inserted
-     */
-    void insertPagesIntoNode(PdfObject& node, const PdfObjectList& parents,
-        int index, const std::vector<PdfObject*>& pages);
-
-    /**
-     * Delete a page object from a pages node
-     *
-     * \param node which is the direct parent of page and where the page must be deleted
-     * \param parents list of all parent pages nodes in the pages tree
-     *                   of page
-     * \param index index where page is to be deleted in node's kids array
-     * \param page the page object which is to be deleted
-     */
-    void deletePageFromNode(PdfObject& node, const PdfObjectList& parents,
-        unsigned index, PdfObject& page);
-
-    /**
-     * Delete a single page node or page object from the kids array of parent
-     *
-     * \param parent the parent of the page node which is deleted
-     * \param index index to remove from the kids array of parent
-     */
-    void deletePageNode(PdfObject& parent, unsigned index);
-
-    /**
-     * Tests if a page node is emtpy
-     *
-     * \returns true if Count of page is 0 or the Kids array is empty
-     */
-    bool isEmptyPageNode(PdfObject& pageNode);
-
-private:
-    /** Private method to access the Root of the tree using a logical name
-     */
-    inline PdfObject& GetRoot() { return this->GetObject(); }
-    inline const PdfObject& GetRoot() const { return this->GetObject(); }
-
-private:
-    PdfPageTreeCache m_cache;
+    bool m_initialized;
+    std::vector<PdfPage*> m_Pages;
+    PdfArray* m_kidsArray;
 };
 
 };

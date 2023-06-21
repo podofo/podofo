@@ -125,6 +125,7 @@ public:
     static const PdfName KeySubtype;
     static const PdfName KeyType;
     static const PdfName KeyFilter;
+    static const PdfName KeyParent;
 
 private:
     void expandUtf8String() const;

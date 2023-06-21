@@ -17,7 +17,7 @@ namespace PoDoFo
     {
     public:
         static std::vector<std::unique_ptr<PdfPage>> CreateSamplePages(PdfMemDocument& doc, unsigned pageCount);
-        static void CreateTestTreeCustom(PdfMemDocument& doc);
+        static PdfMemDocument CreateTestTreeCustom();
     };
 }
 
@@ -138,8 +138,7 @@ TEST_CASE("testCreateDelete")
 
 TEST_CASE("testGetPagesCustom")
 {
-    PdfMemDocument doc;
-    PdfPageTest::CreateTestTreeCustom(doc);
+    auto doc = PdfPageTest::CreateTestTreeCustom();
     testGetPages(doc);
 }
 
@@ -152,8 +151,7 @@ TEST_CASE("testGetPages")
 
 TEST_CASE("testGetPagesReverseCustom")
 {
-    PdfMemDocument doc;
-    PdfPageTest::CreateTestTreeCustom(doc);
+    auto doc = PdfPageTest::CreateTestTreeCustom();
     testGetPagesReverse(doc);
 }
 
@@ -166,8 +164,7 @@ TEST_CASE("testGetPagesReverse")
 
 TEST_CASE("testInsertCustom")
 {
-    PdfMemDocument doc;
-    PdfPageTest::CreateTestTreeCustom(doc);
+    auto doc = PdfPageTest::CreateTestTreeCustom();
     testInsert(doc);
 }
 
@@ -180,8 +177,7 @@ TEST_CASE("testInsert")
 
 TEST_CASE("testDeleteAllCustom")
 {
-    PdfMemDocument doc;
-    PdfPageTest::CreateTestTreeCustom(doc);
+    auto doc = PdfPageTest::CreateTestTreeCustom();
     testDeleteAll(doc);
 }
 
@@ -302,10 +298,13 @@ void createTestTree(PdfMemDocument& doc)
     }
 }
 
-void PdfPageTest::CreateTestTreeCustom(PdfMemDocument& doc)
+PdfMemDocument PdfPageTest::CreateTestTreeCustom()
 {
+    PdfMemDocument doc;
+
     constexpr unsigned COUNT = TEST_NUM_PAGES / 10;
-    PdfObject& root = doc.GetPages().GetObject();
+    auto& root = doc.GetObjects().CreateDictionaryObject("Pages");
+    doc.GetCatalog().GetDictionary().AddKeyIndirect("Pages", root);
     PdfArray rootKids;
 
     for (unsigned i = 0; i < COUNT; i++)
@@ -315,7 +314,8 @@ void PdfPageTest::CreateTestTreeCustom(PdfMemDocument& doc)
 
         for (unsigned j = 0; j < COUNT; j++)
         {
-            unique_ptr<PdfPage> page(new PdfPage(doc, j, PdfPage::CreateStandardPageSize(PdfPageSize::A4)));
+            unique_ptr<PdfPage> page(new PdfPage(doc, PdfPage::CreateStandardPageSize(PdfPageSize::A4)));
+            page->SetIndex(j);
             page->GetObject().GetDictionary().AddKey(TEST_PAGE_KEY,
                 static_cast<int64_t>(i) * COUNT + j);
 
@@ -329,6 +329,10 @@ void PdfPageTest::CreateTestTreeCustom(PdfMemDocument& doc)
 
     root.GetDictionary().AddKey("Kids", rootKids);
     root.GetDictionary().AddKey("Count", static_cast<int64_t>(TEST_NUM_PAGES));
+
+    // NOTE: We must copy the document as the PdfPageCollection
+    // in the source document is already initialized
+    return PdfMemDocument(doc);
 }
 
 vector<unique_ptr<PdfPage>> PdfPageTest::CreateSamplePages(PdfMemDocument& doc, unsigned pageCount)
@@ -341,7 +345,8 @@ vector<unique_ptr<PdfPage>> PdfPageTest::CreateSamplePages(PdfMemDocument& doc, 
     vector<unique_ptr<PdfPage>> pages(pageCount);
     for (unsigned i = 0; i < pageCount; ++i)
     {
-        pages[i].reset(new PdfPage(doc, i, PdfPage::CreateStandardPageSize(PdfPageSize::A4)));
+        pages[i].reset(new PdfPage(doc, PdfPage::CreateStandardPageSize(PdfPageSize::A4)));
+        pages[i]->SetIndex(i);
         pages[i]->GetObject().GetDictionary().AddKey(TEST_PAGE_KEY, static_cast<int64_t>(i));
 
         PdfPainter painter;
