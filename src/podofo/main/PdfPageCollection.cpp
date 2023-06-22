@@ -35,8 +35,8 @@ static unsigned getChildCount(const PdfObject& nodeObj);
 PdfPageCollection::PdfPageCollection(PdfDocument& doc)
     : PdfDictionaryElement(doc, "Pages"), m_initialized(true)
 {
-    m_kidsArray = &GetDictionary().AddKey("Kids", PdfArray()).GetArray();
-    GetDictionary().AddKey("Count", static_cast<int64_t>(0));
+    m_kidsArray = &GetDictionary().AddKey(PdfName::KeyKids, PdfArray()).GetArray();
+    GetDictionary().AddKey(PdfName::KeyCount, static_cast<int64_t>(0));
 }
 
 PdfPageCollection::PdfPageCollection(PdfObject& pagesRoot)
@@ -109,14 +109,14 @@ void PdfPageCollection::InsertPageAt(unsigned atIndex, PdfPage& pageObj)
 
 void PdfPageCollection::InsertPagesAt(unsigned atIndex, cspan<PdfPage*> pages)
 {
-    flattenTreeStructure();
+    FlattenStructure();
 
     // Insert the pages and fix the indices
     m_Pages.insert(m_Pages.begin() + atIndex, pages.begin(), pages.end());
     for (unsigned i = atIndex; i < m_Pages.size(); i++)
         m_Pages[i]->SetIndex(i);
 
-    // Update the actual /Kids array
+    // Update the actual /Kids array and set /Parent to the new pages
     vector<PdfObject> pageObjects;
     pageObjects.reserve(pages.size());
     for (unsigned i = 0; i < pages.size(); i++)
@@ -126,7 +126,7 @@ void PdfPageCollection::InsertPagesAt(unsigned atIndex, cspan<PdfPage*> pages)
     }
 
     m_kidsArray->insert(m_kidsArray->begin() + atIndex, pageObjects.begin(), pageObjects.end());
-    GetDictionary().AddKey("Count", static_cast<int64_t>(m_Pages.size()));
+    GetDictionary().AddKey(PdfName::KeyCount, static_cast<int64_t>(m_Pages.size()));
 }
 
 PdfPage& PdfPageCollection::CreatePage(const Rect& size)
@@ -177,7 +177,7 @@ void PdfPageCollection::InsertDocumentPageAt(unsigned atIndex, const PdfDocument
 
 void PdfPageCollection::RemovePageAt(unsigned atIndex)
 {
-    flattenTreeStructure();
+    FlattenStructure();
     if (atIndex >= m_Pages.size())
         return;
 
@@ -188,7 +188,7 @@ void PdfPageCollection::RemovePageAt(unsigned atIndex)
     for (unsigned i = atIndex; i < m_Pages.size(); i++)
         m_Pages[i]->SetIndex(i);
 
-    GetDictionary().AddKey("Count", static_cast<int64_t>(m_Pages.size()));
+    GetDictionary().AddKey(PdfName::KeyCount, static_cast<int64_t>(m_Pages.size()));
 
     // After removing the page the /OpenAction entry may be invalidated,
     // prompting an error using Acrobat. Remove it for safer behavior
@@ -212,7 +212,7 @@ void PdfPageCollection::initPages()
     m_initialized = true;
 }
 
-// Returns the count of the leaf page nodes found
+// Returns the number of the remaining
 unsigned PdfPageCollection::traversePageTreeNode(PdfObject& obj, unsigned count,
     vector<PdfObject*>& parents, unordered_set<PdfObject*>& visitedNodes)
 {
@@ -224,7 +224,9 @@ unsigned PdfPageCollection::traversePageTreeNode(PdfObject& obj, unsigned count,
     {
         case PdfPageTreeNodeType::Node:
         {
-            visitedNodes.insert(&obj);
+            auto pair = visitedNodes.insert(&obj);
+            if (!pair.second)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile, "The page structure tree has loops");
 
             auto kidsObj = obj.GetDictionary().FindKey("Kids");
             PdfArray* kidsArr;
@@ -242,9 +244,6 @@ unsigned PdfPageCollection::traversePageTreeNode(PdfObject& obj, unsigned count,
 
                 if (child == nullptr)
                     continue;
-
-                if (visitedNodes.find(child) != visitedNodes.end())
-                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile, "The page structure tree has loops");
 
                 count = traversePageTreeNode(*child, count, parents, visitedNodes);
                 if (count == 0)
@@ -271,7 +270,7 @@ unsigned PdfPageCollection::traversePageTreeNode(PdfObject& obj, unsigned count,
     }
 }
 
-void PdfPageCollection::flattenTreeStructure()
+void PdfPageCollection::FlattenStructure()
 {
     if (m_kidsArray != nullptr)
         return;
@@ -284,7 +283,7 @@ void PdfPageCollection::flattenTreeStructure()
     // "PDF processors shall not be required to preserve the existing
     // structure of the page tree"
     auto& kidsObj = GetDocument().GetObjects().CreateArrayObject();
-    GetDictionary().AddKeyIndirect("Pages", kidsObj);
+    GetDictionary().AddKeyIndirect(PdfName::KeyKids, kidsObj);
     m_kidsArray = &kidsObj.GetArray();
     m_kidsArray->reserve(m_Pages.size());
     for (unsigned i = 0; i < m_Pages.size(); i++)

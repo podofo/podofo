@@ -127,6 +127,13 @@ public:
      */
     void RemovePageAt(unsigned atIndex);
 
+    /**  Flatten the document page structure tree
+     *
+     * This copy pages inheritable attributes and remove intermediate /Pages nodes.
+     * This operation is allowed by the PDF specification, see "ISO 32000-2:2020, 7.7.3.2 Page tree nodes"
+     */
+    void FlattenStructure();
+
 private:
     /**
      * Insert page at the given index
@@ -147,8 +154,6 @@ private:
 
     unsigned traversePageTreeNode(PdfObject& obj, unsigned count,
         std::vector<PdfObject*>& parents, std::unordered_set<PdfObject*>& visitedNodes);
-
-    void flattenTreeStructure();
 
 private:
     bool m_initialized;

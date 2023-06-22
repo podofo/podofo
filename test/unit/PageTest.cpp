@@ -15,6 +15,7 @@ TEST_CASE("TestEmptyContentsStream")
 {
     PdfMemDocument doc;
     auto& page1 = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    REQUIRE(page1.GetDictionary().MustGetKey("Parent").GetReference() == doc.GetPages().GetObject().GetIndirectReference());
     auto& annot1 = page1.GetAnnotations().CreateAnnot<PdfAnnotationPopup>(Rect(300.0, 20.0, 250.0, 50.0));
     PdfString title("Author: Dominik Seichter");
     annot1.SetContents(title);
@@ -35,7 +36,6 @@ TEST_CASE("TestEmptyContentsStream")
     auto& pageObj = page2.GetObject();
     REQUIRE(!pageObj.GetDictionary().HasKey("Contents"));
 }
-
 
 TEST_CASE("TestRotations")
 {
@@ -65,5 +65,23 @@ TEST_CASE("TestRotations")
         annot.SetRect(Rect(100, 500, 100, 30));
         REQUIRE(annot.GetRect() == Rect(100, 500.00000000000006, 100, 29.999999999999943));
         REQUIRE(annot.GetRectRaw() == Rect(500.00000000000011, 395, 30, 100));
+    }
+}
+
+TEST_CASE("TestFlattening")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TechDocs", "pdf_implementation.pdf"));
+    doc.GetPages().FlattenStructure();
+    auto pageRootRef = doc.GetPages().GetObject().GetIndirectReference();
+    auto& dict = doc.GetPages().GetDictionary();
+    REQUIRE(dict.GetKey("Count")->GetNumber() == 11);
+    auto& kidsArr = dict.MustFindKey("Kids").GetArray();
+    REQUIRE(kidsArr.GetSize() == 11);
+    for (unsigned i = 0; i < dict.GetSize(); i++)
+    {
+        auto& child = kidsArr.MustFindAt(i);
+        REQUIRE(child.GetDictionary().MustGetKey("Type").GetName() == "Page");
+        REQUIRE(child.GetDictionary().MustGetKey("Parent").GetReference() == pageRootRef);
     }
 }
