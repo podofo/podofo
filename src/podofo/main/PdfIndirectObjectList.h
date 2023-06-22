@@ -314,7 +314,7 @@ private:
     void CollectGarbage();
 
 private:
-    void pushObject(ObjectList::node_type& it, PdfObject* obj);
+    void pushObject(const ObjectList::const_iterator& hintpos, ObjectList::node_type& node, PdfObject* obj);
 
     std::unique_ptr<PdfObject> removeObject(const iterator& it, bool markAsFree);
 

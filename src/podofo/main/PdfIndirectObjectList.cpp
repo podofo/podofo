@@ -160,11 +160,13 @@ unique_ptr<PdfObject> PdfIndirectObjectList::ReplaceObject(const PdfReference& r
     if (it == m_Objects.end())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to find object with reference {}", ref.ToString());
 
+    auto hintpos = it;
+    hintpos++;
     auto node = m_Objects.extract(it);
     unique_ptr<PdfObject> ret(node.value());
     node.value() = obj;
     obj->SetIndirectReference(ref);
-    pushObject(node, obj);
+    pushObject(hintpos, node, obj);
     return ret;
 }
 
@@ -319,24 +321,26 @@ void PdfIndirectObjectList::PushObject(PdfObject* obj)
 
     ObjectList::node_type node;
     auto it = m_Objects.find(obj);
+    auto hintpos = it;
     if (it != m_Objects.end())
     {
         // Delete existing object and replace
         // the pointer on its node
+        hintpos++;
         node = m_Objects.extract(it);
         delete node.value();
         node.value() = obj;
     }
 
-    pushObject(node, obj);
+    pushObject(hintpos, node, obj);
 }
 
-void PdfIndirectObjectList::pushObject(ObjectList::node_type& node, PdfObject* obj)
+void PdfIndirectObjectList::pushObject(const ObjectList::const_iterator& hintpos, ObjectList::node_type& node, PdfObject* obj)
 {
     if (node.empty())
-        m_Objects.insert(obj);
+        m_Objects.insert(hintpos, obj);
     else
-        m_Objects.insert(std::move(node));
+        m_Objects.insert(hintpos, std::move(node));
     TryIncrementObjectCount(obj->GetIndirectReference());
 }
 
