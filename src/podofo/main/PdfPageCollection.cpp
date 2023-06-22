@@ -120,7 +120,10 @@ void PdfPageCollection::InsertPagesAt(unsigned atIndex, cspan<PdfPage*> pages)
     vector<PdfObject> pageObjects;
     pageObjects.reserve(pages.size());
     for (unsigned i = 0; i < pages.size(); i++)
+    {
         pageObjects.push_back(pages[i]->GetObject().GetIndirectReference());
+        pages[i]->GetDictionary().AddKey(PdfName::KeyParent, GetObject().GetIndirectReference());
+    }
 
     m_kidsArray->insert(m_kidsArray->begin() + atIndex, pageObjects.begin(), pageObjects.end());
     GetDictionary().AddKey("Count", static_cast<int64_t>(m_Pages.size()));
