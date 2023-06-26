@@ -328,7 +328,7 @@ PdfObject PdfColorSpaceIndexed::GetExportObject(PdfIndirectObjectList& objects) 
     arr.Add(m_BaseColorSpace->GetExportObject(objects));
     arr.Add(static_cast<int64_t>(m_MapSize - 1));
     arr.Add(lookupObj.GetIndirectReference());
-    return std::move(arr);
+    return arr;
 }
 
 PdfColorSpaceUnkown::PdfColorSpaceUnkown() { }
