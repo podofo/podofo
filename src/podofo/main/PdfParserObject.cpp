@@ -236,6 +236,9 @@ ReadStream:
     {
         auto input = m_Encrypt->CreateEncryptionInputStream(*m_device, static_cast<size_t>(size), GetIndirectReference());
         getOrCreateStream().InitData(*input, static_cast<ssize_t>(size), PdfFilterFactory::CreateFilterList(*this));
+        // Release the encrypt object after loading the stream.
+        // It's not needed for serialization here
+        m_Encrypt = nullptr;
     }
     else
     {
