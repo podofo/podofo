@@ -252,7 +252,7 @@ private:
     PdfVersion m_InitialVersion;
     bool m_HasXRefStream;
     int64_t m_PrevXRefOffset;
-    std::unique_ptr<PdfEncrypt> m_Encrypt;
+    std::shared_ptr<PdfEncrypt> m_Encrypt;
     std::shared_ptr<InputStreamDevice> m_device;
 };
 

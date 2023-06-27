@@ -67,17 +67,6 @@ public:
      */
     bool IsEncrypted() const;
 
-    /**
-     * Gives the encryption object from the parser. The internal handle will be set
-     * to nullptr and the ownership of the object is given to the caller.
-     *
-     * Only call this if you need access to the encryption object
-     * before deleting the parser.
-     *
-     * \returns the parser's encryption object, or nullptr if the read PDF file was not encrypted.
-     */
-    std::unique_ptr<PdfEncrypt> TakeEncrypt();
-
     const PdfObject& GetTrailer() const;
 
 public:
@@ -180,6 +169,8 @@ public:
     inline size_t GetXRefOffset() const { return m_XRefOffset; }
 
     inline bool HasXRefStream() const { return m_HasXRefStream; }
+
+    inline std::shared_ptr<PdfEncrypt> GetEncrypt() { return m_Encrypt; }
 
 private:
     /** Reads the xref sections and the trailers of the file
@@ -334,7 +325,7 @@ private:
     PdfIndirectObjectList* m_Objects;
 
     std::unique_ptr<PdfParserObject> m_Trailer;
-    std::unique_ptr<PdfEncrypt> m_Encrypt;
+    std::shared_ptr<PdfEncrypt> m_Encrypt;
 
     std::string m_Password;
 

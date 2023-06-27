@@ -84,7 +84,7 @@ public:
      */
     inline ssize_t GetOffset() const { return m_Offset; }
 
-    inline void SetEncrypt(PdfEncrypt* encrypt) { m_Encrypt = encrypt; }
+    inline void SetEncrypt(const std::shared_ptr<PdfEncrypt>& encrypt) { m_Encrypt = encrypt; }
 
     inline void SetIsTrailer(bool isTrailer) { m_IsTrailer = isTrailer; }
 
@@ -111,12 +111,12 @@ private:
     void checkReference(PdfTokenizer& tokenizer);
 
 private:
-    InputStreamDevice*m_device;
-    PdfEncrypt* m_Encrypt;
-    bool m_IsTrailer;
+    std::shared_ptr<PdfEncrypt> m_Encrypt;
+    InputStreamDevice* m_device;
     size_t m_Offset;
-    bool m_HasStream;
     size_t m_StreamOffset;
+    bool m_IsTrailer;
+    bool m_HasStream;
 };
 
 };

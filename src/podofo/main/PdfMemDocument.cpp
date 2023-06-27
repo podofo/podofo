@@ -104,7 +104,7 @@ void PdfMemDocument::initFromParser(PdfParser& parser)
     {
         // All PdfParser instances have a pointer to a PdfEncrypt object.
         // So we have to take ownership of it (command the parser to give it).
-        m_Encrypt = parser.TakeEncrypt();
+        m_Encrypt = parser.GetEncrypt();
     }
 
     Init();
