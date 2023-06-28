@@ -77,10 +77,14 @@ if(PODOFO_BUILD_STATIC)
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "podofo"
     )
-    install(TARGETS podofo_static
+    install(TARGETS podofo_static podofo_private
+        EXPORT podofo-config
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+    install(EXPORT podofo-config
+        DESTINATION share/podofo
     )
     set(PODOFO_LIBRARIES podofo_static podofo_private
         CACHE INTERNAL "Which podofo library variant to depend on")
@@ -102,9 +106,13 @@ if(PODOFO_BUILD_SHARED)
     # Since we're building a shared podofo, prefer to depend on this one for
     # tests and tools over the static library (if built).
     install(TARGETS podofo_shared
+        EXPORT podofo-config
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+    install(EXPORT podofo-config
+        DESTINATION share/podofo
     )
 
     # Create a pkg-config file for linking against shared library

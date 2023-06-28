@@ -252,18 +252,6 @@ if(PODOFO_BUILD_TOOLS)
     add_subdirectory(tools)
 endif()
 
-# Export some variables into the config file so it's easier for others
-# to build and link against podofo
-
-# To use these dependencies set PODOFO_DIR to the podofo BUILD directory in
-# your build (eg -DPODOFO_DIR=/path/to/podofo when running cmake to configure
-# the app that'll use podofo). See: find_package(...) in the cmake docs.
-if(PODOFO_BUILD_SHARED)
-    export(TARGETS podofo_shared FILE "${PROJECT_BINARY_DIR}/podofoConfig.cmake")
-else()
-    export(TARGETS podofo_static podofo_private FILE "${PROJECT_BINARY_DIR}/podofoConfig.cmake")
-endif()
-
 # Enable packaging
 set(CPACK_PACKAGE_DESCRIPTION "A C++ PDF manipulation library")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/podofo/podofo")
