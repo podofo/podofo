@@ -72,7 +72,7 @@ if(PODOFO_BUILD_STATIC)
     add_library(podofo_static STATIC ${PODOFO_SOURCES})
     target_link_libraries(podofo_static podofo_private ${PODOFO_LIB_DEPENDS})
     set_target_properties(podofo_static PROPERTIES
-        VERSION "${PODOFO_LIBVERSION}"
+        VERSION "${PODOFO_VERSION}"
         SOVERSION "${PODOFO_SOVERSION}"
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "podofo"
@@ -94,7 +94,7 @@ if(PODOFO_BUILD_SHARED)
     # Visual Studio, since it produces invalid warnings about STL
     # use.
     set_target_properties(podofo_shared PROPERTIES
-        VERSION "${PODOFO_LIBVERSION}"
+        VERSION "${PODOFO_VERSION}"
         SOVERSION "${PODOFO_SOVERSION}"
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "podofo"

@@ -21,7 +21,7 @@ endif()
 set(PODOFO_VERSION_MAJOR "0" CACHE STRING "Major part of podofo version number")
 set(PODOFO_VERSION_MINOR "10" CACHE STRING "Minor part of podofo version number")
 set(PODOFO_VERSION_PATCH "0" CACHE STRING "Patchlevel part of podofo version number")
-set(PODOFO_LIBVERSION "${PODOFO_VERSION_MAJOR}.${PODOFO_VERSION_MINOR}.${PODOFO_VERSION_PATCH}")
+set(PODOFO_VERSION "${PODOFO_VERSION_MAJOR}.${PODOFO_VERSION_MINOR}.${PODOFO_VERSION_PATCH}")
 set(PODOFO_SOVERSION "2")
 
 #
@@ -269,7 +269,7 @@ set(CPACK_PACKAGE_DESCRIPTION "A C++ PDF manipulation library")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/podofo/podofo")
 set(CPACK_PACKAGE_VENDOR "Francesco Pretto")
 set(CPACK_PACKAGE_CONTACT "ceztko@gmail.com")
-set(CPACK_PACKAGE_VERSION ${PODOFO_LIBVERSION})
+set(CPACK_PACKAGE_VERSION ${PODOFO_VERSION})
 if (WIN32)
     # Set MSI generation
     set(CPACK_GENERATOR "WIX")
