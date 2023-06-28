@@ -444,7 +444,7 @@ fstream* FileStreamDevice::getFileStream(const string_view& filename, FileMode m
     if (stream->fail())
     {
         delete stream;
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, filename);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Error accessing file {}", filename);
     }
 
     return stream;
