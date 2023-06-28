@@ -70,6 +70,7 @@ add_compile_definitions(PODOFO_BUILD)
 if(PODOFO_BUILD_STATIC)
     message("Building static podofo library")
     add_library(podofo_static STATIC ${PODOFO_SOURCES})
+    add_library(podofo::podofo ALIAS podofo_static)
     target_link_libraries(podofo_static podofo_private ${PODOFO_LIB_DEPENDS})
     set_target_properties(podofo_static PROPERTIES
         VERSION "${PODOFO_VERSION}"
@@ -93,6 +94,7 @@ endif()
 if(PODOFO_BUILD_SHARED)
     message("Building shared podofo library")
     add_library(podofo_shared SHARED ${PODOFO_SOURCES})
+    add_library(podofo::podofo ALIAS podofo_shared)
     target_link_libraries(podofo_shared PRIVATE podofo_private ${PODOFO_LIB_DEPENDS})
     # TODO: set /wd4251 flag if we're doing a debug build with
     # Visual Studio, since it produces invalid warnings about STL
