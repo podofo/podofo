@@ -1,3 +1,10 @@
+## Version 0.10.1
+- Security bugfixes, #66, #67, #69, #70, #71, #72
+- Rewritten PdfPageCollection for performance
+- PdfCMapEncoding: Fix parsing some invalid CMap(s) supported by Acrobat
+- PdfXRefStreamParserObject: Fixed handling of invalid XRef stream entries
+- Support compilation of the library header (not the library itself) with C++20
+
 ## Version 0.10.0
 - PdfPage/PdfAnnotationCollection/PdfAnnotation: Now functions with
   rect input assume it to be using the canonical coordinate system
