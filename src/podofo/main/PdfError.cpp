@@ -294,23 +294,23 @@ void PdfError::initFullDescription()
     auto name = PdfError::ErrorName(m_Code);
 
     outstringstream stream;
-    stream << endl << endl << "PoDoFo encountered an error. Error: " << (int)m_Code << name;
+    stream << name;
 
     if (msg.length() != 0)
-        stream << "\tError Description: " << msg;
+        stream << ", " << msg;
 
     if (m_CallStack.size() != 0)
-        stream << "\tCallstack:";
+        stream << endl << "Callstack:";
 
     unsigned i = 0;
     for (auto& info : m_CallStack)
     {
         auto filepath = info.GetFilePath();
         if (!filepath.empty())
-            stream << "\t#" << i << " Error Source : " << filepath << ": " << info.GetLine();
+            stream << endl << "t#" << i << " Error Source: " << filepath << '(' << info.GetLine() << ')';
 
         if (!info.GetInformation().empty())
-            stream << "\t\t" << "Information: " << info.GetInformation();
+            stream << ", Information: " << info.GetInformation();
 
         stream << endl;
         i++;
