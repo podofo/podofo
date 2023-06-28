@@ -5,6 +5,9 @@
   "Digital Signature Appearances" document specification
 
 ### 1.0
+- PdfParserObject: Release the device after loading
+- PdfMemDocument: Consider removing SetEncrypt(encrypt)
+- PdfEncrypt: Consider removing CreateFromEncrypt (shared_ptr in PdfMemDocument could be used now)
 - PdfContents: Remove PdfContents::Reset(obj) (keep parameterless) and make constructors private
 - Restore manuals
 - Review refactor PdfColor: it should use new PdfColorSpace
