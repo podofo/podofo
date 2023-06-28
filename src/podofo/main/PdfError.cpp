@@ -305,14 +305,23 @@ void PdfError::initFullDescription()
     unsigned i = 0;
     for (auto& info : m_CallStack)
     {
+        if (i > 0)
+            stream << endl;
+
         auto filepath = info.GetFilePath();
-        if (!filepath.empty())
-            stream << endl << "t#" << i << " Error Source: " << filepath << '(' << info.GetLine() << ')';
+        if (filepath.empty())
+        {
+            if (!info.GetInformation().empty())
+                stream << "t#" << i << ", Information: " << info.GetInformation();
+        }
+        else
+        {
+            stream << "t#" << i << " Error Source: " << filepath << '(' << info.GetLine() << ')';
 
-        if (!info.GetInformation().empty())
-            stream << ", Information: " << info.GetInformation();
+            if (!info.GetInformation().empty())
+                stream << ", Information: " << info.GetInformation();
+        }
 
-        stream << endl;
         i++;
     }
 
