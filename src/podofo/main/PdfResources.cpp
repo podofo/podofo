@@ -91,7 +91,7 @@ void PdfResources::AddColorResource(const PdfColor& color)
 {
     switch (color.GetColorSpace())
     {
-        case PdfColorSpaceType::Separation:
+        case PdfColorSpace::Separation:
         {
             string csPrefix("ColorSpace");
             string csName = color.GetName();
@@ -107,7 +107,7 @@ void PdfResources::AddColorResource(const PdfColor& color)
         }
         break;
 
-        case PdfColorSpaceType::Lab:
+        case PdfColorSpace::Lab:
         {
             if (!GetDictionary().HasKey("ColorSpace")
                 || !GetDictionary().MustFindKey("ColorSpace").GetDictionary().HasKey("ColorSpaceLab"))
@@ -119,12 +119,12 @@ void PdfResources::AddColorResource(const PdfColor& color)
         }
         break;
 
-        case PdfColorSpaceType::DeviceGray:
-        case PdfColorSpaceType::DeviceRGB:
-        case PdfColorSpaceType::DeviceCMYK:
-        case PdfColorSpaceType::Indexed:
+        case PdfColorSpace::DeviceGray:
+        case PdfColorSpace::DeviceRGB:
+        case PdfColorSpace::DeviceCMYK:
+        case PdfColorSpace::Indexed:
             // No colorspace needed
-        case PdfColorSpaceType::Unknown:
+        case PdfColorSpace::Unknown:
         default:
             break;
     }

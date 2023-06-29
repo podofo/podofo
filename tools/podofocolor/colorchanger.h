@@ -122,12 +122,12 @@ private:
     /**
      * unused
      */
-    PoDoFo::PdfColorSpaceType GetColorSpaceForName(const PoDoFo::PdfName& name, PoDoFo::PdfCanvas& page);
+    PoDoFo::PdfColorSpace GetColorSpaceForName(const PoDoFo::PdfName& name, PoDoFo::PdfCanvas& page);
 
     /**
      * unused
      */
-    PoDoFo::PdfColorSpaceType GetColorSpaceForArray(const PoDoFo::PdfArray& arr, PoDoFo::PdfCanvas& page);
+    PoDoFo::PdfColorSpace GetColorSpaceForArray(const PoDoFo::PdfArray& arr, PoDoFo::PdfCanvas& page);
 private:
     IConverter* m_converter;
     std::string m_input;

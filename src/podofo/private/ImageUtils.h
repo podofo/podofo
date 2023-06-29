@@ -8,7 +8,6 @@
 #define IMAGE_UTILS_H
 
 #include <podofo/auxiliary/OutputStream.h>
-#include <podofo/main/PdfColorSpace.h>
 
 #ifdef PODOFO_HAVE_JPEG_LIB
 #include <podofo/private/JpegCommon.h>
@@ -20,18 +19,22 @@ namespace utls
 {
     /** Fetch a RGB image and write it to the stream
      */
-    void FetchImage(PoDoFo::OutputStream& stream, PoDoFo::PdfPixelFormat format, int scanLineSize,
-        const unsigned char* imageData, unsigned width, unsigned heigth, unsigned bitsPerComponent,
-        const PoDoFo::PdfColorSpace& filter, const PoDoFo::charbuff& smaskData);
+    void FetchImageRGB(PoDoFo::OutputStream& stream, unsigned width, unsigned heigth, PoDoFo::PdfPixelFormat format,
+        const unsigned char* imageData, const PoDoFo::charbuff& smaskData, PoDoFo::charbuff& scanLine);
 
-    /** Fetch a Black and White image and write it to the stream
+    /** Fetch a GrayScale image and write it to the stream
      */
-    void FetchImageCCITT(PoDoFo::OutputStream& stream, PoDoFo::PdfPixelFormat format, int scanLineSize,
-        fxcodec::ScanlineDecoder& decoder, unsigned width, unsigned heigth, const PoDoFo::charbuff& smaskData);
+    void FetchImageGrayScale(PoDoFo::OutputStream& stream, unsigned width, unsigned heigth, PoDoFo::PdfPixelFormat format,
+        const unsigned char* imageData, const PoDoFo::charbuff& smaskData, PoDoFo::charbuff& scanLine);
+
+    /** Fetch a black and white image and write it to the stream
+     */
+    void FetchImageBW(PoDoFo::OutputStream& stream, unsigned width, unsigned heigth, PoDoFo::PdfPixelFormat format,
+        fxcodec::ScanlineDecoder& decoder, const PoDoFo::charbuff& smaskData, PoDoFo::charbuff& scanLine);
 
 #ifdef PODOFO_HAVE_JPEG_LIB
-    void FetchImageJPEG(PoDoFo::OutputStream& stream, PoDoFo::PdfPixelFormat format, int scanLineSize,
-        jpeg_decompress_struct* ctx, unsigned width, unsigned heigth, const PoDoFo::charbuff& smaskData);
+    void FetchImageJPEG(PoDoFo::OutputStream& stream, PoDoFo::PdfPixelFormat format, jpeg_decompress_struct* ctx,
+        JSAMPARRAY jScanLine, const PoDoFo::charbuff& smaskData, PoDoFo::charbuff& scanLine);
 #endif // PODOFO_HAVE_JPEG_LIB
 }
 

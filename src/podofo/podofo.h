@@ -33,7 +33,6 @@
 #include "main/PdfOperatorUtils.h"
 #include "main/PdfArray.h"
 #include "main/PdfCanvas.h"
-#include "main/PdfColorSpace.h"
 #include "main/PdfColor.h"
 #include "main/PdfContentStreamReader.h"
 #include "main/PdfPostScriptTokenizer.h"

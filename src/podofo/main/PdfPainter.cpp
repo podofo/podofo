@@ -135,7 +135,7 @@ void PdfPainter::SetStrokingShadingPattern(const PdfShadingPattern& pattern)
     checkStream();
     checkStatus(StatusDefault);
     this->addToPageResources("Pattern", pattern.GetIdentifier(), pattern.GetObject());
-    PoDoFo::WriteOperator_CS(m_stream, PdfColorSpaceType::Pattern);
+    PoDoFo::WriteOperator_CS(m_stream, PdfColorSpace::Pattern);
     PoDoFo::WriteOperator_SCN(m_stream, pattern.GetIdentifier().GetString());
 }
 
@@ -144,7 +144,7 @@ void PdfPainter::SetShadingPattern(const PdfShadingPattern& pattern)
     checkStream();
     checkStatus(StatusDefault);
     this->addToPageResources("Pattern", pattern.GetIdentifier(), pattern.GetObject());
-    PoDoFo::WriteOperator_cs(m_stream, PdfColorSpaceType::Pattern);
+    PoDoFo::WriteOperator_cs(m_stream, PdfColorSpace::Pattern);
     PoDoFo::WriteOperator_scn(m_stream, pattern.GetIdentifier().GetString());
 }
 
@@ -153,7 +153,7 @@ void PdfPainter::SetStrokingTilingPattern(const PdfTilingPattern& pattern)
     checkStream();
     checkStatus(StatusDefault);
     this->addToPageResources("Pattern", pattern.GetIdentifier(), pattern.GetObject());
-    PoDoFo::WriteOperator_CS(m_stream, PdfColorSpaceType::Pattern);
+    PoDoFo::WriteOperator_CS(m_stream, PdfColorSpace::Pattern);
     PoDoFo::WriteOperator_SCN(m_stream, pattern.GetIdentifier().GetString());
 }
 
@@ -162,7 +162,7 @@ void PdfPainter::SetTilingPattern(const PdfTilingPattern& pattern)
     checkStream();
     checkStatus(StatusDefault);
     this->addToPageResources("Pattern", pattern.GetIdentifier(), pattern.GetObject());
-    PoDoFo::WriteOperator_cs(m_stream, PdfColorSpaceType::Pattern);
+    PoDoFo::WriteOperator_cs(m_stream, PdfColorSpace::Pattern);
     PoDoFo::WriteOperator_scn(m_stream, pattern.GetIdentifier().GetString());
 }
 
@@ -889,22 +889,22 @@ void PdfPainter::SetFillColor(const PdfColor& color)
     switch (color.GetColorSpace())
     {
         default:
-        case PdfColorSpaceType::DeviceRGB:
+        case PdfColorSpace::DeviceRGB:
         {
             PoDoFo::WriteOperator_rg(m_stream, color.GetRed(), color.GetGreen(), color.GetBlue());
             break;
         }
-        case PdfColorSpaceType::DeviceCMYK:
+        case PdfColorSpace::DeviceCMYK:
         {
             PoDoFo::WriteOperator_k(m_stream, color.GetCyan(), color.GetMagenta(), color.GetYellow(), color.GetBlack());
             break;
         }
-        case PdfColorSpaceType::DeviceGray:
+        case PdfColorSpace::DeviceGray:
         {
             PoDoFo::WriteOperator_g(m_stream, color.GetGrayScale());
             break;
         }
-        case PdfColorSpaceType::Separation:
+        case PdfColorSpace::Separation:
         {
             m_canvas->GetOrCreateResources().AddColorResource(color);
             vector<double> components = { color.GetDensity() };
@@ -912,7 +912,7 @@ void PdfPainter::SetFillColor(const PdfColor& color)
             PoDoFo::WriteOperator_scn(m_stream, components);
             break;
         }
-        case PdfColorSpaceType::Lab:
+        case PdfColorSpace::Lab:
         {
             m_canvas->GetOrCreateResources().AddColorResource(color);
             vector<double> components = { color.GetCieL(),color.GetCieA(), color.GetCieB() };
@@ -920,8 +920,8 @@ void PdfPainter::SetFillColor(const PdfColor& color)
             PoDoFo::WriteOperator_scn(m_stream, components);
             break;
         }
-        case PdfColorSpaceType::Unknown:
-        case PdfColorSpaceType::Indexed:
+        case PdfColorSpace::Unknown:
+        case PdfColorSpace::Indexed:
         {
             PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
         }
@@ -934,22 +934,22 @@ void PdfPainter::SetStrokeColor(const PdfColor& color)
     switch (color.GetColorSpace())
     {
         default:
-        case PdfColorSpaceType::DeviceRGB:
+        case PdfColorSpace::DeviceRGB:
         {
             PoDoFo::WriteOperator_RG(m_stream, color.GetRed(), color.GetGreen(), color.GetBlue());
             break;
         }
-        case PdfColorSpaceType::DeviceCMYK:
+        case PdfColorSpace::DeviceCMYK:
         {
             PoDoFo::WriteOperator_K(m_stream, color.GetCyan(), color.GetMagenta(), color.GetYellow(), color.GetBlack());
             break;
         }
-        case PdfColorSpaceType::DeviceGray:
+        case PdfColorSpace::DeviceGray:
         {
             PoDoFo::WriteOperator_G(m_stream, color.GetGrayScale());
             break;
         }
-        case PdfColorSpaceType::Separation:
+        case PdfColorSpace::Separation:
         {
             m_canvas->GetOrCreateResources().AddColorResource(color);
             vector<double> components = { color.GetDensity() };
@@ -957,7 +957,7 @@ void PdfPainter::SetStrokeColor(const PdfColor& color)
             PoDoFo::WriteOperator_SCN(m_stream, components);
             break;
         }
-        case PdfColorSpaceType::Lab:
+        case PdfColorSpace::Lab:
         {
             m_canvas->GetOrCreateResources().AddColorResource(color);
             vector<double> components = { color.GetCieL(),color.GetCieA(), color.GetCieB() };
@@ -965,8 +965,8 @@ void PdfPainter::SetStrokeColor(const PdfColor& color)
             PoDoFo::WriteOperator_SCN(m_stream, components);
             break;
         }
-        case PdfColorSpaceType::Unknown:
-        case PdfColorSpaceType::Indexed:
+        case PdfColorSpace::Unknown:
+        case PdfColorSpace::Indexed:
         {
             PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
         }

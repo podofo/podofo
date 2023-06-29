@@ -449,7 +449,7 @@ unsigned PdfPage::GetPageNumber() const
 }
 
 void PdfPage::SetICCProfile(const string_view& csTag, InputStream& stream,
-    int64_t colorComponents, PdfColorSpaceType alternateColorSpace)
+    int64_t colorComponents, PdfColorSpace alternateColorSpace)
 {
     // Check nColorComponents for a valid value
     if (colorComponents != 1 &&

@@ -314,7 +314,7 @@ enum class PdfFontMatchBehaviorFlags
  * Enum for the colorspaces supported
  * by PDF.
  */
-enum class PdfColorSpaceType : uint8_t
+enum class PdfColorSpace : uint8_t
 {
     Unknown = 0,
     DeviceGray,

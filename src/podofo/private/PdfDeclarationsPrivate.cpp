@@ -300,99 +300,57 @@ PdfAnnotationType PoDoFo::NameToAnnotationType(const string_view& str)
         PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
 }
 
-PdfColorSpaceType PoDoFo::NameToColorSpaceRaw(const string_view& name)
-{
-    PdfColorSpaceType colorSpace;
-    if (!PoDoFo::TryNameToColorSpaceRaw(name, colorSpace))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "Unsupported colorspace name: {}", name);
-
-    return colorSpace;
-}
-
-bool PoDoFo::TryNameToColorSpaceRaw(const string_view& name, PdfColorSpaceType& colorSpace)
+PdfColorSpace PoDoFo::NameToColorSpaceRaw(const string_view& name)
 {
     if (name == "DeviceGray")
-    {
-        colorSpace = PdfColorSpaceType::DeviceGray;
-        return true;
-    }
+        return PdfColorSpace::DeviceGray;
     else if (name == "DeviceRGB")
-    {
-        colorSpace = PdfColorSpaceType::DeviceRGB;
-        return true;
-    }
+        return PdfColorSpace::DeviceRGB;
     else if (name == "DeviceCMYK")
-    {
-        colorSpace = PdfColorSpaceType::DeviceCMYK;
-        return true;
-    }
+        return PdfColorSpace::DeviceCMYK;
     else if (name == "CalGray")
-    {
-        colorSpace = PdfColorSpaceType::CalGray;
-        return true;
-    }
+        return PdfColorSpace::CalGray;
     else if (name == "Lab")
-    {
-        colorSpace = PdfColorSpaceType::Lab;
-        return true;
-    }
+        return PdfColorSpace::Lab;
     else if (name == "ICCBased")
-    {
-        colorSpace = PdfColorSpaceType::ICCBased;
-        return true;
-    }
+        return PdfColorSpace::ICCBased;
     else if (name == "Indexed")
-    {
-        colorSpace = PdfColorSpaceType::Indexed;
-        return true;
-    }
+        return PdfColorSpace::Indexed;
     else if (name == "Pattern")
-    {
-        colorSpace = PdfColorSpaceType::Pattern;
-        return true;
-    }
+        return PdfColorSpace::Pattern;
     else if (name == "Separation")
-    {
-        colorSpace = PdfColorSpaceType::Separation;
-        return true;
-    }
+        return PdfColorSpace::Separation;
     else if (name == "DeviceN")
-    {
-        colorSpace = PdfColorSpaceType::DeviceN;
-        return true;
-    }
+        return PdfColorSpace::DeviceN;
     else
-    {
-        colorSpace = PdfColorSpaceType::Unknown;
-        return false;
-    }
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "Unsupported colorspace name: {}", name);
 }
 
-string_view PoDoFo::ColorSpaceToNameRaw(PdfColorSpaceType colorSpace)
+string_view PoDoFo::ColorSpaceToNameRaw(PdfColorSpace colorSpace)
 {
     switch (colorSpace)
     {
-        case PdfColorSpaceType::DeviceGray:
+        case PdfColorSpace::DeviceGray:
             return "DeviceGray"sv;
-        case PdfColorSpaceType::DeviceRGB:
+        case PdfColorSpace::DeviceRGB:
             return "DeviceRGB"sv;
-        case PdfColorSpaceType::DeviceCMYK:
+        case PdfColorSpace::DeviceCMYK:
             return "DeviceCMYK"sv;
-        case PdfColorSpaceType::CalGray:
+        case PdfColorSpace::CalGray:
             return "CalGray"sv;
-        case PdfColorSpaceType::Lab:
+        case PdfColorSpace::Lab:
             return "Lab"sv;
-        case PdfColorSpaceType::ICCBased:
+        case PdfColorSpace::ICCBased:
             return "ICCBased"sv;
-        case PdfColorSpaceType::Indexed:
+        case PdfColorSpace::Indexed:
             return "Indexed"sv;
-        case PdfColorSpaceType::Pattern:
+        case PdfColorSpace::Pattern:
             return "Pattern"sv;
-        case PdfColorSpaceType::Separation:
+        case PdfColorSpace::Separation:
             return "Separation"sv;
-        case PdfColorSpaceType::DeviceN:
+        case PdfColorSpace::DeviceN:
             return "DeviceN"sv;
-        case PdfColorSpaceType::Unknown:
+        case PdfColorSpace::Unknown:
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }

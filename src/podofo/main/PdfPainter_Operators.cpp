@@ -393,7 +393,7 @@ void PdfPainter::Do_Operator(const string_view& xobjname)
     PoDoFo::WriteOperator_Do(m_stream, xobjname);
 }
 
-void PdfPainter::cs_Operator(PdfColorSpaceType colorSpace)
+void PdfPainter::cs_Operator(PdfColorSpace colorSpace)
 {
     checkStream();
     checkStatus(StatusDefault | StatusTextObject);
@@ -407,7 +407,7 @@ void PdfPainter::cs_Operator(const string_view& name)
     PoDoFo::WriteOperator_cs(m_stream, name);
 }
 
-void PdfPainter::CS_Operator(PdfColorSpaceType colorSpace)
+void PdfPainter::CS_Operator(PdfColorSpace colorSpace)
 {
     checkStream();
     checkStatus(StatusDefault | StatusTextObject);

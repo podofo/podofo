@@ -143,13 +143,13 @@ public:
      *
      *  \returns the colorspace of this PdfColor object
      */
-    inline PdfColorSpaceType GetColorSpace() const { return m_ColorSpace; }
+    inline PdfColorSpace GetColorSpace() const { return m_ColorSpace; }
 
     /** Get the alternate colorspace of this PdfColor object
      *
      *  \returns the colorspace of this PdfColor object (must be separation)
      */
-    PdfColorSpaceType GetAlternateColorSpace() const;
+    PdfColorSpace GetAlternateColorSpace() const;
 
     /** Get the grayscale color value
      *  of this object.
@@ -389,17 +389,17 @@ private:
         double gray;
     };
 
-    PdfColor(bool isTransaprent, PdfColorSpaceType colorSpace, const Color& data,
+    PdfColor(bool isTransaprent, PdfColorSpace colorSpace, const Color& data,
         std::string m_separationName, double separationDensity,
-        PdfColorSpaceType alternateColorSpace);
+        PdfColorSpace alternateColorSpace);
 
 private:
     bool m_IsTransparent;
-    PdfColorSpaceType m_ColorSpace;
+    PdfColorSpace m_ColorSpace;
     Color m_Color;
     std::string m_SeparationName;
     double m_SeparationDensity;
-    PdfColorSpaceType m_AlternateColorSpace;
+    PdfColorSpace m_AlternateColorSpace;
 
 private:
     static const unsigned* const m_hexDigitMap; // Mapping of hex sequences to int value

@@ -16,8 +16,8 @@ class GraphicsStack {
         TGraphicsStackElement()
             : m_strokingColor(PoDoFo::PdfColor(0.0)),
             m_nonStrokingColor(PoDoFo::PdfColor(0.0)),
-            m_eColorSpaceStroking(PoDoFo::PdfColorSpaceType::DeviceGray),
-            m_eColorSpaceNonStroking(PoDoFo::PdfColorSpaceType::DeviceGray)
+            m_eColorSpaceStroking(PoDoFo::PdfColorSpace::DeviceGray),
+            m_eColorSpaceNonStroking(PoDoFo::PdfColorSpace::DeviceGray)
         {
         }
 
@@ -44,11 +44,11 @@ class GraphicsStack {
             return m_nonStrokingColor;
         }
 
-        inline PoDoFo::PdfColorSpaceType GetStrokingColorSpace() {
+        inline PoDoFo::PdfColorSpace GetStrokingColorSpace() {
             return m_eColorSpaceStroking;
         }
 
-        inline PoDoFo::PdfColorSpaceType GetNonStrokingColorSpace() {
+        inline PoDoFo::PdfColorSpace GetNonStrokingColorSpace() {
             return m_eColorSpaceNonStroking;
         }
 
@@ -60,19 +60,19 @@ class GraphicsStack {
             m_nonStrokingColor = c;
         }
 
-        inline void SetStrokingColorSpace(PoDoFo::PdfColorSpaceType eCS) {
+        inline void SetStrokingColorSpace(PoDoFo::PdfColorSpace eCS) {
             m_eColorSpaceStroking = eCS;
         }
 
-        inline void SetNonStrokingColorSpace(PoDoFo::PdfColorSpaceType eCS) {
+        inline void SetNonStrokingColorSpace(PoDoFo::PdfColorSpace eCS) {
             m_eColorSpaceNonStroking = eCS;
         }
 
     private:
         PoDoFo::PdfColor m_strokingColor;
         PoDoFo::PdfColor m_nonStrokingColor;
-        PoDoFo::PdfColorSpaceType m_eColorSpaceStroking;
-        PoDoFo::PdfColorSpaceType m_eColorSpaceNonStroking;
+        PoDoFo::PdfColorSpace m_eColorSpaceStroking;
+        PoDoFo::PdfColorSpace m_eColorSpaceNonStroking;
     };
 
 public:
@@ -90,11 +90,11 @@ public:
         return GetCurrentGraphicsState().GetNonStrokingColor();
     }
 
-    inline PoDoFo::PdfColorSpaceType GetStrokingColorSpace() {
+    inline PoDoFo::PdfColorSpace GetStrokingColorSpace() {
         return GetCurrentGraphicsState().GetStrokingColorSpace();
     }
 
-    inline PoDoFo::PdfColorSpaceType GetNonStrokingColorSpace() {
+    inline PoDoFo::PdfColorSpace GetNonStrokingColorSpace() {
         return GetCurrentGraphicsState().GetNonStrokingColorSpace();
     }
 
@@ -106,11 +106,11 @@ public:
         GetCurrentGraphicsState().SetNonStrokingColor(c);
     }
 
-    inline void SetStrokingColorSpace(PoDoFo::PdfColorSpaceType eCS) {
+    inline void SetStrokingColorSpace(PoDoFo::PdfColorSpace eCS) {
         GetCurrentGraphicsState().SetStrokingColorSpace(eCS);
     }
 
-    inline void SetNonStrokingColorSpace(PoDoFo::PdfColorSpaceType eCS) {
+    inline void SetNonStrokingColorSpace(PoDoFo::PdfColorSpace eCS) {
         GetCurrentGraphicsState().SetNonStrokingColorSpace(eCS);
     }
 

@@ -17,169 +17,83 @@ using namespace PoDoFo;
 #endif
 
 template <int bpp>
-static void fetchScanLineRGB(unsigned char* dstScanLine, PdfPixelFormat format,
-    const unsigned char* srcScanLine, unsigned width);
+static void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width,
+    PdfPixelFormat format, const unsigned char* srcScanLine);
 template <int bpp>
-static void fetchScanLineRGB(unsigned char* dstScanLine, PdfPixelFormat format,
-    const unsigned char* srcScanLine, unsigned width, const unsigned char* srcAphaLine);
-static void fetchScanLineGrayScale(unsigned char* dstScanLine, PdfPixelFormat format,
-    const unsigned char* srcScanLine, unsigned width);
-static void fetchScanLineGrayScale(unsigned char* dstScanLine, PdfPixelFormat format,
-    const unsigned char* srcScanLine, unsigned width,
+static void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width,
+    PdfPixelFormat format, const unsigned char* srcScanLine,
     const unsigned char* srcAphaLine);
-static void fetchScanLineBW(unsigned char* dstScanLine, PdfPixelFormat format,
-    const unsigned char* srcScanLine, unsigned width);
-static void fetchScanLineBW(unsigned char* dstScanLine, PdfPixelFormat format,
-    const unsigned char* srcScanLine, unsigned width,
+static void fetchScanLineGrayScale(unsigned char* dstScanLine, unsigned width,
+    PdfPixelFormat format, const unsigned char* srcScanLine);
+static void fetchScanLineGrayScale(unsigned char* dstScanLine, unsigned width,
+    PdfPixelFormat format, const unsigned char* srcScanLine,
+    const unsigned char* srcAphaLine);
+static void fetchScanLineBW(unsigned char* dstScanLine, unsigned width,
+    PdfPixelFormat format, const unsigned char* srcScanLine);
+static void fetchScanLineBW(unsigned char* dstScanLine, unsigned width,
+    PdfPixelFormat format, const unsigned char* srcScanLine,
     const unsigned char* srcAphaLine);
 
-static charbuff initScanLine(PdfPixelFormat format, unsigned width, int scanLineSizeHint);
-
-void utls::FetchImage(OutputStream& stream, PdfPixelFormat format, int scanLineSize,
-    const unsigned char* imageData, unsigned width, unsigned heigth, unsigned bitsPerComponent,
-    const PdfColorSpace& map, const charbuff& smaskData)
+void utls::FetchImageRGB(OutputStream& stream, unsigned width, unsigned heigth, PdfPixelFormat format,
+    const unsigned char* imageData, const charbuff& smaskData, charbuff& scanLine)
 {
-    // TODO: Add support for non-trivial /BitsPerComponent. This could be done
-    // by keeping existing optimized fecthScanLine* methods and add other overloads
-    // that take bitsPerComponent as an argument
-    if (bitsPerComponent != 8)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Unsupported /BitsPerComponent");
-
-    charbuff scanLine = initScanLine(format, width, scanLineSize);
-    if (map.IsRawEncoded())
+    unsigned srcRowSize = width * 3;
+    if (smaskData.size() == 0)
     {
-        switch (map.GetPixelFormat())
+        for (unsigned i = 0; i < heigth; i++)
         {
-            case PdfColorSpacePixelFormat::Grayscale:
-            {
-                unsigned srcScanLineSize = width;
-                if (smaskData.size() == 0)
-                {
-                    for (unsigned i = 0; i < heigth; i++)
-                    {
-                        fetchScanLineGrayScale((unsigned char*)scanLine.data(),
-                            format, imageData + i * srcScanLineSize, width);
-                        stream.Write(scanLine.data(), scanLine.size());
-                    }
-                }
-                else
-                {
-                    for (unsigned i = 0; i < heigth; i++)
-                    {
-                        fetchScanLineGrayScale((unsigned char*)scanLine.data(),
-                            format, imageData + i * srcScanLineSize, width,
-                            (const unsigned char*)smaskData.data() + i * width);
-                        stream.Write(scanLine.data(), scanLine.size());
-                    }
-                }
-                break;
-            }
-            case PdfColorSpacePixelFormat::RGB:
-            {
-                unsigned srcScanLineSize = width * 3;
-                if (smaskData.size() == 0)
-                {
-                    for (unsigned i = 0; i < heigth; i++)
-                    {
-                        fetchScanLineRGB<3>((unsigned char*)scanLine.data(),
-                            format, imageData + i * srcScanLineSize, width);
-                        stream.Write(scanLine.data(), scanLine.size());
-                    }
-                }
-                else
-                {
-                    for (unsigned i = 0; i < heigth; i++)
-                    {
-                        fetchScanLineRGB<3>((unsigned char*)scanLine.data(),
-                            format, imageData + i * srcScanLineSize, width,
-                            (const unsigned char*)smaskData.data() + i * width);
-                        stream.Write(scanLine.data(), scanLine.size());
-                    }
-                }
-                break;
-            }
-            default:
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Unsupported color space pixel output format");
+            fetchScanLineRGB<3>((unsigned char*)scanLine.data(),
+                width, format, imageData + i * srcRowSize);
+            stream.Write(scanLine.data(), scanLine.size());
         }
     }
     else
     {
-        charbuff midwaySourceScanLine(map.GetScanLineSize(width, bitsPerComponent));
-        unsigned srcScanLineSize = map.GetSourceScanLineSize(width, bitsPerComponent);
-        switch (map.GetPixelFormat())
+        for (unsigned i = 0; i < heigth; i++)
         {
-            case PdfColorSpacePixelFormat::Grayscale:
-            {
-                if (smaskData.size() == 0)
-                {
-                    for (unsigned i = 0; i < heigth; i++)
-                    {
-                        map.FetchScanLine((unsigned char*)midwaySourceScanLine.data(),
-                            imageData + i * srcScanLineSize, width, bitsPerComponent);
-                        fetchScanLineGrayScale((unsigned char*)scanLine.data(),
-                            format, (const unsigned char*)midwaySourceScanLine.data(), width);
-                        stream.Write(scanLine.data(), scanLine.size());
-                    }
-                }
-                else
-                {
-                    for (unsigned i = 0; i < heigth; i++)
-                    {
-                        map.FetchScanLine((unsigned char*)midwaySourceScanLine.data(),
-                            imageData + i * srcScanLineSize, width, bitsPerComponent);
-                        fetchScanLineGrayScale((unsigned char*)scanLine.data(),
-                            format, (unsigned char*)midwaySourceScanLine.data(), width,
-                            (const unsigned char*)smaskData.data() + i * width);
-                        stream.Write(scanLine.data(), scanLine.size());
-                    }
-                }
-                break;
-            }
-            case PdfColorSpacePixelFormat::RGB:
-            {
-                if (smaskData.size() == 0)
-                {
-                    for (unsigned i = 0; i < heigth; i++)
-                    {
-                        map.FetchScanLine((unsigned char*)midwaySourceScanLine.data(),
-                            imageData + i * srcScanLineSize, width, bitsPerComponent);
-                        fetchScanLineRGB<3>((unsigned char*)scanLine.data(),
-                            format, (const unsigned char*)midwaySourceScanLine.data(), width);
-                        stream.Write(scanLine.data(), scanLine.size());
-                    }
-                }
-                else
-                {
-                    for (unsigned i = 0; i < heigth; i++)
-                    {
-                        map.FetchScanLine((unsigned char*)midwaySourceScanLine.data(),
-                            imageData + i * srcScanLineSize, width, bitsPerComponent);
-                        fetchScanLineRGB<3>((unsigned char*)scanLine.data(),
-                            format, (unsigned char*)midwaySourceScanLine.data(), width,
-                            (const unsigned char*)smaskData.data() + i * width);
-                        stream.Write(scanLine.data(), scanLine.size());
-                    }
-                }
-                break;
-            }
-            default:
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Unsupported color space pixel output format");
+            fetchScanLineRGB<3>((unsigned char*)scanLine.data(),
+                width, format, imageData + i * srcRowSize,
+                (const unsigned char*)smaskData.data() + i * width);
+            stream.Write(scanLine.data(), scanLine.size());
         }
     }
 }
 
-void utls::FetchImageCCITT(OutputStream& stream, PdfPixelFormat format, int scanLineSize,
-    fxcodec::ScanlineDecoder& decoder, unsigned width, unsigned heigth, const charbuff& smaskData)
+void utls::FetchImageGrayScale(OutputStream& stream, unsigned width, unsigned heigth, PdfPixelFormat format,
+    const unsigned char* imageData, const charbuff& smaskData, charbuff& scanLine)
 {
-    charbuff scanLine = initScanLine(format, width, scanLineSize);
+    unsigned srcRowSize = width * 3;
+    if (smaskData.size() == 0)
+    {
+        for (unsigned i = 0; i < heigth; i++)
+        {
+            fetchScanLineGrayScale((unsigned char*)scanLine.data(),
+                width, format, imageData + i * srcRowSize);
+            stream.Write(scanLine.data(), scanLine.size());
+        }
+    }
+    else
+    {
+        for (unsigned i = 0; i < heigth; i++)
+        {
+            fetchScanLineGrayScale((unsigned char*)scanLine.data(),
+                width, format, imageData + i * srcRowSize,
+                (const unsigned char*)smaskData.data() + i * width);
+            stream.Write(scanLine.data(), scanLine.size());
+        }
+    }
+}
 
+void utls::FetchImageBW(OutputStream& stream, unsigned width, unsigned heigth, PdfPixelFormat format,
+    fxcodec::ScanlineDecoder& decoder, const charbuff& smaskData, charbuff& scanLine)
+{
     if (smaskData.size() == 0)
     {
         for (unsigned i = 0; i < heigth; i++)
         {
             auto scanLineBW = decoder.GetScanline(i);
             fetchScanLineBW((unsigned char*)scanLine.data(),
-                format, (const unsigned char*)scanLineBW.data(), width);
+                width, format, (const unsigned char*)scanLineBW.data());
             stream.Write(scanLine.data(), scanLine.size());
         }
     }
@@ -189,7 +103,7 @@ void utls::FetchImageCCITT(OutputStream& stream, PdfPixelFormat format, int scan
         {
             auto scanLineBW = decoder.GetScanline(i);
             fetchScanLineBW((unsigned char*)scanLine.data(),
-                format, scanLineBW.data(), width,
+                width, format, scanLineBW.data(),
                 (const unsigned char*)smaskData.data() + i * width);
             stream.Write(scanLine.data(), scanLine.size());
         }
@@ -197,18 +111,9 @@ void utls::FetchImageCCITT(OutputStream& stream, PdfPixelFormat format, int scan
 }
 
 #ifdef PODOFO_HAVE_JPEG_LIB
-
-void utls::FetchImageJPEG(OutputStream& stream, PdfPixelFormat format, int scanLineSize,
-    jpeg_decompress_struct* ctx, unsigned width, unsigned heigth, const charbuff& smaskData)
+void utls::FetchImageJPEG(OutputStream& stream, PdfPixelFormat format,
+    jpeg_decompress_struct* ctx, JSAMPARRAY jScanLine, const charbuff& smaskData, charbuff& scanLine)
 {
-    (void)heigth;
-    charbuff scanLine = initScanLine(format, width, scanLineSize);
-
-    unsigned rowBytes = (unsigned)(ctx->output_width * ctx->output_components);
-
-    // buffer will be deleted by jpeg_destroy_decompress
-    JSAMPARRAY jScanLine = (*ctx->mem->alloc_sarray)(reinterpret_cast<j_common_ptr>(ctx), JPOOL_IMAGE, rowBytes, 1);
-
     switch (ctx->out_color_space)
     {
         case JCS_RGB:
@@ -219,7 +124,7 @@ void utls::FetchImageJPEG(OutputStream& stream, PdfPixelFormat format, int scanL
                 {
                     jpeg_read_scanlines(ctx, jScanLine, 1);
                     fetchScanLineRGB<3>((unsigned char*)scanLine.data(),
-                        format, jScanLine[0], ctx->output_width);
+                        ctx->output_width, format, jScanLine[0]);
                     stream.Write(scanLine.data(), scanLine.size());
                 }
             }
@@ -228,8 +133,8 @@ void utls::FetchImageJPEG(OutputStream& stream, PdfPixelFormat format, int scanL
                 for (unsigned i = 0; i < ctx->output_height; i++)
                 {
                     jpeg_read_scanlines(ctx, jScanLine, 1);
-                    fetchScanLineRGB<3>((unsigned char*)scanLine.data(), format,
-                        jScanLine[0], ctx->output_width, (const unsigned char*)smaskData.data()
+                    fetchScanLineRGB<3>((unsigned char*)scanLine.data(), ctx->output_width, format,
+                        jScanLine[0], (const unsigned char*)smaskData.data()
                         + i * ctx->output_width);
                     stream.Write(scanLine.data(), scanLine.size());
                 }
@@ -244,7 +149,7 @@ void utls::FetchImageJPEG(OutputStream& stream, PdfPixelFormat format, int scanL
                 {
                     jpeg_read_scanlines(ctx, jScanLine, 1);
                     fetchScanLineGrayScale((unsigned char*)scanLine.data(),
-                        format, jScanLine[0], ctx->output_width);
+                        ctx->output_width, format, jScanLine[0]);
                     stream.Write(scanLine.data(), scanLine.size());
                 }
             }
@@ -253,8 +158,8 @@ void utls::FetchImageJPEG(OutputStream& stream, PdfPixelFormat format, int scanL
                 for (unsigned i = 0; i < ctx->output_height; i++)
                 {
                     jpeg_read_scanlines(ctx, jScanLine, 1);
-                    fetchScanLineGrayScale((unsigned char*)scanLine.data(), format,
-                        jScanLine[0], ctx->output_width, (const unsigned char*)smaskData.data()
+                    fetchScanLineGrayScale((unsigned char*)scanLine.data(), ctx->output_width, format,
+                        jScanLine[0], (const unsigned char*)smaskData.data()
                         + i * ctx->output_width);
                     stream.Write(scanLine.data(), scanLine.size());
                 }
@@ -270,7 +175,7 @@ void utls::FetchImageJPEG(OutputStream& stream, PdfPixelFormat format, int scanL
                     jpeg_read_scanlines(ctx, jScanLine, 1);
                     ConvertScanlineCYMKToRGB(ctx, jScanLine[0]);
                     fetchScanLineRGB<4>((unsigned char*)scanLine.data(),
-                        format, jScanLine[0], ctx->output_width);
+                        ctx->output_width, format, jScanLine[0]);
                     stream.Write(scanLine.data(), scanLine.size());
                 }
             }
@@ -280,8 +185,8 @@ void utls::FetchImageJPEG(OutputStream& stream, PdfPixelFormat format, int scanL
                 {
                     jpeg_read_scanlines(ctx, jScanLine, 1);
                     ConvertScanlineCYMKToRGB(ctx, jScanLine[0]);
-                    fetchScanLineRGB<4>((unsigned char*)scanLine.data(), format,
-                        jScanLine[0], ctx->output_width, (const unsigned char*)smaskData.data()
+                    fetchScanLineRGB<4>((unsigned char*)scanLine.data(), ctx->output_width, format,
+                        jScanLine[0], (const unsigned char*)smaskData.data()
                         + i * ctx->output_width);
                     stream.Write(scanLine.data(), scanLine.size());
                 }
@@ -292,12 +197,11 @@ void utls::FetchImageJPEG(OutputStream& stream, PdfPixelFormat format, int scanL
             PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
     }
 }
-
 #endif // PODOFO_HAVE_JPEG_LIB
 
 template <int bpp>
-void fetchScanLineRGB(unsigned char* dstScanLine, PdfPixelFormat format,
-    const unsigned char* srcScanLine, unsigned width)
+void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat format,
+    const unsigned char* srcScanLine)
 {
     switch (format)
     {
@@ -371,8 +275,8 @@ void fetchScanLineRGB(unsigned char* dstScanLine, PdfPixelFormat format,
 }
 
 template <int bpp>
-void fetchScanLineRGB(unsigned char* dstScanLine, PdfPixelFormat format,
-    const unsigned char* srcScanLine, unsigned width, const unsigned char* srcAphaLine)
+void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat format,
+    const unsigned char* srcScanLine, const unsigned char* srcAphaLine)
 {
     switch (format)
     {
@@ -447,8 +351,8 @@ void fetchScanLineRGB(unsigned char* dstScanLine, PdfPixelFormat format,
     }
 }
 
-void fetchScanLineGrayScale(unsigned char* dstScanLine, PdfPixelFormat format,
-    const unsigned char* srcScanLine, unsigned width)
+void fetchScanLineGrayScale(unsigned char* dstScanLine, unsigned width, PdfPixelFormat format,
+    const unsigned char* srcScanLine)
 {
     switch (format)
     {
@@ -501,8 +405,8 @@ void fetchScanLineGrayScale(unsigned char* dstScanLine, PdfPixelFormat format,
     }
 }
 
-void fetchScanLineGrayScale(unsigned char* dstScanLine, PdfPixelFormat format,
-    const unsigned char* srcScanLine, unsigned width, const unsigned char* srcAphaLine)
+void fetchScanLineGrayScale(unsigned char* dstScanLine, unsigned width, PdfPixelFormat format,
+    const unsigned char* srcScanLine, const unsigned char* srcAphaLine)
 {
     switch (format)
     {
@@ -557,8 +461,8 @@ void fetchScanLineGrayScale(unsigned char* dstScanLine, PdfPixelFormat format,
     }
 }
 
-void fetchScanLineBW(unsigned char* dstScanLine, PdfPixelFormat format,
-    const unsigned char* srcScanLine, unsigned width)
+void fetchScanLineBW(unsigned char* dstScanLine, unsigned width,
+    PdfPixelFormat format, const unsigned char* srcScanLine)
 {
     switch (format)
     {
@@ -611,8 +515,8 @@ void fetchScanLineBW(unsigned char* dstScanLine, PdfPixelFormat format,
     }
 }
 
-void fetchScanLineBW(unsigned char* dstScanLine, PdfPixelFormat format,
-    const unsigned char* srcScanLine, unsigned width,
+void fetchScanLineBW(unsigned char* dstScanLine, unsigned width,
+    PdfPixelFormat format, const unsigned char* srcScanLine,
     const unsigned char* srcAphaLine)
 {
     switch (format)
@@ -665,46 +569,5 @@ void fetchScanLineBW(unsigned char* dstScanLine, PdfPixelFormat format,
         }
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "Unsupported pixel format");
-    }
-}
-
-charbuff initScanLine(PdfPixelFormat format, unsigned width, int scanLineSizeHint)
-{
-    unsigned defaultScanLineSize;
-    switch (format)
-    {
-        case PdfPixelFormat::Grayscale:
-        {
-            defaultScanLineSize = 4 * ((width + 3) / 4);;
-            break;
-        }
-        case PdfPixelFormat::RGB24:
-        case PdfPixelFormat::BGR24:
-        {
-            defaultScanLineSize = 4 * ((3 * width + 3) / 4);
-            break;
-        }
-        case PdfPixelFormat::RGBA:
-        case PdfPixelFormat::BGRA:
-        case PdfPixelFormat::ARGB:
-        case PdfPixelFormat::ABGR:
-        {
-            defaultScanLineSize = 4 * width;
-            break;
-        }
-        default:
-            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
-    }
-
-    if (scanLineSizeHint < 0)
-    {
-        return charbuff(defaultScanLineSize);
-    }
-    else
-    {
-        if (scanLineSizeHint < (int)defaultScanLineSize)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The buffer row size is too small");
-
-        return charbuff((size_t)scanLineSizeHint);
     }
 }

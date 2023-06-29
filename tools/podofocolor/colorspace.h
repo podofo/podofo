@@ -60,7 +60,7 @@ public:
      * enum.
      * \returns enum value if possible or ePdfColorSpace_Unknown
      */
-    PoDoFo::PdfColorSpaceType ConvertToPdfColorSpace() const;
+    PoDoFo::PdfColorSpace ConvertToPdfColorSpace() const;
 
     /**
      * Retrieve the internal name.

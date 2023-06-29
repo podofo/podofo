@@ -165,7 +165,7 @@ void ColorChanger::ReplaceColorsInPage(PdfCanvas& page)
             const KWInfo* info = FindKeyWordByName(keyword.data());
             PdfColor color, newColor;
             int nNumArgs = info->nNumArguments;
-            PdfColorSpaceType colorSpace;
+            PdfColorSpace colorSpace;
 
             if (info->nNumArguments > 0 && args.size() != static_cast<size_t>(info->nNumArguments))
             {
@@ -221,38 +221,38 @@ void ColorChanger::ReplaceColorsInPage(PdfCanvas& page)
 
                     switch (graphicsStack.GetStrokingColorSpace())
                     {
-                        case PdfColorSpaceType::DeviceGray:
+                        case PdfColorSpace::DeviceGray:
                             nTmpArgs = 1;
                             eTempKeyword = eKeyword_SelectGray_Stroking;
                             break;
-                        case PdfColorSpaceType::DeviceRGB:
+                        case PdfColorSpace::DeviceRGB:
                             nTmpArgs = 3;
                             eTempKeyword = eKeyword_SelectRGB_Stroking;
                             break;
-                        case PdfColorSpaceType::DeviceCMYK:
+                        case PdfColorSpace::DeviceCMYK:
                             nTmpArgs = 4;
                             eTempKeyword = eKeyword_SelectCMYK_Stroking;
                             break;
 
-                        case PdfColorSpaceType::Separation:
+                        case PdfColorSpace::Separation:
                         {
                             PoDoFo::LogMessage(PdfLogSeverity::Error, "Separation color space not supported.\n");
                             PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
                             break;
                         }
-                        case PdfColorSpaceType::Lab:
+                        case PdfColorSpace::Lab:
                         {
                             PoDoFo::LogMessage(PdfLogSeverity::Error, "CieLab color space not supported.\n");
                             PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
                             break;
                         }
-                        case PdfColorSpaceType::Indexed:
+                        case PdfColorSpace::Indexed:
                         {
                             PoDoFo::LogMessage(PdfLogSeverity::Error, "Indexed color space not supported.\n");
                             PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
                             break;
                         }
-                        case PdfColorSpaceType::Unknown:
+                        case PdfColorSpace::Unknown:
 
                         default:
                         {
@@ -279,23 +279,23 @@ void ColorChanger::ReplaceColorsInPage(PdfCanvas& page)
 
                     switch (graphicsStack.GetNonStrokingColorSpace())
                     {
-                        case PdfColorSpaceType::DeviceGray:
+                        case PdfColorSpace::DeviceGray:
                             nTmpArgs = 1;
                             eTempKeyword = eKeyword_SelectGray_NonStroking;
                             break;
-                        case PdfColorSpaceType::DeviceRGB:
+                        case PdfColorSpace::DeviceRGB:
                             nTmpArgs = 3;
                             eTempKeyword = eKeyword_SelectRGB_NonStroking;
                             break;
-                        case PdfColorSpaceType::DeviceCMYK:
+                        case PdfColorSpace::DeviceCMYK:
                             nTmpArgs = 4;
                             eTempKeyword = eKeyword_SelectCMYK_NonStroking;
                             break;
 
-                        case PdfColorSpaceType::Separation:
-                        case PdfColorSpaceType::Lab:
-                        case PdfColorSpaceType::Indexed:
-                        case PdfColorSpaceType::Unknown:
+                        case PdfColorSpace::Separation:
+                        case PdfColorSpace::Lab:
+                        case PdfColorSpace::Indexed:
+                        case PdfColorSpace::Unknown:
 
                         default:
                         {
@@ -370,27 +370,27 @@ void ColorChanger::PutColorOnStack(const PdfColor& rColor, vector<PdfVariant>& a
 {
     switch (rColor.GetColorSpace())
     {
-        case PdfColorSpaceType::DeviceGray:
+        case PdfColorSpace::DeviceGray:
             args.push_back(rColor.GetGrayScale());
             break;
 
-        case PdfColorSpaceType::DeviceRGB:
+        case PdfColorSpace::DeviceRGB:
             args.push_back(rColor.GetRed());
             args.push_back(rColor.GetGreen());
             args.push_back(rColor.GetBlue());
             break;
 
-        case PdfColorSpaceType::DeviceCMYK:
+        case PdfColorSpace::DeviceCMYK:
             args.push_back(rColor.GetCyan());
             args.push_back(rColor.GetMagenta());
             args.push_back(rColor.GetYellow());
             args.push_back(rColor.GetBlack());
             break;
 
-        case PdfColorSpaceType::Separation:
-        case PdfColorSpaceType::Lab:
-        case PdfColorSpaceType::Indexed:
-        case PdfColorSpaceType::Unknown:
+        case PdfColorSpace::Separation:
+        case PdfColorSpace::Lab:
+        case PdfColorSpace::Indexed:
+        case PdfColorSpace::Unknown:
 
         default:
         {
@@ -449,34 +449,34 @@ const char* ColorChanger::ProcessColor(EKeywordType eKeywordType, int nNumArgs, 
 
         case eKeyword_SelectGray_Stroking:
             bStroking = true;
-            rGraphicsStack.SetStrokingColorSpace(PdfColorSpaceType::DeviceGray);
+            rGraphicsStack.SetStrokingColorSpace(PdfColorSpace::DeviceGray);
             newColor = m_converter->SetStrokingColorGray(color);
             break;
 
         case eKeyword_SelectRGB_Stroking:
             bStroking = true;
-            rGraphicsStack.SetStrokingColorSpace(PdfColorSpaceType::DeviceRGB);
+            rGraphicsStack.SetStrokingColorSpace(PdfColorSpace::DeviceRGB);
             newColor = m_converter->SetStrokingColorRGB(color);
             break;
 
         case eKeyword_SelectCMYK_Stroking:
             bStroking = true;
-            rGraphicsStack.SetStrokingColorSpace(PdfColorSpaceType::DeviceCMYK);
+            rGraphicsStack.SetStrokingColorSpace(PdfColorSpace::DeviceCMYK);
             newColor = m_converter->SetStrokingColorCMYK(color);
             break;
 
         case eKeyword_SelectGray_NonStroking:
-            rGraphicsStack.SetNonStrokingColorSpace(PdfColorSpaceType::DeviceGray);
+            rGraphicsStack.SetNonStrokingColorSpace(PdfColorSpace::DeviceGray);
             newColor = m_converter->SetNonStrokingColorGray(color);
             break;
 
         case eKeyword_SelectRGB_NonStroking:
-            rGraphicsStack.SetNonStrokingColorSpace(PdfColorSpaceType::DeviceRGB);
+            rGraphicsStack.SetNonStrokingColorSpace(PdfColorSpace::DeviceRGB);
             newColor = m_converter->SetNonStrokingColorRGB(color);
             break;
 
         case eKeyword_SelectCMYK_NonStroking:
-            rGraphicsStack.SetNonStrokingColorSpace(PdfColorSpaceType::DeviceCMYK);
+            rGraphicsStack.SetNonStrokingColorSpace(PdfColorSpace::DeviceCMYK);
             newColor = m_converter->SetNonStrokingColorCMYK(color);
             break;
 
@@ -516,22 +516,22 @@ const char* ColorChanger::GetKeywordForColor(const PdfColor& rColor, bool bIsStr
 
     switch (rColor.GetColorSpace())
     {
-        case PdfColorSpaceType::DeviceGray:
+        case PdfColorSpace::DeviceGray:
             pszKeyword = (bIsStroking ? "G" : "g");
             break;
 
-        case PdfColorSpaceType::DeviceRGB:
+        case PdfColorSpace::DeviceRGB:
             pszKeyword = (bIsStroking ? "RG" : "rg");
             break;
 
-        case PdfColorSpaceType::DeviceCMYK:
+        case PdfColorSpace::DeviceCMYK:
             pszKeyword = (bIsStroking ? "K" : "k");
             break;
 
-        case PdfColorSpaceType::Separation:
-        case PdfColorSpaceType::Lab:
-        case PdfColorSpaceType::Indexed:
-        case PdfColorSpaceType::Unknown:
+        case PdfColorSpace::Separation:
+        case PdfColorSpace::Lab:
+        case PdfColorSpace::Indexed:
+        case PdfColorSpace::Unknown:
 
         default:
         {
@@ -542,11 +542,11 @@ const char* ColorChanger::GetKeywordForColor(const PdfColor& rColor, bool bIsStr
     return pszKeyword;
 }
 
-PdfColorSpaceType ColorChanger::GetColorSpaceForName(const PdfName& name, PdfCanvas& page)
+PdfColorSpace ColorChanger::GetColorSpaceForName(const PdfName& name, PdfCanvas& page)
 {
-    PdfColorSpaceType colorSpace = PoDoFo::NameToColorSpaceRaw(name);
+    PdfColorSpace colorSpace = PoDoFo::NameToColorSpaceRaw(name);
 
-    if (colorSpace == PdfColorSpaceType::Unknown)
+    if (colorSpace == PdfColorSpace::Unknown)
     {
         // See if we can find it in the resource dictionary of the current page
         auto resources = page.GetResources();
@@ -577,9 +577,9 @@ PdfColorSpaceType ColorChanger::GetColorSpaceForName(const PdfName& name, PdfCan
     return colorSpace;
 }
 
-PdfColorSpaceType ColorChanger::GetColorSpaceForArray(const PdfArray&, PdfCanvas&)
+PdfColorSpace ColorChanger::GetColorSpaceForArray(const PdfArray&, PdfCanvas&)
 {
-    PdfColorSpaceType colorSpace = PdfColorSpaceType::Unknown;
+    PdfColorSpace colorSpace = PdfColorSpace::Unknown;
 
     // CIE Based: [name dictionary]
     //     CalGray

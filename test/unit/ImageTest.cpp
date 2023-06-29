@@ -126,7 +126,7 @@ TEST_CASE("TestImage4")
         PdfImageInfo info;
         info.Width = 128;
         info.Height = 128;
-        info.ColorSpace = PdfColorSpaceFactory::GetDeviceGrayInstace();
+        info.ColorSpace = PdfColorSpace::DeviceGray;
         info.BitsPerComponent = 8;
         alpha->SetDataRaw(alphaInput, info);
         img->SetSoftMask(*alpha);
@@ -184,23 +184,4 @@ TEST_CASE("TestImage5")
 
         TestUtils::WriteTestOutputFile(TestUtils::GetTestOutputFilePath("YCCK-jpeg.ppm"), ppmbuffer);
     }
-}
-
-TEST_CASE("TestImage6")
-{
-    PdfMemDocument doc;
-    doc.Load(TestUtils::GetTestInputFilePath("TestImage2.pdf"));
-    auto& page = doc.GetPages().GetPageAt(0);
-    auto& resources = page.MustGetResources();
-    auto imageObj = resources.GetResource("XObject", "X0");
-    unique_ptr<PdfImage> image;
-    REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(*imageObj, image));
-
-    charbuff buffer;
-    image->DecodeTo(buffer, PdfPixelFormat::BGRA);
-    charbuff ppmbuffer;
-    TestUtils::SaveFramePPM(ppmbuffer, buffer.data(),
-        PdfPixelFormat::BGRA, image->GetWidth(), image->GetHeight());
-
-    TestUtils::WriteTestOutputFile(TestUtils::GetTestOutputFilePath("TestImage2.ppm"), ppmbuffer);
 }

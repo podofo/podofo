@@ -151,8 +151,7 @@ namespace PoDoFo
      *  \param name name representing a colorspace such as DeviceGray
      *  \returns colorspace enum or PdfColorSpace_Unknown if name is unknown
      */
-    PdfColorSpaceType NameToColorSpaceRaw(const std::string_view& name);
-    bool TryNameToColorSpaceRaw(const std::string_view& name, PdfColorSpaceType& colorSpace);
+    PdfColorSpace NameToColorSpaceRaw(const std::string_view& name);
 
     /*
      *  Convert a colorspace enum value into a name such as DeviceRGB
@@ -160,7 +159,7 @@ namespace PoDoFo
      *  \param colorSpace a colorspace
      *  \returns a name
      */
-    std::string_view ColorSpaceToNameRaw(PdfColorSpaceType colorSpace);
+    std::string_view ColorSpaceToNameRaw(PdfColorSpace colorSpace);
 
     std::string_view AnnotationTypeToName(PdfAnnotationType type);
     PdfAnnotationType NameToAnnotationType(const std::string_view& str);

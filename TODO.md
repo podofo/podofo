@@ -10,7 +10,6 @@
 - PdfEncrypt: Consider removing CreateFromEncrypt (shared_ptr in PdfMemDocument could be used now)
 - PdfContents: Remove PdfContents::Reset(obj) (keep parameterless) and make constructors private
 - Restore manuals
-- Review refactor PdfColor: it should use new PdfColorSpace
 - Review all page import functions to check correct working/improve
   the code
 - PdfCanvas: Add CopyTo facilities, see PdfContents

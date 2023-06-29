@@ -35,11 +35,11 @@ const ColorSpace & ColorSpace::operator=(const ColorSpace & rhs)
 
 bool ColorSpace::IsSimpleColorSpace() const
 {
-    PdfColorSpaceType colorSpace = this->ConvertToPdfColorSpace();
+    PdfColorSpace colorSpace = this->ConvertToPdfColorSpace();
 
-    if( colorSpace == PdfColorSpaceType::DeviceGray
-        || colorSpace == PdfColorSpaceType::DeviceRGB
-        || colorSpace == PdfColorSpaceType::DeviceCMYK )
+    if( colorSpace == PdfColorSpace::DeviceGray
+        || colorSpace == PdfColorSpace::DeviceRGB
+        || colorSpace == PdfColorSpace::DeviceCMYK )
     {
         return true;
     }
@@ -49,7 +49,7 @@ bool ColorSpace::IsSimpleColorSpace() const
     }
 }
 
-PdfColorSpaceType ColorSpace::ConvertToPdfColorSpace() const
+PdfColorSpace ColorSpace::ConvertToPdfColorSpace() const
 {
     return PoDoFo::NameToColorSpaceRaw(m_name);
 }
