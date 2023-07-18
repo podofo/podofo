@@ -334,10 +334,10 @@ void PdfImage::SetDataRaw(InputStream& stream, const PdfImageInfo& info)
     PdfObject colorSpace = info.ColorSpace->GetExportObject(GetDocument().GetObjects());
     dict.AddKey("ColorSpace", colorSpace);
 
-    if (info.Filters.size() == 0)
-        GetObject().GetOrCreateStream().SetData(stream, true);
+    if (info.Filters.has_value())
+        GetObject().GetOrCreateStream().SetData(stream, *info.Filters, true);
     else
-        GetObject().GetOrCreateStream().SetData(stream, info.Filters, true);
+        GetObject().GetOrCreateStream().SetData(stream);
 }
 
 void PdfImage::Load(const string_view& filepath)
@@ -557,7 +557,7 @@ void PdfImage::loadFromJpegInfo(jpeg_decompress_struct& ctx, PdfImageInfo& info)
     info.Width = ctx.output_width;
     info.Height = ctx.output_height;
     info.BitsPerComponent = 8;
-    info.Filters.push_back(PdfFilterType::DCTDecode);
+    info.Filters = { PdfFilterType::DCTDecode };
 
     // I am not sure whether this switch is fully correct.
     // it should handle all cases though.
