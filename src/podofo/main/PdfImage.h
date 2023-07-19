@@ -25,7 +25,7 @@ struct PdfImageInfo
 {
     unsigned Width = 0;
     unsigned Height = 0;
-    PdfFilterList Filters;
+    nullable<PdfFilterList> Filters;
     unsigned char BitsPerComponent = 0;
     PdfColorSpacePtr ColorSpace;
     std::vector<double> DecodeArray;
