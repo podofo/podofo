@@ -5,6 +5,7 @@ affects you are fixed and the features you need are checked-in is to
 [contribute](https://github.com/podofo/podofo#contributions) high-quality patches.
 
 * **I'm submitting a:**
+  - [ ] Vulnerability report -> **use the specific [form](https://github.com/podofo/podofo/security/advisories/new) instead!**
   - [ ] Bug report
   - [ ] Feature request/suggestion
 
