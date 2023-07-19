@@ -32,7 +32,7 @@ namespace std
     // parameter since it may create mysterious
     // issues on clang
     inline from_chars_result from_chars(const char* first, const char* last,
-        double& value, chars_format fmt)
+        double& value, chars_format fmt) noexcept
     {
         auto ret = fast_float::from_chars(first, last, value, (fast_float::chars_format)fmt);
         return { ret.ptr, ret.ec };
