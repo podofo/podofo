@@ -216,7 +216,7 @@ void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc,
     }
 
     // append all objects first and fix their references
-    for (auto& obj : GetObjects())
+    for (auto& obj : doc.GetObjects())
     {
         PdfReference ref(static_cast<uint32_t>(obj->GetIndirectReference().ObjectNumber() + difference), obj->GetIndirectReference().GenerationNumber());
         auto newObj = new PdfObject(PdfDictionary());
