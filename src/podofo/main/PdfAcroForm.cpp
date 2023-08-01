@@ -55,7 +55,7 @@ void PdfAcroForm::init(PdfAcroFormDefaulAppearance defaultAppearance)
 
         // Create DA key
         PdfStringStream ss;
-        ss << "0 0 0 rg /" << font->GetIdentifier().GetString() << " 12 Tf";
+        ss << "0 0 0 rg 0 g /" << font->GetIdentifier().GetString() << " 0 Tf";
         this->GetDictionary().AddKey("DA", PdfString(ss.GetString()));
     }
 }
