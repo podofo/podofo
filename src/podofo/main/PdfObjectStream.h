@@ -20,7 +20,7 @@ namespace PoDoFo {
 class PdfObject;
 class PdfObjectStream;
 
-class PdfObjectInputStream : public InputStream
+class PODOFO_API PdfObjectInputStream : public InputStream
 {
     friend class PdfObjectStream;
 public:
@@ -44,7 +44,7 @@ private:
     std::vector<const PdfDictionary*> m_MediaDecodeParms;
 };
 
-class PdfObjectOutputStream : public OutputStream
+class PODOFO_API PdfObjectOutputStream : public OutputStream
 {
     friend class PdfObjectStream;
 public:
