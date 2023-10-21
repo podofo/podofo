@@ -657,14 +657,14 @@ bool getFontData(charbuff& buffer, HDC hdc, HFONT hf)
         else
         {
             charbuff fileBuffer(fileLen);
-            if (GetFontData(hdc, ttcf_const, 0, fileBuffer.data(), fileLen) == GDI_ERROR)
+            if (GetFontData(hdc, 0, 0, fileBuffer.data(), fileLen) == GDI_ERROR)
             {
                 sucess = false;
                 goto Exit;
             }
 
             charbuff ttcBuffer(ttcLen);
-            if (GetFontData(hdc, 0, 0, ttcBuffer.data(), ttcLen) == GDI_ERROR)
+            if (GetFontData(hdc, ttcf_const, 0, ttcBuffer.data(), ttcLen) == GDI_ERROR)
             {
                 sucess = false;
                 goto Exit;
@@ -686,9 +686,9 @@ Exit:
 // tables and create the correct buffer.
 void getFontDataTTC(charbuff& buffer, const charbuff& fileBuffer, const charbuff& ttcBuffer)
 {
-    uint16_t numTables = FROM_BIG_ENDIAN(*(uint16_t*)(ttcBuffer.data() + 4));
+    uint16_t numTables = FROM_BIG_ENDIAN(*(uint16_t*)(fileBuffer.data() + 4));
     unsigned outLen = 12 + 16 * numTables;
-    const char* entry = ttcBuffer.data() + 12;
+    const char* entry = fileBuffer.data() + 12;
 
     //us: see "http://www.microsoft.com/typography/otspec/otff.htm"
     for (unsigned i = 0; i < numTables; i++)
@@ -702,11 +702,11 @@ void getFontDataTTC(charbuff& buffer, const charbuff& fileBuffer, const charbuff
     buffer.resize(outLen);
 
     // copy font header and table index (offsets need to be still adjusted)
-    memcpy(buffer.data(), ttcBuffer.data(), 12 + 16 * numTables);
+    memcpy(buffer.data(), fileBuffer.data(), 12 + 16 * numTables);
     uint32_t dstDataOffset = 12 + 16 * numTables;
 
     // process tables
-    const char* srcEntry = ttcBuffer.data() + 12;
+    const char* srcEntry = fileBuffer.data() + 12;
     char* dstEntry = buffer.data() + 12;
     for (unsigned i = 0; i < numTables; i++)
     {
@@ -720,7 +720,7 @@ void getFontDataTTC(charbuff& buffer, const charbuff& fileBuffer, const charbuff
         *(uint32_t*)(dstEntry + 8) = FROM_BIG_ENDIAN(dstDataOffset);
 
         //copy data
-        memcpy(buffer.data() + dstDataOffset, fileBuffer.data() + offset, length);
+        memcpy(buffer.data() + dstDataOffset, ttcBuffer.data() + offset, length);
         dstDataOffset += length;
 
         // adjust table entry pointers for loop
