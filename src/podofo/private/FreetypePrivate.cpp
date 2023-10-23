@@ -13,7 +13,38 @@
 using namespace std;
 using namespace PoDoFo;
 
+constexpr unsigned TableDirectoryFixedSize = 12;
+
+namespace
+{
+    struct TTCF_Header
+    {
+        uint32_t ttcTag;
+        uint16_t majorVersion;
+        uint16_t minorVersion;
+        uint32_t numFonts;
+    };
+
+    struct TT_TableHeader
+    {
+        uint32_t tableTag;
+        uint32_t checksum;
+        uint32_t offset;
+        uint32_t length;
+    };
+
+    struct TableInfo
+    {
+        FT_ULong Tag;
+        FT_ULong Size;
+    };
+}
+
 static PdfFontFileType determineTrueTypeFormat(FT_Face face);
+static unsigned determineFaceSize(FT_Face face, vector<TableInfo>& tables, unsigned& tableDirSize);
+static FT_Face createFaceFromBuffer(const bufferview& view, unsigned faceIndex);
+static bool tryExtractDataFromTTC(FT_Face face, charbuff& buffer);
+static void getDataFromFace(FT_Face face, charbuff& buffer);
 
 FT_Library FT::GetLibrary()
 {
@@ -39,84 +70,58 @@ FT_Library FT::GetLibrary()
     return init.Library;
 }
 
-bool FT::TryCreateFaceFromBuffer(const bufferview& view, FT_Face& face)
+FT_Face FT::CreateFaceFromBuffer(const bufferview& view, unsigned faceIndex,
+    charbuff& buffer)
 {
-    return TryCreateFaceFromBuffer(view, 0, face);
+    // Extract data and re-create the face
+    unique_ptr<struct FT_FaceRec_, decltype(&FT_Done_Face)> face(createFaceFromBuffer(view, faceIndex), FT_Done_Face);
+    if (tryExtractDataFromTTC(face.get(), buffer))
+    {
+        return createFaceFromBuffer(buffer, 0);
+    }
+    else
+    {
+        buffer = view;
+        return face.release();
+    }
 }
 
-bool FT::TryCreateFaceFromBuffer(const bufferview& view, unsigned faceIndex, FT_Face& face)
+// No check for TTC fonts
+FT_Face FT::CreateFaceFromBuffer(const bufferview& view)
+{
+    return createFaceFromBuffer(view, 0);
+}
+
+FT_Face FT::CreateFaceFromFile(const string_view& filepath, unsigned faceIndex,
+    charbuff& buffer)
 {
     FT_Error rc;
-    FT_Open_Args openArgs{ };
-    // NOTE: Data is not copied
-    // https://freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_open_args
-    openArgs.flags = FT_OPEN_MEMORY;
-    openArgs.memory_base = (const FT_Byte*)view.data();
-    openArgs.memory_size = (FT_Long)view.size();
-
-    rc = FT_Open_Face(FT::GetLibrary(), &openArgs, faceIndex, &face);
+    FT_Face face_;
+    rc = FT_New_Face(FT::GetLibrary(), filepath.data(), faceIndex, &face_);
     if (rc != 0)
+        return nullptr;
+
+    // Extract data and re-create the face
+    unique_ptr<struct FT_FaceRec_, decltype(&FT_Done_Face)> face(face_, FT_Done_Face);
+    if (tryExtractDataFromTTC(face.get(), buffer))
     {
-        face = nullptr;
-        return false;
+        return createFaceFromBuffer(buffer, 0);
     }
-
-    return true;
-}
-
-FT_Face FT::CreateFaceFromBuffer(const bufferview& view, unsigned faceIndex)
-{
-    FT_Face face;
-    if (!TryCreateFaceFromBuffer(view, faceIndex, face))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::FreeType, "Error loading FreeType face");
-
-    return face;
-}
-
-bool FT::TryCreateFaceFromFile(const string_view& filepath, FT_Face& face)
-{
-    return TryCreateFaceFromFile(filepath, 0, face);
-}
-
-bool FT::TryCreateFaceFromFile(const string_view& filepath, unsigned faceIndex, FT_Face& face)
-{
-    FT_Error rc;
-    unique_ptr<charbuff> buffer;
-    rc = FT_New_Face(FT::GetLibrary(), filepath.data(), faceIndex, &face);
-    if (rc != 0)
+    else
     {
-        face = nullptr;
-        return false;
+        utls::ReadTo(buffer, filepath);
+        return face.release();
     }
-
-    return true;
-}
-
-FT_Face FT::CreateFaceFromFile(const string_view& filepath, unsigned faceIndex)
-{
-    FT_Face face;
-    if (!TryCreateFaceFromFile(filepath, faceIndex, face))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::FreeType, "Error loading FreeType face");
-
-    return face;
 }
 
 charbuff FT::GetDataFromFace(FT_Face face)
 {
-    FT_Error rc;
+    charbuff buffer;
+    if (!tryExtractDataFromTTC(face, buffer))
+        getDataFromFace(face, buffer);
 
-    // https://freetype.org/freetype2/docs/reference/ft2-truetype_tables.html#ft_load_sfnt_table
-    // Use value 0 if you want to access the whole font file
-    FT_ULong size = 0;
-    rc = FT_Load_Sfnt_Table(face, 0, 0, nullptr, &size);
-    CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
-
-    charbuff buffer(size);
-    rc = FT_Load_Sfnt_Table(face, 0, 0, (FT_Byte*)buffer.data(), &size);
-    CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
     return buffer;
 }
-
 
 bool FT::TryGetFontFileFormat(FT_Face face, PdfFontFileType& format)
 {
@@ -138,6 +143,107 @@ bool FT::TryGetFontFileFormat(FT_Face face, PdfFontFileType& format)
     return true;
 }
 
+bool FT::IsPdfSupported(FT_Face face)
+{
+    PdfFontFileType format;
+    if (!FT::TryGetFontFileFormat(face, format) ||
+        !(format == PdfFontFileType::TrueType || format == PdfFontFileType::OpenType))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+FT_Face createFaceFromBuffer(const bufferview& view, unsigned faceIndex)
+{
+    FT_Error rc;
+    FT_Open_Args openArgs{ };
+    // NOTE: Data is not copied
+    // https://freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_open_args
+    openArgs.flags = FT_OPEN_MEMORY;
+    openArgs.memory_base = (const FT_Byte*)view.data();
+    openArgs.memory_size = (FT_Long)view.size();
+
+    FT_Face face;
+    rc = FT_Open_Face(FT::GetLibrary(), &openArgs, faceIndex, &face);
+    if (rc != 0)
+        return nullptr;
+
+    return face;
+}
+
+// Try to handle TTC font collections
+bool tryExtractDataFromTTC(FT_Face face, charbuff& buffer)
+{
+    FT_Error rc;
+    FT_ULong size;
+
+    uint32_t tag;
+    size = sizeof(FT_ULong);
+    rc = FT_Load_Sfnt_Table(face, 0, 0, (FT_Byte*)&tag, &size);
+    if (rc == 0 || FROM_BIG_ENDIAN(tag) != TTAG_ttcf)
+        return false;
+
+    // First read the TTC font header and then determine the face offset
+    TTCF_Header header;
+    size = sizeof(TTCF_Header);
+    rc = FT_Load_Sfnt_Table(face, 0, 0, (FT_Byte*)&header, &size);
+    CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
+    unsigned numFonts = FROM_BIG_ENDIAN(header.numFonts);
+    vector<uint32_t> offsets(numFonts);
+    size = numFonts * sizeof(uint32_t);
+    rc = FT_Load_Sfnt_Table(face, 0, sizeof(TTCF_Header), (FT_Byte*)offsets.data(), &size);
+    CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
+    uint32_t faceOffset = FROM_BIG_ENDIAN(offsets[face->face_index]);
+
+    // Prepare the final buffer
+    vector<TableInfo> tables;
+    unsigned tableDirSize;
+    buffer.resize(determineFaceSize(face, tables, tableDirSize));
+
+    // Read the Table Directory with an absolute offset
+    size = tableDirSize;
+    rc = FT_Load_Sfnt_Table(face, 0, faceOffset, (FT_Byte*)buffer.data(), &size);
+    CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
+
+    auto tableRecords = (TT_TableHeader*)(buffer.data() + TableDirectoryFixedSize);
+    unsigned offset = tableDirSize;
+    for (FT_ULong i = 0; i < tables.size(); i++)
+    {
+        // Read all the tables
+        auto& table = tables[i];
+        size = table.Size;
+        rc = FT_Load_Sfnt_Table(face, table.Tag, 0, (FT_Byte*)buffer.data() + offset, &size);
+        CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
+
+        // Fix the table offset in the table directory
+        tableRecords[i].offset = AS_BIG_ENDIAN(offset);
+        offset += table.Size;
+    }
+
+    return true;
+}
+
+// Get font data accessing whole file
+// TODO: Make it working for all font types, not only TTF
+void getDataFromFace(FT_Face face, charbuff& buffer)
+{
+    FT_Error rc;
+    FT_ULong size = 0;
+
+    // https://freetype.org/freetype2/docs/reference/ft2-truetype_tables.html#ft_load_sfnt_table
+    // Use value 0 if you want to access the whole font file
+
+    // Just read the whole font
+    rc = FT_Load_Sfnt_Table(face, 0, 0, nullptr, &size);
+    CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
+
+    buffer.resize(size);
+    rc = FT_Load_Sfnt_Table(face, 0, 0, (FT_Byte*)buffer.data(), &size);
+    CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
+}
+
 // Determines if the font is legacy TrueType or OpenType
 PdfFontFileType determineTrueTypeFormat(FT_Face face)
 {
@@ -149,6 +255,7 @@ PdfFontFileType determineTrueTypeFormat(FT_Face face)
     for (FT_ULong i = 0, count = size; i < count; i++)
     {
         rc = FT_Sfnt_Table_Info(face, i, &tag, &size);
+        CHECK_FT_RC(rc, FT_Sfnt_Table_Info);
         switch (tag)
         {
             // Legacy TrueType tables
@@ -210,4 +317,26 @@ PdfFontFileType determineTrueTypeFormat(FT_Face face)
 
     // Default legay TrueType
     return PdfFontFileType::TrueType;
+}
+
+unsigned determineFaceSize(FT_Face face, vector<TableInfo>& tables, unsigned& tableDirSize)
+{
+    FT_Error rc;
+    FT_ULong size;
+
+    rc = FT_Sfnt_Table_Info(face, 0, nullptr, &size);
+    CHECK_FT_RC(rc, FT_Sfnt_Table_Info);
+
+    unsigned faceSize = TableDirectoryFixedSize + (sizeof(TT_TableHeader) * size);
+    tableDirSize = faceSize;
+    tables.resize(size);
+    for (FT_ULong i = 0; i < size; i++)
+    {
+        auto& table = tables[i];
+        rc = FT_Sfnt_Table_Info(face, i, &table.Tag, &table.Size);
+        CHECK_FT_RC(rc, FT_Sfnt_Table_Info);
+        faceSize += table.Size;
+    }
+
+    return faceSize;
 }

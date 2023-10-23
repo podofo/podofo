@@ -39,7 +39,8 @@ static void getFontDataTTC(charbuff& buffer, const charbuff& fileBuffer, const c
 #endif // defined(_WIN32) && defined(PODOFO_HAVE_WIN32GDI)
 
 static FT_Face getFontFaceFromFile(const string_view& filepath, unsigned faceIndex, unique_ptr<charbuff>& data);
-static FT_Face getFontFaceFromBuffer(const bufferview& buffer, unsigned faceIndex);
+static FT_Face getFontFaceFromBuffer(const bufferview& view, unsigned faceIndex, unique_ptr<charbuff>& data);
+static FT_Face getFontFaceFromBuffer(const bufferview& view);
 
 #if defined(PODOFO_HAVE_FONTCONFIG)
 shared_ptr<PdfFontConfigWrapper> PdfFontManager::m_fontConfig;
@@ -209,7 +210,7 @@ PdfFont& PdfFontManager::GetOrCreateFont(const string_view& fontPath, unsigned f
     if (face == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Could not parse a valid font from path {}", fontPath);
 
-    shared_ptr<PdfFontMetrics> metrics(new PdfFontMetricsFreetype(face, datahandle(std::move(data))));
+    shared_ptr<PdfFontMetrics> metrics(new PdfFontMetricsFreetype(face, std::move(data)));
     metrics->SetFilePath(string(fontPath), faceIndex);
     auto& ret = getOrCreateFontHashed(metrics, params);
     m_cachedPaths[std::move(normalizedPath)] = &ret;
@@ -223,12 +224,12 @@ PdfFont& PdfFontManager::GetOrCreateFontFromBuffer(const bufferview& buffer, con
 
 PdfFont& PdfFontManager::GetOrCreateFontFromBuffer(const bufferview& buffer, unsigned faceIndex, const PdfFontCreateParams& params)
 {
-    auto face = getFontFaceFromBuffer(buffer, faceIndex);
+    unique_ptr<charbuff> data;
+    auto face = getFontFaceFromBuffer(buffer, faceIndex, data);
     if (face == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Could not parse a valid font from the buffer");
 
-    shared_ptr<PdfFontMetrics> metrics(new PdfFontMetricsFreetype(face,
-        std::make_shared<const charbuff>(buffer)));
+    shared_ptr<PdfFontMetrics> metrics(new PdfFontMetricsFreetype(face, std::move(data)));
     return getOrCreateFontHashed(metrics, params);
 }
 
@@ -299,8 +300,7 @@ PdfFont* PdfFontManager::getImportedFont(const string_view& patternName,
     if (face == nullptr)
         return nullptr;
 
-    shared_ptr<PdfFontMetrics> metrics(new PdfFontMetricsFreetype(
-        face, datahandle(std::move(data))));
+    shared_ptr<PdfFontMetrics> metrics(new PdfFontMetricsFreetype(face, std::move(data)));
     metrics->SetFilePath(std::move(fontpath), faceIndex);
 
     auto ret = AddImported(PdfFont::Create(*m_doc, metrics, createParams));
@@ -329,8 +329,7 @@ PdfFontMetricsConstPtr PdfFontManager::SearchFontMetrics(const string_view& patt
     if (face == nullptr)
         return nullptr;
 
-    shared_ptr<PdfFontMetrics> ret(new PdfFontMetricsFreetype(
-        face, datahandle(std::move(data))));
+    shared_ptr<PdfFontMetrics> ret(new PdfFontMetricsFreetype(face, std::move(data)));
     ret->SetFilePath(std::move(fontpath), faceIndex);
     return ret;
 }
@@ -402,7 +401,7 @@ FT_Face PdfFontManager::getFontFace(const string_view& fontName,
         // Try to use WIN32 GDI to find the font
         data = getWin32FontData(fontName, params);
         if (data != nullptr)
-            ret = getFontFaceFromBuffer(*data, 0);
+            ret = getFontFaceFromBuffer(*data);
 #endif
     }
     else
@@ -488,14 +487,16 @@ PdfFont& PdfFontManager::GetOrCreateFont(HFONT font, const PdfFontCreateParams& 
     if (found != m_cachedQueries.end())
         return *found->second[0];
 
-    shared_ptr<charbuff> data = ::getFontData(logFont);
+    auto data = ::getFontData(logFont);
     if (data == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Could not retrieve buffer for font!");
 
-    shared_ptr<PdfFontMetricsFreetype> metrics = PdfFontMetricsFreetype::FromBuffer(data);
+    auto face = getFontFaceFromBuffer(*data);
+    shared_ptr<PdfFontMetrics> metrics(new PdfFontMetricsFreetype(face, std::move(data)));
     return getOrCreateFontHashed(metrics, params);
 }
 
+// Returned font data is also extracted from collections
 unique_ptr<charbuff> PdfFontManager::getWin32FontData(
     const string_view& fontName, const PdfFontSearchParams& params)
 {
@@ -591,33 +592,57 @@ bool PdfFontManager::EqualElement::operator()(const Descriptor& lhs, const Descr
 
 FT_Face getFontFaceFromFile(const string_view& filepath, unsigned faceIndex, unique_ptr<charbuff>& data)
 {
-    data.reset(new charbuff());
-    utls::ReadTo(*data, filepath);
-    return getFontFaceFromBuffer(*data, faceIndex);
-}
-
-FT_Face getFontFaceFromBuffer(const bufferview& buffer, unsigned faceIndex)
-{
-    FT_Face face;
-    if (!FT::TryCreateFaceFromBuffer(buffer, faceIndex, face))
+    charbuff buffer;
+    auto face = FT::CreateFaceFromFile(filepath, faceIndex, buffer);
+    if (face == nullptr)
     {
-        // throw an exception
         PoDoFo::LogMessage(PdfLogSeverity::Error, "Error when loading the face from buffer");
         return nullptr;
     }
 
-    PdfFontFileType format;
-    if (!FT::TryGetFontFileFormat(face, format) ||
-        !(format == PdfFontFileType::TrueType || format== PdfFontFileType::OpenType))
+    if (!FT::IsPdfSupported(face))
+        return nullptr;
+
+    data.reset(new charbuff(std::move(buffer)));
+    return face;
+}
+
+FT_Face getFontFaceFromBuffer(const bufferview& view, unsigned faceIndex, unique_ptr<charbuff>& data)
+{
+    charbuff buffer;
+    auto face = FT::CreateFaceFromBuffer(view, faceIndex, buffer);
+    if (face == nullptr)
     {
+        PoDoFo::LogMessage(PdfLogSeverity::Error, "Error when loading the face from buffer");
         return nullptr;
     }
+
+    if (!FT::IsPdfSupported(face))
+        return nullptr;
+
+    data.reset(new charbuff(std::move(buffer)));
+    return face;
+}
+
+// NOTE: No check for collections
+FT_Face getFontFaceFromBuffer(const bufferview& view)
+{
+    auto face = FT::CreateFaceFromBuffer(view);
+    if (face == nullptr)
+    {
+        PoDoFo::LogMessage(PdfLogSeverity::Error, "Error when loading the face from buffer");
+        return nullptr;
+    }
+
+    if (!FT::IsPdfSupported(face))
+        return nullptr;
 
     return face;
 }
 
 #if defined(_WIN32) && defined(PODOFO_HAVE_WIN32GDI)
 
+// Returned font data is also extracted from collections
 unique_ptr<charbuff> getFontData(const LOGFONTW& inFont)
 {
     bool success = false;
@@ -651,11 +676,14 @@ bool getFontData(charbuff& buffer, HDC hdc, HFONT hf)
     {
         if (ttcLen == GDI_ERROR)
         {
+            // The font is not in a TTC collection, just use the
+            // whole font buffer as returned by GetFontData
             buffer.resize(fileLen);
             sucess = GetFontData(hdc, 0, 0, buffer.data(), (DWORD)fileLen) != GDI_ERROR;
         }
         else
         {
+            // Handle TTC font collections
             charbuff fileBuffer(fileLen);
             if (GetFontData(hdc, 0, 0, fileBuffer.data(), fileLen) == GDI_ERROR)
             {
@@ -716,8 +744,7 @@ void getFontDataTTC(charbuff& buffer, const charbuff& fileBuffer, const charbuff
         length = (length + 3) & ~3;
 
         // adjust offset
-        // U can use FromBigEndian() also to convert _to_ big endian
-        *(uint32_t*)(dstEntry + 8) = FROM_BIG_ENDIAN(dstDataOffset);
+        *(uint32_t*)(dstEntry + 8) = AS_BIG_ENDIAN(dstDataOffset);
 
         //copy data
         memcpy(buffer.data() + dstDataOffset, ttcBuffer.data() + offset, length);

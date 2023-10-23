@@ -48,21 +48,17 @@ unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromMetrics(const Pdf
         metrics.GetFontFileDataHandle(), &metrics));
 }
 
-unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromBuffer(const std::shared_ptr<const charbuff>& buffer)
-{
-    FreeTypeFacePtr face = FT::CreateFaceFromBuffer(*buffer);
-    return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(face, buffer));
-}
-
 unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromFace(FT_Face face)
 {
     if (face == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Face can't be null");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The face can't be null");
 
-    // Increment the refcount for the face
-    FT_Reference_Face(face);
-    return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(face,
-        shared_ptr<const charbuff>(new charbuff(FT::GetDataFromFace(face)))));
+    if (!FT::IsPdfSupported(face))
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The face is not PDF supported");
+
+    shared_ptr<const charbuff> buffer(new charbuff(FT::GetDataFromFace(face)));
+    FT_Face newface = FT::CreateFaceFromBuffer(*buffer);
+    return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(newface, buffer));
 }
 
 void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)

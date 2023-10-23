@@ -27,8 +27,6 @@ class PODOFO_API PdfFontMetricsFreetype final : public PdfFontMetrics
 public:
     static std::unique_ptr<PdfFontMetricsFreetype> FromMetrics(const PdfFontMetrics& metrics);
 
-    static std::unique_ptr<PdfFontMetricsFreetype> FromBuffer(const std::shared_ptr<const charbuff>& buffer);
-
     /// <summary>
     /// Create a metrics from a FT_Face
     /// </summary>

@@ -355,8 +355,9 @@ const FreeTypeFacePtr& PdfFontMetricsBase::GetFaceHandle() const
     {
         auto& rthis = const_cast<PdfFontMetricsBase&>(*this);
         auto view = GetFontFileDataHandle().view();
-        FT_Face face;
-        if (view.size() != 0 && FT::TryCreateFaceFromBuffer(view, face))
+        // NOTE: The data always represent a face, collections are not allowed
+        FT_Face face = nullptr;
+        if (view.size() != 0 && (face = FT::CreateFaceFromBuffer(view)) != nullptr)
             rthis.m_Face = FreeTypeFacePtr(face);
         else
             rthis.m_Face = FreeTypeFacePtr();
