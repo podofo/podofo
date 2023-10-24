@@ -462,7 +462,7 @@ PdfObjectOutputStream::~PdfObjectOutputStream()
 
         auto document = m_stream->GetParent().GetDocument();
         if (document != nullptr)
-            document->GetObjects().BeginAppendStream(*m_stream);
+            document->GetObjects().EndAppendStream(*m_stream);
     }
 }
 
