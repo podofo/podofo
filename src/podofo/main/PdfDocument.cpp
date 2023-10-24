@@ -182,7 +182,7 @@ void PdfDocument::append(const PdfDocument& doc, bool appendAll)
         // append all outlines
         PdfOutlineItem* root = this->GetOutlines();
         PdfOutlines* appendRoot = const_cast<PdfDocument&>(doc).GetOutlines();
-        if (appendRoot && appendRoot->First())
+        if (root && appendRoot && appendRoot->First())
         {
             // only append outlines if appended document has outlines
             while (root && root->Next())
