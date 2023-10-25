@@ -28,15 +28,14 @@ PdfStreamedDocument::PdfStreamedDocument(const string_view& filename, PdfVersion
     init(version, opts);
 }
 
+PdfStreamedDocument::~PdfStreamedDocument()
+{
+    GetFonts().EmbedFonts();
+}
+
 void PdfStreamedDocument::init(PdfVersion version, PdfSaveOptions opts)
 {
     m_Writer.reset(new PdfImmediateWriter(this->GetObjects(), this->GetTrailer().GetObject(), *m_Device, version, m_Encrypt, opts));
-}
-
-void PdfStreamedDocument::Close()
-{
-    GetFonts().EmbedFonts();
-    this->GetObjects().Finish();
 }
 
 PdfVersion PdfStreamedDocument::GetPdfVersion() const

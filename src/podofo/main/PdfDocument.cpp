@@ -66,7 +66,8 @@ PdfDocument::PdfDocument(const PdfDocument& doc) :
 
 PdfDocument::~PdfDocument()
 {
-    // Do nothing, all members will autoclear
+    // NOTE: Members will autoclear
+    this->GetObjects().Finish();
 }
 
 void PdfDocument::Clear() 

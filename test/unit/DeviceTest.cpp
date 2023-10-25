@@ -35,3 +35,19 @@ TEST_CASE("testSaveIncremental")
     doc.SaveUpdate(testPath);
     doc.Load(testPath);
 }
+
+TEST_CASE("TestStreamedDocument")
+{
+    /*
+    auto testPath = TestUtils::GetTestOutputFilePath("TestStreamedDocument.pdf");
+    PdfStreamedDocument document(testPath);
+    auto& page = document.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto font = document.GetFonts().SearchFont("Arial");
+    REQUIRE(font != nullptr);
+    PdfPainter painter;
+    painter.SetCanvas(page);
+    painter.TextState.SetFont(*font, 18);
+    painter.DrawText("Hello World!", 56.69, page.GetRect().Height - 56.69);
+    painter.FinishDrawing();
+    */
+}

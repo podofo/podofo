@@ -172,7 +172,7 @@ void PdfWriter::WritePdfObjects(OutputStreamDevice& device, const PdfIndirectObj
         {
             xref.AddInUseObject(obj->GetIndirectReference(), device.GetPosition());
             // Also make sure that we do not encrypt the encryption dictionary!
-            obj->Write(device, m_WriteFlags, obj == m_EncryptObj ? nullptr : m_Encrypt.get(), m_buffer);
+            obj->WriteFinal(device, m_WriteFlags, obj == m_EncryptObj ? nullptr : m_Encrypt.get(), m_buffer);
         }
     }
 
@@ -287,11 +287,11 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
     }
 
     info->GetDictionary().AddKey("Location", PdfString("SOMEFILENAME"));
-    info->Write(length, m_WriteFlags, nullptr, m_buffer);
+    info->WriteFinal(length, m_WriteFlags, nullptr, m_buffer);
 
     charbuff buffer(length.GetLength());
     StringStreamDevice device(buffer);
-    info->Write(device, m_WriteFlags, nullptr, m_buffer);
+    info->WriteFinal(device, m_WriteFlags, nullptr, m_buffer);
 
     // calculate the MD5 Sum
     identifier = PdfEncryptMD5Base::GetMD5String(reinterpret_cast<unsigned char*>(buffer.data()),

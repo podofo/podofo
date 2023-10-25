@@ -286,7 +286,7 @@ void PdfXRef::WriteXRefEntry(OutputStreamDevice& device, const PdfReference& ref
 
 void PdfXRef::EndWriteImpl(OutputStreamDevice& device, charbuff& buffer)
 {
-    PdfObject  trailer;
+    PdfObject trailer;
 
     // if we have a dummy offset we write also a prev entry to the trailer
     m_writer->FillTrailerObject(trailer, GetSize(), false);
@@ -294,7 +294,7 @@ void PdfXRef::EndWriteImpl(OutputStreamDevice& device, charbuff& buffer)
     device.Write("trailer\n");
 
     // NOTE: Do not encrypt the trailer dictionary
-    trailer.Write(device, m_writer->GetWriteFlags(), nullptr, buffer);
+    trailer.WriteFinal(device, m_writer->GetWriteFlags(), nullptr, buffer);
 }
 
 void PdfXRef::endWrite(OutputStreamDevice& device, charbuff& buffer)

@@ -60,8 +60,6 @@ public:
 
     size_t GetLength() const override;
 
-    bool IsLengthHandled() const override;
-
 private:
     /** Set an encryption object which is used to encrypt
      *  all data written to this stream.

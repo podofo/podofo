@@ -58,8 +58,6 @@ public:
     public:
         virtual ~Observer() { }
 
-        virtual void WriteObject(const PdfObject& obj) = 0;
-
         /** Called whenever appending to a stream is started.
          *  \param stream the stream object the user currently writes to.
          */
@@ -213,12 +211,6 @@ public:
      *  \returns a new stream object
      */
     std::unique_ptr<PdfObjectStreamProvider> CreateStream();
-
-    /** Can be called to force objects to be written to disk.
-     *
-     *  \param obj a PdfObject that should be written to disk.
-     */
-    void WriteObject(PdfObject& obj);
 
     /** Call whenever a document is finished
      */

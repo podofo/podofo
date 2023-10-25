@@ -379,6 +379,7 @@ void PdfArray::insert(const PdfArray::iterator& pos,
     const InputIterator& first,
     const InputIterator& last)
 {
+    AssertMutable();
     auto document = GetObjectDocument();
     InputIterator it1 = first;
     iterator it2 = pos;

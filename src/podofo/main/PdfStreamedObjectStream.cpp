@@ -95,7 +95,6 @@ unique_ptr<InputStream> PdfStreamedObjectStream::GetInputStream(PdfObject& obj)
 
 unique_ptr<OutputStream> PdfStreamedObjectStream::GetOutputStream(PdfObject& obj)
 {
-    obj.GetDocument()->GetObjects().WriteObject(obj);
     if (m_CurrEncrypt == nullptr)
     {
         return std::make_unique<ObjectOutputStream>(*this, *m_Device);
@@ -119,17 +118,12 @@ size_t PdfStreamedObjectStream::GetLength() const
     return m_Length;
 }
 
-bool PdfStreamedObjectStream::IsLengthHandled() const
-{
-    return true;
-}
-
 void PdfStreamedObjectStream::FinishOutput()
 {
     if (m_CurrEncrypt != nullptr)
         m_Length = m_CurrEncrypt->CalculateStreamLength(m_Length);
 
-    m_LengthObj->SetNumber(static_cast<int64_t>(m_Length));
+    m_LengthObj->SetNumberNoDirtySet(static_cast<int64_t>(m_Length));
 }
 
 void PdfStreamedObjectStream::SetEncrypted(PdfEncrypt& encrypt)

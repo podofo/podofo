@@ -449,13 +449,6 @@ unique_ptr<PdfObjectStreamProvider> PdfIndirectObjectList::CreateStream()
     }
 }
 
-void PdfIndirectObjectList::WriteObject(PdfObject& obj)
-{
-    // Tell any observers that there are new objects to write
-    for (auto& observer : m_observers)
-        observer->WriteObject(obj);
-}
-
 void PdfIndirectObjectList::Finish()
 {
     // always work on a copy of the vector

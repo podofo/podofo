@@ -632,7 +632,7 @@ private:
     void k_Operator(double cyan, double magenta, double yellow, double black) override;
     void BX_Operator() override;
     void EX_Operator() override;
-    void Extension_Operator(const std::string_view& opName, const cspan<PdfObject>& operands) override;
+    void Extension_Operator(const std::string_view& opName, const cspan<PdfVariant>& operands) override;
 
 private:
     enum PainterStatus

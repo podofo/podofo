@@ -790,6 +790,16 @@ bool PdfVariant::tryGetArray(PdfArray*& arr) const
     return true;
 }
 
+PdfDictionary& PdfVariant::GetDictionaryUnsafe()
+{
+    return *(PdfDictionary*)m_Data.Data;
+}
+
+PdfArray& PdfVariant::GetArrayUnsafe()
+{
+    return *(PdfArray*)m_Data.Data;
+}
+
 void PdfVariant::SetBool(bool value)
 {
     if (m_DataType != PdfDataType::Bool)

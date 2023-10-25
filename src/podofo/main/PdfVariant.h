@@ -32,6 +32,8 @@ class PdfString;
  */
 class PODOFO_API PdfVariant final
 {
+    friend class PdfObject;
+    friend class PdfParserObject;
     friend class PdfArray;
     friend class PdfDictionary;
 
@@ -314,6 +316,10 @@ public:
 
 public:
     inline PdfDataType GetDataType() const { return m_DataType; }
+
+private:
+    PdfDictionary& GetDictionaryUnsafe();
+    PdfArray& GetArrayUnsafe();
 
 private:
     void clear();

@@ -62,25 +62,15 @@ public:
     PdfVersion GetPdfVersion() const;
 
 private:
-    void WriteObject(const PdfObject& obj) override;
     void Finish() override;
     void BeginAppendStream(PdfObjectStream& stream) override;
     void EndAppendStream(PdfObjectStream& stream) override;
     std::unique_ptr<PdfObjectStreamProvider> CreateStream() override;
 
-    /** Assume the stream for the last object has
-     *  been written complete.
-     *  Therefore close the stream of the object
-     *  now so that the next object can be written
-     *  to disk
-     */
-    void FinishLastObject();
-
 private:
     bool m_attached;
     OutputStreamDevice* m_Device;
     std::unique_ptr<PdfXRef> m_xRef;
-    PdfObject* m_Last;
     bool m_OpenStream;
 };
 

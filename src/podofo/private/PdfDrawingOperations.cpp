@@ -548,7 +548,7 @@ void PoDoFo::WriteOperator_EX(PdfStringStream& stream)
     stream << "EX\n";
 }
 
-void PoDoFo::WriteOperator_Extension(PdfStringStream& stream, const string_view& opName, const cspan<PdfObject>& operands)
+void PoDoFo::WriteOperator_Extension(PdfStringStream& stream, const string_view& opName, const cspan<PdfVariant>& operands)
 {
     charbuff buffer;
     for (unsigned i = 0; i < operands.size(); i++)

@@ -136,7 +136,7 @@ TEST_CASE("TestImage4")
     }
 
 #ifdef PODOFO_PLAYGROUND
-    // NOTE: The following check may file using different,
+    // NOTE: The following check may fail using different,
     // jpeg libraries such as libjpeg-turbo
     {
         PdfMemDocument doc;

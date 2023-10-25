@@ -61,6 +61,12 @@ bool PdfDataContainer::IsIndirectReferenceAllowed(const PdfObject& obj)
     return false;
 }
 
+void PdfDataContainer::AssertMutable() const
+{
+    if (m_Owner != nullptr && m_Owner->IsImmutable())
+        PODOFO_RAISE_ERROR(PdfErrorCode::ChangeOnImmutable);
+}
+
 PdfDocument* PdfDataContainer::GetObjectDocument()
 {
     return m_Owner == nullptr ? nullptr : m_Owner->GetDocument();

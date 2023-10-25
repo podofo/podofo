@@ -80,11 +80,7 @@ public:
     PdfStreamedDocument(const std::string_view& filename, PdfVersion version = PdfVersionDefault,
         PdfEncrypt* encrypt = nullptr, PdfSaveOptions opts = PdfSaveOptions::None);
 
-    /** Close the document. The PDF file on disk is finished.
-     *  No other member function of this class may be called
-     *  after calling this function.
-     */
-    void Close();
+    ~PdfStreamedDocument();
 
 public:
     const PdfEncrypt* GetEncrypt() const override;

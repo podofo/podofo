@@ -95,7 +95,7 @@ void WriteOperator_K(PdfStringStream& stream, double cyan, double magenta, doubl
 void WriteOperator_k(PdfStringStream& stream, double cyan, double magenta, double yellow, double black);
 void WriteOperator_BX(PdfStringStream& stream);
 void WriteOperator_EX(PdfStringStream& stream);
-void WriteOperator_Extension(PdfStringStream& stream, const std::string_view& opName, const cspan<PdfObject>& operands);
+void WriteOperator_Extension(PdfStringStream& stream, const std::string_view& opName, const cspan<PdfVariant>& operands);
 
 }
 

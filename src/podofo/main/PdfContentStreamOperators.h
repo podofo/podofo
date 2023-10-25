@@ -94,7 +94,7 @@ public:
     virtual void k_Operator(double cyan, double magenta, double yellow, double black) = 0;
     virtual void BX_Operator() = 0;
     virtual void EX_Operator() = 0;
-    virtual void Extension_Operator(const std::string_view& opName, const cspan<PdfObject>& operands) = 0;
+    virtual void Extension_Operator(const std::string_view& opName, const cspan<PdfVariant>& operands) = 0;
 private:
     PdfContentStreamOperators(const PdfContentStreamOperators&) = delete;
     PdfContentStreamOperators& operator=(const PdfContentStreamOperators&) = delete;

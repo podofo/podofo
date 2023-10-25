@@ -52,6 +52,10 @@ public:
     ~PdfObjectOutputStream();
     PdfObjectOutputStream(PdfObjectOutputStream&& rhs) noexcept;
 private:
+    /**
+     * \param raw when true, ignore filters on the creation of the stream,
+     *      while still setting them on the object 
+     */
     PdfObjectOutputStream(PdfObjectStream& stream, PdfFilterList&& filters,
         bool raw, bool append);
     PdfObjectOutputStream(PdfObjectStream& stream);
@@ -65,8 +69,6 @@ public:
     PdfObjectOutputStream& operator=(PdfObjectOutputStream&& rhs) noexcept;
 private:
     PdfObjectStream* m_stream;
-    nullable<PdfFilterList> m_filters;
-    bool m_raw;
     std::unique_ptr<OutputStream> m_output;
 };
 

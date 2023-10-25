@@ -125,7 +125,6 @@ void init(const string_view& inputPath, const string_view& outputPath, const str
 
     doc.GetMetadata().SetCreator(PdfString("podofotxt2pdf"));
     doc.GetMetadata().SetTitle(PdfString("Converted to PDF from a text file"));
-    doc.Close();
 
     free(buffer);
 }

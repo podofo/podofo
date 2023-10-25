@@ -535,7 +535,7 @@ void PdfPainter::EX_Operator()
     m_painterStatus = StatusDefault;
 }
 
-void PdfPainter::Extension_Operator(const string_view& opName, const cspan<PdfObject>& operands)
+void PdfPainter::Extension_Operator(const string_view& opName, const cspan<PdfVariant>& operands)
 {
     checkStream();
     checkStatus(StatusExtension);

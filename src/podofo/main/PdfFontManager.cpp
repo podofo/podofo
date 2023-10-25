@@ -624,7 +624,9 @@ FT_Face getFontFaceFromBuffer(const bufferview& view, unsigned faceIndex, unique
     return face;
 }
 
-// NOTE: No check for collections
+// NOTE1: No check for collections
+// NOTE2: The function may be unsued depending on flags
+#pragma warning (suppress: 4505)
 FT_Face getFontFaceFromBuffer(const bufferview& view)
 {
     auto face = FT::CreateFaceFromBuffer(view);

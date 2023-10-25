@@ -20,7 +20,6 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
     PdfWriter(objects, trailer),
     m_attached(true),
     m_Device(&device),
-    m_Last(nullptr),
     m_OpenStream(false)
 {
     // register as observer for PdfIndirectObjectList
@@ -63,29 +62,8 @@ PdfVersion PdfImmediateWriter::GetPdfVersion() const
     return PdfWriter::GetPdfVersion();
 }
 
-void PdfImmediateWriter::WriteObject(const PdfObject& obj)
-{
-    const int endObjLenght = 7;
-
-    this->FinishLastObject();
-
-    m_xRef->AddInUseObject(obj.GetIndirectReference(), m_Device->GetPosition());
-    obj.Write(*m_Device, this->GetWriteFlags(), GetEncrypt(), m_buffer);
-
-    // Let's cheat a bit:
-    // obj has written an "endobj\n" as last data to the file.
-    // we simply overwrite this string with "stream\n" which 
-    // has excatly the same length.
-    m_Device->Seek(m_Device->GetPosition() - endObjLenght);
-    m_Device->Write("stream\n");
-    m_Last = const_cast<PdfObject*>(&obj);
-}
-
 void PdfImmediateWriter::Finish()
 {
-    // write all objects which are still in RAM
-    this->FinishLastObject();
-
     // setup encrypt dictionary
     if (GetEncrypt() != nullptr)
     {
@@ -121,9 +99,11 @@ void PdfImmediateWriter::Finish()
     m_Device->Flush();
 
     // we are done now
+
+    */
+
     GetObjects().Detach(*this);
     m_attached = false;
-    */
 }
 
 unique_ptr<PdfObjectStreamProvider> PdfImmediateWriter::CreateStream()
@@ -131,18 +111,6 @@ unique_ptr<PdfObjectStreamProvider> PdfImmediateWriter::CreateStream()
     return unique_ptr<PdfObjectStreamProvider>(m_OpenStream ?
         static_cast<PdfObjectStreamProvider*>(new PdfMemoryObjectStream()) :
         static_cast<PdfObjectStreamProvider*>(new PdfStreamedObjectStream(*m_Device)));
-}
-
-void PdfImmediateWriter::FinishLastObject()
-{
-    if (m_Last == nullptr)
-        return;
-
-    m_Device->Write("\nendstream\n");
-    m_Device->Write("endobj\n");
-
-    GetObjects().RemoveObject(m_Last->GetIndirectReference(), false);
-    m_Last = nullptr;
 }
 
 void PdfImmediateWriter::BeginAppendStream(PdfObjectStream& stream)
@@ -158,10 +126,30 @@ void PdfImmediateWriter::BeginAppendStream(PdfObjectStream& stream)
         if (encrypt != nullptr)
             streamedObjectStream->SetEncrypted(*encrypt);
     }
+
+    auto& obj = stream.GetParent();
+    m_xRef->AddInUseObject(obj.GetIndirectReference(), m_Device->GetPosition());
+
+    // Make sure, no one will add keys now to the object
+    obj.SetImmutable();
+
+    // Manually handle writing
+    PdfStatefulEncrypt encrypt;
+    if (GetEncrypt() != nullptr)
+        encrypt = PdfStatefulEncrypt(*GetEncrypt(), obj.GetIndirectReference());
+
+    obj.WriteHeader(*m_Device, this->GetWriteFlags(), m_buffer);
+    obj.GetVariant().Write(*m_Device, this->GetWriteFlags(), encrypt, m_buffer);
+    obj.ResetDirty();
+
+    m_Device->Write("stream\n");
 }
 
 void PdfImmediateWriter::EndAppendStream(PdfObjectStream& stream)
 {
+    m_Device->Write("\nendstream\n");
+    m_Device->Write("endobj\n");
+
     auto fileStream = dynamic_cast<const PdfStreamedObjectStream*>(&stream);
     if (fileStream != nullptr)
     {

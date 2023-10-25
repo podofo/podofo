@@ -46,6 +46,7 @@ protected:
     void SetDirty();
     bool IsIndirectReferenceAllowed(const PdfObject& obj);
     virtual void setChildrenParent() = 0;
+    void AssertMutable() const;
 
 private:
     void SetOwner(PdfObject& owner);
