@@ -191,7 +191,7 @@ PdfField& PdfField::Create(const string_view& name,
     else
     {
         // Prepare keys to remove that will stay on the parent
-        const vector<string> parentKeys{ "FT", "Ff", "T", "V" };
+        const vector<string> parentKeys{ "FT", "Ff", "T", "V", "Opt" };
         if (!candidateParent->GetChildren().HasKidsArray())
         {
             PODOFO_INVARIANT(acroForm != null);
