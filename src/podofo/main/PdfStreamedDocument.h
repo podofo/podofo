@@ -1,5 +1,6 @@
 /**
  * SPDX-FileCopyrightText: (C) 2007 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2023 Francesco Pretto <ceztko@gmail.com>
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
@@ -33,10 +34,9 @@ namespace PoDoFo {
  *
  *  Example of using PdfStreamedDocument:
  *
- *  PdfStreamedDocument document;
- *  document.Load("outputfile.pdf");
- *  PdfPage& page = document.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
- *  PdfFont* font = document.GetFonts().SearchFont("Arial");
+ *  PdfStreamedDocument document("outputfile.pdf");
+ *  auto& page = document.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+ *  auto* font = document.GetFonts().SearchFont("Arial");
  *
  *  PdfPainter painter;
  *  painter.SetCanvas(page);
@@ -104,8 +104,8 @@ private:
     void init(PdfVersion version, PdfSaveOptions opts);
 
 private:
-    std::unique_ptr<PdfImmediateWriter> m_Writer;
     std::shared_ptr<OutputStreamDevice> m_Device;
+    std::unique_ptr<PdfImmediateWriter> m_Writer;
     PdfEncrypt* m_Encrypt;
 };
 

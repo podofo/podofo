@@ -66,6 +66,9 @@ PdfStreamedObjectStream::PdfStreamedObjectStream(OutputStreamDevice& device) :
 
 void PdfStreamedObjectStream::Init(PdfObject& obj)
 {
+    // Prepare a /Length indirect object that will be set
+    // with stream size after the stream has been written
+    // back to the device
     m_LengthObj = &obj.GetDocument()->GetObjects().CreateObject(static_cast<int64_t>(0));
     obj.GetDictionary().AddKey(PdfName::KeyLength, m_LengthObj->GetIndirectReference());
 }
@@ -123,7 +126,9 @@ void PdfStreamedObjectStream::FinishOutput()
     if (m_CurrEncrypt != nullptr)
         m_Length = m_CurrEncrypt->CalculateStreamLength(m_Length);
 
-    m_LengthObj->SetNumberNoDirtySet(static_cast<int64_t>(m_Length));
+    // Finally set the actual length of the stream
+    // on the /Length indirect object
+    m_LengthObj->SetNumber(static_cast<int64_t>(m_Length));
 }
 
 void PdfStreamedObjectStream::SetEncrypted(PdfEncrypt& encrypt)

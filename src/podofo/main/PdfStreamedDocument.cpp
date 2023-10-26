@@ -1,5 +1,6 @@
 /**
  * SPDX-FileCopyrightText: (C) 2007 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2023 Francesco Pretto <ceztko@gmail.com>
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
@@ -12,7 +13,6 @@ using namespace PoDoFo;
 
 PdfStreamedDocument::PdfStreamedDocument(const shared_ptr<OutputStreamDevice>& device, PdfVersion version,
         PdfEncrypt* encrypt, PdfSaveOptions opts) :
-    m_Writer(nullptr),
     m_Device(device),
     m_Encrypt(encrypt)
 {
@@ -21,7 +21,6 @@ PdfStreamedDocument::PdfStreamedDocument(const shared_ptr<OutputStreamDevice>& d
 
 PdfStreamedDocument::PdfStreamedDocument(const string_view& filename, PdfVersion version,
         PdfEncrypt* encrypt, PdfSaveOptions opts) :
-    m_Writer(nullptr),
     m_Device(new FileStreamDevice(filename, FileMode::Create)),
     m_Encrypt(encrypt)
 {

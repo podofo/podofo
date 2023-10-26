@@ -449,16 +449,6 @@ unique_ptr<PdfObjectStreamProvider> PdfIndirectObjectList::CreateStream()
     }
 }
 
-void PdfIndirectObjectList::Finish()
-{
-    // always work on a copy of the vector
-    // in case a child invalidates our iterators
-    // with a call to attach or detach.
-    ObserverList copy(m_observers);
-    for (auto& observer : copy)
-        observer->Finish();
-}
-
 void PdfIndirectObjectList::BeginAppendStream(PdfObjectStream& stream)
 {
     for (auto& observer : m_observers)

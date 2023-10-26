@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#ifndef PDF_FILE_OBJECT_STREAM_H
-#define PDF_FILE_OBJECT_STREAM_H
+#ifndef PDF_STREAMED_OBJECT_STREAM_H
+#define PDF_STREAMED_OBJECT_STREAM_H
 
 #include "PdfDeclarations.h"
 
@@ -79,4 +79,4 @@ private:
 
 };
 
-#endif // PDF_FILE_OBJECT_STREAM_H
+#endif // PDF_STREAMED_OBJECT_STREAM_H

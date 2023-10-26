@@ -38,7 +38,6 @@ TEST_CASE("testSaveIncremental")
 
 TEST_CASE("TestStreamedDocument")
 {
-    /*
     auto testPath = TestUtils::GetTestOutputFilePath("TestStreamedDocument.pdf");
     PdfStreamedDocument document(testPath);
     auto& page = document.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
@@ -49,5 +48,4 @@ TEST_CASE("TestStreamedDocument")
     painter.TextState.SetFont(*font, 18);
     painter.DrawText("Hello World!", 56.69, page.GetRect().Height - 56.69);
     painter.FinishDrawing();
-    */
 }

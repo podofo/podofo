@@ -1,5 +1,6 @@
 /**
  * SPDX-FileCopyrightText: (C) 2007 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2023 Francesco Pretto <ceztko@gmail.com>
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
@@ -9,7 +10,6 @@
 #include "PdfStreamedObjectStream.h"
 #include "PdfMemoryObjectStream.h"
 #include "PdfObject.h"
-#include "PdfXRef.h"
 #include "PdfXRefStream.h"
 
 using namespace std;
@@ -18,143 +18,117 @@ using namespace PoDoFo;
 PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const PdfObject& trailer,
         OutputStreamDevice& device, PdfVersion version, PdfEncrypt* encrypt, PdfSaveOptions opts) :
     PdfWriter(objects, trailer),
-    m_attached(true),
     m_Device(&device),
     m_OpenStream(false)
 {
-    // register as observer for PdfIndirectObjectList
+    // Register as observer for PdfIndirectObjectList
     GetObjects().Attach(*this);
-    // register as stream factory for PdfIndirectObjectList
+    // Register as stream factory for PdfIndirectObjectList
     GetObjects().SetStreamFactory(this);
 
     PdfString identifier;
     this->CreateFileIdentifier(identifier, trailer);
     SetIdentifier(identifier);
 
-    // setup encryption
+    // Setup encryption
     if (encrypt != nullptr)
     {
         this->SetEncrypt(*encrypt);
         encrypt->GenerateEncryptionKey(GetIdentifier());
     }
 
-    // start with writing the header
+    // Start with writing the header
     this->SetPdfVersion(version);
     this->SetSaveOptions(opts);
     this->WritePdfHeader(*m_Device);
 
+    // Manually preapare the cross-reference table/stream
     m_xRef.reset(GetUseXRefStream() ? new PdfXRefStream(*this) : new PdfXRef(*this));
 }
 
 PdfImmediateWriter::~PdfImmediateWriter()
 {
-    if (m_attached)
-        GetObjects().Detach(*this);
+    finish();
 }
 
-PdfWriteFlags PdfImmediateWriter::GetWriteFlags() const
+void PdfImmediateWriter::finish()
 {
-    return PdfWriter::GetWriteFlags();
-}
+    // Before writing remaining objects remove
+    // the already handled ones from the collection
+    for (unsigned i = 0; i < m_writtenObjects.size(); i++)
+        GetObjects().RemoveObject(m_writtenObjects[i]->GetIndirectReference(), false);
 
-PdfVersion PdfImmediateWriter::GetPdfVersion() const
-{
-    return PdfWriter::GetPdfVersion();
-}
-
-void PdfImmediateWriter::Finish()
-{
-    // setup encrypt dictionary
-    if (GetEncrypt() != nullptr)
+    // Eetup encrypt dictionary
+    auto encrypt = GetEncrypt();
+    if (encrypt != nullptr)
     {
         // Add our own Encryption dictionary
         SetEncryptObj(GetObjects().CreateDictionaryObject());
-        GetEncrypt()->CreateEncryptionDictionary(GetEncryptObj()->GetDictionary());
+        encrypt->CreateEncryptionDictionary(GetEncryptObj()->GetDictionary());
     }
 
+    // Write all the remaining objects
     this->WritePdfObjects(*m_Device, GetObjects(), *m_xRef);
 
-    // write the XRef
-    uint64_t lXRefOffset = static_cast<uint64_t>(m_Device->GetPosition());
+    // Finally write the XRef
     m_xRef->Write(*m_Device, m_buffer);
-
-    (void)lXRefOffset;
-    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "FIX-ME: The following is already done by PdfXRef now");
-    
-    /*
-    // XRef streams contain the trailer in the XRef
-    if (!GetUseXRefStream())
-    {
-        PdfObject trailer;
-
-        // if we have a dummy offset we write also a prev entry to the trailer
-        FillTrailerObject(trailer, m_xRef->GetSize(), false);
-
-        m_Device->Write("trailer\n");
-        trailer.Write(*m_Device, this->GetWriteFlags(), nullptr, m_buffer);
-    }
-
-    utls::FormatTo(m_buffer, "startxref\n{}\n%%EOF\n", lXRefOffset);
-    m_Device->Write(m_buffer);
-    m_Device->Flush();
-
-    // we are done now
-
-    */
-
-    GetObjects().Detach(*this);
-    m_attached = false;
 }
 
 unique_ptr<PdfObjectStreamProvider> PdfImmediateWriter::CreateStream()
 {
-    return unique_ptr<PdfObjectStreamProvider>(m_OpenStream ?
-        static_cast<PdfObjectStreamProvider*>(new PdfMemoryObjectStream()) :
-        static_cast<PdfObjectStreamProvider*>(new PdfStreamedObjectStream(*m_Device)));
+    return unique_ptr<PdfObjectStreamProvider>(new PdfStreamedObjectStream(*m_Device));
 }
 
 void PdfImmediateWriter::BeginAppendStream(PdfObjectStream& stream)
 {
-    auto streamedObjectStream = dynamic_cast<PdfStreamedObjectStream*>(&stream.GetProvider());
-    if (streamedObjectStream != nullptr)
+    if (m_OpenStream)
     {
-        // Only one open file stream is allowed at a time
-        PODOFO_ASSERT(!m_OpenStream);
-        m_OpenStream = true;
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic,
+            "One streaming operation is already opened at the same time");
+    }
 
-        auto encrypt = GetEncrypt();
-        if (encrypt != nullptr)
-            streamedObjectStream->SetEncrypted(*encrypt);
+    m_OpenStream = true;
+    auto encrypt = GetEncrypt();
+    if (encrypt != nullptr)
+    {
+        auto& streamedObjectStream = dynamic_cast<PdfStreamedObjectStream&>(stream.GetProvider());
+        streamedObjectStream.SetEncrypted(*encrypt);
     }
 
     auto& obj = stream.GetParent();
+
+    // Manually mark the object as in-use, as it won't be
+    // handled by the document object collection
     m_xRef->AddInUseObject(obj.GetIndirectReference(), m_Device->GetPosition());
 
     // Make sure, no one will add keys now to the object
     obj.SetImmutable();
 
-    // Manually handle writing
-    PdfStatefulEncrypt encrypt;
-    if (GetEncrypt() != nullptr)
-        encrypt = PdfStatefulEncrypt(*GetEncrypt(), obj.GetIndirectReference());
+    // Manually handle writing the object
+    PdfStatefulEncrypt statefulEncrypt;
+    if (encrypt != nullptr)
+        statefulEncrypt = PdfStatefulEncrypt(*encrypt, obj.GetIndirectReference());
 
     obj.WriteHeader(*m_Device, this->GetWriteFlags(), m_buffer);
-    obj.GetVariant().Write(*m_Device, this->GetWriteFlags(), encrypt, m_buffer);
+    obj.GetVariant().Write(*m_Device, this->GetWriteFlags(), statefulEncrypt, m_buffer);
     obj.ResetDirty();
+    m_Device->Write("\nstream\n");
 
-    m_Device->Write("stream\n");
+    // Already written objects must then be removed
+    // from internal document object collection
+    m_writtenObjects.push_back(&obj);
 }
 
 void PdfImmediateWriter::EndAppendStream(PdfObjectStream& stream)
 {
-    m_Device->Write("\nendstream\n");
-    m_Device->Write("endobj\n");
+    (void)stream;
+    PODOFO_ASSERT(m_OpenStream);
+    m_Device->Write("\nendstream\nendobj\n");
+    m_Device->Flush();
+    m_OpenStream = false;
+}
 
-    auto fileStream = dynamic_cast<const PdfStreamedObjectStream*>(&stream);
-    if (fileStream != nullptr)
-    {
-        // A PdfFileStream has to be opened before
-        PODOFO_ASSERT(m_OpenStream);
-        m_OpenStream = false;
-    }
+PdfVersion PdfImmediateWriter::GetPdfVersion() const
+{
+    return PdfWriter::GetPdfVersion();
 }

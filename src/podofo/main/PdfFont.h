@@ -406,7 +406,8 @@ private:
 
     double getStringLength(const std::vector<PdfCID>& cids, const PdfTextState& state) const;
 
-    PdfObject& embedFontFileData(PdfObject& descriptor, const PdfName& fontFileName, const bufferview& data);
+    void embedFontFileData(PdfObject& descriptor, const PdfName& fontFileName,
+        const std::function<void(PdfDictionary& dict)>& dictWriter, const bufferview& data);
 
     static std::unique_ptr<PdfFont> createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding, PdfFontFileType type, bool preferNonCID);

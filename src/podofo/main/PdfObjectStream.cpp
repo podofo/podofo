@@ -428,6 +428,9 @@ PdfObjectOutputStream::PdfObjectOutputStream()
 
 PdfObjectOutputStream::~PdfObjectOutputStream()
 {
+    // NOTE: Dispose the actual output stream now, so
+    // all data can be flushed before ending appending
+    m_output = nullptr;
     if (m_stream != nullptr)
     {
         // Unlock the stream

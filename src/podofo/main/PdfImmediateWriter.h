@@ -1,5 +1,6 @@
 /**
  * SPDX-FileCopyrightText: (C) 2007 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2023 Francesco Pretto <ceztko@gmail.com>
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
@@ -9,17 +10,17 @@
 #include "PdfDeclarations.h"
 #include "PdfIndirectObjectList.h"
 #include "PdfWriter.h"
+#include "PdfXRef.h"
 
 namespace PoDoFo {
 
 class PdfEncrypt;
 class OutputStreamDevice;
-class PdfXRef;
 
 /** A kind of PdfWriter that writes objects with streams immediately to
  *  an OutputStreamDevice
  */
-class PODOFO_API PdfImmediateWriter : private PdfWriter,
+class PODOFO_API PdfImmediateWriter sealed : private PdfWriter,
     private PdfIndirectObjectList::Observer,
     private PdfIndirectObjectList::StreamFactory
 {
@@ -48,28 +49,17 @@ public:
     ~PdfImmediateWriter();
 
 public:
-    /** Get the write mode used for writing the PDF
-     *  \returns the write mode
-     */
-    PdfWriteFlags GetWriteFlags() const;
-
-    /** Get the PDF version of the document
-     *  The PDF version can only be set in the constructor
-     *  as it is the first item written to the document on disk
-     *
-     *  \returns PdfVersion version of the pdf document
-     */
     PdfVersion GetPdfVersion() const;
 
 private:
-    void Finish() override;
+    void finish();
     void BeginAppendStream(PdfObjectStream& stream) override;
     void EndAppendStream(PdfObjectStream& stream) override;
     std::unique_ptr<PdfObjectStreamProvider> CreateStream() override;
 
 private:
-    bool m_attached;
     OutputStreamDevice* m_Device;
+    std::vector<PdfObject*> m_writtenObjects;
     std::unique_ptr<PdfXRef> m_xRef;
     bool m_OpenStream;
 };

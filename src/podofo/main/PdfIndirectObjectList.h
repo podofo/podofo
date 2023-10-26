@@ -67,8 +67,6 @@ public:
          *  \param stream the stream object the user currently writes to.
          */
         virtual void EndAppendStream(PdfObjectStream& stream) = 0;
-
-        virtual void Finish() = 0;
     };
 
     /** This class is used to implement stream factories in PoDoFo.
@@ -211,10 +209,6 @@ public:
      *  \returns a new stream object
      */
     std::unique_ptr<PdfObjectStreamProvider> CreateStream();
-
-    /** Call whenever a document is finished
-     */
-    void Finish();
 
     /** Every stream implementation has to call this in BeginAppend
      *  \param stream the stream object that is calling
