@@ -20,7 +20,7 @@ class OutputStreamDevice;
 /** A kind of PdfWriter that writes objects with streams immediately to
  *  an OutputStreamDevice
  */
-class PODOFO_API PdfImmediateWriter sealed : private PdfWriter,
+class PODOFO_API PdfImmediateWriter final : private PdfWriter,
     private PdfIndirectObjectList::Observer,
     private PdfIndirectObjectList::StreamFactory
 {
