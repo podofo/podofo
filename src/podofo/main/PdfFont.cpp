@@ -574,6 +574,8 @@ void PdfFont::embedFontFileData(PdfObject& descriptor, const PdfName& fontFileNa
 {
     auto& contents = GetDocument().GetObjects().CreateDictionaryObject();
     descriptor.GetDictionary().AddKeyIndirect(fontFileName, contents);
+    // NOTE: Access to directory is mediated by functor to not crash
+    // operations when using PdfStreamedDocument. Do not remove it
     dictWriter(contents.GetDictionary());
     contents.GetOrCreateStream().SetData(data);
 }
