@@ -426,7 +426,12 @@ TEST_CASE("testCMYKConstructor")
         double dGreen = M_VALUE * (1.0 - B_VALUE) + B_VALUE;
         double dBlue = Y_VALUE * (1.0 - B_VALUE) + B_VALUE;
 
-        REQUIRE(color.ConvertToRGB() == PdfColor(1.0 - dRed, 1.0 - dGreen, 1.0 - dBlue));
+        auto rgb1 = color.ConvertToRGB();
+        PdfColor rgb2(1.0 - dRed, 1.0 - dGreen, 1.0 - dBlue);
+
+        ASSERT_EQUAL(rgb1.GetRed(), rgb2.GetRed());
+        ASSERT_EQUAL(rgb1.GetGreen(), rgb2.GetGreen());
+        ASSERT_EQUAL(rgb1.GetBlue(), rgb2.GetBlue());
     }
 
     REQUIRE(color.ConvertToCMYK() == PdfColor(C_VALUE, M_VALUE, Y_VALUE, B_VALUE));
