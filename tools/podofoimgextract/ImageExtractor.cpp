@@ -92,8 +92,8 @@ void ImageExtractor::ExtractImage(const PdfObject& obj, bool jpeg)
         const char* ppmHeader = "P6\n# Image extracted by PoDoFo\n%u %u\n%li\n";
 
         fprintf(file, ppmHeader,
-            (unsigned)obj.GetDictionary().GetKey("Width")->GetNumber(),
-            (unsigned)obj.GetDictionary().GetKey("Height")->GetNumber(),
+            (unsigned)obj.GetDictionary().MustFindKey("Width").GetNumber(),
+            (unsigned)obj.GetDictionary().MustFindKey("Height").GetNumber(),
             255);
 
         auto buffer = obj.GetStream()->GetCopy();
