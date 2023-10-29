@@ -102,7 +102,7 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
         PdfObject* objDescriptor = nullptr;
         if (descendants.size() != 0)
         {
-            objFont = descendants.FindAt(0);
+            objFont = &descendants.MustFindAt(0);
             objDescriptor = objFont->GetDictionary().FindKey("FontDescriptor");
         }
 
