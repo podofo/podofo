@@ -255,9 +255,15 @@ public:
 
     PdfAcroForm* GetAcroForm() { return m_AcroForm.get(); }
 
+    const PdfAcroForm* GetAcroForm() const { return m_AcroForm.get(); }
+
     PdfNameTree* GetNames() { return m_NameTree.get(); }
 
+    const PdfNameTree* GetNames() const { return m_NameTree.get(); }
+
     PdfOutlines* GetOutlines() { return m_Outlines.get(); }
+
+    const PdfOutlines* GetOutlines() const { return m_Outlines.get(); }
 
     PdfFontManager& GetFonts() { return m_FontManager; }
 
