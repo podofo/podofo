@@ -4,14 +4,15 @@
 2.  [Requirements](#requirements)
 3.  [Licensing](#licensing)
 4.  [Development quickstart](#development-quickstart)
-5.  [String encoding and buffer conventions](#string-encoding-and-buffer-conventions)
-6.  [API Stability](#api-stability)
-7.  [PoDoFo tools](#podofo-tools)
-8.  [TODO](#todo)
-9.  [FAQ](#faq)
-10.  [No warranty](#no-warranty)
-11.  [Contributions](#contributions)
-12.  [Authors](#authors)
+5.  [Doxygen Documentation](#doxygen-documentation)
+6.  [String encoding and buffer conventions](#string-encoding-and-buffer-conventions)
+7.  [API Stability](#api-stability)
+8.  [PoDoFo tools](#podofo-tools)
+9.  [TODO](#todo)
+10.  [FAQ](#faq)
+11.  [No warranty](#no-warranty)
+12.  [Contributions](#contributions)
+13.  [Authors](#authors)
 
 ## What is PoDoFo?
 
@@ -154,6 +155,22 @@ target_link_libraries(MyTarget podofo::podofo)
 If you are linking against a precompiled static build of PoDoFo this is a scenario where the support is limited, as you are really supposed to be able to identify and fix linking errors. The general steps are:
 * Add `PODOFO_STATIC` compilation definition to your project, or before including `podofo.h`;
 * Link the libraries `podofo.a`, `podofo_private.a` (or `podofo.lib`, `podofo_private.lib` with MSVC) and all the [dependent](https://github.com/podofo/podofo/blob/5a07b90f24747a5aafe6f6fd062ee81f4783ab22/CMakeLists.txt#L203C5-L203C24) libraries.
+
+## Generating PoDoFo Documentation with Doxygen
+
+1. **Prerequisite**: Ensure you have Doxygen installed on your machine. If not, visit [Doxygen's official website](http://www.doxygen.nl/) to download and install it.
+
+2. **Generating Documentation**: After completing the build process detailed in the [Development quickstart](#development-quickstart) chapter, navigate to the root directory of PoDoFo's source code.
+Open a terminal or command prompt and run the following command:
+    ```bash
+    doxygen build/Doxyfile
+    ```
+
+3. **Viewing the Documentation**: Once the documentation generation completes, you'll find the `html` directory that contains the generated documentation. Open `index.html` in your favorite web browser to view the API documentation.
+    ```bash
+    cd build/documentation/html
+    open index.html
+    ```
 
 ## String encoding and buffer conventions
 

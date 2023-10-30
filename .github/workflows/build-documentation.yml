@@ -1,0 +1,61 @@
+name: build-documentation
+
+on:
+#  push:
+#    branches: [ master ]
+#  pull_request:
+#    branches: [ master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    # env:
+    #   GIT_AUTHOR_NAME: github-actions[bot]
+    #   GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+    #   GIT_COMMITTER_NAME: github-actions[bot]
+    #   GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Install Doxygen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen
+
+      - name: Generate Doxygen Documentation
+        run: doxygen ${{ github.workspace }}/Doxyfile
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: ${{ github.workspace }}/documentation/html
+
+  deploy:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2

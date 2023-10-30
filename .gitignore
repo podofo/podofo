@@ -22,3 +22,12 @@ x86/
 .DS_Store
 __pycache__/
 *.code-workspace
+
+# Doxygen
+documentation/
+Doxyfile.log
+latex/
+rtf/
+man/
+xml/
+htmlhelp/

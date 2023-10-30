@@ -1,0 +1,40 @@
+# General Information
+PROJECT_NAME           = @PROJECT_NAME@
+PROJECT_NUMBER         = @PROJECT_NUMBER@
+OUTPUT_DIRECTORY       = ./build/documentation
+
+# General Configuration
+QUIET                  = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_AS_ERROR          = NO
+
+# Source Paths
+INPUT                  = ./src/podofo
+RECURSIVE              = YES
+
+# File Extensions
+FILE_PATTERNS          = *.h \
+                         *.cpp
+
+# Exclusions
+EXCLUDE                =
+EXTRACT_ALL            = NO
+HIDE_UNDOC_CLASSES     = YES
+
+# Output Settings
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+GENERATE_HTMLHELP      = NO
+GENERATE_LATEX         = NO
+
+# Diagrams (optional)
+# If you want to generate class diagrams and have Graphviz installed, you can enable it here.
+# Ensure you have Graphviz installed and know the path of the 'dot' command if you decide to use this feature.
+HAVE_DOT               = NO  # Set to YES if you have Graphviz and want to use it.
+# DOT_PATH               = /path/to/dot  # Modify this path if you're using Graphviz.
+# CLASS_DIAGRAMS         = NO  # Set to YES if you want to generate class diagrams.
+
+# Comment Style
+OPTIMIZE_OUTPUT_FOR_C  = NO
+JAVADOC_AUTOBRIEF      = YES
+QT_AUTOBRIEF           = YES
