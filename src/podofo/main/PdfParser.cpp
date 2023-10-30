@@ -221,7 +221,7 @@ void PdfParser::readNextTrailer(InputStreamDevice& device)
         PODOFO_RAISE_ERROR(PdfErrorCode::NoTrailer);
 
     // Ignore the encryption in the trailer as the trailer may not be encrypted
-    auto trailer = new PdfParserObject(m_Objects->GetDocument(), device);
+    auto trailer = new PdfParserObject(m_Objects->GetDocument(), device, -1);
     trailer->SetIsTrailer(true);
 
     unique_ptr<PdfParserObject> trailerTemp;
@@ -610,9 +610,10 @@ void PdfParser::ReadObjects(InputStreamDevice& device)
         PoDoFo::LogMessage(PdfLogSeverity::Debug, "The PDF file is encrypted");
 #endif // PODOFO_VERBOSE_DEBUG
 
-        if (encrypt->IsReference())
+        PdfReference encryptRef;
+        if (encrypt->TryGetReference(encryptRef))
         {
-            unsigned i = encrypt->GetReference().ObjectNumber();
+            unsigned i = encryptRef.ObjectNumber();
             if (i <= 0 || i >= m_entries.GetSize())
             {
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict,
@@ -621,7 +622,7 @@ void PdfParser::ReadObjects(InputStreamDevice& device)
             }
 
             // The encryption dictionary is not encrypted
-            unique_ptr<PdfParserObject> obj(new PdfParserObject(device, (ssize_t)m_entries[i].Offset));
+            unique_ptr<PdfParserObject> obj(new PdfParserObject(device, encryptRef, (ssize_t)m_entries[i].Offset));
             try
             {
                 obj->Parse();

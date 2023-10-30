@@ -31,12 +31,14 @@ private:
      *                 front of the object which is going to be parsed.
      *  \param buffer buffer to use for parsing to avoid reallocations
      *  \param offset the position in the device from which the object shall be read
-     *                 if lOffset = -1, the object will be read from the current
+     *                 if offset == -1, the object will be read from the current
      *                 position in the file.
      */
     PdfParserObject(PdfDocument& doc, const PdfReference& indirectReference,
-        InputStreamDevice& device, ssize_t offset = -1);
-    PdfParserObject(PdfDocument& doc, InputStreamDevice& device, ssize_t offset = -1);
+        InputStreamDevice& device, ssize_t offset);
+    PdfParserObject(PdfDocument& doc, InputStreamDevice& device, ssize_t offset);
+
+    PdfParserObject(InputStreamDevice& device, const PdfReference& indirectReference, ssize_t offset);
 
 public:
     /**
