@@ -9,7 +9,7 @@ WARN_IF_UNDOCUMENTED   = YES
 WARN_AS_ERROR          = NO
 
 # Source Paths
-INPUT                  = ./src/podofo
+INPUT                  = ../src/podofo
 RECURSIVE              = YES
 
 # File Extensions
