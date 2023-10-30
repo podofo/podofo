@@ -38,3 +38,15 @@ jobs:
     - name: Test
       working-directory: ${{github.workspace}}/build
       run: ctest ${{ github.event.inputs.ctestArgs }}
+
+    - name: Install Doxygen
+      run: brew install doxygen
+
+    - name: Generate Doxygen documentation
+      run: doxygen Doxyfile
+
+    - name: Upload Doxygen documentation
+      uses: actions/upload-artifact@v2
+      with:
+        name: documentation
+        path: ./html

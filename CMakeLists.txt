@@ -25,6 +25,15 @@ set(PODOFO_VERSION "${PODOFO_VERSION_MAJOR}.${PODOFO_VERSION_MINOR}.${PODOFO_VER
 set(PODOFO_SOVERSION "3")
 
 #
+# Doxyfile
+#
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
+    ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+    @ONLY
+)
+
+#
 # Main includes
 #
 include(CheckIncludeFile)
