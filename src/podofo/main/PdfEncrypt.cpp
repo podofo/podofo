@@ -407,6 +407,7 @@ protected:
             goto DrainBuffer;
         }
 
+        eof = false;
         return outlen;
 
     DrainBuffer:
@@ -415,6 +416,8 @@ protected:
         m_drainLeft -= (int)drainLen;
         if (m_drainLeft == 0)
             eof = true;
+        else
+            eof = false;
 
         return outlen + drainLen;
     }

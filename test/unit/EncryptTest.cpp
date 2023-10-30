@@ -254,6 +254,42 @@ TEST_CASE("testLoadEncrypedFilePdfMemDocument")
     document.Load(tempFile, PDF_USER_PASSWORD);
 }
 
+// Test a big encrypted content writing and reading
+TEST_CASE("TestEncryptBigBuffer")
+{
+    string tempFile = TestUtils::GetTestOutputFilePath("TestBigBuffer.pdf");
+    PdfReference bufferRef;
+
+    constexpr unsigned BufferSize = 100000;
+
+    {
+        // Create a document with a big enough buffer and ensure it won't
+        // be compressed, so the encryption will operate on a big buffer 
+        PdfMemDocument doc;
+        (void)doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+        auto& obj = doc.GetObjects().CreateDictionaryObject();
+        {
+            vector<char> testBuff(BufferSize);
+            auto stream = obj.GetOrCreateStream().GetOutputStream(PdfFilterList());
+            stream.Write(testBuff.data(), testBuff.size());
+        }
+        bufferRef = obj.GetIndirectReference();
+        doc.GetCatalog().GetDictionary().AddKeyIndirect("TestBigBuffer", obj);
+
+        doc.SetEncrypted(PDF_USER_PASSWORD, "owner");
+        doc.Save(tempFile, PdfSaveOptions::NoFlateCompress);
+    }
+
+    {
+        PdfMemDocument doc;
+        doc.Load(tempFile, PDF_USER_PASSWORD);
+        auto& obj = doc.GetObjects().MustGetObject(bufferRef);
+        charbuff buff;
+        obj.MustGetStream().CopyTo(buff);
+        REQUIRE(buff.size() == BufferSize);
+    }
+}
+
 void testAuthenticate(PdfEncrypt& encrypt)
 {
     PdfString documentId = PdfString::FromHexData("BF37541A9083A51619AD5924ECF156DF");
