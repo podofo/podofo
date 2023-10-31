@@ -15,7 +15,7 @@ env:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-13
 
     steps:
     - name: Cleanup workspace and dependencies
