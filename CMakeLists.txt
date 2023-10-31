@@ -27,6 +27,7 @@ set(PODOFO_SOVERSION "3")
 #
 # Doxyfile
 #
+set(PROJECT_NUMBER "${PODOFO_VERSION}")
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
     ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile

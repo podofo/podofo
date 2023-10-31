@@ -1,7 +1,7 @@
 # General Information
 PROJECT_NAME           = @PROJECT_NAME@
 PROJECT_NUMBER         = @PROJECT_NUMBER@
-OUTPUT_DIRECTORY       = ./documentation
+OUTPUT_DIRECTORY       = ./build/documentation
 
 # General Configuration
 QUIET                  = YES
@@ -9,7 +9,7 @@ WARN_IF_UNDOCUMENTED   = YES
 WARN_AS_ERROR          = NO
 
 # Source Paths
-INPUT                  = ../src/podofo
+INPUT                  = ./src/podofo
 RECURSIVE              = YES
 
 # File Extensions
@@ -19,7 +19,7 @@ FILE_PATTERNS          = *.h \
 # Exclusions
 EXCLUDE                = 
 EXTRACT_ALL            = NO
-SKIP_UNDOCUMENTED      = YES
+HIDE_UNDOC_CLASSES     = YES
 
 # Output Settings
 GENERATE_HTML          = YES
