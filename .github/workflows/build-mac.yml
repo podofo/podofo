@@ -20,7 +20,7 @@ jobs:
     steps:
     - name: Cleanup workspace and dependencies
       run: |
-        rm -rf ${{github.workspace}}
+        rm -rf ${{github.workspace}}/build
         brew list | xargs brew uninstall
         brew autoremove
         brew cleanup -s
