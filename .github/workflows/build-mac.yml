@@ -22,8 +22,9 @@ jobs:
       run: |
         rm -rf ${{github.workspace}}/build
         rm -rf ${{github.workspace}}/html
-        brew uninstall fontconfig freetype openssl libxml2 jpeg-turbo libpng libtiff libidn doxygen || true
+        brew list | xargs brew uninstall
         brew autoremove
+        brew cleanup -s
 
     - uses: actions/checkout@v2
       with:
