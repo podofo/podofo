@@ -49,12 +49,7 @@ jobs:
 
     - name: Generate Doxygen Documentation
       run: |
-        doxygen Doxyfile
-        if [ -d "./html" ]; then
-          echo "Doxygen documentation generated successfully."
-        else
-          echo "Failed to generate Doxygen documentation." && exit 1
-        fi
+        doxygen ${{github.workspace}}/build/Doxyfile
       id: doxygen
       continue-on-error: true
 
@@ -63,4 +58,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: documentation
-        path: ./html
+        path: ${{github.workspace}}/build/documentation
