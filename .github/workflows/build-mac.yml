@@ -25,7 +25,7 @@ jobs:
         brew autoremove
         brew cleanup -s
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
           submodules: true
 
@@ -54,7 +54,7 @@ jobs:
 
     - name: Upload Doxygen Documentation
       if: steps.doxygen.outcome == 'success'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: documentation
         path: ${{github.workspace}}/build/documentation
