@@ -2,34 +2,42 @@ name: build-documentation
 
 on:
   push:
-    branches: [master]
+    branches: [feature/issue-91]
   pull_request:
-    branches: [master]
+    branches: [feature/issue-91]
 
 env:
   BUILD_TYPE: Release
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set up Git
+      - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Install Doxygen
         run: |
           sudo apt-get update
           sudo apt-get install -y doxygen
 
       - name: Generate Doxygen Documentation
-        run: |
-          doxygen ${{ github.workspace }}/Doxyfile
-        id: doxygen
+        run: doxygen ${{ github.workspace }}/Doxyfile
 
-      - name: Upload Doxygen Documentation
-        if: steps.doxygen.outcome == 'success'
-        uses: actions/upload-artifact@v3
-        with:
-          name: documentation
-          path: ${{ github.workspace }}/documentation
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        run: |
+          git checkout --orphan gh-pages
+          git reset --hard
+          git commit --allow-empty -m "Initializing gh-pages branch"
+          git push origin gh-pages
+          git checkout master
+          git branch -D gh-pages
+          git rm -rf .
+          cp -r ${{ github.workspace }}/documentation/html/* .
+          git add .
+          git commit -m "Deploy documentation to GitHub Pages"
+          git push origin gh-pages --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
