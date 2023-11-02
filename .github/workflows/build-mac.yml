@@ -15,24 +15,17 @@ env:
 
 jobs:
   build:
-    runs-on: macos-13
+    runs-on: macos-11
 
     steps:
-    - name: Cleanup workspace and dependencies
-      run: |
-        rm -rf ${{github.workspace}}/build
-        brew list | xargs brew uninstall
-        brew autoremove
-        brew cleanup -s
-
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v2
       with:
           submodules: true
 
     - name: Install deps
       # NOTE: We need to ensure jpeg-turbo is at least version 2.14
       run: brew update
-           && brew install fontconfig freetype openssl libxml2 jpeg-turbo libpng libtiff libidn doxygen cmake
+           && brew install fontconfig freetype openssl libxml2 jpeg-turbo libpng libtiff libidn
 
     - name: Configure CMake
       # NOTE: OpenSSL prefix must be explicitly set
@@ -45,16 +38,3 @@ jobs:
     - name: Test
       working-directory: ${{github.workspace}}/build
       run: ctest ${{ github.event.inputs.ctestArgs }}
-
-    - name: Generate Doxygen Documentation
-      run: |
-        doxygen ${{github.workspace}}/build/Doxyfile
-      id: doxygen
-      # continue-on-error: true
-
-    - name: Upload Doxygen Documentation
-      if: steps.doxygen.outcome == 'success'
-      uses: actions/upload-artifact@v3
-      with:
-        name: documentation
-        path: ${{github.workspace}}/build/documentation

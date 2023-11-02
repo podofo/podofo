@@ -1,0 +1,30 @@
+name: build-documentation
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: macos-13
+
+    steps:
+
+    - name: Generate Doxygen Documentation
+      run: |
+        brew install doxygen && brew update
+        doxygen ${{github.workspace}}/Doxyfile
+      id: doxygen
+      # continue-on-error: true
+
+    - name: Upload Doxygen Documentation
+      if: steps.doxygen.outcome == 'success'
+      uses: actions/upload-artifact@v3
+      with:
+        name: documentation
+        path: ${{github.workspace}}/documentation

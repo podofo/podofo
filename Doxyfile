@@ -1,7 +1,7 @@
 # General Information
-PROJECT_NAME           = @PROJECT_NAME@
-PROJECT_NUMBER         = @PROJECT_NUMBER@
-OUTPUT_DIRECTORY       = ./build/documentation
+PROJECT_NAME           = PoDoFo
+PROJECT_NUMBER         = 0.11.0
+OUTPUT_DIRECTORY       = ./documentation
 
 # General Configuration
 QUIET                  = YES

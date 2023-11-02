@@ -144,15 +144,14 @@ examples and tools. By default a shared library is built.
 
 1. **Prerequisite**: Ensure you have Doxygen installed on your machine. If not, visit [Doxygen's official website](http://www.doxygen.nl/) to download and install it.
 
-2. **Generating Documentation**: After completing the build process detailed in the [Development quickstart](#development-quickstart) chapter, navigate to the root directory of PoDoFo's source code.
-Open a terminal or command prompt and run the following command:
+2. **Generating Documentation**: Open a terminal or command prompt and run the following command:
     ```bash
-    doxygen build/Doxyfile
+    doxygen Doxyfile
     ```
 
 3. **Viewing the Documentation**: Once the documentation generation completes, you'll find the `html` directory that contains the generated documentation. Open `index.html` in your favorite web browser to view the API documentation.
     ```bash
-    cd build/documentation/html
+    cd documentation/html
     open index.html
     ```
 
