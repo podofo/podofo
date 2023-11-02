@@ -5,6 +5,17 @@ on:
     branches: [feature/issue-91]
   pull_request:
     branches: [feature/issue-91]
+  
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 env:
   BUILD_TYPE: Release
@@ -12,15 +23,18 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    env:
-      GIT_AUTHOR_NAME: github-actions[bot]
-      GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
-      GIT_COMMITTER_NAME: github-actions[bot]
-      GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+    # env:
+    #   GIT_AUTHOR_NAME: github-actions[bot]
+    #   GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+    #   GIT_COMMITTER_NAME: github-actions[bot]
+    #   GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
       
       - name: Install Doxygen
         run: |
@@ -30,19 +44,26 @@ jobs:
       - name: Generate Doxygen Documentation
         run: doxygen ${{ github.workspace }}/Doxyfile
 
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: ${{ github.workspace }}/documentation/html
+
+  deploy:
+    needs: build-and-deploy # This needs to match the job id of the build job
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: html
+
       - name: Deploy to GitHub Pages
-        # if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-        run: |
-          git checkout --orphan gh-pages
-          git reset --hard
-          git commit --allow-empty -m "Initializing gh-pages branch"
-          git push origin gh-pages
-          git checkout feature/issue-91
-          git branch -D gh-pages
-          git rm -rf .
-          cp -r ${{ github.workspace }}/documentation/html/* .
-          git add .
-          git commit -m "Deploy documentation to GitHub Pages"
-          git push origin gh-pages --force
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        id: deployment
+        uses: actions/deploy-pages@v2
