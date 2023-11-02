@@ -37,7 +37,7 @@ jobs:
           git reset --hard
           git commit --allow-empty -m "Initializing gh-pages branch"
           git push origin gh-pages
-          git checkout master
+          git checkout feature/issue-91
           git branch -D gh-pages
           git rm -rf .
           cp -r ${{ github.workspace }}/documentation/html/* .
