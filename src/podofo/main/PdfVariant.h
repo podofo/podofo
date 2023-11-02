@@ -318,6 +318,9 @@ public:
     inline PdfDataType GetDataType() const { return m_DataType; }
 
 private:
+    PdfReference GetReferenceUnsafe() const;
+    const PdfDictionary& GetDictionaryUnsafe() const;
+    const PdfArray& GetArrayUnsafe() const;
     PdfDictionary& GetDictionaryUnsafe();
     PdfArray& GetArrayUnsafe();
 

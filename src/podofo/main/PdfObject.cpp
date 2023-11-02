@@ -210,16 +210,6 @@ void PdfObject::Write(OutputStream& stream, PdfWriteFlags writeMode,
     write(stream, true, writeMode, encrypt, buffer);
 }
 
-PdfDictionary& PdfObject::GetDictionaryUnsafe()
-{
-    return m_Variant.GetDictionaryUnsafe();
-}
-
-PdfArray& PdfObject::GetArrayUnsafe()
-{
-    return m_Variant.GetArrayUnsafe();
-}
-
 void PdfObject::WriteFinal(OutputStream& stream, PdfWriteFlags writeMode, const PdfEncrypt* encrypt, charbuff& buffer)
 {
     write(stream, false, writeMode, encrypt, buffer);

@@ -37,11 +37,27 @@ class PODOFO_API PdfIndirectObjectList final
     friend class PdfImmediateWriter;
 
 private:
-    static bool CompareObject(const PdfObject* p1, const PdfObject* p2);
-    static bool CompareReference(const PdfObject* obj, const PdfReference& ref);
+    // Comparator to enable heterogeneous lookup with
+    // both objects and references
+    // See https://stackoverflow.com/a/31924435/213871
+    struct ObjectListComparator final
+    {
+        using is_transparent = std::true_type;
+        bool operator()(const PdfObject* lhs, const PdfObject* rhs) const
+        {
+            return lhs->GetIndirectReference() < rhs->GetIndirectReference();
+        }
+        bool operator()(const PdfObject* lhs, const PdfReference& rhs) const
+        {
+            return lhs->GetIndirectReference() < rhs;
+        }
+        bool operator()(const PdfReference& lhs, const PdfObject* rhs) const
+        {
+            return lhs < rhs->GetIndirectReference();
+        }
+    };
 
-private:
-    using ObjectList = std::set<PdfObject*, decltype(CompareObject)*>;
+    using ObjectList = std::set<PdfObject*, ObjectListComparator>;
 
 public:
     // An incomplete set of container typedefs, just enough to handle

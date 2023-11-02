@@ -495,8 +495,11 @@ protected:
 
 private:
     // To be called privately by various classes
-    PdfDictionary& GetDictionaryUnsafe();
-    PdfArray& GetArrayUnsafe();
+    PdfReference GetReferenceUnsafe() const { return m_Variant.GetReferenceUnsafe(); }
+    const PdfDictionary& GetDictionaryUnsafe() const { return m_Variant.GetDictionaryUnsafe(); }
+    const PdfArray& GetArrayUnsafe() const { return m_Variant.GetArrayUnsafe(); }
+    PdfDictionary& GetDictionaryUnsafe() { return m_Variant.GetDictionaryUnsafe(); }
+    PdfArray& GetArrayUnsafe() { return m_Variant.GetArrayUnsafe(); }
     void WriteFinal(OutputStream& stream, PdfWriteFlags writeMode,
         const PdfEncrypt* encrypt, charbuff& buffer);
 
