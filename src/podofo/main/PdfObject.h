@@ -488,6 +488,13 @@ protected:
     void EnableDelayedLoading();
 
 private:
+    // To be called privately by various classes
+    PdfReference GetReferenceUnsafe() const { return m_Variant.GetReferenceUnsafe(); }
+    const PdfDictionary& GetDictionaryUnsafe() const { return m_Variant.GetDictionaryUnsafe(); }
+    const PdfArray& GetArrayUnsafe() const { return m_Variant.GetArrayUnsafe(); }
+    PdfDictionary& GetDictionaryUnsafe() { return m_Variant.GetDictionaryUnsafe(); }
+    PdfArray& GetArrayUnsafe() { return m_Variant.GetArrayUnsafe(); }
+
     // Assign function that doesn't set dirty
     void Assign(const PdfObject& rhs);
 
