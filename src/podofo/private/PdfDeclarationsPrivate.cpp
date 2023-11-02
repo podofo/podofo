@@ -6,7 +6,6 @@
 #include "PdfDeclarationsPrivate.h"
 
 #include <regex>
-#include <podofo/private/charconv_compat.h>
 #include <podofo/private/utfcpp_extensions.h>
 
 #include <podofo/auxiliary/InputStream.h>

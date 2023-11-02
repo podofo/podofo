@@ -9,7 +9,6 @@
 
 #include <algorithm>
 #include <cctype>
-#include <podofo/private/charconv_compat.h>
 
 #include "PdfDocument.h"
 #include "PdfArray.h"
@@ -683,7 +682,7 @@ PdfColor PdfColor::FromString(const string_view& name)
     if (isdigit(name[0]) || name[0] == '.')
     {
         double grayVal = 0.0;
-        if (std::from_chars(name.data() + 1, name.data() + name.size(), grayVal, chars_format::fixed).ec != std::errc())
+        if (!utls::TryParse(name.substr(1), grayVal))
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, "Could not read number");
 
         return PdfColor(grayVal);
@@ -1104,7 +1103,7 @@ PdfColor PdfNamedColor::FromRGBString(const string_view& name)
         && isxdigit(name[1]))
     {
         unsigned nameConverted;
-        if (std::from_chars(name.data() + 1, name.data() + name.size(), nameConverted, 16).ec != std::errc())
+        if (!utls::TryParse(name.substr(1), nameConverted, 16))
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, "Could not read number");
 
         const unsigned R = (nameConverted & 0x00FF0000) >> 16;
