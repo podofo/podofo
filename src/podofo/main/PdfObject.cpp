@@ -18,7 +18,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfObject PdfObject::Null;
+PdfObject PdfObject::Null = PdfVariant::Null;
 
 PdfObject::PdfObject()
     : PdfObject(PdfDictionary(), PdfReference(), false) { }
