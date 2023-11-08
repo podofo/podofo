@@ -1,3 +1,14 @@
+## Version 0.11.0
+- Fixed PdfStreamedDocument, see #88
+
+# Version 0.10.3
+- Fixed big performance regression introduced in 0.10, see #108
+- Fixed data loss with encrypted documents, see #
+
+## Version 0.10.2
+- Security related bugfixes #76, #89, #96
+- Some compilation and test fixes
+
 ## Version 0.10.1
 - Security bugfixes, #66, #67, #69, #70, #71, #72
 - Rewritten PdfPageCollection for performance
