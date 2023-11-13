@@ -13,9 +13,7 @@ affects you are fixed and the features you need are checked-in is to
 
 * **[Bug report] What is the expected behavior?**
 
-* **[Bug report] Please provide the steps to reproduce and if possible a minimal
-reproduction code of the problem. If you have rights to distribute them, also attach
-PDF files that are manifesting the problem **
+* **[Bug report] Please provide the steps to reproduce and if possible a minimal reproduction code of the problem**
 
 * **[Feature request] What feature should be implemented in PoDoFo?**
 
@@ -27,4 +25,4 @@ PDF files that are manifesting the problem **
 
 * **[Bug report/Feature request] Other information**
 
-  E.g. test documents, stacktraces, related issues, links for us to have contex, suggestions how to fix, etc.
+  E.g. sample PDF documents, stacktraces, related issues, links for us to have contex, suggestions how to fix, etc.
