@@ -13,7 +13,9 @@ affects you are fixed and the features you need are checked-in is to
 
 * **[Bug report] What is the expected behavior?**
 
-* **[Bug report] Please provide the steps to reproduce and if possible a minimal reproduction code of the problem**
+* **[Bug report] Please provide the steps to reproduce and if possible a minimal
+reproduction code of the problem. If you have rights to distribute them, also attach
+PDF files that are manifesting the problem **
 
 * **[Feature request] What feature should be implemented in PoDoFo?**
 
