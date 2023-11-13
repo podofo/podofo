@@ -15,7 +15,7 @@
 
 ## What is PoDoFo?
 
-PoDoFo is a s a free portable C++ library to work with the PDF file format.
+PoDoFo is a a free portable C++ library to work with the PDF file format.
 
 PoDoFo provides classes to parse a PDF file and modify its content
 into memory. The changes can be written back to disk easily.
