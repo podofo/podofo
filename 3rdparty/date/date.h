@@ -1316,7 +1316,7 @@ CONSTCD11
 std::chrono::duration<Rep, Period>
 abs(std::chrono::duration<Rep, Period> d)
 {
-    return d >= d.zero() ? d : -d;
+    return d >= d.zero() ? d : static_cast<decltype(d)>(-d);
 }
 
 // round down
@@ -4206,8 +4206,8 @@ template <class CharT, class Traits, class Duration>
 inline
 typename std::enable_if
 <
-    std::ratio_less<typename Duration::period, days::period>::value
-    , std::basic_ostream<CharT, Traits>&
+    !std::is_convertible<Duration, days>::value,
+    std::basic_ostream<CharT, Traits>&
 >::type
 operator<<(std::basic_ostream<CharT, Traits>& os, const sys_time<Duration>& tp)
 {
@@ -4787,7 +4787,11 @@ struct fields
     hh_mm_ss<Duration>    tod{};
     bool                  has_tod = false;
 
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__ <= 409)
+    fields() : ymd{nanyear/0/0}, wd{8u}, tod{}, has_tod{false} {}
+#else
     fields() = default;
+#endif
 
     fields(year_month_day ymd_) : ymd(ymd_) {}
     fields(weekday wd_) : wd(wd_) {}
@@ -6209,8 +6213,13 @@ to_stream(std::basic_ostream<CharT, Traits>& os, const CharT* fmt,
           const std::chrono::seconds* offset_sec = nullptr)
 {
     using CT = typename std::common_type<Duration, std::chrono::seconds>::type;
-    auto ld = floor<days>(tp);
-    fields<CT> fds{year_month_day{ld}, hh_mm_ss<CT>{tp-local_seconds{ld}}};
+    auto ld = std::chrono::time_point_cast<days>(tp);
+    fields<CT> fds;
+    if (ld <= tp)
+        fds = fields<CT>{year_month_day{ld}, hh_mm_ss<CT>{tp-local_seconds{ld}}};
+    else
+        fds = fields<CT>{year_month_day{ld - days{1}},
+                         hh_mm_ss<CT>{days{1} - (local_seconds{ld} - tp)}};
     return to_stream(os, fmt, fds, abbrev, offset_sec);
 }
 
@@ -6223,8 +6232,13 @@ to_stream(std::basic_ostream<CharT, Traits>& os, const CharT* fmt,
     using CT = typename std::common_type<Duration, seconds>::type;
     const std::string abbrev("UTC");
     CONSTDATA seconds offset{0};
-    auto sd = floor<days>(tp);
-    fields<CT> fds{year_month_day{sd}, hh_mm_ss<CT>{tp-sys_seconds{sd}}};
+    auto sd = std::chrono::time_point_cast<days>(tp);
+    fields<CT> fds;
+    if (sd <= tp)
+        fds = fields<CT>{year_month_day{sd}, hh_mm_ss<CT>{tp-sys_seconds{sd}}};
+    else
+        fds = fields<CT>{year_month_day{sd - days{1}},
+                         hh_mm_ss<CT>{days{1} - (sys_seconds{sd} - tp)}};
     return to_stream(os, fmt, fds, &abbrev, &offset);
 }
 
@@ -6401,7 +6415,7 @@ read_long_double(std::basic_istream<CharT, Traits>& is, unsigned m = 1, unsigned
         is.setstate(std::ios::failbit);
         return 0;
     }
-    return i + f/std::pow(10.L, fcount);
+    return static_cast<long double>(i) + static_cast<long double>(f)/std::pow(10.L, fcount);
 }
 
 struct rs
@@ -6767,7 +6781,7 @@ from_stream(std::basic_istream<CharT, Traits>& is, const CharT* fmt,
                         CONSTDATA auto w = Duration::period::den == 1 ? 2 : 3 + dfs::width;
                         int tH;
                         int tM;
-                        long double S;
+                        long double S{};
                         read(is, ru{tH, 1, 2}, CharT{':'}, ru{tM, 1, 2},
                                                CharT{':'}, rld{S, 1, w});
                         checked_set(H, tH, not_a_hour, is);
@@ -6847,7 +6861,7 @@ from_stream(std::basic_istream<CharT, Traits>& is, const CharT* fmt,
                         CONSTDATA auto w = Duration::period::den == 1 ? 2 : 3 + dfs::width;
                         int tH = not_a_hour;
                         int tM = not_a_minute;
-                        long double S;
+                        long double S{};
                         read(is, ru{tH, 1, 2}, CharT{':'}, ru{tM, 1, 2},
                                                CharT{':'}, rld{S, 1, w});
                         checked_set(H, tH, not_a_hour, is);
@@ -7202,7 +7216,7 @@ from_stream(std::basic_istream<CharT, Traits>& is, const CharT* fmt,
                         // "%I:%M:%S %p"
                         using dfs = detail::decimal_format_seconds<Duration>;
                         CONSTDATA auto w = Duration::period::den == 1 ? 2 : 3 + dfs::width;
-                        long double S;
+                        long double S{};
                         int tI = not_a_hour_12_value;
                         int tM = not_a_minute;
                         read(is, ru{tI, 1, 2}, CharT{':'}, ru{tM, 1, 2},
@@ -7258,7 +7272,7 @@ from_stream(std::basic_istream<CharT, Traits>& is, const CharT* fmt,
                     {
                         using dfs = detail::decimal_format_seconds<Duration>;
                         CONSTDATA auto w = Duration::period::den == 1 ? 2 : 3 + dfs::width;
-                        long double S;
+                        long double S{};
                         read(is, rld{S, 1, width == -1 ? w : static_cast<unsigned>(width)});
                         checked_set(s, round_i<Duration>(duration<long double>{S}),
                                     not_a_second, is);
@@ -7292,7 +7306,7 @@ from_stream(std::basic_istream<CharT, Traits>& is, const CharT* fmt,
                         CONSTDATA auto w = Duration::period::den == 1 ? 2 : 3 + dfs::width;
                         int tH = not_a_hour;
                         int tM = not_a_minute;
-                        long double S;
+                        long double S{};
                         read(is, ru{tH, 1, 2}, CharT{':'}, ru{tM, 1, 2},
                                                CharT{':'}, rld{S, 1, w});
                         checked_set(H, tH, not_a_hour, is);
@@ -7755,11 +7769,11 @@ from_stream(std::basic_istream<CharT, Traits>& is, const CharT* fmt,
             if (j != not_a_doy && Y != not_a_year)
             {
                 auto ymd_trial = year_month_day{local_days(year{Y}/1/1) + days{j-1}};
-                if (m == 0)
+                if (m == not_a_month)
                     m = static_cast<int>(static_cast<unsigned>(ymd_trial.month()));
                 else if (month(static_cast<unsigned>(m)) != ymd_trial.month())
                     goto broken;
-                if (d == 0)
+                if (d == not_a_day)
                     d = static_cast<int>(static_cast<unsigned>(ymd_trial.day()));
                 else if (day(static_cast<unsigned>(d)) != ymd_trial.day())
                     goto broken;
@@ -7891,7 +7905,7 @@ from_stream(std::basic_istream<CharT, Traits>& is, const CharT* fmt, year& y,
 {
     using CT = std::chrono::seconds;
     fields<CT> fds{};
-    from_stream(is, fmt, fds, abbrev, offset);
+    date::from_stream(is, fmt, fds, abbrev, offset);
     if (!fds.ymd.year().ok())
         is.setstate(std::ios::failbit);
     if (!is.fail())
@@ -7907,7 +7921,7 @@ from_stream(std::basic_istream<CharT, Traits>& is, const CharT* fmt, month& m,
 {
     using CT = std::chrono::seconds;
     fields<CT> fds{};
-    from_stream(is, fmt, fds, abbrev, offset);
+    date::from_stream(is, fmt, fds, abbrev, offset);
     if (!fds.ymd.month().ok())
         is.setstate(std::ios::failbit);
     if (!is.fail())
@@ -7923,7 +7937,7 @@ from_stream(std::basic_istream<CharT, Traits>& is, const CharT* fmt, day& d,
 {
     using CT = std::chrono::seconds;
     fields<CT> fds{};
-    from_stream(is, fmt, fds, abbrev, offset);
+    date::from_stream(is, fmt, fds, abbrev, offset);
     if (!fds.ymd.day().ok())
         is.setstate(std::ios::failbit);
     if (!is.fail())
@@ -7939,7 +7953,7 @@ from_stream(std::basic_istream<CharT, Traits>& is, const CharT* fmt, weekday& wd
 {
     using CT = std::chrono::seconds;
     fields<CT> fds{};
-    from_stream(is, fmt, fds, abbrev, offset);
+    date::from_stream(is, fmt, fds, abbrev, offset);
     if (!fds.wd.ok())
         is.setstate(std::ios::failbit);
     if (!is.fail())
@@ -7955,7 +7969,7 @@ from_stream(std::basic_istream<CharT, Traits>& is, const CharT* fmt, year_month&
 {
     using CT = std::chrono::seconds;
     fields<CT> fds{};
-    from_stream(is, fmt, fds, abbrev, offset);
+    date::from_stream(is, fmt, fds, abbrev, offset);
     if (!fds.ymd.month().ok())
         is.setstate(std::ios::failbit);
     if (!is.fail())
@@ -7971,7 +7985,7 @@ from_stream(std::basic_istream<CharT, Traits>& is, const CharT* fmt, month_day& 
 {
     using CT = std::chrono::seconds;
     fields<CT> fds{};
-    from_stream(is, fmt, fds, abbrev, offset);
+    date::from_stream(is, fmt, fds, abbrev, offset);
     if (!fds.ymd.month().ok() || !fds.ymd.day().ok())
         is.setstate(std::ios::failbit);
     if (!is.fail())
@@ -7987,7 +8001,7 @@ from_stream(std::basic_istream<CharT, Traits>& is, const CharT* fmt,
 {
     using CT = std::chrono::seconds;
     fields<CT> fds{};
-    from_stream(is, fmt, fds, abbrev, offset);
+    date::from_stream(is, fmt, fds, abbrev, offset);
     if (!fds.ymd.ok())
         is.setstate(std::ios::failbit);
     if (!is.fail())
@@ -8007,7 +8021,7 @@ from_stream(std::basic_istream<CharT, Traits>& is, const CharT* fmt,
     auto offptr = offset ? offset : &offset_local;
     fields<CT> fds{};
     fds.has_tod = true;
-    from_stream(is, fmt, fds, abbrev, offptr);
+    date::from_stream(is, fmt, fds, abbrev, offptr);
     if (!fds.ymd.ok() || !fds.tod.in_conventional_range())
         is.setstate(std::ios::failbit);
     if (!is.fail())
@@ -8025,7 +8039,7 @@ from_stream(std::basic_istream<CharT, Traits>& is, const CharT* fmt,
     using detail::round_i;
     fields<CT> fds{};
     fds.has_tod = true;
-    from_stream(is, fmt, fds, abbrev, offset);
+    date::from_stream(is, fmt, fds, abbrev, offset);
     if (!fds.ymd.ok() || !fds.tod.in_conventional_range())
         is.setstate(std::ios::failbit);
     if (!is.fail())
@@ -8042,12 +8056,13 @@ from_stream(std::basic_istream<CharT, Traits>& is, const CharT* fmt,
 {
     using Duration = std::chrono::duration<Rep, Period>;
     using CT = typename std::common_type<Duration, std::chrono::seconds>::type;
+    using detail::round_i;
     fields<CT> fds{};
-    from_stream(is, fmt, fds, abbrev, offset);
+    date::from_stream(is, fmt, fds, abbrev, offset);
     if (!fds.has_tod)
         is.setstate(std::ios::failbit);
     if (!is.fail())
-        d = std::chrono::duration_cast<Duration>(fds.tod.to_duration());
+        d = round_i<Duration>(fds.tod.to_duration());
     return is;
 }
 
@@ -8070,6 +8085,25 @@ public:
         , offset_(offset)
         {}
 
+#if HAS_STRING_VIEW
+    parse_manip(const CharT* format, Parsable& tp,
+                std::basic_string<CharT, Traits, Alloc>* abbrev = nullptr,
+                std::chrono::minutes* offset = nullptr)
+        : format_(format)
+        , tp_(tp)
+        , abbrev_(abbrev)
+        , offset_(offset)
+        {}
+
+    parse_manip(std::basic_string_view<CharT, Traits> format, Parsable& tp,
+                std::basic_string<CharT, Traits, Alloc>* abbrev = nullptr,
+                std::chrono::minutes* offset = nullptr)
+        : format_(format)
+        , tp_(tp)
+        , abbrev_(abbrev)
+        , offset_(offset)
+        {}
+#endif  // HAS_STRING_VIEW
 };
 
 template <class Parsable, class CharT, class Traits, class Alloc>
@@ -8077,14 +8111,14 @@ std::basic_istream<CharT, Traits>&
 operator>>(std::basic_istream<CharT, Traits>& is,
            const parse_manip<Parsable, CharT, Traits, Alloc>& x)
 {
-    return from_stream(is, x.format_.c_str(), x.tp_, x.abbrev_, x.offset_);
+    return date::from_stream(is, x.format_.c_str(), x.tp_, x.abbrev_, x.offset_);
 }
 
 template <class Parsable, class CharT, class Traits, class Alloc>
 inline
 auto
 parse(const std::basic_string<CharT, Traits, Alloc>& format, Parsable& tp)
-    -> decltype(from_stream(std::declval<std::basic_istream<CharT, Traits>&>(),
+    -> decltype(date::from_stream(std::declval<std::basic_istream<CharT, Traits>&>(),
                             format.c_str(), tp),
                 parse_manip<Parsable, CharT, Traits, Alloc>{format, tp})
 {
@@ -8096,7 +8130,7 @@ inline
 auto
 parse(const std::basic_string<CharT, Traits, Alloc>& format, Parsable& tp,
       std::basic_string<CharT, Traits, Alloc>& abbrev)
-    -> decltype(from_stream(std::declval<std::basic_istream<CharT, Traits>&>(),
+    -> decltype(date::from_stream(std::declval<std::basic_istream<CharT, Traits>&>(),
                             format.c_str(), tp, &abbrev),
                 parse_manip<Parsable, CharT, Traits, Alloc>{format, tp, &abbrev})
 {
@@ -8108,7 +8142,7 @@ inline
 auto
 parse(const std::basic_string<CharT, Traits, Alloc>& format, Parsable& tp,
       std::chrono::minutes& offset)
-    -> decltype(from_stream(std::declval<std::basic_istream<CharT, Traits>&>(),
+    -> decltype(date::from_stream(std::declval<std::basic_istream<CharT, Traits>&>(),
                             format.c_str(), tp,
                             std::declval<std::basic_string<CharT, Traits, Alloc>*>(),
                             &offset),
@@ -8122,7 +8156,7 @@ inline
 auto
 parse(const std::basic_string<CharT, Traits, Alloc>& format, Parsable& tp,
       std::basic_string<CharT, Traits, Alloc>& abbrev, std::chrono::minutes& offset)
-    -> decltype(from_stream(std::declval<std::basic_istream<CharT, Traits>&>(),
+    -> decltype(date::from_stream(std::declval<std::basic_istream<CharT, Traits>&>(),
                             format.c_str(), tp, &abbrev, &offset),
                 parse_manip<Parsable, CharT, Traits, Alloc>{format, tp, &abbrev, &offset})
 {
@@ -8135,7 +8169,7 @@ template <class Parsable, class CharT>
 inline
 auto
 parse(const CharT* format, Parsable& tp)
-    -> decltype(from_stream(std::declval<std::basic_istream<CharT>&>(), format, tp),
+    -> decltype(date::from_stream(std::declval<std::basic_istream<CharT>&>(), format, tp),
                 parse_manip<Parsable, CharT>{format, tp})
 {
     return {format, tp};
@@ -8145,7 +8179,7 @@ template <class Parsable, class CharT, class Traits, class Alloc>
 inline
 auto
 parse(const CharT* format, Parsable& tp, std::basic_string<CharT, Traits, Alloc>& abbrev)
-    -> decltype(from_stream(std::declval<std::basic_istream<CharT, Traits>&>(), format,
+    -> decltype(date::from_stream(std::declval<std::basic_istream<CharT, Traits>&>(), format,
                             tp, &abbrev),
                 parse_manip<Parsable, CharT, Traits, Alloc>{format, tp, &abbrev})
 {
@@ -8156,7 +8190,7 @@ template <class Parsable, class CharT>
 inline
 auto
 parse(const CharT* format, Parsable& tp, std::chrono::minutes& offset)
-    -> decltype(from_stream(std::declval<std::basic_istream<CharT>&>(), format,
+    -> decltype(date::from_stream(std::declval<std::basic_istream<CharT>&>(), format,
                             tp, std::declval<std::basic_string<CharT>*>(), &offset),
                 parse_manip<Parsable, CharT>{format, tp, nullptr, &offset})
 {
@@ -8168,7 +8202,7 @@ inline
 auto
 parse(const CharT* format, Parsable& tp,
       std::basic_string<CharT, Traits, Alloc>& abbrev, std::chrono::minutes& offset)
-    -> decltype(from_stream(std::declval<std::basic_istream<CharT, Traits>&>(), format,
+    -> decltype(date::from_stream(std::declval<std::basic_istream<CharT, Traits>&>(), format,
                             tp, &abbrev, &offset),
                 parse_manip<Parsable, CharT, Traits, Alloc>{format, tp, &abbrev, &offset})
 {
