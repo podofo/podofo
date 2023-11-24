@@ -8,6 +8,7 @@
 #include "PdfXMPPacket.h"
 #include <podofo/private/XmlUtils.h>
 #include <libxml/xmlsave.h>
+#include <libxml/parser.h>
 #include <podofo/private/XMPUtils.h>
 
 using namespace std;
