@@ -3,7 +3,9 @@
 
 # Version 0.10.3
 - Fixed big performance regression introduced in 0.10, see #108
-- Fixed data loss with encrypted documents, see #
+- Fixed data loss with encrypted documents, see #99
+- Fixed compilation with VS2022 >= 17.8
+- Fixed compilation using libxml >= 2.12.0
 
 ## Version 0.10.2
 - Security related bugfixes #76, #89, #96
