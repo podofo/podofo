@@ -5,6 +5,7 @@
   "Digital Signature Appearances" document specification
 
 ### 1.0
+- PdfField: Evaluate make a virtual getValueObject()
 - Evaluate removing PdfObject::Null and PdfVariant::Null and introduce nullptr_t constructor overloads
 - PdfParserObject: Release the device after loading
 - PdfMemDocument: Consider removing SetEncrypt(encrypt)
