@@ -304,7 +304,7 @@ xmlDocPtr createXMPDoc(xmlNodePtr& root)
         THROW_LIBXML_EXCEPTION("Can't create xpacket begin node");
     }
 
-    // NOTE: x:xmpmeta element does't define any attribute
+    // NOTE: x:xmpmeta element doesn't define any attribute
     // but other attributes can be defined (eg. x:xmptk)
     // and should be ignored by processors
     auto xmpmeta = xmlNewChild((xmlNodePtr)doc, nullptr, XMLCHAR "xmpmeta", nullptr);

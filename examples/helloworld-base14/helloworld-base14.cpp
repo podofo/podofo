@@ -42,7 +42,7 @@ void HelloWorld(const string_view& filename)
     PdfPainter painter;
 
     // A PdfFont object is required to draw text on a PdfPage using a PdfPainter.
-    // PoDoFo will find the font using fontconfig on your system and embedd truetype
+    // PoDoFo will find the font using fontconfig on your system and embed truetype
     // fonts automatically in the PDF file.
     PdfFont* font;
 
@@ -60,7 +60,7 @@ void HelloWorld(const string_view& filename)
         // a nullptr pointer is returned.
         // We check for a nullptr pointer here and throw an exception using the RAISE_ERROR macro.
         // The raise error macro initializes a PdfError object with a given error code and
-        // the location in the file in which the error ocurred and throws it as an exception.
+        // the location in the file in which the error occurred and throws it as an exception.
 
         // Set the page as drawing target for the PdfPainter.
         // Before the painter can draw, a page has to be set first.
@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
         return (int)err.GetCode();
     }
 
-    // The PDF was created sucessfully.
+    // The PDF was created successfully.
     std::cout << std::endl
         << "Created a PDF file containing the line \"Hello World!\": " << argv[1] << std::endl << std::endl;
 

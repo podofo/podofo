@@ -9,7 +9,7 @@
 /*
     Notes:
 
-    1) out of memory tests don't run if Address Santizer (ASAN) is enabled because
+    1) out of memory tests don't run if Address Sanitizer (ASAN) is enabled because
        ASAN terminates the unit test process the first time it attempts to allocate
        too much memory (so running the tests with and without ASAN is recommended)
 
@@ -240,7 +240,7 @@ TEST_CASE("TestReadXRefContents")
         oss << "xref\r\n0 1\r\n";
         oss << generateXRefEntries(1);
 
-        // XRef stream at offsetXrefStm1, but any /Prev entries pointing to any offet between
+        // XRef stream at offsetXrefStm1, but any /Prev entries pointing to any offset between
         // offsetXrefStm1Whitespace and offsetXrefStm1 point to the same /Prev section
         // because the PDF processing model says tokenizer must discard whitespace and comments
         size_t offsetXrefStm1Whitespace = oss.str().length();

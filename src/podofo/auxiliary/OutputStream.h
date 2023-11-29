@@ -22,7 +22,7 @@ public:
 
     /** Write the character in the device
      *
-     *  \param ch the character to wrte
+     *  \param ch the character to write
      */
     void Write(char ch);
 

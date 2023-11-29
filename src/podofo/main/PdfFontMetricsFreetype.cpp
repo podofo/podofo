@@ -233,7 +233,7 @@ void PdfFontMetricsFreetype::ensureLengthsReady()
             m_Length1 = (unsigned)m_Data.view().size();
             break;
         default:
-            // Other font types dont't need lengths
+            // Other font types don't need lengths
             break;
     }
 

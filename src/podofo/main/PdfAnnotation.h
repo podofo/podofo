@@ -51,15 +51,15 @@ public:
     /** Set an appearance stream for this object
      *  to specify its visual appearance
      *  \param xobj an XObject form
-     *  \param appearance an apperance type to set
+     *  \param appearance an appearance type to set
      *  \param state the state for which set it the obj; states depend on the annotation type
      */
     void SetAppearanceStream(const PdfXObjectForm& xobj, PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
 
     /** Set an appearance stream for this object
-     *  to specify its visual appearance withot handling page rotations
+     *  to specify its visual appearance without handling page rotations
      *  \param xobj an XObject form
-     *  \param appearance an apperance type to set
+     *  \param appearance an appearance type to set
      *  \param state the state for which set it the obj; states depend on the annotation type
      */
     void SetAppearanceStreamRaw(const PdfXObjectForm& xobj, PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
@@ -74,7 +74,7 @@ public:
 
     /**
     * \returns the appearance stream for this object
-     *  \param appearance an apperance type to get
+     *  \param appearance an appearance type to get
      *  \param state a child state. Meaning depends on the annotation type
     */
     PdfObject* GetAppearanceStream(PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
@@ -121,7 +121,7 @@ public:
     void SetBorderStyle(double hCorner, double vCorner, double width, const PdfArray& strokeStyle);
 
     /** Set the title of this annotation.
-     *  \param title title of the annoation as string in PDF format
+     *  \param title title of the annotation as string in PDF format
      *
      *  \see GetTitle
      */
@@ -137,7 +137,7 @@ public:
 
     /** Set the text of this annotation.
      *
-     *  \param contents text of the annoation as string in PDF format
+     *  \param contents text of the annotation as string in PDF format
      *
      *  \see GetContents
      */

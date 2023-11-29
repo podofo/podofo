@@ -120,7 +120,7 @@ public:
      *
      *   \param atIndex the page number (0-based) to be removed
      *
-     *   The PdfPage object refering to this page will be deleted by this call!
+     *   The PdfPage object referring to this page will be deleted by this call!
      *   Empty page nodes will also be deleted.
      *
      *   \see PdfMemDocument::DeletePages

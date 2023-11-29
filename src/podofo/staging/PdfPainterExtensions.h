@@ -14,7 +14,7 @@ namespace PoDoFo {
     class PdfPainterPathContext;
 
     /**
-     * This class cointains some extensions methods to PdfPainterPath
+     * This class contains some extension methods to PdfPainterPath
      * The class mostly implements some SVG commands by using
      * regular PDF operators by maintaining an internal state
      * \remarks This class is not maintained and its use

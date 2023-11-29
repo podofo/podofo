@@ -20,7 +20,7 @@ class PdfIndirectObjectList;
 
 /** The type of the action.
  *  PDF supports different action types, each of
- *  them has different keys and propeties.
+ *  them has different keys and properties.
  *
  *  Not all action types listed here are supported yet.
  *

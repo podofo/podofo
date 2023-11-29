@@ -27,7 +27,7 @@ public:
     void Init(const std::string_view& input, const std::string_view& output);
 
     /**
-     * \returns the number of succesfully extracted images
+     * \returns the number of successfully extracted images
      */
     inline unsigned GetNumImagesExtracted() const;
 
@@ -40,7 +40,7 @@ private:
      */
     void ExtractImage(const PoDoFo::PdfObject& obj, bool jpeg);
 
-    /** This function checks wether a file with the
+    /** This function checks whether a file with the
      *  given filename does exist.
      *  \returns true if the file exists otherwise false
      */

@@ -79,7 +79,7 @@ public:
      */
     void RemoveFieldAt(unsigned index);
 
-    /** Delete the field with the given object referece
+    /** Delete the field with the given object reference
      *  \param ref the object reference
      */
     void RemoveField(const PdfReference& ref);

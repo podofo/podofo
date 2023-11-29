@@ -102,7 +102,7 @@ PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
     if ((flags & PdfStreamAppendFlags::NoSaveRestorePrior) == PdfStreamAppendFlags::None)
     {
         // Record all content and readd into a new stream that
-        // substitue all the previous streams
+        // substitute all the previous streams
         charbuff buffer;
         BufferStreamDevice device(buffer);
         copyTo(device, *arr);
@@ -116,7 +116,7 @@ PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
             auto output = stream.GetOutputStream();
             output.Write("q\n");
             output.Write(buffer);
-            // TODO: Avoid adding unuseful \n prior Q
+            // TODO: Avoid adding useless \n prior Q
             output.Write("\nQ");
         }
     }

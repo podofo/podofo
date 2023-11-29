@@ -341,7 +341,7 @@ void createEncryptedPdf(const string_view& filename)
 
     auto font = doc.GetFonts().SearchFont("LiberationSans");
     if (font == nullptr)
-        FAIL("Coult not find Arial font");
+        FAIL("Could not find Arial font");
 
     painter.TextState.SetFont(*font, 16);
     painter.DrawText("Hello World", 100, 100);

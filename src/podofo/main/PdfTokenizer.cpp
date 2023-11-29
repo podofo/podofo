@@ -149,7 +149,7 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
             PdfTokenType tokenDelimiterType;
             if (IsTokenDelimiter(ch1, tokenDelimiterType))
             {
-                // All delimeters except << and >> (handled above) are
+                // All delimiters except << and >> (handled above) are
                 // one-character tokens, so if we hit one we can just return it
                 // immediately.
                 tokenType = tokenDelimiterType;
@@ -504,7 +504,7 @@ void PdfTokenizer::ReadString(InputStreamDevice& device, PdfVariant& variant, co
     bool octEscape = false;
     int octCharCount = 0;
     char octValue = 0;
-    int balanceCount = 0; // Balanced parathesis do not have to be escaped in strings
+    int balanceCount = 0; // Balanced parenthesis do not have to be escaped in strings
 
     m_charBuffer.clear();
     while (device.Read(ch))
@@ -636,7 +636,7 @@ void PdfTokenizer::ReadName(InputStreamDevice& device, PdfVariant& variant)
     if (!device.Peek(ch) || IsWhitespace(ch))
     {
         // We have an empty PdfName
-        // NOTE: Delimeters are handled correctly by tryReadNextToken
+        // NOTE: Delimiters are handled correctly by tryReadNextToken
         variant = PdfName();
         return;
     }

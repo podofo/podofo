@@ -19,7 +19,7 @@ namespace PoDoFo
     constexpr size_t ZapfDingbatsEncodingId     = 23;
     constexpr size_t CustomEncodingStartId      = 101;
 
-    /** Check if the chars in the given utf-8 view are elegible for PdfDocEncofing conversion
+    /** Check if the chars in the given utf-8 view are eligible for PdfDocEncofing conversion
      *
      * /param isPdfDocEncoding the given utf-8 string is coincident in PdfDocEncoding representation
      */

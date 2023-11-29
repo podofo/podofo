@@ -145,12 +145,12 @@ public:
     std::string_view GetContent() const;
 
     /**
-     * Get the coordiantes of the first point
+     * Get the coordinates of the first point
      */
     const Vector2& GetFirstPoint() const;
 
     /**
-     * Get the coordiantes of the current point
+     * Get the coordinates of the current point
      */
     const Vector2& GetCurrentPoint() const;
 

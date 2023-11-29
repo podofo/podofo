@@ -74,7 +74,7 @@ public:
      *
      *  \param create create the object if it does not exist (ePdfCreateObject)
      *                 or return nullptr if it does not exist
-     *  \param eDefaultAppearance specifies if a default appearence shall be created
+     *  \param eDefaultAppearance specifies if a default appearance shall be created
      *
      *  \returns PdfObject the AcroForm dictionary
      */
@@ -101,7 +101,7 @@ public:
 
     void CollectGarbage();
 
-    /** Constuct a new PdfImage object
+    /** Construct a new PdfImage object
      *  \param prefix optional prefix for XObject-name
      */
     std::unique_ptr<PdfImage> CreateImage(const std::string_view& prefix = { });
@@ -288,7 +288,7 @@ protected:
     void Init();
 
     /** Clear all internal variables
-     *  and reset PdfDocument to an intial state.
+     *  and reset PdfDocument to an initial state.
      */
     void Clear();
 

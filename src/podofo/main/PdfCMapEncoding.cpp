@@ -116,8 +116,8 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
     //   /Supplement 0 def
     // >> def
     // which should be invalid Postscript (any language level). Adobe
-    // doesn't crash wich such CMap(s), but crashes if such syntax is
-    // used elsewere. Assuming the CMap(s) uses only PS Level 1, which
+    // doesn't crash with such CMap(s), but crashes if such syntax is
+    // used elsewhere. Assuming the CMap(s) uses only PS Level 1, which
     // doesn't, support << syntax, is a workaround to read these CMap(s)
     // without crashing.
     PdfPostScriptTokenizer tokenizer(PdfPostScriptLanguageLevel::L1);
@@ -323,7 +323,7 @@ void handleRangeMapping(PdfCharCodeMap& map,
         } while (it != end);
     }
 
-    // Compute new destination string with last chracter/code point incremented by one
+    // Compute new destination string with last character/code point incremented by one
     vector<char32_t> newdst;
     for (unsigned i = 0; i < rangeSize; i++)
     {
@@ -335,7 +335,7 @@ void handleRangeMapping(PdfCharCodeMap& map,
 }
 
 // codeSize is the number of the octets in the string or the minimum number
-// of bytes to represent the humber, example <cd> -> 1, <00cd> -> 2
+// of bytes to represent the number, example <cd> -> 1, <00cd> -> 2
 static uint32_t getCodeFromVariant(const PdfVariant& var, unsigned char& codeSize)
 {
     if (var.IsNumber())
@@ -415,9 +415,9 @@ vector<char32_t> handleUtf8String(const string& str)
 }
 
 // Read variant from a sequence, unless it's the end of it
-// We found Pdf(s) that have mistmatching sequence length and
+// We found Pdf(s) that have mismatching sequence length and
 // end of sequence marker, and Acrobat preflight treats them as valid,
-// so we must determine end of sequnce only on the end of
+// so we must determine end of sequence only on the end of
 // sequence keyword
 void readNextVariantSequence(PdfPostScriptTokenizer& tokenizer, InputStreamDevice& device,
     PdfVariant& variant, const string_view& endSequenceKeyword, bool& endOfSequence)

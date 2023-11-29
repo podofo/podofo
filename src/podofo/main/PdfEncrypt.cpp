@@ -1532,7 +1532,7 @@ void PdfEncryptSHABase::ComputeHash(const unsigned char* pswd, unsigned pswdLen,
             // CHECK-ME: The following was converted to new EVP_Encrypt API
             // from old internal API which is deprecated in OpenSSL 3.0 but
             // I'm not 100% sure the conversion is correct, since we don't
-            // finalize the context. It may be unecessary because of some
+            // finalize the context. It may be unnecessary because of some
             // preconditions, but these should be clearly stated
             rc = EVP_EncryptInit_ex(aes.get(), s_SSL.Aes128, nullptr, block, block + 16);
             rc = EVP_EncryptUpdate(aes.get(), data, &dataOutMoved, data, dataLen);

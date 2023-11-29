@@ -99,7 +99,7 @@ TEST_CASE("testCreateDelete")
     // create font
     auto font = doc.GetFonts().SearchFont("LiberationSans");
     if (font == nullptr)
-        FAIL("Coult not find Arial font");
+        FAIL("Could not find Arial font");
 
     {
         // write 1. page
@@ -340,7 +340,7 @@ vector<unique_ptr<PdfPage>> PdfPageTest::CreateSamplePages(PdfMemDocument& doc, 
     // create font
     auto font = doc.GetFonts().SearchFont("LiberationSans");
     if (font == nullptr)
-        FAIL("Coult not find Arial font");
+        FAIL("Could not find Arial font");
 
     vector<unique_ptr<PdfPage>> pages(pageCount);
     for (unsigned i = 0; i < pageCount; ++i)

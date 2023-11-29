@@ -33,7 +33,7 @@ public:
      *  object in the PDF file.
      *  \param obj must be an info dictionary.
      *  \param initial which information should be
-     *         writting initially to the information
+     *         writing initially to the information
      */
     PdfInfo(PdfObject& obj, PdfInfoInitial initial);
 
@@ -125,7 +125,7 @@ public:
 private:
     /** Add the initial document information to the dictionary.
      *  \param initial which information should be
-     *         writting initially to the information
+     *         writing initially to the information
      */
     void init(PdfInfoInitial initial);
 

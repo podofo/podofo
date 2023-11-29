@@ -14,7 +14,7 @@
 namespace PoDoFo {
 
 /** A PdfFont implementation that can be used
- *  to embedd truetype fonts into a PDF file
+ *  to embed truetype fonts into a PDF file
  *  or to draw with truetype fonts.
  *
  *  TrueType fonts are always embedded as suggested in the PDF reference.

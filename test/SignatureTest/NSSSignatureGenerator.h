@@ -33,7 +33,7 @@ private:
 	static void sm_write_stream(void *arg, const char *buf, unsigned long len);
 
 protected:
-    // get digest algoritm for the signing algoritm
+    // get digest algorithm for the signing algorithm
 	static SECOidTag getDigestAlgor(CERTCertificate *pCert);
 
 	// create message with signature

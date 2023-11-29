@@ -151,7 +151,7 @@ void PdfFontType1::embedFontSubset()
         (inBuff[inIndex + 5] << 24);				// little endian
     inIndex += 6;
 
-    // copy binary using encrpytion
+    // copy binary using encryption
     unsigned outIndexStart = outIndex;
     bool foundSeacGlyph;
 

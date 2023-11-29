@@ -87,7 +87,7 @@ NSSCMSMessage* NSSSignatureGenerator::createSign(CERTCertificate *cert)
         NSS_CMSMessage_Destroy(cmsg); return NULL;
     }
     
-    // if !detatched, the contentinfo will alloc a data item for us
+    // if !detached, the contentinfo will alloc a data item for us
     cinfo = NSS_CMSSignedData_GetContentInfo(sigd);
     if (NSS_CMSContentInfo_SetContent_Data(cmsg, cinfo, NULL, PR_TRUE ) != SECSuccess) {
         NSS_CMSMessage_Destroy(cmsg); return NULL;

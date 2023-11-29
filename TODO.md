@@ -26,7 +26,7 @@
 - PdfPageCollection: Add iteration on PdfPage*. See PdfAnnotationCollection
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
 - PdfPage: Add GetFields() iteration
-- PdfDocument: Add GetAnnoationFields()/GetAllFields() iteration
+- PdfDocument: Add GetAnnotationFields()/GetAllFields() iteration
 - Fix PdfFontMetrics handling of symbol encoding
 - Fix/complete handling of text extraction in rotated pages
 - Check PdfWriter should really update doc trailer when saving.

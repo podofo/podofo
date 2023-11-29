@@ -38,7 +38,7 @@ CMake 3.16 and the following libraries:
 * libpng (optional)
 * libidn (optional)
 
-For the most polular toolchains, PoDoFo requires the following
+For the most popular toolchains, PoDoFo requires the following
 minimum versions:
 
 * msvc++ 14.16 (VS 2017 15.9)
@@ -61,7 +61,7 @@ PoDoFo tools are licensed under the [GPL 2.0](https://spdx.org/licenses/GPL-2.0-
 
 ## Development quickstart
 
-PoDoFo is known to compile through a multitude of package managers (including `apt-get`, [brew](https://brew.sh/), [vcpkg](https://vcpkg.io/), [Conan](https://conan.io/)), and has public continous integration working in [Ubuntu Linux](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml), [MacOS](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml) and
+PoDoFo is known to compile through a multitude of package managers (including `apt-get`, [brew](https://brew.sh/), [vcpkg](https://vcpkg.io/), [Conan](https://conan.io/)), and has public continuous integration working in [Ubuntu Linux](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml), [MacOS](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml) and
 [Windows](https://github.com/podofo/podofo/blob/master/.github/workflows/build-win.yml), bootstrapping the CMake project, building and testing the library. It's highly recommended to build PoDoFo using such package managers. 
 
 There's also a playground area in the repository where you can have
@@ -111,7 +111,7 @@ cmake --build . --config Debug
 ### Build with vcpkg
 
 Follow the vcpkg [quickstart](https://vcpkg.io/en/getting-started.html) guide to setup the package manager repository first.
-In Windows, it may be also useful to set the enviroment variable `VCPKG_DEFAULT_TRIPLET` to `x64-windows` to default installing 64 bit dependencies
+In Windows, it may be also useful to set the environment variable `VCPKG_DEFAULT_TRIPLET` to `x64-windows` to default installing 64 bit dependencies
 and define a `VCPKG_INSTALLATION_ROOT` variable with the location of the repository as created in the quickstart.
 
 Then from source root run:

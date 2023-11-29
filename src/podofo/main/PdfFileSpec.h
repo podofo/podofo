@@ -16,7 +16,7 @@ namespace PoDoFo {
 class PdfDocument;
 
 /**
- *  A file specification is used in the PDF file to referr to another file.
+ *  A file specification is used in the PDF file to refer to another file.
  *  The other file can be a file outside of the PDF or can be embedded into
  *  the PDF file itself.
  */
@@ -41,7 +41,7 @@ private:
 
     /** Initialize a filespecification from a filename
      *  \param filename filename
-     *  \param embed embedd the file data into the PDF file
+     *  \param embed embed the file data into the PDF file
      *  \param striPath whether to strip path from the file name string
      */
     void Init(const std::string_view& filename, bool embed, bool striPath);
@@ -60,9 +60,9 @@ private:
      */
     PdfString CreateFileSpecification(const std::string_view& filename) const;
 
-    /** Embedd a file into a stream object
+    /** Embed a file into a stream object
      *  \param obj write the file to this object stream
-     *  \param filename the file to embedd
+     *  \param filename the file to embed
      */
     void EmbeddFile(PdfObject& obj, const std::string_view& filename) const;
 
