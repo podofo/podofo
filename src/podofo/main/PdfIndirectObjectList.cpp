@@ -270,7 +270,7 @@ int32_t PdfIndirectObjectList::tryAddFreeObject(uint32_t objnum, uint32_t gennum
     // Documentation 3.4.3 Cross-Reference Table states: "The maximum
     // generation number is 65535; when a cross reference entry reaches
     // this value, it is never reused."
-    // NOTE: gennum is uint32 to accomodate overflows from callers
+    // NOTE: gennum is uint32 to accommodate overflows from callers
     if (gennum >= MaxXRefGenerationNum)
     {
         m_unavailableObjects.insert(gennum);

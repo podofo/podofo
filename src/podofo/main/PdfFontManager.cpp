@@ -510,7 +510,7 @@ unique_ptr<charbuff> PdfFontManager::getWin32FontData(
 
     LOGFONTW lf{ };
     // NOTE: ANSI_CHARSET should give a consistent result among
-    // different locale configurations but sometimes dont' match fonts.
+    // different locale configurations but sometimes don't match fonts.
     // We prefer OEM_CHARSET over DEFAULT_CHARSET because it configures
     // the mapper in a way that will match more fonts
     lf.lfCharSet = OEM_CHARSET;
@@ -625,7 +625,7 @@ FT_Face getFontFaceFromBuffer(const bufferview& view, unsigned faceIndex, unique
 }
 
 // NOTE1: No check for collections
-// NOTE2: The function may be unsued depending on flags
+// NOTE2: The function may be unused depending on flags
 #pragma warning (suppress: 4505)
 FT_Face getFontFaceFromBuffer(const bufferview& view)
 {
@@ -711,7 +711,7 @@ Exit:
     return sucess;
 }
 
-// This function will recieve the device context for the
+// This function will receive the device context for the
 // TrueType Collection font, it will then extract necessary,
 // tables and create the correct buffer.
 void getFontDataTTC(charbuff& buffer, const charbuff& fileBuffer, const charbuff& ttcBuffer)

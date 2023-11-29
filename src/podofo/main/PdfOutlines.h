@@ -21,7 +21,7 @@ class PdfIndirectObjectList;
 
 /**
  * The title of an outline item can be displayed
- * in different formating styles since PDF 1.4.
+ * in different formatting styles since PDF 1.4.
  */
 enum class PdfOutlineFormat
 {
@@ -205,7 +205,7 @@ protected:
      *  \param title title of this item
      *  \param dest destination of this item
      *  \param parentOutline parent of this outline item
-     *                        in the outline item hierarchie
+     *                        in the outline item hierarchy
      *  \param parent parent vector of objects which is required
      *                 to create new objects
      */
@@ -216,7 +216,7 @@ protected:
      *  \param title title of this item
      *  \param action action of this item
      *  \param parentOutline parent of this outline item
-     *                        in the outline item hierarchie
+     *                        in the outline item hierarchy
      *  \param parent parent vector of objects which is required
      *                 to create new objects
      */
@@ -226,7 +226,7 @@ protected:
     /** Create a PdfOutlineItem from an existing PdfObject
      *  \param obj an existing outline item
      *  \param parentOutline parent of this outline item
-     *                        in the outline item hierarchie
+     *                        in the outline item hierarchy
      *  \param previous previous item of this item
      */
     PdfOutlineItem(PdfObject& obj, PdfOutlineItem* parentOutline, PdfOutlineItem* previous);

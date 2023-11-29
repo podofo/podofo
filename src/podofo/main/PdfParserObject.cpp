@@ -184,7 +184,7 @@ void PdfParserObject::parseStream()
         {
             // Skip spaces between the stream keyword and the carriage return/line
             // feed or line feed. Actually, this is not required by PDF Reference,
-            // but certain PDFs have additionals whitespaces
+            // but certain PDFs have additional whitespaces
             case ' ':
             case '\t':
                 (void)m_device->ReadChar();

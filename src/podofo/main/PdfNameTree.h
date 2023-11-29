@@ -86,7 +86,7 @@ public:
     void ToDictionary(const PdfName& dictionary, PdfDictionary& dict);
 
     /**
-     * I have made it for access to "JavaScript" dictonary. This is "document-level javascript storage"
+     * I have made it for access to "JavaScript" dictionary. This is "document-level javascript storage"
      *  \param create if true the javascript node is created if it does not exists.
      */
     PdfObject* GetJavaScriptNode(bool create = false) const;

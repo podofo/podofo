@@ -125,7 +125,7 @@ namespace PoDoFo
         T m_value;
     };
 
-    // Template spacialization for references
+    // Template specialization for references
     template <typename T>
     class nullable<T&> final
     {

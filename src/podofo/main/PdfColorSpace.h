@@ -156,7 +156,7 @@ namespace PoDoFo {
         static bool TryCreateFromObject(const PdfObject& obj, PdfColorSpacePtr& colorSpace);
 
         /** Singleton method which returns a global instance
-         *  of Uknown color space
+         *  of Unknown color space
          */
         static PdfColorSpacePtr GetUnkownInstance();
 

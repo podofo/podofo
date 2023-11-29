@@ -275,7 +275,7 @@ private:
      *  Add the object only if the generation is the allowed range
      *
      *  \param rReference the reference to reuse
-     *  \returns true if the object was succesfully added
+     *  \returns true if the object was successfully added
      *
      *  \see AddFreeObject
      */

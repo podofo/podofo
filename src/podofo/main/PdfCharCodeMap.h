@@ -12,7 +12,7 @@
 
 namespace PoDoFo
 {
-    /** A conventient typedef for an unspecified codepoint
+    /** A convenient typedef for an unspecified codepoint
      * The underlying type is convenientely char32_t so
      * it's a 32 bit fixed sized type that is also compatible
      * with unicode code points
@@ -52,7 +52,7 @@ namespace PoDoFo
         bool TryGetCodePoints(const PdfCharCode& codeUnit, std::vector<codepoint>& codePoints) const;
 
         /** Try get char code from utf8 encoded range
-         * \remarks It assumes it != and it will consumes the interator
+         * \remarks It assumes it != and it will consumes the iterator
          * also when returning false
          */
         bool TryGetNextCharCode(std::string_view::iterator& it,

@@ -56,10 +56,10 @@ public:
     virtual bool TryGetGlyphWidth(unsigned gid, double& width) const = 0;
 
     /**
-     * Some fonts provides a glyph subsitution list, eg. for ligatures.
+     * Some fonts provides a glyph substitution list, eg. for ligatures.
      * OpenType fonts for example provides GSUB "Glyph Substitution Table"
-     * \param gids gids to be substituded
-     * \param backwardMap list of gid counts to remap back substituded gids
+     * \param gids gids to be substituted
+     * \param backwardMap list of gid counts to remap back substituted gids
      *     eg. { 32, 102, 105 } gets substituted in { 32, 174 }
      *     the backward map is { 1, 2 }
      */
@@ -72,7 +72,7 @@ public:
     virtual bool HasUnicodeMapping() const = 0;
 
     /** Try to retrieve the mapped gid from Unicode code point
-     * \remarks dont' use this method directly unless you know
+     * \remarks don't use this method directly unless you know
      * what you're doing: use PdfFont::TryGetGID instead
      */
     virtual bool TryGetGID(char32_t codePoint, unsigned& gid) const = 0;
@@ -199,7 +199,7 @@ public:
     virtual void GetBoundingBox(std::vector<double>& bbox) const = 0;
 
     /** Get the italic angle of this font.
-     *  Used to build the font dictionay
+     *  Used to build the font dictionary
      *  \returns the italic angle of this font.
      */
     virtual double GetItalicAngle() const = 0;
@@ -302,9 +302,9 @@ public:
     /** Create a best effort /ToUnicode map based on the
      * character unicode maps of the font
      *
-     * Thi is implemented just for PdfFontMetricsFreetype
+     * This is implemented just for PdfFontMetricsFreetype
      * This map may be unreliable because of ligatures,
-     * other kind of character subsitutions, or glyphs
+     * other kind of character substitutions, or glyphs
      * mapping to multiple unicode codepoints.
      */
     virtual std::unique_ptr<PdfCMapEncoding> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const;

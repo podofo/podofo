@@ -329,7 +329,7 @@ void PdfEncoding::ExportToFont(PdfFont& font, PdfEncodingExportFlags flags) cons
         // if we are not subsetting. In that case we want a CID mapping
         if (font.IsSubsettingEnabled() || !tryExportObjectTo(fontDict, true))
         {
-            // If it doesn't have a name represenation, try to export a CID CMap
+            // If it doesn't have a name representation, try to export a CID CMap
             auto& cmapObj = fontDict.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
 
             // NOTE: Setting the CIDSystemInfo params in the CMap stream object is required
@@ -651,7 +651,7 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
 
 void PdfEncoding::writeToUnicodeCMap(PdfObject& cmapObj) const
 {
-    // NOTE: We definetely want a valid Unicode map at this point
+    // NOTE: We definitely want a valid Unicode map at this point
     charbuff temp;
     auto& toUnicode = GetToUnicodeMap();
     auto& stream = cmapObj.GetOrCreateStream();

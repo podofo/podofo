@@ -33,7 +33,7 @@ enum class PdfTilingPatternType
 
 /**
  * This class defined a tiling pattern which can be used
- * to fill abitrary shapes with a pattern using PdfPainter.
+ * to fill arbitrary shapes with a pattern using PdfPainter.
  */
 class PODOFO_API PdfTilingPattern final : public PdfDictionaryElement
 {

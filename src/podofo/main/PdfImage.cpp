@@ -574,8 +574,8 @@ void PdfImage::loadFromJpegInfo(jpeg_decompress_struct& ctx, PdfImageInfo& info)
         {
             info.ColorSpace = PdfColorSpaceFactory::GetDeviceCMYKInstace();
 
-            // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
-            // in a inverted fashion. Fix by attaching a decode array
+            // The jpeg-doc isn't specific on this point, but cmyk's seem to be stored
+            // in an inverted fashion. Fix by attaching a decode array
             info.DecodeArray.push_back(1.0);
             info.DecodeArray.push_back(0.0);
             info.DecodeArray.push_back(1.0);

@@ -67,7 +67,7 @@ void print_help()
     printf("       --print       Allow printing the document\n");
     printf("       --edit        Allow modifying the document besides annotations, form fields or changing pages\n");
     printf("       --copy        Allow text and graphic extraction\n");
-    printf("       --editnotes   Add or modify text annoations or form fields (if PdfPermissions::Edit is set also allow the creation interactive form fields including signature)\n");
+    printf("       --editnotes   Add or modify text annotations or form fields (if PdfPermissions::Edit is set also allow the creation interactive form fields including signature)\n");
     printf("       --fillandsign Fill in existing form or signature fields\n");
     printf("       --accessible  Extract text and graphics to support user with disabillities\n");
     printf("       --assemble    Assemble the document: insert, create, rotate delete pages or add bookmarks\n");

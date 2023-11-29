@@ -23,7 +23,7 @@ namespace PoDoFo
         SkipToUnicode = 1,  ///< Skip exporting a /ToUnicode entry
     };
 
-    /** A PDF string context to interatively scan a string
+    /** A PDF string context to iteratively scan a string
      * and collect both CID and unicode codepoints
      */
     class PODOFO_API PdfStringScanContext

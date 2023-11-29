@@ -62,7 +62,7 @@ void PdfCatalog::SetMetadataStreamValue(const string_view& value)
     stream.SetData(value, true);
 
     // We are writing raw clear text, which is required in most
-    // relevant scenarions (eg. PDF/A). Remove any possibly
+    // relevant scenarios (eg. PDF/A). Remove any possibly
     // existing filter
     obj.GetDictionary().RemoveKey(PdfName::KeyFilter);
 

@@ -98,7 +98,7 @@ PdfObject::PdfObject(PdfDictionary&& dict) noexcept
     m_Variant.GetDictionaryUnsafe().SetOwner(*this);
 }
 
-// NOTE: Don't copy parent document/container/indirect refernce.
+// NOTE: Don't copy parent document/container/indirect reference.
 // Copied objects must be always detached. Ownership will be set
 // automatically elsewhere
 PdfObject::PdfObject(const PdfObject& rhs)
@@ -420,7 +420,7 @@ void PdfObject::EnableDelayedLoadingStream()
 void PdfObject::DelayedLoadStreamImpl()
 {
     // Default implementation throws, since delayed loading of
-    // steams should not be enabled except by types that support it.
+    // streams should not be enabled except by types that support it.
     PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
 }
 
@@ -509,7 +509,7 @@ void PdfObject::SetDirty()
     else if (m_Parent != nullptr)
     {
         // Reset parent if not indirect. Resetting will stop at
-        // first indirect anchestor
+        // first indirect ancestor
         m_Parent->SetDirty();
     }
 }

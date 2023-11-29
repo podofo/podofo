@@ -128,7 +128,7 @@ int main()
 
     // testing strings
     TEST_SAFE_OP( Test( "(Hallo Welt!)", ePdfDataType_String ) );
-    TEST_SAFE_OP( Test( "(Hallo \\(schöne\\) Welt!)", ePdfDataType_String ) );
+    TEST_SAFE_OP( Test( "(Hallo \\(schï¿½ne\\) Welt!)", ePdfDataType_String ) );
     TEST_SAFE_OP( Test( "(Balanced () brackets are (ok ()) in PDF Strings)", ePdfDataType_String,
                         "(Balanced \\(\\) brackets are \\(ok \\(\\)\\) in PDF Strings)" ) );
     TEST_SAFE_OP( Test( "()", ePdfDataType_String ) );
@@ -181,13 +181,13 @@ int main()
     printf("---\n");
 
     // testing arrays
-    TEST_SAFE_OP_IGNORE( Test( "[]", ePdfDataType_Array ) );  // this test may fail as the formating is different
+    TEST_SAFE_OP_IGNORE( Test( "[]", ePdfDataType_Array ) );  // this test may fail as the formatting is different
     TEST_SAFE_OP( Test( "[ ]", ePdfDataType_Array ) );
     TEST_SAFE_OP( Test( "[ 1 2 3 4 ]", ePdfDataType_Array ) );
-    TEST_SAFE_OP_IGNORE( Test( "[1 2 3 4]", ePdfDataType_Array ) ); // this test may fail as the formating is different
+    TEST_SAFE_OP_IGNORE( Test( "[1 2 3 4]", ePdfDataType_Array ) ); // this test may fail as the formatting is different
     TEST_SAFE_OP( Test( "[ 2 (Hallo Welt!) 3.500000 /FMC ]", ePdfDataType_Array ) );
     TEST_SAFE_OP( Test( "[ [ 1 2 ] (Hallo Welt!) 3.500000 /FMC ]", ePdfDataType_Array ) );
-    TEST_SAFE_OP_IGNORE( Test( "[/ImageA/ImageB/ImageC]", ePdfDataType_Array ) ); // this test may fail as the formating is different
+    TEST_SAFE_OP_IGNORE( Test( "[/ImageA/ImageB/ImageC]", ePdfDataType_Array ) ); // this test may fail as the formatting is different
     TEST_SAFE_OP_IGNORE( Test( "[<530464995927cef8aaf46eb953b93373><530464995927cef8aaf46eb953b93373>]", ePdfDataType_Array ) );
     TEST_SAFE_OP_IGNORE( Test( "[ 2 0 R (Test Data) 4 << /Key /Data >> 5 0 R ]", ePdfDataType_Array ) );
     TEST_SAFE_OP_IGNORE( Test( "[<</key/name>>2 0 R]", ePdfDataType_Array ) );

@@ -30,7 +30,7 @@ enum class PdfShadingPatternType
 
 /**
  * This class defined a shading pattern which can be used
- * to fill abitrary shapes with a pattern using PdfPainter.
+ * to fill arbitrary shapes with a pattern using PdfPainter.
  */
 class PODOFO_API PdfShadingPattern : public PdfDictionaryElement
 {

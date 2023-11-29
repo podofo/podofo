@@ -60,7 +60,7 @@ void PoDoFo::SignDocument(PdfMemDocument& doc, StreamDevice& device, PdfSigner& 
     {
         // NOTE: Adobe is crazy and if the /NeedAppearances is set to true,
         // it will not show up the signature upon signing. Just
-        // remore the key just in case it's present (defaults to false)
+        // remove the key just in case it's present (defaults to false)
         acroForm->GetDictionary().RemoveKey("NeedAppearances");
     }
 

@@ -16,12 +16,12 @@ namespace PoDoFo
     class PdfPage;
 
     /**
-     * Get a rotation trasformation that aligns the rectangle to the axis after the rotation
+     * Get a rotation transformation that aligns the rectangle to the axis after the rotation
      */
     Matrix PODOFO_API GetFrameRotationTransform(const Rect& rect, double teta);
 
     /**
-     * Get an inverse rotation trasformation that aligns the rectangle to the axis after the rotation
+     * Get an inverse rotation transformation that aligns the rectangle to the axis after the rotation
      */
     Matrix PODOFO_API GetFrameRotationTransformInverse(const Rect& rect, double teta);
 

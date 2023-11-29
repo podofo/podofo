@@ -16,7 +16,7 @@
 namespace PoDoFo {
 
 /** A PdfFont implementation that can be used
- *  to embedd type1 fonts into a PDF file
+ *  to embed type1 fonts into a PDF file
  *  or to draw with type1 fonts.
  */
 class PdfFontType1 final : public PdfFontSimple

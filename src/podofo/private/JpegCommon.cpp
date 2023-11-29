@@ -18,7 +18,7 @@ extern "C"
 {
 // NOTE: Ignore MSVC warning C4297 ("function assumed not to throw
 // an exception but does") because of extern "C": we will catch
-// the exeception in a C++ method
+// the exception in a C++ method
 #pragma warning(push)
 #pragma warning(disable: 4297)
     void cust_error_exit(j_common_ptr ctx)

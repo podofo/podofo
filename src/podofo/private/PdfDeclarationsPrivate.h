@@ -33,7 +33,7 @@
 #include <podofo/main/PdfDeclarations.h>
 
 #ifdef _WIN32
-// Microsft itself assumes little endian
+// Microsoft itself assumes little endian
 // https://github.com/microsoft/STL/blob/b11945b73fc1139d3cf1115907717813930cedbf/stl/inc/bit#L336
 #define PODOFO_IS_LITTLE_ENDIAN
 #else // Unix
@@ -89,7 +89,7 @@
 
 // This is a do nothing macro that can be used to define
 // an invariant property without actually checking for it,
-// not even in DEBUG build. It's user responsability to
+// not even in DEBUG build. It's user responsibility to
 // ensure it's actually satisfied
 #define PODOFO_INVARIANT(x)
 

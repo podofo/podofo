@@ -17,8 +17,8 @@ namespace PoDoFo {
 enum class PdfIdentityOrientation
 {
     Unkwnown = 0,
-    Horizontal, // Corresponts to /Identity-H
-    Vertical,   // Corresponts to /Identity-V
+    Horizontal, // Corresponds to /Identity-H
+    Vertical,   // Corresponds to /Identity-V
 };
 
 /** PdfIdentityEncoding is a two-byte encoding which can be

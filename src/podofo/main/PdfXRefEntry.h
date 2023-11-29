@@ -36,7 +36,7 @@ namespace PoDoFo
         union
         {
             uint64_t ObjectNumber;  // Object number in Free and Compressed entries
-            uint64_t Offset;        // Unsed in InUse entries
+            uint64_t Offset;        // Unused in InUse entries
             uint64_t Unknown1;
         };
 

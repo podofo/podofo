@@ -561,7 +561,7 @@ void PoDoFo::WriteOperator_Extension(PdfStringStream& stream, const string_view&
 }
 
 /*
- * Coverts a rectangle to an array of points which can be used
+ * Converts a rectangle to an array of points which can be used
  * to draw an ellipse using 4 bezier curves.
  *
  * The arrays plPointX and plPointY need space for at least 12 longs

@@ -160,7 +160,7 @@ StandardStreamDevice::StandardStreamDevice(iostream& stream)
 
     if (stream.tellp() != stream.tellg())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation,
-            "Unsupported mistmatch between read and read position in stream");
+            "Unsupported mismatch between read and read position in stream");
 }
 
 StandardStreamDevice::StandardStreamDevice(DeviceAccess access, ios& stream, bool streamOwned)

@@ -150,7 +150,7 @@ namespace PoDoFo
 
         /** Ensure the XMP metadata is created
          * Also, ensure some /Info metadata is normalized
-         * so it will be compatible with the corrispondent XMP
+         * so it will be compatible with the correspondent XMP
          */
         void EnsureXMPMetadata();
 

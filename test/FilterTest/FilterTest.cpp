@@ -302,6 +302,6 @@ int main()
         return e.GetError();
     }
 
-    printf("All tests sucessfull!\n");
+    printf("All tests successful!\n");
     return 0;
 }

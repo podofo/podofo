@@ -26,7 +26,7 @@ class PdfIndirectObjectList;
  *  a PdfObject and adds it to a vector of objects.
  *
  *  A PdfElement cannot be created directly. Use one
- *  of the subclasses which implement real functionallity.
+ *  of the subclasses which implement real functionality.
  *
  *  \see PdfPage \see PdfAction \see PdfAnnotation
  */

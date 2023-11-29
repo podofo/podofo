@@ -42,7 +42,7 @@ public:
     /**
      * Actually generate the subsetted font
      * Create a new PdfFontTrueTypeSubset from an existing
-     * TTF font file retrived from a font metrics
+     * TTF font file retrieved from a font metrics
      *
      * \param output write the font to this buffer
      * \param metrics font metrics object for this font
@@ -101,7 +101,7 @@ private:
     {
         unsigned GlyfTableOffset = 0;
         unsigned LocaTableOffset = 0;
-        // Used internaly during recursive load
+        // Used internally during recursive load
         int16_t ContourCount = 0;
     };
 

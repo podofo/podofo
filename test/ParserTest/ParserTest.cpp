@@ -65,7 +65,7 @@ void enc_test()
                          enc.GetPValue(), 40, 2) )
     {
 
-        printf("Successfull\n");
+        printf("Successful\n");
     }
     else
         printf("FAILED\n");

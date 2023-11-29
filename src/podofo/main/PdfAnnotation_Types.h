@@ -24,7 +24,7 @@ namespace PoDoFo {
     public:
         /** Get the quad points associated with the annotation (if appropriate).
          *  This array is used in text markup annotations to describe the
-         *  regions affected by the markup (i.e. the hilighted words, one
+         *  regions affected by the markup (i.e. the highlighted words, one
          *  quadrilateral per word)
          *
          *  \returns a PdfArray of 8xn numbers describing the
@@ -45,7 +45,7 @@ namespace PoDoFo {
 
         /** Set the quad points associated with the annotation (if appropriate).
          *  This array is used in text markup annotations to describe the
-         *  regions affected by the markup (i.e. the hilighted words, one
+         *  regions affected by the markup (i.e. the highlighted words, one
          *  quadrilateral per word)
          *
          *  \param quadPoints a PdfArray of 8xn numbers describing the
@@ -213,7 +213,7 @@ namespace PoDoFo {
         PdfAnnotationPopup(PdfPage& page, const Rect& rect);
         PdfAnnotationPopup(PdfObject& obj);
     public:
-        /** Sets whether this annotation is initialy open.
+        /** Sets whether this annotation is initially open.
          *  You should always set this true for popup annotations.
          *  \param b if true open it
          */
@@ -300,7 +300,7 @@ namespace PoDoFo {
         PdfAnnotationText(PdfPage& page, const Rect& rect);
         PdfAnnotationText(PdfObject& obj);
     public:
-        /** Sets whether this annotation is initialy open.
+        /** Sets whether this annotation is initially open.
          *  You should always set this true for popup annotations.
          *  \param b if true open it
          */

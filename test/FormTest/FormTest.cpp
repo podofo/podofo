@@ -84,14 +84,14 @@ void CreateComplexForm( PdfPage* pPage, PdfStreamedDocument* pDoc )
 
     // Open Source
     y -= 11000.0 * CONVERSION_CONSTANT;
-    painter.DrawText( x, y, "I wan't to use PoDoFo in an Open Source application" );
+    painter.DrawText( x, y, "I want to use PoDoFo in an Open Source application" );
     PdfCheckBox checkOpenSource( pPage, PdfRect( 120000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT,
                                                  h, h ), pDoc );
     checkOpenSource.SetFieldName("field_check_oss");
 
     // Commercial
     y -= 11000.0 * CONVERSION_CONSTANT;
-    painter.DrawText( x, y, "I wan't to use PoDoFo in a commercial application" );
+    painter.DrawText( x, y, "I want to use PoDoFo in a commercial application" );
     PdfCheckBox checkCom( pPage, PdfRect( 120000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT,
                                           h, h ), pDoc );
     checkCom.SetFieldName("field_check_com");
@@ -346,7 +346,7 @@ int main( int argc, char* argv[] )
             TEST_SAFE_OP( writer.Close() );
         }
     } catch( PdfError & e ) {
-        std::cerr << "Error: An error " << e.GetError() << " ocurred." << std::endl;
+        std::cerr << "Error: An error " << e.GetError() << " occurred." << std::endl;
         e.PrintErrorMsg();
         return e.GetError();
     }
