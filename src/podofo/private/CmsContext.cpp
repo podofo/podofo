@@ -5,7 +5,7 @@
  */
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
-#include "CMSContext.h"
+#include "CmsContext.h"
 
 #include <date/date.h>
 
