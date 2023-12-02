@@ -288,6 +288,8 @@ namespace utls
     // Write the char to the supplied buffer as hexadecimal code
     void WriteCharHexTo(char buf[2], char ch);
 
+    std::string GetCharHexString(const PoDoFo::bufferview& buff);
+
     // Append the unicode code point to a big endian encoded utf16 string
     void WriteUtf16BETo(std::u16string& str, char32_t codePoint);
 

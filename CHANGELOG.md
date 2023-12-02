@@ -1,5 +1,6 @@
 ## Version 0.11.0
 - Fixed PdfStreamedDocument, see #88
+- Added high-level signing API, see PdfSignerCMS and "TestSignature1" test case
 
 # Version 0.10.3
 - Fixed big performance regression introduced in 0.10, see #108

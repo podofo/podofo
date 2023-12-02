@@ -19,6 +19,7 @@ namespace PoDoFo
     class PODOFO_API PdfSigner
     {
     public:
+        PdfSigner();
         virtual ~PdfSigner();
 
         /**
@@ -62,6 +63,10 @@ namespace PoDoFo
          * Should return the signature /Type. It can be "Sig" or "DocTimeStamp"
          */
         virtual std::string GetSignatureType() const = 0;
+
+    private:
+        PdfSigner(const PdfSigner&) = delete;
+        PdfSigner& operator=(const PdfSigner&) = delete;
     };
 
     /** Sign the document on the given signature field

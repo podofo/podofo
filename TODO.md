@@ -1,10 +1,9 @@
 ### 0.11
-- PdfFontManager: Add font hash to cache descriptor
-- Add high-level signing API
 - Add special SetAppearance for PdfSignature respecting
   "Digital Signature Appearances" document specification
 
 ### 1.0
+- PdfFontManager: Add font hash to cache descriptor
 - PdfField: Evaluate make a virtual getValueObject()
 - Evaluate removing PdfObject::Null and PdfVariant::Null and introduce nullptr_t constructor overloads
 - PdfParserObject: Release the device after loading

@@ -1091,6 +1091,15 @@ void utls::WriteCharHexTo(char buf[2], char ch)
     buf[1] += (buf[1] > 9 ? 'A' - 10 : '0');
 }
 
+string utls::GetCharHexString(const bufferview& buff)
+{
+    string ret(buff.size() * 2, '\0');
+    for (unsigned i = 0; i < buff.size(); i++)
+        utls::WriteCharHexTo(ret.data() + i * 2, buff[i]);
+
+    return ret;
+}
+
 void utls::WriteUtf16BETo(u16string& str, char32_t codePoint)
 {
     str.clear();

@@ -24,6 +24,8 @@ static void setSignature(StreamDevice& device, const string_view& sigData,
     size_t conentsBeaconOffset, charbuff& buffer);
 static void prepareBeaconsData(size_t signatureSize, string& contentsBeacon, string& byteRangeBeacon);
 
+PdfSigner::PdfSigner() { }
+
 PdfSigner::~PdfSigner() { }
 
 bool PdfSigner::SkipBufferClear() const
@@ -86,7 +88,7 @@ void PoDoFo::SignDocument(PdfMemDocument& doc, StreamDevice& device, PdfSigner& 
 
     signer.ComputeSignature(signatureBuf, false);
     if (signatureBuf.size() > beaconSize)
-        throw runtime_error("Actual signature size bigger than beacon size");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Actual signature size bigger than beacon size");
 
     // Ensure the signature will be as big as the
     // beacon size previously cached to fill all

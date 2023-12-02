@@ -90,6 +90,7 @@ enum class PdfErrorCode
     CannotEncryptedForUpdate, ///< Cannot load encrypted documents for update.
 
     XmpMetadata,              ///< Error while creating or reading XMP metadata
+    OpenSSL,                  ///< OpenSSL error
 };
 
 /**
