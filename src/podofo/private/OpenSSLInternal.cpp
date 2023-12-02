@@ -81,7 +81,6 @@ private:
 #endif // OPENSSL_VERSION_MAJOR >= 3
 } s_SSL;
 
-static int cms_DigestAlgorithm_find_ctx(EVP_MD_CTX* mctx, BIO* chain, X509_ALGOR* mdalg);
 static void computeHash(const bufferview& data, const EVP_MD* type, charbuff& hash);
 static string computeHashStr(const bufferview& data, const EVP_MD* type);
 
@@ -145,7 +144,7 @@ charbuff ssl::GetEncoded(const X509* cert)
     if (bio == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "BIO_new failed");
 
-    if (i2d_X509_bio(bio.get(), (X509*)cert) == 0)
+    if (i2d_X509_bio(bio.get(), const_cast<X509*>(cert)) == 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "i2d_X509_bio failed");
 
     char* signatureData;
@@ -162,7 +161,7 @@ charbuff ssl::GetEncoded(const EVP_PKEY* pkey)
     if (bio == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "BIO_new failed");
 
-    if (i2d_PrivateKey_bio(bio.get(), (EVP_PKEY*)pkey) == 0)
+    if (i2d_PrivateKey_bio(bio.get(), const_cast<EVP_PKEY*>(pkey)) == 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "i2d_PrivateKey_bio failed");
 
     char* signatureData;

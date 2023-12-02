@@ -188,13 +188,13 @@ void encode_pkcs1(X509_ALGOR* digestAlg,
 
     sig.algor = digestAlg;
     sig.algor = &algor;
-    sig.algor->algorithm = (ASN1_OBJECT*)getASN1Object(digestAlg);
+    sig.algor->algorithm = const_cast<ASN1_OBJECT*>(getASN1Object(digestAlg));
     parameter.type = V_ASN1_NULL;
     parameter.value.ptr = NULL;
     sig.algor->parameter = &parameter;
 
     sig.digest = &digest;
-    sig.digest->data = (unsigned char*)m;
+    sig.digest->data = const_cast<unsigned char*>(m);
     sig.digest->length = m_len;
 
     // This is the expansion of IMPLEMENT_ASN1_FUNCTIONS
