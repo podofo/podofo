@@ -10,6 +10,11 @@
 using namespace std;
 using namespace PoDoFo;
 
+#if OPENSSL_VERSION_MAJOR < 3
+// Fixes warning when compiling with OpenSSL 3
+#define EVP_MD_CTX_get0_md EVP_MD_CTX_md
+#endif // OPENSSL_VERSION_MAJOR < 3
+
 // The following functions include software developed by
 // the OpenSSL Project for use in the OpenSSL Toolkit(http://www.openssl.org/)
 // License: https://www.openssl.org/source/license-openssl-ssleay.txt
@@ -119,7 +124,7 @@ int cms_DigestAlgorithm_find_ctx(EVP_MD_CTX* mctx, BIO* chain, X509_ALGOR* mdalg
         if (EVP_MD_CTX_type(mtmp) == nid
             // Workaround for broken implementations that use signature
             // algorithm OID instead of digest.
-            || EVP_MD_pkey_type(EVP_MD_CTX_md(mtmp)) == nid)
+            || EVP_MD_pkey_type(EVP_MD_CTX_get0_md(mtmp)) == nid)
         {
             return EVP_MD_CTX_copy_ex(mctx, mtmp);
         }
