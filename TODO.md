@@ -32,7 +32,6 @@
 - Check PdfWriter should really update doc trailer when saving.
   Now the new trailer is written but the doc still has the old one
 - PdfImage: cache PdfColorSpace
-- Check PdfSignature to have correct /ByteRange and /Contents
 values in the dictionary after signing with SignDocument
 - Evaluate move more utf8::next to utf8::unchecked::next
 - Add PdfString(string&&) and PdfName(string&&) constructors that

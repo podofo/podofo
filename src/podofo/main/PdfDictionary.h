@@ -103,6 +103,7 @@ class PODOFO_API PdfDictionary final : public PdfDataContainer
 {
     friend class PdfObject;
     friend class PdfTokenizer;
+    friend class PdfSignature;
 
 public:
     /** Create a new, empty dictionary

@@ -75,10 +75,10 @@ PdfArrayElement::PdfArrayElement(PdfObject& obj)
 
 PdfArray& PdfArrayElement::GetArray()
 {
-    return GetObject().GetArray();
+    return GetObject().GetArrayUnsafe();
 }
 
 const PdfArray& PdfArrayElement::GetArray() const
 {
-    return GetObject().GetArray();
+    return GetObject().GetArrayUnsafe();
 }

@@ -94,7 +94,7 @@ void PdfSignature::SetSignatureDate(nullable<const PdfDate&> sigDate)
 }
 
 void PdfSignature::PrepareForSigning(const string_view& filter,
-    const string_view& subFilter, const std::string_view& type,
+    const string_view& subFilter, const string_view& type,
     const PdfSignatureBeacons& beacons)
 {
     EnsureValueObject();
@@ -230,6 +230,12 @@ nullable<PdfDate> PdfSignature::GetSignatureDate() const
 PdfObject* PdfSignature::getValueObject() const
 {
     return m_ValueObj;
+}
+
+void PdfSignature::SetContentsByteRangeNoDirtySet(const bufferview& contents, PdfArray&& byteRange)
+{
+    m_ValueObj->GetDictionary().AddKey("ByteRange", PdfObject(std::move(byteRange)), true);
+    m_ValueObj->GetDictionary().AddKey("Contents", PdfString::FromRaw(contents, true), true);
 }
 
 void PdfSignature::EnsureValueObject()

@@ -19,7 +19,7 @@ static size_t readForSignature(StreamDevice& device,
     size_t conentsBeaconOffset, size_t conentsBeaconSize,
     char* buffer, size_t size);
 static void adjustByteRange(StreamDevice& device, size_t byteRangeOffset,
-    size_t conentsBeaconOffset, size_t conentsBeaconSize, charbuff& buffer);
+    size_t conentsBeaconOffset, size_t conentsBeaconSize, PdfArray& byteRangeArr, charbuff& buffer);
 static void setSignature(StreamDevice& device, const string_view& sigData,
     size_t conentsBeaconOffset, charbuff& buffer);
 static void prepareBeaconsData(size_t signatureSize, string& contentsBeacon, string& byteRangeBeacon);
@@ -68,8 +68,9 @@ void PoDoFo::SignDocument(PdfMemDocument& doc, StreamDevice& device, PdfSigner& 
     device.Flush();
 
     charbuff buffer;
+    PdfArray byteRangeArr;
     adjustByteRange(device, *beacons.ByteRangeOffset, *beacons.ContentsOffset,
-        beacons.ContentsBeacon.size(), buffer);
+        beacons.ContentsBeacon.size(), byteRangeArr, buffer);
     device.Flush();
 
     // Read data from the device to prepare the signature
@@ -96,6 +97,9 @@ void PoDoFo::SignDocument(PdfMemDocument& doc, StreamDevice& device, PdfSigner& 
     signatureBuf.resize(beaconSize);
     setSignature(device, signatureBuf, *beacons.ContentsOffset, buffer);
     device.Flush();
+
+    // Finally set actual /ByteRange on the signature without dirty set
+    signature.SetContentsByteRangeNoDirtySet(signatureBuf, std::move(byteRangeArr));
 }
 
 size_t readForSignature(StreamDevice& device, size_t conentsBeaconOffset, size_t conentsBeaconSize,
@@ -137,18 +141,17 @@ size_t readForSignature(StreamDevice& device, size_t conentsBeaconOffset, size_t
 }
 
 void adjustByteRange(StreamDevice& device, size_t byteRangeOffset,
-    size_t conentsBeaconOffset, size_t conentsBeaconSize, charbuff& buffer)
+    size_t conentsBeaconOffset, size_t conentsBeaconSize, PdfArray& byteRangeArr, charbuff& buffer)
 {
     // Get final position
     size_t fileEnd = device.GetLength();
-    PdfArray arr;
-    arr.Add(PdfObject(static_cast<int64_t>(0)));
-    arr.Add(PdfObject(static_cast<int64_t>(conentsBeaconOffset)));
-    arr.Add(PdfObject(static_cast<int64_t>(conentsBeaconOffset + conentsBeaconSize)));
-    arr.Add(PdfObject(static_cast<int64_t>(fileEnd - (conentsBeaconOffset + conentsBeaconSize))));
+    byteRangeArr.Add(PdfObject(static_cast<int64_t>(0)));
+    byteRangeArr.Add(PdfObject(static_cast<int64_t>(conentsBeaconOffset)));
+    byteRangeArr.Add(PdfObject(static_cast<int64_t>(conentsBeaconOffset + conentsBeaconSize)));
+    byteRangeArr.Add(PdfObject(static_cast<int64_t>(fileEnd - (conentsBeaconOffset + conentsBeaconSize))));
 
     device.Seek(byteRangeOffset);
-    arr.Write(device, PdfWriteFlags::None, { }, buffer);
+    byteRangeArr.Write(device, PdfWriteFlags::None, { }, buffer);
 }
 
 void setSignature(StreamDevice& device, const string_view& contentsData,
