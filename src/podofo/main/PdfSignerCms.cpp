@@ -16,7 +16,7 @@ PdfSignerCms::PdfSignerCms(const bufferview& cert, const bufferview& pkey,
     const PdfSignerCmsParams& parameters) :
     PdfSignerCms(cert, [&](bufferview input, bool dryrun, charbuff& output)
         {
-            return doEncrypt(input, output, dryrun);
+            return doSign(input, output, dryrun);
         }, parameters)
 {
     loadPrivateKey(pkey);
@@ -178,8 +178,8 @@ void PdfSignerCms::loadPrivateKey(const bufferview& pkey)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidKey, "Unable to load private key");
 }
 
-void PdfSignerCms::doEncrypt(const bufferview& input, charbuff& output, bool dryrun)
+void PdfSignerCms::doSign(const bufferview& input, charbuff& output, bool dryrun)
 {
     (void)dryrun;
-    return ssl::RsaRawEncrypt(input, output, m_privKey);
+    return ssl::DoSignRaw(input, m_privKey, output);
 }

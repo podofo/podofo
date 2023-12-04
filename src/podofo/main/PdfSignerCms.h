@@ -83,7 +83,7 @@ namespace PoDoFo
         void ensureContextInitialized();
         void resetContext();
         void loadPrivateKey(const bufferview& pkey);
-        void doEncrypt(const bufferview& input, charbuff& output, bool dryrun);
+        void doSign(const bufferview& input, charbuff& output, bool dryrun);
     private:
         charbuff m_certificate;
         PdfSigningService signingService;

@@ -125,15 +125,31 @@ void ssl::cmsAddSigningTime(CMS_SignerInfo* si, const date::sys_seconds& timesta
     }
 }
 
-void ssl::RsaRawEncrypt(const bufferview& input, charbuff& output, EVP_PKEY* pkey)
+// Note that signing is really encryption with the private key
+// and a deterministic padding
+void ssl::DoSignRaw(const bufferview& input, EVP_PKEY* pkey, charbuff& output)
 {
-    // This is raw RSA encryption with deterministic padding
-    auto rsa = EVP_PKEY_get1_RSA(pkey);
-    int rsalen = RSA_size(rsa);
+    size_t siglen;
+    auto ctx = EVP_PKEY_CTX_new(pkey, nullptr);
+    if (ctx == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error EVP_PKEY_CTX_new");
 
-    output.resize(rsalen);
-    (void)RSA_private_encrypt((int)input.size(), (const unsigned char*)input.data(),
-        (unsigned char*)output.data(), rsa, RSA_PKCS1_PADDING);
+    if (EVP_PKEY_sign_init(ctx) <= 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error EVP_PKEY_sign_init");
+
+    // Set deterministic PKCS1 padding
+    if (EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_PADDING) <= 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error EVP_PKEY_CTX_set_rsa_padding");
+
+    if (EVP_PKEY_sign(ctx, nullptr, &siglen, (const unsigned char*)input.data(), input.size()) <= 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error determining output size");
+
+    output.resize(siglen);
+    if (EVP_PKEY_sign(ctx, (unsigned char*)output.data(), &siglen,
+        (const unsigned char*)input.data(), input.size()) <= 0)
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error signing input buffer");
+    }
 }
 
 charbuff ssl::GetEncoded(const X509* cert)

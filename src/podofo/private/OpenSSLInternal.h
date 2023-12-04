@@ -40,7 +40,9 @@ namespace ssl
     unsigned GetEVP_Size(PoDoFo::PdfHashingAlgorithm hashing);
     void AddSigningCertificateV2(CMS_SignerInfo* signer, const PoDoFo::bufferview& hash);
     void ComputeHashToSign(CMS_SignerInfo* si, BIO* chain, bool doWrapDigest, PoDoFo::charbuff& hashToSign);
-    void RsaRawEncrypt(const PoDoFo::bufferview& input, PoDoFo::charbuff& output, EVP_PKEY* pkey);
+
+    // Sign a buffer with the supplied pkey, no encapsulation and deterministic padding
+    void DoSignRaw(const PoDoFo::bufferview& input, EVP_PKEY* pkey, PoDoFo::charbuff& output);
 
     // Returns ASN.1 encoded X509 certificate
     PoDoFo::charbuff GetEncoded(const X509* cert);
