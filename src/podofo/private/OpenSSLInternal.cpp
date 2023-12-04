@@ -23,11 +23,11 @@ static void computeHash(const bufferview& data, const EVP_MD* type,
 static string computeHashStr(const bufferview& data, const EVP_MD* type);
 
 OpenSSLMain::OpenSSLMain() :
+#if OPENSSL_VERSION_MAJOR >= 3
+    m_libCtx{ }, m_legacyProvider{ }, m_defaultProvider{ },
+#endif // OPENSSL_VERSION_MAJOR >= 3
     m_Rc4{ }, m_Aes128{ }, m_Aes256{ }, m_MD5{ },
     m_SHA1{ }, m_SHA256{ }, m_SHA384{ }, m_SHA512{ }
-#if OPENSSL_VERSION_MAJOR >= 3
-    , m_libCtx{ }, m_legacyProvider{ }, m_defaultProvider{ }
-#endif // OPENSSL_VERSION_MAJOR >= 3
 {
 }
 
