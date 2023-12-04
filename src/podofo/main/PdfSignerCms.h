@@ -55,7 +55,7 @@ namespace PoDoFo
     public:
         void AppendData(const bufferview& data) override;
         void ComputeSignature(charbuff& buffer, bool dryrun) override;
-        void Reset();
+        void Reset() override;
         std::string GetSignatureFilter() const override;
         std::string GetSignatureSubFilter() const override;
         std::string GetSignatureType() const override;
