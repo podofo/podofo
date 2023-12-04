@@ -5,6 +5,7 @@
  */
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
+#include "podofo/private/OpenSSLInternal.h"
 #include "PdfCommon.h"
 #include "PdfFontManager.h"
 
@@ -18,6 +19,20 @@ PODOFO_EXPORT PdfLogSeverity s_MaxLogSeverity = PdfLogSeverity::Information;
 #endif // DEBUG
 
 PODOFO_EXPORT LogMessageCallback s_LogMessageCallback;
+
+PODOFO_EXPORT ssl::OpenSSLMain s_SSL;
+
+void ssl::Init()
+{
+    // Initialize the OpenSSL singleton
+    static struct InitOpenSSL
+    {
+        InitOpenSSL()
+        {
+            s_SSL.Init();
+        }
+    } s_init;
+}
 
 void PdfCommon::AddFontDirectory(const string_view& path)
 {

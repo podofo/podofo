@@ -13,76 +13,74 @@
 
 using namespace std;
 using namespace PoDoFo;
+using namespace ssl;
 
-static class OpenSSLInit
-{
-public:
-    OpenSSLInit()
-    {
-#if OPENSSL_VERSION_MAJOR >= 3
-        m_libCtx = OSSL_LIB_CTX_new();
-        if (m_libCtx == nullptr)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to create OpenSSL library context");
+// The entry points are defined in the PoDoFo public module. See PdfCommon.cpp
+extern PODOFO_IMPORT OpenSSLMain s_SSL;
 
-        // NOTE: Load required legacy providers, such as RC4, together regular ones,
-        // as explained in https://wiki.openssl.org/index.php/OpenSSL_3.0#Providers
-        m_legacyProvider = OSSL_PROVIDER_load(m_libCtx, "legacy");
-        if (m_legacyProvider == nullptr)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to load legacy providers in OpenSSL >= 3.x.x");
-
-        m_defaultProvider = OSSL_PROVIDER_load(m_libCtx, "default");
-        if (m_defaultProvider == nullptr)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to load default providers in OpenSSL >= 3.x.x");
-
-        // https://www.openssl.org/docs/man3.0/man7/crypto.html#FETCHING-EXAMPLES
-        Rc4 = EVP_CIPHER_fetch(m_libCtx, "RC4", "provider=legacy");
-        Aes128 = EVP_CIPHER_fetch(m_libCtx, "AES-128-CBC", "provider=default");
-        Aes256 = EVP_CIPHER_fetch(m_libCtx, "AES-256-CBC", "provider=default");
-        MD5 = EVP_MD_fetch(m_libCtx, "MD5", "provider=default");
-        SHA1 = EVP_MD_fetch(m_libCtx, "SHA1", "provider=default");
-        SHA256 = EVP_MD_fetch(m_libCtx, "SHA2-256", "provider=default");
-        SHA384 = EVP_MD_fetch(m_libCtx, "SHA2-384", "provider=default");
-        SHA512 = EVP_MD_fetch(m_libCtx, "SHA2-512", "provider=default");
-
-#else // OPENSSL_VERSION_MAJOR < 3
-        Rc4 = EVP_rc4();
-        Aes128 = EVP_aes_128_cbc();
-        Aes256 = EVP_aes_256_cbc();
-        MD5 = EVP_md5();
-        SHA1 = EVP_sha1();
-        SHA256 = EVP_sha256();
-        SHA384 = EVP_sha384();
-        SHA512 = EVP_sha512();
-#endif // OPENSSL_VERSION_MAJOR >= 3
-    }
-
-    ~OpenSSLInit()
-    {
-#if OPENSSL_VERSION_MAJOR >= 3
-        OSSL_PROVIDER_unload(m_legacyProvider);
-        OSSL_PROVIDER_unload(m_defaultProvider);
-        OSSL_LIB_CTX_free(m_libCtx);
-#endif // OPENSSL_VERSION_MAJOR >= 3
-    }
-public:
-    const EVP_CIPHER* Rc4;
-    const EVP_CIPHER* Aes128;
-    const EVP_CIPHER* Aes256;
-    const EVP_MD* MD5;
-    const EVP_MD* SHA1;
-    const EVP_MD* SHA256;
-    const EVP_MD* SHA384;
-    const EVP_MD* SHA512;
-private:
-#if OPENSSL_VERSION_MAJOR >= 3
-    OSSL_LIB_CTX* m_libCtx;
-    OSSL_PROVIDER* m_legacyProvider;
-    OSSL_PROVIDER* m_defaultProvider;
-#endif // OPENSSL_VERSION_MAJOR >= 3
-} s_SSL;
-
-static void computeHash(const bufferview& data, const EVP_MD* type, charbuff& hash);
+static void computeHash(const bufferview& data, const EVP_MD* type,
+    unsigned char* hash, unsigned& length);
 static string computeHashStr(const bufferview& data, const EVP_MD* type);
+
+OpenSSLMain::OpenSSLMain() :
+    m_Rc4{ }, m_Aes128{ }, m_Aes256{ }, m_MD5{ },
+    m_SHA1{ }, m_SHA256{ }, m_SHA384{ }, m_SHA512{ }
+#if OPENSSL_VERSION_MAJOR >= 3
+    , m_libCtx{ }, m_legacyProvider{ }, m_defaultProvider{ }
+#endif // OPENSSL_VERSION_MAJOR >= 3
+{
+}
+
+void OpenSSLMain::Init()
+{
+    PODOFO_ASSERT(m_Rc4 == nullptr);
+#if OPENSSL_VERSION_MAJOR >= 3
+    m_libCtx = OSSL_LIB_CTX_new();
+    if (m_libCtx == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to create OpenSSL library context");
+    
+    // NOTE: Load required legacy providers, such as RC4, together regular ones,
+    // as explained in https://wiki.openssl.org/index.php/OpenSSL_3.0#Providers
+    m_legacyProvider = OSSL_PROVIDER_load(m_libCtx, "legacy");
+    if (m_legacyProvider == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to load legacy providers in OpenSSL >= 3.x.x");
+    
+    m_defaultProvider = OSSL_PROVIDER_load(m_libCtx, "default");
+    if (m_defaultProvider == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to load default providers in OpenSSL >= 3.x.x");
+    
+    // https://www.openssl.org/docs/man3.0/man7/crypto.html#FETCHING-EXAMPLES
+    m_Rc4 = EVP_CIPHER_fetch(m_libCtx, "RC4", "provider=legacy");
+    m_Aes128 = EVP_CIPHER_fetch(m_libCtx, "AES-128-CBC", "provider=default");
+    m_Aes256 = EVP_CIPHER_fetch(m_libCtx, "AES-256-CBC", "provider=default");
+    m_MD5 = EVP_MD_fetch(m_libCtx, "MD5", "provider=default");
+    m_SHA1 = EVP_MD_fetch(m_libCtx, "SHA1", "provider=default");
+    m_SHA256 = EVP_MD_fetch(m_libCtx, "SHA2-256", "provider=default");
+    m_SHA384 = EVP_MD_fetch(m_libCtx, "SHA2-384", "provider=default");
+    m_SHA512 = EVP_MD_fetch(m_libCtx, "SHA2-512", "provider=default");
+#else // OPENSSL_VERSION_MAJOR < 3
+    m_Rc4 = EVP_rc4();
+    m_Aes128 = EVP_aes_128_cbc();
+    m_Aes256 = EVP_aes_256_cbc();
+    m_MD5 = EVP_md5();
+    m_SHA1 = EVP_sha1();
+    m_SHA256 = EVP_sha256();
+    m_SHA384 = EVP_sha384();
+    m_SHA512 = EVP_sha512();
+#endif // OPENSSL_VERSION_MAJOR >= 3
+}
+
+OpenSSLMain::~OpenSSLMain()
+{
+#if OPENSSL_VERSION_MAJOR >= 3
+    if (m_libCtx == nullptr)
+        return;
+
+    OSSL_LIB_CTX_free(m_libCtx);
+    OSSL_PROVIDER_unload(m_legacyProvider);
+    OSSL_PROVIDER_unload(m_defaultProvider);
+#endif // OPENSSL_VERSION_MAJOR >= 3
+}
 
 // Add signing-certificate-v2 attribute as defined in rfc5035
 // https://tools.ietf.org/html/rfc5035
@@ -193,11 +191,11 @@ const EVP_MD* ssl::GetEVP_MD(PdfHashingAlgorithm hashing)
     switch (hashing)
     {
         case PdfHashingAlgorithm::SHA256:
-            return s_SSL.SHA256;
+            return SHA256();
         case PdfHashingAlgorithm::SHA384:
-            return s_SSL.SHA384;
+            return SHA384();
         case PdfHashingAlgorithm::SHA512:
-            return s_SSL.SHA512;
+            return SHA512();
         case PdfHashingAlgorithm::Unknown:
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported hashing");
@@ -206,23 +204,26 @@ const EVP_MD* ssl::GetEVP_MD(PdfHashingAlgorithm hashing)
 
 charbuff ssl::ComputeHash(const bufferview& data, PdfHashingAlgorithm hashing)
 {
-    charbuff hash;
-    computeHash(data, ssl::GetEVP_MD(hashing), hash);
-    return hash;
+    unsigned char hash[EVP_MAX_MD_SIZE];
+    unsigned length;
+    computeHash(data, ssl::GetEVP_MD(hashing), hash, length);
+    return charbuff((const char*)hash, length);
 }
 
 charbuff ssl::ComputeMD5(const bufferview& data)
 {
-    charbuff hash;
-    computeHash(data, s_SSL.MD5, hash);
-    return hash;
+    unsigned char hash[EVP_MAX_MD_SIZE];
+    unsigned length;
+    computeHash(data, MD5(), hash, length);
+    return charbuff((const char*)hash, length);
 }
 
 charbuff ssl::ComputeSHA1(const bufferview& data)
 {
-    charbuff hash;
-    computeHash(data, s_SSL.SHA1, hash);
-    return hash;
+    unsigned char hash[EVP_MAX_MD_SIZE];
+    unsigned length;
+    computeHash(data, SHA1(), hash, length);
+    return charbuff((const char*)hash, length);
 }
 
 string ssl::ComputeHashStr(const bufferview& data, PdfHashingAlgorithm hashing)
@@ -232,20 +233,34 @@ string ssl::ComputeHashStr(const bufferview& data, PdfHashingAlgorithm hashing)
 
 string ssl::ComputeMD5Str(const bufferview& data)
 {
-    return computeHashStr(data, s_SSL.MD5);
+    return computeHashStr(data, MD5());
 }
 
 string ssl::ComputeSHA1Str(const bufferview& data)
 {
-    return computeHashStr(data, s_SSL.SHA1);
+    return computeHashStr(data, SHA1());
 }
 
-void computeHash(const bufferview& data, const EVP_MD* type, charbuff& hashdst)
+void ssl::ComputeHash(const bufferview& data, PdfHashingAlgorithm hashing,
+    unsigned char* hash, unsigned& length)
+{
+    computeHash(data, ssl::GetEVP_MD(hashing), hash, length);
+}
+
+void ssl::ComputeMD5Str(const bufferview& data, unsigned char* hash, unsigned& length)
+{
+    computeHash(data, ssl::MD5(), hash, length);
+}
+
+void ssl::ComputeSHA1Str(const bufferview& data, unsigned char* hash, unsigned& length)
+{
+    computeHash(data, ssl::SHA1(), hash, length);
+}
+
+void computeHash(const bufferview& data, const EVP_MD* type,
+    unsigned char* hash, unsigned& length)
 {
     unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
-
-    unsigned char hash[EVP_MAX_MD_SIZE];
-    unsigned len;
     if (EVP_DigestInit(ctx.get(), type) == 0)
         goto Error;
 
@@ -253,11 +268,9 @@ void computeHash(const bufferview& data, const EVP_MD* type, charbuff& hashdst)
     if (EVP_DigestUpdate(ctx.get(), data.data(), data.size()) == 0)
         goto Error;
 
-    if (EVP_DigestFinal(ctx.get(), hash, &len) == 0)
+    if (EVP_DigestFinal(ctx.get(), hash, &length) == 0)
         goto Error;
 
-    hashdst.resize(len);
-    std::memcpy(hashdst.data(), hash, len);
     return;
 
 Error:
@@ -266,42 +279,56 @@ Error:
 
 string computeHashStr(const bufferview& data, const EVP_MD* type)
 {
-    charbuff hash;
-    computeHash(data, type, hash);
-    return utls::GetCharHexString(hash);
+    unsigned char hash[EVP_MAX_MD_SIZE];
+    unsigned length;
+    computeHash(data, type, hash, length);
+    return utls::GetCharHexString({ (const char*)hash, length });
 }
 
 const EVP_CIPHER* ssl::Rc4()
 {
-    return s_SSL.Rc4;
+    ssl::Init();
+    return s_SSL.GetRc4();
 }
 
 const EVP_CIPHER* ssl::Aes128()
 {
-    return s_SSL.Aes128;
+    ssl::Init();
+    return s_SSL.GetAes128();
 }
 
 const EVP_CIPHER* ssl::Aes256()
 {
-    return s_SSL.Aes256;
+    ssl::Init();
+    return s_SSL.GetAes256();
 }
 
 const EVP_MD* ssl::MD5()
 {
-    return s_SSL.MD5;
+    ssl::Init();
+    return s_SSL.GetMD5();
+}
+
+const EVP_MD* ssl::SHA1()
+{
+    ssl::Init();
+    return s_SSL.GetSHA1();
 }
 
 const EVP_MD* ssl::SHA256()
 {
-    return s_SSL.SHA256;
+    ssl::Init();
+    return s_SSL.GetSHA256();
 }
 
 const EVP_MD* ssl::SHA384()
 {
-    return s_SSL.SHA384;
+    ssl::Init();
+    return s_SSL.GetSHA384();
 }
 
 const EVP_MD* ssl::SHA512()
 {
-    return s_SSL.SHA512;
+    ssl::Init();
+    return s_SSL.GetSHA512();
 }

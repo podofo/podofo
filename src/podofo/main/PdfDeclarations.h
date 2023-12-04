@@ -771,6 +771,27 @@ enum class PdfBlendMode
     Luminosity,
 };
 
+enum class PdfSignatureType
+{
+    Unknown = 0,
+    PAdES_B = 1,
+    Pkcs7 = 2,
+};
+
+enum class PdfEncryptionAlgorithm
+{
+    Unknown = 0,
+    RSA,
+};
+
+enum class PdfHashingAlgorithm
+{
+    Unknown = 0,
+    SHA256,
+    SHA384,
+    SHA512,
+};
+
 };
 
 ENABLE_BITMASK_OPERATORS(PoDoFo::PdfSaveOptions);

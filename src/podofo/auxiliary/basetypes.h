@@ -46,6 +46,8 @@ namespace PoDoFo
         }
         charbuff_t(std::string&& str)
             : std::string(std::move(str)) { }
+        charbuff_t(const char* str, size_t size)
+            : std::string(str, size) { }
         explicit charbuff_t(const bufferview& view)
             : std::string(view.data(), view.size()) { }
         explicit charbuff_t(const std::string_view& view)

@@ -9,7 +9,6 @@
 
 #include <chrono>
 #include "PdfSigner.h"
-#include "PdfSigningCommon.h"
 
 extern "C"
 {
@@ -33,6 +32,8 @@ namespace PoDoFo
         bool DoWrapDigest = false;
         nullable<std::chrono::seconds> SigningTimeUTC;
     };
+
+    using PdfSigningService = std::function<void(bufferview, bool, charbuff&)>;
 
     /** This class computes a CMS signature according to RFC 5652
      */

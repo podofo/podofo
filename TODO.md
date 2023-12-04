@@ -3,6 +3,7 @@
   "Digital Signature Appearances" document specification
 
 ### 1.0
+- Remove PdfEncryptMD5Base::GetMD5Binary and PdfEncryptMD5Base::GetMD5String and use common functions
 - PdfFontManager: Add font hash to cache descriptor
 - PdfField: Evaluate make a virtual getValueObject()
 - Evaluate removing PdfObject::Null and PdfVariant::Null and introduce nullptr_t constructor overloads

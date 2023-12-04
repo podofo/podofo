@@ -9,7 +9,7 @@
 
 #include <chrono>
 
-#include <podofo/main/PdfSigningCommon.h>
+#include <podofo/main/PdfDeclarations.h>
 
 extern "C"
 {

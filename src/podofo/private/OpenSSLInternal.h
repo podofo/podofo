@@ -1,5 +1,6 @@
 /**
- * SPDX-FileCopyrightText: (C) 2023 Francesco Pretto <ceztko@gmail.com>
+ *
+ SPDX-FileCopyrightText: (C) 2023 Francesco Pretto <ceztko@gmail.com>
  * SPDX-License-Identifier: LGPL-2.0-or-later
  * SPDX-License-Identifier: MPL-2.0
  */
@@ -7,7 +8,7 @@
 #ifndef PDF_OPENSSL_INTERNAL_H
 #define PDF_OPENSSL_INTERNAL_H
 
-#include <podofo/main/PdfSigningCommon.h>
+#include <podofo/main/PdfDeclarations.h>
 
 #include <date/date.h>
 #include <openssl/ssl.h>
@@ -21,7 +22,7 @@ struct MY_ESS_CERT_ID_V2
     ASN1_OCTET_STRING* hash;
 };
 
-// This is a recreation of MY_ESS_SIGNING_CERT_V2 structure
+// This is a recreation of ESS_SIGNING_CERT_V2 structure
 struct MY_ESS_SIGNING_CERT_V2
 {
     STACK_OF(MY_ESS_CERT_ID_V2)* cert_ids;
@@ -55,16 +56,61 @@ namespace ssl
     std::string ComputeMD5Str(const PoDoFo::bufferview& data);
     std::string ComputeSHA1Str(const PoDoFo::bufferview& data);
 
+    void ComputeHash(const PoDoFo::bufferview& data, PoDoFo::PdfHashingAlgorithm hashing,
+        unsigned char* hash, unsigned& length);
+    void ComputeMD5Str(const PoDoFo::bufferview& data,
+        unsigned char* hash, unsigned& length);
+    void ComputeSHA1Str(const PoDoFo::bufferview& data,
+        unsigned char* hash, unsigned& length);
+
     const EVP_CIPHER* Rc4();
     const EVP_CIPHER* Aes128();
     const EVP_CIPHER* Aes256();
     const EVP_MD* MD5();
+    const EVP_MD* SHA1();
     const EVP_MD* SHA256();
     const EVP_MD* SHA384();
     const EVP_MD* SHA512();
 
     void cmsAddSigningTime(CMS_SignerInfo* si, const date::sys_seconds& timestamp);
     void cmsComputeHashToSign(CMS_SignerInfo* si, BIO* chain, PoDoFo::charbuff& hashToSign);
+
+    /** Init the OpenSSL engine. NOTE: To be called by OpenSSLInternal only
+     */
+    PODOFO_EXPORT void Init();
+
+    /** Class to be initialized only once as a singleton
+     */
+    class OpenSSLMain
+    {
+    public:
+        OpenSSLMain();
+        void Init();
+        ~OpenSSLMain();
+    public:
+        const EVP_CIPHER* GetRc4() const { return m_Rc4; }
+        const EVP_CIPHER* GetAes128() const { return m_Aes128; }
+        const EVP_CIPHER* GetAes256() const { return m_Aes256; }
+        const EVP_MD* GetMD5() const { return m_MD5; }
+        const EVP_MD* GetSHA1() const { return m_SHA1; }
+        const EVP_MD* GetSHA256() const { return m_SHA256; }
+        const EVP_MD* GetSHA384() const { return m_SHA384; }
+        const EVP_MD* GetSHA512() const { return m_SHA512; }
+    private:
+#if OPENSSL_VERSION_MAJOR >= 3
+        OSSL_LIB_CTX* m_libCtx;
+        OSSL_PROVIDER* m_legacyProvider;
+        OSSL_PROVIDER* m_defaultProvider;
+#endif // OPENSSL_VERSION_MAJOR >= 3
+        const EVP_CIPHER* m_Rc4;
+        const EVP_CIPHER* m_Aes128;
+        const EVP_CIPHER* m_Aes256;
+        const EVP_MD* m_MD5;
+        const EVP_MD* m_SHA1;
+        const EVP_MD* m_SHA256;
+        const EVP_MD* m_SHA384;
+        const EVP_MD* m_SHA512;
+    };
 }
 
 #endif // PDF_OPENSSL_INTERNAL_H
