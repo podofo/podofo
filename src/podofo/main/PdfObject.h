@@ -47,6 +47,8 @@ class PODOFO_API PdfObject
     friend class PdfImmediateWriter;
     friend class PdfXRef;
     friend class PdfXRefStream;
+    friend class PdfDictionaryElement;
+    friend class PdfArrayElement;
 
 public:
     static PdfObject Null;
