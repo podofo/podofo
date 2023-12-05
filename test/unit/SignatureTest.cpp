@@ -11,18 +11,11 @@ using namespace PoDoFo;
 
 TEST_CASE("TestSignature1")
 {
-    charbuff outputBuffer;
-    BufferStreamDevice output(outputBuffer);
+    auto inputPath = TestUtils::GetTestInputFilePath("TestSignature.pdf");
+    auto outputPath = TestUtils::GetTestOutputFilePath("TestSignature1.pdf");
 
-    {
-        PdfMemDocument doc;
-        doc.GetMetadata().SetCreationDate(PdfDate());
-        auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
-        (void)page.CreateField<PdfSignature>("Signature1", Rect());
-        doc.Save(output, PdfSaveOptions::NoMetadataUpdate);
-    }
-
-    auto input = std::make_shared<SpanStreamDevice>(outputBuffer);
+    fs::copy_file(fs::u8path(inputPath), fs::u8path(outputPath), fs::copy_options::overwrite_existing);
+    auto stream = std::make_shared<FileStreamDevice>(outputPath, FileMode::Open);
 
     // X509 Certificate
     string cert;
@@ -33,15 +26,16 @@ TEST_CASE("TestSignature1")
     TestUtils::ReadTestInputFile("mykey.der", pkey);
 
     {
-        PdfMemDocument doc(input);
+        PdfMemDocument doc(stream);
         auto& page = doc.GetPages().GetPageAt(0);
         auto& annot = page.GetAnnotations().GetAnnotAt(0);
         auto& field = dynamic_cast<PdfAnnotationWidget&>(annot).GetField();
         auto& signature = dynamic_cast<PdfSignature&>(field);
 
         auto signerCm = PdfSignerCms(cert, pkey);
-        PoDoFo::SignDocument(doc, output, signerCm, signature, PdfSaveOptions::NoMetadataUpdate);
-        utls::WriteTo(TestUtils::GetTestOutputFilePath("TestSignature1.pdf"), outputBuffer);
-        REQUIRE(ssl::ComputeMD5Str(outputBuffer) == "312837C62DA72DBC13D588A2AD42BFC1");
+        PoDoFo::SignDocument(doc, *stream, signerCm, signature, PdfSaveOptions::NoMetadataUpdate);
+        charbuff buff;
+        utls::ReadTo(buff, outputPath);
+        REQUIRE(ssl::ComputeMD5Str(buff) == "312837C62DA72DBC13D588A2AD42BFC1");
     }
 }

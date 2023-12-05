@@ -319,16 +319,38 @@ void StandardStreamDevice::seek(ssize_t offset, SeekDirection direction)
 {
     // NOTE: Some c++ libraries don't reset eofbit prior seeking
     m_Stream->clear(m_Stream->rdstate() & ~ios_base::eofbit);
-    if ((GetAccess() & DeviceAccess::Read) != DeviceAccess{ })
+    switch (GetAccess())
     {
-        PODOFO_INVARIANT(m_istream != nullptr);
-        ::seek(*m_istream, offset, direction);
-    }
-
-    if ((GetAccess() & DeviceAccess::Write) != DeviceAccess{ })
-    {
-        PODOFO_INVARIANT(m_ostream != nullptr);
-        ::seek(*m_ostream, offset, direction);
+        case DeviceAccess::Read:
+        {
+            PODOFO_INVARIANT(m_istream != nullptr);
+            ::seek(*m_istream, offset, direction);
+            break;
+        }
+        case DeviceAccess::Write:
+        {
+            PODOFO_INVARIANT(m_ostream != nullptr);
+            ::seek(*m_ostream, offset, direction);
+            break;
+        }
+        case DeviceAccess::ReadWrite:
+        {
+            PODOFO_INVARIANT(m_istream != nullptr && m_ostream != nullptr);
+            // Determine if the input/output pointers may be different
+            // on the stream. If they use the same buffer, just seek the
+            // ostream, otherwise seek both istream and ostream.
+            // This works on MS, gnu STL implementations
+            if (m_ostream->rdbuf() == m_istream->rdbuf())
+            {
+                ::seek(*m_ostream, offset, direction);
+            }
+            else
+            {
+                ::seek(*m_istream, offset, direction);
+                ::seek(*m_ostream, offset, direction);
+            }
+            break;
+        }
     }
 
     if (m_Stream->fail())
