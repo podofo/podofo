@@ -19,7 +19,7 @@ namespace
         FakeCanvas() { }
 
     public:
-        PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags)
+        PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override
         {
             (void)flags;
             return m_resourceObj.GetOrCreateStream();
@@ -364,7 +364,7 @@ TEST_CASE("TestPainter6")
     path.AddRectangle(Rect(10,10, 100, 50));
     painter.Save();
     painter.DrawPath(path);
-    path.GetCurrentPoint() == Vector2(10, 10);
+    REQUIRE(path.GetCurrentPoint() == Vector2(10, 10));
     REQUIRE(painter.GetStateStack().Current->CurrentPoint == nullptr);
     painter.Save();
     auto& operators = static_cast<PdfContentStreamOperators&>(painter);
