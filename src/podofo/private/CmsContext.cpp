@@ -65,9 +65,10 @@ void CmsContext::AppendData(const bufferview& data)
     // Append data to the internal CMS buffer and elaborate
     // See also CMS_final implementation for reference
     if (!SMIME_crlf_copy(mem, m_databio, CMS_FLAGS))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "BIO_new_mem_buf");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "SMIME_crlf_copy");
 
     (void)BIO_flush(m_databio);
+    BIO_free(mem);
 }
 
 void CmsContext::ComputeHashToSign(charbuff& hashToSign)
