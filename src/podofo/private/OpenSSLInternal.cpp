@@ -21,6 +21,7 @@ extern PODOFO_IMPORT OpenSSLMain s_SSL;
 static void computeHash(const bufferview& data, const EVP_MD* type,
     unsigned char* hash, unsigned& length);
 static string computeHashStr(const bufferview& data, const EVP_MD* type);
+static PdfEncryptionAlgorithm getEncryptionAlgorithm(const EVP_PKEY* pkey);
 
 OpenSSLMain::OpenSSLMain() :
 #if OPENSSL_VERSION_MAJOR >= 3
@@ -113,6 +114,16 @@ void ssl::AddSigningCertificateV2(CMS_SignerInfo* signer, const bufferview& hash
     clean();
 }
 
+EVP_PKEY* ssl::LoadPrivateKey(const bufferview& input)
+{
+    const unsigned char* data = (const unsigned char*)input.data();
+    auto ret = d2i_PrivateKey(EVP_PKEY_RSA, nullptr, &data, (long)input.size());
+    if (ret == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidKey, "Unable to load private key");
+
+    return ret;
+}
+
 void ssl::cmsAddSigningTime(CMS_SignerInfo* si, const date::sys_seconds& timestamp)
 {
     auto time = chrono::system_clock::to_time_t(timestamp);
@@ -125,28 +136,44 @@ void ssl::cmsAddSigningTime(CMS_SignerInfo* si, const date::sys_seconds& timesta
     }
 }
 
+void ssl::DoSign(const bufferview& input, const bufferview& pkey,
+    PoDoFo::PdfHashingAlgorithm hashing, charbuff& output)
+{
+    unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)> pkeyssl(ssl::LoadPrivateKey(pkey), EVP_PKEY_free);
+    ssl::DoSign(input, pkeyssl.get(), hashing, output);
+}
+
 // Note that signing is really encryption with the private key
 // and a deterministic padding
-void ssl::DoSignRaw(const bufferview& input, EVP_PKEY* pkey, charbuff& output)
+void ssl::DoSign(const bufferview& input, EVP_PKEY* pkey,
+    PdfHashingAlgorithm hashing, charbuff& output)
 {
     size_t siglen;
-    auto ctx = EVP_PKEY_CTX_new(pkey, nullptr);
+    unique_ptr<EVP_PKEY_CTX, decltype(&EVP_PKEY_CTX_free)> ctx(EVP_PKEY_CTX_new(pkey, nullptr), EVP_PKEY_CTX_free);
     if (ctx == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error EVP_PKEY_CTX_new");
 
-    if (EVP_PKEY_sign_init(ctx) <= 0)
+    if (EVP_PKEY_sign_init(ctx.get()) <= 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error EVP_PKEY_sign_init");
 
     // Set deterministic PKCS1 padding
-    if (EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_PADDING) <= 0)
+    if (EVP_PKEY_CTX_set_rsa_padding(ctx.get(), RSA_PKCS1_PADDING) <= 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error EVP_PKEY_CTX_set_rsa_padding");
 
-    if (EVP_PKEY_sign(ctx, nullptr, &siglen, (const unsigned char*)input.data(), input.size()) <= 0)
+    auto actualInput = input;
+    charbuff tempWrapped;
+    if (hashing != PdfHashingAlgorithm::Unknown)
+    {
+        ssl::WrapDigestPKCS1(input, getEncryptionAlgorithm(pkey), hashing, tempWrapped);
+        actualInput = tempWrapped;
+    }
+    
+    if (EVP_PKEY_sign(ctx.get(), nullptr, &siglen, (const unsigned char*)actualInput.data(), actualInput.size()) <= 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error determining output size");
 
     output.resize(siglen);
-    if (EVP_PKEY_sign(ctx, (unsigned char*)output.data(), &siglen,
-        (const unsigned char*)input.data(), input.size()) <= 0)
+    if (EVP_PKEY_sign(ctx.get(), (unsigned char*)output.data(), &siglen,
+        (const unsigned char*)actualInput.data(), actualInput.size()) <= 0)
     {
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error signing input buffer");
     }
@@ -299,6 +326,17 @@ string computeHashStr(const bufferview& data, const EVP_MD* type)
     unsigned length;
     computeHash(data, type, hash, length);
     return utls::GetCharHexString({ (const char*)hash, length });
+}
+
+PdfEncryptionAlgorithm getEncryptionAlgorithm(const EVP_PKEY* pkey)
+{
+    switch (EVP_PKEY_get_id(pkey))
+    {
+        case NID_rsaEncryption:
+            return PdfEncryptionAlgorithm::RSA;
+        default:
+            return PdfEncryptionAlgorithm::Unknown;
+    }
 }
 
 const EVP_CIPHER* ssl::Rc4()

@@ -94,7 +94,7 @@ void CmsContext::ComputeHashToSign(charbuff& hashToSign)
     m_status = CmsContextStatus::ComputedHash;
 }
 
-void CmsContext::ComputeSignature(const charbuff& signedHash, charbuff& signature)
+void CmsContext::ComputeSignature(const bufferview& signedHash, charbuff& signature)
 {
     if (m_status != CmsContextStatus::ComputedHash)
     {

@@ -50,11 +50,18 @@ namespace PoDoFo
         PdfSignerCms(const bufferview& cert, const PdfSigningService& signing,
             const PdfSignerCmsParams& parameters = { });
 
+        /** Load X509 certificate, without supplying a signing service or
+         * a private key. This constructor enables sequential signing
+         */
+        PdfSignerCms(const bufferview& cert, const PdfSignerCmsParams& parameters = { });
+
         ~PdfSignerCms();
 
     public:
         void AppendData(const bufferview& data) override;
         void ComputeSignature(charbuff& buffer, bool dryrun) override;
+        void FetchIntermediateResult(charbuff& result) override;
+        void ComputeSignatureSequential(const bufferview& processedResult, charbuff& contents, bool dryrun) override;
         void Reset() override;
         std::string GetSignatureFilter() const override;
         std::string GetSignatureSubFilter() const override;
@@ -79,12 +86,13 @@ namespace PoDoFo
           */
         void AddUnsignedAttributeBytes(const std::string_view& nid, const bufferview& attr);
     private:
+        void checkSequentialSigning();
         void checkContextInitialized();
         void ensureContextInitialized();
         void resetContext();
-        void loadPrivateKey(const bufferview& pkey);
         void doSign(const bufferview& input, charbuff& output, bool dryrun);
     private:
+        bool m_sequentialSigning;
         charbuff m_certificate;
         PdfSigningService signingService;
         std::unique_ptr<CmsContext> m_cmsContext;

@@ -41,8 +41,7 @@ struct PdfSignatureBeacons
 class PODOFO_API PdfSignature : public PdfField
 {
     friend class PdfField;
-    friend PODOFO_API void SignDocument(PdfMemDocument& doc, StreamDevice& device, PdfSigner& signer,
-        PdfSignature& signature, PdfSaveOptions saveOptions);
+    friend class PdfSigningContext;
 
 private:
     PdfSignature(PdfAcroForm& acroform, const std::shared_ptr<PdfField>& parent);

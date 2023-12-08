@@ -609,6 +609,22 @@ bool PdfDocument::IsHighPrintAllowed() const
     return GetEncrypt() == nullptr ? true : GetEncrypt()->IsHighPrintAllowed();
 }
 
+PdfAcroForm& PdfDocument::MustGetAcroForm()
+{
+    if (m_AcroForm == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "AcroForm is not present");
+
+    return *m_AcroForm;
+}
+
+const PdfAcroForm& PdfDocument::MustGetAcroForm() const
+{
+    if (m_AcroForm == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "AcroForm is not present");
+
+    return *m_AcroForm;
+}
+
 unique_ptr<PdfImage> PdfDocument::CreateImage(const string_view& prefix)
 {
     return unique_ptr<PdfImage>(new PdfImage(*this, prefix));

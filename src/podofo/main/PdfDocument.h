@@ -180,6 +180,10 @@ public:
      */
     bool IsHighPrintAllowed() const;
 
+    PdfAcroForm& MustGetAcroForm();
+
+    const PdfAcroForm& MustGetAcroForm() const;
+
 public:
     virtual const PdfEncrypt* GetEncrypt() const = 0;
 

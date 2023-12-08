@@ -64,6 +64,7 @@
 #include "main/PdfReference.h"
 #include "main/PdfSigner.h"
 #include "main/PdfSignerCms.h"
+#include "main/PdfSigningContext.h"
 #include "main/PdfObjectStream.h"
 #include "main/PdfString.h"
 #include "main/PdfTokenizer.h"

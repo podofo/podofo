@@ -15,6 +15,13 @@
 #include <openssl/cms.h>
 #include <openssl/asn1t.h>
 
+#if OPENSSL_VERSION_MAJOR < 3
+ // Fixes warning when compiling with OpenSSL 3
+#define EVP_MD_CTX_get0_md EVP_MD_CTX_md
+#define EVP_MD_get_type EVP_MD_type
+#define EVP_PKEY_get_id EVP_PKEY_id
+#endif // OPENSSL_VERSION_MAJOR < 3
+
 // This is a recreation of ESS_CERT_ID_V2 structure
 struct MY_ESS_CERT_ID_V2
 {
@@ -41,8 +48,14 @@ namespace ssl
     void AddSigningCertificateV2(CMS_SignerInfo* signer, const PoDoFo::bufferview& hash);
     void ComputeHashToSign(CMS_SignerInfo* si, BIO* chain, bool doWrapDigest, PoDoFo::charbuff& hashToSign);
 
+    // Load a ASN.1 encoded private key
+    EVP_PKEY* LoadPrivateKey(const PoDoFo::bufferview& input);
+
     // Sign a buffer with the supplied pkey, no encapsulation and deterministic padding
-    void DoSignRaw(const PoDoFo::bufferview& input, EVP_PKEY* pkey, PoDoFo::charbuff& output);
+    void DoSign(const PoDoFo::bufferview& input, const PoDoFo::bufferview& pkey,
+        PoDoFo::PdfHashingAlgorithm hashing, PoDoFo::charbuff& output);
+    void DoSign(const PoDoFo::bufferview& input, EVP_PKEY* pkey,
+        PoDoFo::PdfHashingAlgorithm hashing, PoDoFo::charbuff& output);
 
     // Returns ASN.1 encoded X509 certificate
     PoDoFo::charbuff GetEncoded(const X509* cert);
@@ -57,6 +70,9 @@ namespace ssl
     std::string ComputeHashStr(const PoDoFo::bufferview& data, PoDoFo::PdfHashingAlgorithm hashing);
     std::string ComputeMD5Str(const PoDoFo::bufferview& data);
     std::string ComputeSHA1Str(const PoDoFo::bufferview& data);
+
+    void WrapDigestPKCS1(const PoDoFo::bufferview& hash, PoDoFo::PdfEncryptionAlgorithm encryption,
+        PoDoFo::PdfHashingAlgorithm hashing, PoDoFo::charbuff& output);
 
     void ComputeHash(const PoDoFo::bufferview& data, PoDoFo::PdfHashingAlgorithm hashing,
         unsigned char* hash, unsigned& length);

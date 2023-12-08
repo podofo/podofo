@@ -10,11 +10,6 @@
 using namespace std;
 using namespace PoDoFo;
 
-#if OPENSSL_VERSION_MAJOR < 3
-// Fixes warning when compiling with OpenSSL 3
-#define EVP_MD_CTX_get0_md EVP_MD_CTX_md
-#endif // OPENSSL_VERSION_MAJOR < 3
-
 // The following functions include software developed by
 // the OpenSSL Project for use in the OpenSSL Toolkit(http://www.openssl.org/)
 // License: https://www.openssl.org/source/license-openssl-ssleay.txt
@@ -29,8 +24,8 @@ struct MY_X509_SIG
 static void compute_hash_to_sign(CMS_SignerInfo* si, unsigned char hash[], unsigned& len);
 static int cms_DigestAlgorithm_find_ctx(EVP_MD_CTX* mctx, BIO* chain, X509_ALGOR* mdalg);
 static void encode_pkcs1(X509_ALGOR* digestAlg,
-    const unsigned char* m, unsigned int m_len,
-    unsigned char** out, unsigned int* out_len);
+    const unsigned char* m, unsigned int m_len, charbuff& outbuff);
+static int getEncryptionNid(PdfEncryptionAlgorithm algorithm);
 
 static X509_ALGOR* getDigestAlgorithm(CMS_SignerInfo* si);
 static const ASN1_OBJECT* getASN1Object(X509_ALGOR* alg);
@@ -64,7 +59,6 @@ IMPLEMENT_ASN1_FUNCTIONS(MY_ESS_SIGNING_CERT_V2)
 void ssl::ComputeHashToSign(CMS_SignerInfo* si, BIO* chain, bool doWrapDigest, charbuff& hashToSign)
 {
     ASN1_OBJECT* ctype;
-    unsigned char* buf;
     unsigned char hash[EVP_MAX_MD_SIZE];
     unsigned hashlen;
 
@@ -88,11 +82,7 @@ void ssl::ComputeHashToSign(CMS_SignerInfo* si, BIO* chain, bool doWrapDigest, c
     if (doWrapDigest)
     {
         // We also need to encode the digest in ANS1 structure
-        encode_pkcs1(getDigestAlgorithm(si), hash, hashlen, &buf, &hashlen);
-
-        hashToSign.resize(hashlen);
-        std::memcpy(hashToSign.data(), buf, hashlen);
-        OPENSSL_free(buf);
+        encode_pkcs1(getDigestAlgorithm(si), hash, hashlen, hashToSign);
     }
     else
     {
@@ -105,6 +95,24 @@ void ssl::ComputeHashToSign(CMS_SignerInfo* si, BIO* chain, bool doWrapDigest, c
 Error:
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error while computing the MessageDigest");
 }
+
+void ssl::WrapDigestPKCS1(const bufferview& hash, PdfEncryptionAlgorithm encryption,
+    PdfHashingAlgorithm hashing, charbuff& output)
+{
+    if (encryption != PdfEncryptionAlgorithm::RSA)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Unsupported encryption");
+
+    unique_ptr<X509_ALGOR, decltype(&X509_ALGOR_free)> x509Algor(X509_ALGOR_new(), X509_ALGOR_free);
+    if (x509Algor == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error X509_ALGOR_new");
+
+    if (X509_ALGOR_set0(x509Algor.get(), OBJ_nid2obj(getEncryptionNid(encryption)), V_ASN1_NULL, nullptr) == 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error X509_ALGOR_set0");
+
+    X509_ALGOR_set_md(x509Algor.get(), ssl::GetEVP_MD(hashing));
+    encode_pkcs1(x509Algor.get(), (const unsigned char*)hash.data(), (unsigned)hash.size(), output);
+}
+
 
 // Ripped from cms_DigestAlgorithm_find_ctx in crypto/cms/cms_lib.c
 int cms_DigestAlgorithm_find_ctx(EVP_MD_CTX* mctx, BIO* chain, X509_ALGOR* mdalg)
@@ -171,18 +179,13 @@ Error:
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error while computing the MessageDigest");
 }
 
-/* Ripped from crypto/rsa/rsa_sign.c
+/* Ripped/adapted from crypto/rsa/rsa_sign.c
  * encode_pkcs1 encodes a DigestInfo prefix of hash |type| and digest |m|, as
  * described in EMSA-PKCS1-v1_5-ENCODE, RFC 3447 section 9.2 step 2. This
  * encodes the DigestInfo (T and tLen) but does not add the padding.
- *
- * On success, it returns one and sets |*out| to a newly allocated buffer
- * containing the result and |*out_len| to its length. The caller must free
- * |*out| with |OPENSSL_free|. Otherwise, it returns zero.
  */
 void encode_pkcs1(X509_ALGOR* digestAlg,
-    const unsigned char* m, unsigned int m_len,
-    unsigned char** out, unsigned int* out_len)
+    const unsigned char* m, unsigned int m_len, charbuff& outbuff)
 {
     MY_X509_SIG sig;
     X509_ALGOR algor{ };
@@ -209,8 +212,29 @@ void encode_pkcs1(X509_ALGOR* digestAlg,
     if (len < 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "EncodeDigestPKCS1: Out of memory");
 
-    *out = buf;
-    *out_len = (unsigned)len;
+    try
+    {
+        outbuff.resize(len);
+    }
+    catch (...)
+    {
+        OPENSSL_free(buf);
+        throw;
+    }
+
+    std::memcpy(outbuff.data(), buf, len);
+    OPENSSL_free(buf);
+}
+
+int getEncryptionNid(PdfEncryptionAlgorithm algorithm)
+{
+    switch (algorithm)
+    {
+        case PdfEncryptionAlgorithm::RSA:
+            return NID_rsaEncryption;
+        default:
+            return -1;
+    }
 }
 
 X509_ALGOR* getDigestAlgorithm(CMS_SignerInfo* si)
