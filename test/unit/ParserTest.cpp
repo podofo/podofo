@@ -2222,28 +2222,28 @@ TEST_CASE("testNestedNameTree")
     offsets[0] = 0;
     oss << "%PDF-1.0\r\n";
 
-    offsets[1] = oss.tellp();
+    offsets[1] = (size_t)oss.tellp();
     oss << "1 0 obj<</Type/Catalog /Pages 2 0 R /Names 4 0 R>>endobj ";
 
-    offsets[2] = oss.tellp();
+    offsets[2] = (size_t)oss.tellp();
     oss << "2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj ";
 
-    offsets[3] = oss.tellp();
+    offsets[3] = (size_t)oss.tellp();
     oss << "3 0 obj<</Type/Page/MediaBox[0 0 3 3]>>endobj ";
 
     // the name dictionary
-    offsets[4] = oss.tellp();
+    offsets[4] = (size_t)oss.tellp();
     oss << "4 0 obj<</Dests 5 0 R>>endobj ";
 
     // root of /Dests name tree
-    offsets[5] = oss.tellp();
+    offsets[5] = (size_t)oss.tellp();
     oss << "5 0 obj<</Kids [6 0 R]>>endobj ";
 
     // create name tree nested to maxDepth where each intermediate node has one child
     // except single leaf node at maxDepth
     for (size_t objNo = 6; objNo < numObjects; objNo++)
     {
-        offsets[objNo] = oss.tellp();
+        offsets[objNo] = (size_t)oss.tellp();
 
         if (objNo < numObjects - 1)
             oss << objNo << " 0 obj<</Kids [" << objNo + 1 << " 0 R] /Limits [(A) (Z)]>>endobj ";
@@ -2253,7 +2253,7 @@ TEST_CASE("testNestedNameTree")
 
     // output xref table
     oss << "\r\n";
-    xrefOffset = oss.tellp();
+    xrefOffset = (size_t)oss.tellp();
     oss << "xref\r\n";
     oss << "0 " << numObjects << "\r\n";
 
@@ -2414,20 +2414,20 @@ TEST_CASE("testNestedPageTree")
     offsets[0] = 0;
     oss << "%PDF-1.0\r\n";
 
-    offsets[1] = oss.tellp();
+    offsets[1] = (size_t)oss.tellp();
     oss << "1 0 obj<</Type/Catalog /AcroForm 2 0 R /Pages 3 0 R>>endobj ";
 
-    offsets[2] = oss.tellp();
+    offsets[2] = (size_t)oss.tellp();
     oss << "2 0 obj<</Type/AcroForm >>endobj ";
 
-    offsets[3] = oss.tellp();
+    offsets[3] = (size_t)oss.tellp();
     oss << "3 0 obj<</Type/Pages /Kids [4 0 R] /Count 1 >>endobj ";
 
     // create pages tree nested to maxDepth where each node has one child
     // except single leaf node at maxDepth
     for (size_t objNo = 4; objNo < numObjects; objNo++)
     {
-        offsets[objNo] = oss.tellp();
+        offsets[objNo] = (size_t)oss.tellp();
 
         if (objNo < numObjects - 1)
             oss << objNo << " 0 obj<</Type/Pages /Kids [" << objNo + 1 << " 0 R] /Parent " << objNo - 1 << " 0 R /Count 1 >>endobj ";
@@ -2437,7 +2437,7 @@ TEST_CASE("testNestedPageTree")
 
     // output xref table
     oss << "\r\n";
-    xrefOffset = oss.tellp();
+    xrefOffset = (size_t)oss.tellp();
     oss << "xref\r\n";
     oss << "0 " << numObjects << "\r\n";
 
@@ -2577,20 +2577,20 @@ TEST_CASE("testNestedOutlines")
     offsets[0] = 0;
     oss << "%PDF-1.0\r\n";
 
-    offsets[1] = oss.tellp();
+    offsets[1] = (size_t)oss.tellp();
     oss << "1 0 obj<</Type/Catalog /AcroForm 2 0 R /Outlines 3 0 R>>endobj ";
 
-    offsets[2] = oss.tellp();
+    offsets[2] = (size_t)oss.tellp();
     oss << "2 0 obj<</Type/AcroForm >>endobj ";
 
-    offsets[3] = oss.tellp();
+    offsets[3] = (size_t)oss.tellp();
     oss << "3 0 obj<</Type/Outlines /First 4 0 R /Count " << maxDepth << " /Last 5 0 R >>endobj ";
 
     // create outlines tree nested to maxDepth where each node has one child
     // except single leaf node at maxDepth
     for (size_t objNo = 4; objNo < numObjects; objNo++)
     {
-        offsets[objNo] = oss.tellp();
+        offsets[objNo] = (size_t)oss.tellp();
 
         if (objNo < numObjects - 1)
             oss << objNo << " 0 obj<</Title (Outline Item) /First " << objNo + 1 << " 0 R /Last " << objNo + 1 << " 0 R>>endobj ";
@@ -2600,7 +2600,7 @@ TEST_CASE("testNestedOutlines")
 
     // output xref table
     oss << "\r\n";
-    xrefOffset = oss.tellp();
+    xrefOffset = (size_t)oss.tellp();
     oss << "xref\r\n";
     oss << "0 " << numObjects << "\r\n";
 
