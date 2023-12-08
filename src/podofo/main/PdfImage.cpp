@@ -86,7 +86,7 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int scanLin
             {
                 unique_ptr<const PdfImage> smask;
                 if (!PdfXObject::TryCreateFromObject(*smaskObj, smask) ||
-                    (smask->GetObject().MustGetStream().CopyTo(smaskData), smaskData.size() < m_Width * m_Height))
+                    (smask->GetObject().MustGetStream().CopyTo(smaskData), smaskData.size() < (size_t)m_Width * m_Height))
                 {
                     PoDoFo::LogMessage(PdfLogSeverity::Warning, "Invalid /SMask");
                     smaskData.clear();
@@ -100,7 +100,7 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int scanLin
 
     if (mediaFilters.size() == 0)
     {
-        if (m_ColorSpace->GetSourceScanLineSize(m_Width, m_BitsPerComponent) * m_Height > imageData.size())
+        if ((size_t)m_ColorSpace->GetSourceScanLineSize(m_Width, m_BitsPerComponent) * m_Height > imageData.size())
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The source buffer size is too small");
 
         utls::FetchImage(stream, format, scanLineSize, (const unsigned char*)imageData.data(),
