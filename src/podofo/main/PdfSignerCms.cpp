@@ -15,11 +15,8 @@ using namespace PoDoFo;
 constexpr unsigned RSASignedHashSize = 256;
 
 PdfSignerCms::PdfSignerCms(const bufferview& cert, const bufferview& pkey,
-    const PdfSignerCmsParams& parameters) :
-    PdfSignerCms(cert, [&](bufferview input, bool dryrun, charbuff& output)
-        {
-            return doSign(input, output, dryrun);
-        }, parameters)
+        const PdfSignerCmsParams& parameters) :
+    PdfSignerCms(cert, nullptr, parameters)
 {
     m_privKey = ssl::LoadPrivateKey(pkey);
 }
@@ -65,8 +62,22 @@ void PdfSignerCms::ComputeSignature(charbuff& contents, bool dryrun)
     ensureContextInitialized();
     charbuff hashToSign;
     m_cmsContext->ComputeHashToSign(hashToSign);
-    signingService(hashToSign, dryrun, m_encryptedHash);
-    OnSignedHashReady(m_encryptedHash, dryrun);
+    if (signingService == nullptr)
+    {
+        // Do default signing
+        doSign(hashToSign, m_encryptedHash);
+    }
+    else if (!dryrun || m_parameters.DoDryRunExternal)
+    {
+        signingService(hashToSign, dryrun, m_encryptedHash);
+        OnSignedHashReady(m_encryptedHash, dryrun);
+    }
+    else
+    {
+        // Just prepare a fake result with the size of RSA block
+        m_encryptedHash.resize(RSASignedHashSize);
+    }
+
     m_cmsContext->ComputeSignature(m_encryptedHash, contents);
 }
 
@@ -85,6 +96,7 @@ void PdfSignerCms::ComputeSignatureSequential(const bufferview& processedResult,
     bufferview actualProc;
     if (dryrun)
     {
+        // Just prepare a fake result with the size of RSA block
         m_cmsContext->ComputeHashToSign(fakeresult);
         fakeresult.resize(RSASignedHashSize);
         actualProc = fakeresult;
@@ -214,8 +226,8 @@ void PdfSignerCms::resetContext()
     m_cmsContext->Reset(m_certificate, params);
 }
 
-void PdfSignerCms::doSign(const bufferview& input, charbuff& output, bool dryrun)
+void PdfSignerCms::doSign(const bufferview& input, charbuff& output)
 {
-    (void)dryrun;
+    PODOFO_ASSERT(m_privKey != nullptr);
     return ssl::DoSign(input, m_privKey, PdfHashingAlgorithm::Unknown, output);
 }

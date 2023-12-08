@@ -9,6 +9,7 @@
 using namespace std;
 using namespace PoDoFo;
 
+// Test signing with supplied private key
 TEST_CASE("TestSignature1")
 {
     charbuff buff;
@@ -45,8 +46,7 @@ TEST_CASE("TestSignature1")
     }
 
     {
-        fs::copy_file(fs::u8path(inputPath), fs::u8path(outputPath), fs::copy_options::overwrite_existing);
-        utls::ReadTo(buff, outputPath);
+        utls::ReadTo(buff, inputPath);
         auto stream = std::make_shared<BufferStreamDevice>(buff);
         testSignature(stream);
         REQUIRE(ssl::ComputeMD5Str(buff) == "312837C62DA72DBC13D588A2AD42BFC1");
@@ -61,8 +61,44 @@ TEST_CASE("TestSignature1")
     }
 }
 
-// Test sequential signing
+// Test event driven signing with external service
 TEST_CASE("TestSignature2")
+{
+    charbuff buff;
+    auto inputPath = TestUtils::GetTestInputFilePath("TestSignature.pdf");
+    auto outputPath = TestUtils::GetTestOutputFilePath("TestSignature1.pdf");
+
+    fs::copy_file(fs::u8path(inputPath), fs::u8path(outputPath), fs::copy_options::overwrite_existing);
+    auto stream = std::make_shared<FileStreamDevice>(outputPath, FileMode::Open);
+
+    // X509 Certificate
+    string cert;
+    TestUtils::ReadTestInputFile("mycert.der", cert);
+
+    // RSA Private key coefficients in der format (binary)
+    string pkey;
+    TestUtils::ReadTestInputFile("mykey.der", pkey);
+
+    PdfMemDocument doc(stream);
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto& annot = page.GetAnnotations().GetAnnotAt(0);
+    auto& field = dynamic_cast<PdfAnnotationWidget&>(annot).GetField();
+    auto& signature = dynamic_cast<PdfSignature&>(field);
+
+    PdfSignerCmsParams params;
+    auto signer = PdfSignerCms(cert, [&pkey,&params](bufferview hashToSign, bool dryrun, charbuff& signedHash)
+    {
+        (void)dryrun;
+        ssl::DoSign(hashToSign, pkey, params.Hashing, signedHash);
+    });
+    PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
+
+    utls::ReadTo(buff, outputPath);
+    REQUIRE(ssl::ComputeMD5Str(buff) == "312837C62DA72DBC13D588A2AD42BFC1");
+}
+
+// Test sequential signing with external service
+TEST_CASE("TestSignature3")
 {
     charbuff buff;
     auto inputPath = TestUtils::GetTestInputFilePath("TestSignature.pdf");

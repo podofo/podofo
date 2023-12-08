@@ -30,10 +30,13 @@ namespace PoDoFo
         ///< in the ASN.1 structure with encryption and hashing type, and
         ///< the signing service will just perform an encryption with private key
         bool DoWrapDigest = false;
+        ///< When supplying an external PdfSigningService, specify if
+        ///< the service should be called for a dry run
+        bool DoDryRunExternal = false;
         nullable<std::chrono::seconds> SigningTimeUTC;
     };
 
-    using PdfSigningService = std::function<void(bufferview, bool, charbuff&)>;
+    using PdfSigningService = std::function<void(bufferview hashToSign, bool dryrun, charbuff& signedHash)>;
 
     /** This class computes a CMS signature according to RFC 5652
      */
@@ -90,7 +93,7 @@ namespace PoDoFo
         void checkContextInitialized();
         void ensureContextInitialized();
         void resetContext();
-        void doSign(const bufferview& input, charbuff& output, bool dryrun);
+        void doSign(const bufferview& input, charbuff& output);
     private:
         bool m_sequentialSigning;
         charbuff m_certificate;
