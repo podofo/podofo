@@ -54,6 +54,14 @@ namespace std
 namespace PoDoFo
 {
     /**
+     * Results produced by starting a sequential signing operation
+     */
+    struct PODOFO_API PdfSigningResults final
+    {
+        std::unordered_map<PdfSignerId, charbuff> Intermediate;
+    };
+
+    /**
      * A context that can be used to customize the signing process.
      * It also enables the sequential, that is a process the intermediate
      * results of singning (normally a hash to sign) that doesn't
@@ -70,7 +78,7 @@ namespace PoDoFo
         /** Start a sequential signing procedure
          * \return the intermediate results
          */
-        std::unordered_map<PdfSignerId, charbuff> StartSigning(PdfMemDocument& doc, const std::shared_ptr<StreamDevice>& device);
+        PdfSigningResults StartSigning(PdfMemDocument& doc, const std::shared_ptr<StreamDevice>& device);
 
         /** Finish a sequential signing procedure
          * \param processedResults 
@@ -101,10 +109,10 @@ namespace PoDoFo
 
     private:
         // Used by PoDoFo::SignDocument
-        void AddSignatureUnsafe(const PdfSignature& signature, PdfSigner& signer);
+        void AddSignerUnsafe(const PdfSignature& signature, PdfSigner& signer);
 
     private:
-        PdfSignerId addSignature(const PdfSignature& signature, PdfSigner* signer,
+        PdfSignerId addSigner(const PdfSignature& signature, PdfSigner* signer,
             const std::shared_ptr<PdfSigner>& storage);
         void ensureNotStarted() const;
         std::unordered_map<PdfSignerId, SignatureCtx> prepareSignatureContexts(PdfDocument& doc, bool sequentialSigning);

@@ -126,11 +126,11 @@ TEST_CASE("TestSignature3")
     PdfSigningContext ctx;
     ctx.SetSaveOptions(PdfSaveOptions::NoMetadataUpdate);
     auto signerId = ctx.AddSigner(signature, signer);
-    auto intermediateResults = ctx.StartSigning(doc, stream);
+    auto results = ctx.StartSigning(doc, stream);
     charbuff signedHash;
-    ssl::DoSign(intermediateResults[signerId], pkey, params.Hashing, signedHash);
-    intermediateResults[signerId] = signedHash;
-    ctx.FinishSigning(intermediateResults);
+    ssl::DoSign(results.Intermediate[signerId], pkey, params.Hashing, signedHash);
+    results.Intermediate[signerId] = signedHash;
+    ctx.FinishSigning(results.Intermediate);
     
     utls::ReadTo(buff, outputPath);
     REQUIRE(ssl::ComputeMD5Str(buff) == "312837C62DA72DBC13D588A2AD42BFC1");

@@ -45,6 +45,6 @@ void PoDoFo::SignDocument(PdfMemDocument& doc, StreamDevice& device, PdfSigner& 
 {
     PdfSigningContext ctx;
     ctx.SetSaveOptions(opts);
-    ctx.AddSignatureUnsafe(signature, signer);
+    ctx.AddSignerUnsafe(signature, signer);
     ctx.Sign(doc, device);
 }

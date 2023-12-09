@@ -38,15 +38,15 @@ PdfSignerId PdfSigningContext::AddSigner(const PdfSignature& signature, const sh
             "or signing the same field with multiple signers is currently not implemeted");
     }
 
-    return addSignature(signature, signer.get(), signer);
+    return addSigner(signature, signer.get(), signer);
 }
 
-void PdfSigningContext::AddSignatureUnsafe(const PdfSignature& signature, PdfSigner& signer)
+void PdfSigningContext::AddSignerUnsafe(const PdfSignature& signature, PdfSigner& signer)
 {
-    (void)addSignature(signature, &signer, nullptr);
+    (void)addSigner(signature, &signer, nullptr);
 }
 
-unordered_map<PdfSignerId, charbuff> PdfSigningContext::StartSigning(PdfMemDocument& doc, const shared_ptr<StreamDevice>& device)
+PdfSigningResults PdfSigningContext::StartSigning(PdfMemDocument& doc, const shared_ptr<StreamDevice>& device)
 {
     ensureNotStarted();
     if (m_signers.size() == 0)
@@ -56,11 +56,11 @@ unordered_map<PdfSignerId, charbuff> PdfSigningContext::StartSigning(PdfMemDocum
     m_device = device;
 
     charbuff tmpbuff;
-    unordered_map<PdfSignerId, charbuff> ret;
+    PdfSigningResults ret;
 
     m_contexts = prepareSignatureContexts(doc, true);
     saveDocForSigning(doc, *device);
-    appendDataForSigning(m_contexts, *device, &ret, tmpbuff);
+    appendDataForSigning(m_contexts, *device, &ret.Intermediate, tmpbuff);
     return ret;
 }
 
@@ -91,7 +91,7 @@ void PdfSigningContext::Sign(PdfMemDocument& doc, StreamDevice& device)
     computeSignatures(contexts, doc, device, nullptr, tmpbuff);
 }
 
-PdfSignerId PdfSigningContext::addSignature(const PdfSignature& signature, PdfSigner* signer, const shared_ptr<PdfSigner>& storage)
+PdfSignerId PdfSigningContext::addSigner(const PdfSignature& signature, PdfSigner* signer, const shared_ptr<PdfSigner>& storage)
 {
     auto reference = signature.GetObject().GetIndirectReference();
     auto found = m_signers.find(reference);
