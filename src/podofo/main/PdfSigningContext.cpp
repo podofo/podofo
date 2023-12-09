@@ -64,7 +64,7 @@ PdfSigningResults PdfSigningContext::StartSigning(PdfMemDocument& doc, const sha
     return ret;
 }
 
-void PdfSigningContext::FinishSigning(const unordered_map<PdfSignerId, charbuff>& processedResults)
+void PdfSigningContext::FinishSigning(const PdfSigningResults& processedResults)
 {
     if (m_doc == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "A sequential signing has not been started");
@@ -207,7 +207,7 @@ void PdfSigningContext::appendDataForSigning(unordered_map<PdfSignerId, Signatur
 
 void PdfSigningContext::computeSignatures(unordered_map<PdfSignerId, SignatureCtx>& contexts,
     PdfDocument& doc, StreamDevice& device,
-    const unordered_map<PdfSignerId, charbuff>* processedResults, charbuff& tmpbuff)
+    const PdfSigningResults* processedResults, charbuff& tmpbuff)
 {
     for (auto& pair : m_signers)
     {
@@ -225,7 +225,7 @@ void PdfSigningContext::computeSignatures(unordered_map<PdfSignerId, SignatureCt
             if (processedResults == nullptr)
                 signer->ComputeSignature(ctx.Contents, false);
             else
-                signer->ComputeSignatureSequential(processedResults->at(signerId), ctx.Contents, false);
+                signer->ComputeSignatureSequential(processedResults->Intermediate.at(signerId), ctx.Contents, false);
 
             if (ctx.Contents.size() > ctx.BeaconSize)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Actual signature size bigger than beacon size");

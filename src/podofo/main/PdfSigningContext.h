@@ -54,7 +54,7 @@ namespace std
 namespace PoDoFo
 {
     /**
-     * Results produced by starting a sequential signing operation
+     * Interchange signing procedure results. Used when starting and finishing a sequential signing
      */
     struct PODOFO_API PdfSigningResults final
     {
@@ -81,9 +81,9 @@ namespace PoDoFo
         PdfSigningResults StartSigning(PdfMemDocument& doc, const std::shared_ptr<StreamDevice>& device);
 
         /** Finish a sequential signing procedure
-         * \param processedResults 
+         * \param processedResults results that will be used to finalize the signatures
          */
-        void FinishSigning(const std::unordered_map<PdfSignerId, charbuff>& processedResults);
+        void FinishSigning(const PdfSigningResults& processedResults);
         /** Start a event driven signing procedure
          */
         void Sign(PdfMemDocument& doc, StreamDevice& device);
@@ -121,7 +121,7 @@ namespace PoDoFo
             std::unordered_map<PdfSignerId, charbuff>* intermediateResults, charbuff& tmpbuff);
         void computeSignatures(std::unordered_map<PdfSignerId, SignatureCtx>& contexts,
             PdfDocument& doc, StreamDevice& device,
-            const std::unordered_map<PdfSignerId, charbuff>* processedResults, charbuff& tmpbuff);
+            const PdfSigningResults* processedResults, charbuff& tmpbuff);
 
     private:
         PdfSigningContext(const PdfSigningContext&) = delete;

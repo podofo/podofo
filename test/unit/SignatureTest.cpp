@@ -130,7 +130,7 @@ TEST_CASE("TestSignature3")
     charbuff signedHash;
     ssl::DoSign(results.Intermediate[signerId], pkey, params.Hashing, signedHash);
     results.Intermediate[signerId] = signedHash;
-    ctx.FinishSigning(results.Intermediate);
+    ctx.FinishSigning(results);
     
     utls::ReadTo(buff, outputPath);
     REQUIRE(ssl::ComputeMD5Str(buff) == "312837C62DA72DBC13D588A2AD42BFC1");
