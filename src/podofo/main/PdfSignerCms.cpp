@@ -23,7 +23,6 @@ PdfSignerCms::PdfSignerCms(const bufferview& cert, const bufferview& pkey,
 
 PdfSignerCms::PdfSignerCms(const bufferview& cert, const PdfSigningService& signing,
         const PdfSignerCmsParams& parameters) :
-    m_sequentialSigning(false),
     m_certificate(cert),
     signingService(signing),
     m_privKey(nullptr),
@@ -32,7 +31,6 @@ PdfSignerCms::PdfSignerCms(const bufferview& cert, const PdfSigningService& sign
 }
 
 PdfSignerCms::PdfSignerCms(const bufferview& cert, const PdfSignerCmsParams& parameters) :
-    m_sequentialSigning(true),
     m_certificate(cert),
     m_privKey(nullptr),
     m_parameters(parameters)
@@ -56,9 +54,7 @@ void PdfSignerCms::AppendData(const bufferview& data)
 
 void PdfSignerCms::ComputeSignature(charbuff& contents, bool dryrun)
 {
-    if (m_sequentialSigning)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The signer is enabled for sequential signing");
-
+    ensureEventBasedSigning();
     ensureContextInitialized();
     charbuff hashToSign;
     m_cmsContext->ComputeHashToSign(hashToSign);
@@ -70,7 +66,6 @@ void PdfSignerCms::ComputeSignature(charbuff& contents, bool dryrun)
     else if (!dryrun || m_parameters.DoDryRunExternal)
     {
         signingService(hashToSign, dryrun, m_encryptedHash);
-        OnSignedHashReady(m_encryptedHash, dryrun);
     }
     else
     {
@@ -78,19 +73,20 @@ void PdfSignerCms::ComputeSignature(charbuff& contents, bool dryrun)
         m_encryptedHash.resize(RSASignedHashSize);
     }
 
+    OnSignedHashReady(m_encryptedHash, dryrun);
     m_cmsContext->ComputeSignature(m_encryptedHash, contents);
 }
 
 void PdfSignerCms::FetchIntermediateResult(charbuff& result)
 {
-    checkSequentialSigning();
+    ensureSequentialSigning();
     ensureContextInitialized();
     m_cmsContext->ComputeHashToSign(result);
 }
 
 void PdfSignerCms::ComputeSignatureSequential(const bufferview& processedResult, charbuff& contents, bool dryrun)
 {
-    checkSequentialSigning();
+    ensureSequentialSigning();
     ensureContextInitialized();
     charbuff fakeresult;
     bufferview actualProc;
@@ -113,6 +109,9 @@ void PdfSignerCms::Reset()
 {
     if (m_cmsContext != nullptr)
         resetContext();
+
+    // Reset also sequential signing if it was started
+    m_sequentialSigning = nullptr;
 }
 
 string PdfSignerCms::GetSignatureFilter() const
@@ -175,10 +174,34 @@ void PdfSignerCms::AddUnsignedAttributeBytes(const string_view& nid, const buffe
     m_cmsContext->AddUnsignedAttributeBytes(nid, attr);
 }
 
-void PdfSignerCms::checkSequentialSigning()
+void PdfSignerCms::ensureEventBasedSigning()
 {
-    if (!m_sequentialSigning)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The signer is not enabled for sequential signing");
+    if (m_sequentialSigning.has_value())
+    {
+        if (*m_sequentialSigning)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The signer is enabled for sequential signing");
+    }
+    else
+    {
+        if (signingService == nullptr && m_privKey == nullptr)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic,
+                "The signer can't perform event based signing without a signing service or a private pkey");
+
+        m_sequentialSigning = false;
+    }
+}
+
+void PdfSignerCms::ensureSequentialSigning()
+{
+    if (m_sequentialSigning.has_value())
+    {
+        if (!*m_sequentialSigning)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The signer is not enabled for sequential signing");
+    }
+    else
+    {
+        m_sequentialSigning = true;
+    }
 }
 
 void PdfSignerCms::checkContextInitialized()

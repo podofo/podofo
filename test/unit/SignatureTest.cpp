@@ -135,3 +135,57 @@ TEST_CASE("TestSignature3")
     utls::ReadTo(buff, outputPath);
     REQUIRE(ssl::ComputeMD5Str(buff) == "312837C62DA72DBC13D588A2AD42BFC1");
 }
+
+TEST_CASE("TestPdfSignerCms")
+{
+    // X509 Certificate
+    string cert;
+    TestUtils::ReadTestInputFile("mycert.der", cert);
+
+    charbuff buff;
+    {
+        PdfSignerCms signer(cert);
+        signer.ComputeSignatureSequential({ }, buff, true);
+
+        try
+        {
+            signer.ComputeSignature(buff, true);
+        }
+        catch (PdfError& error)
+        {
+            // If a sequential signing is started we can't switch to event based
+            REQUIRE(error.GetCode() == PdfErrorCode::InternalLogic);
+        }
+    }
+
+    {
+        PdfSignerCms signer(cert);
+        try
+        {
+            signer.ComputeSignature(buff, true);
+        }
+        catch (PdfError& error)
+        {
+            // An event based signing requires a private key or a signing service
+            REQUIRE(error.GetCode() == PdfErrorCode::InternalLogic);
+        }
+    }
+
+    {
+        PdfSignerCms signer(cert, [](bufferview, bool, charbuff&)
+        {
+            // Do nothing
+        });
+        signer.ComputeSignature(buff, true);
+
+        try
+        {
+            signer.ComputeSignatureSequential({ }, buff, true);
+        }
+        catch (PdfError& error)
+        {
+            // If a event based signing is started we can't switch to sequential
+            REQUIRE(error.GetCode() == PdfErrorCode::InternalLogic);
+        }
+    }
+}
