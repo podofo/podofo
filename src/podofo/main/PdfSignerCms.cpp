@@ -14,27 +14,19 @@ using namespace PoDoFo;
 
 constexpr unsigned RSASignedHashSize = 256;
 
+PdfSignerCms::PdfSignerCms(const bufferview& cert, const PdfSignerCmsParams& parameters) :
+    PdfSignerCms(cert, { }, parameters)
+{
+}
+
 PdfSignerCms::PdfSignerCms(const bufferview& cert, const bufferview& pkey,
         const PdfSignerCmsParams& parameters) :
-    PdfSignerCms(cert, nullptr, parameters)
-{
-    m_privKey = ssl::LoadPrivateKey(pkey);
-}
-
-PdfSignerCms::PdfSignerCms(const bufferview& cert, const PdfSigningService& signing,
-        const PdfSignerCmsParams& parameters) :
-    m_certificate(cert),
-    signingService(signing),
-    m_privKey(nullptr),
-    m_parameters(parameters)
-{
-}
-
-PdfSignerCms::PdfSignerCms(const bufferview& cert, const PdfSignerCmsParams& parameters) :
     m_certificate(cert),
     m_privKey(nullptr),
     m_parameters(parameters)
 {
+    if (pkey.size() != 0)
+        m_privKey = ssl::LoadPrivateKey(pkey);
 }
 
 PdfSignerCms::~PdfSignerCms()
@@ -58,14 +50,14 @@ void PdfSignerCms::ComputeSignature(charbuff& contents, bool dryrun)
     ensureContextInitialized();
     charbuff hashToSign;
     m_cmsContext->ComputeHashToSign(hashToSign);
-    if (signingService == nullptr)
+    if (m_parameters.SigningService == nullptr)
     {
         // Do default signing
         doSign(hashToSign, m_encryptedHash);
     }
-    else if (!dryrun || m_parameters.DoDryRunExternal)
+    else if (!dryrun || (m_parameters.Flags & PdfSignerCmsFlags::ServiceDoDryRun) != PdfSignerCmsFlags::None)
     {
-        signingService(hashToSign, dryrun, m_encryptedHash);
+        m_parameters.SigningService(hashToSign, dryrun, m_encryptedHash);
     }
     else
     {
@@ -73,7 +65,9 @@ void PdfSignerCms::ComputeSignature(charbuff& contents, bool dryrun)
         m_encryptedHash.resize(RSASignedHashSize);
     }
 
-    OnSignedHashReady(m_encryptedHash, dryrun);
+    if (m_parameters.SignedHashHandler != nullptr)
+        m_parameters.SignedHashHandler(m_encryptedHash, dryrun);
+
     m_cmsContext->ComputeSignature(m_encryptedHash, contents);
 }
 
@@ -143,13 +137,6 @@ bool PdfSignerCms::SkipBufferClear() const
     return true;
 }
 
-void PdfSignerCms::OnSignedHashReady(const bufferview& signedhHash, bool dryrun)
-{
-    (void)signedhHash;
-    (void)dryrun;
-    // Do nothing
-}
-
 void PdfSignerCms::AddSignedAttribute(const string_view& nid, const bufferview& attr)
 {
     checkContextInitialized();
@@ -183,9 +170,11 @@ void PdfSignerCms::ensureEventBasedSigning()
     }
     else
     {
-        if (signingService == nullptr && m_privKey == nullptr)
+        if (m_parameters.SigningService == nullptr && m_privKey == nullptr)
+        {
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic,
                 "The signer can't perform event based signing without a signing service or a private pkey");
+        }
 
         m_sequentialSigning = false;
     }
@@ -242,7 +231,7 @@ void PdfSignerCms::resetContext()
     }
 
     if (m_privKey == nullptr)
-        params.DoWrapDigest = m_parameters.DoWrapDigest;
+        params.DoWrapDigest = (m_parameters.Flags & PdfSignerCmsFlags::ServiceDoWrapDigest) != PdfSignerCmsFlags::None;
     else
         params.DoWrapDigest = true; // We just perform encryption with private key, so we expect the digest wrapped
 

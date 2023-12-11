@@ -20,41 +20,50 @@ namespace PoDoFo
 {
     class CmsContext;
 
+    using PdfSigningService = std::function<void(bufferview hashToSign, bool dryrun, charbuff& signedHash)>;
+    using PdfSignedHashHandler = std::function<void(bufferview signedhHash, bool dryrun)>;
+
+    enum class PdfSignerCmsFlags
+    {
+        None = 0,
+        ///< When supplying a PdfSigningService, specify if the service
+        ///< expects a bare digest (the default), or if should be wrapped
+        ///< in a ASN.1 structure with encryption and hashing type (PKCS#1 v1.5
+        ///< encpasulation), and the signing service will just perform an
+        ///< encryption with private key
+        ServiceDoWrapDigest = 1,
+        ///< When supplying an external PdfSigningService, specify if
+        ///< the service should be called for a dry run
+        ServiceDoDryRun = 2,
+    };
+
     struct PdfSignerCmsParams
     {
         PdfSignatureType SignatureType = PdfSignatureType::PAdES_B;
         PdfEncryptionAlgorithm Encryption = PdfEncryptionAlgorithm::RSA;
         PdfHashingAlgorithm Hashing = PdfHashingAlgorithm::SHA256;
-        ///< When supplying a PdfSigningService, specify if the service
-        ///< expects a bare digest (the default), or if should be wrapped
-        ///< in the ASN.1 structure with encryption and hashing type, and
-        ///< the signing service will just perform an encryption with private key
-        bool DoWrapDigest = false;
-        ///< When supplying an external PdfSigningService, specify if
-        ///< the service should be called for a dry run
-        bool DoDryRunExternal = false;
+        PdfSigningService SigningService;
         nullable<std::chrono::seconds> SigningTimeUTC;
+        PdfSignedHashHandler SignedHashHandler;
+        PdfSignerCmsFlags Flags = PdfSignerCmsFlags::None;
     };
-
-    using PdfSigningService = std::function<void(bufferview hashToSign, bool dryrun, charbuff& signedHash)>;
 
     /** This class computes a CMS signature according to RFC 5652
      */
     class PODOFO_API PdfSignerCms : public PdfSigner
     {
     public:
-        /** Load X509 certificate and provide a ASN.1 encoded private key
+        /** Load X509 certificate and supply a ASN.1 encoded private key
+         * \param cert x509 certificate
+         * \param pkey asn.1 encoded private key. Can be empty. In that case
+         * signing can be supplied by a signing service, or performing a sequential signing
          */
         PdfSignerCms(const bufferview& cert, const bufferview& pkey,
             const PdfSignerCmsParams& parameters = { });
 
-        /** Load X509 certificate and provide an external signing service
-         */
-        PdfSignerCms(const bufferview& cert, const PdfSigningService& signing,
-            const PdfSignerCmsParams& parameters = { });
-
-        /** Load X509 certificate, without supplying a signing service or
-         * a private key. This constructor can be used for sequential signing
+        /** Load X509 certificate without supplying a private key
+         * \param cert x509 certificate
+         * \remarks signing can be supplied by a signing service, or performing a sequential signing
          */
         PdfSignerCms(const bufferview& cert, const PdfSignerCmsParams& parameters = { });
 
@@ -88,8 +97,7 @@ namespace PoDoFo
 
     public:
         const PdfSignerCmsParams& GetParameters() const { return m_parameters; }
-    protected:
-        virtual void OnSignedHashReady(const bufferview& signedhHash, bool dryrun);
+
     private:
         void ensureEventBasedSigning();
         void ensureSequentialSigning();
@@ -100,7 +108,6 @@ namespace PoDoFo
     private:
         nullable<bool> m_sequentialSigning;
         charbuff m_certificate;
-        PdfSigningService signingService;
         std::unique_ptr<CmsContext> m_cmsContext;
         struct evp_pkey_st* m_privKey;
         PdfSignerCmsParams m_parameters;
@@ -110,5 +117,7 @@ namespace PoDoFo
         charbuff m_encryptedHash;
     };
 }
+
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfSignerCmsFlags);
 
 #endif // PDF_SIGNER_CMS_H

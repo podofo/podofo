@@ -86,11 +86,12 @@ TEST_CASE("TestSignature2")
     auto& signature = dynamic_cast<PdfSignature&>(field);
 
     PdfSignerCmsParams params;
-    auto signer = PdfSignerCms(cert, [&pkey,&params](bufferview hashToSign, bool dryrun, charbuff& signedHash)
+    params.SigningService = [&pkey, &params](bufferview hashToSign, bool dryrun, charbuff& signedHash)
     {
         (void)dryrun;
         ssl::DoSign(hashToSign, pkey, params.Hashing, signedHash);
-    });
+    };
+    auto signer = PdfSignerCms(cert, params);
     PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
 
     utls::ReadTo(buff, outputPath);
@@ -173,10 +174,13 @@ TEST_CASE("TestPdfSignerCms")
     }
 
     {
-        PdfSignerCms signer(cert, [](bufferview, bool, charbuff&)
+        PdfSignerCmsParams params;
+        params.SigningService = [](bufferview, bool, charbuff&)
         {
             // Do nothing
-        });
+        };
+
+        PdfSignerCms signer(cert, params);
         signer.ComputeSignature(buff, true);
 
         try
