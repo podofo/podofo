@@ -46,7 +46,7 @@ void PdfSigningContext::AddSignerUnsafe(const PdfSignature& signature, PdfSigner
     (void)addSigner(signature, &signer, nullptr);
 }
 
-PdfSigningResults PdfSigningContext::StartSigning(PdfMemDocument& doc, const shared_ptr<StreamDevice>& device)
+void PdfSigningContext::StartSigning(PdfMemDocument& doc, const shared_ptr<StreamDevice>& device, PdfSigningResults& results)
 {
     ensureNotStarted();
     if (m_signers.size() == 0)
@@ -56,12 +56,9 @@ PdfSigningResults PdfSigningContext::StartSigning(PdfMemDocument& doc, const sha
     m_device = device;
 
     charbuff tmpbuff;
-    PdfSigningResults ret;
-
     m_contexts = prepareSignatureContexts(doc, true);
     saveDocForSigning(doc, *device);
-    appendDataForSigning(m_contexts, *device, &ret.Intermediate, tmpbuff);
-    return ret;
+    appendDataForSigning(m_contexts, *device, &results.Intermediate, tmpbuff);
 }
 
 void PdfSigningContext::FinishSigning(const PdfSigningResults& processedResults)

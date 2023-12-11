@@ -126,7 +126,8 @@ TEST_CASE("TestSignature3")
     PdfSigningContext ctx;
     ctx.SetSaveOptions(PdfSaveOptions::NoMetadataUpdate);
     auto signerId = ctx.AddSigner(signature, signer);
-    auto results = ctx.StartSigning(doc, stream);
+    PdfSigningResults results;
+    ctx.StartSigning(doc, stream, results);
     charbuff signedHash;
     ssl::DoSign(results.Intermediate[signerId], pkey, params.Hashing, signedHash);
     results.Intermediate[signerId] = signedHash;
