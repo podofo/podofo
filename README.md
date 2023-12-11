@@ -139,6 +139,22 @@ This unconditionally disable building tests, examples and tools;
 - `PODOFO_BUILD_STATIC`: If TRUE, build the library as a static object and use it in tests,
 examples and tools. By default a shared library is built.
 
+### Static linking
+
+If you want to use a static build of PoDoFo and you are including the PoDoFo cmake project it's very simple. Do something like the following in your CMake project:
+
+```
+set(PODOFO_BUILD_LIB_ONLY TRUE CACHE BOOL "" FORCE)
+set(PODOFO_BUILD_STATIC TRUE CACHE BOOL "" FORCE)
+add_subdirectory(podofo)
+# ...
+target_link_libraries(MyTarget podofo::podofo)
+```
+
+If you are linking against a precompiled static build of PoDoFo, this is an unsupported scenario and support is limited, as you are really supposed to be able to identify and fix linking issues. The general steps are:
+* Add `PODOFO_STATIC` compilation definition to your project;
+* Link the libraries `podofo.a`, `podofo_private.a` (or `podofo.lib`, `podofo_private.lib` with MSVC) and all the [dependent](https://github.com/podofo/podofo/blob/5a07b90f24747a5aafe6f6fd062ee81f4783ab22/CMakeLists.txt#L203C5-L203C24) libraries.
+
 ## String encoding and buffer conventions
 
 All `std::strings` or `std::string_view` in the library are intended
