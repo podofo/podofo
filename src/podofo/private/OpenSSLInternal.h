@@ -71,8 +71,7 @@ namespace ssl
     std::string ComputeMD5Str(const PoDoFo::bufferview& data);
     std::string ComputeSHA1Str(const PoDoFo::bufferview& data);
 
-    void WrapDigestPKCS1(const PoDoFo::bufferview& hash, PoDoFo::PdfEncryptionAlgorithm encryption,
-        PoDoFo::PdfHashingAlgorithm hashing, PoDoFo::charbuff& output);
+    void WrapDigestPKCS1(const PoDoFo::bufferview& hash, PoDoFo::PdfHashingAlgorithm hashing, PoDoFo::charbuff& output);
 
     void ComputeHash(const PoDoFo::bufferview& data, PoDoFo::PdfHashingAlgorithm hashing,
         unsigned char* hash, unsigned& length);

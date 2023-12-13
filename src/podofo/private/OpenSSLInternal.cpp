@@ -164,7 +164,7 @@ void ssl::DoSign(const bufferview& input, EVP_PKEY* pkey,
     charbuff tempWrapped;
     if (hashing != PdfHashingAlgorithm::Unknown)
     {
-        ssl::WrapDigestPKCS1(input, getEncryptionAlgorithm(pkey), hashing, tempWrapped);
+        ssl::WrapDigestPKCS1(input, hashing, tempWrapped);
         actualInput = tempWrapped;
     }
     

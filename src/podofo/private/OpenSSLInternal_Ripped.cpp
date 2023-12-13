@@ -96,18 +96,11 @@ Error:
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error while computing the MessageDigest");
 }
 
-void ssl::WrapDigestPKCS1(const bufferview& hash, PdfEncryptionAlgorithm encryption,
-    PdfHashingAlgorithm hashing, charbuff& output)
+void ssl::WrapDigestPKCS1(const bufferview& hash, PdfHashingAlgorithm hashing, charbuff& output)
 {
-    if (encryption != PdfEncryptionAlgorithm::RSA)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Unsupported encryption");
-
     unique_ptr<X509_ALGOR, decltype(&X509_ALGOR_free)> x509Algor(X509_ALGOR_new(), X509_ALGOR_free);
     if (x509Algor == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error X509_ALGOR_new");
-
-    if (X509_ALGOR_set0(x509Algor.get(), OBJ_nid2obj(getEncryptionNid(encryption)), V_ASN1_NULL, nullptr) == 0)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error X509_ALGOR_set0");
 
     X509_ALGOR_set_md(x509Algor.get(), ssl::GetEVP_MD(hashing));
     encode_pkcs1(x509Algor.get(), (const unsigned char*)hash.data(), (unsigned)hash.size(), output);
