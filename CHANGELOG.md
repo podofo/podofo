@@ -1,3 +1,6 @@
+# Version 0.10.4
+- Fixed seek() in case of iostream/fstream used with StandardStreamDevice
+
 # Version 0.10.3
 - Fixed big performance regression introduced in 0.10, see #108
 - Fixed data loss with encrypted documents, see #99
