@@ -46,10 +46,7 @@ namespace PoDoFo
         void AppendData(const bufferview& data);
         void ComputeHashToSign(charbuff& hashToSign);
         void ComputeSignature(const bufferview& signedHash, charbuff& signature);
-        void AddSignedAttribute(const std::string_view& nid, const bufferview& attr);
-        void AddUnsignedAttribute(const std::string_view& nid, const bufferview& attr);
-        void AddSignedAttributeBytes(const std::string_view& nid, const bufferview& attr);
-        void AddUnsignedAttributeBytes(const std::string_view& nid, const bufferview& attr);
+        void AddAttribute(const std::string_view& nid, const bufferview& attr, bool signedAttr, bool octetString);
     private:
         void loadX509Certificate(const bufferview& cert);
         void computeCertificateHash();

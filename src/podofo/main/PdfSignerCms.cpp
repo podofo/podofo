@@ -23,7 +23,8 @@ PdfSignerCms::PdfSignerCms(const bufferview& cert, const bufferview& pkey,
         const PdfSignerCmsParams& parameters) :
     m_certificate(cert),
     m_privKey(nullptr),
-    m_parameters(parameters)
+    m_parameters(parameters),
+    m_reservedSize(0)
 {
     if (pkey.size() != 0)
         m_privKey = ssl::LoadPrivateKey(pkey);
@@ -69,6 +70,8 @@ void PdfSignerCms::ComputeSignature(charbuff& contents, bool dryrun)
         m_parameters.SignedHashHandler(m_encryptedHash, dryrun);
 
     m_cmsContext->ComputeSignature(m_encryptedHash, contents);
+    if (m_reservedSize != 0 && dryrun)
+        contents.resize(contents.size() + m_reservedSize);
 }
 
 void PdfSignerCms::FetchIntermediateResult(charbuff& result)
@@ -82,27 +85,30 @@ void PdfSignerCms::ComputeSignatureSequential(const bufferview& processedResult,
 {
     ensureSequentialSigning();
     ensureContextInitialized();
-    charbuff fakeresult;
-    bufferview actualProc;
+
     if (dryrun)
     {
         // Just prepare a fake result with the size of RSA block
+        charbuff fakeresult;
         m_cmsContext->ComputeHashToSign(fakeresult);
         fakeresult.resize(RSASignedHashSize);
-        actualProc = fakeresult;
+        m_cmsContext->ComputeSignature(fakeresult, contents);
+        if (m_reservedSize != 0)
+            contents.resize(contents.size() + m_reservedSize);
     }
     else
     {
-        actualProc = processedResult;
+        m_cmsContext->ComputeSignature(processedResult, contents);
     }
-
-    m_cmsContext->ComputeSignature(actualProc, contents);
 }
 
 void PdfSignerCms::Reset()
 {
     if (m_cmsContext != nullptr)
         resetContext();
+
+    // Reset the reserved size
+    m_reservedSize = 0;
 
     // Reset also sequential signing if it was started
     m_sequentialSigning = nullptr;
@@ -137,28 +143,26 @@ bool PdfSignerCms::SkipBufferClear() const
     return true;
 }
 
-void PdfSignerCms::AddSignedAttribute(const string_view& nid, const bufferview& attr)
+void PdfSignerCms::AddAttribute(const string_view& nid, const bufferview& attr, PdfSignatureAttributeFlags flags)
 {
-    checkContextInitialized();
-    m_cmsContext->AddSignedAttribute(nid, attr);
+    ensureContextInitialized();
+    bool signedAttr = false;
+    if ((flags & PdfSignatureAttributeFlags::SignedAttribute) != PdfSignatureAttributeFlags::None)
+        signedAttr = true;
+
+    bool asOctetString = false;
+    if ((flags & PdfSignatureAttributeFlags::AsOctetString) != PdfSignatureAttributeFlags::None)
+        asOctetString = true;
+
+    m_cmsContext->AddAttribute(nid, attr, signedAttr, asOctetString);
 }
 
-void PdfSignerCms::AddUnsignedAttribute(const string_view& nid, const bufferview& attr)
+void PdfSignerCms::ReserveAttributeSize(unsigned attrSize)
 {
-    checkContextInitialized();
-    m_cmsContext->AddUnsignedAttribute(nid, attr);
-}
-
-void PdfSignerCms::AddSignedAttributeBytes(const string_view& nid, const bufferview& attr)
-{
-    checkContextInitialized();
-    m_cmsContext->AddSignedAttributeBytes(nid, attr);
-}
-
-void PdfSignerCms::AddUnsignedAttributeBytes(const string_view& nid, const bufferview& attr)
-{
-    checkContextInitialized();
-    m_cmsContext->AddUnsignedAttributeBytes(nid, attr);
+    // Increment the size to reserve size plus some constant
+    // necessary for the ASN.1 infrastructure to make room
+    // for the attribute
+    m_reservedSize += (attrSize + 40);
 }
 
 void PdfSignerCms::ensureEventBasedSigning()

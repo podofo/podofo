@@ -48,6 +48,15 @@ namespace PoDoFo
         PdfSignerCmsFlags Flags = PdfSignerCmsFlags::None;
     };
 
+    enum class PdfSignatureAttributeFlags
+    {
+        None = 0,
+        ///< The attribute is a signed attribute. By default, it is unsigned
+        SignedAttribute = 1,
+        ///< The input is interpreted as a raw octet string
+        AsOctetString = 2,
+    };
+
     /** This class computes a CMS signature according to RFC 5652
      */
     class PODOFO_API PdfSignerCms : public PdfSigner
@@ -80,20 +89,17 @@ namespace PoDoFo
         std::string GetSignatureType() const override;
         bool SkipBufferClear() const override;
 
-        /** Add signed attribute from asn.1 encoded bytes
-         * \remarks bytes will be parsed
+        /** Add a signature attribute with given identifier from the input
+         * \param nid the numerical identifier
+         * \param attr the attribute bytes. By default, the bytes are parsed for valid ASN.1 input
          */
-        void AddSignedAttribute(const std::string_view& nid, const bufferview& attr);
-        /** Add unsigned attribute from asn.1 encoded bytes
-         * \remarks bytes will be parsed
+        void AddAttribute(const std::string_view& nid, const bufferview& attr, PdfSignatureAttributeFlags flags = PdfSignatureAttributeFlags::None);
+
+        /**
+         * Reserve some size in the final signature. It is used in dry-runs to enlarge the signature buffer
+         * \remarks the total reserved size is reset on Reset()
          */
-        void AddUnsignedAttribute(const std::string_view& nid, const bufferview& attr);
-        /** Add signed attribute as octet bytes
-         */
-        void AddSignedAttributeBytes(const std::string_view& nid, const bufferview& attr);
-        /** Add unsigned attribute as octet bytes
-          */
-        void AddUnsignedAttributeBytes(const std::string_view& nid, const bufferview& attr);
+        void ReserveAttributeSize(unsigned attrSize);
 
     public:
         const PdfSignerCmsParams& GetParameters() const { return m_parameters; }
@@ -111,6 +117,7 @@ namespace PoDoFo
         std::unique_ptr<CmsContext> m_cmsContext;
         struct evp_pkey_st* m_privKey;
         PdfSignerCmsParams m_parameters;
+        unsigned m_reservedSize;
 
         // Temporary buffer variables
         // NOTE: Don't clear it in Reset() override
@@ -119,5 +126,6 @@ namespace PoDoFo
 }
 
 ENABLE_BITMASK_OPERATORS(PoDoFo::PdfSignerCmsFlags);
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfSignatureAttributeFlags);
 
 #endif // PDF_SIGNER_CMS_H

@@ -125,28 +125,18 @@ void CmsContext::ComputeSignature(const bufferview& signedHash, charbuff& signat
     m_status = CmsContextStatus::ComputedSignature;
 }
 
-void CmsContext::AddSignedAttribute(const string_view& nid, const bufferview& attr)
+void CmsContext::AddAttribute(const string_view& nid, const bufferview& attr, bool signedAttr, bool asOctetString)
 {
-    checkEnabledAddSignedAttributes();
-    addAttribute(m_signer, CMS_signed_add1_attr_by_txt, nid, attr, false);
-}
-
-void CmsContext::AddUnsignedAttribute(const string_view& nid, const bufferview& attr)
-{
-    checkEnabledAddUnsignedAttributes();
-    addAttribute(m_signer, CMS_unsigned_add1_attr_by_txt, nid, attr, false);
-}
-
-void CmsContext::AddSignedAttributeBytes(const string_view& nid, const bufferview& attr)
-{
-    checkEnabledAddSignedAttributes();
-    addAttribute(m_signer, CMS_signed_add1_attr_by_txt, nid, attr, true);
-}
-
-void CmsContext::AddUnsignedAttributeBytes(const string_view& nid, const bufferview& attr)
-{
-    checkEnabledAddUnsignedAttributes();
-    addAttribute(m_signer, CMS_unsigned_add1_attr_by_txt, nid, attr, true);
+    if (signedAttr)
+    {
+        checkEnabledAddSignedAttributes();
+        addAttribute(m_signer, CMS_signed_add1_attr_by_txt, nid, attr, asOctetString);
+    }
+    else
+    {
+        checkEnabledAddUnsignedAttributes();
+        addAttribute(m_signer, CMS_unsigned_add1_attr_by_txt, nid, attr, asOctetString);
+    }
 }
 
 void CmsContext::loadX509Certificate(const bufferview& cert)
