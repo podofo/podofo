@@ -26,17 +26,17 @@ support rendering PDF content.
 ## Requirements
 
 To build PoDoFo lib you'll need a c++17 compiler,
-CMake 3.16 and the following libraries:
+CMake 3.16 and the following libraries (tentative minimum versions indicated):
 
-* freetype2
-* fontconfig (required for Unix platforms, optional for Windows)
+* freetype2 (2.11)
+* fontconfig (2.13.94, required for Unix platforms, optional for Windows)
 * OpenSSL (1.1 and 3.0 are supported)
-* LibXml2
+* LibXml2 (2.9.12)
 * zlib
-* libjpeg (optional)
-* libtiff (optional)
-* libpng (optional)
-* libidn (optional)
+* libjpeg (9d, optional)
+* libtiff (4.0.10, optional)
+* libpng (1.6.37, optional)
+* libidn (1.38, optional)
 
 For the most popular toolchains, PoDoFo requires the following
 minimum versions:
