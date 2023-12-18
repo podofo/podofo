@@ -242,6 +242,8 @@ private:
  */
 class PODOFO_API PdfBuiltInEncoding : public PdfEncodingMapOneByte
 {
+    friend class PdfFontMetricsFreetype;
+
 protected:
     PdfBuiltInEncoding(const PdfName& name);
 
@@ -268,10 +270,15 @@ protected:
     virtual const char32_t* GetToUnicodeTable() const = 0;
 
 private:
+    // To be called by PdfFontMetricsFreetype
+    void CreateUnicodeToGIDMap(const std::unordered_map<unsigned, unsigned>& codeToGidMap,
+        std::unordered_map<uint32_t, unsigned>& unicodeMap) const;
+
+private:
     /** Initialize the internal table of mappings from Unicode code points
      *  to encoded byte values.
      */
-    void InitEncodingTable();
+    void initEncodingTable();
 
 private:
     PdfName m_Name;         // The name of the encoding
@@ -303,6 +310,10 @@ protected:
 /** Convenience typedef for a const /Encoding map entry shared ptr
  */
 using PdfEncodingMapConstPtr = std::shared_ptr<const PdfEncodingMap>;
+
+/** Convenience typedef for a const /Encoding map entry shared ptr
+ */
+using PdfBuiltInEncodingConstPtr = std::shared_ptr<const PdfBuiltInEncoding>;
 
 class PdfCMapEncoding;
 

@@ -18,6 +18,7 @@ class PODOFO_API PdfEncodingMapFactory final
     friend class PdfEncoding;
     friend class PdfEncodingFactory;
     friend class PdfDifferenceEncoding;
+    friend class PdfFontMetricsFreetype;
 
 public:
     /** Singleton method which returns a global instance
@@ -27,21 +28,21 @@ public:
      *
      *  \see Win1250EncodingInstance
      */
-    static PdfEncodingMapConstPtr WinAnsiEncodingInstance();
+    static PdfBuiltInEncodingConstPtr WinAnsiEncodingInstance();
 
     /** Singleton method which returns a global instance
      *  of MacRomanEncoding.
      *
      *  \returns global instance of MacRomanEncoding
      */
-    static PdfEncodingMapConstPtr MacRomanEncodingInstance();
+    static PdfBuiltInEncodingConstPtr MacRomanEncodingInstance();
 
     /** Singleton method which returns a global instance
      *  of MacExpertEncoding.
      *
      *  \returns global instance of MacExpertEncoding
      */
-    static PdfEncodingMapConstPtr MacExpertEncodingInstance();
+    static PdfBuiltInEncodingConstPtr MacExpertEncodingInstance();
 
     /** Singleton method which returns a global instance
      *  of Horizontal IndentityEncoding
@@ -66,26 +67,13 @@ private:
 
     // The following encodings are for internal use only
 
-    /** Singleton method which returns a global instance
-     *  of StandardEncoding.
-     *
-     *  \returns global instance of StandardEncoding
-     */
-    static PdfEncodingMapConstPtr StandardEncodingInstance();
+    static PdfBuiltInEncodingConstPtr StandardEncodingInstance();
 
-    /** Singleton method which returns a global instance
-     *  of SymbolEncoding.
-     *
-     *  \returns global instance of SymbolEncoding
-     */
-    static PdfEncodingMapConstPtr SymbolEncodingInstance();
+    static PdfBuiltInEncodingConstPtr SymbolEncodingInstance();
 
-    /** Singleton method which returns a global instance
-     *  of ZapfDingbatsEncoding.
-     *
-     *  \returns global instance of ZapfDingbatsEncoding
-     */
-    static PdfEncodingMapConstPtr ZapfDingbatsEncodingInstance();
+    static PdfBuiltInEncodingConstPtr ZapfDingbatsEncodingInstance();
+
+    static PdfBuiltInEncodingConstPtr AppleLatin1EncodingInstance();
 
     static PdfEncodingMapConstPtr GetNullEncodingMap();
 };

@@ -528,13 +528,35 @@ PdfBuiltInEncoding::PdfBuiltInEncoding(const PdfName& name)
 {
 }
 
-void PdfBuiltInEncoding::InitEncodingTable()
+// Create an unicode to GID map, filtering on available GIDs
+// specified in the input char code to GID map
+void PdfBuiltInEncoding::CreateUnicodeToGIDMap(const unordered_map<unsigned, unsigned>& codeToGidMap,
+    unordered_map<uint32_t, unsigned>& unicodeMap) const
+{
+    const char32_t* cpUnicodeTable = this->GetToUnicodeTable();
+    for (unsigned i = 0; i < 256; i++)
+    {
+        char32_t unicodeCp = cpUnicodeTable[i];
+        if (unicodeCp == U'\0')
+            continue;
+
+        // Verify if the gid is actually available in the code to GID map
+        auto found = codeToGidMap.find(i);
+        if (found == codeToGidMap.end())
+            continue;
+
+        // Set the found Unicode code point -> GID mapping
+        unicodeMap[unicodeCp] = found->second;
+    }
+}
+
+void PdfBuiltInEncoding::initEncodingTable()
 {
     if (!m_EncodingTable.empty())
         return;
 
     const char32_t* cpUnicodeTable = this->GetToUnicodeTable();
-    for (size_t i = 0; i < 256; i++)
+    for (unsigned i = 0; i < 256; i++)
     {
         // fill the table with data
         m_EncodingTable[cpUnicodeTable[i]] =
@@ -544,7 +566,7 @@ void PdfBuiltInEncoding::InitEncodingTable()
 
 bool PdfBuiltInEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const
 {
-    const_cast<PdfBuiltInEncoding*>(this)->InitEncodingTable();
+    const_cast<PdfBuiltInEncoding*>(this)->initEncodingTable();
     auto found = m_EncodingTable.find(codePoint);
     if (found == m_EncodingTable.end())
     {
