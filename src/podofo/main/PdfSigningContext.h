@@ -76,7 +76,7 @@ namespace PoDoFo
         PdfSigningContext();
         PdfSignerId AddSigner(const PdfSignature& signature, const std::shared_ptr<PdfSigner>& signer);
         /** Start a sequential signing procedure
-         * \param results istance where intermediate results will be stored
+         * \param results instance where intermediate results will be stored
          */
         void StartSigning(PdfMemDocument& doc, const std::shared_ptr<StreamDevice>& device, PdfSigningResults& results);
 

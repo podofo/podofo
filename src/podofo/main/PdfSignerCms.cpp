@@ -200,7 +200,7 @@ void PdfSignerCms::ensureSequentialSigning()
 void PdfSignerCms::checkContextInitialized()
 {
     if (m_cmsContext == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "CMS context is unitialized");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "CMS context is uninitialized");
 }
 
 void PdfSignerCms::ensureContextInitialized()

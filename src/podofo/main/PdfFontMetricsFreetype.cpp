@@ -385,7 +385,7 @@ void PdfFontMetricsFreetype::tryBuildLegacyCharMap()
         if (os2Table->panose[0] == LatinPictorial)
         {
             // For symbol encodings we will interpret Unicode code points
-            // as characer codes with 1:1 mapping when mapping to GID.
+            // as character codes with 1:1 mapping when mapping to GID.
             // This appears to be what Adobe actually does in its products
             m_legacyUnicodeMap.reset(new unordered_map<uint32_t, unsigned>());
             if (FT_Select_Charmap(m_Face.get(), FT_ENCODING_MS_SYMBOL) == 0)
