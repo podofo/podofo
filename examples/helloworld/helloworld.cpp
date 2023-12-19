@@ -40,7 +40,7 @@ void HelloWorld(const string_view& filename)
     PdfPainter painter;
 
     // A PdfFont object is required to draw text on a PdfPage using a PdfPainter.
-    // PoDoFo will find the font using fontconfig on your system and embedd truetype
+    // PoDoFo will find the font using fontconfig on your system and embed truetype
     // fonts automatically in the PDF file.
     PdfFont* font;
 
@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
     // back to the user.
     // 
     // All exceptions PoDoFo throws are objects of the class PdfError.
-    // Thats why we simply catch PdfError objects.
+    // That's why we simply catch PdfError objects.
     try
     {
         // Call the drawing routing which will create a PDF file
@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
         return (int)err.GetCode();
     }
 
-    // The PDF was created sucessfully.
+    // The PDF was created successfully.
     cout << endl
         << "Created a PDF file containing the line \"Hello World!\": " << argv[1] << endl << endl;
 

@@ -165,7 +165,7 @@ int PdChoiceField::GetSelectedIndex() const
         }
         else
         {
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Choice field item has invaid data type");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Choice field item has invalid data type");
         }
     }
 

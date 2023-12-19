@@ -32,4 +32,4 @@ Playground dependencies are supplied only for PoDoFo development purposes and co
 with no warranty. They are not frequently updated, may contain security
 flaws and be unsafe to use. The dependencies directory layout is also
 optimized to be used by the `CMakeLists.txt` in this folder and it's
-not recommeded to use them in a different way.
+not recommended to use them in a different way.

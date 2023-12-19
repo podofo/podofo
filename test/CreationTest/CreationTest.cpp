@@ -947,7 +947,7 @@ int main( int argc, char* argv[] )
         writer.GetNamesTree()->AddValue( "TestDict", PdfString( "Berta" ), PdfVariant( 42L )  );
 #endif
 
-        printf("Setting document informations.\n\n");
+        printf("Setting document information.\n\n");
         // Setup the document information dictionary
         TEST_SAFE_OP( writer.GetInfo()->SetCreator ( PdfString("CreationTest - A simple test application") ) );
         TEST_SAFE_OP( writer.GetInfo()->SetAuthor  ( PdfString("Dominik Seichter") ) );
@@ -985,7 +985,7 @@ int main( int argc, char* argv[] )
         fclose( hFile );
 #endif
     } catch( PdfError & e ) {
-        std::cerr << "Error: An error " << e.GetError() << " ocurred." << std::endl;
+        std::cerr << "Error: An error " << e.GetError() << " occurred." << std::endl;
         e.PrintErrorMsg();
         return e.GetError();
     }

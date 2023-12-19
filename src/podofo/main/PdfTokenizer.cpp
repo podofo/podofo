@@ -7,8 +7,6 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfTokenizer.h"
 
-#include <podofo/private/charconv_compat.h>
-
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfEncrypt.h"
@@ -151,7 +149,7 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
             PdfTokenType tokenDelimiterType;
             if (IsTokenDelimiter(ch1, tokenDelimiterType))
             {
-                // All delimeters except << and >> (handled above) are
+                // All delimiters except << and >> (handled above) are
                 // one-character tokens, so if we hit one we can just return it
                 // immediately.
                 tokenType = tokenDelimiterType;
@@ -209,7 +207,7 @@ bool PdfTokenizer::TryReadNextNumber(InputStreamDevice& device, int64_t& value)
     if (!this->TryReadNextToken(device, token, tokenType))
         return false;
 
-    if (std::from_chars(token.data(), token.data() + token.size(), value).ec != std::errc())
+    if (!utls::TryParse(token, value))
     {
         // Don't consume the token
         this->EnqueueToken(token, tokenType);
@@ -294,7 +292,7 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevi
             if (dataType == PdfLiteralDataType::Real)
             {
                 double val;
-                if (std::from_chars(token.data(), token.data() + token.length(), val, chars_format::fixed).ec != std::errc())
+                if (!utls::TryParse(token, val))
                 {
                     // Don't consume the token
                     this->EnqueueToken(token, tokenType);
@@ -307,7 +305,7 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevi
             else if (dataType == PdfLiteralDataType::Number)
             {
                 int64_t num;
-                if (std::from_chars(token.data(), token.data() + token.size(), num).ec != std::errc())
+                if (!utls::TryParse(token, num))
                 {
                     // Don't consume the token
                     this->EnqueueToken(token, tokenType);
@@ -336,7 +334,7 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevi
                     return PdfLiteralDataType::Number;
                 }
 
-                if (std::from_chars(nextToken.data(), nextToken.data() + nextToken.length(), num).ec != std::errc())
+                if (!utls::TryParse(nextToken, num))
                 {
                     // Don't consume the token
                     this->EnqueueToken(nextToken, secondTokenType);
@@ -506,7 +504,7 @@ void PdfTokenizer::ReadString(InputStreamDevice& device, PdfVariant& variant, co
     bool octEscape = false;
     int octCharCount = 0;
     char octValue = 0;
-    int balanceCount = 0; // Balanced parathesis do not have to be escaped in strings
+    int balanceCount = 0; // Balanced parenthesis do not have to be escaped in strings
 
     m_charBuffer.clear();
     while (device.Read(ch))
@@ -638,7 +636,7 @@ void PdfTokenizer::ReadName(InputStreamDevice& device, PdfVariant& variant)
     if (!device.Peek(ch) || IsWhitespace(ch))
     {
         // We have an empty PdfName
-        // NOTE: Delimeters are handled correctly by tryReadNextToken
+        // NOTE: Delimiters are handled correctly by tryReadNextToken
         variant = PdfName();
         return;
     }

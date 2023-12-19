@@ -6,7 +6,6 @@
 #include "PdfDeclarationsPrivate.h"
 
 #include <regex>
-#include <podofo/private/charconv_compat.h>
 #include <podofo/private/utfcpp_extensions.h>
 
 #include <podofo/auxiliary/InputStream.h>
@@ -1090,6 +1089,15 @@ void utls::WriteCharHexTo(char buf[2], char ch)
 
     buf[1] = (ch & 0x0F);
     buf[1] += (buf[1] > 9 ? 'A' - 10 : '0');
+}
+
+string utls::GetCharHexString(const bufferview& buff)
+{
+    string ret(buff.size() * 2, '\0');
+    for (unsigned i = 0; i < buff.size(); i++)
+        utls::WriteCharHexTo(ret.data() + i * 2, buff[i]);
+
+    return ret;
 }
 
 void utls::WriteUtf16BETo(u16string& str, char32_t codePoint)

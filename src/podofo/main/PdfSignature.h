@@ -18,6 +18,9 @@
 namespace PoDoFo {
 
 class PdfAcroForm;
+class PdfMemDocument;
+class StreamDevice;
+class PdfSigner;
 
 enum class PdfCertPermission
 {
@@ -38,6 +41,7 @@ struct PdfSignatureBeacons
 class PODOFO_API PdfSignature : public PdfField
 {
     friend class PdfField;
+    friend class PdfSigningContext;
 
 private:
     PdfSignature(PdfAcroForm& acroform, const std::shared_ptr<PdfField>& parent);
@@ -143,6 +147,10 @@ public:
 
 protected:
     PdfObject* getValueObject() const;
+
+private:
+    // To be called by SignDocument()
+    void SetContentsByteRangeNoDirtySet(const bufferview& contents, PdfArray&& byteRange);
 
 private:
     void init(PdfAcroForm& acroForm);

@@ -16,6 +16,8 @@ using namespace PoDoFo;
 
 int main(int argc, char* argv[])
 {
+    PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::Warning);
+
     // Add a fonts directory for more consistents run
     auto fontPath = TestUtils::GetTestInputPath() / "Fonts";
     if (!fs::exists(fontPath))

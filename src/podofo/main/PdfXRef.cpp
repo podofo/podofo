@@ -207,7 +207,7 @@ const PdfReference* PdfXRef::getNextFreeObject(XRefBlockList::const_iterator itB
 
 uint32_t PdfXRef::GetSize() const
 {
-    // From the PdfReference: /Size's value is 1 greater than the highes object number used in the file.
+    // From the PdfReference: /Size's value is 1 greater than the highest object number used in the file.
     return m_maxObjCount + 1;
 }
 

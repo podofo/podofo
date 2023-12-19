@@ -174,6 +174,8 @@ string_view PdfError::ErrorName(PdfErrorCode code)
             return "PdfErrorCode::NotLoadedForUpdate"sv;
         case PdfErrorCode::CannotEncryptedForUpdate:
             return "PdfErrorCode::CannotEncryptedForUpdate"sv;
+        case PdfErrorCode::OpenSSL:
+            return "PdfErrorCode::OpenSSL"sv;
         case PdfErrorCode::Unknown:
             return "PdfErrorCode::Unknown"sv;
         default:
@@ -276,6 +278,8 @@ string_view PdfError::ErrorMessage(PdfErrorCode code)
             return "Cannot load encrypted documents for update."sv;
         case PdfErrorCode::XmpMetadata:
             return "Error while reading or writing XMP metadata"sv;
+        case PdfErrorCode::OpenSSL:
+            return "OpenSSL error"sv;
         case PdfErrorCode::Unknown:
             return "Error code unknown."sv;
         default:

@@ -17,10 +17,10 @@ using namespace PoDoFo;
 #define timegm _mkgmtime
 #endif
 
-// a PDF date has a maximum of 24 bytes incuding the terminating \0
+// a PDF date has a maximum of 24 bytes including the terminating \0
 #define PDF_DATE_BUFFER_SIZE 24
 
-// a W3C date has a maximum of 26 bytes incuding the terminating \0
+// a W3C date has a maximum of 26 bytes including the terminating \0
 #define W3C_DATE_BUFFER_SIZE 26
 
 #define PEEK_DATE_CHAR(str, zoneShift)\
@@ -399,7 +399,7 @@ chrono::seconds getSecondsFromEpoch()
     // Cast now() to seconds. We assume system_clock epoch is
     //  always 1970/1/1 UTC in all platforms, like in C++20
     auto now = chrono::time_point_cast<chrono::seconds>(chrono::system_clock::now());
-    // We forget about realtionship with UTC, convert to local seconds
+    // We forget about relationship with UTC, convert to local seconds
     return chrono::seconds(now.time_since_epoch());
 }
 

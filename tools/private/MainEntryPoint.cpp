@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
     }
     catch (const PdfError& ex)
     {
-        cerr << "ERROR: An error ocurred during processing the pdf file" << endl;
+        cerr << "ERROR: An error occurred during processing the pdf file" << endl;
         cerr << ex.what() << endl;
         return (int)ex.GetCode();
     }

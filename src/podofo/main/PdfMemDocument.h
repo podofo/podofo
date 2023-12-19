@@ -21,7 +21,7 @@ class PdfWriter;
  *  PDF files and writing them back to disk.
  *
  *  PdfMemDocument was designed to allow easy access to the object
- *  structur of a PDF file.
+ *  structure of a PDF file.
  *
  *  PdfMemDocument should be used whenever you want to change
  *  the object structure of a PDF file.

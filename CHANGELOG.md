@@ -1,3 +1,18 @@
+## Version 0.11.0-dev
+- Fixed PdfStreamedDocument, see #88
+- Added high-level signing API, see PdfSignerCMS and "TestSignature1" test case
+- Set PdfSignature to have correct /ByteRange and /Contents after signing with PoDoFo::SignDocument
+
+## Version 0.10.3
+- Fixed big performance regression introduced in 0.10, see #108
+- Fixed data loss with encrypted documents, see #99
+- Fixed compilation with VS2022 >= 17.8
+- Fixed compilation using libxml >= 2.12.0
+
+## Version 0.10.2
+- Security related bugfixes #76, #89, #96
+- Some compilation and test fixes
+
 ## Version 0.10.1
 - Security bugfixes, #66, #67, #69, #70, #71, #72
 - Rewritten PdfPageCollection for performance

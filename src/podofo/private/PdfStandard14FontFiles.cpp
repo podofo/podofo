@@ -1,3 +1,4 @@
+#include "PdfDeclarationsPrivate.h"
 #include "PdfStandard14FontData.h"
 
 /*

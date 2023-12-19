@@ -16,7 +16,7 @@
 
 ## What is PoDoFo?
 
-PoDoFo is a s a free portable C++ library to work with the PDF file format.
+PoDoFo is a free portable C++ library to work with the PDF file format.
 
 PoDoFo provides classes to parse a PDF file and modify its content
 into memory. The changes can be written back to disk easily.
@@ -27,19 +27,19 @@ support rendering PDF content.
 ## Requirements
 
 To build PoDoFo lib you'll need a c++17 compiler,
-CMake 3.16 and the following libraries:
+CMake 3.16 and the following libraries (tentative minimum versions indicated):
 
-* freetype2
-* fontconfig (required for Unix platforms, optional for Windows)
+* freetype2 (2.11)
+* fontconfig (2.13.94, required for Unix platforms, optional for Windows)
 * OpenSSL (1.1 and 3.0 are supported)
-* LibXml2
+* LibXml2 (2.9.12)
 * zlib
-* libjpeg (optional)
-* libtiff (optional)
-* libpng (optional)
-* libidn (optional)
+* libjpeg (9d, optional)
+* libtiff (4.0.10, optional)
+* libpng (1.6.37, optional)
+* libidn (1.38, optional)
 
-For the most polular toolchains, PoDoFo requires the following
+For the most popular toolchains, PoDoFo requires the following
 minimum versions:
 
 * msvc++ 14.16 (VS 2017 15.9)
@@ -62,7 +62,7 @@ PoDoFo tools are licensed under the [GPL 2.0](https://spdx.org/licenses/GPL-2.0-
 
 ## Development quickstart
 
-PoDoFo is known to compile through a multitude of package managers (including `apt-get`, [brew](https://brew.sh/), [vcpkg](https://vcpkg.io/), [Conan](https://conan.io/)), and has public continous integration working in [Ubuntu Linux](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml), [MacOS](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml) and
+PoDoFo is known to compile through a multitude of package managers (including `apt-get`, [brew](https://brew.sh/), [vcpkg](https://vcpkg.io/), [Conan](https://conan.io/)), and has public continuous integration working in [Ubuntu Linux](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml), [MacOS](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml) and
 [Windows](https://github.com/podofo/podofo/blob/master/.github/workflows/build-win.yml), bootstrapping the CMake project, building and testing the library. It's highly recommended to build PoDoFo using such package managers. 
 
 There's also a playground area in the repository where you can have
@@ -112,7 +112,7 @@ cmake --build . --config Debug
 ### Build with vcpkg
 
 Follow the vcpkg [quickstart](https://vcpkg.io/en/getting-started.html) guide to setup the package manager repository first.
-In Windows, it may be also useful to set the enviroment variable `VCPKG_DEFAULT_TRIPLET` to `x64-windows` to default installing 64 bit dependencies
+In Windows, it may be also useful to set the environment variable `VCPKG_DEFAULT_TRIPLET` to `x64-windows` to default installing 64 bit dependencies
 and define a `VCPKG_INSTALLATION_ROOT` variable with the location of the repository as created in the quickstart.
 
 Then from source root run:
@@ -139,6 +139,23 @@ This unconditionally disable building tests, examples and tools;
 
 - `PODOFO_BUILD_STATIC`: If TRUE, build the library as a static object and use it in tests,
 examples and tools. By default a shared library is built.
+
+
+### Static linking
+
+If you want to use a static build of PoDoFo and you are including the PoDoFo cmake project it's very simple. Do something like the following in your CMake project:
+
+```
+set(PODOFO_BUILD_LIB_ONLY TRUE CACHE BOOL "" FORCE)
+set(PODOFO_BUILD_STATIC TRUE CACHE BOOL "" FORCE)
+add_subdirectory(podofo)
+# ...
+target_link_libraries(MyTarget podofo::podofo)
+```
+
+If you are linking against a precompiled static build of PoDoFo this is a scenario where the support is limited, as you are really supposed to be able to identify and fix linking errors. The general steps are:
+* Add `PODOFO_STATIC` compilation definition to your project, or before including `podofo.h`;
+* Link the libraries `podofo.a`, `podofo_private.a` (or `podofo.lib`, `podofo_private.lib` with MSVC) and all the [dependent](https://github.com/podofo/podofo/blob/5a07b90f24747a5aafe6f6fd062ee81f4783ab22/CMakeLists.txt#L203C5-L203C24) libraries.
 
 ## Generating PoDoFo Documentation with Doxygen
 

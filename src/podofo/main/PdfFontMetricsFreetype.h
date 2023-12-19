@@ -122,14 +122,15 @@ private:
 
     void initType1Lengths(const bufferview& view);
 
+    void tryBuildLegacyCharMap();
+
 private:
     FreeTypeFacePtr m_Face;
     datahandle m_Data;
     PdfCIDToGIDMapConstPtr m_CIDToGIDMap;
     PdfFontFileType m_FontFileType;
 
-    bool m_HasUnicodeMapping;
-    bool m_HasSymbolCharset;
+    std::unique_ptr<std::unordered_map<uint32_t, unsigned>> m_legacyUnicodeMap;
 
     std::string m_FontBaseName;
     std::string m_FontName;

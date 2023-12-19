@@ -31,7 +31,7 @@ struct PdfImageInfo
     std::vector<double> DecodeArray;
 };
 
-/** A PdfImage object is needed when ever you want to embedd an image
+/** A PdfImage object is needed when ever you want to embed an image
  *  file into a PDF document.
  *  The PdfImage object is embedded once and can be drawn as often
  *  as you want on any page in the document using PdfPainter
@@ -45,7 +45,7 @@ class PODOFO_API PdfImage final : public PdfXObject
     friend class PdfDocument;
 
 private:
-    /** Constuct a new PdfImage object
+    /** Construct a new PdfImage object
      *  This is an overloaded constructor.
      *
      *  \param parent parent document

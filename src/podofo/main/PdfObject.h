@@ -47,6 +47,8 @@ class PODOFO_API PdfObject
     friend class PdfImmediateWriter;
     friend class PdfXRef;
     friend class PdfXRefStream;
+    friend class PdfDictionaryElement;
+    friend class PdfArrayElement;
 
 public:
     static PdfObject Null;
@@ -203,7 +205,7 @@ public:
 
     /** Get the value of the object as int64_t
      *
-     *  This method throws if the numer is a floating point number
+     *  This method throws if the number is a floating point number
      *  \return the value of the number
      */
     int64_t GetNumber() const;
@@ -219,7 +221,7 @@ public:
 
     /** Get the value of the object as floating point number
      *
-     *  This method throws if the numer is integer
+     *  This method throws if the number is integer
      *  \return the value of the number
      */
     double GetRealStrict() const;
@@ -495,8 +497,11 @@ protected:
 
 private:
     // To be called privately by various classes
-    PdfDictionary& GetDictionaryUnsafe();
-    PdfArray& GetArrayUnsafe();
+    PdfReference GetReferenceUnsafe() const { return m_Variant.GetReferenceUnsafe(); }
+    const PdfDictionary& GetDictionaryUnsafe() const { return m_Variant.GetDictionaryUnsafe(); }
+    const PdfArray& GetArrayUnsafe() const { return m_Variant.GetArrayUnsafe(); }
+    PdfDictionary& GetDictionaryUnsafe() { return m_Variant.GetDictionaryUnsafe(); }
+    PdfArray& GetArrayUnsafe() { return m_Variant.GetArrayUnsafe(); }
     void WriteFinal(OutputStream& stream, PdfWriteFlags writeMode,
         const PdfEncrypt* encrypt, charbuff& buffer);
 

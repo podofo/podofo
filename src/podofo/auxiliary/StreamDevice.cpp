@@ -65,22 +65,20 @@ size_t getLength(TStream& stream)
 template <typename TStream>
 void seek(TStream& stream, ssize_t pos, SeekDirection direction)
 {
-    ios_base::seekdir seekdir;
     switch (direction)
     {
         case SeekDirection::Begin:
-            seekdir = ios_base::beg;
+            (void)utls::stream_helper<TStream>::seek(stream, (std::streampos)pos, ios_base::beg);
             break;
         case SeekDirection::Current:
-            seekdir = ios_base::cur;
+            (void)utls::stream_helper<TStream>::seek(stream, (std::streampos)pos, ios_base::cur);
             break;
         case SeekDirection::End:
-            seekdir = ios_base::end;
+            (void)utls::stream_helper<TStream>::seek(stream, (std::streampos)pos, ios_base::end);
             break;
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
-    (void)utls::stream_helper<TStream>::seek(stream, (std::streampos)pos, seekdir);
 }
 
 StreamDevice::StreamDevice(DeviceAccess access)
@@ -160,7 +158,7 @@ StandardStreamDevice::StandardStreamDevice(iostream& stream)
 
     if (stream.tellp() != stream.tellg())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation,
-            "Unsupported mistmatch between read and read position in stream");
+            "Unsupported mismatch between read and read position in stream");
 }
 
 StandardStreamDevice::StandardStreamDevice(DeviceAccess access, ios& stream, bool streamOwned)
@@ -190,13 +188,13 @@ size_t StandardStreamDevice::GetLength() const
     switch (GetAccess())
     {
         case DeviceAccess::Read:
+        case DeviceAccess::ReadWrite: // We just take the input stream as the reference
         {
             PODOFO_INVARIANT(m_istream != nullptr);
             ret = getLength(*m_istream);
             break;
         }
         case DeviceAccess::Write:
-        case DeviceAccess::ReadWrite:
         {
             PODOFO_INVARIANT(m_ostream != nullptr);
             ret = getLength(*m_ostream);
@@ -218,13 +216,13 @@ size_t StandardStreamDevice::GetPosition() const
     switch (GetAccess())
     {
         case DeviceAccess::Read:
+        case DeviceAccess::ReadWrite: // We just take the input stream as the reference
         {
             PODOFO_INVARIANT(m_istream != nullptr);
             ret = getPosition(*m_istream);
             break;
         }
         case DeviceAccess::Write:
-        case DeviceAccess::ReadWrite:
         {
             PODOFO_INVARIANT(m_ostream != nullptr);
             ret = getPosition(*m_ostream);
@@ -252,10 +250,42 @@ bool StandardStreamDevice::Eof() const
 
 void StandardStreamDevice::writeBuffer(const char* buffer, size_t size)
 {
-    PODOFO_INVARIANT(m_ostream != nullptr);
-    m_ostream->write(buffer, size);
-    if (m_ostream->fail())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to write the given buffer");
+    switch (GetAccess())
+    {
+        case DeviceAccess::Write:
+        {
+            PODOFO_INVARIANT(m_ostream != nullptr);
+            m_ostream->write(buffer, size);
+            if (m_ostream->fail())
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to write the given buffer");
+            break;
+        }
+        case DeviceAccess::ReadWrite:
+        {
+            PODOFO_INVARIANT(m_ostream != nullptr && m_istream != nullptr);
+            // Since some iostreams such as std::stringstream have different position
+            // indicators for input and output sequences. Synchronize the ostream
+            // position indicator with the istream (the reference one) before writing
+            // NOTE: Some c++ libraries don't reset eofbit prior seeking
+            auto pos = getPosition(*m_istream);
+            m_Stream->clear(m_Stream->rdstate() & ~ios_base::eofbit);
+            ::seek(*m_ostream, (ssize_t)pos, SeekDirection::Begin);
+            m_ostream->write(buffer, size);
+            if (m_ostream->fail())
+                goto Fail;
+
+            // After writing, finally synchronize the istream position indicator
+            ::seek(*m_istream, (ssize_t)(pos + size), SeekDirection::Begin);
+            if (m_istream->fail())
+                goto Fail;
+
+            break;
+
+        Fail:
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to write the given buffer");
+            break;
+        }
+    }
 }
 
 void StandardStreamDevice::flush()
@@ -319,20 +349,30 @@ void StandardStreamDevice::seek(ssize_t offset, SeekDirection direction)
 {
     // NOTE: Some c++ libraries don't reset eofbit prior seeking
     m_Stream->clear(m_Stream->rdstate() & ~ios_base::eofbit);
-    if ((GetAccess() & DeviceAccess::Read) != DeviceAccess{ })
+    switch (GetAccess())
     {
-        PODOFO_INVARIANT(m_istream != nullptr);
-        ::seek(*m_istream, offset, direction);
-    }
-
-    if ((GetAccess() & DeviceAccess::Write) != DeviceAccess{ })
-    {
-        PODOFO_INVARIANT(m_ostream != nullptr);
-        ::seek(*m_ostream, offset, direction);
+        case DeviceAccess::Read:
+        case DeviceAccess::ReadWrite:
+        {
+            PODOFO_INVARIANT(m_istream != nullptr);
+            ::seek(*m_istream, offset, direction);
+            break;
+        }
+        case DeviceAccess::Write:
+        {
+            PODOFO_INVARIANT(m_ostream != nullptr);
+            ::seek(*m_ostream, offset, direction);
+            break;
+        }
     }
 
     if (m_Stream->fail())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to seek to given position in the stream");
+        goto Fail;
+
+    return;
+
+Fail:
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to seek to given position in the stream");
 }
 
 FileStreamDevice::FileStreamDevice(const string_view& filepath)

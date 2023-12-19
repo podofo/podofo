@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-// The code was initally based on work by ZhangYang
+// The code was initially based on work by ZhangYang
 // (张杨.国际) <zhang_yang@founder.com>
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
@@ -169,7 +169,7 @@ void PdfFontTrueTypeSubset::InitTables()
             case TTAG_cvt:
             case TTAG_fpgm:
             case TTAG_prep:
-                // Just include these tables inconditionally if present
+                // Just include these tables unconditionally if present
                 // in the original font
                 break;
             case TTAG_post:
@@ -498,7 +498,7 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported table at this context");
         }
 
-        // Align the table length to 4 bytes and pad remaing space with zeroes
+        // Align the table length to 4 bytes and pad remaining space with zeroes
         size_t tableLength = output.GetPosition() - tableOffset;
         size_t tableLengthPadded = (tableLength + 3) & ~3;
         for (size_t i2 = tableLength; i2 < tableLengthPadded; i2++)

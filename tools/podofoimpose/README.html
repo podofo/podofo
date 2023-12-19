@@ -60,7 +60,7 @@ body{
 	
 	<h3>Plan (built-in)</h3>
 	<div class="section"><!-- Plan own -->
-		PodofoImpose is driven by a PLAN file. This file describes how pages from a source PDF document have to be relayout into a target document. We’ll describe how this file must be formated.
+		PodofoImpose is driven by a PLAN file. This file describes how pages from a source PDF document have to be relayout into a target document. We’ll describe how this file must be formatted.
 		<h4>Records</h4>
 		<div>
 			Most of the PLAN file is composed of record lines of the form:
@@ -88,7 +88,7 @@ body{
 			<div class="code-abs">
 				$ValueA / ( $ValueB | 0.000001 )
 			</div>
- 			Operations are executed from left to right without taking care of any kind of precedance. You can use parenthesis to enclose operations that need to be computed separetly. Example:
+ 			Operations are executed from left to right without taking care of any kind of precedance. You can use parenthesis to enclose operations that need to be computed separately. Example:
 			<div class="code-abs">
 				123.456 * ( $ConstantA - ( $ConstantB / 3.14 ) )
 			</div>
@@ -139,7 +139,7 @@ $page; $page; 0; ($PageWidth-$sw)/2; ($PageHeight-$sh)/2;
 	     <div class="command">
 	      PushRecord(source page, target page, rotation, x, y);
 	      </div>
-		As for regular plan files, there are a couple of provided informations through global variables, specifically: "SourceWidth", "SourceHeight", "PageCount". You need to set "PageWidth" and "PageHeight". You may alter the global scale factor (from source to target) by setting "Scale".
+		As for regular plan files, there are a couple of provided information through global variables, specifically: "SourceWidth", "SourceHeight", "PageCount". You need to set "PageWidth" and "PageHeight". You may alter the global scale factor (from source to target) by setting "Scale".
 	     </div>
 		<h4>Running</h4>
 		 <div>
@@ -168,7 +168,7 @@ stamp.pdf</div>
 $PageHeight=842.4
 # original page is left unchanged;
 1; 1; 0; 0; 0;
-# positionning stamp is up to you!
+# positioning stamp is up to you!
 2; 1; 0; 350; 100;</div>
 	</div>
 	Now you can run:

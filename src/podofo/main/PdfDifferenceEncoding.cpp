@@ -10,7 +10,6 @@
 #include <algorithm>
 
 #include <utf8cpp/utf8.h>
-#include <podofo/private/charconv_compat.h>
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
@@ -2664,7 +2663,7 @@ char32_t PdfDifferenceEncoding::NameToCodePoint(const string_view& name)
         auto code = name.substr(3);
         // force base16 IF it's 4 characters line
         unsigned val;
-        if (std::from_chars(code.data(), name.data() + name.length(), val, code.length() == 4 ? 16 : 10).ec != std::errc())
+        if (!utls::TryParse(code, val, code.length() == 4 ? 16 : 10))
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, "Could not read number");
 
         return (char32_t)val;

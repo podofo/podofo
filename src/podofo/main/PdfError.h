@@ -50,7 +50,7 @@ enum class PdfErrorCode
     InvalidTrailerSize,       ///< The trailer size is invalid.
     InvalidDataType,          ///< The passed datatype is invalid or was not recognized
     InvalidXRef,              ///< The XRef table is invalid
-    InvalidXRefStream,        ///< A XRef steam is invalid
+    InvalidXRefStream,        ///< A XRef stream is invalid
     InvalidXRefType,          ///< The XRef type is invalid or was not found
     InvalidPredictor,         ///< Invalid or unimplemented predictor
     InvalidStrokeStyle,       ///< Invalid stroke style during drawing
@@ -90,6 +90,7 @@ enum class PdfErrorCode
     CannotEncryptedForUpdate, ///< Cannot load encrypted documents for update.
 
     XmpMetadata,              ///< Error while creating or reading XMP metadata
+    OpenSSL,                  ///< OpenSSL error
 };
 
 /**

@@ -596,7 +596,7 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
                     if (lowerIndex != 0)
                     {
                         // Compute substring translation and apply it
-                        // TODO: Handle vertical scritps
+                        // TODO: Handle vertical scripts
                         double substringTx = computeLength(strings, glyphAddresses, 0, lowerIndex - 1);
                         textState.T_rm.Apply<Tx>(substringTx);
                     }
@@ -935,7 +935,7 @@ void ExtractionContext::PushString(const StatefulString &str, bool pushchunk)
     PODOFO_ASSERT(str.String.length() != 0);
     if (std::isnan(CurrentEntryT_rm_y))
     {
-        // Initalize tracking for line
+        // Initialize tracking for line
         CurrentEntryT_rm_y = States.Current->T_rm.Get<Ty>();
     }
 
@@ -1260,7 +1260,7 @@ void processChunks(const StringChunkList& chunks, string& destString,
     }
 }
 
-// TODO: Handle vertical scritps
+// TODO: Handle vertical scripts
 double computeLength(const vector<const StatefulString*>& strings, const vector<GlyphAddress>& glyphAddresses,
     unsigned lowerIndex, unsigned upperIndex)
 {
@@ -1343,7 +1343,7 @@ Rect computeBoundingBox(const TextState& textState, double boxWidth)
     // NOTE: This is very inaccurate
     // TODO1: Handle multiple text/pdf states
     // TODO2: Handle actual font glyphs (HARD)
-    // TODO3: Handle vertical scritps
+    // TODO3: Handle vertical scripts
     double descend = 0;
     double ascent = 0;
     auto& pdfState = textState.PdfState;

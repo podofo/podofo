@@ -241,7 +241,7 @@ static void print_help(bool bOnlyUsage)
     cout << "       text ... the actual UTF-8 encoded string to add to the annotation" << endl;
     cout << "  -annot-image [left,top,width,height,filename] ... an image to add to the annotation" << endl;
     cout << "       left,top,width,height ... a rectangle (in annot-units) where to place the image (double), relative to annot-position" << endl;
-    cout << "       filename ... a filname of the image to add" << endl;
+    cout << "       filename ... a filename of the image to add" << endl;
     cout << "The annotation arguments can be repeated, except of the -annot-position and -annot-print, which can appear up to once." << endl;
     cout << "The -annot-print, -annot-font, -annot-text and -annot-image can appear only after -annot-position." << endl;
     cout << "All the left,top positions are treated with 0,0 being at the left-top of the page." << endl;
@@ -950,7 +950,7 @@ void Main(const cspan<string_view>& args)
         X509_free(cert);
 }
 
-// TODO: Optmize so the process is buffered
+// TODO: Optimize so the process is buffered
 void MySigner::ComputeSignature(charbuff& buffer, bool dryrun)
 {
     (void)dryrun;

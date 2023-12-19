@@ -19,7 +19,7 @@ namespace
         FakeCanvas() { }
 
     public:
-        PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags)
+        PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override
         {
             (void)flags;
             return m_resourceObj.GetOrCreateStream();
@@ -154,7 +154,7 @@ TEST_CASE("TestPainter4")
     auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
 
     PdfFontCreateParams params;
-    params.Encoding = PdfEncodingMapFactory::WinAnsiEncodingInstance();
+    params.Encoding = PdfEncoding(PdfEncodingMapFactory::WinAnsiEncodingInstance());
     auto& font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica, params);
 
     PdfPainter painter;
@@ -318,7 +318,7 @@ TEST_CASE("TestPainter5")
     auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
 
     PdfFontCreateParams params;
-    params.Encoding = PdfEncodingMapFactory::WinAnsiEncodingInstance();
+    params.Encoding = PdfEncoding(PdfEncodingMapFactory::WinAnsiEncodingInstance());
     auto& font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica, params);
 
     PdfPainter painter;
@@ -355,7 +355,7 @@ TEST_CASE("TestPainter6")
     auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
 
     PdfFontCreateParams params;
-    params.Encoding = PdfEncodingMapFactory::WinAnsiEncodingInstance();
+    params.Encoding = PdfEncoding(PdfEncodingMapFactory::WinAnsiEncodingInstance());
 
     PdfPainter painter;
     painter.SetCanvas(page);
@@ -364,7 +364,7 @@ TEST_CASE("TestPainter6")
     path.AddRectangle(Rect(10,10, 100, 50));
     painter.Save();
     painter.DrawPath(path);
-    path.GetCurrentPoint() == Vector2(10, 10);
+    REQUIRE(path.GetCurrentPoint() == Vector2(10, 10));
     REQUIRE(painter.GetStateStack().Current->CurrentPoint == nullptr);
     painter.Save();
     auto& operators = static_cast<PdfContentStreamOperators&>(painter);

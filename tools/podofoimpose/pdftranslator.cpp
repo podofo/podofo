@@ -84,7 +84,7 @@ void PdfTranslator::setSource(const string& source)
             if (!in.getline(filenameBuffer, 1000))
                 throw runtime_error("failed reading line from input file");
 
-            string ts(filenameBuffer, in.gcount());
+            string ts(filenameBuffer, (size_t)in.gcount());
             if (ts.size() > 4) // at least ".pdf" because just test if ts is empty doesn't work.
             {
                 multiSource.push_back(ts);

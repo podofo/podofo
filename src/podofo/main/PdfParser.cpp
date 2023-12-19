@@ -179,7 +179,7 @@ bool PdfParser::IsPdfFile(InputStreamDevice& device)
         return false;
 
     m_magicOffset = device.GetPosition() - PDF_MAGIC_LENGHT;
-    // try to determine the excact PDF version of the file
+    // try to determine the exact PDF version of the file
     m_PdfVersion = PoDoFo::GetPdfVersion(string_view(versionStr, std::size(versionStr)));
     if (m_PdfVersion == PdfVersion::Unknown)
         return false;
@@ -484,7 +484,7 @@ void PdfParser::ReadXRefSubsection(InputStreamDevice& device, int64_t& firstObje
                 &variant, &generation, &chType, &empty1, &empty2);
 
             if (!CheckXRefEntryType(chType))
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef, "Invalid used keyword, must be eiter 'n' or 'f'");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef, "Invalid used keyword, must be either 'n' or 'f'");
 
             XRefEntryType type = XRefEntryTypeFromChar(chType);
 
@@ -517,7 +517,7 @@ void PdfParser::ReadXRefSubsection(InputStreamDevice& device, int64_t& firstObje
                 }
                 default:
                 {
-                    // This flow should have beeb alredy been cathed earlier
+                    // This flow should have beeb already been cathed earlier
                     PODOFO_ASSERT(false);
                 }
             }
@@ -768,7 +768,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
         }
         // the linked free list in the xref section is not always correct in pdf's
         // (especially Illustrator) but Acrobat still accepts them. I've seen XRefs 
-        // where some object-numbers are alltogether missing and multiple XRefs where 
+        // where some object-numbers are altogether missing and multiple XRefs where 
         // the link list is broken.
         // Because PdfIndirectObjectList relies on a unbroken range, fill the free list more
         // robustly from all places which are either free or unparsed

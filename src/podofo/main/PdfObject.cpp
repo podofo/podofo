@@ -18,7 +18,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfObject PdfObject::Null;
+PdfObject PdfObject::Null = PdfVariant::Null;
 
 PdfObject::PdfObject()
     : PdfObject(PdfDictionary(), PdfReference(), false) { }
@@ -98,7 +98,7 @@ PdfObject::PdfObject(PdfDictionary&& dict) noexcept
     m_Variant.GetDictionaryUnsafe().SetOwner(*this);
 }
 
-// NOTE: Don't copy parent document/container/indirect refernce.
+// NOTE: Don't copy parent document/container/indirect reference.
 // Copied objects must be always detached. Ownership will be set
 // automatically elsewhere
 PdfObject::PdfObject(const PdfObject& rhs)
@@ -208,16 +208,6 @@ void PdfObject::Write(OutputStream& stream, PdfWriteFlags writeMode,
     const PdfEncrypt* encrypt, charbuff& buffer) const
 {
     write(stream, true, writeMode, encrypt, buffer);
-}
-
-PdfDictionary& PdfObject::GetDictionaryUnsafe()
-{
-    return m_Variant.GetDictionaryUnsafe();
-}
-
-PdfArray& PdfObject::GetArrayUnsafe()
-{
-    return m_Variant.GetArrayUnsafe();
 }
 
 void PdfObject::WriteFinal(OutputStream& stream, PdfWriteFlags writeMode, const PdfEncrypt* encrypt, charbuff& buffer)
@@ -430,7 +420,7 @@ void PdfObject::EnableDelayedLoadingStream()
 void PdfObject::DelayedLoadStreamImpl()
 {
     // Default implementation throws, since delayed loading of
-    // steams should not be enabled except by types that support it.
+    // streams should not be enabled except by types that support it.
     PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
 }
 
@@ -519,7 +509,7 @@ void PdfObject::SetDirty()
     else if (m_Parent != nullptr)
     {
         // Reset parent if not indirect. Resetting will stop at
-        // first indirect anchestor
+        // first indirect ancestor
         m_Parent->SetDirty();
     }
 }

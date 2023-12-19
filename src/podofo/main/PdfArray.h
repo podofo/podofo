@@ -182,7 +182,7 @@ public:
     /**
      * Resize the internal vector.
      * \param count new size
-     * \param value refernce value
+     * \param value reference value
      */
     void Resize(unsigned count, const PdfObject& val = PdfObject());
 

@@ -1,7 +1,7 @@
 ## Coding style
 
 Coding style in PoDoFo follows the following general rules:
-- Visual Studio formatting conventions (see for example [C# convetions](https://docs.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions)), where they apply to C/C++ like constructs;
+- Visual Studio formatting conventions (see for example [C# conventions](https://docs.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions)), where they apply to C/C++ like constructs;
 - Capitalized case for **public** `MethodNames()`;
 - Camel case for variables, parameters and fields (example `variableName`);
 

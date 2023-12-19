@@ -86,7 +86,7 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int scanLin
             {
                 unique_ptr<const PdfImage> smask;
                 if (!PdfXObject::TryCreateFromObject(*smaskObj, smask) ||
-                    (smask->GetObject().MustGetStream().CopyTo(smaskData), smaskData.size() < m_Width * m_Height))
+                    (smask->GetObject().MustGetStream().CopyTo(smaskData), smaskData.size() < (size_t)m_Width * m_Height))
                 {
                     PoDoFo::LogMessage(PdfLogSeverity::Warning, "Invalid /SMask");
                     smaskData.clear();
@@ -100,7 +100,7 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int scanLin
 
     if (mediaFilters.size() == 0)
     {
-        if (m_ColorSpace->GetSourceScanLineSize(m_Width, m_BitsPerComponent) * m_Height > imageData.size())
+        if ((size_t)m_ColorSpace->GetSourceScanLineSize(m_Width, m_BitsPerComponent) * m_Height > imageData.size())
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The source buffer size is too small");
 
         utls::FetchImage(stream, format, scanLineSize, (const unsigned char*)imageData.data(),
@@ -574,8 +574,8 @@ void PdfImage::loadFromJpegInfo(jpeg_decompress_struct& ctx, PdfImageInfo& info)
         {
             info.ColorSpace = PdfColorSpaceFactory::GetDeviceCMYKInstace();
 
-            // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
-            // in a inverted fashion. Fix by attaching a decode array
+            // The jpeg-doc isn't specific on this point, but cmyk's seem to be stored
+            // in an inverted fashion. Fix by attaching a decode array
             info.DecodeArray.push_back(1.0);
             info.DecodeArray.push_back(0.0);
             info.DecodeArray.push_back(1.0);

@@ -99,7 +99,7 @@ int main( int argc, char* argv[] )
 
         signer.Flush();
     } catch( PdfError & e ) {
-        std::cerr << "Error: An error " << e.GetError() << " ocurred." << std::endl;
+        std::cerr << "Error: An error " << e.GetError() << " occurred." << std::endl;
         e.PrintErrorMsg();
         return e.GetError();
     }

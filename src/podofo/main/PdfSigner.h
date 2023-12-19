@@ -19,6 +19,7 @@ namespace PoDoFo
     class PODOFO_API PdfSigner
     {
     public:
+        PdfSigner();
         virtual ~PdfSigner();
 
         /**
@@ -35,16 +36,37 @@ namespace PoDoFo
 
         /**
          * Called to compute the signature 
-         * \param buffer The buffer that will hold the signature
-         * \param dryrun If true the buffer is not required to
+         * \param contents the buffer that will hold the signature /Contents
+         * \param dryrun if true the buffer is not required to
          *   hold the signature, the call is just performed to
          *   infer the signature size
+         * \remarks it must support working without prior calls to AppendData()
          */
-        virtual void ComputeSignature(charbuff& buffer, bool dryrun) = 0;
+        virtual void ComputeSignature(charbuff& contents, bool dryrun) = 0;
+
+        /**
+         * Retrieve the intermediate result of a signature computation,
+         * most probably a hash to sign. Called on sequential signature computation
+         * \param buffer the buffer that will hold the intermediate result
+         * \remarks by default it throws with PdfErrorCode::NotImplemented
+         */
+        virtual void FetchIntermediateResult(charbuff& result);
+
+        /**
+         * Called when computing the signature in sequential mode
+         * \param processedResult the processed intermediate result, for example a signed hash
+         * \param buffer the buffer that will hold the signature /Contents
+         * \param dryrun if true the buffer is not required to
+         *   hold the signature, the call is just performed to
+         *   infer the signature size
+         * \remarks by default it throws with PdfErrorCode::NotImplemented
+         * \remarks it must support working without prior calls to AppendData() and/or FetchIntermediateResult() 
+         */
+        virtual void ComputeSignatureSequential(const bufferview& processedResult, charbuff& contents, bool dryrun);
 
         /**
          * Determines if the buffer should not be cleared amid
-         * ComputeSignature(buffer, dryrun) calls. The default is false
+         * ComputeSignature(contents, dryrun) calls. The default is false
          */
         virtual bool SkipBufferClear() const;
 
@@ -62,6 +84,10 @@ namespace PoDoFo
          * Should return the signature /Type. It can be "Sig" or "DocTimeStamp"
          */
         virtual std::string GetSignatureType() const = 0;
+
+    private:
+        PdfSigner(const PdfSigner&) = delete;
+        PdfSigner& operator=(const PdfSigner&) = delete;
     };
 
     /** Sign the document on the given signature field

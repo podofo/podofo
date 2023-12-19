@@ -24,6 +24,7 @@
 
 #include "Format.h"
 #include "numbers_compat.h"
+#include "charconv_compat.h"
 
  // Macro to define friendship with test classes.
  // Must be defined before base declarations
@@ -32,7 +33,7 @@
 #include <podofo/main/PdfDeclarations.h>
 
 #ifdef _WIN32
-// Microsft itself assumes little endian
+// Microsoft itself assumes little endian
 // https://github.com/microsoft/STL/blob/b11945b73fc1139d3cf1115907717813930cedbf/stl/inc/bit#L336
 #define PODOFO_IS_LITTLE_ENDIAN
 #else // Unix
@@ -88,7 +89,7 @@
 
 // This is a do nothing macro that can be used to define
 // an invariant property without actually checking for it,
-// not even in DEBUG build. It's user responsability to
+// not even in DEBUG build. It's user responsibility to
 // ensure it's actually satisfied
 #define PODOFO_INVARIANT(x)
 
@@ -287,6 +288,8 @@ namespace utls
     // Write the char to the supplied buffer as hexadecimal code
     void WriteCharHexTo(char buf[2], char ch);
 
+    std::string GetCharHexString(const PoDoFo::bufferview& buff);
+
     // Append the unicode code point to a big endian encoded utf16 string
     void WriteUtf16BETo(std::u16string& str, char32_t codePoint);
 
@@ -317,6 +320,24 @@ namespace utls
     void FormatTo(std::string& str, float value, unsigned short precision);
 
     void FormatTo(std::string& str, double value, unsigned short precision);
+
+    template <typename T, typename = std::enable_if_t<std::is_integral<T>::value>>
+    inline bool TryParse(const std::string_view& str, T& val, int base = 10)
+    {
+        if (std::from_chars(str.data(), str.data() + str.size(), val, base).ec == std::errc())
+            return true;
+        else
+            return false;
+    }
+
+    template <typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
+    inline bool TryParse(const std::string_view& str, T& val, std::chars_format fmt = std::chars_format::fixed)
+    {
+        if (std::from_chars(str.data(), str.data() + str.size(), val, fmt).ec == std::errc())
+            return true;
+        else
+            return false;
+    }
 
     std::string ToLower(const std::string_view& str);
 

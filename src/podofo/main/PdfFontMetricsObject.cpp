@@ -313,7 +313,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         m_MaxWidth = dict.FindKeyAs<double>("MaxWidth", -1) * m_Matrix[0];
     }
 
-    // Accorting to ISO 32000-1:2008, /FontName "shall be the
+    // According to ISO 32000-1:2008, /FontName "shall be the
     // same as the value of /BaseFont in the font or CIDFont
     // dictionary that refers to this font descriptor".
     // We prioritize /BaseFont, over /FontName

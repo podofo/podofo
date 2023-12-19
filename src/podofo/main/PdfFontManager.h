@@ -45,7 +45,7 @@ struct PdfFontSearchParams
  *
  * PdfFont is an actual font that can be used in
  * a PDF file (i.e. it does also font embedding)
- * and PdfFontMetrics provides only metrics informations.
+ * and PdfFontMetrics provides only metrics information.
  *
  * \see PdfDocument
  */
@@ -135,8 +135,8 @@ private:
 
     /**
      * Empty the internal font cache.
-     * This should be done when ever a new document
-     * is created or openened.
+     * This should be done whenever a new document
+     * is created or opened.
      */
     void Clear();
 

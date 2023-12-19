@@ -373,7 +373,7 @@ enum class PdfStrokeStyle
 };
 
 /**
- * Enum to specifiy the initial information of the
+ * Enum to specify the initial information of the
  * info dictionary.
  */
 enum class PdfInfoInitial
@@ -531,7 +531,7 @@ enum class PdfStandard14FontType
 
 /** The type of the annotation.
  *  PDF supports different annotation types, each of
- *  them has different keys and propeties.
+ *  them has different keys and properties.
  *
  *  Not all annotation types listed here are supported yet.
  *
@@ -769,6 +769,27 @@ enum class PdfBlendMode
     Saturation,
     Color,
     Luminosity,
+};
+
+enum class PdfSignatureType
+{
+    Unknown = 0,
+    PAdES_B = 1,
+    Pkcs7 = 2,
+};
+
+enum class PdfEncryptionAlgorithm
+{
+    Unknown = 0,
+    RSA,
+};
+
+enum class PdfHashingAlgorithm
+{
+    Unknown = 0,
+    SHA256,
+    SHA384,
+    SHA512,
 };
 
 };

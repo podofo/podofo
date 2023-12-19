@@ -54,12 +54,12 @@ PdfDictionaryElement::PdfDictionaryElement(PdfObject& obj)
 
 PdfDictionary& PdfDictionaryElement::GetDictionary()
 {
-    return GetObject().GetDictionary();
+    return GetObject().GetDictionaryUnsafe();
 }
 
 const PdfDictionary& PdfDictionaryElement::GetDictionary() const
 {
-    return GetObject().GetDictionary();
+    return GetObject().GetDictionaryUnsafe();
 }
 
 PdfArrayElement::PdfArrayElement(PdfDocument& parent)
@@ -75,10 +75,10 @@ PdfArrayElement::PdfArrayElement(PdfObject& obj)
 
 PdfArray& PdfArrayElement::GetArray()
 {
-    return GetObject().GetArray();
+    return GetObject().GetArrayUnsafe();
 }
 
 const PdfArray& PdfArrayElement::GetArray() const
 {
-    return GetObject().GetArray();
+    return GetObject().GetArrayUnsafe();
 }
