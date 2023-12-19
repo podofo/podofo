@@ -375,8 +375,6 @@ unique_ptr<PdfCMapEncoding> PdfFontMetricsFreetype::CreateToUnicodeMap(const Pdf
 
 void PdfFontMetricsFreetype::tryBuildLegacyCharMap()
 {
-    FT_Error rc;
-
     auto os2Table = static_cast<TT_OS2*>(FT_Get_Sfnt_Table(m_Face.get(), FT_SFNT_OS2));
     if (os2Table != nullptr)
     {
@@ -384,12 +382,24 @@ void PdfFontMetricsFreetype::tryBuildLegacyCharMap()
         // "If the font is a symbol font, the first byte of the PANOSE
         // value must be set to 'Latin Pictorial' (value = 5)"
         constexpr unsigned char LatinPictorial = 5;
-        if (os2Table->panose[0] == LatinPictorial && (rc = FT_Select_Charmap(m_Face.get(), FT_ENCODING_MS_SYMBOL)) == 0)
+        if (os2Table->panose[0] == LatinPictorial)
         {
-            // For symbol encodings we will do 1:1 mapping from Unicode cp to GID.
+            // For symbol encodings we will interpret Unicode code points
+            // as characer codes with 1:1 mapping when mapping to GID.
             // This appears to be what Adobe actually does in its products
             m_legacyUnicodeMap.reset(new unordered_map<uint32_t, unsigned>());
-            collectCharCodeToGIDMap(m_Face.get(), true, *m_legacyUnicodeMap);
+            if (FT_Select_Charmap(m_Face.get(), FT_ENCODING_MS_SYMBOL) == 0)
+            {
+                // If a symbol encoding is available, just collect that
+                collectCharCodeToGIDMap(m_Face.get(), true, *m_legacyUnicodeMap);
+            }
+            else
+            {
+                // If the symbol encoding is not available, just collect
+                // the default selected charmap
+                collectCharCodeToGIDMap(m_Face.get(), false, *m_legacyUnicodeMap);
+            }
+
             return;
         }
     }
@@ -397,8 +407,7 @@ void PdfFontMetricsFreetype::tryBuildLegacyCharMap()
     // Try to create an Unicode to GID char map from legacy "encodings"
     // (or better charmaps), as reported by FreeType
 
-    rc = FT_Select_Charmap(m_Face.get(), FT_ENCODING_APPLE_ROMAN);
-    if (rc == 0)
+    if (FT_Select_Charmap(m_Face.get(), FT_ENCODING_APPLE_ROMAN) == 0)
     {
         unordered_map<unsigned, unsigned> codeToGIDmap;
         collectCharCodeToGIDMap(m_Face.get(), false, codeToGIDmap);
@@ -408,8 +417,7 @@ void PdfFontMetricsFreetype::tryBuildLegacyCharMap()
         return;
     }
 
-    rc = FT_Select_Charmap(m_Face.get(), FT_ENCODING_ADOBE_LATIN_1);
-    if (rc == 0)
+    if (FT_Select_Charmap(m_Face.get(), FT_ENCODING_ADOBE_LATIN_1) == 0)
     {
         unordered_map<unsigned, unsigned> codeToGIDmap;
         collectCharCodeToGIDMap(m_Face.get(), false, codeToGIDmap);
@@ -419,8 +427,7 @@ void PdfFontMetricsFreetype::tryBuildLegacyCharMap()
         return;
     }
 
-    rc = FT_Select_Charmap(m_Face.get(), FT_ENCODING_ADOBE_STANDARD);
-    if (rc == 0)
+    if (FT_Select_Charmap(m_Face.get(), FT_ENCODING_ADOBE_STANDARD) == 0)
     {
         unordered_map<unsigned, unsigned> codeToGIDmap;
         collectCharCodeToGIDMap(m_Face.get(), false, codeToGIDmap);
@@ -430,8 +437,7 @@ void PdfFontMetricsFreetype::tryBuildLegacyCharMap()
         return;
     }
 
-    rc = FT_Select_Charmap(m_Face.get(), FT_ENCODING_ADOBE_EXPERT);
-    if (rc == 0)
+    if (FT_Select_Charmap(m_Face.get(), FT_ENCODING_ADOBE_EXPERT) == 0)
     {
         unordered_map<unsigned, unsigned> codeToGIDmap;
         collectCharCodeToGIDMap(m_Face.get(), false, codeToGIDmap);
