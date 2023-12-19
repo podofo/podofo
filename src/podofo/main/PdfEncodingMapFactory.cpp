@@ -17,9 +17,7 @@ namespace
 {
     class AppleLatin1Encoding final : public PdfBuiltInEncoding
     {
-        friend class PdfEncodingMapFactory;
-
-    private:
+    public:
         AppleLatin1Encoding();
 
     protected:
