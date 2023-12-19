@@ -56,9 +56,7 @@ void PdfSignature::init(PdfAcroForm& acroForm)
 
 void PdfSignature::SetSignerName(nullable<const PdfString&> text)
 {
-    if (m_ValueObj == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
+    EnsureValueObject();
     if (text.has_value())
         m_ValueObj->GetDictionary().AddKey("Name", *text);
     else
@@ -67,9 +65,7 @@ void PdfSignature::SetSignerName(nullable<const PdfString&> text)
 
 void PdfSignature::SetSignatureReason(nullable<const PdfString&> text)
 {
-    if (m_ValueObj == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
+    EnsureValueObject();
     if (text.has_value())
         m_ValueObj->GetDictionary().AddKey("Reason", *text);
     else
@@ -78,10 +74,7 @@ void PdfSignature::SetSignatureReason(nullable<const PdfString&> text)
 
 void PdfSignature::SetSignatureDate(nullable<const PdfDate&> sigDate)
 {
-    if (m_ValueObj == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
-
+    EnsureValueObject();
     if (sigDate.has_value())
     {
         PdfString dateStr = sigDate->ToString();
@@ -115,9 +108,7 @@ void PdfSignature::PrepareForSigning(const string_view& filter,
 
 void PdfSignature::SetSignatureLocation(nullable<const PdfString&> text)
 {
-    if (m_ValueObj == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
+    EnsureValueObject();
     if (text.has_value())
         m_ValueObj->GetDictionary().AddKey("Location", *text);
     else
@@ -126,9 +117,7 @@ void PdfSignature::SetSignatureLocation(nullable<const PdfString&> text)
 
 void PdfSignature::SetSignatureCreator(nullable<const PdfString&> creator)
 {
-    if (m_ValueObj == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
+    EnsureValueObject();
     // TODO: Make it less brutal, preserving /Prop_Build
     if (creator.has_value())
     {
@@ -146,9 +135,7 @@ void PdfSignature::SetSignatureCreator(nullable<const PdfString&> creator)
 
 void PdfSignature::AddCertificationReference(PdfCertPermission perm)
 {
-    if (m_ValueObj == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
+    EnsureValueObject();
     m_ValueObj->GetDictionary().RemoveKey("Reference");
 
     auto& sigRef = this->GetDocument().GetObjects().CreateDictionaryObject("SigRef");
