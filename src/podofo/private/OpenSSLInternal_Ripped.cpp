@@ -25,7 +25,6 @@ static void compute_hash_to_sign(CMS_SignerInfo* si, unsigned char hash[], unsig
 static int cms_DigestAlgorithm_find_ctx(EVP_MD_CTX* mctx, BIO* chain, X509_ALGOR* mdalg);
 static void encode_pkcs1(X509_ALGOR* digestAlg,
     const unsigned char* m, unsigned int m_len, charbuff& outbuff);
-static int getEncryptionNid(PdfEncryptionAlgorithm algorithm);
 
 static X509_ALGOR* getDigestAlgorithm(CMS_SignerInfo* si);
 static const ASN1_OBJECT* getASN1Object(X509_ALGOR* alg);
@@ -217,17 +216,6 @@ void encode_pkcs1(X509_ALGOR* digestAlg,
 
     std::memcpy(outbuff.data(), buf, len);
     OPENSSL_free(buf);
-}
-
-int getEncryptionNid(PdfEncryptionAlgorithm algorithm)
-{
-    switch (algorithm)
-    {
-        case PdfEncryptionAlgorithm::RSA:
-            return NID_rsaEncryption;
-        default:
-            return -1;
-    }
 }
 
 X509_ALGOR* getDigestAlgorithm(CMS_SignerInfo* si)

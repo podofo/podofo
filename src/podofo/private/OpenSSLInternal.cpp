@@ -21,7 +21,6 @@ extern PODOFO_IMPORT OpenSSLMain s_SSL;
 static void computeHash(const bufferview& data, const EVP_MD* type,
     unsigned char* hash, unsigned& length);
 static string computeHashStr(const bufferview& data, const EVP_MD* type);
-static PdfEncryptionAlgorithm getEncryptionAlgorithm(const EVP_PKEY* pkey);
 
 OpenSSLMain::OpenSSLMain() :
 #if OPENSSL_VERSION_MAJOR >= 3
@@ -326,17 +325,6 @@ string computeHashStr(const bufferview& data, const EVP_MD* type)
     unsigned length;
     computeHash(data, type, hash, length);
     return utls::GetCharHexString({ (const char*)hash, length });
-}
-
-PdfEncryptionAlgorithm getEncryptionAlgorithm(const EVP_PKEY* pkey)
-{
-    switch (EVP_PKEY_get_id(pkey))
-    {
-        case NID_rsaEncryption:
-            return PdfEncryptionAlgorithm::RSA;
-        default:
-            return PdfEncryptionAlgorithm::Unknown;
-    }
 }
 
 const EVP_CIPHER* ssl::Rc4()
