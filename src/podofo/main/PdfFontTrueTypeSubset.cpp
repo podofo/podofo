@@ -169,7 +169,7 @@ void PdfFontTrueTypeSubset::InitTables()
             case TTAG_cvt:
             case TTAG_fpgm:
             case TTAG_prep:
-                // Just include these tables inconditionally if present
+                // Just include these tables unconditionally if present
                 // in the original font
                 break;
             case TTAG_post:

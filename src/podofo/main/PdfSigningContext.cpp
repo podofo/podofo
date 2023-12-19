@@ -35,7 +35,7 @@ PdfSignerId PdfSigningContext::AddSigner(const PdfSignature& signature, const sh
     if (m_signers.size() != 0)
     {
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Signing multiple signature fields "
-            "or signing the same field with multiple signers is currently not implemeted");
+            "or signing the same field with multiple signers is currently not implemented");
     }
 
     return addSigner(signature, signer.get(), signer);

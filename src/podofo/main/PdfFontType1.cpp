@@ -172,7 +172,7 @@ void PdfFontType1::embedFontSubset()
 
             line += static_cast<char>(plain);
 
-            // output is ssssbuild uncrypted, as parts might be skipped and cipher-engine must be unchanged
+            // output is built uncencrypted, as parts might be skipped and cipher-engine must be unchanged
             if (inCharString && line.find("/") == 0)
             {
                 // we are now inside a glyph, copy anything until RD or -| to output,
