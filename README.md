@@ -156,7 +156,11 @@ If you are linking against a precompiled static build of PoDoFo this is a scenar
 * Add `PODOFO_STATIC` compilation definition to your project, or before including `podofo.h`;
 * Link the libraries `podofo.a`, `podofo_private.a` (or `podofo.lib`, `podofo_private.lib` with MSVC) and all the [dependent](https://github.com/podofo/podofo/blob/5a07b90f24747a5aafe6f6fd062ee81f4783ab22/CMakeLists.txt#L203C5-L203C24) libraries.
 
-## Generating PoDoFo Documentation with Doxygen
+## Doxygen Documentation
+
+The API documentation can be found at https://podofo.github.io/podofo/documentation/ .
+
+### Generate the doxygen documentation
 
 1. **Prerequisite**: Ensure you have Doxygen installed on your machine. If not, visit [Doxygen's official website](http://www.doxygen.nl/) to download and install it.
 
@@ -166,9 +170,9 @@ Open a terminal or command prompt and run the following command:
     doxygen build/Doxyfile
     ```
 
-3. **Viewing the Documentation**: Once the documentation generation completes, you'll find the `html` directory that contains the generated documentation. Open `index.html` in your favorite web browser to view the API documentation.
+3. **Viewing the Documentation**: Once the documentation generation completes, you'll find a `documentation` directory that contains the generated documentation. Open `index.html` in your favorite web browser to view the API documentation.
     ```bash
-    cd build/documentation/html
+    cd build/doxygen/documentation
     open index.html
     ```
 
