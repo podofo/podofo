@@ -24,14 +24,15 @@ set(PODOFO_VERSION_PATCH "0" CACHE STRING "Patchlevel part of podofo version num
 set(PODOFO_VERSION "${PODOFO_VERSION_MAJOR}.${PODOFO_VERSION_MINOR}.${PODOFO_VERSION_PATCH}")
 set(PODOFO_SOVERSION "3")
 
+set(PROJECT_NUMBER "${PODOFO_VERSION}")
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
+    ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+    @ONLY
+)
+
 find_package(Doxygen)
 if (DOXYGEN_FOUND)
-    set(PROJECT_NUMBER "${PODOFO_VERSION}")
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
-        ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-        @ONLY
-    )
     # TODO: Add doxygen target
 endif()
 

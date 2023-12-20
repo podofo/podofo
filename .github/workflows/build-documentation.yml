@@ -41,22 +41,22 @@ jobs:
           sudo apt-get install -y doxygen
 
       - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build -DPODOFO_BUILD_DOC_ONLY=True
+        run: cmake -B "${{github.workspace}}/build" -DPODOFO_BUILD_DOC_ONLY=True
 
       - name: Generate Doxygen Documentation
-        run: doxygen ${{ github.workspace }}/Doxyfile
+        run: doxygen "${{github.workspace}}/build/Doxyfile"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
-          path: ${{ github.workspace }}/documentation/html
+          path: "${{github.workspace}}/documentation/html"
 
   deploy:
     needs: build-and-deploy
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{steps.deployment.outputs.page_url}}
     steps:
 
       - name: Deploy to GitHub Pages
