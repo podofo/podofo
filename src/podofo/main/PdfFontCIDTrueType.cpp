@@ -11,7 +11,7 @@
 
 #include "PdfDictionary.h"
 #include "PdfDocument.h"
-#include "PdfFontTrueTypeSubset.h"
+#include <podofo/private/FontTrueTypeSubset.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -38,7 +38,7 @@ void PdfFontCIDTrueType::embedFontSubset()
         gids.push_back(pair.second);
 
     charbuff buffer;
-    PdfFontTrueTypeSubset::BuildFont(buffer, GetMetrics(), gids);
+    FontTrueTypeSubset::BuildFont(buffer, GetMetrics(), gids);
     EmbedFontFileTrueType(GetDescriptor(), buffer);
 
     // We prepare the /CIDSet content now. NOTE: The CIDSet

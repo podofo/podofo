@@ -7,8 +7,7 @@
 #ifndef PDF_FONT_TTF_SUBSET_H
 #define PDF_FONT_TTF_SUBSET_H
 
-#include "PdfDeclarations.h"
-#include "PdfFontMetrics.h"
+#include <podofo/main/PdfFontMetrics.h>
 
 namespace PoDoFo {
 
@@ -33,10 +32,10 @@ using GIDList = cspan<unsigned>;
  * certain glyphs from an existing font.
  *
  */
-class PODOFO_API PdfFontTrueTypeSubset final
+class FontTrueTypeSubset final
 {
 private:
-    PdfFontTrueTypeSubset(InputStreamDevice& device);
+    FontTrueTypeSubset(InputStreamDevice& device);
 
 public:
     /**
@@ -52,8 +51,8 @@ public:
         const GIDList& gidList);
 
 private:
-    PdfFontTrueTypeSubset(const PdfFontTrueTypeSubset& rhs) = delete;
-    PdfFontTrueTypeSubset& operator=(const PdfFontTrueTypeSubset& rhs) = delete;
+    FontTrueTypeSubset(const FontTrueTypeSubset& rhs) = delete;
+    FontTrueTypeSubset& operator=(const FontTrueTypeSubset& rhs) = delete;
 
     void BuildFont(std::string& buffer, const GIDList& gidList);
 

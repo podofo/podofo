@@ -7,8 +7,8 @@
 // The code was initially based on work by ZhangYang
 // (张杨.国际) <zhang_yang@founder.com>
 
-#include <podofo/private/PdfDeclarationsPrivate.h>
-#include "PdfFontTrueTypeSubset.h"
+#include "PdfDeclarationsPrivate.h"
+#include "FontTrueTypeSubset.h"
 
 #include <algorithm>
 
@@ -44,7 +44,7 @@ static uint32_t GetTableCheksum(const char* buf, uint32_t size);
 
 static bool TryAdvanceCompoundOffset(unsigned& offset, unsigned flags);
 
-PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(InputStreamDevice& device) :
+FontTrueTypeSubset::FontTrueTypeSubset(InputStreamDevice& device) :
     m_device(&device),
     m_isLongLoca(false),
     m_glyphCount(0),
@@ -53,7 +53,7 @@ PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(InputStreamDevice& device) :
 {
 }
 
-void PdfFontTrueTypeSubset::BuildFont(std::string& output, const PdfFontMetrics& metrics,
+void FontTrueTypeSubset::BuildFont(std::string& output, const PdfFontMetrics& metrics,
     const GIDList& gidList)
 {
     switch (metrics.GetFontFileType())
@@ -66,11 +66,11 @@ void PdfFontTrueTypeSubset::BuildFont(std::string& output, const PdfFontMetrics&
     }
 
     SpanStreamDevice input(metrics.GetOrLoadFontFileData());
-    PdfFontTrueTypeSubset subset(input);
+    FontTrueTypeSubset subset(input);
     subset.BuildFont(output, gidList);
 }
 
-void PdfFontTrueTypeSubset::BuildFont(string& buffer, const GIDList& gidList)
+void FontTrueTypeSubset::BuildFont(string& buffer, const GIDList& gidList)
 {
     Init();
 
@@ -81,14 +81,14 @@ void PdfFontTrueTypeSubset::BuildFont(string& buffer, const GIDList& gidList)
     WriteTables(buffer);
 }
 
-void PdfFontTrueTypeSubset::Init()
+void FontTrueTypeSubset::Init()
 {
     InitTables();
     GetNumberOfGlyphs();
     SeeIfLongLocaOrNot();
 }
 
-unsigned PdfFontTrueTypeSubset::GetTableOffset(unsigned tag)
+unsigned FontTrueTypeSubset::GetTableOffset(unsigned tag)
 {
     for (auto& table : m_tables)
     {
@@ -98,7 +98,7 @@ unsigned PdfFontTrueTypeSubset::GetTableOffset(unsigned tag)
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "table missing");
 }
 
-void PdfFontTrueTypeSubset::GetNumberOfGlyphs()
+void FontTrueTypeSubset::GetNumberOfGlyphs()
 {
     unsigned offset = GetTableOffset(TTAG_maxp);
 
@@ -111,7 +111,7 @@ void PdfFontTrueTypeSubset::GetNumberOfGlyphs()
     utls::ReadUInt16BE(*m_device, m_HMetricsCount);
 }
 
-void PdfFontTrueTypeSubset::InitTables()
+void FontTrueTypeSubset::InitTables()
 {
     uint16_t tableCount;
     m_device->Seek(sizeof(uint32_t) * 1);
@@ -194,7 +194,7 @@ void PdfFontTrueTypeSubset::InitTables()
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Required TrueType table missing");
 }
 
-void PdfFontTrueTypeSubset::SeeIfLongLocaOrNot()
+void FontTrueTypeSubset::SeeIfLongLocaOrNot()
 {
     unsigned headOffset = GetTableOffset(TTAG_head);
     uint16_t isLong;
@@ -203,7 +203,7 @@ void PdfFontTrueTypeSubset::SeeIfLongLocaOrNot()
     m_isLongLoca = (isLong == 0 ? false : true);  // 1 for long
 }
 
-void PdfFontTrueTypeSubset::LoadGlyphs(GlyphContext& ctx, const GIDList& gidList)
+void FontTrueTypeSubset::LoadGlyphs(GlyphContext& ctx, const GIDList& gidList)
 {
     // For any fonts, assume that glyph 0 is needed.
     LoadGID(ctx, 0);
@@ -249,7 +249,7 @@ void PdfFontTrueTypeSubset::LoadGlyphs(GlyphContext& ctx, const GIDList& gidList
     }
 }
 
-void PdfFontTrueTypeSubset::LoadGID(GlyphContext& ctx, unsigned gid)
+void FontTrueTypeSubset::LoadGID(GlyphContext& ctx, unsigned gid)
 {
     if (gid >= m_glyphCount)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "GID out of range");
@@ -304,7 +304,7 @@ void PdfFontTrueTypeSubset::LoadGID(GlyphContext& ctx, unsigned gid)
     }
 }
 
-void PdfFontTrueTypeSubset::LoadCompound(GlyphContext& ctx, const GlyphData& data)
+void FontTrueTypeSubset::LoadCompound(GlyphContext& ctx, const GlyphData& data)
 {
     GlyphCompoundData cmpData;
     unsigned offset = 0;
@@ -318,7 +318,7 @@ void PdfFontTrueTypeSubset::LoadCompound(GlyphContext& ctx, const GlyphData& dat
 }
 
 // Ref: https://docs.microsoft.com/en-us/typography/opentype/spec/glyf
-void PdfFontTrueTypeSubset::WriteGlyphTable(OutputStream& output)
+void FontTrueTypeSubset::WriteGlyphTable(OutputStream& output)
 {
     for (unsigned gid : m_orderedGIDs)
     {
@@ -348,7 +348,7 @@ void PdfFontTrueTypeSubset::WriteGlyphTable(OutputStream& output)
 
 // The 'hmtx' table contains the horizontal metrics for each glyph in the font
 // https://docs.microsoft.com/en-us/typography/opentype/spec/hmtx
-void PdfFontTrueTypeSubset::WriteHmtxTable(OutputStream& output)
+void FontTrueTypeSubset::WriteHmtxTable(OutputStream& output)
 {
     struct LongHorMetrics
     {
@@ -388,7 +388,7 @@ void PdfFontTrueTypeSubset::WriteHmtxTable(OutputStream& output)
 // entry after the offset that points to the last valid
 // index. This index points to the end of the glyph data"
 // Ref: https://docs.microsoft.com/en-us/typography/opentype/spec/loca
-void PdfFontTrueTypeSubset::WriteLocaTable(OutputStream& output)
+void FontTrueTypeSubset::WriteLocaTable(OutputStream& output)
 {
     uint32_t glyphAddress = 0;
     if (m_isLongLoca)
@@ -417,7 +417,7 @@ void PdfFontTrueTypeSubset::WriteLocaTable(OutputStream& output)
     }
 }
 
-void PdfFontTrueTypeSubset::WriteTables(string& buffer)
+void FontTrueTypeSubset::WriteTables(string& buffer)
 {
     StringStreamDevice output(buffer);
 
@@ -521,7 +521,7 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
     utls::WriteUInt32BE(buffer.data() + *headOffset + 4, fontChecksum);
 }
 
-void PdfFontTrueTypeSubset::ReadGlyphCompoundData(GlyphCompoundData& data, unsigned offset)
+void FontTrueTypeSubset::ReadGlyphCompoundData(GlyphCompoundData& data, unsigned offset)
 {
     uint16_t temp;
     m_device->Seek(offset);
@@ -555,7 +555,7 @@ bool TryAdvanceCompoundOffset(unsigned& offset, unsigned flags)
     return true;
 }
 
-void PdfFontTrueTypeSubset::CopyData(OutputStream& output, unsigned offset, unsigned size)
+void FontTrueTypeSubset::CopyData(OutputStream& output, unsigned offset, unsigned size)
 {
     m_device->Seek(offset);
     m_tmpBuffer.resize(size);

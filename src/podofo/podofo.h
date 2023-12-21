@@ -105,7 +105,6 @@
 #include "main/PdfFontMetricsObject.h"
 #include "main/PdfFontSimple.h"
 #include "main/PdfFontTrueType.h"
-#include "main/PdfFontTrueTypeSubset.h"
 #include "main/PdfFontType1.h"
 #include "main/PdfFontType3.h"
 #include "main/PdfImage.h"
