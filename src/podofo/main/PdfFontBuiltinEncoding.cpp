@@ -13,26 +13,29 @@
 using namespace std;
 using namespace PoDoFo;
 
-/** A built-in encoding for a /Type1 font program
- */
-class PODOFO_API PdfFontBuiltinType1Encoding final : public PdfEncodingMapBase
+namespace
 {
-public:
-    PdfFontBuiltinType1Encoding(PdfCharCodeMap && map)
-        : PdfEncodingMapBase(std::move(map), PdfEncodingMapType::Simple) { }
-
-public:
-    bool IsBuiltinEncoding() const override { return true; }
-
-protected:
-    void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override
+    /** A built-in encoding for a /Type1 font program
+     */
+    class PODOFO_API PdfFontBuiltinType1Encoding final : public PdfEncodingMapBase
     {
-        (void)objects;
-        (void)name;
-        (void)obj;
-        // Do nothing. encoding is implicit in the font program
-    }
-};
+    public:
+        PdfFontBuiltinType1Encoding(PdfCharCodeMap && map)
+            : PdfEncodingMapBase(std::move(map), PdfEncodingMapType::Simple) { }
+
+    public:
+        bool IsBuiltinEncoding() const override { return true; }
+
+    protected:
+        void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override
+        {
+            (void)objects;
+            (void)name;
+            (void)obj;
+            // Do nothing. encoding is implicit in the font program
+        }
+    };
+}
 
 PdfEncodingMapConstPtr PdfFontMetrics::getFontType1Encoding(FT_Face face)
 {

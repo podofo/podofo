@@ -22,121 +22,124 @@
 using namespace std;
 using namespace PoDoFo;
 
-/** A PdfNamedColor holds
- *  a PdfColor object and a name.
- */
-class PdfNamedColor
+namespace
 {
-public:
-    /** Create a PdfNamedColor object.
-     *
-     *  \param name the name. The string must be allocated as static memory somewhere
-     *         The string data will not be copied!
-     *  \param color a PdfColor object
+    /** A PdfNamedColor holds
+     *  a PdfColor object and a name.
      */
-    PdfNamedColor(const string_view& name, const PdfColor& color)
-        : m_Name(utls::ToLower(name)), m_color(color)
+    class PdfNamedColor
     {
-    }
+    public:
+        /** Create a PdfNamedColor object.
+         *
+         *  \param name the name. The string must be allocated as static memory somewhere
+         *         The string data will not be copied!
+         *  \param color a PdfColor object
+         */
+        PdfNamedColor(const string_view& name, const PdfColor& color)
+            : m_Name(utls::ToLower(name)), m_color(color)
+        {
+        }
 
-    /** Create a PdfNamedColor object.
-     *
-     *  \param name the name. The string must be allocated as static memory somewhere
-     *         The string data will not be copied!
-     *  \param colorName RGB hex value (e.g. #FFABCD)
-     */
-    PdfNamedColor(const string_view& name, const string_view& colorCode)
-        : m_Name(name), m_color(FromRGBString(colorCode))
-    {
-    }
+        /** Create a PdfNamedColor object.
+         *
+         *  \param name the name. The string must be allocated as static memory somewhere
+         *         The string data will not be copied!
+         *  \param colorName RGB hex value (e.g. #FFABCD)
+         */
+        PdfNamedColor(const string_view& name, const string_view& colorCode)
+            : m_Name(name), m_color(FromRGBString(colorCode))
+        {
+        }
 
-    /** Copy constructor
-     */
-    PdfNamedColor(const PdfNamedColor& rhs)
-        : m_Name(rhs.m_Name), m_color(rhs.m_color)
-    {
-    }
+        /** Copy constructor
+         */
+        PdfNamedColor(const PdfNamedColor& rhs)
+            : m_Name(rhs.m_Name), m_color(rhs.m_color)
+        {
+        }
 
-    /** Compare this color object to a name
-     *  The comparison is case insensitive!
-     *  \returns true if the passed string is smaller than the name
-     *           of this color object.
-     */
-    inline bool operator<(const string_view& name) const
-    {
-        return m_Name < name;
-    }
+        /** Compare this color object to a name
+         *  The comparison is case insensitive!
+         *  \returns true if the passed string is smaller than the name
+         *           of this color object.
+         */
+        inline bool operator<(const string_view& name) const
+        {
+            return m_Name < name;
+        }
 
-    /** Compare this color object to a PdfNamedColor comparing only the name.
-     *  The comparison is case insensitive!
-     *  \returns true if the passed string is smaller than the name
-     *           of this color object.
-     */
-    inline bool operator<(const PdfNamedColor& rhs) const
-    {
-        return m_Name < rhs.GetName();
-    }
+        /** Compare this color object to a PdfNamedColor comparing only the name.
+         *  The comparison is case insensitive!
+         *  \returns true if the passed string is smaller than the name
+         *           of this color object.
+         */
+        inline bool operator<(const PdfNamedColor& rhs) const
+        {
+            return m_Name < rhs.GetName();
+        }
 
-    /** Compare this color object to a name
-     *  The comparison is case insensitive!
-     *  \returns true if the passed string is the name
-     *           of this color object.
-     */
-    inline bool operator==(const string_view& name) const
-    {
-        return m_Name == name;
-    }
+        /** Compare this color object to a name
+         *  The comparison is case insensitive!
+         *  \returns true if the passed string is the name
+         *           of this color object.
+         */
+        inline bool operator==(const string_view& name) const
+        {
+            return m_Name == name;
+        }
+
+        /**
+         * \returns a reference to the internal color object
+         */
+        inline const PdfColor& GetColor() const
+        {
+            return m_color;
+        }
+
+        /**
+         * \returns a pointer to the name of the color
+         */
+        inline const string& GetName() const
+        {
+            return m_Name;
+        }
+
+    private:
+        PdfNamedColor& operator=(const PdfNamedColor&) = delete;
+
+        /** Creates a color object from a RGB string.
+         *
+         *  \param name a string describing a color.
+         *
+         *  Supported values are:
+         *  - hex values (e.g. #FF002A (RGB))
+         *
+         *  \returns a PdfColor object
+         */
+        static PdfColor FromRGBString(const string_view& name);
+
+        string m_Name;
+        PdfColor m_color;
+    };
 
     /**
-     * \returns a reference to the internal color object
+     * Predicate to allow binary search in the list
+     * of PdfNamedColor's using for example std::equal_range.
      */
-    inline const PdfColor& GetColor() const
+    class NamedColorComparatorPredicate
     {
-        return m_color;
-    }
+    public:
+        NamedColorComparatorPredicate()
+        {
+        }
 
-    /**
-     * \returns a pointer to the name of the color
-     */
-    inline const string& GetName() const
-    {
-        return m_Name;
-    }
-
-private:
-    PdfNamedColor& operator=(const PdfNamedColor&) = delete;
-
-    /** Creates a color object from a RGB string.
-     *
-     *  \param name a string describing a color.
-     *
-     *  Supported values are:
-     *  - hex values (e.g. #FF002A (RGB))
-     *
-     *  \returns a PdfColor object
-     */
-    static PdfColor FromRGBString(const string_view& name);
-
-    string m_Name;
-    PdfColor m_color;
-};
-
-/**
- * Predicate to allow binary search in the list
- * of PdfNamedColor's using for example std::equal_range.
- */
-class NamedColorComparatorPredicate
-{
-public:
-    NamedColorComparatorPredicate()
-    {
-    }
-
-    inline bool operator()(const PdfNamedColor& namedColor1, const PdfNamedColor& namedColor2) const
-    {
-        return namedColor1 < namedColor2;
-    }
-};
+        inline bool operator()(const PdfNamedColor& namedColor1, const PdfNamedColor& namedColor2) const
+        {
+            return namedColor1 < namedColor2;
+        }
+    };
+}
 
 // Table based on http://cvsweb.xfree86.org/cvsweb/xc/programs/rgb/rgb.txt?rev=1.2
 // Hex values have been copied from http://en.wikipedia.org/wiki/X11_color_names (21/11/2010)

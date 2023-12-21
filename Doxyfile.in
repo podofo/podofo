@@ -19,6 +19,7 @@ FILE_PATTERNS          = *.h \
 # Exclusions
 EXCLUDE                =
 EXTRACT_ALL            = NO
+EXTRACT_LOCAL_CLASSES  = NO
 HIDE_UNDOC_CLASSES     = YES
 
 # Output Settings
