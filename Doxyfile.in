@@ -21,6 +21,7 @@ EXCLUDE                =
 EXTRACT_ALL            = NO
 EXTRACT_LOCAL_CLASSES  = NO
 HIDE_UNDOC_CLASSES     = YES
+EXCLUDE_PATTERNS       = */private/*
 
 # Output Settings
 GENERATE_HTML          = YES
