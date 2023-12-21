@@ -4,7 +4,6 @@
 - PdfMemDocument: Release the device after all objects have been loaded (eg. after a full Save())
 - PdfParserObject: Release the device after loading
 - Evaluate rename references to "sequential" signing to "async"
-- Remove other non-unit tests
 - Consider converting protected PdfFontMetrics::GetFaceHandle() to return just FT_Face,
 and reference the face with FT_Reference_Face
 - Remove PdfEncryptMD5Base::GetMD5Binary and PdfEncryptMD5Base::GetMD5String and use common functions
