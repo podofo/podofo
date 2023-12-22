@@ -17,5 +17,5 @@ INSTALL(FILES
   podofotxtextract.1
   podofouncompress.1
   podofoxmp.1
-  DESTINATION ${MANDIR}man1
+  DESTINATION ${CMAKE_INSTALL_MANDIR}/man1
   )
