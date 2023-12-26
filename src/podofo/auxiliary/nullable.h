@@ -139,6 +139,12 @@ namespace PoDoFo
         nullable(std::nullptr_t)
             : m_hasValue(false), m_value{ } { }
 
+        // Allow nullable<const T&>::nullable(const nullable<T&>&)
+        template <typename T2, std::enable_if_t<std::is_convertible<std::add_pointer_t<std::remove_reference_t<T2>>,
+            std::add_pointer_t<std::remove_reference_t<T>>>::value, int> = 0>
+        nullable(const nullable<T2&>& value)
+            : m_hasValue(reinterpret_cast<const nullable&>(value).m_hasValue), m_value(reinterpret_cast<const nullable&>(value).m_value) { }
+
         nullable(const nullable& value) = default;
 
         nullable& operator=(const nullable& value) = default;
