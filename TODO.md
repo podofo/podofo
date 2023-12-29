@@ -43,6 +43,10 @@ either assume UTF-8 and/or checks for used codepoints
 - Review PdfPage::SetICCProfile()
 - PdfWriter: Check if SetEncrypt() should accept mutable reference instead
 - PdfResources: Improve API
+- Add version of PdfFont::TryGetSubstituteFont for rendering
+  (metrics/widths of loaded font override metrics found on /FontFile)
+- Add a fallback to search font on the system for text extraction purposes,
+  see #123
 - PdfParser: Handle all pdfs in
   https://www.mail-archive.com/podofo-users@lists.sourceforge.net/msg04801.html
 - Check/Review doxygen doc
@@ -64,8 +68,6 @@ either assume UTF-8 and/or checks for used codepoints
   to initial length if there's a crash. Not so easy, especially since
   we are now using STL streams and it's not easy to trim files
   without access to native handle and low level I/O operations
-- Added version of PdfFont::TryGetSubstituteFont for rendering
-  (metrics of loaded font override metrics found on /FontFile)
 - PdfDifferenceEncoding: Rework Adobe Glyph List handling and moving it to private folder
 - Option to unfold Unicode ligatures to separate codepoints during encoded -> utf8 conversion
 - Option to convert Unicode ligatures <-> separate codepoints when drawing strings/converting to encoded
