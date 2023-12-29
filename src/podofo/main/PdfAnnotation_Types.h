@@ -74,7 +74,7 @@ namespace PoDoFo {
 
     };
 
-    class PODOFO_API PdfAnnotationCaret : public PdfAnnotation
+    class PODOFO_API PdfAnnotationCaret final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -83,12 +83,12 @@ namespace PoDoFo {
     };
 
 
-    class PODOFO_API PdfAnnotationFileAttachement : public PdfAnnotation
+    class PODOFO_API PdfAnnotationFileAttachment final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
-        PdfAnnotationFileAttachement(PdfPage& page, const Rect& rect);
-        PdfAnnotationFileAttachement(PdfObject& obj);
+        PdfAnnotationFileAttachment(PdfPage& page, const Rect& rect);
+        PdfAnnotationFileAttachment(PdfObject& obj);
 
     public:
         /** Set a file attachment for this annotation.
@@ -96,9 +96,9 @@ namespace PoDoFo {
          *  PdfAnnotationType::FileAttachement for file
          *  attachements to work.
          *
-         *  \param rFileSpec a file specification
+         *  \param fileSpec a file specification
          */
-        void SetFileAttachement(const std::shared_ptr<PdfFileSpec>& fileSpec);
+        void SetFileAttachment(const nullable<PdfFileSpec&>& fileSpec);
 
         /** Get a file attachement of this annotation.
          *  \returns a file specification object. The file specification object is owned
@@ -106,15 +106,17 @@ namespace PoDoFo {
          *
          *  \see SetFileAttachement
          */
-        std::shared_ptr<PdfFileSpec> GetFileAttachement() const;
+        nullable<PdfFileSpec&> GetFileAttachment();
+        nullable<const PdfFileSpec&> GetFileAttachment() const;
 
     private:
-        std::shared_ptr<PdfFileSpec> getFileAttachment();
+        nullable<PdfFileSpec&> getFileAttachment();
+
     private:
-        std::shared_ptr<PdfFileSpec> m_FileSpec;
+        nullable<std::unique_ptr<PdfFileSpec>> m_FileSpec;
     };
 
-    class PODOFO_API PdfAnnotationFreeText : public PdfAnnotation
+    class PODOFO_API PdfAnnotationFreeText final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -122,7 +124,7 @@ namespace PoDoFo {
         PdfAnnotationFreeText(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationHighlight : public PdfAnnotationTextMarkupBase
+    class PODOFO_API PdfAnnotationHighlight final : public PdfAnnotationTextMarkupBase
     {
         friend class PdfAnnotation;
     private:
@@ -130,7 +132,7 @@ namespace PoDoFo {
         PdfAnnotationHighlight(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationInk : public PdfAnnotation
+    class PODOFO_API PdfAnnotationInk final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -138,7 +140,7 @@ namespace PoDoFo {
         PdfAnnotationInk(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationLine : public PdfAnnotation
+    class PODOFO_API PdfAnnotationLine final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -146,7 +148,7 @@ namespace PoDoFo {
         PdfAnnotationLine(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationLink : public PdfAnnotationActionBase, public PdfQuadPointsProvider<PdfAnnotationLink>
+    class PODOFO_API PdfAnnotationLink final : public PdfAnnotationActionBase, public PdfQuadPointsProvider<PdfAnnotationLink>
     {
         friend class PdfAnnotation;
     private:
@@ -158,23 +160,25 @@ namespace PoDoFo {
          *
          *  \see GetDestination
          */
-        void SetDestination(const std::shared_ptr<PdfDestination>& destination);
+        void SetDestination(const nullable<const PdfDestination&>& destination);
 
         /** Get the destination of a link annotations
          *
          *  \returns a destination object
          *  \see SetDestination
          */
-        std::shared_ptr<PdfDestination> GetDestination() const;
+        nullable<PdfDestination&> GetDestination();
+        nullable<const PdfDestination&> GetDestination() const;
 
     private:
-        std::shared_ptr<PdfDestination> getDestination();
+        nullable<PdfDestination&> getDestination();
+        void OnActionSet() override;
 
     private:
-        std::shared_ptr<PdfDestination> m_Destination;
+        nullable<std::unique_ptr<PdfDestination>> m_Destination;
     };
 
-    class PODOFO_API PdfAnnotationModel3D : public PdfAnnotation
+    class PODOFO_API PdfAnnotationModel3D final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -182,7 +186,7 @@ namespace PoDoFo {
         PdfAnnotationModel3D(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationMovie : public PdfAnnotation
+    class PODOFO_API PdfAnnotationMovie final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -190,7 +194,7 @@ namespace PoDoFo {
         PdfAnnotationMovie(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationPolygon : public PdfAnnotation
+    class PODOFO_API PdfAnnotationPolygon final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -198,7 +202,7 @@ namespace PoDoFo {
         PdfAnnotationPolygon(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationPolyLine : public PdfAnnotation
+    class PODOFO_API PdfAnnotationPolyLine final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -206,7 +210,7 @@ namespace PoDoFo {
         PdfAnnotationPolyLine(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationPopup : public PdfAnnotation
+    class PODOFO_API PdfAnnotationPopup final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -226,7 +230,7 @@ namespace PoDoFo {
         bool GetOpen() const;
     };
 
-    class PODOFO_API PdfAnnotationPrinterMark : public PdfAnnotation
+    class PODOFO_API PdfAnnotationPrinterMark final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -234,7 +238,7 @@ namespace PoDoFo {
         PdfAnnotationPrinterMark(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationScreen :
+    class PODOFO_API PdfAnnotationScreen final :
         public PdfAnnotationActionBase,
         public PdfAppearanceCharacteristicsProvider<PdfAnnotationScreen>
     {
@@ -244,7 +248,7 @@ namespace PoDoFo {
         PdfAnnotationScreen(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationSquiggly : public PdfAnnotationTextMarkupBase
+    class PODOFO_API PdfAnnotationSquiggly final : public PdfAnnotationTextMarkupBase
     {
         friend class PdfAnnotation;
     private:
@@ -253,7 +257,7 @@ namespace PoDoFo {
 
     };
 
-    class PODOFO_API PdfAnnotationStrikeOut : public PdfAnnotationTextMarkupBase
+    class PODOFO_API PdfAnnotationStrikeOut final : public PdfAnnotationTextMarkupBase
     {
         friend class PdfAnnotation;
     private:
@@ -261,7 +265,7 @@ namespace PoDoFo {
         PdfAnnotationStrikeOut(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationSound : public PdfAnnotation
+    class PODOFO_API PdfAnnotationSound final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -269,7 +273,7 @@ namespace PoDoFo {
         PdfAnnotationSound(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationSquare : public PdfAnnotation
+    class PODOFO_API PdfAnnotationSquare final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -277,7 +281,7 @@ namespace PoDoFo {
         PdfAnnotationSquare(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationCircle : public PdfAnnotation
+    class PODOFO_API PdfAnnotationCircle final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -285,7 +289,7 @@ namespace PoDoFo {
         PdfAnnotationCircle(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationStamp : public PdfAnnotation
+    class PODOFO_API PdfAnnotationStamp final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -293,7 +297,7 @@ namespace PoDoFo {
         PdfAnnotationStamp(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationText : public PdfAnnotation
+    class PODOFO_API PdfAnnotationText final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -313,7 +317,7 @@ namespace PoDoFo {
         bool GetOpen() const;
     };
 
-    class PODOFO_API PdfAnnotationTrapNet : public PdfAnnotation
+    class PODOFO_API PdfAnnotationTrapNet final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -321,7 +325,7 @@ namespace PoDoFo {
         PdfAnnotationTrapNet(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationUnderline : public PdfAnnotationTextMarkupBase
+    class PODOFO_API PdfAnnotationUnderline final : public PdfAnnotationTextMarkupBase
     {
         friend class PdfAnnotation;
     private:
@@ -330,7 +334,7 @@ namespace PoDoFo {
 
     };
 
-    class PODOFO_API PdfAnnotationWatermark : public PdfAnnotation
+    class PODOFO_API PdfAnnotationWatermark final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -338,7 +342,7 @@ namespace PoDoFo {
         PdfAnnotationWatermark(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationWebMedia : public PdfAnnotation
+    class PODOFO_API PdfAnnotationWebMedia final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -346,7 +350,7 @@ namespace PoDoFo {
         PdfAnnotationWebMedia(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationRedact : public PdfAnnotation, public PdfQuadPointsProvider<PdfAnnotationRedact>
+    class PODOFO_API PdfAnnotationRedact final : public PdfAnnotation, public PdfQuadPointsProvider<PdfAnnotationRedact>
     {
         friend class PdfAnnotation;
     private:
@@ -354,7 +358,7 @@ namespace PoDoFo {
         PdfAnnotationRedact(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationProjection : public PdfAnnotation
+    class PODOFO_API PdfAnnotationProjection final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:
@@ -362,7 +366,7 @@ namespace PoDoFo {
         PdfAnnotationProjection(PdfObject& obj);
     };
 
-    class PODOFO_API PdfAnnotationRichMedia : public PdfAnnotation
+    class PODOFO_API PdfAnnotationRichMedia final : public PdfAnnotation
     {
         friend class PdfAnnotation;
     private:

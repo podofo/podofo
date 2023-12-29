@@ -27,7 +27,9 @@ enum class PdfNameLimits
 
 class PODOFO_API PdfNameTree final : public PdfDictionaryElement
 {
-public:
+    friend class PdfDocument;
+
+private:
     /** Create a new PdfNameTree object
      *  \param parent parent of this action
      */
@@ -39,6 +41,7 @@ public:
      */
     PdfNameTree(PdfObject& obj);
 
+public:
     /** Insert a key and value in one of the dictionaries of the name tree.
      *  \param tree name of the tree to search for the key.
      *  \param key the key to insert. If it exists, it will be overwritten.

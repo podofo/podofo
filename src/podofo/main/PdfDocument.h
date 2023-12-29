@@ -20,6 +20,7 @@
 
 namespace PoDoFo {
 
+class PdfAction;
 class PdfDestination;
 class PdfFileSpec;
 class PdfInfo;
@@ -68,7 +69,7 @@ public:
      *                 or return nullptr if it does not exist
      *  \returns the Names dictionary
      */
-    PdfNameTree& GetOrCreateNameTree();
+    PdfNameTree& GetOrCreateNames();
 
     /** Get access to the AcroForm dictionary
      *
@@ -81,7 +82,7 @@ public:
     PdfAcroForm& GetOrCreateAcroForm(PdfAcroFormDefaulAppearance eDefaultAppearance = PdfAcroFormDefaulAppearance::BlackText12pt);
 
     /** Attach a file to the document.
-     *  \param rFileSpec a file specification
+     *  \param fileSpec a file specification
      */
     void AttachFile(const PdfFileSpec& fileSpec);
 
@@ -107,6 +108,12 @@ public:
     std::unique_ptr<PdfImage> CreateImage(const std::string_view& prefix = { });
 
     std::unique_ptr<PdfXObjectForm> CreateXObjectForm(const Rect& rect, const std::string_view& prefix = { });
+
+    std::unique_ptr<PdfDestination> CreateDestination();
+
+    std::unique_ptr<PdfAction> CreateAction(PdfActionType type);
+
+    std::unique_ptr<PdfFileSpec> CreateFileSpec();
 
     /** Checks if printing this document is allowed.
      *  Every PDF-consuming application has to adhere to this value!
@@ -183,6 +190,14 @@ public:
     PdfAcroForm& MustGetAcroForm();
 
     const PdfAcroForm& MustGetAcroForm() const;
+
+    PdfNameTree& MustGetNames();
+
+    const PdfNameTree& MustGetNames() const;
+
+    PdfOutlines& MustGetOutlines();
+
+    const PdfOutlines& MustGetOutlines() const;
 
 public:
     virtual const PdfEncrypt* GetEncrypt() const = 0;

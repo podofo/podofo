@@ -17,7 +17,7 @@ and reference the face with FT_Reference_Face
 - Review PdfPageCollection::AppendDocumentPages(),
   PdfPageCollection::InsertDocumentPageAt(), PdfPage::MoveAt()
 - PdfCanvas: Add CopyTo facilities, see PdfContents
-- Review PdfNameTree/PdfFileSpec
+- Review PdfNameTree
 - Check accessibility of PdfEncrypt.h classes, check AESV3 naming
 - PdfFilterFactory: Move CreateFilterList somewhere else (PdfFilter), make it private
 - Rename NameToColorSpaceRaw/ColorSpaceToNameRaw to something more consistent?

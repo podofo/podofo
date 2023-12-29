@@ -26,8 +26,7 @@ PdfDestination::PdfDestination(PdfObject& obj) :
 {
 }
 
-PdfDestination::PdfDestination(const PdfPage& page, PdfDestinationFit fit)
-    : PdfDestination(page.GetDocument())
+void PdfDestination::SetDestination(const PdfPage& page, PdfDestinationFit fit)
 {
     PdfName type;
     if (fit == PdfDestinationFit::Fit)
@@ -40,8 +39,7 @@ PdfDestination::PdfDestination(const PdfPage& page, PdfDestinationFit fit)
     arr.Add(type);
 }
 
-PdfDestination::PdfDestination(const PdfPage& page, const Rect& rect)
-    : PdfDestination(page.GetDocument())
+void PdfDestination::SetDestination(const PdfPage& page, const Rect& rect)
 {
     PdfArray rectArr;
     rect.ToArray(rectArr);
@@ -52,8 +50,7 @@ PdfDestination::PdfDestination(const PdfPage& page, const Rect& rect)
     arr.insert(arr.end(), rectArr.begin(), rectArr.end());
 }
 
-PdfDestination::PdfDestination(const PdfPage& page, double left, double top, double zoom)
-    : PdfDestination(page.GetDocument())
+void PdfDestination::SetDestination(const PdfPage& page, double left, double top, double zoom)
 {
     auto& arr = GetArray();
     arr.Add(page.GetObject().GetIndirectReference());
@@ -63,8 +60,7 @@ PdfDestination::PdfDestination(const PdfPage& page, double left, double top, dou
     arr.Add(zoom);
 }
 
-PdfDestination::PdfDestination(const PdfPage& page, PdfDestinationFit fit, double value)
-    : PdfDestination(page.GetDocument())
+void PdfDestination::SetDestination(const PdfPage& page, PdfDestinationFit fit, double value)
 {
     PdfName type;
     if (fit == PdfDestinationFit::FitH)
@@ -84,16 +80,17 @@ PdfDestination::PdfDestination(const PdfPage& page, PdfDestinationFit fit, doubl
     arr.Add(value);
 }
 
-unique_ptr<PdfDestination> PdfDestination::Create(PdfObject& obj)
+bool PdfDestination::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfDestination>& dest)
 {
     auto& doc = obj.MustGetDocument();
-    PdfObject* value = nullptr;
-
     if (obj.GetDataType() == PdfDataType::Array)
     {
-        return std::make_unique<PdfDestination>(obj);
+        dest.reset(new PdfDestination(obj));
+        return true;
     }
-    else if (obj.GetDataType() == PdfDataType::String)
+
+    PdfObject* value = nullptr;
+    if (obj.GetDataType() == PdfDataType::String)
     {
         auto names = doc.GetNames();
         if (names == nullptr)
@@ -119,42 +116,33 @@ unique_ptr<PdfDestination> PdfDestination::Create(PdfObject& obj)
         }
         value = dests->GetDictionary().FindKey(obj.GetName());
     }
-    else
-    {
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Unsupported object given to "
-            "PdfDestination::Init of type {}", obj.GetDataTypeString());
-    }
 
     if (value == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidName);
+        goto Exit;
 
     if (value->IsArray())
     {
-        return std::make_unique<PdfDestination>(*value);
+        dest.reset(new PdfDestination(*value));
+        return true;
     }
     else if (value->IsDictionary())
     {
-        return std::make_unique<PdfDestination>(value->GetDictionary().MustFindKey("D"));
+        dest.reset(new PdfDestination(value->GetDictionary().MustFindKey("D")));
+        return true;
     }
-    else
-    {
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Unsupported object given to "
-            "PdfDestination::Init of type {}", value->GetDataTypeString());
-    }
+
+Exit:
+    dest.reset();
+    return false;
 }
 
 void PdfDestination::AddToDictionary(PdfDictionary& dictionary) const
 {
-    // Do not add empty destinations
     if (GetArray().size() == 0)
-        return;
-
-    // since we can only have EITHER a Dest OR an Action
-    // we check for an Action, and if already present, we throw
-    if (dictionary.HasKey("A"))
-        PODOFO_RAISE_ERROR(PdfErrorCode::ActionAlreadyPresent);
-
-    dictionary.AddKey("Dest", GetObject());
+        // Do not add empty destinations
+        dictionary.RemoveKey("Dest");
+    else
+        dictionary.AddKey("Dest", GetObject());
 }
 
 PdfPage* PdfDestination::GetPage()
@@ -164,7 +152,7 @@ PdfPage* PdfDestination::GetPage()
         return nullptr;
 
     // first entry in the array is the page - so just make a new page from it!
-    return &GetObject().GetDocument()->GetPages().GetPage(arr[0].GetReference());
+    return &GetDocument().GetPages().GetPage(arr[0].GetReference());
 }
 
 PdfDestinationType PdfDestination::GetType() const

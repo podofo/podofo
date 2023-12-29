@@ -16,77 +16,57 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfOutlineItem::PdfOutlineItem(PdfDocument& doc, const PdfString& title, const shared_ptr<PdfDestination>& dest,
-    PdfOutlineItem* parentOutline) :
-    PdfDictionaryElement(doc),
-    m_ParentOutline(parentOutline), m_Prev(nullptr), m_Next(nullptr),
-    m_First(nullptr), m_Last(nullptr), m_destination(nullptr), m_action(nullptr)
-{
-    if (parentOutline != nullptr)
-        this->GetObject().GetDictionary().AddKey("Parent", parentOutline->GetObject().GetIndirectReference());
-
-    this->SetTitle(title);
-    this->SetDestination(dest);
-}
-
-PdfOutlineItem::PdfOutlineItem(PdfDocument& doc, const PdfString& title, const shared_ptr<PdfAction>& action,
-    PdfOutlineItem* parentOutline) :
-    PdfDictionaryElement(doc),
-    m_ParentOutline(parentOutline), m_Prev(nullptr), m_Next(nullptr),
-    m_First(nullptr), m_Last(nullptr), m_destination(nullptr), m_action(nullptr)
-{
-    if (parentOutline != nullptr)
-        this->GetObject().GetDictionary().AddKey("Parent", parentOutline->GetObject().GetIndirectReference());
-
-    this->SetTitle(title);
-    this->SetAction(action);
-}
-
 PdfOutlineItem::PdfOutlineItem(PdfObject& obj, PdfOutlineItem* parentOutline, PdfOutlineItem* previous)
     : PdfDictionaryElement(obj), m_ParentOutline(parentOutline), m_Prev(previous),
-    m_Next(nullptr), m_First(nullptr), m_Last(nullptr), m_destination(nullptr), m_action(nullptr)
+    m_Next(nullptr), m_First(nullptr), m_Last(nullptr), m_Destination(nullptr), m_Action(nullptr)
 {
     utls::RecursionGuard guard;
     PdfReference first, next;
 
-    if (this->GetObject().GetDictionary().HasKey("First"))
+    if (GetDictionary().HasKey("First"))
     {
-        first = this->GetObject().GetDictionary().GetKey("First")->GetReference();
+        first = GetDictionary().GetKey("First")->GetReference();
         m_First = new PdfOutlineItem(obj.GetDocument()->GetObjects().MustGetObject(first), this, nullptr);
     }
 
-    if (this->GetObject().GetDictionary().HasKey("Next"))
+    if (GetDictionary().HasKey("Next"))
     {
-        next = this->GetObject().GetDictionary().GetKey("Next")->GetReference();
+        next = GetDictionary().GetKey("Next")->GetReference();
         m_Next = new PdfOutlineItem(obj.GetDocument()->GetObjects().MustGetObject(next), parentOutline, this);
     }
 }
 
-PdfOutlineItem::PdfOutlineItem(PdfDocument& doc)
+PdfOutlineItem::PdfOutlineItem(PdfDocument& doc, PdfOutlineItem* parentOutline)
     : PdfDictionaryElement(doc, "Outlines"), m_ParentOutline(nullptr), m_Prev(nullptr),
-    m_Next(nullptr), m_First(nullptr), m_Last(nullptr), m_destination(nullptr), m_action(nullptr)
+    m_Next(nullptr), m_First(nullptr), m_Last(nullptr), m_Destination(nullptr), m_Action(nullptr)
 {
+    if (parentOutline != nullptr)
+        GetDictionary().AddKey("Parent", parentOutline->GetObject().GetIndirectReference());
 }
 
 PdfOutlineItem::~PdfOutlineItem()
 {
     delete m_Next;
     delete m_First;
+    m_Next = nullptr;
+    m_First = nullptr;
 }
 
-PdfOutlineItem* PdfOutlineItem::CreateChild(const PdfString& title, const shared_ptr<PdfDestination>& dest)
+PdfOutlineItem& PdfOutlineItem::CreateChild(const PdfString& title)
 {
-    PdfOutlineItem* item = new PdfOutlineItem(*this->GetObject().GetDocument(), title, dest, this);
-    this->InsertChildInternal(item, false);
-    return item;
+    unique_ptr< PdfOutlineItem> item(new PdfOutlineItem(GetDocument(), this));
+    item->SetTitle(title);
+    this->insertChildInternal(item.get(), false);
+    return *item.release();
 }
 
-void PdfOutlineItem::InsertChild(PdfOutlineItem* item)
+void PdfOutlineItem::InsertChild(unique_ptr<PdfOutlineItem> item)
 {
-    this->InsertChildInternal(item, true);
+    this->insertChildInternal(item.get(), true);
+    (void)item.release();
 }
 
-void PdfOutlineItem::InsertChildInternal(PdfOutlineItem* item, bool checkParent)
+void PdfOutlineItem::insertChildInternal(PdfOutlineItem* item, bool checkParent)
 {
     PdfOutlineItem* itemToCheckParent = item;
     PdfOutlineItem* root = nullptr;
@@ -105,7 +85,7 @@ void PdfOutlineItem::InsertChildInternal(PdfOutlineItem* item, bool checkParent)
             if (itemToCheckParent == item) // item can't have a parent
             {
                 root = item; // needed later, "root" can mean "standalone" here
-                break;         // for performance in standalone or doc-merge case
+                break;       // for performance in standalone or doc-merge case
             }
 
             if (root == nullptr)
@@ -126,8 +106,8 @@ void PdfOutlineItem::InsertChildInternal(PdfOutlineItem* item, bool checkParent)
 
     if (m_Last != nullptr)
     {
-        m_Last->SetNext(item);
-        item->SetPrevious(m_Last);
+        m_Last->setNext(item);
+        item->setPrevious(m_Last);
     }
 
     m_Last = item;
@@ -135,87 +115,67 @@ void PdfOutlineItem::InsertChildInternal(PdfOutlineItem* item, bool checkParent)
     if (m_First == nullptr)
         m_First = m_Last;
 
-    this->GetObject().GetDictionary().AddKey("First", m_First->GetObject().GetIndirectReference());
-    this->GetObject().GetDictionary().AddKey("Last", m_Last->GetObject().GetIndirectReference());
+    GetDictionary().AddKey("First", m_First->GetObject().GetIndirectReference());
+    GetDictionary().AddKey("Last", m_Last->GetObject().GetIndirectReference());
 }
 
-PdfOutlineItem* PdfOutlineItem::CreateNext(const PdfString& title, const shared_ptr<PdfDestination>& dest)
+PdfOutlineItem& PdfOutlineItem::CreateNext(const PdfString& title)
 {
-    PdfOutlineItem* item = new PdfOutlineItem(*this->GetObject().GetDocument(), title, dest, m_ParentOutline);
+    unique_ptr<PdfOutlineItem> item(new PdfOutlineItem(GetDocument(), m_ParentOutline));
+    item->SetTitle(title);
 
     if (m_Next != nullptr)
     {
-        m_Next->SetPrevious(item);
-        item->SetNext(m_Next);
+        m_Next->setPrevious(item.get());
+        item->setNext(m_Next);
     }
 
-    m_Next = item;
-    m_Next->SetPrevious(this);
+    m_Next = item.get();
+    item->setPrevious(this);
 
-    this->GetObject().GetDictionary().AddKey("Next", m_Next->GetObject().GetIndirectReference());
+    GetDictionary().AddKey("Next", item->GetObject().GetIndirectReference());
 
-    if (m_ParentOutline != nullptr && m_Next->Next() == nullptr)
-        m_ParentOutline->SetLast(m_Next);
+    if (m_ParentOutline != nullptr && item->Next() == nullptr)
+        m_ParentOutline->setLast(item.get());
 
-    return m_Next;
+    return *item.release();
 }
 
-PdfOutlineItem* PdfOutlineItem::CreateNext(const PdfString& title, const shared_ptr<PdfAction>& action)
-{
-    PdfOutlineItem* item = new PdfOutlineItem(*this->GetObject().GetDocument(), title, action, m_ParentOutline);
-
-    if (m_Next != nullptr)
-    {
-        m_Next->SetPrevious(item);
-        item->SetNext(m_Next);
-    }
-
-    m_Next = item;
-    m_Next->SetPrevious(this);
-
-    this->GetObject().GetDictionary().AddKey("Next", m_Next->GetObject().GetIndirectReference());
-
-    if (m_ParentOutline != nullptr && m_Next->Next() == nullptr)
-        m_ParentOutline->SetLast(m_Next);
-
-    return m_Next;
-}
-
-void PdfOutlineItem::SetPrevious(PdfOutlineItem* item)
+void PdfOutlineItem::setPrevious(PdfOutlineItem* item)
 {
     m_Prev = item;
     if (m_Prev == nullptr)
-        this->GetObject().GetDictionary().RemoveKey("Prev");
+        GetDictionary().RemoveKey("Prev");
     else
-        this->GetObject().GetDictionary().AddKey("Prev", m_Prev->GetObject().GetIndirectReference());
+        GetDictionary().AddKey("Prev", m_Prev->GetObject().GetIndirectReference());
 }
 
-void PdfOutlineItem::SetNext(PdfOutlineItem* item)
+void PdfOutlineItem::setNext(PdfOutlineItem* item)
 {
     m_Next = item;
     if (m_Next == nullptr)
-        this->GetObject().GetDictionary().RemoveKey("Next");
+        GetDictionary().RemoveKey("Next");
     else
-        this->GetObject().GetDictionary().AddKey("Next", m_Next->GetObject().GetIndirectReference());
+        GetDictionary().AddKey("Next", m_Next->GetObject().GetIndirectReference());
 }
 
-void PdfOutlineItem::SetLast(PdfOutlineItem* item)
+void PdfOutlineItem::setLast(PdfOutlineItem* item)
 {
     m_Last = item;
     if (m_Last == nullptr)
-        this->GetObject().GetDictionary().RemoveKey("Last");
+        GetDictionary().RemoveKey("Last");
 
     else
-        this->GetObject().GetDictionary().AddKey("Last", m_Last->GetObject().GetIndirectReference());
+        GetDictionary().AddKey("Last", m_Last->GetObject().GetIndirectReference());
 }
 
-void PdfOutlineItem::SetFirst(PdfOutlineItem* item)
+void PdfOutlineItem::setFirst(PdfOutlineItem* item)
 {
     m_First = item;
     if (m_First == nullptr)
-        this->GetObject().GetDictionary().RemoveKey("First");
+        GetDictionary().RemoveKey("First");
     else
-        this->GetObject().GetDictionary().AddKey("First", m_First->GetObject().GetIndirectReference());
+        GetDictionary().AddKey("First", m_First->GetObject().GetIndirectReference());
 }
 
 void PdfOutlineItem::Erase()
@@ -229,130 +189,155 @@ void PdfOutlineItem::Erase()
 
     if (m_Prev != nullptr)
     {
-        m_Prev->SetNext(m_Next);
+        m_Prev->setNext(m_Next);
     }
 
     if (m_Next != nullptr)
     {
-        m_Next->SetPrevious(m_Prev);
+        m_Next->setPrevious(m_Prev);
     }
 
     if (m_Prev == nullptr && m_ParentOutline != nullptr && this == m_ParentOutline->First())
-        m_ParentOutline->SetFirst(m_Next);
+        m_ParentOutline->setFirst(m_Next);
 
     if (m_Next == nullptr && m_ParentOutline != nullptr && this == m_ParentOutline->Last())
-        m_ParentOutline->SetLast(m_Prev);
+        m_ParentOutline->setLast(m_Prev);
 
     m_Next = nullptr;
     delete this;
 }
 
-void PdfOutlineItem::SetDestination(const shared_ptr<PdfDestination>& dest)
+void PdfOutlineItem::SetDestination(const nullable<const PdfDestination&>& destination)
 {
-    dest->AddToDictionary(this->GetObject().GetDictionary());
-    m_destination = dest;
+    auto& dict = GetDictionary();
+    if (destination == nullptr)
+    {
+        dict.RemoveKey("Dest");
+        m_Destination = { };
+    }
+    else
+    {
+        m_Destination = unique_ptr<PdfDestination>(new PdfDestination(*destination));
+        m_Action = { };
+        destination->AddToDictionary(dict);
+        dict.RemoveKey("A");
+    }
 }
 
-shared_ptr<PdfDestination> PdfOutlineItem::GetDestination() const
+nullable<const PdfDestination&> PdfOutlineItem::GetDestination() const
 {
     return const_cast<PdfOutlineItem&>(*this).getDestination();
 }
 
-shared_ptr<PdfDestination> PdfOutlineItem::getDestination()
+nullable<PdfDestination&> PdfOutlineItem::GetDestination()
 {
-    if (m_destination == nullptr)
-    {
-        PdfObject* obj = this->GetObject().GetDictionary().FindKey("Dest");
-        if (obj == nullptr)
-            return nullptr;
+    return getDestination();
+}
 
-        m_destination = PdfDestination::Create(*obj);
+nullable<PdfDestination&> PdfOutlineItem::getDestination()
+{
+    if (m_Destination == nullptr)
+    {
+        auto obj = GetDictionary().FindKey("Dest");
+        unique_ptr<PdfDestination> dest;
+        if (obj == nullptr || !PdfDestination::TryCreateFromObject(*obj, dest))
+            m_Destination = { };
+        else
+            m_Destination = std::move(dest);
     }
 
-    return m_destination;
+    if (m_Destination == nullptr)
+        return { };
+    else
+        return **m_Destination;
 }
 
-void PdfOutlineItem::SetAction(const shared_ptr<PdfAction>& action)
+void PdfOutlineItem::SetAction(const nullable<const PdfAction&>& action)
 {
-    action->AddToDictionary(this->GetObject().GetDictionary());
-    m_action = action;
+    auto& dict = GetDictionary();
+    if (action == nullptr)
+    {
+        dict.RemoveKey("A");
+        m_Action = { };
+    }
+    else
+    {
+        m_Action = unique_ptr<PdfAction>(new PdfAction(*action));
+        m_Destination = { };
+        dict.RemoveKey("Dest");
+        dict.AddKeyIndirect("A", action->GetObject());
+    }
 }
 
-shared_ptr<PdfAction> PdfOutlineItem::GetAction() const
+nullable<const PdfAction&> PdfOutlineItem::GetAction() const
 {
     return const_cast<PdfOutlineItem&>(*this).getAction();
 }
 
-shared_ptr<PdfAction> PdfOutlineItem::getAction()
+nullable<PdfAction&> PdfOutlineItem::GetAction()
 {
-    if (m_action == nullptr)
-    {
-        PdfObject* obj = this->GetObject().GetDictionary().FindKey("A");
-        if (obj == nullptr)
-            return nullptr;
+    return getAction();
+}
 
-        m_action.reset(new PdfAction(*obj));
+nullable<PdfAction&> PdfOutlineItem::getAction()
+{
+    if (m_Action == nullptr)
+    {
+        auto obj = GetDictionary().FindKey("A");
+        if (obj == nullptr)
+            m_Action = { };
+        else
+            m_Action = unique_ptr<PdfAction>(new PdfAction(*obj));
     }
 
-    return m_action;
+    if (m_Action == nullptr)
+        return { };
+    else
+        return **m_Action;
 }
 
 void PdfOutlineItem::SetTitle(const PdfString& title)
 {
-    this->GetObject().GetDictionary().AddKey("Title", title);
+    GetDictionary().AddKey("Title", title);
 }
 
 const PdfString& PdfOutlineItem::GetTitle() const
 {
-    return this->GetObject().GetDictionary().MustFindKey("Title").GetString();
+    return this->GetDictionary().MustFindKey("Title").GetString();
 }
 
-void PdfOutlineItem::SetTextFormat(PdfOutlineFormat eFormat)
+void PdfOutlineItem::SetTextFormat(PdfOutlineFormat format)
 {
-    this->GetObject().GetDictionary().AddKey("F", static_cast<int64_t>(eFormat));
+    GetDictionary().AddKey("F", static_cast<int64_t>(format));
 }
 
 PdfOutlineFormat PdfOutlineItem::GetTextFormat() const
 {
-    if (this->GetObject().GetDictionary().HasKey("F"))
-        return static_cast<PdfOutlineFormat>(this->GetObject().GetDictionary().MustFindKey("F").GetNumber());
+    auto fObj = GetDictionary().FindKey("F");
+    if (fObj == nullptr)
+        return PdfOutlineFormat::Default;
 
-    return PdfOutlineFormat::Default;
+    return static_cast<PdfOutlineFormat>(fObj->GetNumber());
 }
 
-void PdfOutlineItem::SetTextColor(double r, double g, double b)
+void PdfOutlineItem::SetTextColor(const PdfColor& color)
 {
-    PdfArray color;
-    color.Add(r);
-    color.Add(g);
-    color.Add(b);
-
-    this->GetObject().GetDictionary().AddKey("C", color);
+    auto rgb = color.ConvertToRGB();
+    GetDictionary().AddKey("C", rgb.ToArray());
 }
 
 
-double PdfOutlineItem::GetTextColorRed() const
+PdfColor PdfOutlineItem::GetTextColor() const
 {
-    if (this->GetObject().GetDictionary().HasKey("C"))
-        return this->GetObject().GetDictionary().MustFindKey("C").GetArray()[0].GetReal();
+    PdfColor color;
+    auto colorObj = GetDictionary().FindKey("C");
+    if (colorObj == nullptr
+        || !PdfColor::TryCreateFromObject(*colorObj, color))
+    {
+        return PdfColor(0, 0, 0);
+    }
 
-    return 0.0;
-}
-
-double PdfOutlineItem::GetTextColorGreen() const
-{
-    if (this->GetObject().GetDictionary().HasKey("C"))
-        return this->GetObject().GetDictionary().MustFindKey("C").GetArray()[1].GetReal();
-
-    return 0.0;
-}
-
-double PdfOutlineItem::GetTextColorBlue() const
-{
-    if (this->GetObject().GetDictionary().HasKey("C"))
-        return this->GetObject().GetDictionary().MustFindKey("C").GetArray()[2].GetReal();
-
-    return 0.0;
+    return color;
 }
 
 PdfOutlines::PdfOutlines(PdfDocument& doc)
@@ -365,7 +350,9 @@ PdfOutlines::PdfOutlines(PdfObject& obj)
 {
 }
 
-PdfOutlineItem* PdfOutlines::CreateRoot(const PdfString& title)
+PdfOutlineItem& PdfOutlines::CreateRoot(const PdfString& title)
 {
-    return this->CreateChild(title, std::make_shared<PdfDestination>(*GetObject().GetDocument()));
+    auto& ret = this->CreateChild(title);
+    ret.SetDestination(*GetDocument().CreateDestination());
+    return ret;
 }

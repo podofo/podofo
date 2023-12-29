@@ -55,9 +55,11 @@ enum class PdfActionType
  */
 class PODOFO_API PdfAction final : public PdfDictionaryElement
 {
+    friend class PdfDocument;
     friend class PdfAnnotation;
+    friend class PdfAnnotationActionBase;
+    friend class PdfOutlineItem;
 
-public:
     /** Create a new PdfAction object
      *  \param eAction type of this action
      *  \param parent parent of this action
@@ -69,6 +71,9 @@ public:
      */
     PdfAction(PdfObject& obj);
 
+    PdfAction(const PdfAction&) = default;
+
+public:
     /** Set the URI of an PdfActionType::URI
      *  \param sUri must be a correct URI as PdfString
      */
@@ -95,6 +100,7 @@ public:
      */
     inline PdfActionType GetType() const { return m_Type; }
 
+private:
     /** Adds this action to an dictionary.
      *  This method handles the all the complexities of making sure it's added correctly
      *
@@ -103,9 +109,6 @@ public:
      *  \param dictionary the action will be added to this dictionary
      */
     void AddToDictionary(PdfDictionary& dictionary) const;
-
-private:
-    PdfAction(const PdfAction& rhs) = delete;
 
 private:
     PdfActionType m_Type;

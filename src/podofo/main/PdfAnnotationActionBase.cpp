@@ -22,29 +22,58 @@ PdfAnnotationActionBase::PdfAnnotationActionBase(PdfObject& obj, PdfAnnotationTy
 {
 }
 
-void PdfAnnotationActionBase::SetAction(const shared_ptr<PdfAction>& action)
+void PdfAnnotationActionBase::SetAction(const nullable<const PdfAction&>& action)
 {
-    GetDictionary().AddKey("A", action->GetObject().GetIndirectReference());
-    m_Action = action;
+    auto& dict = GetDictionary();
+    if (action == nullptr)
+    {
+        dict.RemoveKey("A");
+        m_Action = { };
+    }
+    else
+    {
+        m_Action = unique_ptr<PdfAction>(new PdfAction(*action));
+        OnActionSet();
+        dict.AddKeyIndirect("A", action->GetObject());
+    }
 }
 
-shared_ptr<PdfAction> PdfAnnotationActionBase::GetAction() const
+nullable<PdfAction&> PdfAnnotationActionBase::GetAction()
+{
+    return getAction();
+}
+
+nullable<const PdfAction&> PdfAnnotationActionBase::GetAction() const
 {
     return const_cast<PdfAnnotationActionBase&>(*this).getAction();
 }
 
-shared_ptr<PdfAction> PdfAnnotationActionBase::getAction()
+void PdfAnnotationActionBase::OnActionSet()
 {
-    if (m_Action == nullptr)
+    // Do nothing
+}
+
+void PdfAnnotationActionBase::ResetAction()
+{
+    m_Action = { };
+    GetDictionary().RemoveKey("A");
+}
+
+nullable<PdfAction&> PdfAnnotationActionBase::getAction()
+{
+    if (!m_Action.has_value())
     {
         auto obj = GetDictionary().FindKey("A");
         if (obj == nullptr)
-            return nullptr;
-
-        m_Action.reset(new PdfAction(*obj));
+            m_Action = { };
+        else
+            m_Action = unique_ptr<PdfAction>(new PdfAction(*obj));
     }
 
-    return m_Action;
+    if (*m_Action == nullptr)
+        return nullptr;
+    else
+        return **m_Action;
 }
 
 PdfAppearanceCharacteristics::PdfAppearanceCharacteristics(PdfDocument& parent)

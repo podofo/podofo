@@ -17,6 +17,7 @@
 #include "PdfObjectStream.h"
 #include "PdfIndirectObjectList.h"
 #include "PdfAcroForm.h"
+#include "PdfAction.h"
 #include "PdfDestination.h"
 #include "PdfFileSpec.h"
 #include "PdfFontMetrics.h"
@@ -192,7 +193,7 @@ void PdfDocument::append(const PdfDocument& doc, bool appendAll)
 
             PdfReference ref(appendRoot->GetObject().GetIndirectReference().ObjectNumber()
                 + difference, appendRoot->GetObject().GetIndirectReference().GenerationNumber());
-            root->InsertChild(new PdfOutlines(m_Objects.MustGetObject(ref)));
+            root->InsertChild(unique_ptr<PdfOutlineItem>(new PdfOutlines(m_Objects.MustGetObject(ref))));
         }
     }
 
@@ -281,7 +282,7 @@ void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc,
 
         PdfReference ref(appendRoot->First()->GetObject().GetIndirectReference().ObjectNumber()
             + difference, appendRoot->First()->GetObject().GetIndirectReference().GenerationNumber());
-        root->InsertChild(new PdfOutlines(m_Objects.MustGetObject(ref)));
+        root->InsertChild(unique_ptr<PdfOutlineItem>(new PdfOutlines(m_Objects.MustGetObject(ref))));
     }
 
     // TODO: merge name trees
@@ -498,7 +499,7 @@ PdfOutlines& PdfDocument::GetOrCreateOutlines()
     return *m_Outlines.get();
 }
 
-PdfNameTree& PdfDocument::GetOrCreateNameTree()
+PdfNameTree& PdfDocument::GetOrCreateNames()
 {
     if (m_NameTree != nullptr)
         return *m_NameTree;
@@ -522,14 +523,14 @@ PdfAcroForm& PdfDocument::GetOrCreateAcroForm(PdfAcroFormDefaulAppearance defaul
 
 void PdfDocument::AddNamedDestination(const PdfDestination& dest, const PdfString& name)
 {
-    auto& names = GetOrCreateNameTree();
+    auto& names = GetOrCreateNames();
     names.AddValue("Dests", name, dest.GetObject().GetIndirectReference());
 }
 
 void PdfDocument::AttachFile(const PdfFileSpec& fileSpec)
 {
-    auto& names = GetOrCreateNameTree();
-    names.AddValue("EmbeddedFiles", fileSpec.GetFilename(false), fileSpec.GetObject().GetIndirectReference());
+    auto& names = GetOrCreateNames();
+    names.AddValue("EmbeddedFiles", fileSpec.GetFilename().value(), fileSpec.GetObject().GetIndirectReference());
 }
     
 PdfFileSpec* PdfDocument::GetAttachment(const PdfString& name)
@@ -625,6 +626,38 @@ const PdfAcroForm& PdfDocument::MustGetAcroForm() const
     return *m_AcroForm;
 }
 
+PdfNameTree& PdfDocument::MustGetNames()
+{
+    if (m_NameTree == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Names are not present");
+
+    return *m_NameTree;
+}
+
+const PdfNameTree& PdfDocument::MustGetNames() const
+{
+    if (m_NameTree == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Names are not present");
+
+    return *m_NameTree;
+}
+
+PdfOutlines& PdfDocument::MustGetOutlines()
+{
+    if (m_Outlines == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Outlines are not present");
+
+    return *m_Outlines;
+}
+
+const PdfOutlines& PdfDocument::MustGetOutlines() const
+{
+    if (m_Outlines == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Outlines are not present");
+
+    return *m_Outlines;
+}
+
 unique_ptr<PdfImage> PdfDocument::CreateImage(const string_view& prefix)
 {
     return unique_ptr<PdfImage>(new PdfImage(*this, prefix));
@@ -633,4 +666,19 @@ unique_ptr<PdfImage> PdfDocument::CreateImage(const string_view& prefix)
 unique_ptr<PdfXObjectForm> PdfDocument::CreateXObjectForm(const Rect& rect, const string_view& prefix)
 {
     return unique_ptr<PdfXObjectForm>(new PdfXObjectForm(*this, rect, prefix));
+}
+
+unique_ptr<PdfDestination> PdfDocument::CreateDestination()
+{
+    return unique_ptr<PdfDestination>(new PdfDestination(*this));
+}
+
+unique_ptr<PdfAction> PdfDocument::CreateAction(PdfActionType type)
+{
+    return unique_ptr<PdfAction>(new PdfAction(*this, type));
+}
+
+unique_ptr<PdfFileSpec> PdfDocument::CreateFileSpec()
+{
+    return unique_ptr<PdfFileSpec>(new PdfFileSpec(*this));
 }

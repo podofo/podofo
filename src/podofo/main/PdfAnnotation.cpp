@@ -137,7 +137,7 @@ unique_ptr<PdfAnnotation> PdfAnnotation::Create(PdfPage& page, PdfAnnotationType
         case PdfAnnotationType::Popup:
             return unique_ptr<PdfAnnotation>(new PdfAnnotationPopup(page, rect));
         case PdfAnnotationType::FileAttachement:
-            return unique_ptr<PdfAnnotation>(new PdfAnnotationFileAttachement(page, rect));
+            return unique_ptr<PdfAnnotation>(new PdfAnnotationFileAttachment(page, rect));
         case PdfAnnotationType::Sound:
             return unique_ptr<PdfAnnotation>(new PdfAnnotationSound(page, rect));
         case PdfAnnotationType::Movie:
@@ -457,7 +457,7 @@ bool PdfAnnotation::tryCreateFromObject(const PdfObject& obj, PdfAnnotationType 
             xobj = new PdfAnnotationPopup(const_cast<PdfObject&>(obj));
             return true;
         case PdfAnnotationType::FileAttachement:
-            xobj = new PdfAnnotationFileAttachement(const_cast<PdfObject&>(obj));
+            xobj = new PdfAnnotationFileAttachment(const_cast<PdfObject&>(obj));
             return true;
         case PdfAnnotationType::Sound:
             xobj = new PdfAnnotationSound(const_cast<PdfObject&>(obj));
@@ -534,7 +534,7 @@ PdfAnnotationType PdfAnnotation::getAnnotationType(const type_info& typeInfo)
         return PdfAnnotationType::Ink;
     else if (typeInfo == typeid(PdfAnnotationPopup))
         return PdfAnnotationType::Popup;
-    else if (typeInfo == typeid(PdfAnnotationFileAttachement))
+    else if (typeInfo == typeid(PdfAnnotationFileAttachment))
         return PdfAnnotationType::FileAttachement;
     else if (typeInfo == typeid(PdfAnnotationSound))
         return PdfAnnotationType::Sound;

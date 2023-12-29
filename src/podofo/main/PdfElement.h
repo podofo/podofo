@@ -65,8 +65,9 @@ protected:
      */
     PdfElement(PdfObject& obj, PdfDataType expectedDataType);
 
+    PdfElement(const PdfElement& element) = default;
+
 private:
-    PdfElement(const PdfElement& element) = delete;
     PdfElement& operator=(const PdfElement& element) = delete;
 
 private:
@@ -93,6 +94,8 @@ protected:
      */
     PdfDictionaryElement(PdfObject& obj);
 
+    PdfDictionaryElement(const PdfDictionaryElement& element) = default;
+
 public:
     PdfDictionary& GetDictionary();
     const PdfDictionary& GetDictionary() const;
@@ -113,6 +116,8 @@ protected:
      *      by this PdfArrayElement
      */
     PdfArrayElement(PdfObject& obj);
+
+    PdfArrayElement(const PdfArrayElement& element) = default;
 
 public:
     PdfArray& GetArray();
