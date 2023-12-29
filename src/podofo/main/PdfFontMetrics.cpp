@@ -206,6 +206,11 @@ PdfFontStyle PdfFontMetrics::GetStyle() const
     return *m_Style;
 }
 
+bool PdfFontMetrics::IsObjectLoaded() const
+{
+    return false;
+}
+
 bool PdfFontMetrics::IsStandard14FontMetrics() const
 {
     PdfStandard14FontType std14Font;

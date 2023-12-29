@@ -104,6 +104,8 @@ public:
 
     const Matrix2D& GetMatrix() const override;
 
+    bool IsObjectLoaded() const override;
+
 protected:
     bool getIsBoldHint() const override;
 

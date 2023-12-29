@@ -271,6 +271,8 @@ public:
      */
     PdfFontStyle GetStyle() const;
 
+    virtual bool IsObjectLoaded() const;
+
     bool IsStandard14FontMetrics() const;
 
     virtual bool IsStandard14FontMetrics(PdfStandard14FontType& std14Font) const;

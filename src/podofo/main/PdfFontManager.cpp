@@ -437,7 +437,7 @@ PdfFont& PdfFontManager::GetOrCreateFont(FT_Face face, const PdfFontCreateParams
     if (found != m_cachedQueries.end())
         return *found->second[0];
 
-    shared_ptr<PdfFontMetricsFreetype> metrics = PdfFontMetricsFreetype::FromFace(face);
+    shared_ptr<PdfFontMetricsFreetype> metrics = PdfFontMetricsFreetype::CreateFromFace(face);
     return getOrCreateFontHashed(metrics, params);
 }
 

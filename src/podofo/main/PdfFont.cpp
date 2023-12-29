@@ -80,7 +80,7 @@ bool PdfFont::TryGetSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& subst
     PdfFontMetricsConstPtr newMetrics;
     if (metrics.HasFontFileData())
     {
-        newMetrics = PdfFontMetricsFreetype::FromMetrics(metrics);
+        newMetrics = PdfFontMetricsFreetype::CreateSubstituteMetrics(metrics);
     }
     else
     {

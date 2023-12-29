@@ -520,6 +520,11 @@ const Matrix2D& PdfFontMetricsObject::GetMatrix() const
     return m_Matrix;
 }
 
+bool PdfFontMetricsObject::IsObjectLoaded() const
+{
+    return true;
+}
+
 bool PdfFontMetricsObject::getIsBoldHint() const
 {
     const_cast<PdfFontMetricsObject&>(*this).extractFontHints();
