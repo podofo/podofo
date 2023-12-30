@@ -93,7 +93,7 @@ private:
 
     static std::unique_ptr<PdfAction> Create(PdfDocument& doc, PdfActionType type);
 
-    static PdfAction* Create(PdfDocument& doc, const type_info& typeInfo);
+    static PdfAction* Create(PdfDocument& doc, const std::type_info& typeInfo);
 
     static std::unique_ptr<PdfAction> Create(const PdfAction& action);
 
