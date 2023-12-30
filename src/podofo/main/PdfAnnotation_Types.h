@@ -160,7 +160,7 @@ namespace PoDoFo {
          *
          *  \see GetDestination
          */
-        void SetDestination(const nullable<const PdfDestination&>& destination);
+        void SetDestination(nullable<const PdfDestination&> destination);
 
         /** Get the destination of a link annotations
          *

@@ -22,7 +22,7 @@ PdfAnnotationActionBase::PdfAnnotationActionBase(PdfObject& obj, PdfAnnotationTy
 {
 }
 
-void PdfAnnotationActionBase::SetAction(const nullable<const PdfAction&>& action)
+void PdfAnnotationActionBase::SetAction(nullable<const PdfAction&> action)
 {
     auto& dict = GetDictionary();
     if (action == nullptr)
@@ -32,7 +32,7 @@ void PdfAnnotationActionBase::SetAction(const nullable<const PdfAction&>& action
     }
     else
     {
-        m_Action = unique_ptr<PdfAction>(new PdfAction(*action));
+        m_Action = PdfAction::Create(*action);
         OnActionSet();
         dict.AddKeyIndirect("A", action->GetObject());
     }
@@ -67,7 +67,7 @@ nullable<PdfAction&> PdfAnnotationActionBase::getAction()
         if (obj == nullptr)
             m_Action = { };
         else
-            m_Action = unique_ptr<PdfAction>(new PdfAction(*obj));
+            m_Action = PdfAction::Create(*obj);
     }
 
     if (*m_Action == nullptr)

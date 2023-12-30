@@ -335,6 +335,11 @@ void PdfDocument::deletePages(unsigned atIndex, unsigned pageCount)
         this->GetPages().RemovePageAt(atIndex);
 }
 
+PdfAction* PdfDocument::createAction(const type_info& typeInfo)
+{
+    return PdfAction::Create(*this, typeInfo);
+}
+
 PdfInfo& PdfDocument::GetOrCreateInfo()
 {
     if (m_Info == nullptr)
@@ -675,7 +680,7 @@ unique_ptr<PdfDestination> PdfDocument::CreateDestination()
 
 unique_ptr<PdfAction> PdfDocument::CreateAction(PdfActionType type)
 {
-    return unique_ptr<PdfAction>(new PdfAction(*this, type));
+    return PdfAction::Create(*this, type);
 }
 
 unique_ptr<PdfFileSpec> PdfDocument::CreateFileSpec()

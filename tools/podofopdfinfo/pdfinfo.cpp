@@ -124,9 +124,13 @@ void PdfInfoHelper::OutputPageInfo(ostream& outstream)
             outstream << "\t\tRect: " << str << endl;
             if (curAnnot.GetType() == PdfAnnotationType::Link)
             {
-                auto& link = static_cast<PdfAnnotationLink&>(curAnnot);
-                if (link.GetAction() != nullptr && link.GetAction()->HasURI())
-                    outstream << "\t\tAction URI: " << link.GetAction()->GetURI().GetString() << endl;
+                auto action = static_cast<PdfAnnotationLink&>(curAnnot).GetAction();
+                if (action != nullptr && action->GetType() == PdfActionType::URI)
+                {
+                    auto uri = static_cast<PdfActionURI&>(*action).GetURI();
+                    if (uri != nullptr)
+                        outstream << "\t\tAction URI: " << uri->GetString() << endl;
+                }
             }
         }
     }

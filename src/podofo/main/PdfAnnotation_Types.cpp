@@ -13,7 +13,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-void PdfAnnotationLink::SetDestination(const nullable<const PdfDestination&>& destination)
+void PdfAnnotationLink::SetDestination(nullable<const PdfDestination&> destination)
 {
     if (destination == nullptr)
     {

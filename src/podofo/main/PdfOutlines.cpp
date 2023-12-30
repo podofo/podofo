@@ -207,7 +207,7 @@ void PdfOutlineItem::Erase()
     delete this;
 }
 
-void PdfOutlineItem::SetDestination(const nullable<const PdfDestination&>& destination)
+void PdfOutlineItem::SetDestination(nullable<const PdfDestination&> destination)
 {
     auto& dict = GetDictionary();
     if (destination == nullptr)
@@ -252,7 +252,7 @@ nullable<PdfDestination&> PdfOutlineItem::getDestination()
         return **m_Destination;
 }
 
-void PdfOutlineItem::SetAction(const nullable<const PdfAction&>& action)
+void PdfOutlineItem::SetAction(nullable<const PdfAction&> action)
 {
     auto& dict = GetDictionary();
     if (action == nullptr)
@@ -262,7 +262,7 @@ void PdfOutlineItem::SetAction(const nullable<const PdfAction&>& action)
     }
     else
     {
-        m_Action = unique_ptr<PdfAction>(new PdfAction(*action));
+        m_Action = PdfAction::Create(*action);
         m_Destination = { };
         dict.RemoveKey("Dest");
         dict.AddKeyIndirect("A", action->GetObject());
@@ -287,7 +287,7 @@ nullable<PdfAction&> PdfOutlineItem::getAction()
         if (obj == nullptr)
             m_Action = { };
         else
-            m_Action = unique_ptr<PdfAction>(new PdfAction(*obj));
+            m_Action = PdfAction::Create(*obj);
     }
 
     if (m_Action == nullptr)

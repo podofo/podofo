@@ -102,7 +102,7 @@ namespace PoDoFo {
          *
          *  \see GetAction
          */
-        void SetAction(const nullable<const PdfAction&>& action);
+        void SetAction(nullable<const PdfAction&> action);
 
         /** Get the action that is executed for this annotation
          *  \returns an action object. The action object is owned

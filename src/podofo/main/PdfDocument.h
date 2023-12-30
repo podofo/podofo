@@ -111,6 +111,9 @@ public:
 
     std::unique_ptr<PdfDestination> CreateDestination();
 
+    template <typename Taction>
+    std::unique_ptr<Taction> CreateAction();
+
     std::unique_ptr<PdfAction> CreateAction(PdfActionType type);
 
     std::unique_ptr<PdfFileSpec> CreateFileSpec();
@@ -330,6 +333,8 @@ private:
     // Called by PdfXObjectForm
     Rect FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page, bool useTrimBox);
 
+    PdfInfo& GetOrCreateInfo();
+
 private:
     void append(const PdfDocument& doc, bool appendAll);
     /** Recursively changes every PdfReference in the PdfObject and in any child
@@ -343,10 +348,10 @@ private:
 
     void deletePages(unsigned atIndex, unsigned pageCount);
 
+    PdfAction* createAction(const std::type_info& typeInfo);
+
 private:
     PdfDocument& operator=(const PdfDocument&) = delete;
-
-    PdfInfo& GetOrCreateInfo();
 
 private:
     PdfIndirectObjectList m_Objects;
@@ -361,6 +366,12 @@ private:
     std::unique_ptr<PdfOutlines> m_Outlines;
     std::unique_ptr<PdfNameTree> m_NameTree;
 };
+
+template<typename Taction>
+std::unique_ptr<Taction> PdfDocument::CreateAction()
+{
+    return std::unique_ptr<Taction>(static_cast<Taction*>(createAction(typeid(Taction))));
+}
 
 };
 

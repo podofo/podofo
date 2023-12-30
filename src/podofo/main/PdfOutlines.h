@@ -110,7 +110,7 @@ public:
     /** Set the destination of this outline.
      *  \param dest the destination
      */
-    void SetDestination(const nullable<const PdfDestination&>& dest);
+    void SetDestination(nullable<const PdfDestination&> dest);
 
     /** Get the destination of this outline.
      *  \returns the destination, if there is one, or nullptr
@@ -121,7 +121,7 @@ public:
     /** Set the action of this outline.
      *  \param action the action
      */
-    void SetAction(const nullable<const PdfAction&>& action);
+    void SetAction(nullable<const PdfAction&> action);
 
     /** Get the action of this outline.
      *  \returns the action, if there is one, or nullptr
