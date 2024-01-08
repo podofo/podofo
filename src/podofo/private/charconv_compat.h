@@ -7,7 +7,7 @@
 #if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 10
 #define WANT_CHARS_FORMAT
 #endif
-#if (defined(__GNUC__) && __GNUC__ < 11) || defined(__clang__)
+#if (defined(__GNUC__) && !defined(__MINGW32__) &&  __GNUC__ < 11) || (defined(__MINGW32__) &&  __GNUC__ < 12) || defined(__clang__)
 #define WANT_FROM_CHARS
 #endif
 
