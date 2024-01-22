@@ -10,5 +10,6 @@
 * Takeshi Kanno ??? (Libharu)
 * Raph Levien
 * Ulrich Arnold
+* Stefan Huber <sh@signalwerk.ch>
 
 Work on revamp authors file is tracked in [this](https://github.com/podofo/podofo/issues/26) issue.
