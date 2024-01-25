@@ -213,7 +213,7 @@ void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc,
     // prevent overlapping obj-numbers
 
     // create all free objects again, to have a clean free object list
-    for (auto& freeObj : GetObjects().GetFreeObjects())
+    for (auto& freeObj : doc.GetObjects().GetFreeObjects())
     {
         m_Objects.AddFreeObject(PdfReference(freeObj.ObjectNumber() + difference, freeObj.GenerationNumber()));
     }
