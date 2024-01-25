@@ -241,35 +241,29 @@ void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc,
         PdfName::KeyNull
     };
 
-    // append all pages now to our page tree
-    for (unsigned i = 0; i < doc.GetPages().GetCount(); i++)
+    // append all page to our page tree
+    auto& page = doc.GetPages().GetPageAt(pageIndex);
+    auto& obj = m_Objects.MustGetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
+                                                     + difference, page.GetObject().GetIndirectReference().GenerationNumber()));
+    if (obj.IsDictionary() && obj.GetDictionary().HasKey("Parent"))
+        obj.GetDictionary().RemoveKey("Parent");
+
+    // Deal with inherited attributes
+    const PdfName* inherited = inheritableAttributes;
+    while (!inherited->IsNull())
     {
-        if (i != pageIndex)
-            continue;
-
-        auto& page = doc.GetPages().GetPageAt(i);
-        auto& obj = m_Objects.MustGetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
-            + difference, page.GetObject().GetIndirectReference().GenerationNumber()));
-        if (obj.IsDictionary() && obj.GetDictionary().HasKey("Parent"))
-            obj.GetDictionary().RemoveKey("Parent");
-
-        // Deal with inherited attributes
-        const PdfName* inherited = inheritableAttributes;
-        while (!inherited->IsNull())
+        auto attribute = page.GetDictionary().FindKeyParent(*inherited);
+        if (attribute != nullptr)
         {
-            auto attribute = page.GetDictionary().FindKeyParent(*inherited);
-            if (attribute != nullptr)
-            {
-                PdfObject attributeCopy(*attribute);
-                fixObjectReferences(attributeCopy, difference);
-                obj.GetDictionary().AddKey(*inherited, attributeCopy);
-            }
-
-            inherited++;
+            PdfObject attributeCopy(*attribute);
+            fixObjectReferences(attributeCopy, difference);
+            obj.GetDictionary().AddKey(*inherited, attributeCopy);
         }
 
-        m_Pages->InsertPageAt(atIndex, *new PdfPage(obj));
+        inherited++;
     }
+
+    m_Pages->InsertPageAt(atIndex, *new PdfPage(obj));
 
     // append all outlines
     PdfOutlineItem* root = this->GetOutlines();
