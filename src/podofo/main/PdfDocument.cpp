@@ -265,20 +265,6 @@ void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc,
 
     m_Pages->InsertPageAt(atIndex, *new PdfPage(obj));
 
-    // append all outlines
-    PdfOutlineItem* root = this->GetOutlines();
-    PdfOutlines* appendRoot = const_cast<PdfDocument&>(doc).GetOutlines();
-    if (appendRoot != nullptr && appendRoot->First())
-    {
-        // only append outlines if appended document has outlines
-        while (root != nullptr && root->Next())
-            root = root->Next();
-
-        PdfReference ref(appendRoot->First()->GetObject().GetIndirectReference().ObjectNumber()
-            + difference, appendRoot->First()->GetObject().GetIndirectReference().GenerationNumber());
-        root->InsertChild(unique_ptr<PdfOutlineItem>(new PdfOutlines(m_Objects.MustGetObject(ref))));
-    }
-
     // TODO: merge name trees
     // ToDictionary -> then iteratate over all keys and add them to the new one
 }
