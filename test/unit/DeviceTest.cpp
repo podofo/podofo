@@ -41,7 +41,7 @@ TEST_CASE("TestStreamedDocument")
     auto testPath = TestUtils::GetTestOutputFilePath("TestStreamedDocument.pdf");
     PdfStreamedDocument document(testPath);
     auto& page = document.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
-    auto font = document.GetFonts().SearchFont("Arial");
+    auto font = document.GetFonts().SearchFont("LiberationSans");
     REQUIRE(font != nullptr);
     PdfPainter painter;
     painter.SetCanvas(page);
