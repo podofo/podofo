@@ -76,9 +76,9 @@ OpenSSLMain::~OpenSSLMain()
     if (m_libCtx == nullptr)
         return;
 
-    OSSL_LIB_CTX_free(m_libCtx);
     OSSL_PROVIDER_unload(m_legacyProvider);
     OSSL_PROVIDER_unload(m_defaultProvider);
+    OSSL_LIB_CTX_free(m_libCtx);
 #endif // OPENSSL_VERSION_MAJOR >= 3
 }
 
