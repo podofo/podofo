@@ -42,8 +42,8 @@ struct PdfSplittedString
  *  a font object first. You can reuse this font object as often
  *  as you want.
  *
- *  Use PdfDocument::CreateFont to create a new font object.
- *  It will choose a correct subclass using PdfFontFactory.
+ *  Use methods in PdfFontManager, which you can access with
+ *  PdfDocument::GetFonts(), to retrieve a font object.
  *
  *  This is only an abstract base class which is implemented
  *  for different font formats.
