@@ -125,10 +125,9 @@ TEST_CASE("TestSignature3")
     PdfSignerCmsParams params;
     auto signer = std::make_shared<PdfSignerCms>(cert, params);
     PdfSigningContext ctx;
-    ctx.SetSaveOptions(PdfSaveOptions::NoMetadataUpdate);
     auto signerId = ctx.AddSigner(signature, signer);
     PdfSigningResults results;
-    ctx.StartSigning(doc, stream, results);
+    ctx.StartSigning(doc, stream, results, PdfSaveOptions::NoMetadataUpdate);
     charbuff signedHash;
     ssl::DoSign(results.Intermediate[signerId], pkey, params.Hashing, signedHash);
     results.Intermediate[signerId] = signedHash;

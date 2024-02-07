@@ -41,10 +41,9 @@ string PdfSigner::GetSignatureFilter() const
 }
 
 void PoDoFo::SignDocument(PdfMemDocument& doc, StreamDevice& device, PdfSigner& signer,
-    PdfSignature& signature, PdfSaveOptions opts)
+    PdfSignature& signature, PdfSaveOptions saveOptions)
 {
     PdfSigningContext ctx;
-    ctx.SetSaveOptions(opts);
     ctx.AddSignerUnsafe(signature, signer);
-    ctx.Sign(doc, device);
+    ctx.Sign(doc, device, saveOptions);
 }

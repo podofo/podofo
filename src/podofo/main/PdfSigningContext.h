@@ -78,7 +78,8 @@ namespace PoDoFo
         /** Start a sequential signing procedure
          * \param results instance where intermediate results will be stored
          */
-        void StartSigning(PdfMemDocument& doc, const std::shared_ptr<StreamDevice>& device, PdfSigningResults& results);
+        void StartSigning(PdfMemDocument& doc, const std::shared_ptr<StreamDevice>& device, PdfSigningResults& results,
+            PdfSaveOptions saveOptions = PdfSaveOptions::None);
 
         /** Finish a sequential signing procedure
          * \param processedResults results that will be used to finalize the signatures
@@ -86,10 +87,7 @@ namespace PoDoFo
         void FinishSigning(const PdfSigningResults& processedResults);
         /** Start a event driven signing procedure
          */
-        void Sign(PdfMemDocument& doc, StreamDevice& device);
-
-        void SetSaveOptions(PdfSaveOptions options) { m_SaveOptions = options; }
-        PdfSaveOptions GetSaveOptions() const { return m_SaveOptions; }
+        void Sign(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions options = PdfSaveOptions::None);
 
     private:
         struct SignatureAttrs
@@ -116,7 +114,7 @@ namespace PoDoFo
             const std::shared_ptr<PdfSigner>& storage);
         void ensureNotStarted() const;
         std::unordered_map<PdfSignerId, SignatureCtx> prepareSignatureContexts(PdfDocument& doc, bool sequentialSigning);
-        void saveDocForSigning(PdfMemDocument& doc, StreamDevice& device);
+        void saveDocForSigning(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions saveOptions);
         void appendDataForSigning(std::unordered_map<PdfSignerId, SignatureCtx>& contexts, StreamDevice& device,
             std::unordered_map<PdfSignerId, charbuff>* intermediateResults, charbuff& tmpbuff);
         void computeSignatures(std::unordered_map<PdfSignerId, SignatureCtx>& contexts,
@@ -128,7 +126,6 @@ namespace PoDoFo
         PdfSigningContext& operator==(const PdfSigningContext&) = delete;
 
     private:
-        PdfSaveOptions m_SaveOptions;
         std::unordered_map<PdfReference, SignatureAttrs> m_signers;
         // Used during sequential signing
         PdfMemDocument* m_doc;

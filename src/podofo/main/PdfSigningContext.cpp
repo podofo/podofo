@@ -25,7 +25,7 @@ static void setSignature(StreamDevice& device, const string_view& sigData,
 static void prepareBeaconsData(size_t signatureSize, string& contentsBeacon, string& byteRangeBeacon);
 
 PdfSigningContext::PdfSigningContext()
-    : m_SaveOptions(PdfSaveOptions::None), m_doc(nullptr)
+    : m_doc(nullptr)
 {
 }
 
@@ -46,7 +46,8 @@ void PdfSigningContext::AddSignerUnsafe(const PdfSignature& signature, PdfSigner
     (void)addSigner(signature, &signer, nullptr);
 }
 
-void PdfSigningContext::StartSigning(PdfMemDocument& doc, const shared_ptr<StreamDevice>& device, PdfSigningResults& results)
+void PdfSigningContext::StartSigning(PdfMemDocument& doc, const shared_ptr<StreamDevice>& device,
+    PdfSigningResults& results, PdfSaveOptions saveOptions)
 {
     ensureNotStarted();
     if (m_signers.size() == 0)
@@ -57,7 +58,7 @@ void PdfSigningContext::StartSigning(PdfMemDocument& doc, const shared_ptr<Strea
 
     charbuff tmpbuff;
     m_contexts = prepareSignatureContexts(doc, true);
-    saveDocForSigning(doc, *device);
+    saveDocForSigning(doc, *device, saveOptions);
     appendDataForSigning(m_contexts, *device, &results.Intermediate, tmpbuff);
 }
 
@@ -74,7 +75,7 @@ void PdfSigningContext::FinishSigning(const PdfSigningResults& processedResults)
     m_contexts.clear();
 }
 
-void PdfSigningContext::Sign(PdfMemDocument& doc, StreamDevice& device)
+void PdfSigningContext::Sign(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions saveOptions)
 {
     ensureNotStarted();
     if (m_signers.size() == 0)
@@ -83,7 +84,7 @@ void PdfSigningContext::Sign(PdfMemDocument& doc, StreamDevice& device)
     charbuff tmpbuff;
 
     auto contexts = prepareSignatureContexts(doc, false);
-    saveDocForSigning(doc, device);
+    saveDocForSigning(doc, device, saveOptions);
     appendDataForSigning(contexts, device, nullptr, tmpbuff);
     computeSignatures(contexts, doc, device, nullptr, tmpbuff);
 }
@@ -148,7 +149,7 @@ unordered_map<PdfSignerId, PdfSigningContext::SignatureCtx> PdfSigningContext::p
     return ret;
 }
 
-void PdfSigningContext::saveDocForSigning(PdfMemDocument& doc, StreamDevice& device)
+void PdfSigningContext::saveDocForSigning(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions saveOptions)
 {
     auto& form = doc.GetOrCreateAcroForm();
 
@@ -165,7 +166,7 @@ void PdfSigningContext::saveDocForSigning(PdfMemDocument& doc, StreamDevice& dev
         acroForm->GetDictionary().RemoveKey("NeedAppearances");
     }
 
-    doc.SaveUpdate(device, m_SaveOptions);
+    doc.SaveUpdate(device, saveOptions);
     device.Flush();
 }
 
