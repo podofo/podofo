@@ -272,11 +272,13 @@ void PdfEncodingMap::AppendUTF16CodeTo(OutputStream& stream, const unicodeview& 
 
 void PdfEncodingMap::AppendCodeSpaceRange(OutputStream& stream, charbuff& temp) const
 {
+    stream.Write("1 begincodespacerange\n");
     auto& limits = GetLimits();
     limits.FirstChar.WriteHexTo(temp);
     stream.Write(temp);
     limits.LastChar.WriteHexTo(temp);
     stream.Write(temp);
+    stream.Write("\nendcodespacerange\n");
 }
 
 PdfEncodingMapBase::PdfEncodingMapBase(PdfCharCodeMap&& map, PdfEncodingMapType type)
@@ -333,6 +335,9 @@ void PdfEncodingMapBase::AppendCodeSpaceRange(OutputStream& stream, charbuff& te
         }
     }
 
+    stream.Write(std::to_string(ranges.size()));
+    stream.Write(" begincodespacerange\n");
+
     bool first = true;
     for (auto& pair : ranges)
     {
@@ -347,6 +352,8 @@ void PdfEncodingMapBase::AppendCodeSpaceRange(OutputStream& stream, charbuff& te
         range.LastCode.WriteHexTo(temp);
         stream.Write(temp);
     }
+
+    stream.Write("\nendcodespacerange\n");
 }
 
 void PdfEncodingMapBase::AppendToUnicodeEntries(OutputStream& stream, charbuff& temp) const
