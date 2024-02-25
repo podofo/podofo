@@ -566,7 +566,7 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
         ">> def\n"
         "/CMapName /{} def\n"
         "/CMapType 1 def\n"     // As defined in Adobe Technical Notes #5099
-        "1 begincodespacerange\n", fontName, cmapName);
+        , fontName, cmapName);
     output.Write(temp);
 
     if (font.IsSubsettingEnabled())
@@ -598,6 +598,9 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
             }
         }
 
+        output.Write(std::to_string(ranges.size()));
+        output.Write(" begincodespacerange\n");
+
         bool first = true;
         for (auto& pair : ranges)
         {
@@ -612,13 +615,13 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
             range.LastCode.WriteHexTo(temp);
             output.Write(temp);
         }
+
+        output.Write("\nendcodespacerange\n");
     }
     else
     {
         m_Encoding->AppendCodeSpaceRange(output, temp);
     }
-
-    output.Write("\nendcodespacerange\n");
 
     if (font.IsSubsettingEnabled())
     {
@@ -669,10 +672,8 @@ void PdfEncoding::writeToUnicodeCMap(PdfObject& cmapObj) const
         "   /Supplement 0\n"
         ">> def\n"
         "/CMapName /Adobe-Identity-UCS def\n"
-        "/CMapType 2 def\n"     // As defined in Adobe Technical Notes #5099
-        "1 begincodespacerange\n");
+        "/CMapType 2 def\n");     // As defined in Adobe Technical Notes #5099
     toUnicode.AppendCodeSpaceRange(output, temp);
-    output.Write("\nendcodespacerange\n");
 
     toUnicode.AppendToUnicodeEntries(output, temp);
     output.Write(
