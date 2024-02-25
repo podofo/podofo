@@ -620,11 +620,7 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
     }
     else
     {
-        output.Write("1 begincodespacerange\n");
-
         m_Encoding->AppendCodeSpaceRange(output, temp);
-
-        output.Write("\nendcodespacerange\n");
     }
 
     if (font.IsSubsettingEnabled())
