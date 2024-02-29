@@ -571,48 +571,34 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
 
     if (font.IsSubsettingEnabled())
     {
-        struct Limit
-        {
-            PdfCharCode FirstCode;
-            PdfCharCode LastCode;
-        };
-
-        unordered_map<unsigned char, Limit> ranges;
         auto& usedGids = font.GetUsedGIDs();
+        unordered_set<unsigned char> usedCodeSpaceSizes;
         for (auto& pair : usedGids)
         {
             auto& codeUnit = pair.second.Unit;
-            auto found = ranges.find(codeUnit.CodeSpaceSize);
-            if (found == ranges.end())
-            {
-                ranges[codeUnit.CodeSpaceSize] = Limit{ codeUnit, codeUnit };
-            }
-            else
-            {
-                auto& limit = found->second;
-                if (codeUnit.Code < limit.FirstCode.Code)
-                    limit.FirstCode = codeUnit;
-
-                if (codeUnit.Code > limit.LastCode.Code)
-                    limit.LastCode = codeUnit;
-            }
+            auto codeSpaceSize = codeUnit.CodeSpaceSize;
+            usedCodeSpaceSizes.insert(codeSpaceSize);
         }
 
-        output.Write(std::to_string(ranges.size()));
+        output.Write(std::to_string(usedCodeSpaceSizes.size()));
         output.Write(" begincodespacerange\n");
 
         bool first = true;
-        for (auto& pair : ranges)
+        for (auto& usedCodeSpaceSize : usedCodeSpaceSizes)
         {
             if (first)
                 first = false;
             else
                 output.Write("\n");
 
-            auto& range = pair.second;
-            range.FirstCode.WriteHexTo(temp);
+            utls::FSSUTFRange range = utls::GetFSSUTFRange(usedCodeSpaceSize);
+
+            PdfCharCode FirstCode(range.FirstCode);
+            PdfCharCode LastCode(range.LastCode);
+
+            FirstCode.WriteHexTo(temp);
             output.Write(temp);
-            range.LastCode.WriteHexTo(temp);
+            LastCode.WriteHexTo(temp);
             output.Write(temp);
         }
 

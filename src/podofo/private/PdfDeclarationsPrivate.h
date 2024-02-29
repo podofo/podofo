@@ -365,6 +365,15 @@ namespace utls
 
     unsigned FSSUTFEncode(unsigned value);
 
+    struct FSSUTFRange
+    {
+        unsigned FirstCode;
+        unsigned LastCode;
+    };
+
+    FSSUTFRange GetFSSUTFRange(unsigned char size);
+
+
     template<typename T>
     void move(T& in, T& out)
     {

@@ -309,47 +309,34 @@ void PdfEncodingMapBase::AppendCIDMappingEntries(OutputStream& stream, const Pdf
 void PdfEncodingMapBase::AppendCodeSpaceRange(OutputStream& stream, charbuff& temp) const
 {
     // CHECK-ME: The limit inferr may be not needed anymore
-    struct Limit
-    {
-        PdfCharCode FirstCode;
-        PdfCharCode LastCode;
-    };
-
     unordered_map<unsigned char, Limit> ranges;
+    unordered_set<unsigned char> usedCodeSpaceSizes;
     for (auto& pair : *m_charMap)
     {
         auto& codeUnit = pair.first;
-        auto found = ranges.find(codeUnit.CodeSpaceSize);
-        if (found == ranges.end())
-        {
-            ranges[codeUnit.CodeSpaceSize] = Limit{ codeUnit, codeUnit };
-        }
-        else
-        {
-            auto& limit = found->second;
-            if (codeUnit.Code < limit.FirstCode.Code)
-                limit.FirstCode = codeUnit;
-
-            if (codeUnit.Code > limit.LastCode.Code)
-                limit.LastCode = codeUnit;
-        }
+        auto codeSpaceSize = codeUnit.CodeSpaceSize;
+        usedCodeSpaceSizes.insert(codeSpaceSize);
     }
 
     stream.Write(std::to_string(ranges.size()));
     stream.Write(" begincodespacerange\n");
 
     bool first = true;
-    for (auto& pair : ranges)
+    for (auto& usedCodeSpaceSize : usedCodeSpaceSizes)
     {
         if (first)
             first = false;
         else
             stream.Write("\n");
 
-        auto& range = pair.second;
-        range.FirstCode.WriteHexTo(temp);
+        utls::FSSUTFRange range = utls::GetFSSUTFRange(usedCodeSpaceSize);
+
+        PdfCharCode FirstCode(range.FirstCode);
+        PdfCharCode LastCode(range.LastCode);
+
+        FirstCode.WriteHexTo(temp);
         stream.Write(temp);
-        range.LastCode.WriteHexTo(temp);
+        LastCode.WriteHexTo(temp);
         stream.Write(temp);
     }
 

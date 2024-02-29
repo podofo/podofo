@@ -1334,6 +1334,16 @@ unsigned utls::FSSUTFEncode(unsigned code)
     return 0;
 }
 
+utls::FSSUTFRange utls::GetFSSUTFRange(unsigned char size)
+{
+    if (size == 1) return utls::FSSUTFRange{ 0x00, 0x7F };
+    else if (size == 2) return utls::FSSUTFRange{ 0xC280, 0xDFBF };
+    else if (size == 3) return utls::FSSUTFRange{ 0xE0A080, 0xE0BFBF };
+    else if (size == 4) return utls::FSSUTFRange{ 0xE18080, 0xEFBFBF };
+
+    return utls::FSSUTFRange{ 0, 0 };
+}
+
 void utls::WriteUInt32BE(OutputStream& output, uint32_t value)
 {
     char buf[4];
