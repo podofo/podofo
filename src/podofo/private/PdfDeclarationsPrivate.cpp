@@ -1316,6 +1316,24 @@ unsigned utls::GetCharCodeMaxValue(unsigned char codeSize)
     return (unsigned)(std::pow(2, codeSize * CHAR_BIT)) - 1;
 }
 
+unsigned utls::FSSUTFEncode(unsigned code)
+{
+    if (code <= 0x7f) {
+        return code & 0xff;
+    }
+    if (code <= 0x7ff) {
+        return ((0xc0 | (code >> 6)) << 8) | (0x80 | (code & 0x3f));
+    }
+    if (code <= 0xffff) {
+        return ((0xe0 | (code >> 12)) << 16) | ((0x80 | ((code >> 6) & 0x3f)) << 8) | (0x80 | (code & 0x3f));
+    }
+    if (code <= 0x10ffff) {
+        return ((0xf0 | (code >> 18)) << 24) | ((0x80 | ((code >> 12) & 0x3f)) << 16) | ((0x80 | ((code >> 6) & 0x3f)) << 8) | (0x80 | (code & 0x3f));
+    }
+
+    return 0;
+}
+
 void utls::WriteUInt32BE(OutputStream& output, uint32_t value)
 {
     char buf[4];

@@ -363,6 +363,8 @@ namespace utls
     // Returns pow(2, size * 8) - 1
     unsigned GetCharCodeMaxValue(unsigned char codeSize);
 
+    unsigned FSSUTFEncode(unsigned value);
+
     template<typename T>
     void move(T& in, T& out)
     {
