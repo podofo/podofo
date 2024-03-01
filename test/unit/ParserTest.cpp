@@ -2707,6 +2707,25 @@ TEST_CASE("testLoopingOutlines")
     }
 }
 
+TEST_CASE("TestReset")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("Hierarchies1.pdf"));
+
+    {
+        REQUIRE(doc.GetMetadata().GetCreator().value().GetString() == "Adobe Acrobat 18.0");
+        auto& page = doc.GetPages().GetPageAt(0);
+        auto& widget = dynamic_cast<PdfAnnotationWidget&>(page.GetAnnotations().GetAnnotAt(19));
+        auto& textbox = dynamic_cast<PdfTextBox&>(widget.GetField());
+        REQUIRE(textbox.GetName().value().GetString() == "barcodePagina1");
+    }
+
+    doc.Reset();
+
+    REQUIRE(doc.GetPages().GetCount() == 0);
+    REQUIRE(doc.GetMetadata().GetCreator() == nullptr);
+}
+
 string generateXRefEntries(size_t count)
 {
     string strXRefEntries;

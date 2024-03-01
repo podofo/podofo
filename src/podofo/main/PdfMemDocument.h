@@ -237,10 +237,11 @@ private:
      */
     void initFromParser(PdfParser& parser);
 
-    /** Clear all internal variables
-     */
-    void Clear();
+    /** Clear all variables that have internal memory usage
+      */
     void clear();
+
+    void reset();
 
     void beforeWrite(PdfSaveOptions options);
 

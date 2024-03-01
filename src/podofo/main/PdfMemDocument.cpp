@@ -67,19 +67,20 @@ PdfMemDocument::PdfMemDocument(const PdfMemDocument& rhs) :
         m_Encrypt = PdfEncrypt::CreateFromObject(*encryptObj);
 }
 
-void PdfMemDocument::Clear()
-{
-    // Do clear both locally defined variables and inherited ones
-    clear();
-    PdfDocument::Clear();
-}
-
 void PdfMemDocument::clear()
 {
-    m_HasXRefStream = false;
-    m_PrevXRefOffset = -1;
+    // NOTE: Here we clear only variables that have memory
+    // usage. The other variables get initialized by parsing or reset
     m_Encrypt = nullptr;
     m_device = nullptr;
+}
+
+void PdfMemDocument::reset()
+{
+    m_Version = PdfVersionDefault;
+    m_InitialVersion = PdfVersionDefault;
+    m_HasXRefStream = false;
+    m_PrevXRefOffset = -1;
 }
 
 void PdfMemDocument::initFromParser(PdfParser& parser)

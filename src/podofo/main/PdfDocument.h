@@ -202,6 +202,10 @@ public:
 
     const PdfOutlines& MustGetOutlines() const;
 
+    /** Clear all internal structures and reset PdfDocument to an empty state.
+      */
+    void Reset();
+
 public:
     virtual const PdfEncrypt* GetEncrypt() const = 0;
 
@@ -309,10 +313,13 @@ protected:
      */
     void Init();
 
-    /** Clear all internal variables
-     *  and reset PdfDocument to an initial state.
-     */
+    virtual void reset();
+
+    /** Clear all variables that have internal memory usage
+      */
     void Clear();
+
+    virtual void clear();
 
     /** Get the PDF version of the document
      *  \returns PdfVersion version of the pdf document
@@ -349,6 +356,8 @@ private:
     void deletePages(unsigned atIndex, unsigned pageCount);
 
     PdfAction* createAction(const std::type_info& typeInfo);
+
+    void resetPrivate();
 
 private:
     PdfDocument& operator=(const PdfDocument&) = delete;

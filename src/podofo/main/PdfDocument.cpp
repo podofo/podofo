@@ -38,22 +38,7 @@ PdfDocument::PdfDocument(bool empty) :
     m_FontManager(*this)
 {
     if (!empty)
-    {
-        m_TrailerObj.reset(new PdfObject()); // The trailer is NO part of the vector of objects
-        m_TrailerObj->SetDocument(this);
-        auto& catalog = m_Objects.CreateDictionaryObject("Catalog");
-        m_Trailer.reset(new PdfTrailer(*m_TrailerObj));
-
-        m_Catalog.reset(new PdfCatalog(catalog));
-        m_TrailerObj->GetDictionary().AddKeyIndirect("Root", catalog);
-
-        auto& info = m_Objects.CreateDictionaryObject();
-        m_Info.reset(new PdfInfo(info,
-            PdfInfoInitial::WriteProducer | PdfInfoInitial::WriteCreationTime));
-        m_TrailerObj->GetDictionary().AddKeyIndirect("Info", info);
-
-        Init();
-    }
+        resetPrivate();
 }
 
 PdfDocument::PdfDocument(const PdfDocument& doc) :
@@ -70,9 +55,24 @@ PdfDocument::~PdfDocument()
     // NOTE: Members will autoclear
 }
 
-void PdfDocument::Clear() 
+void PdfDocument::Reset()
+{
+    Clear();
+    resetPrivate();
+    reset();
+}
+
+void PdfDocument::reset()
+{
+    // Do nothing, to be overridden
+}
+
+void PdfDocument::Clear()
 {
     m_FontManager.Clear();
+    m_Metadata.Invalidate();
+    m_TrailerObj = nullptr;
+    m_Trailer = nullptr;
     m_Catalog = nullptr;
     m_Info = nullptr;
     m_Pages = nullptr;
@@ -81,6 +81,12 @@ void PdfDocument::Clear()
     m_NameTree = nullptr;
     m_Objects.Clear();
     m_Objects.SetCanReuseObjectNumbers(true);
+    clear();
+}
+
+void PdfDocument::clear()
+{
+    // Do nothing, to be overridden
 }
 
 void PdfDocument::Init()
@@ -338,6 +344,24 @@ void PdfDocument::deletePages(unsigned atIndex, unsigned pageCount)
 PdfAction* PdfDocument::createAction(const type_info& typeInfo)
 {
     return PdfAction::Create(*this, typeInfo);
+}
+
+void PdfDocument::resetPrivate()
+{
+    m_TrailerObj.reset(new PdfObject()); // The trailer is NO part of the vector of objects
+    m_TrailerObj->SetDocument(this);
+    auto& catalog = m_Objects.CreateDictionaryObject("Catalog");
+    m_Trailer.reset(new PdfTrailer(*m_TrailerObj));
+
+    m_Catalog.reset(new PdfCatalog(catalog));
+    m_TrailerObj->GetDictionary().AddKeyIndirect("Root", catalog);
+
+    auto& info = m_Objects.CreateDictionaryObject();
+    m_Info.reset(new PdfInfo(info,
+        PdfInfoInitial::WriteProducer | PdfInfoInitial::WriteCreationTime));
+    m_TrailerObj->GetDictionary().AddKeyIndirect("Info", info);
+
+    Init();
 }
 
 PdfInfo& PdfDocument::GetOrCreateInfo()
