@@ -25,7 +25,10 @@ class PdfIndirectObjectList;
  */
 class PdfXRefStream : public PdfXRef
 {
-public:
+    friend class PdfWriter;
+    friend class PdfImmediateWriter;
+
+private:
     /** Create a new XRef table
      *
      *  \param writer is needed to fill the trailer directory
@@ -35,6 +38,7 @@ public:
      */
     PdfXRefStream(PdfWriter& writer);
 
+public:
     uint64_t GetOffset() const override;
 
     bool ShouldSkipWrite(const PdfReference& ref) override;

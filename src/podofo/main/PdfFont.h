@@ -26,13 +26,13 @@ class PdfCharCodeMap;
 
 using UsedGIDsMap = std::map<unsigned, PdfCID>;
 
-struct PdfFontCreateParams
+struct PODOFO_API PdfFontCreateParams final
 {
     PdfEncoding Encoding;
     PdfFontCreateFlags Flags = PdfFontCreateFlags::None;
 };
 
-struct PdfSplittedString
+struct PODOFO_API PdfSplittedString final
 {
     PdfString String;
     bool IsSeparator = false;

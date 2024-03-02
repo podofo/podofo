@@ -24,7 +24,7 @@ class PdfDictionary;
 class PdfIndirectObjectList;
 class InputStream;
 
-struct PdfTextEntry final
+struct PODOFO_API PdfTextEntry final
 {
     std::string Text;
     int Page;
@@ -34,7 +34,7 @@ struct PdfTextEntry final
     nullable<Rect> BoundingBox;
 };
 
-struct PdfTextExtractParams
+struct PODOFO_API PdfTextExtractParams final
 {
     nullable<Rect> ClipRect;
     PdfTextExtractFlags Flags;

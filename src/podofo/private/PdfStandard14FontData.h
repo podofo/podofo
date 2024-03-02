@@ -11,7 +11,7 @@
 
 namespace PoDoFo {
 
-struct Standard14FontData
+struct Standard14FontData final
 {
     const unsigned short* Widths;
     unsigned WidthsSize;

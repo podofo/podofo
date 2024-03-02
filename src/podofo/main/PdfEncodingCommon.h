@@ -42,7 +42,7 @@ namespace PoDoFo
 
     /** Represent a CID (Character ID) with full code unit information
      */
-    struct PdfCID final
+    struct PODOFO_API PdfCID final
     {
         unsigned Id;
         PdfCharCode Unit;

@@ -26,7 +26,7 @@ namespace PoDoFo {
 class PdfIndirectObjectList;
 class PdfResources;
 
-struct PdfFontSearchParams
+struct PODOFO_API PdfFontSearchParams final
 {
     nullable<PdfFontStyle> Style;
     PdfFontAutoSelectBehavior AutoSelect = PdfFontAutoSelectBehavior::None;

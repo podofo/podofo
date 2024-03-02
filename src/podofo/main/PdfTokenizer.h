@@ -40,7 +40,7 @@ enum class PdfPostScriptLanguageLevel
     L2 = 2,
 };
 
-struct PdfTokenizerOptions
+struct PODOFO_API PdfTokenizerOptions final
 {
     PdfPostScriptLanguageLevel LanguageLevel = PdfPostScriptLanguageLevel::L2;
     bool ReadReferences = true;

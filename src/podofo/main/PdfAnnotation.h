@@ -16,7 +16,7 @@ namespace PoDoFo {
 class PdfPage;
 class PdfXObjectForm;
 
-struct PdfAppearanceIdentity final
+struct PODOFO_API PdfAppearanceIdentity final
 {
     const PdfObject* Object;
     PdfAppearanceType Type;

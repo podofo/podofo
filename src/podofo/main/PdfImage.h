@@ -21,7 +21,7 @@ class PdfArray;
 class PdfDocument;
 class InputStream;
 
-struct PdfImageInfo
+struct PODOFO_API PdfImageInfo final
 {
     unsigned Width = 0;
     unsigned Height = 0;

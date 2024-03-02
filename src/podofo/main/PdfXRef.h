@@ -24,6 +24,16 @@ class OutputStreamDevice;
  */
 class PdfXRef
 {
+    friend class PdfWriter;
+    friend class PdfImmediateWriter;
+    friend class PdfXRefStream;
+
+private:
+    PdfXRef(PdfWriter& writer);
+
+public:
+    virtual ~PdfXRef();
+
 protected:
     struct XRefItem
     {
@@ -65,10 +75,6 @@ protected:
     };
 
     using XRefBlockList = std::vector<PdfXRefBlock>;
-
-public:
-    PdfXRef(PdfWriter& pWriter);
-    virtual ~PdfXRef();
 
 public:
 

@@ -37,7 +37,7 @@ namespace PoDoFo
         ServiceDoDryRun = 2,
     };
 
-    struct PdfSignerCmsParams
+    struct PODOFO_API PdfSignerCmsParams final
     {
         PdfSignatureType SignatureType = PdfSignatureType::PAdES_B;
         PdfEncryptionAlgorithm Encryption = PdfEncryptionAlgorithm::RSA;

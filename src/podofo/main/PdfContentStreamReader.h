@@ -42,7 +42,7 @@ enum class PdfContentWarnings
 
 /** Content as read from content streams
  */
-struct PdfContent
+struct PODOFO_API PdfContent final
 {
     PdfContentType Type = PdfContentType::Unknown;
     PdfContentWarnings Warnings = PdfContentWarnings::None;
@@ -68,7 +68,7 @@ enum class PdfContentReaderFlags
  */
 using PdfInlineImageHandler = std::function<bool(const PdfDictionary& imageDict, InputStreamDevice& device)>;
 
-struct PdfContentReaderArgs
+struct PODOFO_API PdfContentReaderArgs final
 {
     PdfContentReaderFlags Flags = PdfContentReaderFlags::None;
     PdfInlineImageHandler InlineImageHandler;

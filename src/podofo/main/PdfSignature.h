@@ -29,7 +29,7 @@ enum class PdfCertPermission
     Annotations = 3,
 };
 
-struct PdfSignatureBeacons
+struct PdfSignatureBeacons final
 {
     PdfSignatureBeacons();
     charbuff ContentsBeacon;
@@ -58,24 +58,6 @@ public:
      *  \param state the state for which set it the obj; states depend on the annotation type
      */
     void SetAppearanceStream(PdfXObjectForm& obj, PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
-
-    /** Create space for signature
-     *
-     * Structure of the PDF file - before signing:
-     * <</ByteRange[ 0 1234567890 1234567890 1234567890]/Contents<signatureData>
-     * Have to be replaiced with the following structure:
-     * <</ByteRange[ 0 count pos count]/Contents<real signature ...0-padding>
-     *
-     * \param filter /Filter for this signature
-     * \param subFilter /SubFilter for this signature
-     * \param subFilter /Type for this signature
-     * \param beacons Shared sentinels that will updated
-     *                during writing of the document
-     */
-    void PrepareForSigning(const std::string_view& filter,
-        const std::string_view& subFilter,
-        const std::string_view& type,
-        const PdfSignatureBeacons& beacons);
 
     /** Set the signer name
     *
@@ -149,6 +131,24 @@ protected:
     PdfObject* getValueObject() const;
 
 private:
+    /** Create space for signature
+     *
+     * Structure of the PDF file - before signing:
+     * <</ByteRange[ 0 1234567890 1234567890 1234567890]/Contents<signatureData>
+     * Have to be replaiced with the following structure:
+     * <</ByteRange[ 0 count pos count]/Contents<real signature ...0-padding>
+     *
+     * \param filter /Filter for this signature
+     * \param subFilter /SubFilter for this signature
+     * \param subFilter /Type for this signature
+     * \param beacons Shared sentinels that will updated
+     *                during writing of the document
+     */
+    void PrepareForSigning(const std::string_view& filter,
+        const std::string_view& subFilter,
+        const std::string_view& type,
+        const PdfSignatureBeacons& beacons);
+
     // To be called by SignDocument()
     void SetContentsByteRangeNoDirtySet(const bufferview& contents, PdfArray&& byteRange);
 
