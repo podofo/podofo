@@ -22,7 +22,8 @@ private:
     PdfFontObject(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);
 
-public:
+private:
+    // To be used by PdfFont
     static std::unique_ptr<PdfFontObject> Create(PdfObject& obj, PdfObject& descendantObj,
         const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding);
 

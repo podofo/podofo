@@ -21,7 +21,12 @@ class OutputStream;
  */
 class PODOFO_API PdfDataProvider
 {
-protected:
+    friend class PdfDataContainer;
+    friend class PdfData;
+    friend class PdfString;
+    friend class PdfName;
+
+private:
     /** Create a new PdfDataProvider.
      *  Can only be called by subclasses
      */

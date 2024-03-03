@@ -23,7 +23,7 @@ class PdfIndirectObjectList;
  *
  * This is an internal class of PoDoFo used by PdfWriter.
  */
-class PdfXRefStream : public PdfXRef
+class PdfXRefStream final : public PdfXRef
 {
     friend class PdfWriter;
     friend class PdfImmediateWriter;

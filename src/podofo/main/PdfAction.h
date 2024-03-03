@@ -75,6 +75,7 @@ class PODOFO_API PdfAction : public PdfDictionaryElement
     friend class PdfActionGoTo3DView;
     friend class PdfActionRichMediaExecute;
 
+private:
     PdfAction(PdfDocument& doc, PdfActionType action);
 
     PdfAction(PdfObject& obj, PdfActionType type);
@@ -111,7 +112,7 @@ private:
 };
 
 
-class PODOFO_API PdfActionGoTo : public PdfAction
+class PODOFO_API PdfActionGoTo final : public PdfAction
 {
     friend class PdfAction;
 
@@ -123,7 +124,7 @@ class PODOFO_API PdfActionGoTo : public PdfAction
 public:
 };
 
-class PODOFO_API PdfActionGoToR : public PdfAction
+class PODOFO_API PdfActionGoToR final : public PdfAction
 {
     friend class PdfAction;
 
@@ -135,7 +136,7 @@ class PODOFO_API PdfActionGoToR : public PdfAction
 public:
 };
 
-class PODOFO_API PdfActionGoToE : public PdfAction
+class PODOFO_API PdfActionGoToE final : public PdfAction
 {
     friend class PdfAction;
 
@@ -147,7 +148,7 @@ class PODOFO_API PdfActionGoToE : public PdfAction
 public:
 };
 
-class PODOFO_API PdfActionLaunch : public PdfAction
+class PODOFO_API PdfActionLaunch final : public PdfAction
 {
     friend class PdfAction;
 
@@ -159,7 +160,7 @@ class PODOFO_API PdfActionLaunch : public PdfAction
 public:
 };
 
-class PODOFO_API PdfActionThread : public PdfAction
+class PODOFO_API PdfActionThread final : public PdfAction
 {
     friend class PdfAction;
 
@@ -171,7 +172,7 @@ class PODOFO_API PdfActionThread : public PdfAction
 public:
 };
 
-class PODOFO_API PdfActionURI : public PdfAction
+class PODOFO_API PdfActionURI final : public PdfAction
 {
     friend class PdfAction;
 
@@ -193,7 +194,7 @@ public:
     nullable<const PdfString&> GetURI() const;
 };
 
-class PODOFO_API PdfActionSound : public PdfAction
+class PODOFO_API PdfActionSound final : public PdfAction
 {
     friend class PdfAction;
 
@@ -205,7 +206,7 @@ class PODOFO_API PdfActionSound : public PdfAction
 public:
 };
 
-class PODOFO_API PdfActionMovie : public PdfAction
+class PODOFO_API PdfActionMovie final : public PdfAction
 {
     friend class PdfAction;
 
@@ -217,7 +218,7 @@ class PODOFO_API PdfActionMovie : public PdfAction
 public:
 };
 
-class PODOFO_API PdfActionHide : public PdfAction
+class PODOFO_API PdfActionHide final : public PdfAction
 {
     friend class PdfAction;
 
@@ -229,7 +230,7 @@ class PODOFO_API PdfActionHide : public PdfAction
 public:
 };
 
-class PODOFO_API PdfActionNamed : public PdfAction
+class PODOFO_API PdfActionNamed final : public PdfAction
 {
     friend class PdfAction;
 
@@ -241,7 +242,7 @@ class PODOFO_API PdfActionNamed : public PdfAction
 public:
 };
 
-class PODOFO_API PdfActionSubmitForm : public PdfAction
+class PODOFO_API PdfActionSubmitForm final : public PdfAction
 {
     friend class PdfAction;
 
@@ -253,7 +254,7 @@ class PODOFO_API PdfActionSubmitForm : public PdfAction
 public:
 };
 
-class PODOFO_API PdfActionResetForm : public PdfAction
+class PODOFO_API PdfActionResetForm final : public PdfAction
 {
     friend class PdfAction;
 
@@ -265,7 +266,7 @@ class PODOFO_API PdfActionResetForm : public PdfAction
 public:
 };
 
-class PODOFO_API PdfActionImportData : public PdfAction
+class PODOFO_API PdfActionImportData final : public PdfAction
 {
     friend class PdfAction;
 
@@ -277,7 +278,7 @@ class PODOFO_API PdfActionImportData : public PdfAction
 public:
 };
 
-class PODOFO_API PdfActionJavaScript : public PdfAction
+class PODOFO_API PdfActionJavaScript final : public PdfAction
 {
     friend class PdfAction;
 
@@ -292,7 +293,7 @@ public:
     nullable<const PdfString&> GetScript() const;
 };
 
-class PODOFO_API PdfActionSetOCGState : public PdfAction
+class PODOFO_API PdfActionSetOCGState final : public PdfAction
 {
     friend class PdfAction;
 
@@ -304,7 +305,7 @@ class PODOFO_API PdfActionSetOCGState : public PdfAction
 public:
 };
 
-class PODOFO_API PdfActionRendition : public PdfAction
+class PODOFO_API PdfActionRendition final : public PdfAction
 {
     friend class PdfAction;
 
@@ -328,7 +329,7 @@ class PODOFO_API PdfActionTrans : public PdfAction
 public:
 };
 
-class PODOFO_API PdfActionGoTo3DView : public PdfAction
+class PODOFO_API PdfActionGoTo3DView final : public PdfAction
 {
     friend class PdfAction;
 
@@ -340,7 +341,7 @@ class PODOFO_API PdfActionGoTo3DView : public PdfAction
 public:
 };
 
-class PODOFO_API PdfActionRichMediaExecute : public PdfAction
+class PODOFO_API PdfActionRichMediaExecute final : public PdfAction
 {
     friend class PdfAction;
 

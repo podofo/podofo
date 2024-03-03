@@ -7,9 +7,7 @@
 #ifndef PDF_OBJECT_STREAM_PARSER_OBJECT_H
 #define PDF_OBJECT_STREAM_PARSER_OBJECT_H
 
-#include "PdfDeclarations.h"
-
-#include "PdfParserObject.h"
+#include <podofo/main/PdfParserObject.h>
 
 namespace PoDoFo {
 

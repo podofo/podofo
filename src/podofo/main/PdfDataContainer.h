@@ -22,8 +22,10 @@ class PdfReference;
 class PODOFO_API PdfDataContainer : public PdfDataProvider
 {
     friend class PdfObject;
+    friend class PdfArray;
+    friend class PdfDictionary;
 
-protected:
+private:
     /** Create a new PdfDataOwnedType
      * Can only be called by subclasses
      * \remarks We don't define copy/move constructor as the

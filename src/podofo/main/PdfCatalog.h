@@ -13,7 +13,9 @@ namespace PoDoFo
 {
     class PODOFO_API PdfCatalog final : public PdfDictionaryElement
     {
-    public:
+        friend class PdfDocument;
+
+    private:
         PdfCatalog(PdfObject& obj);
 
     public:

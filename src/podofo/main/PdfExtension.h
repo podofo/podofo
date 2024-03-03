@@ -13,11 +13,14 @@ namespace PoDoFo {
     /** PdfExtension is a simple class that describes a vendor-specific extension to
      *  the official specifications.
      */
-    class PODOFO_API PdfExtension
+    class PODOFO_API PdfExtension final
     {
-    public:
+        friend class PdfMemDocument;
+
+    private:
         PdfExtension(const std::string_view& ns, PdfVersion baseVersion, int64_t level);
-        
+
+    public:
         inline const std::string& GetNamespace() const { return m_Ns; }
         PdfVersion GetBaseVersion() const { return m_BaseVersion; }
         int64_t GetLevel() const { return m_Level; }

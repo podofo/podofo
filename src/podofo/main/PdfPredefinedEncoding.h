@@ -25,7 +25,11 @@ namespace PoDoFo
      */
     class PODOFO_API PdfPredefinedEncoding : public PdfBuiltInEncoding
     {
-    protected:
+        friend class PdfWinAnsiEncoding;
+        friend class PdfMacRomanEncoding;
+        friend class PdfMacExpertEncoding;
+
+    private:
         PdfPredefinedEncoding(const PdfName& name);
 
     protected:
@@ -43,7 +47,7 @@ namespace PoDoFo
      *
      * \see PdfFont::WinAnsiEncoding
      */
-    class PODOFO_API PdfWinAnsiEncoding : public PdfPredefinedEncoding
+    class PODOFO_API PdfWinAnsiEncoding final : public PdfPredefinedEncoding
     {
         friend class PdfEncodingMapFactory;
         friend class PdfWin1250Encoding;

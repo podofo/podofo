@@ -38,7 +38,7 @@ struct PdfSignatureBeacons final
     std::shared_ptr<size_t> ByteRangeOffset;
 };
 
-class PODOFO_API PdfSignature : public PdfField
+class PODOFO_API PdfSignature final : public PdfField
 {
     friend class PdfField;
     friend class PdfSigningContext;

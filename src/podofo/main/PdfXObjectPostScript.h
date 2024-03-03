@@ -11,7 +11,7 @@
 
 namespace PoDoFo {
 
-class PODOFO_API PdfXObjectPostScript : public PdfXObject
+class PODOFO_API PdfXObjectPostScript final : public PdfXObject
 {
     friend class PdfXObject;
 

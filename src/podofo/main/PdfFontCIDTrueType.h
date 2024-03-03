@@ -13,7 +13,7 @@ namespace PoDoFo {
 
 /** A PdfFont that represents a CID-keyed font that has a TrueType font backend
  */
-class PdfFontCIDTrueType final : public PdfFontCID
+class PODOFO_API PdfFontCIDTrueType final : public PdfFontCID
 {
     friend class PdfFont;
 

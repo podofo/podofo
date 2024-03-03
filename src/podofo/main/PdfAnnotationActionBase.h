@@ -13,7 +13,7 @@
 
 namespace PoDoFo {
 
-    class PODOFO_API PdfAppearanceCharacteristics : public PdfDictionaryElement
+    class PODOFO_API PdfAppearanceCharacteristics final : public PdfDictionaryElement
     {
         template<typename T>
         friend class PdfAppearanceCharacteristicsProvider;

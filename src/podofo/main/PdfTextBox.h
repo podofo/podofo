@@ -18,7 +18,7 @@ namespace PoDoFo
      *  as well as richtext. The text can be interpreted
      *  as path to a file which is going to be submitted.
      */
-    class PODOFO_API PdfTextBox : public PdfField
+    class PODOFO_API PdfTextBox final : public PdfField
     {
         friend class PdfField;
     private:

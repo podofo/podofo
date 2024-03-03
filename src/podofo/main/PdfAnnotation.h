@@ -31,8 +31,37 @@ struct PODOFO_API PdfAppearanceIdentity final
 class PODOFO_API PdfAnnotation : public PdfDictionaryElement
 {
     friend class PdfAnnotationCollection;
+    friend class PdfAnnotationTextMarkupBase;
+    friend class PdfAnnotationPopup;
+    friend class PdfAnnotationText;
+    friend class PdfAnnotationCaret;
+    friend class PdfAnnotationFileAttachment;
+    friend class PdfAnnotationFreeText;
+    friend class PdfAnnotationHighlight;
+    friend class PdfAnnotationInk;
+    friend class PdfAnnotationLine;
+    friend class PdfAnnotationModel3D;
+    friend class PdfAnnotationMovie;
+    friend class PdfAnnotationPolygon;
+    friend class PdfAnnotationPolyLine;
+    friend class PdfAnnotationPrinterMark;
+    friend class PdfAnnotationRichMedia;
+    friend class PdfAnnotationScreen;
+    friend class PdfAnnotationSquiggly;
+    friend class PdfAnnotationStrikeOut;
+    friend class PdfAnnotationSound;
+    friend class PdfAnnotationSquare;
+    friend class PdfAnnotationCircle;
+    friend class PdfAnnotationStamp;
+    friend class PdfAnnotationTrapNet;
+    friend class PdfAnnotationUnderline;
+    friend class PdfAnnotationWatermark;
+    friend class PdfAnnotationWebMedia;
+    friend class PdfAnnotationRedact;
+    friend class PdfAnnotationProjection;
+    friend class PdfAnnotationActionBase;
 
-protected:
+private:
     PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const Rect& rect);
     PdfAnnotation(PdfObject& obj, PdfAnnotationType annotType);
 

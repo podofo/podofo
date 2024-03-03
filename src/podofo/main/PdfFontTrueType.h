@@ -19,7 +19,7 @@ namespace PoDoFo {
  *
  *  TrueType fonts are always embedded as suggested in the PDF reference.
  */
-class PdfFontTrueType final : public PdfFontSimple
+class PODOFO_API PdfFontTrueType final : public PdfFontSimple
 {
     friend class PdfFont;
 

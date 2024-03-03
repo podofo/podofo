@@ -14,7 +14,7 @@ namespace PoDoFo
     /** A push button is a button which has no state and value
      *  but can toggle actions.
      */
-    class PODOFO_API PdfPushButton : public PdfButton
+    class PODOFO_API PdfPushButton final : public PdfButton
     {
         friend class PdfField;
 

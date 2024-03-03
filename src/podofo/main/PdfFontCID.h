@@ -13,11 +13,13 @@ namespace PoDoFo {
 
 /** A PdfFont that represents a CID-keyed font
  */
-class PdfFontCID : public PdfFont
+class PODOFO_API PdfFontCID : public PdfFont
 {
     friend class PdfFont;
+    friend class PdfFontCIDTrueType;
+    friend class PdfFontCIDType1;
 
-protected:
+private:
     PdfFontCID(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);
 

@@ -19,7 +19,7 @@ namespace PoDoFo {
  *
  *  Type3 fonts are always embedded.
  */
-class PdfFontType3 final : public PdfFontSimple
+class PODOFO_API PdfFontType3 final : public PdfFontSimple
 {
     friend class PdfFont;
 private:

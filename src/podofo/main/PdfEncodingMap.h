@@ -30,8 +30,12 @@ class PdfFont;
 class PODOFO_API PdfEncodingMap
 {
     friend class PdfEncoding;
+    friend class PdfEncodingMapBase;
+    friend class PdfEncodingMapOneByte;
+    friend class PdfNullEncodingMap;
+    friend class PdfIdentityEncoding;
 
-protected:
+private:
     PdfEncodingMap(PdfEncodingMapType type);
 
 public:
@@ -223,9 +227,13 @@ private:
  */
 class PODOFO_API PdfEncodingMapOneByte : public PdfEncodingMap
 {
-protected:
+    friend class PdfBuiltInEncoding;
+    friend class PdfDifferenceEncoding;
+
+private:
     PdfEncodingMapOneByte(const PdfEncodingLimits& limits);
 
+protected:
     void AppendToUnicodeEntries(OutputStream& stream, charbuff& temp) const override;
 
     void AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const override;
@@ -243,8 +251,13 @@ private:
 class PODOFO_API PdfBuiltInEncoding : public PdfEncodingMapOneByte
 {
     friend class PdfFontMetricsFreetype;
+    friend class PdfPredefinedEncoding;
+    friend class PdfStandardEncoding;
+    friend class PdfSymbolEncoding;
+    friend class PdfZapfDingbatsEncoding;
+    friend class AppleLatin1Encoding;
 
-protected:
+private:
     PdfBuiltInEncoding(const PdfName& name);
 
 public:

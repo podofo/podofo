@@ -13,7 +13,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-namespace
+namespace PoDoFo
 {
     class AppleLatin1Encoding final : public PdfBuiltInEncoding
     {

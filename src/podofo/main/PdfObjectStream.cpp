@@ -14,6 +14,8 @@
 #include "PdfDictionary.h"
 #include <podofo/auxiliary/StreamDevice.h>
 
+#include <podofo/private/PdfFilterFactory.h>
+
 using namespace std;
 using namespace PoDoFo;
 

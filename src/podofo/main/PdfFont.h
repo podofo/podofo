@@ -50,13 +50,14 @@ struct PODOFO_API PdfSplittedString final
  */
 class PODOFO_API PdfFont : public PdfDictionaryElement
 {
+    friend class PdfFontSimple;
+    friend class PdfFontCID;
     friend class PdfFontFactory;
     friend class PdfFontObject;
     friend class PdfEncoding;
     friend class PdfFontManager;
-    friend class PdfFontSimple;
 
-protected:
+private:
     /** Create a new PdfFont object which will introduce itself
      *  automatically to every page object it is used on.
      *
@@ -69,7 +70,6 @@ protected:
     PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);
 
-private:
     /** Create a PdfFont based on an existing PdfObject
      * To be used only by PdfFontObject!
      */

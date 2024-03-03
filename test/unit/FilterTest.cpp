@@ -7,6 +7,7 @@
  */
 
 #include <PdfTest.h>
+#include <podofo/private/PdfFilterFactory.h>
 
 using namespace std;
 using namespace PoDoFo;

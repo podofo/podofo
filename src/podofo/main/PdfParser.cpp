@@ -7,18 +7,19 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfParser.h"
 
+#include <algorithm>
+
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfEncrypt.h"
 #include <podofo/auxiliary/InputDevice.h>
 #include "PdfMemoryObjectStream.h"
-#include "PdfObjectStreamParser.h"
 #include <podofo/auxiliary/OutputDevice.h>
 #include "PdfObjectStream.h"
 #include "PdfVariant.h"
 #include "PdfXRefStreamParserObject.h"
 
-#include <algorithm>
+#include <podofo/private/PdfObjectStreamParser.h>
 
 constexpr unsigned PDF_VERSION_LENGHT = 3;
 constexpr unsigned PDF_MAGIC_LENGHT = 8;

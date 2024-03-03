@@ -1,4 +1,5 @@
 ### 1.0
+- PdfEncoding: Make it final, non virtual
 - PdfMemDocument: Check the DeviceStream is not empty before doing an incremental update/signing operation
 - PdfMemDocument: Prevent Save() operation after signing operation
 - PdfMemDocument: Release the device after all objects have been loaded (eg. after a full Save())
@@ -11,7 +12,7 @@ and reference the face with FT_Reference_Face
 - Evaluate removing PdfObject::Null and PdfVariant::Null and introduce nullptr_t constructor overloads
 - PdfMemDocument: Consider removing SetEncrypt(encrypt)
 - PdfEncrypt: Consider removing CreateFromEncrypt (shared_ptr in PdfMemDocument could be used now)
-- PdfContents: Remove PdfContents::Reset(obj) (keep parameterless) and make constructors private
+- PdfContents: Remove PdfContents::Reset(obj) (keep parameterless)
 - Review/refactor PdfColor: it should use new PdfColorSpace and not define a color space
 - Review all page import functions to check correct working/improve the code
 - Review PdfPageCollection::AppendDocumentPages(),
@@ -19,7 +20,6 @@ and reference the face with FT_Reference_Face
 - PdfCanvas: Add CopyTo facilities, see PdfContents
 - Review PdfNameTree
 - Check accessibility of PdfEncrypt.h classes, check AESV3 naming
-- PdfFilterFactory: Move CreateFilterList somewhere else (PdfFilter), make it private
 - Rename NameToColorSpaceRaw/ColorSpaceToNameRaw to something more consistent?
 - More enum <-> strings functions and make them public
 - Make PdfObjectStream not flate filter by default in PdfMemDocument?

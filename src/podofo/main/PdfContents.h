@@ -16,13 +16,16 @@ class PdfPage;
 /** A interface that provides a wrapper around "PDF content" -
 	the instructions that are used to draw on the PDF "canvas".
  */
-class PODOFO_API PdfContents
+class PODOFO_API PdfContents final
 {
-public:
+    friend class PdfPage;
+
+private:
     PdfContents(PdfPage &parent, PdfObject &obj);
 
     PdfContents(PdfPage &parent);
 
+public:
     /** Reset the contents internal object
      * \param obj the object to set as the /Contents. Must be
      * a dictionary or an array. if nullptr, a new array object
