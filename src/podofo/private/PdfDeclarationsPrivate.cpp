@@ -1316,6 +1316,37 @@ unsigned utls::GetCharCodeMaxValue(unsigned char codeSize)
     return (unsigned)(std::pow(2, codeSize * CHAR_BIT)) - 1;
 }
 
+unsigned utls::FSSUTFEncode(unsigned code)
+{
+    if (code <= 0x7f) {
+        return code & 0xff;
+    }
+    if (code <= 0x7ff) {
+        return ((0xc0 | (code >> 6)) << 8) | (0x80 | (code & 0x3f));
+    }
+    if (code <= 0xffff) {
+        return ((0xe0 | (code >> 12)) << 16) | ((0x80 | ((code >> 6) & 0x3f)) << 8) | (0x80 | (code & 0x3f));
+    }
+    if (code <= 0x10ffff) {
+        return ((0xf0 | (code >> 18)) << 24) | ((0x80 | ((code >> 12) & 0x3f)) << 16) | ((0x80 | ((code >> 6) & 0x3f)) << 8) | (0x80 | (code & 0x3f));
+    }
+
+    return 0;
+}
+
+std::vector<utls::FSSUTFRange> utls::GetFSSUTFRanges(unsigned char size)
+{
+    // According to https://www.unicode.org/versions/corrigendum1.html
+    // Table 3.1B. Legal UTF-8 Byte Sequences
+
+    if (size == 1) return std::vector<utls::FSSUTFRange> { utls::FSSUTFRange{ 0x00, 0x7F } };
+    else if (size == 2) return std::vector<utls::FSSUTFRange> { utls::FSSUTFRange{ 0xC280, 0xDFBF } };
+    else if (size == 3) return std::vector<utls::FSSUTFRange> { utls::FSSUTFRange{ 0xE0A080, 0xE0BFBF }, utls::FSSUTFRange{ 0xE18080, 0xEFBFBF } };
+    else if (size == 4) return std::vector<utls::FSSUTFRange> { utls::FSSUTFRange{ 0xF0908080, 0xF0BFBFBF }, utls::FSSUTFRange{ 0xF1808080, 0xF3BFBFBF }, utls::FSSUTFRange{ 0xF4808080, 0xF48FBFBF } };
+
+    return std::vector<utls::FSSUTFRange> {};
+}
+
 void utls::WriteUInt32BE(OutputStream& output, uint32_t value)
 {
     char buf[4];

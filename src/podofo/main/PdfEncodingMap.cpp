@@ -308,49 +308,44 @@ void PdfEncodingMapBase::AppendCIDMappingEntries(OutputStream& stream, const Pdf
 
 void PdfEncodingMapBase::AppendCodeSpaceRange(OutputStream& stream, charbuff& temp) const
 {
-    // CHECK-ME: The limit inferr may be not needed anymore
-    struct Limit
-    {
-        PdfCharCode FirstCode;
-        PdfCharCode LastCode;
-    };
-
-    unordered_map<unsigned char, Limit> ranges;
+    unordered_set<unsigned char> usedCodeSpaceSizes;
     for (auto& pair : *m_charMap)
     {
         auto& codeUnit = pair.first;
-        auto found = ranges.find(codeUnit.CodeSpaceSize);
-        if (found == ranges.end())
-        {
-            ranges[codeUnit.CodeSpaceSize] = Limit{ codeUnit, codeUnit };
-        }
-        else
-        {
-            auto& limit = found->second;
-            if (codeUnit.Code < limit.FirstCode.Code)
-                limit.FirstCode = codeUnit;
-
-            if (codeUnit.Code > limit.LastCode.Code)
-                limit.LastCode = codeUnit;
-        }
+        auto codeSpaceSize = codeUnit.CodeSpaceSize;
+        usedCodeSpaceSizes.insert(codeSpaceSize);
     }
 
-    stream.Write(std::to_string(ranges.size()));
+    int size = 0;
+    for (auto& usedCodeSpaceSize : usedCodeSpaceSizes)
+    {
+        std::vector<utls::FSSUTFRange> ranges = utls::GetFSSUTFRanges(usedCodeSpaceSize);
+        size += ranges.size();
+    }
+
+    stream.Write(std::to_string(size));
     stream.Write(" begincodespacerange\n");
 
     bool first = true;
-    for (auto& pair : ranges)
+    for (auto& usedCodeSpaceSize : usedCodeSpaceSizes)
     {
-        if (first)
-            first = false;
-        else
-            stream.Write("\n");
+        std::vector<utls::FSSUTFRange> ranges = utls::GetFSSUTFRanges(usedCodeSpaceSize);
 
-        auto& range = pair.second;
-        range.FirstCode.WriteHexTo(temp);
-        stream.Write(temp);
-        range.LastCode.WriteHexTo(temp);
-        stream.Write(temp);
+        for (auto& range : ranges)
+        {
+            if (first)
+                first = false;
+            else
+                stream.Write("\n");
+
+            PdfCharCode firstCode(range.FirstCode);
+            PdfCharCode lastCode(range.LastCode);
+
+            firstCode.WriteHexTo(temp);
+            stream.Write(temp);
+            lastCode.WriteHexTo(temp);
+            stream.Write(temp);
+        }
     }
 
     stream.Write("\nendcodespacerange\n");
