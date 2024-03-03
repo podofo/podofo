@@ -571,49 +571,45 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
 
     if (font.IsSubsettingEnabled())
     {
-        struct Limit
-        {
-            PdfCharCode FirstCode;
-            PdfCharCode LastCode;
-        };
-
-        unordered_map<unsigned char, Limit> ranges;
         auto& usedGids = font.GetUsedGIDs();
+        unordered_set<unsigned char> usedCodeSpaceSizes;
         for (auto& pair : usedGids)
         {
             auto& codeUnit = pair.second.Unit;
-            auto found = ranges.find(codeUnit.CodeSpaceSize);
-            if (found == ranges.end())
-            {
-                ranges[codeUnit.CodeSpaceSize] = Limit{ codeUnit, codeUnit };
-            }
-            else
-            {
-                auto& limit = found->second;
-                if (codeUnit.Code < limit.FirstCode.Code)
-                    limit.FirstCode = codeUnit;
-
-                if (codeUnit.Code > limit.LastCode.Code)
-                    limit.LastCode = codeUnit;
-            }
+            auto codeSpaceSize = codeUnit.CodeSpaceSize;
+            usedCodeSpaceSizes.insert(codeSpaceSize);
         }
 
-        output.Write(std::to_string(ranges.size()));
+        int size = 0;
+        for (auto& usedCodeSpaceSize : usedCodeSpaceSizes)
+        {
+            std::vector<utls::FSSUTFRange> ranges = utls::GetFSSUTFRanges(usedCodeSpaceSize);
+            size += ranges.size();
+        }
+
+        output.Write(std::to_string(size));
         output.Write(" begincodespacerange\n");
 
         bool first = true;
-        for (auto& pair : ranges)
+        for (auto& usedCodeSpaceSize : usedCodeSpaceSizes)
         {
-            if (first)
-                first = false;
-            else
-                output.Write("\n");
+            std::vector<utls::FSSUTFRange> ranges = utls::GetFSSUTFRanges(usedCodeSpaceSize);
 
-            auto& range = pair.second;
-            range.FirstCode.WriteHexTo(temp);
-            output.Write(temp);
-            range.LastCode.WriteHexTo(temp);
-            output.Write(temp);
+            for (auto& range : ranges)
+            {
+                if (first)
+                    first = false;
+                else
+                    output.Write("\n");
+
+                PdfCharCode firstCode(range.FirstCode);
+                PdfCharCode lastCode(range.LastCode);
+
+                firstCode.WriteHexTo(temp);
+                output.Write(temp);
+                lastCode.WriteHexTo(temp);
+                output.Write(temp);
+            }
         }
 
         output.Write("\nendcodespacerange\n");

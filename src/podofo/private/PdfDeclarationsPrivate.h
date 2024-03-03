@@ -363,6 +363,17 @@ namespace utls
     // Returns pow(2, size * 8) - 1
     unsigned GetCharCodeMaxValue(unsigned char codeSize);
 
+    unsigned FSSUTFEncode(unsigned value);
+
+    struct FSSUTFRange
+    {
+        unsigned FirstCode;
+        unsigned LastCode;
+    };
+
+    std::vector<FSSUTFRange> GetFSSUTFRanges(unsigned char size);
+
+
     template<typename T>
     void move(T& in, T& out)
     {
