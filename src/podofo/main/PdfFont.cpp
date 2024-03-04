@@ -20,7 +20,6 @@
 #include "PdfObjectStream.h"
 #include "PdfWriter.h"
 #include "PdfCharCodeMap.h"
-#include "PdfEncodingShim.h"
 #include "PdfFontMetrics.h"
 #include "PdfPage.h"
 #include "PdfFontMetricsStandard14.h"
@@ -138,11 +137,11 @@ void PdfFont::initBase(const PdfEncoding& encoding)
     {
         m_DynamicCIDMap = std::make_shared<PdfCharCodeMap>();
         m_DynamicToUnicodeMap = std::make_shared<PdfCharCodeMap>();
-        m_Encoding.reset(new PdfDynamicEncoding(m_DynamicCIDMap, m_DynamicToUnicodeMap, *this));
+        m_Encoding = PdfEncoding::CreateDynamicEncoding(m_DynamicCIDMap, m_DynamicToUnicodeMap, *this);
     }
     else
     {
-        m_Encoding.reset(new PdfEncodingShim(encoding, *this));
+        m_Encoding = PdfEncoding::CreateSchim(encoding, *this);
     }
 
     PdfStringStream out;

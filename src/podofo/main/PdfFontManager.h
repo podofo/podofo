@@ -161,7 +161,7 @@ private:
 
         std::string Name;               ///< Name of the font or pattern
         PdfStandard14FontType StdType;
-        size_t EncodingId;
+        unsigned EncodingId;
         bool HasFontStyle;
         PdfFontStyle Style;
     };

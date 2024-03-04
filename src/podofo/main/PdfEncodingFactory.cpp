@@ -15,7 +15,6 @@
 #include "PdfIdentityEncoding.h"
 #include "PdfDifferenceEncoding.h"
 #include "PdfCMapEncoding.h"
-#include "PdfEncodingShim.h"
 #include "PdfFontMetrics.h"
 #include "PdfEncodingMapFactory.h"
 
@@ -60,7 +59,7 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfObject& fontObj, const P
         }
     }
 
-    return PdfEncoding(fontObj, encoding, toUnicode);
+    return PdfEncoding::Create(fontObj, encoding, toUnicode);
 }
 
 PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(

@@ -17,12 +17,6 @@ namespace PoDoFo
     class PdfEncoding;
     class PdfFontSimple;
 
-    enum class PdfEncodingExportFlags
-    {
-        None = 0,
-        SkipToUnicode = 1,  ///< Skip exporting a /ToUnicode entry
-    };
-
     /** A PDF string context to iteratively scan a string
      * and collect both CID and unicode codepoints
      */
@@ -57,24 +51,39 @@ namespace PoDoFo
      * PdfEncoding can also be used to convert strings from a
      * PDF file back into a PdfString.
      */
-    class PODOFO_API PdfEncoding
+    class PODOFO_API PdfEncoding final
     {
         friend class PdfEncodingFactory;
-        friend class PdfEncodingShim;
-        friend class PdfDynamicEncoding;
         friend class PdfFont;
+        friend class PdfFontCID;
+        friend class PdfFontCIDTrueType;
         friend class PdfFontSimple;
 
     public:
-        /** Null encoding
+        /** Null encoding, when used as an actual encoding a dynamic
+         * encoding will be constructed instead
          */
         PdfEncoding();
         PdfEncoding(const PdfEncodingMapConstPtr& encoding, const PdfToUnicodeMapConstPtr& toUnicode = nullptr);
-        virtual ~PdfEncoding();
+        PdfEncoding(const PdfEncoding&) = default;
 
     private:
-        PdfEncoding(size_t id, const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode = nullptr);
-        PdfEncoding(const PdfObject& fontObj, const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode);
+        PdfEncoding(unsigned id, const PdfEncodingMapConstPtr& encoding,
+            const PdfEncodingMapConstPtr& toUnicode = nullptr);
+        PdfEncoding(unsigned id, const PdfEncodingLimits& limits, PdfFont* font,
+            const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode);
+
+        static PdfEncoding Create(const PdfObject& fontObj, const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode);
+
+        /** Encoding shim that mocks an wrap existing encoding. Used by PdfFont
+         */
+        static std::unique_ptr<PdfEncoding> CreateSchim(const PdfEncoding& encoding, PdfFont& font);
+
+        /** Encoding with an external encoding map storage
+         * Used by PdfFont in case of dynamic encoding requested
+         */
+        static std::unique_ptr<PdfEncoding> CreateDynamicEncoding(const std::shared_ptr<PdfCharCodeMap>& cidMap,
+            const std::shared_ptr<PdfCharCodeMap>& toUnicodeMap, PdfFont& font);
 
     public:
         /**
@@ -119,8 +128,6 @@ namespace PoDoFo
          */
         char32_t GetCodePoint(unsigned charCode) const;
 
-        void ExportToFont(PdfFont& font, PdfEncodingExportFlags flags = { }) const;
-
         PdfStringScanContext StartStringScan(const PdfString& encodedStr);
 
     public:
@@ -153,14 +160,12 @@ namespace PoDoFo
 
         /** Return true if the encoding is a dynamic CID mapping
          */
-        virtual bool IsDynamicEncoding() const;
+        bool IsDynamicEncoding() const;
 
         /**
-         * Return an Id to be used in hashed containers.
-         * Id 0 has a special meaning to create a PdfDynamicEncoding
-         *  \see PdfDynamicEncoding
+         * Return an Id to be used in hashed containers
          */
-        size_t GetId() const { return m_Id; }
+        unsigned GetId() const { return m_Id; }
 
         /** Get actual limits of the encoding
          *
@@ -196,15 +201,13 @@ namespace PoDoFo
 
     public:
         PdfEncoding& operator=(const PdfEncoding&) = default;
-        PdfEncoding(const PdfEncoding&) = default;
-
-    protected:
-        virtual PdfFont & GetFont() const;
 
     private:
-        // This method is to be called by PdfFont
+        // These methods will be called by PdfFont
+        void ExportToFont(PdfFont& font) const;
         bool TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const;
-        static size_t GetNextId();
+
+        static unsigned GetNextId();
 
     private:
         bool tryExportObjectTo(PdfDictionary& dictionary, bool wantCidMapping) const;
@@ -215,13 +218,12 @@ namespace PoDoFo
         bool tryGetCharCode(PdfFont& font, unsigned gid, const unicodeview& codePoints, PdfCharCode& unit) const;
 
     private:
-        size_t m_Id;
+        unsigned m_Id;
+        PdfEncodingLimits m_ParsedLimits;
+        PdfFont* m_Font;
         PdfEncodingMapConstPtr m_Encoding;
         PdfEncodingMapConstPtr m_ToUnicode;
-        PdfEncodingLimits m_ParsedLimits;
     };
 }
-
-ENABLE_BITMASK_OPERATORS(PoDoFo::PdfEncodingExportFlags);
 
 #endif // PDF_ENCODING_H

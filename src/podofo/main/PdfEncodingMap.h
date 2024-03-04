@@ -15,7 +15,6 @@
 namespace PoDoFo {
 
 class PdfIndirectObjectList;
-class PdfDynamicEncoding;
 class PdfDynamicCIDEncoding;
 class PdfFont;
 

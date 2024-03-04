@@ -79,10 +79,10 @@ namespace PoDoFo
          */
         bool HaveValidCodeSizeRange() const;
 
-        unsigned char MinCodeSize;
-        unsigned char MaxCodeSize;
         PdfCharCode FirstChar;     // The first defined character code
         PdfCharCode LastChar;      // The last defined character code
+        unsigned char MinCodeSize;
+        unsigned char MaxCodeSize;
     };
 }
 

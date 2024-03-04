@@ -490,9 +490,9 @@ const PdfEncodingLimits& PdfEncodingMapOneByte::GetLimits() const
     return m_Limits;
 }
 
-// NOTE: We assume PdfNullEncodingMap will used in the
-// null PdfEncoding that replaced with PdfDynamicEncoding
-// in PdfFont. See PdfFont implementation
+// NOTE: We assume PdfNullEncodingMap will be used in the default
+// constructed PdfEncoding that ends being replaced with a dynamic
+// encoding in PdfFont. See PdfFont implementation
 PdfNullEncodingMap::PdfNullEncodingMap()
     : PdfEncodingMap(PdfEncodingMapType::CMap) { }
 

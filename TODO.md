@@ -1,5 +1,4 @@
 ### 1.0
-- PdfEncoding: Make it final, non virtual
 - PdfMemDocument: Check the DeviceStream is not empty before doing an incremental update/signing operation
 - PdfMemDocument: Prevent Save() operation after signing operation
 - PdfMemDocument: Release the device after all objects have been loaded (eg. after a full Save())
