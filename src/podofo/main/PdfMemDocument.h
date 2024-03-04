@@ -239,9 +239,9 @@ private:
 
     /** Clear all variables that have internal memory usage
       */
-    void clear();
+    void clear() override;
 
-    void reset();
+    void reset() override;
 
     void beforeWrite(PdfSaveOptions options);
 
