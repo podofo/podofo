@@ -111,10 +111,10 @@ PdfCID::PdfCID(const PdfCharCode& unit)
 
 PdfEncodingLimits::PdfEncodingLimits(unsigned char minCodeSize, unsigned char maxCodeSize,
     const PdfCharCode& firstChar, const PdfCharCode& lastChar) :
-    MinCodeSize(minCodeSize),
-    MaxCodeSize(maxCodeSize),
     FirstChar(firstChar),
-    LastChar(lastChar)
+    LastChar(lastChar),
+    MinCodeSize(minCodeSize),
+    MaxCodeSize(maxCodeSize)
 {
 }
 
