@@ -77,16 +77,6 @@ public:
      */
     void SetSoftMask(const PdfImage& softmask);
 
-    /** Get the width of the image when drawn in PDF units
-     *  \returns the width in PDF units
-     */
-    unsigned GetWidth() const;
-
-    /** Get the height of the image when drawn in PDF units
-     *  \returns the height in PDF units
-     */
-    unsigned GetHeight() const;
-
     /** Set the actual image data from a buffer
      *
      *  \param buffer buffer supplying image data
@@ -158,6 +148,16 @@ public:
      * \returns the color space of the image
      */
     const PdfColorSpace& GetColorSpace() const { return *m_ColorSpace; }
+
+    /** Get the width of the image when drawn in PDF units
+     *  \returns the width in PDF units
+     */
+    unsigned GetWidth() const { return m_Width; }
+
+    /** Get the height of the image when drawn in PDF units
+     *  \returns the height in PDF units
+     */
+    unsigned GetHeight() const { return m_Height; }
 
 private:
     /** Construct an image from an existing PdfObject

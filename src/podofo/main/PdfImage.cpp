@@ -1245,16 +1245,6 @@ Rect PdfImage::GetRect() const
     return Rect(0, 0, m_Width, m_Height);
 }
 
-unsigned PdfImage::GetWidth() const
-{
-    return m_Width;
-}
-
-unsigned PdfImage::GetHeight() const
-{
-    return m_Height;
-}
-
 unsigned PdfImage::getBufferSize(PdfPixelFormat format) const
 {
     switch (format)
