@@ -63,9 +63,9 @@ namespace PoDoFo
 
     /**
      * A context that can be used to customize the signing process.
-     * It also enables the sequential, that is a process the intermediate
-     * results of singning (normally a hash to sign) that doesn't
-     * require a streamline event based processing. It can be issued by starting
+     * It also enables the sequential signing, which is a mean to separately process
+     * the intermediate results of signing (normally a hash to sign) that doesn't
+     * require a streamlined event based processing. It can be issued by starting
      * the process with StartSigning() and finishing it with FinishSigning()
      */
     class PODOFO_API PdfSigningContext final
