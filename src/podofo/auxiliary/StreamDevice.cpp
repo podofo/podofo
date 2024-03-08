@@ -285,6 +285,8 @@ void StandardStreamDevice::writeBuffer(const char* buffer, size_t size)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to write the given buffer");
             break;
         }
+        default:
+            PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
     }
 }
 
