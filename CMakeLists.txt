@@ -152,6 +152,12 @@ else()
     if(NOT WIN32)
         add_definitions(-W)
     endif()
+
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        # Silence warnings on use of typeid(*ptr)
+        # See https://stackoverflow.com/questions/46494928/clang-warning-on-expression-side-effects
+        add_compile_options(-Wno-potentially-evaluated-expression)
+    endif()
 endif()
 
 find_package(ZLIB REQUIRED)
