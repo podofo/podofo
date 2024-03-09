@@ -10,8 +10,11 @@ on:
       ctestArgs:
         description: 'CTest arguments'
 
+# NOTE: Don't update other tools with broken linkage with
+# HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK. See https://docs.brew.sh/Manpage#install-options-formulacask-
 env:
   BUILD_TYPE: Release
+  HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK:
 
 jobs:
   build:
