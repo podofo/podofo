@@ -96,7 +96,7 @@ enum class FileMode
     Append,            ///< Open an existing file and seek to the end for writing
 };
 
-class PODOFO_API FileStreamDevice final : public StandardStreamDevice
+class PODOFO_API FileStreamDevice : public StandardStreamDevice
 {
 public:
     /** Open for reading the supplied filepath
@@ -126,7 +126,7 @@ private:
 };
 
 template <typename TContainer>
-class ContainerStreamDevice final : public StreamDevice
+class ContainerStreamDevice : public StreamDevice
 {
 public:
     ContainerStreamDevice(TContainer& container,
@@ -204,7 +204,7 @@ private:
     size_t m_Position;
 };
 
-class PODOFO_API SpanStreamDevice final : public StreamDevice
+class PODOFO_API SpanStreamDevice : public StreamDevice
 {
 public:
     /** Construct a new StreamDevice that reads all data from a memory buffer.
