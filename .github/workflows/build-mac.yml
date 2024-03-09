@@ -14,7 +14,7 @@ on:
 # HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK. See https://docs.brew.sh/Manpage#install-options-formulacask-
 env:
   BUILD_TYPE: Release
-  HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK:
+  HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
 
 jobs:
   build:
