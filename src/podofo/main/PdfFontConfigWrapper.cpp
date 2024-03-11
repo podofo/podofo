@@ -131,6 +131,8 @@ void PdfFontConfigWrapper::createDefaultConfig()
 <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
 <fontconfig>
     <dir>/system/fonts</dir>
+    <dir prefix="xdg">fonts</dir>
+    <cachedir prefix="xdg">fontconfig</cachedir>
 </fontconfig>
 )";
 #elif __APPLE__
@@ -140,6 +142,8 @@ void PdfFontConfigWrapper::createDefaultConfig()
 <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
 <fontconfig>
     <dir>/System/Library/Fonts</dir>
+    <dir prefix="xdg">fonts</dir>
+    <cachedir prefix="xdg">fontconfig</cachedir>
 </fontconfig>
 )";
 #endif
