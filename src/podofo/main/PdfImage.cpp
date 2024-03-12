@@ -16,7 +16,6 @@ extern "C" {
 #include <utf8cpp/utf8.h>
 
 #include <podofo/private/FileSystem.h>
-#include <podofo/private/PdfFiltersPrivate.h>
 #include <podofo/private/ImageUtils.h>
 
 #include <pdfium/core/fxcodec/fax/faxmodule.h>

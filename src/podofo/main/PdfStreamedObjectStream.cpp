@@ -7,10 +7,7 @@
 #include "PdfStreamedObjectStream.h"
 
 #include "PdfDocument.h"
-#include "PdfEncrypt.h"
-#include "PdfFilter.h"
 #include <podofo/auxiliary/OutputDevice.h>
-#include "PdfObject.h"
 #include "PdfDictionary.h"
 
 using namespace std;

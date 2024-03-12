@@ -7,10 +7,6 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfMemoryObjectStream.h"
 
-#include "PdfArray.h"
-#include "PdfEncrypt.h"
-#include "PdfFilter.h"
-#include "PdfObject.h"
 #include <podofo/auxiliary/StreamDevice.h>
 
 using namespace std;

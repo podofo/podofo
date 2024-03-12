@@ -9,7 +9,6 @@
 
 #include "PdfDeclarations.h"
 
-#include "PdfFilter.h"
 #include "PdfEncrypt.h"
 #include <podofo/auxiliary/OutputStream.h>
 #include <podofo/auxiliary/InputStream.h>

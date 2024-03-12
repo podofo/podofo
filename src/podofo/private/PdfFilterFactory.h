@@ -6,7 +6,7 @@
 #ifndef PDF_FILTER_FACTORY_H
 #define PDF_FILTER_FACTORY_H
 
-#include <podofo/main/PdfFilter.h>
+#include "PdfFilter.h"
 
 #include <podofo/auxiliary/InputStream.h>
 

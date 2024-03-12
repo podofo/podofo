@@ -55,14 +55,6 @@ extern "C"\
  */
 namespace PoDoFo {
 
-// NOTE: This may change in the future
-using Matrix2D = std::array<double, 6>;
-
-/** A backing storage for a CID to GID map
- * \remarks It must preserve ordering
- */
-using CIDToGIDMap = std::map<unsigned, unsigned>;
-
 // Enums
 
 /**
@@ -791,6 +783,16 @@ enum class PdfHashingAlgorithm
     SHA384,
     SHA512,
 };
+
+// NOTE: This may change in the future
+using Matrix2D = std::array<double, 6>;
+
+/** A backing storage for a CID to GID map
+ * \remarks It must preserve ordering
+ */
+using CIDToGIDMap = std::map<unsigned, unsigned>;
+
+using PdfFilterList = std::vector<PdfFilterType>;
 
 };
 

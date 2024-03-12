@@ -8,11 +8,6 @@
 #include "PdfFontSimple.h"
 
 #include "PdfDocument.h"
-#include "PdfArray.h"
-#include "PdfDictionary.h"
-#include "PdfFilter.h"
-#include "PdfName.h"
-#include "PdfObjectStream.h"
 
 using namespace std;
 using namespace PoDoFo;

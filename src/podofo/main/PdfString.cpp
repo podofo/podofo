@@ -11,10 +11,8 @@
 
 #include <podofo/private/PdfEncodingPrivate.h>
 
-#include "PdfEncrypt.h"
 #include "PdfPredefinedEncoding.h"
 #include "PdfEncodingFactory.h"
-#include "PdfFilter.h"
 #include "PdfTokenizer.h"
 #include <podofo/auxiliary/OutputDevice.h>
 

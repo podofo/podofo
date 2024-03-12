@@ -51,7 +51,6 @@
 #include "main/PdfEncrypt.h"
 #include "main/PdfExtension.h"
 #include "main/PdfStreamedObjectStream.h"
-#include "main/PdfFilter.h"
 #include "main/PdfCanvasInputDevice.h"
 #include "main/PdfImmediateWriter.h"
 #include "main/PdfMemoryObjectStream.h"

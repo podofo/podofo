@@ -6,7 +6,7 @@
 #ifndef PDF_FILTER_H
 #define PDF_FILTER_H
 
-#include "PdfDeclarations.h"
+#include <podofo/main/PdfDeclarations.h>
 
 #include <podofo/auxiliary/OutputStream.h>
 
@@ -14,23 +14,14 @@ namespace PoDoFo {
 
 class PdfDictionary;
 
-using PdfFilterList = std::vector<PdfFilterType>;
-
 /** Every filter in PoDoFo has to implement this interface.
  *
  *  The two methods Encode() and Decode() have to be implemented
  *  for every filter.
  */
-class PODOFO_API PdfFilter
+class PdfFilter
 {
-    friend class PdfAscii85Filter;
-    friend class PdfFlateFilter;
-    friend class PdfRLEFilter;
-    friend class PdfLZWFilter;
-    friend class PdfCryptFilter;
-    friend class PdfHexFilter;
-
-private:
+protected:
     /** Construct and initialize a new filter
      */
     PdfFilter();

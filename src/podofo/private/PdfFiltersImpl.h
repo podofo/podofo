@@ -16,7 +16,7 @@
  * only be accessed through the factory interface in PdfFilters.h .
  */
 
-#include <podofo/main/PdfFilter.h>
+#include "PdfFilter.h"
 
 #include <zlib.h>
 

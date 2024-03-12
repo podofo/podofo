@@ -8,10 +8,7 @@
 #include "PdfObjectStream.h"
 
 #include "PdfDocument.h"
-#include "PdfArray.h"
-#include "PdfFilter.h"
 #include <podofo/auxiliary/InputDevice.h>
-#include "PdfDictionary.h"
 #include <podofo/auxiliary/StreamDevice.h>
 
 #include <podofo/private/PdfFilterFactory.h>

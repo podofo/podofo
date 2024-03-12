@@ -15,7 +15,6 @@
 #include <podofo/private/OpenSSLInternal.h>
 
 #include "PdfDictionary.h"
-#include "PdfFilter.h"
 
 #ifdef PODOFO_HAVE_LIBIDN
 // AES-256 dependencies :

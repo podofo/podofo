@@ -6,7 +6,7 @@
 #include "PdfDeclarationsPrivate.h"
 #include "PdfFilterFactory.h"
 
-#include "PdfFiltersPrivate.h"
+#include "PdfFiltersImpl.h"
 
 #include <podofo/main/PdfDictionary.h>
 #include <podofo/main/PdfArray.h>

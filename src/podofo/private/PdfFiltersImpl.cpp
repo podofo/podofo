@@ -4,7 +4,7 @@
  */
 
 #include "PdfDeclarationsPrivate.h"
-#include "PdfFiltersPrivate.h"
+#include "PdfFiltersImpl.h"
 
 #include <podofo/main/PdfDictionary.h>
 #include <podofo/main/PdfTokenizer.h>
