@@ -48,7 +48,7 @@ namespace ssl
     void AddSigningCertificateV2(CMS_SignerInfo* signer, const PoDoFo::bufferview& hash);
     void ComputeHashToSign(CMS_SignerInfo* si, BIO* chain, bool doWrapDigest, PoDoFo::charbuff& hashToSign);
 
-    // Load a ASN.1 encoded private key
+    // Load a ASN.1 encoded private key (PKCS#1 or PKCS#8 formats supported)
     EVP_PKEY* LoadPrivateKey(const PoDoFo::bufferview& input);
 
     // Sign a buffer with the supplied pkey, no encapsulation and deterministic padding

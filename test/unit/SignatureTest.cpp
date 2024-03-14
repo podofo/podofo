@@ -16,15 +16,19 @@ TEST_CASE("TestSignature1")
     auto inputPath = TestUtils::GetTestInputFilePath("TestSignature.pdf");
     auto outputPath = TestUtils::GetTestOutputFilePath("TestSignature1.pdf");
 
-    auto testSignature = [&](const shared_ptr<StreamDevice>& stream)
+    // RSA Private key coefficients in der PKCS1 format (binary)
+    string pkey1;
+    TestUtils::ReadTestInputFile("mykey-pkcs1.der", pkey1);
+
+    // RSA Private key coefficients in der PKCS8 format (binary)
+    string pkey8;
+    TestUtils::ReadTestInputFile("mykey-pkcs8.der", pkey8);
+
+    auto testSignature = [&](const shared_ptr<StreamDevice>& stream, const bufferview& pkey)
     {
         // X509 Certificate
         string cert;
         TestUtils::ReadTestInputFile("mycert.der", cert);
-
-        // RSA Private key coefficients in der format (binary)
-        string pkey;
-        TestUtils::ReadTestInputFile("mykey.der", pkey);
 
         PdfMemDocument doc(stream);
         auto& page = doc.GetPages().GetPageAt(0);
@@ -41,21 +45,21 @@ TEST_CASE("TestSignature1")
         stringstream ss;
         auto stream = std::make_shared<StandardStreamDevice>(ss);
         input.CopyTo(*stream);
-        testSignature(stream);
+        testSignature(stream, pkey1);
         REQUIRE(ssl::ComputeMD5Str(ss.str()) == "312837C62DA72DBC13D588A2AD42BFC1");
     }
 
     {
         utls::ReadTo(buff, inputPath);
         auto stream = std::make_shared<BufferStreamDevice>(buff);
-        testSignature(stream);
+        testSignature(stream, pkey8);
         REQUIRE(ssl::ComputeMD5Str(buff) == "312837C62DA72DBC13D588A2AD42BFC1");
     }
 
     {
         fs::copy_file(fs::u8path(inputPath), fs::u8path(outputPath), fs::copy_options::overwrite_existing);
         auto stream = std::make_shared<FileStreamDevice>(outputPath, FileMode::Open);
-        testSignature(stream);
+        testSignature(stream, pkey8);
         utls::ReadTo(buff, outputPath);
         REQUIRE(ssl::ComputeMD5Str(buff) == "312837C62DA72DBC13D588A2AD42BFC1");
     }
@@ -77,7 +81,7 @@ TEST_CASE("TestSignature2")
 
     // RSA Private key coefficients in der format (binary)
     string pkey;
-    TestUtils::ReadTestInputFile("mykey.der", pkey);
+    TestUtils::ReadTestInputFile("mykey-pkcs1.der", pkey);
 
     PdfMemDocument doc(stream);
     auto& page = doc.GetPages().GetPageAt(0);
@@ -114,7 +118,7 @@ TEST_CASE("TestSignature3")
 
     // RSA Private key coefficients in der format (binary)
     string pkey;
-    TestUtils::ReadTestInputFile("mykey.der", pkey);
+    TestUtils::ReadTestInputFile("mykey-pkcs8.der", pkey);
 
     PdfMemDocument doc(stream);
     auto& page = doc.GetPages().GetPageAt(0);
