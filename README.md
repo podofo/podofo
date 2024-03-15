@@ -208,12 +208,30 @@ at the [issue](https://github.com/podofo/podofo/issues) tracker.
 
 **Q: How do I sign a document?**
 
-**A:** The signing procedure is still as low level as it was before the
-ongoing source changes. This is going to change, soon!, with a new high-level
-API for signing being worked on, which will be fully unit tested. For now you
-should check the `podofosign` tool (**WARNING**: untested) which should give
-you the idea how to sign documents creating a *CMS* structure directly with
-OpenSSL.
+**A:** PoDoFo HEAD now supplies a high level signing procedure which is very powerful
+and that allows to sign a document without having to supply a *CMS* structure manually.
+Providing you have an ASN.1 encoded X509 certificate and RSA private key you
+can sign a document with the following sample code:
+
+```cpp
+auto inputOutput = std::make_shared<FileStreamDevice>(filepath, FileMode::Open);
+
+PdfMemDocument doc;
+doc.LoadFromDevice(inputOutput);
+
+auto& page = doc.GetPages().GetPageAt(0);
+auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+
+auto signer = PdfSignerCms(x509certbuffer, pkeybuffer);
+PoDoFo::SignDocument(doc, *inputOutput, signer, signature);
+```
+
+There's also a support for external signing services, see the various
+signing examples in the unit [tests](https://github.com/podofo/podofo/blob/master/test/unit/SignatureTest.cpp).
+
+**Q: Can I still use an event based procedure to sign the document?**
+
+Yes, the old low level procedure hasn't changed and it's still available.
 To describe the procedure briefly, one has to fully Implement a `PdfSigner`,
 retrieve or create a `PdfSignature` field, create an output device (see next question)
 and use `PoDoFo::SignDocument(doc, device, signer, signature)`. When signing,
@@ -228,83 +246,81 @@ the `dryrun` parameter set to `false`. The buffer on this call is cleared (capac
 is not altered) or not accordingly to the value of `PdfSigner::SkipBufferClear()`.
 
 
-**Q: `PdfMemDocument::SaveUpdate()` or `PoDoFo::SignDocument()` write only a partial
-file: why so and why there's no mechanism to seamlessly handle the incremental
-update as it was in PoDoFo? What should be done to correctly update/sign the
-document?**
+**Q: `PdfMemDocument::SaveUpdate()` or `PoDoFo::SignDocument()` write only a
+partial file: why there's no mechanism to seamlessly handle the incremental
+update as it was in PoDoFo 0.9.x? What should be done to correctly update/sign
+the document?**
 
-**A:** The previous mechanism in PoDoFo required enablement of document for
-incremental updates, which is a decision step which I believe should be not
-be necessary. Also:
+**A:** The previous mechanism in PoDoFo 0.9.x required enablement of document
+for incremental updates, which is a decision step which I believe should be
+unnecessary. Also:
 1. In case of file loaded document it still required to perform the update in
 the same file, and the check was performed on the path of the files being
 operated to, which is unsafe;
 2. In case of buffers worked for one update/signing operation but didn't work
-for following operations.
+for following operations, meaning the mechanism was bugged/unreliable.
 
-The idea is to implement a more explicit mechanism that makes more clear
-and/or enforces the fact that the incremental update must be performed on the
-same file in case of file loaded documents or that underlying buffer will grow
-following subsequent operations in case of buffer loaded documents.
-Before that, as a workaround, a couple of examples showing the correct operation
-to either update or sign a document (file or buffer loaded) are presented.
-Save an update on a file loaded document, by copying the source to another
-destination:
+An alternative strategy that makes clearer the fact that the incremental update
+must be performed on the same file from where the document was loaded, or that underlying
+buffer will grow its mememory consumption following subsequent operations in case of
+buffer loaded documents, is available. It follows a couple of examples showing the
+correct operations to update a document, loaded from file or buffer:
 
-```
-    string inputPath;
-    string outputPath;
-    auto input = std::make_shared<FileStreamDevice>(inputPath);
-    FileStreamDevice output(outputPath, FileMode::Create);
-    input->CopyTo(output);
+1. Save an update on a file loaded document, by loading and saving the document on the same location:
 
-    PdfMemDocument doc;
-    doc.LoadFromDevice(input);
+```cpp
+auto inputOutput = std::make_shared<FileStreamDevice>(filename, FileMode::Open);
 
-    doc.SaveUpdate(output);
+PdfMemDocument doc;
+doc.LoadFromDevice(inputOutput);
+
+doc.SaveUpdate(*inputOutput);
 ```
 
-Sign a buffer loaded document:
+2. Save an update on a buffer, by copying the source first to the buffer
+that will be also used to load the document:
 
-```
-    bufferview inputBuffer;
-    charbuff outputBuffer;
-    auto input = std::make_shared<SpanStreamDevice>(inputBuffer);
-    BufferStreamDevice output(outputBuffer);
-    input->CopyTo(output);
+```cpp
+charbuff outputBuffer;
+FileStreamDevice input(filepath);
+auto inputOutput = std::make_shared<BufferStreamDevice>(outputBuffer);
+input.CopyTo(*inputOutput);
 
-    PdfMemDocument doc;
-    doc.LoadFromDevice(input);
-    // Retrieve/create the signature, create the signer, ...
-    PoDoFo::SignDocument(doc, output, signer, signature);
+PdfMemDocument doc;
+doc.LoadFromDevice(inputOutput);
+
+doc.SaveUpdate(*inputOutput);
 ```
+
+Signing documents can be done with same technique, read the other questions for more examples.
 
 **Q: Can I sign a document a second time?**
 
 **A:** Yes, this is tested, but to make sure this will work you'll to re-parse the document a second time,
-as re-using the already loaded document is still untested (this may change later). For example do as it follows:
+as re-using the already loaded document is still untested (this may change later). For example you can
+do as it follows:
 
-```
-    bufferview inputBuffer;
-    charbuff outputBuffer;
-    auto input = std::make_shared<SpanStreamDevice>(inputBuffer);
-    BufferStreamDevice output(outputBuffer);
-    input->CopyTo(output);
+```cpp
+auto inputOutput = std::make_shared<FileStreamDevice>(filepath, FileMode::Open);
 
-    {
-        PdfMemDocument doc;
-        doc.LoadFromDevice(input);
-        // Retrieve/create the signature, create the signer, ...
-        PoDoFo::SignDocument(doc, output, signer, signature);
-    }
+{
+    PdfMemDocument doc;
+    doc.LoadFromDevice(inputOutput);
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto& signature = page.CreateField<PdfSignature>("Signature1", Rect());
 
-    input = std::make_shared<SpanStreamDevice>(output);
-    {
-        PdfMemDocument doc;
-        doc.LoadFromDevice(input);
-        // Retrieve/create the signature, create the signer, ...
-        PoDoFo::SignDocument(doc, output, signer, signature);
-    }
+    PdfSignerCms signer(x509certbuffer, pkeybuffer);
+    PoDoFo::SignDocument(doc, *inputOutput, signer, signature);
+}
+
+{
+    PdfMemDocument doc;
+    doc.LoadFromDevice(inputOutput);
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto& signature = page.CreateField<PdfSignature>("Signature2", Rect());
+    PdfSignerCms signer(x509certbuffer, pkeybuffer);
+    PoDoFo::SignDocument(doc, *inputOutput, signer, signature);
+}
 ```
 
 ## No warranty
