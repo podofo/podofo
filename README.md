@@ -43,7 +43,7 @@ For the most popular toolchains, PoDoFo requires the following
 minimum versions:
 
 * msvc++ 14.16 (VS 2017 15.9)
-* gcc 8.1
+* gcc 9.0
 * clang/llvm 7.0
 
 It is regularly tested with the following IDE/toolchains versions:
@@ -54,6 +54,8 @@ It is regularly tested with the following IDE/toolchains versions:
 * gcc 9.3.1
 * XCode 13.3
 * NDK r23b
+
+GCC 8.x support [broke](https://github.com/podofo/podofo/issues/116) recently, but it could be reinstanced.
 
 ## Licensing
 
