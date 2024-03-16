@@ -51,6 +51,8 @@ either assume UTF-8 and/or checks for used codepoints
 - Check/Review doxygen doc
 
 ### After 1.0
+- Implement full text extraction, including search in predefined
+  CMap(s) as described in Pdf Reference and here https://stackoverflow.com/a/26910569/213871
 - Check what do with tools/restore manuals
 - Fix/complete handling of text extraction in rotated pages (??? Done?)
 - Add method to retrieve shared_ptr from PdfObject, PdfFont (and
