@@ -212,8 +212,10 @@ at the [issue](https://github.com/podofo/podofo/issues) tracker.
 
 **A:** PoDoFo HEAD now supplies a high level signing procedure which is very powerful
 and that allows to sign a document without having to supply a *CMS* structure manually.
-Providing you have an ASN.1 encoded X509 certificate and RSA private key you
-can sign a document with the following sample code:
+By default, it supports signing a document with the modern [`PAdES-B`](https://en.wikipedia.org/wiki/PAdES)
+compliance profiles, but there's also a support for the legacy PKCS7 signatures.
+Providing you have both ASN.1 encoded X509 certificate and RSA private key, you
+can sign a document with the following code:
 
 ```cpp
 auto inputOutput = std::make_shared<FileStreamDevice>(filepath, FileMode::Open);
@@ -228,8 +230,8 @@ auto signer = PdfSignerCms(x509certbuffer, pkeybuffer);
 PoDoFo::SignDocument(doc, *inputOutput, signer, signature);
 ```
 
-There's also a support for external signing services, see the various
-signing examples in the unit [tests](https://github.com/podofo/podofo/blob/master/test/unit/SignatureTest.cpp).
+There's also a support for external signing services and/or signing the document
+in memory buffers. See the various signing examples in the unit [tests](https://github.com/podofo/podofo/blob/master/test/unit/SignatureTest.cpp).
 
 **Q: Can I still use an event based procedure to sign the document?**
 
