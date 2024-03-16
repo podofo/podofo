@@ -698,6 +698,8 @@ PdfCharCode PdfFont::AddCharCodeSafe(unsigned gid, const unicodeview& codePoints
     if (m_DynamicToUnicodeMap->TryGetCharCode(codePoints, code))
         return code;
 
+    // Encode the code point with FSS-UTF encoding so
+    // it will be variable code size safe
     code = PdfCharCode(utls::FSSUTFEncode(m_DynamicToUnicodeMap->GetSize()));
     // NOTE: We assume in this context cid == gid identity
     m_DynamicCIDMap->PushMapping(code, gid);
@@ -784,7 +786,8 @@ bool PdfFont::tryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCI
     if (m_Encoding->IsDynamicEncoding())
     {
         // We start numberings CIDs from 1 since CID 0
-        // is reserved for fallbacks
+        // is reserved for fallbacks. Encode it with FSS-UTF
+        // encoding so it will be variable code size safe
         auto inserted = m_SubsetGIDs.try_emplace(gid, PdfCID((unsigned)m_SubsetGIDs.size() + 1, PdfCharCode(utls::FSSUTFEncode((unsigned)m_SubsetGIDs.size() + 1))));
         cid = inserted.first->second;
         if (!inserted.second)

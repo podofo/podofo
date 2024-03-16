@@ -363,7 +363,9 @@ namespace utls
     // Returns pow(2, size * 8) - 1
     unsigned GetCharCodeMaxValue(unsigned char codeSize);
 
-    unsigned FSSUTFEncode(unsigned value);
+    // Use the FSS-UTF encoding (early name for UTF-8 variable byte encoding)
+    // https://www.unicode.org/L2/Historical/wg20-n193-fss-utf.pdf
+    unsigned FSSUTFEncode(unsigned codePoint);
 
     struct FSSUTFRange
     {
@@ -371,7 +373,7 @@ namespace utls
         unsigned LastCode;
     };
 
-    std::vector<FSSUTFRange> GetFSSUTFRanges(unsigned char size);
+    std::vector<FSSUTFRange> GetFSSUTFRanges(unsigned char codeSize);
 
 
     template<typename T>
