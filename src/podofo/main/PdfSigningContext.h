@@ -54,7 +54,7 @@ namespace std
 namespace PoDoFo
 {
     /**
-     * Interchange signing procedure results. Used when starting and finishing a sequential signing
+     * Interchange signing procedure results. Used when starting and finishing a sequential (aka "async") signing
      */
     struct PODOFO_API PdfSigningResults final
     {
@@ -63,7 +63,7 @@ namespace PoDoFo
 
     /**
      * A context that can be used to customize the signing process.
-     * It also enables the sequential signing, which is a mean to separately process
+     * It also enables the sequential (aka "async") signing, which is a mean to separately process
      * the intermediate results of signing (normally a hash to sign) that doesn't
      * require a streamlined event based processing. It can be issued by starting
      * the process with StartSigning() and finishing it with FinishSigning()
@@ -74,20 +74,25 @@ namespace PoDoFo
             PdfSignature& signature, PdfSaveOptions saveOptions);
     public:
         PdfSigningContext();
+
+        /** Configure a signer on the specific signature field
+         */
         PdfSignerId AddSigner(const PdfSignature& signature, const std::shared_ptr<PdfSigner>& signer);
-        /** Start a sequential signing procedure
+
+        /** Start a blocking event-driven signing procedure
+         */
+        void Sign(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions options = PdfSaveOptions::None);
+
+        /** Start a sequential (aka "async") signing procedure
          * \param results instance where intermediate results will be stored
          */
         void StartSigning(PdfMemDocument& doc, const std::shared_ptr<StreamDevice>& device, PdfSigningResults& results,
             PdfSaveOptions saveOptions = PdfSaveOptions::None);
 
-        /** Finish a sequential signing procedure
+        /** Finish a sequential(aka "async") signing procedure
          * \param processedResults results that will be used to finalize the signatures
          */
         void FinishSigning(const PdfSigningResults& processedResults);
-        /** Start a event driven signing procedure
-         */
-        void Sign(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions options = PdfSaveOptions::None);
 
     private:
         struct SignatureAttrs

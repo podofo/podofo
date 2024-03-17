@@ -14,6 +14,7 @@
 #include <openssl/ssl.h>
 #include <openssl/cms.h>
 #include <openssl/asn1t.h>
+#include <openssl/err.h>
 
 #if OPENSSL_VERSION_MAJOR < 3
  // Fixes warning when compiling with OpenSSL 3
@@ -79,6 +80,8 @@ namespace ssl
         unsigned char* hash, unsigned& length);
     void ComputeSHA1Str(const PoDoFo::bufferview& data,
         unsigned char* hash, unsigned& length);
+
+    std::string GetOpenSSLError();
 
     const EVP_CIPHER* Rc4();
     const EVP_CIPHER* Aes128();

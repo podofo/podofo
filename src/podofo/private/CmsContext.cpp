@@ -144,7 +144,7 @@ void CmsContext::loadX509Certificate(const bufferview& cert)
     auto in = (const unsigned char*)cert.data();
     m_cert = d2i_X509(nullptr, &in, (int)cert.size());
     if (m_cert == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "d2i_X509");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, ssl::GetOpenSSLError());
 }
 
 void CmsContext::computeCertificateHash()

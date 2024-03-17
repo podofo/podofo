@@ -9,6 +9,28 @@
 using namespace std;
 using namespace PoDoFo;
 
+TEST_CASE("TestLoadCertificate")
+{
+    // Load a PEM certificate should fail
+
+    string cert;
+    TestUtils::ReadTestInputFile("mycert.pem", cert);
+
+    PdfSignerCms signer(cert);
+    try
+    {
+        // Dummy data append to enforce certificate load
+        signer.AppendData("");
+    }
+    catch (PdfError& err)
+    {
+        REQUIRE(err.GetCode() == PdfErrorCode::OpenSSL);
+        return;
+    }
+
+    FAIL("It should fail while loading unsupported PEM certificate");
+}
+
 // Test signing with supplied private key
 TEST_CASE("TestSignature1")
 {

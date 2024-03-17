@@ -118,7 +118,7 @@ EVP_PKEY* ssl::LoadPrivateKey(const bufferview& input)
     const unsigned char* data = (const unsigned char*)input.data();
     auto ret = d2i_PrivateKey(EVP_PKEY_RSA, nullptr, &data, (long)input.size());
     if (ret == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidKey, "Unable to load private key");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, ssl::GetOpenSSLError());
 
     return ret;
 }
@@ -299,32 +299,20 @@ void ssl::ComputeSHA1Str(const bufferview& data, unsigned char* hash, unsigned& 
     computeHash(data, ssl::SHA1(), hash, length);
 }
 
-void computeHash(const bufferview& data, const EVP_MD* type,
-    unsigned char* hash, unsigned& length)
+string ssl::GetOpenSSLError()
 {
-    unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
-    if (EVP_DigestInit(ctx.get(), type) == 0)
-        goto Error;
+    string ret;
+    BIO* bio = BIO_new(BIO_s_mem());
+    if (bio == nullptr)
+        return ret;
 
-    // Compute the hash to be signed
-    if (EVP_DigestUpdate(ctx.get(), data.data(), data.size()) == 0)
-        goto Error;
-
-    if (EVP_DigestFinal(ctx.get(), hash, &length) == 0)
-        goto Error;
-
-    return;
-
-Error:
-    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error while computing hash");
-}
-
-string computeHashStr(const bufferview& data, const EVP_MD* type)
-{
-    unsigned char hash[EVP_MAX_MD_SIZE];
-    unsigned length;
-    computeHash(data, type, hash, length);
-    return utls::GetCharHexString({ (const char*)hash, length });
+    ERR_print_errors(bio);
+    char* buf;
+    size_t len = BIO_get_mem_data(bio, &buf);
+    ret.resize(len);
+    std::memcpy(ret.data(), buf, len);
+    BIO_free(bio);
+    return ret;
 }
 
 const EVP_CIPHER* ssl::Rc4()
@@ -373,4 +361,32 @@ const EVP_MD* ssl::SHA512()
 {
     ssl::Init();
     return s_SSL.GetSHA512();
+}
+
+void computeHash(const bufferview& data, const EVP_MD* type,
+    unsigned char* hash, unsigned& length)
+{
+    unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
+    if (EVP_DigestInit(ctx.get(), type) == 0)
+        goto Error;
+
+    // Compute the hash to be signed
+    if (EVP_DigestUpdate(ctx.get(), data.data(), data.size()) == 0)
+        goto Error;
+
+    if (EVP_DigestFinal(ctx.get(), hash, &length) == 0)
+        goto Error;
+
+    return;
+
+Error:
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error while computing hash");
+}
+
+string computeHashStr(const bufferview& data, const EVP_MD* type)
+{
+    unsigned char hash[EVP_MAX_MD_SIZE];
+    unsigned length;
+    computeHash(data, type, hash, length);
+    return utls::GetCharHexString({ (const char*)hash, length });
 }
