@@ -445,6 +445,66 @@ TEST_CASE("TestRotate")
     test(270);
 }
 
+// Test coming from https://github.com/podofo/podofo/issues/137
+TEST_CASE("BigDynamicCMAPTest")
+{
+    string_view textOver255 = "12345糟姨集鞋南槍痕痰林托入笑為潮立碰慘紡命窯舒喬檔脊吸渣誘餓躁強瓣倚扣拼襯裙凈錄釀薯憂擇十肅亭宰都愉冬乃考摟償老居題釣盯侵臣騾購標搬輛映納銷蜂宋頭號鄭藝駛斥鏟遵饑絨挨草保示她房礙宜扶涼困供探濫裁鴨膏橫坦傍愧蜓山儀辜略機評疑寸浩韻挪墻含帆由化里肌目淹誤匹枕浸有協斯名哥其香響逼裂油館慰七狹置露河樓弊增熱懂劇難盞拘罵撇芽胡慧關準補必舌遼晴奏愛江掏疲番走芬秩撤搭饅槐伸填灣蝦載簾哄寫急病攤田惕次泡捏糧附刷李鉆解阿違嫁天塌句善訊夠衰唇險學欠堆弟貪爆徐太孤鎮膛婆褲傷謹憶鵝踢贈擔仗膀挽兄扔基窩幕裹血暴米政覆柴力豎悼劫肥書翁屑";
+
+    auto outputFile = TestUtils::GetTestOutputFilePath("BigDynamicCMAPTest.pdf");
+    {
+        PdfMemDocument document;
+
+        auto& fontManager = document.GetFonts();
+        auto& font = fontManager.GetOrCreateFont(TestUtils::GetTestInputFilePath("Fonts", "NotoSansTC-Regular.ttf"));
+
+        // Draw a XObjectForm
+        unique_ptr<PdfXObjectForm> xObjectPtr = document.CreateXObjectForm(Rect(0, 0, 720, 1280));
+        PdfXObjectForm* xObject = xObjectPtr.get();
+
+        {
+            PdfPainter painter;
+            painter.SetCanvas(*xObject);
+
+            painter.GraphicsState.SetFillColor(PdfColor(0, 0, 0));
+            painter.GraphicsState.SetStrokeColor(PdfColor(0, 0, 0));
+
+            painter.TextState.SetFont(font, 12);
+
+            painter.DrawTextMultiLine(textOver255, 0, 0, 720, 1280);
+
+            painter.FinishDrawing();
+        }
+
+        // Draw XObjectForm to Page
+        auto& pages = document.GetPages();
+        auto& page = pages.CreatePage(Rect(0, 0, 720, 1280));
+
+        {
+            PdfPainter painter;
+            painter.SetCanvas(page);
+            painter.DrawXObject(*xObject, 0, 0, 1.0, 1.0);
+
+            painter.FinishDrawing();
+        }
+
+        document.Save(outputFile);
+    }
+
+    {
+        PdfMemDocument document;
+        document.Load(outputFile);
+        auto& page = document.GetPages().GetPageAt(0);
+        vector<PdfTextEntry> entries;
+        page.ExtractTextTo(entries);
+        REQUIRE(entries.size() == 5);
+        REQUIRE(entries[0].Text == "12345糟姨集鞋南槍痕痰林托入笑為潮立碰慘紡命窯舒喬檔脊吸渣誘餓躁強瓣倚扣拼襯裙凈錄釀薯憂擇十肅亭宰都愉冬乃考摟償老居題釣");
+        REQUIRE(entries[1].Text == "盯侵臣騾購標搬輛映納銷蜂宋頭號鄭藝駛斥鏟遵饑絨挨草保示她房礙宜扶涼困供探濫裁鴨膏橫坦傍愧蜓山儀辜略機評疑寸浩韻挪墻含帆由");
+        REQUIRE(entries[2].Text == "化里肌目淹誤匹枕浸有協斯名哥其香響逼裂油館慰七狹置露河樓弊增熱懂劇難盞拘罵撇芽胡慧關準補必舌遼晴奏愛江掏疲番走芬秩撤搭饅");
+        REQUIRE(entries[3].Text == "槐伸填灣蝦載簾哄寫急病攤田惕次泡捏糧附刷李鉆解阿違嫁天塌句善訊夠衰唇險學欠堆弟貪爆徐太孤鎮膛婆褲傷謹憶鵝踢贈擔仗膀挽兄扔");
+        REQUIRE(entries[4].Text == "基窩幕裹血暴米政覆柴力豎悼劫肥書翁屑");
+    }
+}
+
 static void drawSample(PdfPainter& painter)
 {
     painter.DrawCircle(100, 500, 20, PdfPathDrawMode::Fill);
