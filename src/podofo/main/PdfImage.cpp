@@ -443,6 +443,12 @@ void PdfImage::ExportTo(charbuff& buff, PdfExportFormat format, PdfArray args) c
 void PdfImage::loadFromJpeg(const string_view& filename)
 {
     FILE* file = utls::fopen(filename, "rb");
+    if (file == nullptr)
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound,
+            "{} not found or error opening file", filename);
+    }
+
     jpeg_decompress_struct ctx;
     JpegErrorHandler jerr;
     try
@@ -785,7 +791,10 @@ void PdfImage::loadFromTiff(const string_view& filename)
 #endif
 
     if (hInfile == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, filename);
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound,
+            "{} not found or error opening file", filename);
+    }
 
     try
     {
@@ -932,6 +941,11 @@ void PdfImage::loadFromTiffData(const unsigned char* data, size_t len)
 void PdfImage::loadFromPng(const string_view& filename)
 {
     FILE* file = utls::fopen(filename, "rb");
+    if (file == nullptr)
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound,
+            "{} not found or error opening file", filename);
+    }
 
     try
     {
