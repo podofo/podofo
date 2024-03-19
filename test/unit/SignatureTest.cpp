@@ -163,6 +163,35 @@ TEST_CASE("TestSignature3")
     REQUIRE(ssl::ComputeMD5Str(buff) == "312837C62DA72DBC13D588A2AD42BFC1");
 }
 
+TEST_CASE("TestSaveOnSigning")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    string x509certbuffer;
+    TestUtils::ReadTestInputFile("mycert.der", x509certbuffer);
+
+    string pkeybuffer;
+    TestUtils::ReadTestInputFile("mykey-pkcs8.der", pkeybuffer);
+
+    auto& signature = page.CreateField<PdfSignature>("Signature", Rect(100, 600, 100, 100));
+    signature.SetSignatureDate(PdfDate::LocalNow());
+    auto image = doc.CreateImage();
+    image->Load(TestUtils::GetTestInputFilePath("ReferenceImage.png"));
+    auto xformObj = doc.CreateXObjectForm(Rect(0, 0, image->GetWidth(), image->GetHeight()));
+
+    PdfPainter painter;
+    painter.SetCanvas(*xformObj);
+    painter.DrawImage(*image, 0, 0, 1, 1);
+    painter.FinishDrawing();
+
+    auto signer = PdfSignerCms(x509certbuffer, pkeybuffer);
+
+    signature.SetAppearanceStream(*xformObj);
+
+    FileStreamDevice output(TestUtils::GetTestOutputFilePath("TestSaveOnSigning.pdf"), FileMode::Create);
+    PoDoFo::SignDocument(doc, output, signer, signature, PdfSaveOptions::SaveOnSigning);
+}
+
 TEST_CASE("TestPdfSignerCms")
 {
     // X509 Certificate

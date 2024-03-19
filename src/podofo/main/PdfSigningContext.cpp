@@ -166,7 +166,11 @@ void PdfSigningContext::saveDocForSigning(PdfMemDocument& doc, StreamDevice& dev
         acroForm->GetDictionary().RemoveKey("NeedAppearances");
     }
 
-    doc.SaveUpdate(device, saveOptions);
+    if ((saveOptions & PdfSaveOptions::SaveOnSigning) != PdfSaveOptions::None)
+        doc.Save(device, saveOptions);
+    else
+        doc.SaveUpdate(device, saveOptions);
+
     device.Flush();
 }
 

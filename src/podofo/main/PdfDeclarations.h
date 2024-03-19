@@ -436,6 +436,11 @@ enum class PdfSaveOptions
      */
     NoMetadataUpdate = 16,
     Clean = 32,
+    /** Save the document on a signing operation, instead of
+     * performing an incremental update. It has no effect on
+     * a regular save operation
+     */
+    SaveOnSigning = 64,
 
     /**
       * \deprecated Use NoMetadataUpdate instead
