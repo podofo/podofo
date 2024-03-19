@@ -144,7 +144,11 @@ void CmsContext::loadX509Certificate(const bufferview& cert)
     auto in = (const unsigned char*)cert.data();
     m_cert = d2i_X509(nullptr, &in, (int)cert.size());
     if (m_cert == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, ssl::GetOpenSSLError());
+    {
+        string err("Certificate loading failed. Internal OpenSSL error:\n");
+        ssl::GetOpenSSLError(err);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, err);
+    }
 }
 
 void CmsContext::computeCertificateHash()

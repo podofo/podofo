@@ -81,7 +81,7 @@ namespace ssl
     void ComputeSHA1Str(const PoDoFo::bufferview& data,
         unsigned char* hash, unsigned& length);
 
-    std::string GetOpenSSLError();
+    void GetOpenSSLError(std::string& err);
 
     const EVP_CIPHER* Rc4();
     const EVP_CIPHER* Aes128();

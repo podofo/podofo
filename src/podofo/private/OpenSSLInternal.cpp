@@ -118,7 +118,11 @@ EVP_PKEY* ssl::LoadPrivateKey(const bufferview& input)
     const unsigned char* data = (const unsigned char*)input.data();
     auto ret = d2i_PrivateKey(EVP_PKEY_RSA, nullptr, &data, (long)input.size());
     if (ret == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, ssl::GetOpenSSLError());
+    {
+        string err("Private key loading failed. Internal OpenSSL error:\n");
+        ssl::GetOpenSSLError(err);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, err);
+    }
 
     return ret;
 }
@@ -299,20 +303,18 @@ void ssl::ComputeSHA1Str(const bufferview& data, unsigned char* hash, unsigned& 
     computeHash(data, ssl::SHA1(), hash, length);
 }
 
-string ssl::GetOpenSSLError()
+void ssl::GetOpenSSLError(string& err)
 {
     string ret;
     BIO* bio = BIO_new(BIO_s_mem());
     if (bio == nullptr)
-        return ret;
+        return;
 
     ERR_print_errors(bio);
     char* buf;
     size_t len = BIO_get_mem_data(bio, &buf);
-    ret.resize(len);
-    std::memcpy(ret.data(), buf, len);
+    err.append(buf, len);
     BIO_free(bio);
-    return ret;
 }
 
 const EVP_CIPHER* ssl::Rc4()
