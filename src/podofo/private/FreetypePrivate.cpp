@@ -182,7 +182,7 @@ bool tryExtractDataFromTTC(FT_Face face, charbuff& buffer)
     uint32_t tag;
     size = sizeof(FT_ULong);
     rc = FT_Load_Sfnt_Table(face, 0, 0, (FT_Byte*)&tag, &size);
-    if (rc == 0 || FROM_BIG_ENDIAN(tag) != TTAG_ttcf)
+    if (rc != 0 || FROM_BIG_ENDIAN(tag) != TTAG_ttcf)
         return false;
 
     // First read the TTC font header and then determine the face offset
