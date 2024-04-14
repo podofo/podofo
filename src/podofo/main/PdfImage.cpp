@@ -8,6 +8,13 @@
 #include "PdfImage.h"
 
 #ifdef PODOFO_HAVE_TIFF_LIB
+#ifdef USE_WIN32_FILEIO
+// Workaround possible definition of USE_WIN32_FILEIO, which
+// will cause inclusion of Windows.h, ending in clashes.
+// It's not really needed, so just undef it
+// See https://github.com/podofo/podofo/issues/152
+#undef USE_WIN32_FILEIO
+#endif // USE_WIN32_FILEIO
 extern "C" {
 #include <tiffio.h>
 }
