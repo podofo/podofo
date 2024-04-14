@@ -604,11 +604,11 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
             usedCodeSpaceSizes.insert(codeSpaceSize);
         }
 
-        int size = 0;
+        unsigned size = 0;
         for (auto& usedCodeSpaceSize : usedCodeSpaceSizes)
         {
             std::vector<utls::FSSUTFRange> ranges = utls::GetFSSUTFRanges(usedCodeSpaceSize);
-            size += ranges.size();
+            size += (unsigned)ranges.size();
         }
 
         output.Write(std::to_string(size));

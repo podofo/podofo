@@ -316,11 +316,11 @@ void PdfEncodingMapBase::AppendCodeSpaceRange(OutputStream& stream, charbuff& te
         usedCodeSpaceSizes.insert(codeSpaceSize);
     }
 
-    int size = 0;
+    unsigned size = 0;
     for (auto& usedCodeSpaceSize : usedCodeSpaceSizes)
     {
         std::vector<utls::FSSUTFRange> ranges = utls::GetFSSUTFRanges(usedCodeSpaceSize);
-        size += ranges.size();
+        size += (unsigned)ranges.size();
     }
 
     stream.Write(std::to_string(size));
