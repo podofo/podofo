@@ -10,11 +10,22 @@
 
 #include <podofo/main/PdfDeclarations.h>
 
-#include <date/date.h>
+#include <openssl/opensslv.h>
+
+// See https://github.com/openssl/openssl/blob/51caffb5c187bb2c633e0da9f5928fced4fae7ed/include/openssl/e_ostime.h#L32:
+// It appears that recent versions of OpenSSL now unconditionally includes
+// <WinSock2.h>, which includes <Windows.h>. This will cause issues with
+// GetObject() and possibly other macros, so we early workaround them
+#if defined(_WIN32) && (OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 2))
+#include "WindowsLeanMean.h"
+#endif
+
 #include <openssl/ssl.h>
 #include <openssl/cms.h>
 #include <openssl/asn1t.h>
 #include <openssl/err.h>
+
+#include <date/date.h>
 
 #if OPENSSL_VERSION_MAJOR < 3
  // Fixes warning when compiling with OpenSSL 3

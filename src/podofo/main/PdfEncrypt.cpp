@@ -13,6 +13,7 @@
 #include "PdfEncrypt.h"
 
 #include <podofo/private/OpenSSLInternal.h>
+#include <openssl/md5.h>
 
 #include "PdfDictionary.h"
 
@@ -21,13 +22,7 @@
 // SASL
 #include <stringprep.h>
 #include <idn-free.h>
-#include <openssl/sha.h>
-#include <openssl/aes.h>
 #endif // PODOFO_HAVE_LIBIDN
-
-#include <openssl/opensslconf.h>
-#include <openssl/md5.h>
-#include <openssl/evp.h>
 
 using namespace std;
 using namespace PoDoFo;

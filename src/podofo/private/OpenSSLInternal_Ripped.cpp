@@ -5,7 +5,6 @@
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "OpenSSLInternal.h"
-#include <openssl/cms.h>
 
 using namespace std;
 using namespace PoDoFo;

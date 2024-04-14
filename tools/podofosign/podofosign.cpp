@@ -10,12 +10,8 @@
 #include <cstdio>
 #include <string>
 #include <iostream>
-#include <openssl/bio.h>
-#include <openssl/evp.h>
-#include <openssl/err.h>
-#include <openssl/pem.h>
-#include <openssl/ssl.h>
-#include <openssl/x509.h>
+
+#include <podofo/private/OpenSSLInternal.h>
 
 #if defined(_WIN64)
 #define fseeko _fseeki64
