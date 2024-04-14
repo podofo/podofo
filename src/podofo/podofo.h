@@ -69,8 +69,6 @@
 #include "main/PdfVariant.h"
 #include "main/PdfIndirectObjectList.h"
 #include "main/PdfWriter.h"
-#include "main/PdfXRef.h"
-#include "main/PdfXRefStream.h"
 #include "main/PdfAcroForm.h"
 #include "main/PdfAction.h"
 #include "main/PdfAnnotation.h"

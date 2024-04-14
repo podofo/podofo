@@ -10,12 +10,12 @@
 #include "PdfDeclarations.h"
 #include "PdfIndirectObjectList.h"
 #include "PdfWriter.h"
-#include "PdfXRef.h"
 
 namespace PoDoFo {
 
 class PdfEncrypt;
 class OutputStreamDevice;
+class PdfXRef;
 
 /** A kind of PdfWriter that writes objects with streams immediately to
  *  an OutputStreamDevice

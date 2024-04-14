@@ -7,14 +7,10 @@
 #ifndef PDF_XREF_STREAM_H
 #define PDF_XREF_STREAM_H
 
-#include "PdfDeclarations.h"
-
-#include "PdfArray.h"
+#include <podofo/main/PdfArray.h>
 #include "PdfXRef.h"
 
 namespace PoDoFo {
-
-class PdfIndirectObjectList;
 
 /**
  * Creates an XRef table that is a stream object.

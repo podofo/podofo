@@ -7,10 +7,8 @@
 #ifndef PDF_XREF_H
 #define PDF_XREF_H
 
-#include "PdfDeclarations.h"
-
-#include "PdfReference.h"
-#include "PdfXRefEntry.h"
+#include <podofo/main/PdfReference.h>
+#include <podofo/main/PdfXRefEntry.h>
 
 namespace PoDoFo {
 

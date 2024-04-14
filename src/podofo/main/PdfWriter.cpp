@@ -15,8 +15,7 @@
 #include "PdfParserObject.h"
 #include "PdfObjectStream.h"
 #include "PdfVariant.h"
-#include "PdfXRef.h"
-#include "PdfXRefStream.h"
+#include <podofo/private/PdfXRefStream.h>
 #include <podofo/auxiliary/StreamDevice.h>
 
 #define PDF_MAGIC           "\xe2\xe3\xcf\xd3\n"
