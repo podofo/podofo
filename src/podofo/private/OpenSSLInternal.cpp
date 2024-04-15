@@ -38,19 +38,17 @@ void OpenSSLMain::Init()
     m_libCtx = OSSL_LIB_CTX_new();
     if (m_libCtx == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to create OpenSSL library context");
-    
-    // NOTE: Load required legacy providers, such as RC4, together regular ones,
+
+    // NOTE: Try to load required legacy providers, such as RC4, together regular ones,
     // as explained in https://wiki.openssl.org/index.php/OpenSSL_3.0#Providers
     m_legacyProvider = OSSL_PROVIDER_load(m_libCtx, "legacy");
-    if (m_legacyProvider == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to load legacy providers in OpenSSL >= 3.x.x");
-    
     m_defaultProvider = OSSL_PROVIDER_load(m_libCtx, "default");
     if (m_defaultProvider == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to load default providers in OpenSSL >= 3.x.x");
-    
+
     // https://www.openssl.org/docs/man3.0/man7/crypto.html#FETCHING-EXAMPLES
-    m_Rc4 = EVP_CIPHER_fetch(m_libCtx, "RC4", "provider=legacy");
+    if (m_legacyProvider != nullptr)
+        m_Rc4 = EVP_CIPHER_fetch(m_libCtx, "RC4", "provider=legacy");
     m_Aes128 = EVP_CIPHER_fetch(m_libCtx, "AES-128-CBC", "provider=default");
     m_Aes256 = EVP_CIPHER_fetch(m_libCtx, "AES-256-CBC", "provider=default");
     m_MD5 = EVP_MD_fetch(m_libCtx, "MD5", "provider=default");
@@ -320,6 +318,14 @@ void ssl::GetOpenSSLError(string& err)
 const EVP_CIPHER* ssl::Rc4()
 {
     ssl::Init();
+#if OPENSSL_VERSION_MAJOR >= 3
+    if (s_SSL.GetRc4() == nullptr)
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "OpenSSL RC4 legacy provider was not found. "
+            "Recompile OpenSSL or ensure OPENSSL_MODULES variable is correctly set to load "
+            "legacy providers (e.g. legacy.dll)");
+    }
+#endif // OPENSSL_VERSION_MAJOR >= 3
     return s_SSL.GetRc4();
 }
 
