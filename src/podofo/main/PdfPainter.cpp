@@ -479,6 +479,18 @@ void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, d
             this->drawTextAligned(line, x, y, width, hAlignment, style);
 
         x = 0;
+        switch (hAlignment)
+        {
+            default:
+            case PdfHorizontalAlignment::Left:
+                break;
+            case PdfHorizontalAlignment::Center:
+                x = -(width - textState.Font->GetStringLength(line, textState)) / 2.0;
+                break;
+            case PdfHorizontalAlignment::Right:
+                x = -(width - textState.Font->GetStringLength(line, textState));
+                break;
+        }
         y = -font.GetLineSpacing(textState);
     }
     PoDoFo::WriteOperator_ET(m_stream);
