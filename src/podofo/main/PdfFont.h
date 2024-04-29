@@ -182,9 +182,20 @@ public:
         std::vector<double>& lengths, std::vector<unsigned>& positions) const;
 
     /**
-     *  \returns The spacing width
+     * \returns The word spacing length
+     * \remarks This differs from GetSpaceCharLength() as this will
+     * be used to determine words splitting, while space char length
+     * will be used to visually represent a space
      */
     double GetWordSpacingLength(const PdfTextState& state) const;
+
+    /**
+     * \returns The space char length
+     * \remarks This differs from GetWordSpacingLength() as this will
+     * be used to visually represent a space, while word spacing length
+     * will be used to determine words splitting
+     */
+    double GetSpaceCharLength(const PdfTextState& state) const;
 
     /**
      *  \remarks Doesn't throw if character glyph could not be found
@@ -412,7 +423,7 @@ private:
     static std::unique_ptr<PdfFont> createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding, PdfFontFileType type, bool preferNonCID);
 
-    void initWordSpacingLength();
+    void initSpaceDescriptors();
 
 private:
     std::string m_Name;
@@ -423,6 +434,7 @@ private:
     UsedGIDsMap m_SubsetGIDs;
     PdfCIDToGIDMapConstPtr m_cidToGidMap;
     double m_WordSpacingLengthRaw;
+    double m_SpaceCharLengthRaw;
 
 protected:
     PdfFontMetricsConstPtr m_Metrics;

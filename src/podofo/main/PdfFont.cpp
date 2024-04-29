@@ -39,6 +39,7 @@ PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding) :
     PdfDictionaryElement(doc, "Font"),
     m_WordSpacingLengthRaw(-1),
+    m_SpaceCharLengthRaw(-1),
     m_Metrics(metrics)
 {
     if (metrics == nullptr)
@@ -51,6 +52,7 @@ PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding) :
     PdfDictionaryElement(obj),
     m_WordSpacingLengthRaw(-1),
+    m_SpaceCharLengthRaw(-1),
     m_Metrics(metrics)
 {
     if (metrics == nullptr)
@@ -350,8 +352,14 @@ bool PdfFont::TryScanEncodedString(const PdfString& encodedStr, const PdfTextSta
 
 double PdfFont::GetWordSpacingLength(const PdfTextState& state) const
 {
-    const_cast<PdfFont&>(*this).initWordSpacingLength();
+    const_cast<PdfFont&>(*this).initSpaceDescriptors();
     return getGlyphLength(m_WordSpacingLengthRaw, state, false);
+}
+
+double PdfFont::GetSpaceCharLength(const PdfTextState& state) const
+{
+    const_cast<PdfFont&>(*this).initSpaceDescriptors();
+    return getGlyphLength(m_SpaceCharLengthRaw, state, false);
 }
 
 double PdfFont::GetCharLength(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing) const
@@ -579,7 +587,7 @@ void PdfFont::embedFontFileData(PdfObject& descriptor, const PdfName& fontFileNa
     contents.GetOrCreateStream().SetData(data);
 }
 
-void PdfFont::initWordSpacingLength()
+void PdfFont::initSpaceDescriptors()
 {
     if (m_WordSpacingLengthRaw >= 0)
         return;
@@ -588,10 +596,9 @@ void PdfFont::initWordSpacingLength()
     // https://docs.microsoft.com/it-it/dotnet/api/system.char.iswhitespace
     unsigned gid;
     if (!TryGetGID(U' ', PdfGlyphAccess::Width, gid)
-        || !m_Metrics->TryGetGlyphWidth(gid, m_WordSpacingLengthRaw))
+        || !m_Metrics->TryGetGlyphWidth(gid, m_SpaceCharLengthRaw)
+        || m_SpaceCharLengthRaw <= 0)
     {
-#if USE_EXPERIMENTAL_SPACING_LENGTH_INFERENCE
-        // See https://stackoverflow.com/a/73420359/213871
         double lengthsum = 0;
         unsigned nonZeroCount = 0;
         for (unsigned i = 0, count = m_Metrics->GetGlyphCount(); i < count; i++)
@@ -605,14 +612,14 @@ void PdfFont::initWordSpacingLength()
             }
         }
 
-        m_WordSpacingLengthRaw = lengthsum / nonZeroCount / 7;
-#else
-        // pdf.js seems to just ship with an hardcoded word spacing
-        // https://github.com/mozilla/pdf.js/blob/ab1297f0538c51e8e7ece037768e38a9991dcc37/src/core/evaluator.js#L2348
-        constexpr double MISSING_WORD_SPACING_LENGTH = 0.1;
-        m_WordSpacingLengthRaw = MISSING_WORD_SPACING_LENGTH;
-#endif
+        m_SpaceCharLengthRaw = lengthsum / nonZeroCount;
     }
+
+    // We arbitrarily take a fraction of the read or inferred
+    // char space to determine the word spacing length. The
+    // factor proved to work well with a consistent tests corpus
+    constexpr int WORD_SPACING_FRACTIONAL_FACTOR = 6;
+    m_WordSpacingLengthRaw = m_SpaceCharLengthRaw / WORD_SPACING_FRACTIONAL_FACTOR;
 }
 
 void PdfFont::initImported()
