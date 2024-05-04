@@ -27,10 +27,10 @@ class InputStream;
 struct PODOFO_API PdfTextEntry final
 {
     std::string Text;
-    int Page;
-    double X;
-    double Y;
-    double Length;
+    int Page = -1;
+    double X = -1;
+    double Y = -1;
+    double Length = -1;
     nullable<Rect> BoundingBox;
 };
 
