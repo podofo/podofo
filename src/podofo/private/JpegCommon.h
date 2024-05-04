@@ -2,7 +2,6 @@
 #define JPEG_COMMON_H
 
 #include <podofo/main/PdfDeclarations.h>
-#include <csetjmp>
 
 extern "C" {
 #include <jpeglib.h>

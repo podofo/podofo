@@ -7,6 +7,14 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfImage.h"
 
+#ifdef __MINGW32__
+// Workaround <csetjmp> inlcuding <Windows.h> in MINGW
+// See https://github.com/podofo/podofo/commit/939ec73578e09aab11012bd38a034a74da1a202c#commitcomment-141054513
+#include <podofo/private/WindowsLeanMean.h>
+#endif // __MINGW32__
+
+#include <csetjmp>
+
 #ifdef PODOFO_HAVE_TIFF_LIB
 #ifdef USE_WIN32_FILEIO
 // Workaround possible definition of USE_WIN32_FILEIO, which
