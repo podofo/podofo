@@ -9,7 +9,10 @@
   compile PoDoFo library, but they may be needed to build the playground or tests;
 - `src`: the main source directory;
 - `test`: test suite;
-- `tools`: the PoDoFo tools suite.
+- `tools`: the PoDoFo tools suite;
+- `staging`: directory with immature PoDoFo API extensions classes,
+  or with unclear ownership/maintenance. May be promoted to
+  main API or removed at any time.
 
 ### Source directory
 The `src` directory contains only a single `podofo` folder.
@@ -25,6 +28,3 @@ externally of the source tree, simulating the layout of prefixed
   compile PoDoFo library, and can be called by tools and tests
   as well by means of a `podofo_private` static library target.
   Headers here are not deployed as part of the public API;
-- `staging`: directory with immature PoDoFo API extensions classes,
-  or with unclear ownership/maintenance. May be promoted to
-  main API or removed at any time.

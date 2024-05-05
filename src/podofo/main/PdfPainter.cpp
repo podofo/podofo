@@ -130,42 +130,6 @@ void PdfPainter::reset()
     m_canvas = nullptr;
 }
 
-void PdfPainter::SetStrokingShadingPattern(const PdfShadingPattern& pattern)
-{
-    checkStream();
-    checkStatus(StatusDefault);
-    this->addToPageResources("Pattern", pattern.GetIdentifier(), pattern.GetObject());
-    PoDoFo::WriteOperator_CS(m_stream, PdfColorSpaceType::Pattern);
-    PoDoFo::WriteOperator_SCN(m_stream, pattern.GetIdentifier().GetString());
-}
-
-void PdfPainter::SetShadingPattern(const PdfShadingPattern& pattern)
-{
-    checkStream();
-    checkStatus(StatusDefault);
-    this->addToPageResources("Pattern", pattern.GetIdentifier(), pattern.GetObject());
-    PoDoFo::WriteOperator_cs(m_stream, PdfColorSpaceType::Pattern);
-    PoDoFo::WriteOperator_scn(m_stream, pattern.GetIdentifier().GetString());
-}
-
-void PdfPainter::SetStrokingTilingPattern(const PdfTilingPattern& pattern)
-{
-    checkStream();
-    checkStatus(StatusDefault);
-    this->addToPageResources("Pattern", pattern.GetIdentifier(), pattern.GetObject());
-    PoDoFo::WriteOperator_CS(m_stream, PdfColorSpaceType::Pattern);
-    PoDoFo::WriteOperator_SCN(m_stream, pattern.GetIdentifier().GetString());
-}
-
-void PdfPainter::SetTilingPattern(const PdfTilingPattern& pattern)
-{
-    checkStream();
-    checkStatus(StatusDefault);
-    this->addToPageResources("Pattern", pattern.GetIdentifier(), pattern.GetObject());
-    PoDoFo::WriteOperator_cs(m_stream, PdfColorSpaceType::Pattern);
-    PoDoFo::WriteOperator_scn(m_stream, pattern.GetIdentifier().GetString());
-}
-
 void PdfPainter::SetStrokeStyle(PdfStrokeStyle strokeStyle, bool inverted, double scale, bool subtractJoinCap)
 {
     checkStream();

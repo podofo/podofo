@@ -118,10 +118,4 @@
 #include "main/PdfXObjectForm.h"
 #include "main/PdfXObjectPostScript.h"
 
-// Staging headers
-#include "staging/PdfFunction.h"
-#include "staging/PdfShadingPattern.h"
-#include "staging/PdfTilingPattern.h"
-#include "staging/PdfPainterExtensions.h"
-
 #endif // PODOFO_H

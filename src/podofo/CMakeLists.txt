@@ -50,7 +50,7 @@ macro(add_source subdir subdir_path)
     list(FILTER HEADER_FILES EXCLUDE REGEX "\.cpp$")
 endmacro()
 
-foreach(subdir main auxiliary staging)
+foreach(subdir main auxiliary)
     add_source(${subdir} "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}")
     install(FILES ${HEADER_FILES} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/podofo/${subdir}")
 endforeach()

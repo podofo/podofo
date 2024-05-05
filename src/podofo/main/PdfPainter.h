@@ -16,9 +16,6 @@
 
 #include <podofo/auxiliary/StateStack.h>
 
-#include <podofo/staging/PdfShadingPattern.h>
-#include <podofo/staging/PdfTilingPattern.h>
-
 namespace PoDoFo {
 
 class PdfExtGState;
@@ -225,34 +222,6 @@ public:
      *  This has to be called whenever a page has been drawn complete.
      */
     void FinishDrawing();
-
-    /** Set the shading pattern for all following stroking operations.
-     *  This operation uses the 'SCN' PDF operator.
-     *
-     *  \param pattern a shading pattern
-     */
-    void SetStrokingShadingPattern(const PdfShadingPattern& pattern);
-
-    /** Set the shading pattern for all following non-stroking operations.
-     *  This operation uses the 'scn' PDF operator.
-     *
-     *  \param pattern a shading pattern
-     */
-    void SetShadingPattern(const PdfShadingPattern& pattern);
-
-    /** Set the tiling pattern for all following stroking operations.
-     *  This operation uses the 'SCN' PDF operator.
-     *
-     *  \param pattern a tiling pattern
-     */
-    void SetStrokingTilingPattern(const PdfTilingPattern& pattern);
-
-    /** Set the tiling pattern for all following non-stroking operations.
-     *  This operation uses the 'scn' PDF operator.
-     *
-     *  \param pattern a tiling pattern
-     */
-    void SetTilingPattern(const PdfTilingPattern& pattern);
 
     /** Set the stoke style for all stroking operations.
      *  \param strokeStyle style of the stroking operations
