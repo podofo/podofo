@@ -18,13 +18,12 @@
 using namespace std;
 using namespace PoDoFo;
 
-static int normalize(int value, int start, int end);
-
 PdfPage::PdfPage(PdfDocument& parent, const Rect& size) :
     PdfDictionaryElement(parent, "Page"),
     m_Index(numeric_limits<unsigned>::max()),
     m_Contents(nullptr),
-    m_Annotations(*this)
+    m_Annotations(*this),
+    m_Rotation(-1)
 {
     initNewPage(size);
 }
@@ -39,7 +38,8 @@ PdfPage::PdfPage(PdfObject& obj, vector<PdfObject*>&& parents) :
     m_Index(numeric_limits<unsigned>::max()),
     m_parents(std::move(parents)),
     m_Contents(nullptr),
-    m_Annotations(*this)
+    m_Annotations(*this),
+    m_Rotation(-1)
 {
     auto contents = GetDictionary().FindKey("Contents");
     if (contents != nullptr)
@@ -72,8 +72,8 @@ void PdfPage::SetRectRaw(const Rect& rect)
 
 bool PdfPage::HasRotation(double& teta) const
 {
-    int rotationRaw = normalize(GetRotationRaw(), 0, 360);
-    if (rotationRaw == 0)
+    int rotation = GetRotation();
+    if (rotation == 0)
     {
         teta = 0;
         return false;
@@ -81,7 +81,7 @@ bool PdfPage::HasRotation(double& teta) const
 
     // Convert to radians and make it a counterclockwise rotation,
     // as common mathematical notation for rotations
-    teta = -rotationRaw * DEG2RAD;
+    teta = -rotation * DEG2RAD;
     return true;
 }
 
@@ -217,12 +217,10 @@ Rect PdfPage::getPageBox(const string_view& inBox, bool isInheritable, bool raw)
 
     if (!raw)
     {
-        switch (GetRotationRaw())
+        switch (GetRotation())
         {
             case 90:
             case 270:
-            case -90:
-            case -270:
             {
                 double temp = pageBox.Width;
                 pageBox.Width = pageBox.Height;
@@ -231,10 +229,9 @@ Rect PdfPage::getPageBox(const string_view& inBox, bool isInheritable, bool raw)
             }
             case 0:
             case 180:
-            case -180:
                 break;
             default:
-                throw runtime_error("Invalid rotation");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid rotation");
         }
     }
 
@@ -246,12 +243,10 @@ void PdfPage::setPageBox(const string_view& inBox, const Rect& rect, bool raw)
     auto actualRect = rect;
     if (!raw)
     {
-        switch (GetRotationRaw())
+        switch (GetRotation())
         {
             case 90:
             case 270:
-            case -90:
-            case -270:
             {
                 actualRect.Width = rect.Height;
                 actualRect.Height = rect.Width;
@@ -259,10 +254,9 @@ void PdfPage::setPageBox(const string_view& inBox, const Rect& rect, bool raw)
             }
             case 0:
             case 180:
-            case -180:
                 break;
             default:
-                throw runtime_error("Invalid rotation");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid rotation");
         }
     }
 
@@ -271,23 +265,33 @@ void PdfPage::setPageBox(const string_view& inBox, const Rect& rect, bool raw)
     this->GetDictionary().AddKey(inBox, mediaBox);
 }
 
-int PdfPage::GetRotationRaw() const
+void PdfPage::loadRotation()
 {
-    int rot = 0;
+    if (m_Rotation >= 0)
+        return;
 
-    auto obj = findInheritableAttribute("Rotate");
-    if (obj != nullptr && (obj->IsNumber() || obj->GetReal()))
-        rot = static_cast<int>(obj->GetNumber());
-
-    return rot;
+    m_Rotation = utls::NormalizePageRotation(GetRotationRaw());
 }
 
-void PdfPage::SetRotationRaw(int rotation)
+double PdfPage::GetRotationRaw() const
 {
-    if (rotation != 0 && rotation != 90 && rotation != 180 && rotation != 270)
-        PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
+    auto obj = findInheritableAttribute("Rotate");
+    double rotation;
+    if (obj == nullptr || !obj->TryGetReal(rotation))
+        return 0;
 
+    return rotation;
+}
+
+void PdfPage::SetRotation(int rotation)
+{
+    if (rotation % 90 != 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Page rotation {} is invalid, must be a multiple of 90", rotation);
+
+    // We perform a normalization anyway
+    rotation = utls::NormalizePageRotation(rotation);
     this->GetDictionary().AddKey("Rotate", PdfVariant(static_cast<int64_t>(rotation)));
+    m_Rotation = rotation;
 }
 
 void PdfPage::MoveAt(unsigned index)
@@ -592,12 +596,8 @@ Rect PdfPage::GetArtBox(bool raw) const
     return getPageBox("ArtBox", false, raw);
 }
 
-// https://stackoverflow.com/a/2021986/213871
-int normalize(int value, int start, int end)
+unsigned PdfPage::GetRotation() const
 {
-    int width = end - start;
-    int offsetValue = value - start;   // value relative to 0
-
-    // + start to reset back to start of original range
-    return offsetValue - (offsetValue / width) * width + start;
+    const_cast<PdfPage&>(*this).loadRotation();
+    return (unsigned)m_Rotation;
 }

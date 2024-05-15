@@ -99,7 +99,7 @@ void PdfInfoHelper::OutputPageInfo(ostream& outstream)
 
         annotCount = curPage.GetAnnotations().GetCount();
         outstream << "\tMediaBox: " << str << endl;
-        outstream << "\tRotation: " << curPage.GetRotationRaw() << endl;
+        outstream << "\tRotation: " << curPage.GetRotation() << endl;
         outstream << "\t# of Annotations: " << annotCount << endl;
 
         for (unsigned i = 0; i < annotCount; i++)

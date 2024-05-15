@@ -1,3 +1,4 @@
+#include "PdfDeclarationsPrivate.h"
 /**
  * SPDX-FileCopyrightText: (C) 2005 Dominik Seichter <domseichter@web.de>
  * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
@@ -54,6 +55,7 @@ static bool isStringDelimter(char32_t ch);
 static string extractFontHints(const std::string_view& fontName,
     bool trimSubsetPrefix, bool& isItalic, bool& isBold);
 static bool trimSuffix(string& name, const string_view& suffix);
+static double modulo(double a, double b);
 
 struct VersionIdentity
 {
@@ -1203,6 +1205,68 @@ void utls::ByteSwap(u16string& str)
 {
     for (unsigned i = 0; i < str.length(); i++)
         str[i] = (char16_t)utls::ByteSwap((uint16_t)str[i]);
+}
+
+int utls::NormalizePageRotation(double angle)
+{
+    constexpr double ADOBE_EPSILON = 0.5;
+
+    // Normalize the rotation between [0,360)
+    double normalized = utls::NormalizeCircularRange(angle, 0, 360);
+
+    // NOTE: Adobe Reader seems to go nuts here, looking in the
+    // neighbourhood of orthogonal rotations. It's unclear if
+    // the following computation can be made more efficient,
+    // but the page rotation is cached anyway. See
+    // BasicTest::TestNormalizeRangeRotations() for the complete
+    // lists with tests of expected values verified in Adobe
+    // products
+
+    // Round the angle with [0, 90, 180, 270, 360] as possible values
+    int rounded = (int)std::round(normalized / 90) * 90;
+    switch (rounded)
+    {
+        case 0:
+            if (normalized < ADOBE_EPSILON)
+                return 0;
+            else
+                return 90;
+        case 180:
+            if (normalized < 180 - ADOBE_EPSILON)
+                return 90;
+
+            if (normalized < 180 + ADOBE_EPSILON)
+                return 180;
+            else
+                return 270;
+        case 90:
+        case 270:
+            return rounded;
+        case 360:
+            if (normalized >= 360 - ADOBE_EPSILON)
+                return 0;
+            else
+                return 270;
+        default:
+            PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
+    }
+}
+
+double utls::NormalizeCircularRange(double value, double start, double end)
+{
+    PODOFO_ASSERT(start < end);
+
+    // Slightly shorten the range
+    double range = end - start - numeric_limits<double>::epsilon();
+    return start + modulo(value - start, range);
+}
+
+// Returns the remainder of the division a / b, so that the result of the
+// subtraction of the *remainder* from the *divisor* can be subtracted from
+// the *dividend* so it will be *floor* of the actual division
+double modulo(double a, double b)
+{
+    return std::fmod((std::fmod(a, b)) + b, b);
 }
 
 void utls::SerializeEncodedString(OutputStream& stream, const string_view& encoded, bool wantHex)

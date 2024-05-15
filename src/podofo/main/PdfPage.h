@@ -168,15 +168,21 @@ public:
      */
     Rect GetArtBox(bool raw = false) const;
 
-    /** Get the current page rotation (if any), it's a clockwise rotation
-     *  \returns int 0, 90, 180 or 270
+    /** Get the normalized page rotation (0, 90, 180 or 270)
+     * \remarks It's a clockwise rotation
      */
-    int GetRotationRaw() const;
+    unsigned GetRotation() const;
+
+    /** Get the raw page rotation (if any)
+     * \remarks It's a clockwise rotation. It may return an invalid real number number
+     */
+    double GetRotationRaw() const;
 
     /** Set the current page rotation.
-     *  \param iRotation Rotation to set to the page. Valid value are 0, 90, 180, 270.
+     * \param rotation The rotation to set to the page. Must be a multiple of 90
+     * \remarks The actual stored rotation will be normalzed to 0, 90, 180 or 270
      */
-    void SetRotationRaw(int rotation);
+    void SetRotation(int rotation);
 
     /** Move the page at the given index
      */
@@ -254,6 +260,8 @@ private:
 
     void setPageBox(const std::string_view& inBox, const Rect& rect, bool raw);
 
+    void loadRotation();
+
 private:
     PdfElement& GetElement() = delete;
     const PdfElement& GetElement() const = delete;
@@ -266,6 +274,7 @@ private:
     std::unique_ptr<PdfContents> m_Contents;
     std::unique_ptr<PdfResources> m_Resources;
     PdfAnnotationCollection m_Annotations;
+    int m_Rotation;
 };
 
 template<typename TField>

@@ -375,7 +375,6 @@ namespace utls
 
     std::vector<FSSUTFRange> GetFSSUTFRanges(unsigned char codeSize);
 
-
     template<typename T>
     void move(T& in, T& out)
     {
@@ -545,6 +544,11 @@ namespace utls
 #endif
 #pragma endregion // Byte Swap
 
+    // Normalize a page rotation to [0, 90, 180, 270]
+    int NormalizePageRotation(double angle);
+
+    // Normalize a value to the circular input range [start,end)
+    double NormalizeCircularRange(double value, double start, double end);
 }
 
 /**
