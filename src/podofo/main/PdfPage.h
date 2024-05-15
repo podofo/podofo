@@ -86,22 +86,6 @@ public:
 
     bool HasRotation(double& teta) const override;
 
-    // added by Petr P. Petrov 21 Febrary 2010
-    /** Set the current page width in PDF Units
-     *
-     * \returns true if successful, false otherwise
-     *
-     */
-    [[deprecated]] bool SetPageWidth(int newWidth);
-
-    // added by Petr P. Petrov 21 Febrary 2010
-    /** Set the current page height in PDF Units
-     *
-     * \returns true if successful, false otherwise
-     *
-     */
-    [[deprecated]] bool SetPageHeight(int newHeight);
-
     /** Set the /MediaBox in PDF Units
      * \param rect a Rect in PDF units
      */
