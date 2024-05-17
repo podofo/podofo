@@ -19,13 +19,15 @@
 #include "PdfComboBox.h"
 #include "PdfListBox.h"
 
+ // https://en.wikipedia.org/wiki/Escape_character#ASCII_escape_character
+#define ESCAPE_CHARACTER "\033"
 #define CHECK_FIELD_NAME(name) if (name.find('.') != string::npos)\
     throw runtime_error("Unsupported dot \".\" in field name. Use PdfField.CreateChild()");
 
 using namespace std;
 using namespace PoDoFo;
 
-void getFullName(const PdfObject& obj, bool escapePartialNames, string& fullname);
+void getFullName(const PdfObject& obj, bool skipEscapePartialName, string& fullname);
 
 PdfField::PdfField(PdfAnnotationWidget& widget,
         PdfFieldType fieldType, const shared_ptr<PdfField>& parent) :
@@ -660,10 +662,10 @@ nullable<const PdfString&> PdfField::GetNameRaw() const
     return *str;
 }
 
-string PdfField::GetFullName(bool escapePartialNames) const
+string PdfField::GetFullName(bool skipEscapePartialName) const
 {
     string fullName;
-    getFullName(GetObject(), escapePartialNames, fullName);
+    getFullName(GetObject(), skipEscapePartialName, fullName);
     return fullName;
 }
 
@@ -839,18 +841,18 @@ void PdfField::linkFieldObjectToParent(const shared_ptr<PdfField>& field, PdfFie
     }
 }
 
-void getFullName(const PdfObject& obj, bool escapePartialNames, string& fullname)
+void getFullName(const PdfObject& obj, bool skipEscapePartialName, string& fullname)
 {
     auto& dict = obj.GetDictionary();
     auto parent = dict.FindKey("Parent");
     if (parent != nullptr)
-        getFullName(*parent, escapePartialNames, fullname);
+        getFullName(*parent, skipEscapePartialName, fullname);
 
     const PdfObject* nameObj = dict.GetKey("T");
     if (nameObj != nullptr)
     {
         string name = nameObj->GetString().GetString();
-        if (escapePartialNames)
+        if (!skipEscapePartialName)
         {
             // According to ISO 32000-1:2008, "12.7.3.2 Field Names":
             // "Because the PERIOD is used as a separator for fully
@@ -863,7 +865,7 @@ void getFullName(const PdfObject& obj, bool escapePartialNames, string& fullname
             size_t currpos = 0;
             while ((currpos = name.find('.', currpos)) != std::string::npos)
             {
-                name.replace(currpos, 1, "..", 2);
+                name.replace(currpos, 1, ESCAPE_CHARACTER ".", 2);
                 currpos += 2;
             }
         }

@@ -109,9 +109,9 @@ public:
 
     /** \returns the parents qualified name of this PdfField
      *
-     *  \param escapePartialNames escape non compliant partial names
+     *  \param skipEscapePartialName don't escape non compliant partial names that have dots with ESC character
      */
-    std::string GetFullName(bool escapePartialNames = false) const;
+    std::string GetFullName(bool skipEscapePartialName = false) const;
 
     /**
      * Set the alternate name of this field which
