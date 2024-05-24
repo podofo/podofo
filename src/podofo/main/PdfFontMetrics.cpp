@@ -15,9 +15,13 @@
 #include "PdfEncodingMapFactory.h"
 #include "PdfFont.h"
 #include "PdfIdentityEncoding.h"
+#include "PdfFontMetricsFreetype.h"
 
 using namespace std;
 using namespace PoDoFo;
+
+static FT_Face getFontFaceFromFile(const string_view& filepath, unsigned faceIndex, unique_ptr<charbuff>& data);
+static FT_Face getFontFaceFromBuffer(const bufferview& view, unsigned faceIndex, unique_ptr<charbuff>& data);
 
 // Default matrix: thousands of PDF units
 static Matrix2D s_DefaultMatrix = { 1e-3, 0.0, 0.0, 1e-3, 0, 0 };
@@ -25,6 +29,31 @@ static Matrix2D s_DefaultMatrix = { 1e-3, 0.0, 0.0, 1e-3, 0, 0 };
 PdfFontMetrics::PdfFontMetrics() : m_FaceIndex(0) { }
 
 PdfFontMetrics::~PdfFontMetrics() { }
+
+unique_ptr<const PdfFontMetrics> PdfFontMetrics::Create(const string_view& filepath, unsigned faceIndex)
+{
+    unique_ptr<charbuff> data;
+    auto face = getFontFaceFromFile(filepath, faceIndex, data);
+    if (face == nullptr)
+        return nullptr;
+
+    unique_ptr<PdfFontMetrics> metrics(new PdfFontMetricsFreetype(face, std::move(data)));
+    metrics->m_FilePath = filepath;
+    metrics->m_FaceIndex = faceIndex;
+    return metrics;
+}
+
+unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateFromBuffer(const bufferview& buffer, unsigned faceIndex)
+{
+    unique_ptr<charbuff> data;
+    auto face = getFontFaceFromBuffer(buffer, faceIndex, data);
+    if (face == nullptr)
+        return nullptr;
+
+    unique_ptr<PdfFontMetrics> metrics(new PdfFontMetricsFreetype(face, std::move(data)));
+    metrics->m_FaceIndex = faceIndex;
+    return metrics;
+}
 
 double PdfFontMetrics::GetGlyphWidth(unsigned gid) const
 {
@@ -383,8 +412,36 @@ void FreeTypeFacePtr::reset(FT_Face face)
     shared_ptr<FT_FaceRec_>::reset(face, FT_Done_Face);
 }
 
-void PdfFontMetrics::SetFilePath(std::string&& filepath, unsigned faceIndex)
+FT_Face getFontFaceFromFile(const string_view& filepath, unsigned faceIndex, unique_ptr<charbuff>& data)
 {
-    m_FilePath = std::move(filepath);
-    m_FaceIndex = faceIndex;
+    charbuff buffer;
+    auto face = FT::CreateFaceFromFile(filepath, faceIndex, buffer);
+    if (face == nullptr)
+    {
+        PoDoFo::LogMessage(PdfLogSeverity::Error, "Error when loading the face from buffer");
+        return nullptr;
+    }
+
+    if (!FT::IsPdfSupported(face))
+        return nullptr;
+
+    data.reset(new charbuff(std::move(buffer)));
+    return face;
+}
+
+FT_Face getFontFaceFromBuffer(const bufferview& view, unsigned faceIndex, unique_ptr<charbuff>& data)
+{
+    charbuff buffer;
+    auto face = FT::CreateFaceFromBuffer(view, faceIndex, buffer);
+    if (face == nullptr)
+    {
+        PoDoFo::LogMessage(PdfLogSeverity::Error, "Error when loading the face from buffer");
+        return nullptr;
+    }
+
+    if (!FT::IsPdfSupported(face))
+        return nullptr;
+
+    data.reset(new charbuff(std::move(buffer)));
+    return face;
 }

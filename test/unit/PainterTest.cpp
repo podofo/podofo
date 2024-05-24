@@ -455,7 +455,8 @@ TEST_CASE("BigDynamicCMAPTest")
         PdfMemDocument document;
 
         auto& fontManager = document.GetFonts();
-        auto& font = fontManager.GetOrCreateFont(TestUtils::GetTestInputFilePath("Fonts", "NotoSansTC-Regular.ttf"));
+        auto metrics = PdfFontMetrics::Create(TestUtils::GetTestInputFilePath("Fonts", "NotoSansTC-Regular.ttf"));
+        auto& font = fontManager.GetOrCreateFont(std::move(metrics));
 
         // Draw a XObjectForm
         unique_ptr<PdfXObjectForm> xObjectPtr = document.CreateXObjectForm(Rect(0, 0, 720, 1280));

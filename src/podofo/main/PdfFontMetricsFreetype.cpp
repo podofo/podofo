@@ -39,14 +39,14 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(const FreeTypeFacePtr& face, cons
     init(refMetrics);
 }
 
-unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::CreateSubstituteMetrics(
+unique_ptr<const PdfFontMetricsFreetype> PdfFontMetricsFreetype::CreateSubstituteMetrics(
     const PdfFontMetrics& metrics)
 {
     return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(metrics.GetFaceHandle(),
         metrics.GetFontFileDataHandle(), &metrics));
 }
 
-unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::CreateFromFace(FT_Face face)
+unique_ptr<const PdfFontMetricsFreetype> PdfFontMetricsFreetype::CreateFromFace(FT_Face face)
 {
     if (face == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The face can't be null");

@@ -34,7 +34,7 @@ private:
     PdfFontMetricsObject(const PdfObject& font, const PdfObject* descriptor);
 
 public:
-    static std::unique_ptr<PdfFontMetricsObject> Create(const PdfObject& font, const PdfObject* descriptor = nullptr);
+    static std::unique_ptr<const PdfFontMetricsObject> Create(const PdfObject& font, const PdfObject* descriptor = nullptr);
 
     unsigned GetGlyphCount() const override;
 

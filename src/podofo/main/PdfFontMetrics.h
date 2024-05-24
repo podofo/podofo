@@ -27,6 +27,12 @@ public:
     void reset(FT_Face face = nullptr);
 };
 
+class PdfFontMetrics;
+
+/** Convenience typedef for a const PdfEncoding shared ptr
+ */
+using PdfFontMetricsConstPtr = std::shared_ptr<const PdfFontMetrics>;
+
 /**
  * This abstract class provides access to font metrics information.
  *
@@ -44,6 +50,10 @@ protected:
 
 public:
     virtual ~PdfFontMetrics();
+
+    static std::unique_ptr<const PdfFontMetrics> Create(const std::string_view& filepath, unsigned faceIndex = 0);
+
+    static std::unique_ptr<const PdfFontMetrics> CreateFromBuffer(const bufferview& buffer, unsigned faceIndex = 0);
 
     virtual unsigned GetGlyphCount() const = 0;
 
@@ -330,9 +340,6 @@ protected:
     virtual const FreeTypeFacePtr& GetFaceHandle() const = 0;
 
 private:
-    void SetFilePath(std::string&& filepath, unsigned faceIndex);
-
-private:
     void initBaseFontNameSafe();
     static PdfEncodingMapConstPtr getFontType1Encoding(FT_Face face);
 
@@ -364,9 +371,7 @@ private:
     FreeTypeFacePtr m_Face;
 };
 
-/** Convenience typedef for a const PdfEncoding shared ptr
- */
-using PdfFontMetricsConstPtr = std::shared_ptr<const PdfFontMetrics> ;
+
 
 };
 

@@ -35,13 +35,13 @@ PdfFontMetricsStandard14::PdfFontMetricsStandard14(
     m_LineSpacing = (data.Ascent + abs(data.Descent)) / 1000.0;
 }
 
-unique_ptr<PdfFontMetricsStandard14> PdfFontMetricsStandard14::Create(
+unique_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::Create(
     PdfStandard14FontType fontType)
 {
     return create(fontType, nullptr);
 }
 
-unique_ptr<PdfFontMetricsStandard14> PdfFontMetricsStandard14::Create(
+unique_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::Create(
     PdfStandard14FontType fontType, const PdfObject& fontObj)
 {
     return create(fontType, &fontObj);

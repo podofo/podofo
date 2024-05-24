@@ -30,9 +30,9 @@ public:
     /** Create a Standard14 font metrics
      * \param fontObj optionally try to read a /Widths entry from the supplied
      */
-    static std::unique_ptr<PdfFontMetricsStandard14> Create(
+    static std::unique_ptr<const PdfFontMetricsStandard14> Create(
         PdfStandard14FontType fontType);
-    static std::unique_ptr<PdfFontMetricsStandard14> Create(
+    static std::unique_ptr<const PdfFontMetricsStandard14> Create(
         PdfStandard14FontType fontType, const PdfObject& fontObj);
 
 public:

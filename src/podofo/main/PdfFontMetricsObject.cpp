@@ -387,7 +387,7 @@ void PdfFontMetricsObject::GetBoundingBox(vector<double>& bbox) const
     bbox = m_BBox;
 }
 
-unique_ptr<PdfFontMetricsObject> PdfFontMetricsObject::Create(const PdfObject& font, const PdfObject* descriptor)
+unique_ptr<const PdfFontMetricsObject> PdfFontMetricsObject::Create(const PdfObject& font, const PdfObject* descriptor)
 {
     return unique_ptr<PdfFontMetricsObject>(new PdfFontMetricsObject(font, descriptor));
 }
