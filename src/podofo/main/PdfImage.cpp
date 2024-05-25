@@ -323,6 +323,9 @@ void PdfImage::SetDataRaw(const bufferview& buffer, const PdfImageInfo& info)
 
 void PdfImage::SetDataRaw(InputStream& stream, const PdfImageInfo& info)
 {
+    if (info.ColorSpace == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Missing color space");
+
     m_ColorSpace = info.ColorSpace;
     m_Width = info.Width;
     m_Height = info.Height;
