@@ -131,13 +131,17 @@ public:
      */
     void SetDataRaw(InputStream& stream, const PdfImageInfo& info);
 
-    /** Load the image data from a file
+    /** Load the image data from bytes
+     * \param imageIndex image index to be fed to multi image/page
+     *   formats (eg. TIFF). Ignored by the other formats
      */
-    void Load(const std::string_view& filepath);
+    void Load(const std::string_view& filepath, unsigned imageIndex = 0);
 
     /** Load the image data from bytes
+     * \param imageIndex image index to be fed to multi image/page
+     *   formats (eg. TIFF). Ignored by the other formats
      */
-    void LoadFromBuffer(const bufferview& buffer);
+    void LoadFromBuffer(const bufferview& buffer, unsigned imageIndex = 0);
 
     void ExportTo(charbuff& buff, PdfExportFormat format, PdfArray args = {}) const;
 
@@ -188,17 +192,17 @@ private:
 #endif // PODOFO_HAVE_JPEG_LIB
 
 #ifdef PODOFO_HAVE_TIFF_LIB
-    void loadFromTiffHandle(void* handle);
+    void loadFromTiffHandle(void* handle, unsigned imageIndex);
     /** Load the image data from a TIFF file
      *  \param filename
      */
-    void loadFromTiff(const std::string_view& filename);
+    void loadFromTiff(const std::string_view& filename, unsigned imageIndex);
 
     /** Load the image data from TIFF bytes
      *  \param data TIFF bytes
      *  \param len number of bytes
      */
-    void loadFromTiffData(const unsigned char* data, size_t len);
+    void loadFromTiffData(const unsigned char* data, size_t len, unsigned imageIndex);
 #endif // PODOFO_HAVE_TIFF_LIB
 
 #ifdef PODOFO_HAVE_PNG_LIB

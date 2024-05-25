@@ -385,7 +385,7 @@ void PdfImage::SetDataRaw(InputStream& stream, const PdfImageInfo& info)
         GetObject().GetOrCreateStream().SetData(stream, info.Filters, true);
 }
 
-void PdfImage::Load(const string_view& filepath)
+void PdfImage::Load(const string_view& filepath, unsigned imageIndex)
 {
     if (filepath.length() > 3)
     {
@@ -395,7 +395,7 @@ void PdfImage::Load(const string_view& filepath)
 #ifdef PODOFO_HAVE_TIFF_LIB
         if (extension == ".tif" || extension == ".tiff")
         {
-            loadFromTiff(filepath);
+            loadFromTiff(filepath, imageIndex);
             return;
         }
 #endif
@@ -420,7 +420,7 @@ void PdfImage::Load(const string_view& filepath)
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, filepath);
 }
 
-void PdfImage::LoadFromBuffer(const bufferview& buffer)
+void PdfImage::LoadFromBuffer(const bufferview& buffer, unsigned imageIndex)
 {
     if (buffer.size() <= 4)
         return;
@@ -438,7 +438,7 @@ void PdfImage::LoadFromBuffer(const bufferview& buffer)
             magic[2] == 0x2A &&
             magic[3] == 0x00))
     {
-        loadFromTiffData((const unsigned char*)buffer.data(), buffer.size());
+        loadFromTiffData((const unsigned char*)buffer.data(), buffer.size(), imageIndex);
         return;
     }
 #endif
@@ -651,7 +651,7 @@ static void TIFFErrorWarningHandler(const char*, const char*, va_list)
     // Do nothing
 }
 
-void PdfImage::loadFromTiffHandle(void* handle)
+void PdfImage::loadFromTiffHandle(void* handle, unsigned imageIndex)
 {
     TIFF* hInTiffHandle = (TIFF*)handle;
 
@@ -661,6 +661,9 @@ void PdfImage::loadFromTiffHandle(void* handle)
     uint16_t extraSamples;
     uint16_t planarConfig, photoMetric, orientation;
     int32_t resolutionUnit;
+
+    // Set the page/image index in the tiff context
+    TIFFSetDirectory(hInTiffHandle, (uint16)imageIndex);
 
     TIFFGetField(hInTiffHandle, TIFFTAG_IMAGEWIDTH, &width);
     TIFFGetField(hInTiffHandle, TIFFTAG_IMAGELENGTH, &height);
@@ -684,22 +687,13 @@ void PdfImage::loadFromTiffHandle(void* handle)
 
     // TODO: implement special cases
     if (TIFFIsTiled(hInTiffHandle))
-    {
-        TIFFClose(hInTiffHandle);
         PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
-    }
 
     if (planarConfig != PLANARCONFIG_CONTIG && colorChannels != 1)
-    {
-        TIFFClose(hInTiffHandle);
         PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
-    }
 
     if (orientation != ORIENTATION_TOPLEFT)
-    {
-        TIFFClose(hInTiffHandle);
         PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
-    }
 
     PdfImageInfo info;
     info.Width = width;
@@ -715,6 +709,7 @@ void PdfImage::loadFromTiffHandle(void* handle)
                 decode.insert(decode.end(), PdfObject(static_cast<int64_t>(0)));
                 decode.insert(decode.end(), PdfObject(static_cast<int64_t>(1)));
                 info.Decode = std::move(decode);
+                info.ColorSpace = PdfColorSpace::DeviceGray;
             }
             else if (bitsPixel == 8 || bitsPixel == 16)
             {
@@ -722,7 +717,6 @@ void PdfImage::loadFromTiffHandle(void* handle)
             }
             else
             {
-                TIFFClose(hInTiffHandle);
                 PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
             }
             break;
@@ -735,6 +729,7 @@ void PdfImage::loadFromTiffHandle(void* handle)
                 decode.insert(decode.end(), PdfObject(static_cast<int64_t>(1)));
                 decode.insert(decode.end(), PdfObject(static_cast<int64_t>(0)));
                 info.Decode = std::move(decode);
+                info.ColorSpace = PdfColorSpace::DeviceGray;
             }
             else if (bitsPixel == 8 || bitsPixel == 16)
             {
@@ -742,7 +737,6 @@ void PdfImage::loadFromTiffHandle(void* handle)
             }
             else
             {
-                TIFFClose(hInTiffHandle);
                 PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
             }
             break;
@@ -750,20 +744,16 @@ void PdfImage::loadFromTiffHandle(void* handle)
         case PHOTOMETRIC_RGB:
         {
             if (bitsPixel != 24)
-            {
-                TIFFClose(hInTiffHandle);
                 PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
-            }
+
             info.ColorSpace = PdfColorSpace::DeviceRGB;
             break;
         }
         case PHOTOMETRIC_SEPARATED:
         {
             if (bitsPixel != 32)
-            {
-                TIFFClose(hInTiffHandle);
                 PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
-            }
+
             info.ColorSpace = PdfColorSpace::DeviceCMYK;
             break;
         }
@@ -806,7 +796,6 @@ void PdfImage::loadFromTiffHandle(void* handle)
 
         default:
         {
-            TIFFClose(hInTiffHandle);
             PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
             break;
         }
@@ -821,7 +810,6 @@ void PdfImage::loadFromTiffHandle(void* handle)
             &buffer[row * scanlineSize],
             row) == (-1))
         {
-            TIFFClose(hInTiffHandle);
             PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
         }
     }
@@ -830,7 +818,7 @@ void PdfImage::loadFromTiffHandle(void* handle)
     SetDataRaw(input, info);
 }
 
-void PdfImage::loadFromTiff(const string_view& filename)
+void PdfImage::loadFromTiff(const string_view& filename, unsigned imageIndex)
 {
     TIFFSetErrorHandler(TIFFErrorWarningHandler);
     TIFFSetWarningHandler(TIFFErrorWarningHandler);
@@ -850,7 +838,7 @@ void PdfImage::loadFromTiff(const string_view& filename)
 
     try
     {
-        loadFromTiffHandle(hInfile);
+        loadFromTiffHandle(hInfile, imageIndex);
     }
     catch (...)
     {
@@ -968,7 +956,7 @@ void tiff_Unmap(thandle_t, tdata_t, toff_t)
 {
     return;
 };
-void PdfImage::loadFromTiffData(const unsigned char* data, size_t len)
+void PdfImage::loadFromTiffData(const unsigned char* data, size_t len, unsigned imageIndex)
 {
     TIFFSetErrorHandler(TIFFErrorWarningHandler);
     TIFFSetWarningHandler(TIFFErrorWarningHandler);
@@ -983,7 +971,17 @@ void PdfImage::loadFromTiffData(const unsigned char* data, size_t len)
     if (hInHandle == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    loadFromTiffHandle(hInHandle);
+    try
+    {
+        loadFromTiffHandle(hInHandle, imageIndex);
+    }
+    catch (...)
+    {
+        TIFFClose(hInHandle);
+        throw;
+    }
+
+    TIFFClose(hInHandle);
 }
 
 #endif // PODOFO_HAVE_TIFF_LIB
