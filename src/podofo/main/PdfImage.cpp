@@ -692,9 +692,6 @@ void PdfImage::loadFromTiffHandle(void* handle, unsigned imageIndex)
     if (planarConfig != PLANARCONFIG_CONTIG && colorChannels != 1)
         PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
 
-    if (orientation != ORIENTATION_TOPLEFT)
-        PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
-
     PdfImageInfo info;
     info.Width = width;
     info.Height = height;
