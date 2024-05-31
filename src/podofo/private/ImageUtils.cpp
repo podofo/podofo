@@ -37,7 +37,7 @@ static charbuff initScanLine(PdfPixelFormat format, unsigned width, int scanLine
 
 void utls::FetchImage(OutputStream& stream, PdfPixelFormat format, int scanLineSize,
     const unsigned char* imageData, unsigned width, unsigned heigth, unsigned bitsPerComponent,
-    const PdfColorSpace& map, const charbuff& smaskData)
+    const PdfColorSpaceFilter& map, const charbuff& smaskData)
 {
     // TODO: Add support for non-trivial /BitsPerComponent. This could be done
     // by keeping existing optimized fecthScanLine* methods and add other overloads

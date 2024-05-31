@@ -682,6 +682,14 @@ unique_ptr<PdfDestination> PdfDocument::CreateDestination()
     return unique_ptr<PdfDestination>(new PdfDestination(*this));
 }
 
+unique_ptr<PdfColorSpace> PdfDocument::CreateColorSpace(const PdfColorSpaceFilterPtr& filter)
+{
+    if (filter->IsTrivial())
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Only non trivial color spaces can be constructed through document");
+
+    return unique_ptr<PdfColorSpace>(new PdfColorSpace(*this, filter));
+}
+
 unique_ptr<PdfAction> PdfDocument::CreateAction(PdfActionType type)
 {
     return PdfAction::Create(*this, type);

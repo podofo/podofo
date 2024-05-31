@@ -12,6 +12,7 @@
 #include "PdfGraphicsState.h"
 #include "PdfPainterPath.h"
 #include "PdfPainterTextObject.h"
+#include "PdfColorSpace.h"
 #include "PdfContentStreamOperators.h"
 
 #include <podofo/auxiliary/StateStack.h>
@@ -90,8 +91,14 @@ public:
     void SetLineCapStyle(PdfLineCapStyle capStyle);
     void SetLineJoinStyle(PdfLineJoinStyle joinStyle);
     void SetRenderingIntent(const std::string_view& intent);
+    void SetFillColorSpace(PdfColorSpaceType colorSpace);
+    void SetStrokeColorSpace(PdfColorSpaceType colorSpace);
+    void SetFillColorSpace(const PdfColorSpace& colorSpace);
+    void SetStrokeColorSpace(const PdfColorSpace& color);
     void SetFillColor(const PdfColor& color);
     void SetStrokeColor(const PdfColor& color);
+    void SetFillColor(const PdfColorRaw& color);
+    void SetStrokeColor(const PdfColorRaw& color);
 
 public:
     const Matrix& GetCurrentMatrix() { return m_state->CTM; }
@@ -100,8 +107,10 @@ public:
     PdfLineCapStyle GetLineCapStyle() const { return m_state->LineCapStyle; }
     PdfLineJoinStyle GetLineJoinStyle() const { return m_state->LineJoinStyle; }
     const std::string& GetRenderingIntent() const { return m_state->RenderingIntent; }
-    const PdfColor& GetFillColor() const { return m_state->FillColor; }
-    const PdfColor& GetStrokeColor() const { return m_state->StrokeColor; }
+    const PdfColorRaw& GetFillColor() const { return m_state->FillColor; }
+    const PdfColorRaw& GetStrokeColor() const { return m_state->StrokeColor; }
+    PdfColorSpaceFilterPtr GetFillColorSpace() const { return m_state->FillColorSpaceFilter; }
+    PdfColorSpaceFilterPtr GetStrokeColorSpace() const { return m_state->StrokeColorSpaceFilter; }
 
 public:
     operator const PdfGraphicsState&() const { return *m_state; }
@@ -504,6 +513,12 @@ private:
     void SetLineJoinStyle(PdfLineJoinStyle style);
     void SetFillColor(const PdfColor& color);
     void SetStrokeColor(const PdfColor& color);
+    void SetFillColor(const PdfColorRaw& color, const PdfColorSpaceFilter& colorSpace);
+    void SetStrokeColor(const PdfColorRaw& color, const PdfColorSpaceFilter& colorSpace);
+    void SetFillColorSpace(const PdfColorSpace& colorSpace);
+    void SetStrokeColorSpace(const PdfColorSpace& colorSpace);
+    void SetFillColorSpace(PdfColorSpaceType colorSpace);
+    void SetStrokeColorSpace(PdfColorSpaceType colorSpace);
     void SetRenderingIntent(const std::string_view& intent);
     void SetTransformationMatrix(const Matrix& matrix);
     void SetFont(const PdfFont* font, double fontSize);
@@ -628,7 +643,7 @@ private:
      *  \param name identifier of this object, e.g. /Ft0
      *  \param obj the object you want to register
      */
-    void addToPageResources(const PdfName& type, const PdfName& identifier, const PdfObject& obj);
+    void addToPageResources(PdfResourceType type, const PdfName& identifier, const PdfObject& obj);
 
     void drawTextAligned(const std::string_view& str, double x, double y, double width,
         PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style);
@@ -692,6 +707,8 @@ private:
     /** temporary stream buffer
      */
     PdfStringStream m_stream;
+
+    std::unordered_map<PdfReference, PdfName> m_resNameCache;
 };
 
 }

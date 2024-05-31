@@ -31,6 +31,7 @@
 #define PODOFO_UNIT_TEST(classname) friend class classname
 
 #include <podofo/main/PdfDeclarations.h>
+#include <podofo/auxiliary/Convert.h>
 
 #ifdef _WIN32
 // Microsoft itself assumes little endian

@@ -17,6 +17,7 @@
 #include "PdfNameTree.h"
 #include "PdfXObjectForm.h"
 #include "PdfImage.h"
+#include "PdfColorSpace.h"
 
 namespace PoDoFo {
 
@@ -110,6 +111,8 @@ public:
     std::unique_ptr<PdfXObjectForm> CreateXObjectForm(const Rect& rect, const std::string_view& prefix = { });
 
     std::unique_ptr<PdfDestination> CreateDestination();
+
+    std::unique_ptr<PdfColorSpace> CreateColorSpace(const PdfColorSpaceFilterPtr& filter);
 
     template <typename Taction>
     std::unique_ptr<Taction> CreateAction();

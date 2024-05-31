@@ -9,7 +9,7 @@
 
 #include "PdfXObject.h"
 
-#include "PdfColorSpace.h"
+#include "PdfColorSpaceFilter.h"
 
 #ifdef PODOFO_HAVE_JPEG_LIB
 struct jpeg_decompress_struct;
@@ -27,7 +27,7 @@ struct PODOFO_API PdfImageInfo final
     unsigned Height = 0;
     nullable<PdfFilterList> Filters;
     unsigned char BitsPerComponent = 0;
-    PdfColorSpacePtr ColorSpace;
+    PdfColorSpaceFilterPtr ColorSpace;
     std::vector<double> DecodeArray;
 };
 
@@ -151,7 +151,7 @@ public:
     /** Get the color space of the image
      * \returns the color space of the image
      */
-    const PdfColorSpace& GetColorSpace() const { return *m_ColorSpace; }
+    const PdfColorSpaceFilter& GetColorSpace() const { return *m_ColorSpace; }
 
     /** Get the width of the image when drawn in PDF units
      *  \returns the width in PDF units
@@ -216,7 +216,7 @@ private:
 #endif // PODOFO_HAVE_PNG_LIB
 
 private:
-    PdfColorSpacePtr m_ColorSpace;
+    PdfColorSpaceFilterPtr m_ColorSpace;
     unsigned m_Width;
     unsigned m_Height;
     unsigned m_BitsPerComponent;

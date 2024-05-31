@@ -6,7 +6,6 @@ and reference the face with FT_Reference_Face
 - PdfField: Evaluate make a virtual getValueObject()
 - Evaluate removing PdfObject::Null and PdfVariant::Null and introduce nullptr_t constructor overloads
 - PdfMemDocument: Consider removing SetEncrypt(encrypt)
-- Review/refactor PdfColor: it should use new PdfColorSpace and not define a color space
 - Review PdfNameTree
 - PdfCanvas: Add CopyTo facilities, see PdfContents
 - PdfPageCollection: Add iteration on PdfPage. See PdfAnnotationCollection
@@ -17,7 +16,6 @@ and reference the face with FT_Reference_Face
 - More enum <-> strings functions and make them public
 - Make PdfObjectStream not flate filter by default in PdfMemDocument?
 - PdfDocument: Add GetAnnotationFields()/GetAllFields() iteration
-- PdfResources: Improve API
 - Review PdfPage::SetICCProfile()
 - PdfWriter: Check if SetEncrypt() should accept mutable reference instead
 - Added PdfResources::GetResource with enum type

@@ -19,6 +19,7 @@
 using namespace std;
 using namespace PoDoFo;
 
+static PdfColorSpaceFilterPtr getSimpleColorSpaceFilter(PdfColorSpaceType type);
 static string expandTabs(const string_view& str, unsigned tabWidth, unsigned tabCount);
 
 PdfPainter::PdfPainter(PdfPainterFlags flags) :
@@ -659,7 +660,7 @@ void PdfPainter::DrawXObject(const PdfXObject& obj, double x, double y, double s
 
     // use OriginalReference() as the XObject might have been written to disk
     // already and is not in memory anymore in this case.
-    this->addToPageResources("XObject", obj.GetIdentifier(), obj.GetObject());
+    this->addToPageResources(PdfResourceType::XObject, obj.GetIdentifier(), obj.GetObject());
 
     PoDoFo::WriteOperator_q(m_stream);
     PoDoFo::WriteOperator_cm(m_stream, scaleX, 0, 0, scaleY, x, y);
@@ -738,7 +739,7 @@ void PdfPainter::SetExtGState(const PdfExtGState& inGState)
 {
     checkStream();
     checkStatus(StatusDefault);
-    this->addToPageResources("ExtGState", inGState.GetIdentifier(), inGState.GetObject());
+    this->addToPageResources(PdfResourceType::ExtGState, inGState.GetIdentifier(), inGState.GetObject());
     PoDoFo::WriteOperator_gs(m_stream, inGState.GetIdentifier().GetString());
 }
 
@@ -852,7 +853,6 @@ void PdfPainter::SetFillColor(const PdfColor& color)
     checkStream();
     switch (color.GetColorSpace())
     {
-        default:
         case PdfColorSpaceType::DeviceRGB:
         {
             PoDoFo::WriteOperator_rg(m_stream, color.GetRed(), color.GetGreen(), color.GetBlue());
@@ -868,26 +868,9 @@ void PdfPainter::SetFillColor(const PdfColor& color)
             PoDoFo::WriteOperator_g(m_stream, color.GetGrayScale());
             break;
         }
-        case PdfColorSpaceType::Separation:
+        default:
         {
-            m_canvas->GetOrCreateResources().AddColorResource(color);
-            vector<double> components = { color.GetDensity() };
-            PoDoFo::WriteOperator_cs(m_stream, PdfName(color.GetName()).GetEscapedName());
-            PoDoFo::WriteOperator_scn(m_stream, components);
-            break;
-        }
-        case PdfColorSpaceType::Lab:
-        {
-            m_canvas->GetOrCreateResources().AddColorResource(color);
-            vector<double> components = { color.GetCieL(),color.GetCieA(), color.GetCieB() };
-            PoDoFo::WriteOperator_cs(m_stream, "ColorSpaceCieLab");
-            PoDoFo::WriteOperator_scn(m_stream, components);
-            break;
-        }
-        case PdfColorSpaceType::Unknown:
-        case PdfColorSpaceType::Indexed:
-        {
-            PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "Unsupported color space");
         }
     }
 }
@@ -897,7 +880,6 @@ void PdfPainter::SetStrokeColor(const PdfColor& color)
     checkStream();
     switch (color.GetColorSpace())
     {
-        default:
         case PdfColorSpaceType::DeviceRGB:
         {
             PoDoFo::WriteOperator_RG(m_stream, color.GetRed(), color.GetGreen(), color.GetBlue());
@@ -913,28 +895,67 @@ void PdfPainter::SetStrokeColor(const PdfColor& color)
             PoDoFo::WriteOperator_G(m_stream, color.GetGrayScale());
             break;
         }
-        case PdfColorSpaceType::Separation:
+        default:
         {
-            m_canvas->GetOrCreateResources().AddColorResource(color);
-            vector<double> components = { color.GetDensity() };
-            PoDoFo::WriteOperator_CS(m_stream, PdfName(color.GetName()).GetEscapedName());
-            PoDoFo::WriteOperator_SCN(m_stream, components);
-            break;
-        }
-        case PdfColorSpaceType::Lab:
-        {
-            m_canvas->GetOrCreateResources().AddColorResource(color);
-            vector<double> components = { color.GetCieL(),color.GetCieA(), color.GetCieB() };
-            PoDoFo::WriteOperator_CS(m_stream, "ColorSpaceCieLab");
-            PoDoFo::WriteOperator_SCN(m_stream, components);
-            break;
-        }
-        case PdfColorSpaceType::Unknown:
-        case PdfColorSpaceType::Indexed:
-        {
-            PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "Unsupported color space");
         }
     }
+}
+
+void PdfPainter::SetFillColor(const PdfColorRaw& color, const PdfColorSpaceFilter& colorSpace)
+{
+    checkStream();
+    PoDoFo::WriteOperator_scn(m_stream, cspan<double>(color.data(), colorSpace.GetColorComponentCount()));
+}
+
+void PdfPainter::SetStrokeColor(const PdfColorRaw& color, const PdfColorSpaceFilter& colorSpace)
+{
+    checkStream();
+    PoDoFo::WriteOperator_SCN(m_stream, cspan<double>(color.data(), colorSpace.GetColorComponentCount()));
+}
+
+void PdfPainter::SetFillColorSpace(const PdfColorSpace& colorSpace)
+{
+    checkStream();
+    auto found = m_resNameCache.find(colorSpace.GetObject().GetIndirectReference());
+    if (found == m_resNameCache.end())
+    {
+        PoDoFo::WriteOperator_cs(m_stream, found->second);
+    }
+    else
+    {
+        auto name = m_canvas->GetOrCreateResources().AddResource(PdfResourceType::ColorSpace, colorSpace.GetObject());
+        m_resNameCache[colorSpace.GetObject().GetIndirectReference()] = name;
+        PoDoFo::WriteOperator_cs(m_stream, name);
+    }
+}
+
+void PdfPainter::SetStrokeColorSpace(const PdfColorSpace& colorSpace)
+{
+    checkStream();
+    auto found = m_resNameCache.find(colorSpace.GetObject().GetIndirectReference());
+    if (found == m_resNameCache.end())
+    {
+        PoDoFo::WriteOperator_CS(m_stream, found->second);
+    }
+    else
+    {
+        auto name = m_canvas->GetOrCreateResources().AddResource(PdfResourceType::ColorSpace, colorSpace.GetObject());
+        m_resNameCache[colorSpace.GetObject().GetIndirectReference()] = name;
+        PoDoFo::WriteOperator_CS(m_stream, name);
+    }
+}
+
+void PdfPainter::SetFillColorSpace(PdfColorSpaceType colorSpace)
+{
+    checkStream();
+    PoDoFo::WriteOperator_cs(m_stream, PoDoFo::ToString(colorSpace));
+}
+
+void PdfPainter::SetStrokeColorSpace(PdfColorSpaceType colorSpace)
+{
+    checkStream();
+    PoDoFo::WriteOperator_CS(m_stream, PoDoFo::ToString(colorSpace));
 }
 
 void PdfPainter::SetFont(const PdfFont* font, double fontSize)
@@ -943,7 +964,7 @@ void PdfPainter::SetFont(const PdfFont* font, double fontSize)
         return;
 
     checkStream();
-    this->addToPageResources("Font", font->GetIdentifier(), font->GetObject());
+    this->addToPageResources(PdfResourceType::Font, font->GetIdentifier(), font->GetObject());
     if (m_painterStatus == StatusTextObject)
         setFont(font, fontSize);
 }
@@ -1049,7 +1070,7 @@ void PdfPainter::writeTextState()
         setTextRenderingMode(textState.RenderingMode);
 }
 
-void PdfPainter::addToPageResources(const PdfName& type, const PdfName& identifier, const PdfObject& obj)
+void PdfPainter::addToPageResources(PdfResourceType type, const PdfName& identifier, const PdfObject& obj)
 {
     if (m_canvas == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
@@ -1216,22 +1237,86 @@ void PdfGraphicsStateWrapper::SetRenderingIntent(const string_view& intent)
     m_painter->SetRenderingIntent(m_state->RenderingIntent);
 }
 
+void PdfGraphicsStateWrapper::SetFillColorSpace(PdfColorSpaceType colorSpace)
+{
+    auto filter = PdfColorSpaceFilterFactory::GetTrivialFilter(colorSpace);
+    if (m_state->FillColorSpaceFilter == filter)
+        return;
+
+    m_state->FillColorSpaceFilter = filter;
+    m_painter->SetFillColorSpace(colorSpace);
+}
+
+void PdfGraphicsStateWrapper::SetStrokeColorSpace(PdfColorSpaceType colorSpace)
+{
+    auto filter = PdfColorSpaceFilterFactory::GetTrivialFilter(colorSpace);
+    if (m_state->StrokeColorSpaceFilter == filter)
+        return;
+
+    m_state->StrokeColorSpaceFilter = filter;
+    m_painter->SetStrokeColorSpace(colorSpace);
+}
+
+void PdfGraphicsStateWrapper::SetFillColorSpace(const PdfColorSpace& colorSpace)
+{
+    if (m_state->FillColorSpaceFilter.get() == &colorSpace.GetFilter())
+        return;
+
+    m_state->FillColorSpaceFilter = colorSpace.GetFilterPtr();
+    m_painter->SetFillColorSpace(colorSpace);
+}
+
+void PdfGraphicsStateWrapper::SetStrokeColorSpace(const PdfColorSpace& colorSpace)
+{
+    if (m_state->StrokeColorSpaceFilter.get() == &colorSpace.GetFilter())
+        return;
+
+    m_state->StrokeColorSpaceFilter = colorSpace.GetFilterPtr();
+    m_painter->SetStrokeColorSpace(colorSpace);
+}
+
 void PdfGraphicsStateWrapper::SetFillColor(const PdfColor& color)
+{
+    if (m_state->FillColorSpaceFilter->GetType() == color.GetColorSpace()
+        && m_state->FillColor == color.GetRawColor())
+    {
+        return;
+    }
+
+    m_state->FillColorSpaceFilter = getSimpleColorSpaceFilter(color.GetColorSpace());
+    m_state->FillColor = color.GetRawColor();
+    m_painter->SetFillColor(color);
+}
+
+void PdfGraphicsStateWrapper::SetStrokeColor(const PdfColor& color)
+{
+    if (m_state->StrokeColorSpaceFilter->GetType() == color.GetColorSpace()
+        && m_state->StrokeColor == color.GetRawColor())
+    {
+        return;
+    }
+
+    m_state->StrokeColorSpaceFilter = getSimpleColorSpaceFilter(color.GetColorSpace());
+    m_state->StrokeColor = color.GetRawColor();
+    m_painter->SetStrokeColor(color);
+}
+
+void PdfGraphicsStateWrapper::SetFillColor(const PdfColorRaw& color)
 {
     if (m_state->FillColor == color)
         return;
 
     m_state->FillColor = color;
-    m_painter->SetFillColor(m_state->FillColor);
+    m_painter->SetFillColor(color, *m_state->FillColorSpaceFilter);
 }
 
-void PdfGraphicsStateWrapper::SetStrokeColor(const PdfColor& color)
+void PdfGraphicsStateWrapper::SetStrokeColor(const PdfColorRaw& color)
 {
     if (m_state->StrokeColor == color)
         return;
 
     m_state->StrokeColor = color;
-    m_painter->SetStrokeColor(m_state->StrokeColor);
+    m_painter->SetStrokeColor(color, *m_state->StrokeColorSpaceFilter);
 }
 
 PdfTextStateWrapper::PdfTextStateWrapper(PdfPainter& painter, PdfTextState& state)
@@ -1339,6 +1424,21 @@ void PdfPainter::strokeAndFill(bool useEvenOddRule)
 }
 
 PdfContentStreamOperators::PdfContentStreamOperators() { }
+
+PdfColorSpaceFilterPtr getSimpleColorSpaceFilter(PdfColorSpaceType type)
+{
+    switch (type)
+    {
+        case PdfColorSpaceType::DeviceGray:
+            return PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
+        case PdfColorSpaceType::DeviceRGB:
+            return PdfColorSpaceFilterFactory::GetDeviceRGBInstace();
+        case PdfColorSpaceType::DeviceCMYK:
+            return PdfColorSpaceFilterFactory::GetDeviceCMYKInstace();
+        default:
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "Unsupported color space");
+    }
+}
 
 string expandTabs(const string_view& str, unsigned tabWidth, unsigned tabCount)
 {

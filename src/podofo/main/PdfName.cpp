@@ -34,6 +34,13 @@ const PdfName PdfName::KeyFilter = PdfName("Filter");
 const PdfName PdfName::KeyParent = PdfName("Parent");
 const PdfName PdfName::KeyKids = PdfName("Kids");
 const PdfName PdfName::KeyCount = PdfName("Count");
+const PdfName PdfName::KeyExtGState  = PdfName("ExtGState");
+const PdfName PdfName::KeyColorSpace = PdfName("ColorSpace");
+const PdfName PdfName::KeyPattern = PdfName("Pattern");
+const PdfName PdfName::KeyShading = PdfName("Shading");
+const PdfName PdfName::KeyXObject = PdfName("XObject");
+const PdfName PdfName::KeyFont = PdfName("Font");
+const PdfName PdfName::KeyProperties = PdfName("Properties");
 
 PdfName::PdfName()
     : m_data(new NameData{ true, { }, nullptr })

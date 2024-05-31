@@ -59,8 +59,8 @@ public:
      *
      *  \returns the object of the resource or nullptr if it was not found
      */
-    PdfObject* GetFromResources(const std::string_view& type, const std::string_view& key);
-    const PdfObject* GetFromResources(const std::string_view& type, const std::string_view& key) const;
+    PdfObject* GetFromResources(PdfResourceType type, const std::string_view& key);
+    const PdfObject* GetFromResources(PdfResourceType type, const std::string_view& key) const;
 
     /** Get the resource object of this page.
      * \returns a resources object
@@ -97,7 +97,7 @@ protected:
     virtual PdfElement& getElement() = 0;
 
 private:
-    PdfObject* getFromResources(const std::string_view& type, const std::string_view& key);
+    PdfObject* getFromResources(PdfResourceType type, const std::string_view& key);
 };
 
 };

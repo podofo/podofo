@@ -177,7 +177,7 @@ void PdfAnnotation::SetAppearanceStream(const PdfXObjectForm& xobj, PdfAppearanc
         // will transform the input xobject and adjust the orientation
         auto newMat = PoDoFo::GetFrameRotationTransform(xobj.GetRect(), -teta);
         auto actualXobj = GetDocument().CreateXObjectForm(xobj.GetRect());
-        actualXobj->GetOrCreateResources().AddResource("XObject", "XOb1", xobj.GetObject());
+        actualXobj->GetOrCreateResources().AddResource(PdfResourceType::XObject, "XOb1", xobj.GetObject());
         PdfStringStream sstream;
         PoDoFo::WriteOperator_Do(sstream, "XOb1");
         actualXobj->GetObject().GetOrCreateStream().SetData(sstream.GetString());

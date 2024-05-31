@@ -8,7 +8,7 @@
 #define IMAGE_UTILS_H
 
 #include <podofo/auxiliary/OutputStream.h>
-#include <podofo/main/PdfColorSpace.h>
+#include <podofo/main/PdfColorSpaceFilter.h>
 
 #ifdef PODOFO_HAVE_JPEG_LIB
 #include <podofo/private/JpegCommon.h>
@@ -22,7 +22,7 @@ namespace utls
      */
     void FetchImage(PoDoFo::OutputStream& stream, PoDoFo::PdfPixelFormat format, int scanLineSize,
         const unsigned char* imageData, unsigned width, unsigned heigth, unsigned bitsPerComponent,
-        const PoDoFo::PdfColorSpace& filter, const PoDoFo::charbuff& smaskData);
+        const PoDoFo::PdfColorSpaceFilter& filter, const PoDoFo::charbuff& smaskData);
 
     /** Fetch a Black and White image and write it to the stream
      */

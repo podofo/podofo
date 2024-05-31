@@ -17,7 +17,7 @@ TEST_CASE("TestImage1")
     doc.Load(TestUtils::GetTestInputFilePath("TestImage1.pdf"));
     auto& page = doc.GetPages().GetPageAt(0);
     auto& resources = page.MustGetResources();
-    auto imageObj = resources.GetResource("XObject", "XOb5");
+    auto imageObj = resources.GetResource(PdfResourceType::XObject, "XOb5");
     unique_ptr<PdfImage> image;
     REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(*imageObj, image));
 
@@ -68,7 +68,7 @@ TEST_CASE("TestImage2")
 static void testReferenceImage(const PdfDocument& doc)
 {
     auto& page = doc.GetPages().GetPageAt(0);
-    auto resources = page.MustGetResources().GetResourceIterator("XObject");
+    auto resources = page.MustGetResources().GetResourceIterator(PdfResourceType::XObject);
     for (auto& res : resources)
     {
         unique_ptr<const PdfImage> image;
@@ -126,7 +126,7 @@ TEST_CASE("TestImage4")
         PdfImageInfo info;
         info.Width = 128;
         info.Height = 128;
-        info.ColorSpace = PdfColorSpaceFactory::GetDeviceGrayInstace();
+        info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
         info.BitsPerComponent = 8;
         alpha->SetDataRaw(alphaInput, info);
         img->SetSoftMask(*alpha);
@@ -192,7 +192,7 @@ TEST_CASE("TestImage6")
     doc.Load(TestUtils::GetTestInputFilePath("TestImage2.pdf"));
     auto& page = doc.GetPages().GetPageAt(0);
     auto& resources = page.MustGetResources();
-    auto imageObj = resources.GetResource("XObject", "X0");
+    auto imageObj = resources.GetResource(PdfResourceType::XObject, "X0");
     unique_ptr<PdfImage> image;
     REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(*imageObj, image));
 

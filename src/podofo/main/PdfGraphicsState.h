@@ -7,8 +7,8 @@
 #ifndef PDF_GRAPHICS_STATE_H
 #define PDF_GRAPHICS_STATE_H
 
-#include "PdfColor.h"
 #include <podofo/auxiliary/Matrix.h>
+#include "PdfColorSpaceFilter.h"
 
 namespace PoDoFo
 {
@@ -21,8 +21,10 @@ namespace PoDoFo
         PdfLineCapStyle LineCapStyle = PdfLineCapStyle::Square;
         PdfLineJoinStyle LineJoinStyle = PdfLineJoinStyle::Miter;
         std::string RenderingIntent;
-        PdfColor FillColor;
-        PdfColor StrokeColor;
+        PdfColorRaw FillColor;
+        PdfColorRaw StrokeColor;
+        PdfColorSpaceFilterPtr FillColorSpaceFilter = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
+        PdfColorSpaceFilterPtr StrokeColorSpaceFilter = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
     };
 }
 

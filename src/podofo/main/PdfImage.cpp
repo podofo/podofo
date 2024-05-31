@@ -59,7 +59,7 @@ static void fetchPDFScanLineRGB(unsigned char* dstScanLine,
     unsigned width, const unsigned char* srcScanLine, PdfPixelFormat srcPixelFormat);
 
 PdfImage::PdfImage(PdfDocument& doc, const string_view& prefix)
-    : PdfXObject(doc, PdfXObjectType::Image, prefix), m_ColorSpace(PdfColorSpaceFactory::GetUnkownInstance()), m_Width(0), m_Height(0), m_BitsPerComponent(0)
+    : PdfXObject(doc, PdfXObjectType::Image, prefix), m_ColorSpace(PdfColorSpaceFilterFactory::GetUnkownInstance()), m_Width(0), m_Height(0), m_BitsPerComponent(0)
 {
 }
 
@@ -209,8 +209,8 @@ PdfImage::PdfImage(PdfObject& obj)
     m_BitsPerComponent = static_cast<unsigned>(this->GetDictionary().FindKeyAsSafe<int64_t>("BitsPerComponent"));
 
     auto csObj = GetDictionary().FindKey("ColorSpace");
-    if (csObj == nullptr || !PdfColorSpaceFactory::TryCreateFromObject(*csObj, m_ColorSpace))
-        m_ColorSpace = PdfColorSpaceFactory::GetUnkownInstance();
+    if (csObj == nullptr || !PdfColorSpaceFilterFactory::TryCreateFromObject(*csObj, m_ColorSpace))
+        m_ColorSpace = PdfColorSpaceFilterFactory::GetUnkownInstance();
 }
 
 void PdfImage::SetICCProfile(InputStream& stream, unsigned colorComponents, PdfColorSpaceType alternateColorSpace)
@@ -348,8 +348,7 @@ void PdfImage::SetDataRaw(InputStream& stream, const PdfImageInfo& info)
         dict.AddKey("Decode", decodeArr);
     }
 
-    PdfObject colorSpace = info.ColorSpace->GetExportObject(GetDocument().GetObjects());
-    dict.AddKey("ColorSpace", colorSpace);
+    dict.AddKey("ColorSpace", info.ColorSpace->GetExportObject(GetDocument().GetObjects()));
 
     if (info.Filters.has_value())
         GetObject().GetOrCreateStream().SetData(stream, *info.Filters, true);
@@ -590,12 +589,12 @@ void PdfImage::loadFromJpegInfo(jpeg_decompress_struct& ctx, PdfImageInfo& info)
     {
         case 3:
         {
-            info.ColorSpace = PdfColorSpaceFactory::GetDeviceRGBInstace();
+            info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceRGBInstace();
             break;
         }
         case 4:
         {
-            info.ColorSpace = PdfColorSpaceFactory::GetDeviceCMYKInstace();
+            info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceCMYKInstace();
 
             // The jpeg-doc isn't specific on this point, but cmyk's seem to be stored
             // in an inverted fashion. Fix by attaching a decode array
@@ -611,7 +610,7 @@ void PdfImage::loadFromJpegInfo(jpeg_decompress_struct& ctx, PdfImageInfo& info)
         }
         default:
         {
-            info.ColorSpace = PdfColorSpaceFactory::GetDeviceGrayInstace();
+            info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
             break;
         }
     }
@@ -679,11 +678,11 @@ void PdfImage::loadFromTiffHandle(void* handle, unsigned imageIndex)
             {
                 info.DecodeArray.push_back(0);
                 info.DecodeArray.push_back(1);
-                info.ColorSpace = PdfColorSpaceFactory::GetDeviceGrayInstace();
+                info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
             }
             else if (bitsPixel == 8 || bitsPixel == 16)
             {
-                info.ColorSpace = PdfColorSpaceFactory::GetDeviceGrayInstace();
+                info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
             }
             else
             {
@@ -697,11 +696,11 @@ void PdfImage::loadFromTiffHandle(void* handle, unsigned imageIndex)
             {
                 info.DecodeArray.push_back(1);
                 info.DecodeArray.push_back(0);
-                info.ColorSpace = PdfColorSpaceFactory::GetDeviceGrayInstace();
+                info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
             }
             else if (bitsPixel == 8 || bitsPixel == 16)
             {
-                info.ColorSpace = PdfColorSpaceFactory::GetDeviceGrayInstace();
+                info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
             }
             else
             {
@@ -714,7 +713,7 @@ void PdfImage::loadFromTiffHandle(void* handle, unsigned imageIndex)
             if (bitsPixel != 24)
                 PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
 
-            info.ColorSpace = PdfColorSpaceFactory::GetDeviceRGBInstace();
+            info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceRGBInstace();
             break;
         }
         case PHOTOMETRIC_SEPARATED:
@@ -722,7 +721,7 @@ void PdfImage::loadFromTiffHandle(void* handle, unsigned imageIndex)
             if (bitsPixel != 32)
                 PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
 
-            info.ColorSpace = PdfColorSpaceFactory::GetDeviceCMYKInstace();
+            info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceCMYKInstace();
             break;
         }
         case PHOTOMETRIC_PALETTE:
@@ -750,7 +749,7 @@ void PdfImage::loadFromTiffHandle(void* handle, unsigned imageIndex)
             idxObj.GetOrCreateStream().SetData(data);
 
             // Add the colorspace to our image
-            info.ColorSpace.reset(new PdfColorSpaceIndexed(PdfColorSpaceFactory::GetDeviceRGBInstace(), numColors, std::move(data)));
+            info.ColorSpace.reset(new PdfColorSpaceFilterIndexed(PdfColorSpaceFilterFactory::GetDeviceRGBInstace(), numColors, std::move(data)));
             break;
         }
 
@@ -1185,7 +1184,7 @@ void loadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
         smaksInfo.Width = (unsigned)width;
         smaksInfo.Height = (unsigned)height;
         smaksInfo.BitsPerComponent = (unsigned char)depth;
-        smaksInfo.ColorSpace = PdfColorSpaceFactory::GetDeviceGrayInstace();
+        smaksInfo.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
 
         auto smakeImage = image.GetDocument().CreateImage();
         smakeImage->SetDataRaw(smask, smaksInfo);
@@ -1211,15 +1210,15 @@ void loadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
             data[3 * i + 2] = colors->blue;
         }
 
-        info.ColorSpace.reset(new PdfColorSpaceIndexed(PdfColorSpaceFactory::GetDeviceRGBInstace(), colorCount, std::move(data)));
+        info.ColorSpace.reset(new PdfColorSpaceFilterIndexed(PdfColorSpaceFilterFactory::GetDeviceRGBInstace(), colorCount, std::move(data)));
     }
     else if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
     {
-        info.ColorSpace = PdfColorSpaceFactory::GetDeviceGrayInstace();
+        info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
     }
     else
     {
-        info.ColorSpace = PdfColorSpaceFactory::GetDeviceRGBInstace();
+        info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceRGBInstace();
     }
 
     // Set the image data and flate compress it

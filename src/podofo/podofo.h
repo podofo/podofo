@@ -24,6 +24,7 @@
 #include "auxiliary/Vector2.h"
 #include "auxiliary/Matrix.h"
 #include "auxiliary/Rect.h"
+#include "auxiliary/Convert.h"
 
 // Main headers
 #include "main/PdfDeclarations.h"
@@ -33,7 +34,7 @@
 #include "main/PdfOperatorUtils.h"
 #include "main/PdfArray.h"
 #include "main/PdfCanvas.h"
-#include "main/PdfColorSpace.h"
+#include "main/PdfColorSpaceFilter.h"
 #include "main/PdfColor.h"
 #include "main/PdfContentStreamReader.h"
 #include "main/PdfPostScriptTokenizer.h"

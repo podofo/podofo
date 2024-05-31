@@ -128,6 +128,13 @@ public:
     static const PdfName KeyParent;
     static const PdfName KeyKids;
     static const PdfName KeyCount;
+    static const PdfName KeyExtGState;
+    static const PdfName KeyColorSpace;
+    static const PdfName KeyPattern;
+    static const PdfName KeyShading;
+    static const PdfName KeyXObject;
+    static const PdfName KeyFont;
+    static const PdfName KeyProperties;
 
 private:
     void expandUtf8String() const;

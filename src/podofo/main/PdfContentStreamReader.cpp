@@ -325,7 +325,7 @@ void PdfContentStreamReader::tryFollowXObject(PdfContent& content)
     if (content.Stack.GetSize() != 1
         || !content.Stack[0].TryGetName(content.Name)
         || (resources = m_inputs.back().Canvas->GetResources()) == nullptr
-        || (xobjraw = resources->GetResource("XObject", *content.Name)) == nullptr
+        || (xobjraw = resources->GetResource(PdfResourceType::XObject, *content.Name)) == nullptr
         || !PdfXObject::TryCreateFromObject(const_cast<PdfObject&>(*xobjraw), xobj))
     {
         content.Warnings |= PdfContentWarnings::InvalidXObject;

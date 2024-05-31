@@ -92,7 +92,7 @@ PdfFont* PdfFontManager::addImported(vector<PdfFont*>& fonts, unique_ptr<PdfFont
 
 const PdfFont* PdfFontManager::GetLoadedFont(const PdfResources& resources, const string_view& name)
 {
-    auto fontObj = resources.GetResource("Font", name);
+    auto fontObj = resources.GetResource(PdfResourceType::Font, name);
     if (fontObj == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "A font with name {} was not found", name);
 

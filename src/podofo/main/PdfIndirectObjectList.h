@@ -138,10 +138,10 @@ public:
 
     /** Finds the object with the given reference
      *  and returns a pointer to it if it is found. Throws a PdfError
-     *  exception with error code ePdfError_NoObject if no object was found
+     *  exception with error code PdfErrorCode::NoObject if no object was found
      *  \param ref the object to be found
      *  \returns the found object
-     *  \throws PdfError(ePdfError_NoObject)
+     *  \throws PdfError(PdfErrorCode::NoObject)
      */
     PdfObject& MustGetObject(const PdfReference& ref) const;
 
