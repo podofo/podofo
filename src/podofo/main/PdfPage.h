@@ -20,8 +20,6 @@
 namespace PoDoFo {
 
 class PdfDocument;
-class PdfDictionary;
-class PdfIndirectObjectList;
 class InputStream;
 
 struct PODOFO_API PdfTextEntry final

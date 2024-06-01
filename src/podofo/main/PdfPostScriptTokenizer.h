@@ -13,11 +13,6 @@
 
 namespace PoDoFo {
 
-class PdfDocument;
-class PdfCanvas;
-class PdfObject;
-
-
 /** An enum describing the type of a read token
  */
 enum class PdfPostScriptTokenType

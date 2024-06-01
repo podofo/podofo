@@ -11,9 +11,6 @@
 
 namespace PoDoFo
 {
-    class PdfObject;
-    class PdfObjectStream;
-
     class PODOFO_API PdfCMapEncoding final : public PdfEncodingMapBase
     {
         friend class PdfEncodingMap;

@@ -19,10 +19,6 @@
 
 namespace PoDoFo {
 
-class PdfArray;
-class PdfObject;
-class PdfVariant;
-
 class PODOFO_API PdfFontMetricsObject final : public PdfFontMetricsBase
 {
 private:

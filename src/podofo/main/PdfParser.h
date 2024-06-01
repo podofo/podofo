@@ -16,8 +16,6 @@
 namespace PoDoFo {
 
 class PdfEncrypt;
-class PdfString;
-class PdfParserObject;
 
 /**
  * PdfParser reads a PDF file into memory.

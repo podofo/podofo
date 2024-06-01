@@ -15,7 +15,6 @@
 namespace PoDoFo {
 
 class PdfIndirectObjectList;
-class PdfDynamicCIDEncoding;
 class PdfFont;
 
 /** 
@@ -326,8 +325,6 @@ using PdfEncodingMapConstPtr = std::shared_ptr<const PdfEncodingMap>;
 /** Convenience typedef for a const /Encoding map entry shared ptr
  */
 using PdfBuiltInEncodingConstPtr = std::shared_ptr<const PdfBuiltInEncoding>;
-
-class PdfCMapEncoding;
 
 /** Convenience alias for a const /ToUnicode CMap entry shared ptr
  */

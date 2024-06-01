@@ -10,13 +10,9 @@
 #include "PdfDeclarations.h"
 #include "PdfResources.h"
 #include "PdfArray.h"
+#include <podofo/auxiliary/Rect.h>
 
 namespace PoDoFo {
-
-class PdfDictionary;
-class PdfObject;
-class Rect;
-class PdfColor;
 
 enum class PdfStreamAppendFlags
 {

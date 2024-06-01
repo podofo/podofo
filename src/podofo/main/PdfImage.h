@@ -17,7 +17,6 @@ struct jpeg_decompress_struct;
 
 namespace PoDoFo {
 
-class PdfArray;
 class PdfDocument;
 class InputStream;
 

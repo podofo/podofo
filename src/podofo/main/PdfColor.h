@@ -13,9 +13,6 @@
 
 namespace PoDoFo {
 
-class PdfObject;
-class PdfDocument;
-
 using PdfColorRaw = std::array<double, 6>;
 
 /** A color object can represent either a grayscale

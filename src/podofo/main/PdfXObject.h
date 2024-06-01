@@ -14,7 +14,6 @@
 
 namespace PoDoFo {
 
-class PdfObject;
 class PdfImage;
 class PdfXObjectForm;
 class PdfXObjectPostScript;

@@ -14,10 +14,6 @@
 
 namespace PoDoFo {
 
-class PdfArray;
-class PdfObject;
-class PdfVariant;
-class PdfEncodingMap;
 struct PdfEncodingLimits;
 
 class PODOFO_API PdfFontMetricsFreetype final : public PdfFontMetrics

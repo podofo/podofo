@@ -17,12 +17,6 @@
 
 namespace PoDoFo {
 
-class PdfDictionary;
-class PdfName;
-class PdfPage;
-class PdfPageManager;
-class PdfParser;
-class PdfIndirectObjectList;
 class PdfXRef;
 
 /** The PdfWriter class writes a list of PdfObjects as PDF file.

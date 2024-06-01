@@ -17,7 +17,6 @@
 
 namespace PoDoFo {
 
-class PdfDocument;
 class PdfPage;
 class PdfAcroForm;
 class PdfAnnotationWidget;

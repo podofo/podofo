@@ -13,10 +13,6 @@
 namespace PoDoFo {
 
 class PdfDictionary;
-class PdfName;
-class PdfObject;
-class PdfString;
-class PdfIndirectObjectList;
 
 enum class PdfNameLimits
 {

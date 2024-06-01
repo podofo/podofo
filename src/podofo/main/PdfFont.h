@@ -19,9 +19,6 @@
 
 namespace PoDoFo {
 
-class PdfObject;
-class PdfPage;
-class PdfWriter;
 class PdfCharCodeMap;
 
 using UsedGIDsMap = std::map<unsigned, PdfCID>;

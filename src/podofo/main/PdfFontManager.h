@@ -23,7 +23,6 @@ typedef struct HFONT__* HFONT;
 
 namespace PoDoFo {
 
-class PdfIndirectObjectList;
 class PdfResources;
 
 struct PODOFO_API PdfFontSearchParams final

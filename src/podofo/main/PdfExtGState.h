@@ -14,10 +14,6 @@
 
 namespace PoDoFo {
 
-class PdfObject;
-class PdfPage;
-class PdfWriter;
-
 /** This class wraps the ExtGState object used in the Resource
  *  Dictionary of a Content-supporting element (page, Pattern, etc.)
  *  The main usage is for transparency, but it also support a variety

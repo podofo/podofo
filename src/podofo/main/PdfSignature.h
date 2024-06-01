@@ -18,9 +18,6 @@
 namespace PoDoFo {
 
 class PdfAcroForm;
-class PdfMemDocument;
-class StreamDevice;
-class PdfSigner;
 
 enum class PdfCertPermission
 {

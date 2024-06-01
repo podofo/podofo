@@ -13,9 +13,6 @@
 
 namespace PoDoFo
 {
-
-class PdfString;
-
 /** This class provides access to the documents
  *  info dictionary, which provides information
  *  about the PDF document.

@@ -12,9 +12,6 @@
 
 namespace PoDoFo {
 
-class PdfStreamedDocument;
-class PdfIndirectObjectList;
-
 /** PdfElement is a common base class for all elements
  *  in a PDF file. For example pages, action and annotations.
  *

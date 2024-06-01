@@ -13,7 +13,6 @@
 namespace PoDoFo {
 
 class PdfDocument;
-class PdfReference;
 
 /**
  * A PdfDataProvider object with a PdfObject owner, specialized
