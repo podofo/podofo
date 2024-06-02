@@ -47,12 +47,12 @@ const PdfResources* PdfCanvas::GetResources() const
     return const_cast<PdfCanvas&>(*this).getResources();
 }
 
-PdfElement& PdfCanvas::GetElement()
+PdfDictionaryElement& PdfCanvas::GetElement()
 {
     return getElement();
 }
 
-const PdfElement& PdfCanvas::GetElement() const
+const PdfDictionaryElement& PdfCanvas::GetElement() const
 {
     return const_cast<PdfCanvas&>(*this).getElement();
 }

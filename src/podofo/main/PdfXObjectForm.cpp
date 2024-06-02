@@ -40,7 +40,7 @@ void PdfXObjectForm::FillFromPage(const PdfPage& page, bool useTrimBox)
 void PdfXObjectForm::EnsureResourcesCreated()
 {
     if (m_Resources == nullptr)
-        m_Resources.reset(new PdfResources(GetDictionary()));
+        m_Resources.reset(new PdfResources(*this));
 
     // A Form XObject must have a stream
     GetObject().ForceCreateStream();
@@ -65,7 +65,7 @@ PdfResources* PdfXObjectForm::getResources()
     return m_Resources.get();
 }
 
-PdfElement& PdfXObjectForm::getElement()
+PdfDictionaryElement& PdfXObjectForm::getElement()
 {
     return const_cast<PdfXObjectForm&>(*this);
 }

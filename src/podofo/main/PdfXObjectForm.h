@@ -67,7 +67,7 @@ private:
     Rect GetRectRaw() const override;
     PdfObject* getContentsObject() override;
     PdfResources* getResources() override;
-    PdfElement& getElement() override;
+    PdfDictionaryElement& getElement() override;
     PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
     void initXObject(const Rect& rect);
     void initAfterPageInsertion(const PdfPage& page);

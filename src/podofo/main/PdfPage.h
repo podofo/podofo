@@ -217,7 +217,7 @@ private:
 
     PdfObject* getContentsObject() override;
 
-    PdfElement& getElement() override;
+    PdfDictionaryElement& getElement() override;
 
     PdfObject* findInheritableAttribute(const std::string_view& name) const;
 

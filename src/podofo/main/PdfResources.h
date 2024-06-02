@@ -26,14 +26,18 @@ enum class PdfResourceType
 };
 
 class PdfFont;
+class PdfCanvas;
 
 /** A interface that provides a wrapper around /Resources
  */
-class PODOFO_API PdfResources : public PdfDictionaryElement
+class PODOFO_API PdfResources final : public PdfDictionaryElement
 {
-public:
+    friend class PdfPage;
+    friend class PdfXObjectForm;
+
+private:
     PdfResources(PdfObject& obj);
-    PdfResources(PdfDictionary& dict);
+    PdfResources(PdfCanvas& canvas);
 
 public:
     /** Add resource by type generating a new unique identifier

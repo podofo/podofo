@@ -64,8 +64,8 @@ public:
     PdfResources* GetResources();
     const PdfResources* GetResources() const;
 
-    PdfElement& GetElement();
-    const PdfElement& GetElement() const;
+    PdfDictionaryElement& GetElement();
+    const PdfDictionaryElement& GetElement() const;
 
     /** Get or create the resource object of this page.
      * \returns a resources object
@@ -90,7 +90,7 @@ public:
 protected:
     virtual PdfObject* getContentsObject() = 0;
     virtual PdfResources* getResources() = 0;
-    virtual PdfElement& getElement() = 0;
+    virtual PdfDictionaryElement& getElement() = 0;
 
 private:
     PdfObject* getFromResources(PdfResourceType type, const std::string_view& key);

@@ -63,7 +63,7 @@ namespace
         {
             PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
         }
-        PdfElement& getElement() override
+        PdfDictionaryElement& getElement() override
         {
             PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
         }

@@ -22,8 +22,8 @@ PdfResources::PdfResources(PdfObject& obj) :
     PdfDictionaryElement(obj),
     m_currResourceIds{ } { }
 
-PdfResources::PdfResources(PdfDictionary& dict) :
-    PdfDictionaryElement(dict.AddKey("Resources", PdfDictionary())),
+PdfResources::PdfResources(PdfCanvas& canvas) :
+    PdfDictionaryElement(canvas.GetElement().GetDictionary().AddKey("Resources", PdfDictionary())),
     m_currResourceIds{ }
 {
     GetDictionary().AddKey("ProcSet", getProcSet());

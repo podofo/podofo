@@ -105,7 +105,7 @@ void PdfPage::ensureResourcesCreated()
     if (m_Resources != nullptr)
         return;
 
-    m_Resources.reset(new PdfResources(GetDictionary()));
+    m_Resources.reset(new PdfResources(*this));
 }
 
 PdfObjectStream& PdfPage::GetStreamForAppending(PdfStreamAppendFlags flags)
@@ -430,7 +430,7 @@ PdfObject* PdfPage::getContentsObject()
     return &const_cast<PdfContents&>(*m_Contents).GetObject();
 }
 
-PdfElement& PdfPage::getElement()
+PdfDictionaryElement& PdfPage::getElement()
 {
     return const_cast<PdfPage&>(*this);
 }
