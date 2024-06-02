@@ -13,7 +13,8 @@ namespace PoDoFo
 {
     class PODOFO_API PdfTrailer final : public PdfDictionaryElement
     {
-    public:
+        friend class PdfDocument;
+    private:
         PdfTrailer(PdfObject& obj);
     public:
     };
