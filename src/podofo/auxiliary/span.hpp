@@ -27,6 +27,7 @@ http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/n4820.pdf
 #ifndef TCB_SPAN_NO_EXCEPTIONS
 #include <cstdio>
 #include <stdexcept>
+#include <exception>
 #endif
 
 // Various feature test macros
