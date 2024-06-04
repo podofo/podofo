@@ -29,6 +29,15 @@ PdfResources::PdfResources(PdfCanvas& canvas) :
     GetDictionary().AddKey("ProcSet", getProcSet());
 }
 
+bool PdfResources::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfResources>& resources)
+{
+    if (!obj.IsDictionary())
+        return false;
+
+    resources.reset(new PdfResources(obj));
+    return true;
+}
+
 PdfName PdfResources::AddResource(PdfResourceType type, const PdfObject& obj)
 {
     auto& dict = getOrCreateDictionary(getResourceTypeName(type));

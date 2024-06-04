@@ -40,6 +40,9 @@ private:
     PdfResources(PdfCanvas& canvas);
 
 public:
+    static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfResources>& resources);
+
+public:
     /** Add resource by type generating a new unique identifier
      */
     PdfName AddResource(PdfResourceType type, const PdfObject& obj);
