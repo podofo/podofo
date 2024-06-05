@@ -145,7 +145,7 @@ namespace PoDoFo
     T ConvertTo(const std::string_view& str)
     {
         T value;
-        if (!Convert<T>::TryParse(str, value));
+        if (!Convert<T>::TryParse(str, value))
             throw PdfError(PdfErrorCode::InvalidEnumValue, __FILE__, __LINE__);
 
         return value;
