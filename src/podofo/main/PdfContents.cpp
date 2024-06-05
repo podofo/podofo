@@ -28,21 +28,9 @@ PdfContents::PdfContents(PdfPage &parent)
     reset();
 }
 
-void PdfContents::Reset(PdfObject* obj)
+void PdfContents::Reset()
 {
-    if (obj == nullptr)
-    {
-        m_object = &m_parent->GetDocument().GetObjects().CreateArrayObject();
-    }
-    else
-    {
-        PdfDataType type = obj->GetDataType();
-        if (!(type == PdfDataType::Array || type == PdfDataType::Dictionary))
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The object is neither a Dictionary or an Array");
-
-        m_object = obj;
-    }
-
+    m_object = &m_parent->GetDocument().GetObjects().CreateArrayObject();
     reset();
 }
 
@@ -99,7 +87,7 @@ PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidDataType);
     }
 
-    if ((flags & PdfStreamAppendFlags::NoSaveRestorePrior) == PdfStreamAppendFlags::None)
+    if (arr->GetSize() != 0 && (flags & PdfStreamAppendFlags::NoSaveRestorePrior) == PdfStreamAppendFlags::None)
     {
         // Record all content and readd into a new stream that
         // substitute all the previous streams

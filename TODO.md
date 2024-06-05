@@ -19,7 +19,6 @@ and reference the face with FT_Reference_Face
 - PdfDocument: Add GetAnnotationFields()/GetAllFields() iteration
 - Review PdfPage::SetICCProfile()
 - PdfWriter: Check if SetEncrypt() should accept mutable reference instead
-- PdfContents: Remove PdfContents::Reset(obj) (keep parameterless)
 - PdfErrorCode: Check all values
 - PdfEncrypt: Consider removing CreateFromEncrypt (shared_ptr in PdfMemDocument could be used now)
 #### Features
