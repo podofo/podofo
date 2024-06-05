@@ -159,7 +159,6 @@ private:
             const PdfEncoding& encoding, bool hasFontStyle, PdfFontStyle style);
 
         Descriptor(const Descriptor& rhs) = default;
-        Descriptor& operator=(const Descriptor& rhs) = default;
 
         const std::string Name;               ///< Name of the font or pattern
         const PdfStandard14FontType StdType;
@@ -173,7 +172,6 @@ private:
         PathDescriptor(const std::string_view& filepath, unsigned faceIndex, const PdfEncoding& encoding);
 
         PathDescriptor(const PathDescriptor& rhs) = default;
-        PathDescriptor& operator=(const PathDescriptor& rhs) = default;
 
         const std::string FilePath;
         const unsigned FaceIndex;
