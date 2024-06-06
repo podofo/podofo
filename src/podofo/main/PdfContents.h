@@ -44,9 +44,8 @@ public:
     void CopyTo(OutputStream& stream) const;
 
     /** Get access to an object into which you can add contents
-     *   at the end of the "stream".
      */
-    PdfObjectStream & GetStreamForAppending(PdfStreamAppendFlags flags = PdfStreamAppendFlags::None);
+    PdfObjectStream & CreateStreamForAppending(PdfStreamAppendFlags flags = PdfStreamAppendFlags::None);
 
 private:
     void copyTo(OutputStream& stream, const PdfArray& arr) const;

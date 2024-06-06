@@ -209,7 +209,9 @@ private:
 
     void EnsureResourcesCreated() override;
 
-    PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
+    PdfObjectStream& GetOrCreateContentsStream(PdfStreamAppendFlags flags) override;
+
+    PdfObjectStream& ResetContentsStream() override;
 
     PdfField& createField(const std::string_view& name, const std::type_info& typeInfo, const Rect& rect, bool rawRect);
 

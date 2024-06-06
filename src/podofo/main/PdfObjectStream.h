@@ -177,6 +177,10 @@ public:
      */
     void Unwrap();
 
+    /** Clear the stream and reset filters
+     */
+    void Clear();
+
     /** Get the stream's length with all filters applied (e.g. if the stream is
      * Flate-compressed, the length of the compressed data stream).
      *

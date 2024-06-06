@@ -577,7 +577,7 @@ void PdfTranslator::impose()
             PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
         string bufStr = buffer.str();
-        newpage->GetOrCreateContents().GetStreamForAppending().SetData(bufStr);
+        newpage->GetOrCreateContents().CreateStreamForAppending().SetData(bufStr);
         newpage->GetResources()->GetDictionary().AddKey(PdfName("XObject"), xdict);
         git++;
     }

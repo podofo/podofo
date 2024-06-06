@@ -108,10 +108,17 @@ void PdfPage::ensureResourcesCreated()
     m_Resources.reset(new PdfResources(*this));
 }
 
-PdfObjectStream& PdfPage::GetStreamForAppending(PdfStreamAppendFlags flags)
+PdfObjectStream& PdfPage::GetOrCreateContentsStream(PdfStreamAppendFlags flags)
 {
     ensureContentsCreated();
-    return m_Contents->GetStreamForAppending(flags);
+    return m_Contents->CreateStreamForAppending(flags);
+}
+
+PdfObjectStream& PdfPage::ResetContentsStream()
+{
+    ensureContentsCreated();
+    m_Contents->Reset();
+    return m_Contents->CreateStreamForAppending();
 }
 
 Rect PdfPage::CreateStandardPageSize(const PdfPageSize pageSize, bool landscape)

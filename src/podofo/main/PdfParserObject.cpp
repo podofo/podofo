@@ -97,6 +97,14 @@ void PdfParserObject::DelayedLoadStreamImpl()
     }
 }
 
+bool PdfParserObject::RemoveStreamImpl()
+{
+    bool hasStream = m_HasStream;
+    m_HasStream = false;
+    m_StreamOffset = 0;
+    return hasStream;
+}
+
 PdfReference PdfParserObject::ReadReference(PdfTokenizer& tokenizer)
 {
     m_device->Seek(m_Offset);
@@ -152,6 +160,10 @@ void PdfParserObject::Parse(PdfTokenizer& tokenizer)
     }
 }
 
+bool PdfParserObject::HasStreamToParse() const
+{
+    return m_HasStream;
+}
 
 // Only called during delayed loading. Must be careful to avoid
 // triggering recursive delay loading due to use of accessors of

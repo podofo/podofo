@@ -91,6 +91,20 @@ namespace PoDoFo
     };
 }
 
+TEST_CASE("TestRemoveStream")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TestImage1.pdf"));
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto& resources = page.MustGetResources();
+    auto& imageObj = *resources.GetResource(PdfResourceType::XObject, "XOb5");
+    REQUIRE(imageObj.HasStream());
+    REQUIRE(!imageObj.IsDirty());
+    imageObj.RemoveStream();
+    REQUIRE(imageObj.IsDirty());
+    REQUIRE(!imageObj.HasStream());
+}
+
 TEST_CASE("TestMaxObjectCount")
 {
     PdfParser::SetMaxObjectCount(numeric_limits<unsigned short>::max());

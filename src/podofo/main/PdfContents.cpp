@@ -66,7 +66,7 @@ void PdfContents::CopyTo(OutputStream& stream) const
     }
 }
 
-PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
+PdfObjectStream & PdfContents::CreateStreamForAppending(PdfStreamAppendFlags flags)
 {
     PdfArray *arr;
     if (m_object->IsArray())

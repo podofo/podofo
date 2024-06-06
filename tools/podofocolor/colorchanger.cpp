@@ -323,7 +323,7 @@ void ColorChanger::ReplaceColorsInPage(PdfCanvas& page)
     // Write arguments if there are any left
     WriteArgumentsAndKeyword(args, { }, device);
     // Set new contents stream
-    page.GetStreamForAppending(PdfStreamAppendFlags::None).
+    page.GetOrCreateContentsStream(PdfStreamAppendFlags::None).
         SetData(buffer);
 }
 

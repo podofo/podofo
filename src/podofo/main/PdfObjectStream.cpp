@@ -181,6 +181,13 @@ void PdfObjectStream::Unwrap()
     MoveFrom(objectStream);
 }
 
+void PdfObjectStream::Clear()
+{
+    ensureClosed();
+    m_Provider->Clear();
+    m_Filters.clear();
+}
+
 PdfObjectStream& PdfObjectStream::operator=(const PdfObjectStream& rhs)
 {
     CopyFrom(rhs);

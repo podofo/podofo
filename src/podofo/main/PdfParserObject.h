@@ -72,12 +72,6 @@ public:
 
     void ParseStream();
 
-    /** Returns if this object has a stream object appended.
-     *  which has to be parsed.
-     *  \returns true if there is a stream
-     */
-    inline bool HasStreamToParse() const { return m_HasStream; }
-
     /** Gets an offset in which the object beginning is stored in the file.
      *  Note the offset points just after the object identificator ("0 0 obj").
      *
@@ -93,8 +87,15 @@ public:
 protected:
     void DelayedLoadImpl() override;
     void DelayedLoadStreamImpl() override;
+    bool RemoveStreamImpl() override;
     PdfReference ReadReference(PdfTokenizer& tokenizer);
     void Parse(PdfTokenizer& tokenizer);
+
+    /** Returns if this object has a stream object appended.
+     *  which has to be parsed.
+     *  \returns true if there is a stream
+     */
+    bool HasStreamToParse() const override;
 
 private:
     PdfParserObject(const PdfParserObject&) = delete;

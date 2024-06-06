@@ -70,10 +70,17 @@ PdfDictionaryElement& PdfXObjectForm::getElement()
     return const_cast<PdfXObjectForm&>(*this);
 }
 
-inline PdfObjectStream& PdfXObjectForm::GetStreamForAppending(PdfStreamAppendFlags flags)
+PdfObjectStream& PdfXObjectForm::GetOrCreateContentsStream(PdfStreamAppendFlags flags)
 {
     (void)flags; // Flags have no use here
     return GetObject().GetOrCreateStream();
+}
+
+PdfObjectStream& PdfXObjectForm::ResetContentsStream()
+{
+    auto& ret = GetObject().GetOrCreateStream();
+    ret.Clear();
+    return ret;
 }
 
 Rect PdfXObjectForm::GetRect() const

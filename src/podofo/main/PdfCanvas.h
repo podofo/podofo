@@ -40,12 +40,14 @@ public:
     const PdfObject* GetContentsObject() const;
     PdfObject* GetContentsObject();
 
-    /** Get access an object that you can use to ADD drawing to.
-     *  If you want to draw onto the page, you have to add
-     *  drawing commands to the stream of the Contents object.
-     *  \returns a contents object
+    /** Get access an object that you can use to ADD drawing to
+     *  \returns a contents stream object
      */
-    virtual PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) = 0;
+    virtual PdfObjectStream& GetOrCreateContentsStream(PdfStreamAppendFlags flags) = 0;
+
+    /** Reset the contents object and create a new stream for appending
+     */ 
+    virtual PdfObjectStream& ResetContentsStream() = 0;
 
     /** Get an element from the pages resources dictionary,
      *  using a type (category) and a key.

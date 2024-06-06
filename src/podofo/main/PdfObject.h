@@ -323,6 +323,10 @@ public:
      */
     PdfObjectStream& GetOrCreateStream();
 
+    /* Remove the object stream, if it has one
+     */
+    void RemoveStream();
+
     /** Get a handle to a const PDF stream object.
      * Throws if there's no stream
      */
@@ -451,6 +455,13 @@ protected:
     virtual void DelayedLoadImpl();
 
     virtual void DelayedLoadStreamImpl();
+
+    /**
+     * \returns true if the stream was removed
+     */
+    virtual bool RemoveStreamImpl();
+
+    virtual bool HasStreamToParse() const;
 
     /** Sets the dirty flag of this PdfVariant
      *

@@ -19,10 +19,15 @@ namespace
         FakeCanvas() { }
 
     public:
-        PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override
+        PdfObjectStream& GetOrCreateContentsStream(PdfStreamAppendFlags flags) override
         {
             (void)flags;
             return m_resourceObj.GetOrCreateStream();
+        }
+
+        PdfObjectStream& ResetContentsStream() override
+        {
+            PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
         }
 
         PdfResources& GetOrCreateResources() override
@@ -394,7 +399,7 @@ TEST_CASE("TestAppend")
     auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
 
     auto& contents = page.GetOrCreateContents();
-    auto& stream = contents.GetStreamForAppending();
+    auto& stream = contents.CreateStreamForAppending();
     stream.SetData(example);
 
     compareStreamContent(stream, example);

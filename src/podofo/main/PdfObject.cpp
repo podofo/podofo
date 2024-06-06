@@ -298,6 +298,18 @@ PdfObjectStream& PdfObject::GetOrCreateStream()
     return getOrCreateStream();
 }
 
+void PdfObject::RemoveStream()
+{
+    DelayedLoadImpl();
+    // Unconditionally set the stream as already loaded,
+    // then just remove it
+    m_IsDelayedLoadStreamDone = true;
+    bool hasStream = m_Stream != nullptr || RemoveStreamImpl();
+    m_Stream = nullptr;
+    if (hasStream)
+        SetDirty();
+}
+
 const PdfObjectStream& PdfObject::MustGetStream() const
 {
     DelayedLoadStream();
@@ -323,8 +335,8 @@ bool PdfObject::IsIndirect() const
 
 bool PdfObject::HasStream() const
 {
-    DelayedLoadStream();
-    return m_Stream != nullptr;
+    DelayedLoad();
+    return m_Stream != nullptr || HasStreamToParse();
 }
 
 PdfObjectStream& PdfObject::getOrCreateStream()
@@ -422,6 +434,17 @@ void PdfObject::DelayedLoadStreamImpl()
     // Default implementation throws, since delayed loading of
     // streams should not be enabled except by types that support it.
     PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
+}
+
+bool PdfObject::RemoveStreamImpl()
+{
+    // Do nothing for regular object
+    return false;
+}
+
+bool PdfObject::HasStreamToParse() const
+{
+    return false;
 }
 
 void PdfObject::Assign(const PdfObject& rhs)
