@@ -54,17 +54,11 @@ string PdfCatalog::GetMetadataStreamValue() const
     return ret;
 }
 
-
 void PdfCatalog::SetMetadataStreamValue(const string_view& value)
 {
     auto& obj = GetOrCreateMetadataObject();
     auto& stream = obj.GetOrCreateStream();
     stream.SetData(value, true);
-
-    // We are writing raw clear text, which is required in most
-    // relevant scenarios (eg. PDF/A). Remove any possibly
-    // existing filter
-    obj.GetDictionary().RemoveKey(PdfName::KeyFilter);
 
     // Invalidate current metadata
     GetDocument().GetMetadata().Invalidate();

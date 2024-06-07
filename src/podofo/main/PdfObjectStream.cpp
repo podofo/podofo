@@ -215,11 +215,9 @@ void PdfObjectStream::MoveFrom(PdfObjectStream& rhs)
     rhs.ensureClosed();
     ensureClosed();
     if (!m_Provider->TryMoveFrom(std::move(*rhs.m_Provider)))
-    {
-        auto stream = rhs.GetInputStream(true);
-        this->SetData(stream, true);
-        m_Provider->Clear();
-    }
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unsupported move operation");
+
+    m_Filters = std::move(rhs.m_Filters);
 
     // Fix the /Filter and /DecodeParms keys for
     // both objects after the stream has been moved
@@ -246,17 +244,19 @@ void PdfObjectStream::MoveFrom(PdfObjectStream& rhs)
         lhsDict.AddKey(DecodeParmsKey, *decodeParms);
         rhsDict.RemoveKey(DecodeParmsKey);
     }
-
-    m_Filters = std::move(rhs.m_Filters);
 }
 
 void PdfObjectStream::CopyFrom(const PdfObjectStream& rhs)
 {
     ensureClosed();
-    if (!m_Provider->TryCopyFrom(*rhs.m_Provider))
+    if (m_Provider->TryCopyFrom(*rhs.m_Provider))
+    {
+        m_Filters = rhs.m_Filters;
+    }
+    else
     {
         auto stream = rhs.GetInputStream(true);
-        this->SetData(stream, true);
+        this->SetData(stream, rhs.m_Filters, true);
     }
 
     // Copy the /Filter and /DecodeParms keys
@@ -273,8 +273,6 @@ void PdfObjectStream::CopyFrom(const PdfObjectStream& rhs)
         lhsDict.RemoveKey(DecodeParmsKey);
     else
         lhsDict.AddKey(DecodeParmsKey, *decodeParms);
-
-    m_Filters = rhs.m_Filters;
 }
 
 void PdfObjectStream::SetData(const bufferview& buffer, bool raw)
@@ -483,6 +481,7 @@ PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
         {
             m_output = stream.m_Provider->GetOutputStream(stream.GetParent());
             m_stream->GetParent().GetDictionaryUnsafe().RemoveKey(PdfName::KeyFilter);
+            m_stream->m_Filters.clear();
         }
         else
         {

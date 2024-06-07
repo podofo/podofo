@@ -116,6 +116,8 @@ public:
      *  All data will be Flate-encoded.
      *
      *  \param buffer buffer containing the stream data
+     *  \param raw if true the data will be set without applying any filter,
+     *      clearing the filters list unconditionally
      */
     void SetData(const bufferview& buffer, bool raw = false);
 
@@ -126,6 +128,8 @@ public:
      *
      *  \param buffer buffer containing the stream data
      *  \param filters a list of filters to use when appending data
+     *  \param raw if true the data will be set without applying any filter, setting the
+     *      supplied filters list unconditionally
      */
     void SetData(const bufferview& buffer, const PdfFilterList& filters, bool raw = false);
 
@@ -133,6 +137,8 @@ public:
      *  All data will be Flate-encoded.
      *
      *  \param stream read stream contents from this InputStream
+     *  \param raw if true the data will be set without applying any filter,
+     *      clearing the filters list unconditionally
      */
     void SetData(InputStream& stream, bool raw = false);
 
@@ -143,6 +149,8 @@ public:
      *
      *  \param stream read stream contents from this InputStream
      *  \param filters a list of filters to use when appending data
+     *  \param raw if true the data will be set without applying any filter, setting the
+     *      supplied filters list unconditionally
      */
     void SetData(InputStream& stream, const PdfFilterList& filters, bool raw = false);
 
