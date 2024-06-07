@@ -131,6 +131,60 @@ public:
      */
     void FlattenStructure();
 
+public:
+    template <typename TObject, typename TListIterator>
+    class Iterator final
+    {
+        friend class PdfPageCollection;
+    public:
+        using difference_type = void;
+        using value_type = TObject*;
+        using pointer = void;
+        using reference = void;
+        using iterator_category = std::forward_iterator_tag;
+    public:
+        Iterator() { }
+    private:
+        Iterator(const TListIterator& iterator) : m_iterator(iterator) { }
+    public:
+        Iterator(const Iterator&) = default;
+        Iterator& operator=(const Iterator&) = default;
+        bool operator==(const Iterator& rhs) const
+        {
+            return m_iterator == rhs.m_iterator;
+        }
+        bool operator!=(const Iterator& rhs) const
+        {
+            return m_iterator != rhs.m_iterator;
+        }
+        Iterator& operator++()
+        {
+            m_iterator++;
+            return *this;
+        }
+        value_type operator*()
+        {
+            return *m_iterator;
+        }
+        value_type operator->()
+        {
+            return *m_iterator;
+        }
+    private:
+        TListIterator m_iterator;
+    };
+
+    using PageList = std::vector<PdfPage*>;
+
+    using iterator = Iterator<PdfPage, PageList::iterator>;
+    using const_iterator = Iterator<const PdfPage, PageList::const_iterator>;
+
+    public:
+        iterator begin();
+        iterator end();
+        const_iterator begin() const;
+        const_iterator end() const;
+
 private:
     /**
      * Insert page at the given index
@@ -154,7 +208,7 @@ private:
 
 private:
     bool m_initialized;
-    std::vector<PdfPage*> m_Pages;
+    PageList m_Pages;
     PdfArray* m_kidsArray;
 };
 

@@ -18,8 +18,8 @@ class PdfXObjectForm;
 
 struct PODOFO_API PdfAppearanceIdentity final
 {
-    const PdfObject* Object;
-    PdfAppearanceType Type;
+    const PdfObject* Object = nullptr;
+    PdfAppearanceType Type = PdfAppearanceType::Normal;
     PdfName State;
 };
 

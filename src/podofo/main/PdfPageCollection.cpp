@@ -101,6 +101,26 @@ PdfPage& PdfPageCollection::getPage(const PdfReference& ref) const
     PODOFO_RAISE_ERROR(PdfErrorCode::PageNotFound);
 }
 
+PdfPageCollection::iterator PdfPageCollection::begin()
+{
+    return m_Pages.begin();
+}
+
+PdfPageCollection::iterator PdfPageCollection::end()
+{
+    return m_Pages.end();
+}
+
+PdfPageCollection::const_iterator PdfPageCollection::begin() const
+{
+    return m_Pages.begin();
+}
+
+PdfPageCollection::const_iterator PdfPageCollection::end() const
+{
+    return m_Pages.end();
+}
+
 void PdfPageCollection::InsertPageAt(unsigned atIndex, PdfPage& pageObj)
 {
     vector<PdfPage*> objs = { &pageObj };

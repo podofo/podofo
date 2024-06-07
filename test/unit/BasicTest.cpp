@@ -20,6 +20,37 @@ TEST_CASE("BasicTypeTest")
     REQUIRE(std::numeric_limits<uint64_t>::max() >= 9999999999);
 }
 
+TEST_CASE("TestIterations")
+{
+    PdfMemDocument doc;
+    PdfPage* pages[] = {
+        &doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4)),
+        &doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4)),
+        &doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4)),
+    };
+
+    unsigned i = 0;
+    for (auto page : doc.GetPages())
+    {
+        REQUIRE(page == pages[i]);
+        i++;
+    }
+
+    auto& page1 = *pages[0];
+    PdfAnnotation* annots[] = {
+        &page1.GetAnnotations().CreateAnnot<PdfAnnotationWatermark>(Rect()),
+        &page1.GetAnnotations().CreateAnnot<PdfAnnotationWatermark>(Rect()),
+        &page1.GetAnnotations().CreateAnnot<PdfAnnotationWatermark>(Rect()),
+    };
+
+    i = 0;
+    for (auto annot : page1.GetAnnotations())
+    {
+        REQUIRE(annot == annots[i]);
+        i++;
+    }
+}
+
 TEST_CASE("ErrorFilePath")
 {
     try

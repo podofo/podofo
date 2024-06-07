@@ -77,11 +77,11 @@ namespace PoDoFo
             }
             value_type operator*()
             {
-                return m_iterator.get();
+                return m_iterator->get();
             }
             value_type operator->()
             {
-                return m_iterator.get();
+                return m_iterator->get();
             }
         private:
             TListIterator m_iterator;

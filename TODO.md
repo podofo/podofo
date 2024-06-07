@@ -9,7 +9,6 @@ and reference the face with FT_Reference_Face
 - PdfMemDocument: Consider removing SetEncrypt(encrypt)
 - Review PdfNameTree
 - PdfCanvas: Add CopyTo facilities, see PdfContents
-- PdfPageCollection: Add iteration on PdfPage. See PdfAnnotationCollection
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
 - PdfPage: Add GetFields() iteration
 - Check accessibility of PdfEncrypt.h classes, check AESV3 naming

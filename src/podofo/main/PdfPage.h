@@ -35,7 +35,7 @@ struct PODOFO_API PdfTextEntry final
 struct PODOFO_API PdfTextExtractParams final
 {
     nullable<Rect> ClipRect;
-    PdfTextExtractFlags Flags;
+    PdfTextExtractFlags Flags = PdfTextExtractFlags::None;
 };
 
 /** PdfPage is one page in the pdf document.
