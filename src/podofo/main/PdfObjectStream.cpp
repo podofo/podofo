@@ -212,6 +212,7 @@ size_t PdfObjectStream::GetLength() const
 
 void PdfObjectStream::MoveFrom(PdfObjectStream& rhs)
 {
+    rhs.ensureClosed();
     ensureClosed();
     if (!m_Provider->TryMoveFrom(std::move(*rhs.m_Provider)))
     {
