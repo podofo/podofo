@@ -12,8 +12,6 @@ and reference the face with FT_Reference_Face
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
 - PdfPage: Add GetFields() iteration
 - Check accessibility of PdfEncrypt.h classes, check AESV3 naming
-- Rename NameToColorSpaceRaw/ColorSpaceToNameRaw to something more consistent?
-- More enum <-> strings functions and make them public
 - Make PdfObjectStream not flate filter by default in PdfMemDocument?
 - PdfDocument: Add GetAnnotationFields()/GetAllFields() iteration
 - Review PdfPage::SetICCProfile()

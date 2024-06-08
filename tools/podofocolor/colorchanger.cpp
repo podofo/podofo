@@ -185,13 +185,13 @@ void ColorChanger::ReplaceColorsInPage(PdfCanvas& page)
 
                 case eKeyword_SelectColorSpace_Stroking:
                     colorSpace = this->GetColorSpaceForName(args.back().GetName(), page);
-                    colorSpace = PoDoFo::NameToColorSpaceRaw(args.back().GetName());
+                    colorSpace = PoDoFo::ConvertTo<PdfColorSpaceType>(args.back().GetName());
                     args.pop_back();
                     graphicsStack.SetStrokingColorSpace(colorSpace);
                     break;
 
                 case eKeyword_SelectColorSpace_NonStroking:
-                    colorSpace = PoDoFo::NameToColorSpaceRaw(args.back().GetName());
+                    colorSpace = PoDoFo::ConvertTo<PdfColorSpaceType>(args.back().GetName());
                     args.pop_back();
                     graphicsStack.SetNonStrokingColorSpace(colorSpace);
                     break;
@@ -300,7 +300,7 @@ void ColorChanger::ReplaceColorsInPage(PdfCanvas& page)
                         default:
                         {
                             PoDoFo::LogMessage(PdfLogSeverity::Error, "Unknown color space {} type.\n",
-                                PoDoFo::ColorSpaceToNameRaw(graphicsStack.GetNonStrokingColorSpace()));
+                                PoDoFo::ToString(graphicsStack.GetNonStrokingColorSpace()));
                             PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
                         }
                     }
@@ -544,7 +544,7 @@ const char* ColorChanger::GetKeywordForColor(const PdfColor& rColor, bool bIsStr
 
 PdfColorSpaceType ColorChanger::GetColorSpaceForName(const PdfName& name, PdfCanvas& page)
 {
-    PdfColorSpaceType colorSpace = PoDoFo::NameToColorSpaceRaw(name);
+    PdfColorSpaceType colorSpace = PoDoFo::ConvertTo<PdfColorSpaceType>(name);
 
     if (colorSpace == PdfColorSpaceType::Unknown)
     {

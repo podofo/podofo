@@ -128,6 +128,232 @@ namespace PoDoFo
         }
     };
 
+    template<>
+    struct Convert<PdfAnnotationType>
+    {
+        static std::string_view ToString(PdfAnnotationType value)
+        {
+            using namespace std;
+            switch (value)
+            {
+                case PdfAnnotationType::Text:
+                    return "Text"sv;
+                case PdfAnnotationType::Link:
+                    return "Link"sv;
+                case PdfAnnotationType::FreeText:
+                    return "FreeText"sv;
+                case PdfAnnotationType::Line:
+                    return "Line"sv;
+                case PdfAnnotationType::Square:
+                    return "Square"sv;
+                case PdfAnnotationType::Circle:
+                    return "Circle"sv;
+                case PdfAnnotationType::Polygon:
+                    return "Polygon"sv;
+                case PdfAnnotationType::PolyLine:
+                    return "PolyLine"sv;
+                case PdfAnnotationType::Highlight:
+                    return "Highlight"sv;
+                case PdfAnnotationType::Underline:
+                    return "Underline"sv;
+                case PdfAnnotationType::Squiggly:
+                    return "Squiggly"sv;
+                case PdfAnnotationType::StrikeOut:
+                    return "StrikeOut"sv;
+                case PdfAnnotationType::Stamp:
+                    return "Stamp"sv;
+                case PdfAnnotationType::Caret:
+                    return "Caret"sv;
+                case PdfAnnotationType::Ink:
+                    return "Ink"sv;
+                case PdfAnnotationType::Popup:
+                    return "Popup"sv;
+                case PdfAnnotationType::FileAttachement:
+                    return "FileAttachment"sv;
+                case PdfAnnotationType::Sound:
+                    return "Sound"sv;
+                case PdfAnnotationType::Movie:
+                    return "Movie"sv;
+                case PdfAnnotationType::Widget:
+                    return "Widget"sv;
+                case PdfAnnotationType::Screen:
+                    return "Screen"sv;
+                case PdfAnnotationType::PrinterMark:
+                    return "PrinterMark"sv;
+                case PdfAnnotationType::TrapNet:
+                    return "TrapNet"sv;
+                case PdfAnnotationType::Watermark:
+                    return "Watermark"sv;
+                case PdfAnnotationType::Model3D:
+                    return "3D"sv;
+                case PdfAnnotationType::RichMedia:
+                    return "RichMedia"sv;
+                case PdfAnnotationType::WebMedia:
+                    return "WebMedia"sv;
+                case PdfAnnotationType::Redact:
+                    return "Redact"sv;
+                case PdfAnnotationType::Projection:
+                    return "Projection"sv;
+                default:
+                    throw PdfError(PdfErrorCode::InvalidEnumValue, __FILE__, __LINE__);
+            }
+        }
+
+        static bool TryParse(const std::string_view& str, PdfAnnotationType& value)
+        {
+            using namespace std;
+            if (str == "Text"sv)
+            {
+                value = PdfAnnotationType::Text;
+                return true;
+            }
+            else if (str == "Link"sv)
+            {
+                value = PdfAnnotationType::Link;
+                return true;
+            }
+            else if (str == "FreeText"sv)
+            {
+                value = PdfAnnotationType::FreeText;
+                return true;
+            }
+            else if (str == "Line"sv)
+            {
+                value = PdfAnnotationType::Line;
+                return true;
+            }
+            else if (str == "Square"sv)
+            {
+                value = PdfAnnotationType::Square;
+                return true;
+            }
+            else if (str == "Circle"sv)
+            {
+                value = PdfAnnotationType::Circle;
+                return true;
+            }
+            else if (str == "Polygon"sv)
+            {
+                value = PdfAnnotationType::Polygon;
+                return true;
+            }
+            else if (str == "PolyLine"sv)
+            {
+                value = PdfAnnotationType::PolyLine;
+                return true;
+            }
+            else if (str == "Highlight"sv)
+            {
+                value = PdfAnnotationType::Highlight;
+                return true;
+            }
+            else if (str == "Underline"sv)
+            {
+                value = PdfAnnotationType::Underline;
+                return true;
+            }
+            else if (str == "Squiggly"sv)
+            {
+                value = PdfAnnotationType::Squiggly;
+                return true;
+            }
+            else if (str == "StrikeOut"sv)
+            {
+                value = PdfAnnotationType::StrikeOut;
+                return true;
+            }
+            else if (str == "Stamp"sv)
+            {
+                value = PdfAnnotationType::Stamp;
+                return true;
+            }
+            else if (str == "Caret"sv)
+            {
+                value = PdfAnnotationType::Caret;
+                return true;
+            }
+            else if (str == "Ink"sv)
+            {
+                value = PdfAnnotationType::Ink;
+                return true;
+            }
+            else if (str == "Popup"sv)
+            {
+                value = PdfAnnotationType::Popup;
+                return true;
+            }
+            else if (str == "FileAttachment"sv)
+            {
+                value = PdfAnnotationType::FileAttachement;
+                return true;
+            }
+            else if (str == "Sound"sv)
+            {
+                value = PdfAnnotationType::Sound;
+                return true;
+            }
+            else if (str == "Movie"sv)
+            {
+                value = PdfAnnotationType::Movie;
+                return true;
+            }
+            else if (str == "Widget"sv)
+            {
+                value = PdfAnnotationType::Widget;
+                return true;
+            }
+            else if (str == "Screen"sv)
+            {
+                value = PdfAnnotationType::Screen;
+                return true;
+            }
+            else if (str == "PrinterMark"sv)
+            {
+                value = PdfAnnotationType::PrinterMark;
+                return true;
+            }
+            else if (str == "TrapNet"sv)
+            {
+                value = PdfAnnotationType::TrapNet;
+                return true;
+            }
+            else if (str == "Watermark"sv)
+            {
+                value = PdfAnnotationType::Watermark;
+                return true;
+            }
+            else if (str == "3D"sv)
+            {
+                value = PdfAnnotationType::Model3D;
+                return true;
+            }
+            else if (str == "RichMedia"sv)
+            {
+                value = PdfAnnotationType::RichMedia;
+                return true;
+            }
+            else if (str == "WebMedia"sv)
+            {
+                value = PdfAnnotationType::WebMedia;
+                return true;
+            }
+            else if (str == "Redact"sv)
+            {
+                value = PdfAnnotationType::Redact;
+                return true;
+            }
+            else if (str == "Projection"sv)
+            {
+                value = PdfAnnotationType::Projection;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    };
+
     template<typename T>
     std::string_view ToString(T value)
     {
@@ -135,7 +361,7 @@ namespace PoDoFo
     }
 
     template<typename T>
-    bool ConvertTo(const std::string_view& str, T& value)
+    bool TryConvertTo(const std::string_view& str, T& value)
     {
         value = { };
         return Convert<T>::TryParse(str, value);

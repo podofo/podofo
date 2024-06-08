@@ -41,7 +41,7 @@ bool PdfColorSpaceFilterFactory::TryCreateFromObject(const PdfObject& obj, PdfCo
         }
 
         const PdfName* name;
-        if (!arr->MustFindAt(0).TryGetName(name) || !PoDoFo::TryNameToColorSpaceRaw(*name, type))
+        if (!arr->MustFindAt(0).TryGetName(name) || !PoDoFo::TryConvertTo(*name, type))
             return false;
 
         switch (type)
@@ -94,7 +94,7 @@ bool PdfColorSpaceFilterFactory::TryCreateFromObject(const PdfObject& obj, PdfCo
     else
     {
         const PdfName* name;
-        if (!obj.TryGetName(name) || !PoDoFo::TryNameToColorSpaceRaw(name->GetString(), type))
+        if (!obj.TryGetName(name) || !PoDoFo::TryConvertTo(name->GetString(), type))
             return false;
 
         switch (type)

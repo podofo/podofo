@@ -225,7 +225,7 @@ void PdfImage::SetICCProfile(InputStream& stream, unsigned colorComponents, PdfC
 
     // Create a colorspace object
     auto& iccObject = this->GetDocument().GetObjects().CreateDictionaryObject();
-    iccObject.GetDictionary().AddKey("Alternate", PdfName(PoDoFo::ColorSpaceToNameRaw(alternateColorSpace)));
+    iccObject.GetDictionary().AddKey("Alternate", PdfName(PoDoFo::ToString(alternateColorSpace)));
     iccObject.GetDictionary().AddKey("N", static_cast<int64_t>(colorComponents));
     iccObject.GetOrCreateStream().SetData(stream);
 
@@ -310,7 +310,7 @@ void PdfImage::SetData(InputStream& stream, unsigned width, unsigned height, Pdf
     dict.AddKey("Width", static_cast<int64_t>(width));
     dict.AddKey("Height", static_cast<int64_t>(height));
     dict.AddKey("BitsPerComponent", static_cast<int64_t>(8));
-    dict.AddKey("ColorSpace", PdfName(PoDoFo::ColorSpaceToNameRaw(colorSpace)));
+    dict.AddKey("ColorSpace", PdfName(PoDoFo::ToString(colorSpace)));
     // Remove possibly existing /Decode array
     dict.RemoveKey("Decode");
 }

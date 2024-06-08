@@ -111,7 +111,7 @@ void PdfInfoHelper::OutputPageInfo(ostream& outstream)
 
             outstream << endl;
             outstream << "\tAnnotation " << i << endl;
-            outstream << "\t\tType: " << PoDoFo::AnnotationTypeToName(curAnnot.GetType()) << endl;
+            outstream << "\t\tType: " << PoDoFo::ToString(curAnnot.GetType()) << endl;
             auto contents = curAnnot.GetContents();
             if (contents != nullptr)
                 outstream << "\t\tContents: " << contents->GetString() << endl;

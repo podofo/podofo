@@ -13,7 +13,7 @@ namespace PoDoFo
 
     struct JpegBufferDestination
     {
-        jpeg_destination_mgr pub;
+        jpeg_destination_mgr pub = { };
         PoDoFo::charbuff* buff = nullptr;
     };
 

@@ -401,7 +401,7 @@ void PdfPage::SetICCProfile(const string_view& csTag, InputStream& stream,
 
     // Create a colorspace object
     auto& iccObject = this->GetDocument().GetObjects().CreateDictionaryObject();
-    PdfName nameForCS = PoDoFo::ColorSpaceToNameRaw(alternateColorSpace);
+    PdfName nameForCS = PoDoFo::ToString(alternateColorSpace);
     iccObject.GetDictionary().AddKey("Alternate", nameForCS);
     iccObject.GetDictionary().AddKey("N", colorComponents);
     iccObject.GetOrCreateStream().SetData(stream);

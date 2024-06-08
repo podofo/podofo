@@ -28,7 +28,7 @@ static void setAppearanceStream(PdfDictionary& dict, const PdfObject& abObj,
 PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const Rect& rect)
     : PdfDictionaryElement(page.GetDocument(), "Annot"), m_AnnotationType(annotType), m_Page(&page)
 {
-    const PdfName name(PoDoFo::AnnotationTypeToName(annotType));
+    const PdfName name(PoDoFo::ToString(annotType));
 
     if (name.IsNull())
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
@@ -572,7 +572,7 @@ PdfAnnotationType PdfAnnotation::getAnnotationType(const PdfObject& obj)
         return PdfAnnotationType::Unknown;
 
     auto subtype = name->GetString();
-    return PoDoFo::NameToAnnotationType(subtype);
+    return PoDoFo::ConvertTo<PdfAnnotationType>(subtype);
 }
 
 PdfName getAppearanceName(PdfAppearanceType appearance)

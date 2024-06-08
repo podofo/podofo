@@ -444,7 +444,7 @@ void PoDoFo::WriteOperator_Do(PdfStringStream& stream, const string_view& xobjna
 
 void PoDoFo::WriteOperator_cs(PdfStringStream& stream, PdfColorSpaceType colorSpace)
 {
-    stream << PoDoFo::ColorSpaceToNameRaw(colorSpace) << " cs\n";
+    stream << PoDoFo::ToString(colorSpace) << " cs\n";
 }
 
 void PoDoFo::WriteOperator_cs(PdfStringStream& stream, const string_view& name)
@@ -454,7 +454,7 @@ void PoDoFo::WriteOperator_cs(PdfStringStream& stream, const string_view& name)
 
 void PoDoFo::WriteOperator_CS(PdfStringStream& stream, PdfColorSpaceType colorSpace)
 {
-    stream << PoDoFo::ColorSpaceToNameRaw(colorSpace) << " CS\n";
+    stream << PoDoFo::ToString(colorSpace) << " CS\n";
 }
 
 void PoDoFo::WriteOperator_CS(PdfStringStream& stream, const string_view& name)
