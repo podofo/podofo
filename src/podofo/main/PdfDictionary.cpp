@@ -8,6 +8,7 @@
 #include "PdfDictionary.h"
 
 #include <podofo/auxiliary/OutputDevice.h>
+#include <podofo/auxiliary/StreamDevice.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -198,10 +199,34 @@ bool PdfDictionary::RemoveKey(const string_view& key)
 void PdfDictionary::Write(OutputStream& device, PdfWriteFlags writeMode,
     const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
 {
-    if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
-        device.Write("<<\n");
-    else
-        device.Write("<<");
+    return write(device, writeMode, false, encrypt, buffer);
+}
+
+string PdfDictionary::ToString(bool skipDelimiters) const
+{
+    string ret;
+    ToString(ret, skipDelimiters);
+    return ret;
+}
+
+void PdfDictionary::ToString(string& str, bool skipDelimiters) const
+{
+    str.clear();
+    StringStreamDevice device(str);
+    charbuff buffer;
+    write(device, PdfWriteFlags::None, skipDelimiters, { }, buffer);
+}
+
+void PdfDictionary::write(OutputStream& device, PdfWriteFlags writeMode, bool skipDelimiters,
+    const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
+{
+    if (!skipDelimiters)
+    {
+        if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
+            device.Write("<<\n");
+        else
+            device.Write("<<");
+    }
 
     if (this->HasKey(PdfName::KeyType))
     {
@@ -231,7 +256,8 @@ void PdfDictionary::Write(OutputStream& device, PdfWriteFlags writeMode,
         }
     }
 
-    device.Write(">>");
+    if (!skipDelimiters)
+        device.Write(">>");
 }
 
 void PdfDictionary::ResetDirtyInternal()

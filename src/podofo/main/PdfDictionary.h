@@ -302,6 +302,14 @@ public:
     void Write(OutputStream& stream, PdfWriteFlags writeMode,
         const PdfStatefulEncrypt& encrypt, charbuff& buffer) const override;
 
+    using PdfDataProvider::ToString;
+
+    /**
+     * \param skipDelimiters Skip writing delimiters
+     */
+    std::string ToString(bool skipDelimiters) const;
+    void ToString(std::string& str, bool skipDelimiters) const;
+
     /**
      * \returns the size of the internal map
      */
@@ -334,6 +342,8 @@ private:
     PdfObject* getKey(const std::string_view& key) const;
     PdfObject* findKey(const std::string_view& key) const;
     PdfObject* findKeyParent(const std::string_view& key) const;
+    void write(OutputStream& stream, PdfWriteFlags writeMode, bool skipDelimiters,
+        const PdfStatefulEncrypt& encrypt, charbuff& buffer) const;
 
 private:
     PdfDictionaryMap m_Map;
