@@ -421,7 +421,7 @@ void PdfEncodingMapOneByte::AppendToUnicodeEntries(OutputStream& stream, charbuf
     stream.Write(temp);
     stream.Write(" [\n");
     u16string u16tmp;
-    for (; code < lastCode; code++)
+    for (; code <= lastCode; code++)
     {
         if (!TryGetCodePoints(PdfCharCode(code), codePoints))
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Unable to find character code");
@@ -448,7 +448,7 @@ void PdfEncodingMapOneByte::AppendCIDMappingEntries(OutputStream& stream, const 
     };
 
     vector<Mapping> mappings;
-    for (; code < lastCode; code++)
+    for (; code <= lastCode; code++)
     {
         PdfCharCode charCode(code);
         if (!TryGetCodePoints(charCode, codePoints))
