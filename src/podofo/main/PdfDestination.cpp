@@ -9,9 +9,6 @@
 #include "PdfDictionary.h"
 #include "PdfAction.h"
 #include "PdfMemDocument.h"
-#include "PdfNameTree.h"
-#include "PdfPage.h"
-#include "PdfPageCollection.h"
 
 using namespace std;
 using namespace PoDoFo;
@@ -96,7 +93,7 @@ bool PdfDestination::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfDestinati
         if (names == nullptr)
             PODOFO_RAISE_ERROR(PdfErrorCode::NoObject);
 
-        value = names->GetValue("Dests", obj.GetString());
+        value = names->GetValue(PdfKnownNameTree::Dests, obj.GetString());
     }
     else if (obj.GetDataType() == PdfDataType::Name)
     {

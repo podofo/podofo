@@ -8,26 +8,8 @@
 #include <podofo/private/XMPUtils.h>
 #include "PdfDocument.h"
 
-#include <algorithm>
-#include <deque>
-
-#include "PdfArray.h"
-#include "PdfDictionary.h"
-#include "PdfImmediateWriter.h"
-#include "PdfObjectStream.h"
-#include "PdfIndirectObjectList.h"
-#include "PdfAcroForm.h"
-#include "PdfAction.h"
 #include "PdfDestination.h"
 #include "PdfFileSpec.h"
-#include "PdfFontMetrics.h"
-#include "PdfInfo.h"
-#include "PdfNameTree.h"
-#include "PdfOutlines.h"
-#include "PdfPage.h"
-#include "PdfPageCollection.h"
-#include "PdfXObjectForm.h"
-#include "PdfImage.h"
 
 using namespace std;
 using namespace PoDoFo;
@@ -78,7 +60,7 @@ void PdfDocument::Clear()
     m_Pages = nullptr;
     m_AcroForm = nullptr;
     m_Outlines = nullptr;
-    m_NameTree = nullptr;
+    m_NameTrees = nullptr;
     m_Objects.Clear();
     m_Objects.SetCanReuseObjectNumbers(true);
     clear();
@@ -105,7 +87,7 @@ void PdfDocument::Init()
     auto& catalogDict = m_Catalog->GetDictionary();
     auto namesObj = catalogDict.FindKey("Names");
     if (namesObj != nullptr)
-        m_NameTree.reset(new PdfNameTree(*namesObj));
+        m_NameTrees.reset(new PdfNameTrees(*namesObj));
 
     auto outlinesObj = catalogDict.FindKey("Outlines");
     if (outlinesObj != nullptr)
@@ -508,16 +490,16 @@ PdfOutlines& PdfDocument::GetOrCreateOutlines()
     return *m_Outlines.get();
 }
 
-PdfNameTree& PdfDocument::GetOrCreateNames()
+PdfNameTrees& PdfDocument::GetOrCreateNames()
 {
-    if (m_NameTree != nullptr)
-        return *m_NameTree;
+    if (m_NameTrees != nullptr)
+        return *m_NameTrees;
 
-    PdfNameTree tmpTree(*this);
+    PdfNameTrees tmpTree(*this);
     auto obj = &tmpTree.GetObject();
     m_Catalog->GetDictionary().AddKey("Names", obj->GetIndirectReference());
-    m_NameTree.reset(new PdfNameTree(*obj));
-    return *m_NameTree;
+    m_NameTrees.reset(new PdfNameTrees(*obj));
+    return *m_NameTrees;
 }
 
 PdfAcroForm& PdfDocument::GetOrCreateAcroForm(PdfAcroFormDefaulAppearance defaultAppearance)
@@ -533,21 +515,21 @@ PdfAcroForm& PdfDocument::GetOrCreateAcroForm(PdfAcroFormDefaulAppearance defaul
 void PdfDocument::AddNamedDestination(const PdfDestination& dest, const PdfString& name)
 {
     auto& names = GetOrCreateNames();
-    names.AddValue("Dests", name, dest.GetObject().GetIndirectReference());
+    names.AddValue(PdfKnownNameTree::Dests, name, dest.GetObject().GetIndirectReference());
 }
 
 void PdfDocument::AttachFile(const PdfFileSpec& fileSpec)
 {
     auto& names = GetOrCreateNames();
-    names.AddValue("EmbeddedFiles", fileSpec.GetFilename().value(), fileSpec.GetObject().GetIndirectReference());
+    names.AddValue(PdfKnownNameTree::EmbeddedFiles, fileSpec.GetFilename().value(), fileSpec.GetObject().GetIndirectReference());
 }
     
 PdfFileSpec* PdfDocument::GetAttachment(const PdfString& name)
 {
-    if (m_NameTree == nullptr)
+    if (m_NameTrees == nullptr)
         return nullptr;
 
-    auto obj = m_NameTree->GetValue("EmbeddedFiles", name);
+    auto obj = m_NameTrees->GetValue(PdfKnownNameTree::EmbeddedFiles, name);
     if (obj == nullptr)
         return nullptr;
 
@@ -635,20 +617,20 @@ const PdfAcroForm& PdfDocument::MustGetAcroForm() const
     return *m_AcroForm;
 }
 
-PdfNameTree& PdfDocument::MustGetNames()
+PdfNameTrees& PdfDocument::MustGetNames()
 {
-    if (m_NameTree == nullptr)
+    if (m_NameTrees == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Names are not present");
 
-    return *m_NameTree;
+    return *m_NameTrees;
 }
 
-const PdfNameTree& PdfDocument::MustGetNames() const
+const PdfNameTrees& PdfDocument::MustGetNames() const
 {
-    if (m_NameTree == nullptr)
+    if (m_NameTrees == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Names are not present");
 
-    return *m_NameTree;
+    return *m_NameTrees;
 }
 
 PdfOutlines& PdfDocument::MustGetOutlines()

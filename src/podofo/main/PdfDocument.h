@@ -14,18 +14,18 @@
 #include "PdfFontManager.h"
 #include "PdfMetadata.h"
 #include "PdfPageCollection.h"
-#include "PdfNameTree.h"
+#include "PdfNameTrees.h"
 #include "PdfXObjectForm.h"
 #include "PdfImage.h"
 #include "PdfColorSpace.h"
+#include "PdfInfo.h"
+#include "PdfOutlines.h"
 
 namespace PoDoFo {
 
 class PdfAction;
 class PdfDestination;
 class PdfFileSpec;
-class PdfInfo;
-class PdfOutlines;
 class PdfEncrypt;
 
 /** PdfDocument is the core interface for working with PDF documents.
@@ -64,13 +64,13 @@ public:
     PdfOutlines& GetOrCreateOutlines();
 
     /** Get access to the Names dictionary (where all the named objects are stored)
-     *  The returned PdfNameTree object is owned by the PdfDocument.
+     *  The returned PdfNameTrees object is owned by the PdfDocument.
      *
      *  \param create create the object if it does not exist (ePdfCreateObject)
      *                 or return nullptr if it does not exist
      *  \returns the Names dictionary
      */
-    PdfNameTree& GetOrCreateNames();
+    PdfNameTrees& GetOrCreateNames();
 
     /** Get access to the AcroForm dictionary
      *
@@ -197,9 +197,9 @@ public:
 
     const PdfAcroForm& MustGetAcroForm() const;
 
-    PdfNameTree& MustGetNames();
+    PdfNameTrees& MustGetNames();
 
-    const PdfNameTree& MustGetNames() const;
+    const PdfNameTrees& MustGetNames() const;
 
     PdfOutlines& MustGetOutlines();
 
@@ -286,9 +286,9 @@ public:
 
     const PdfAcroForm* GetAcroForm() const { return m_AcroForm.get(); }
 
-    PdfNameTree* GetNames() { return m_NameTree.get(); }
+    PdfNameTrees* GetNames() { return m_NameTrees.get(); }
 
-    const PdfNameTree* GetNames() const { return m_NameTree.get(); }
+    const PdfNameTrees* GetNames() const { return m_NameTrees.get(); }
 
     PdfOutlines* GetOutlines() { return m_Outlines.get(); }
 
@@ -376,13 +376,13 @@ private:
     std::unique_ptr<PdfPageCollection> m_Pages;
     std::unique_ptr<PdfAcroForm> m_AcroForm;
     std::unique_ptr<PdfOutlines> m_Outlines;
-    std::unique_ptr<PdfNameTree> m_NameTree;
+    std::unique_ptr<PdfNameTrees> m_NameTrees;
 };
 
-template<typename Taction>
-std::unique_ptr<Taction> PdfDocument::CreateAction()
+template<typename TAction>
+std::unique_ptr<TAction> PdfDocument::CreateAction()
 {
-    return std::unique_ptr<Taction>(static_cast<Taction*>(createAction(typeid(Taction))));
+    return std::unique_ptr<TAction>(static_cast<TAction*>(createAction(typeid(TAction))));
 }
 
 };

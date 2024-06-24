@@ -1,12 +1,11 @@
 /**
  * SPDX-FileCopyrightText: (C) 2006 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2024 Francesco Pretto <ceztko@gmail.com>
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#ifndef PDF_NAMES_TREE_H
-#define PDF_NAMES_TREE_H
-
-#include "PdfDeclarations.h"
+#ifndef PDF_NAME_TREE_H
+#define PDF_NAME_TREE_H
 
 #include "PdfElement.h"
 
@@ -14,28 +13,36 @@ namespace PoDoFo {
 
 class PdfDictionary;
 
-enum class PdfNameLimits
+enum class PdfKnownNameTree
 {
-    Before,
-    Inside,
-    After
+    Unknown = 0,
+    Dests,
+    AP,
+    JavaScript,
+    Pages,
+    Templates,
+    IDS,
+    URLS,
+    EmbeddedFiles,
+    AlternatePresentations,
+    Renditions,
 };
 
-class PODOFO_API PdfNameTree final : public PdfDictionaryElement
+class PODOFO_API PdfNameTrees final : public PdfDictionaryElement
 {
     friend class PdfDocument;
 
 private:
-    /** Create a new PdfNameTree object
+    /** Create a new PdfNameTrees object
      *  \param parent parent of this action
      */
-    PdfNameTree(PdfDocument& doc);
+    PdfNameTrees(PdfDocument& doc);
 
-    /** Create a PdfNameTree object from an existing PdfObject
+    /** Create a PdfNameTrees object from an existing PdfObject
      *	\param obj the object to create from
      *  \param pCatalog the Catalog dictionary of the owning PDF
      */
-    PdfNameTree(PdfObject& obj);
+    PdfNameTrees(PdfObject& obj);
 
 public:
     /** Insert a key and value in one of the dictionaries of the name tree.
@@ -43,7 +50,8 @@ public:
      *  \param key the key to insert. If it exists, it will be overwritten.
      *  \param value the value to insert.
      */
-    void AddValue(const PdfName& tree, const PdfString& key, const PdfObject& value);
+    void AddValue(PdfKnownNameTree tree, const PdfString& key, const PdfObject& value);
+    void AddValue(const PdfName& treeName, const PdfString& key, const PdfObject& value);
 
     /** Get the object referenced by a string key in one of the dictionaries
      *  of the name tree.
@@ -53,7 +61,10 @@ public:
      *           if the value is a reference, the object referenced by
      *           this reference is returned.
      */
-    PdfObject* GetValue(const PdfName& tree, const PdfString& key) const;
+    const PdfObject* GetValue(PdfKnownNameTree tree, const std::string_view& key) const;
+    const PdfObject* GetValue(const std::string_view& treeName, const std::string_view& key) const;
+    PdfObject* GetValue(PdfKnownNameTree tree, const std::string_view& key);
+    PdfObject* GetValue(const std::string_view& treeName, const std::string_view& key);
 
     /** Tests whether a certain nametree has a value.
      *
@@ -64,16 +75,8 @@ public:
      *  \param key name of the key to look for
      *  \returns true if the dictionary has such a key.
      */
-    bool HasValue(const PdfName& tree, const PdfString& key) const;
-
-    /** Tests whether a key is in the range of a limits entry of a name tree node
-     *  \returns PdfNameLimits::Inside if the key is inside of the range
-     *  \returns PdfNameLimits::After if the key is greater than the specified range
-     *  \returns PdfNameLimits::Before if the key is smalelr than the specified range
-     *
-     *  Internal use only.
-     */
-    static PdfNameLimits CheckLimits(const PdfObject& obj, const PdfString& key);
+    bool HasValue(PdfKnownNameTree tree, const PdfString& key) const;
+    bool HasValue(const std::string_view& treeName, const PdfString& key) const;
 
     /**
      * Adds all keys and values from a name tree to a dictionary.
@@ -81,24 +84,14 @@ public:
      *
      * \param tree the name of the tree to convert into a dictionary
      * \param dict add all keys and values to this dictionary
+     * \param skipClear skip clearing the output dictionary
      */
-    void ToDictionary(const PdfName& dictionary, PdfDictionary& dict);
-
-    /**
-     * I have made it for access to "JavaScript" dictionary. This is "document-level javascript storage"
-     *  \param create if true the javascript node is created if it does not exists.
-     */
-    PdfObject* GetJavaScriptNode(bool create = false) const;
-
-    /**
-     * I have made it for access to "Dest" dictionary. This is "document-level named destination storage"
-     *  \param create if true the dests node is created if it does not exists.
-     */
-    PdfObject* GetDestsNode(bool create = false) const;
+    void ToDictionary(PdfKnownNameTree tree, PdfDictionary& dict, bool skipClear = false);
+    void ToDictionary(const std::string_view& treeName, PdfDictionary& dict, bool skipClear = false);
 
 private:
     /** Get a PdfNameTrees root node for a certain name.
-     *  \param name that identifies a specific name tree.
+     *  \param treeName that identifies a specific name tree.
      *         Valid names are:
      *            - Dests
      *            - AP
@@ -114,23 +107,26 @@ private:
      *  \param create if true the root node is created if it does not exists.
      *  \returns the root node of the tree or nullptr if it does not exists
      */
-    PdfObject* GetRootNode(const PdfName& name, bool create = false) const;
+    PdfObject* getRootNode(const std::string_view& treeName) const;
+    PdfObject& getOrCreateRootNode(const PdfName& treeName);
+
+    PdfObject* getValue(const std::string_view& name, const std::string_view& key) const;
 
     /** Recursively walk through the name tree and find the value for key.
      *  \param obj the name tree
      *  \param key the key to find a value for
      *  \return the value for the key or nullptr if it was not found
      */
-    PdfObject* GetKeyValue(PdfObject& obj, const PdfString& key) const;
+    PdfObject* getKeyValue(PdfObject& obj, const PdfString& key) const;
 
     /**
      *  Add all keys and values from an object and its children to a dictionary.
      *  \param obj a pdf name tree node
      *  \param dict a dictionary
      */
-    void AddToDictionary(PdfObject& obj, PdfDictionary& dict);
+    void addToDictionary(PdfObject& obj, PdfDictionary& dict);
 };
 
 };
 
-#endif // PDF_NAMES_TREE_H
+#endif // PDF_NAME_TREE_H

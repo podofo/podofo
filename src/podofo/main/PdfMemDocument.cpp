@@ -7,28 +7,10 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfMemDocument.h"
 
-#include <algorithm>
-#include <deque>
+#include <podofo/auxiliary/StreamDevice.h>
 
 #include "PdfParser.h"
-#include "PdfArray.h"
-#include "PdfDictionary.h"
 #include "PdfImmediateWriter.h"
-#include "PdfObject.h"
-#include "PdfParserObject.h"
-#include "PdfObjectStream.h"
-#include "PdfIndirectObjectList.h"
-#include "PdfAcroForm.h"
-#include "PdfDestination.h"
-#include "PdfFileSpec.h"
-#include "PdfFont.h"
-#include "PdfFontMetrics.h"
-#include "PdfInfo.h"
-#include "PdfNameTree.h"
-#include "PdfOutlines.h"
-#include "PdfPage.h"
-#include "PdfPageCollection.h"
-#include <podofo/auxiliary/StreamDevice.h>
 #include "PdfCommon.h"
 
 using namespace std;

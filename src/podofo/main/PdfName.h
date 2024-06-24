@@ -135,6 +135,9 @@ public:
     static const PdfName KeyXObject;
     static const PdfName KeyFont;
     static const PdfName KeyProperties;
+    static const PdfName KeyAP;
+    static const PdfName KeyNames;
+    static const PdfName KeyLimits;
 
 private:
     void expandUtf8String() const;

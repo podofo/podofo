@@ -24,8 +24,8 @@ public:
 private:
     PoDoFo::PdfMemDocument* m_doc;
 
-    void OutputOneName(std::ostream& outStream, PoDoFo::PdfNameTree& nameTree,
-        const std::string_view& title, const std::string_view& key);
+    void OutputOneName(std::ostream& outStream, PoDoFo::PdfNameTrees& names,
+        PoDoFo::PdfKnownNameTree treeName, const std::string_view& title);
     std::string GuessFormat();
 };
 

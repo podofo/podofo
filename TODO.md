@@ -7,7 +7,6 @@ and reference the face with FT_Reference_Face
 - PdfField: Evaluate make a virtual getValueObject()
 - Evaluate removing PdfObject::Null and PdfVariant::Null and introduce nullptr_t constructor overloads
 - PdfMemDocument: Consider removing SetEncrypt(encrypt)
-- Review PdfNameTree
 - PdfCanvas: Add CopyTo facilities, see PdfContents
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
 - PdfPage: Add GetFields() iteration

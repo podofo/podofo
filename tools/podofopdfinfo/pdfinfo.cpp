@@ -178,12 +178,12 @@ void PdfInfoHelper::OutputOutlines(ostream& outstream, PdfOutlineItem* item, int
         this->OutputOutlines(outstream, item->Next(), level);
 }
 
-void PdfInfoHelper::OutputOneName(ostream& outStream, PdfNameTree& nameTree,
-    const string_view& title, const string_view& key)
+void PdfInfoHelper::OutputOneName(ostream& outStream, PdfNameTrees& names,
+    PdfKnownNameTree treeName, const string_view& title)
 {
     outStream << "\t" << title << endl;
     PdfDictionary dict;
-    nameTree.ToDictionary(key, dict);
+    names.ToDictionary(treeName, dict);
 
     string str;
     for (auto& pair : dict)
@@ -204,9 +204,9 @@ void PdfInfoHelper::OutputNames(ostream& outStream)
     }
     else
     {
-        OutputOneName(outStream, *nameTree, "Destinations", "Dests");
-        OutputOneName(outStream, *nameTree, "JavaScripts", "JavaScript");
-        OutputOneName(outStream, *nameTree, "Embedded Files", "EmbeddedFiles");
+        OutputOneName(outStream, *nameTree, PdfKnownNameTree::Dests, "Destinations");
+        OutputOneName(outStream, *nameTree, PdfKnownNameTree::JavaScript, "JavaScripts");
+        OutputOneName(outStream, *nameTree, PdfKnownNameTree::EmbeddedFiles, "Embedded Files");
     }
 }
 

@@ -2299,7 +2299,7 @@ TEST_CASE("testNestedNameTree")
         if (names != nullptr)
         {
             PdfDictionary dict;
-            names->ToDictionary("Dests", dict);
+            names->ToDictionary(PdfKnownNameTree::Dests, dict);
         }
 
         FAIL("Should throw exception");
@@ -2337,7 +2337,7 @@ TEST_CASE("testLoopingNameTree")
         if (names != nullptr)
         {
             PdfDictionary dict;
-            names->ToDictionary("Dests", dict);
+            names->ToDictionary(PdfKnownNameTree::Dests, dict);
         }
     }
 
@@ -2366,7 +2366,7 @@ TEST_CASE("testLoopingNameTree")
         if (names != nullptr)
         {
             PdfDictionary dict;
-            names->ToDictionary("Dests", dict);
+            names->ToDictionary(PdfKnownNameTree::Dests, dict);
         }
 
         FAIL("Should throw exception");
@@ -2402,7 +2402,7 @@ TEST_CASE("testLoopingNameTree")
         if (names != nullptr)
         {
             PdfDictionary dict;
-            names->ToDictionary("Dests", dict);
+            names->ToDictionary(PdfKnownNameTree::Dests, dict);
         }
 
         FAIL("Should throw exception");

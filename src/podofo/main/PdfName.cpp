@@ -41,6 +41,9 @@ const PdfName PdfName::KeyShading = PdfName("Shading");
 const PdfName PdfName::KeyXObject = PdfName("XObject");
 const PdfName PdfName::KeyFont = PdfName("Font");
 const PdfName PdfName::KeyProperties = PdfName("Properties");
+const PdfName PdfName::KeyAP = PdfName("AP");
+const PdfName PdfName::KeyNames = PdfName("Names");
+const PdfName PdfName::KeyLimits = PdfName("Limits");
 
 PdfName::PdfName()
     : m_data(new NameData{ true, { }, nullptr })

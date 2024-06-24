@@ -107,7 +107,7 @@
 #include "main/PdfImage.h"
 #include "main/PdfInfo.h"
 #include "main/PdfMemDocument.h"
-#include "main/PdfNameTree.h"
+#include "main/PdfNameTrees.h"
 #include "main/PdfOutlines.h"
 #include "main/PdfPage.h"
 #include "main/PdfPageCollection.h"
