@@ -1,4 +1,5 @@
 ### 1.0
+
 #### API Review
 - PdfExtGState accessibility
 - Consider converting protected PdfFontMetrics::GetFaceHandle() to return just FT_Face,
@@ -11,28 +12,21 @@ and reference the face with FT_Reference_Face
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
 - PdfPage: Add GetFields() iteration
 - Check accessibility of PdfEncrypt.h classes, check AESV3 naming
-- Make PdfObjectStream not flate filter by default in PdfMemDocument?
+- Evaluate make PdfObjectStream not flate filter by default in PdfMemDocument?
 - PdfDocument: Add GetAnnotationFields()/GetAllFields() iteration
-- Review PdfPage::SetICCProfile()
+- Review PdfPage::SetICCProfile(), PdfImage::SetICCProfile()
 - PdfWriter: Check if SetEncrypt() should accept mutable reference instead
 - PdfErrorCode: Check all values
 - PdfEncrypt: Consider removing CreateFromEncrypt (shared_ptr in PdfMemDocument could be used now)
-#### Features
-- Check PdfWriter should really update doc trailer when saving.
-  Now the new trailer is written but the doc still has the old one
-- PdfMemDocument: Check the DeviceStream is not empty before doing an incremental update/signing operation
-- PdfMemDocument: Prevent Save() operation after signing operation
-- PdfMemDocument: Release the device after all objects have been loaded (eg. after a full Save())
-- PdfParserObject: Release the device after loading
-- Review all page import functions to check correct working/improve the code
 - Review PdfPageCollection::AppendDocumentPages(),
-  PdfPageCollection::InsertDocumentPageAt(), PdfPage::MoveAt()
-- PdfElement: Optimize, keep dictionary/array pointer. Add GetObjectPtr()
-- PdfImage: cache PdfColorSpace
-values in the dictionary after signing with SignDocument (???)
-- Evaluate move more utf8::next to utf8::unchecked::next
-- Add PdfString(string&&) and PdfName(string&&) constructors that
+  PdfPageCollection::InsertDocumentPageAt(), PdfPage::MoveAt() (???)
+#### Features
+- Evaluate adding PdfString(string&&) and PdfName(string&&) constructors that
 either assume UTF-8 and/or checks for used codepoints
+
+### After 1.0
+- Check/Review doxygen doc
+- Evaluate move more utf8::next to utf8::unchecked::next
 - Add a PdfRect-like class PdfCorners that avoid coordinates normalization
   by default
 - PdfToggleButton: Add proper IsChecked/ExportValue handling
@@ -42,9 +36,14 @@ either assume UTF-8 and/or checks for used codepoints
   see #123
 - PdfParser: Handle all pdfs in
   https://www.mail-archive.com/podofo-users@lists.sourceforge.net/msg04801.html
-- Check/Review doxygen doc
-
-### After 1.0
+- Check PdfWriter should really update doc trailer when saving.
+  Now the new trailer is written but the doc still has the old one
+- PdfMemDocument: Check the DeviceStream is not empty before doing an incremental update/signing operation
+- PdfMemDocument: Prevent Save() operation after signing operation
+- PdfMemDocument: Evaluate release the device after all objects have been loaded (eg. after a full Save())
+- PdfParserObject: Evaluate release the device after loading
+- Review all page import functions to check correct working/improve the code
+- PdfElement: Optimize, keep dictionary/array pointer. Evaluate Add shared_ptr PdfElement::GetObjectPtr() 
 - Implement full text extraction, including search in predefined
   CMap(s) as described in Pdf Reference and here https://stackoverflow.com/a/26910569/213871
 - Check what do with tools/restore manuals
