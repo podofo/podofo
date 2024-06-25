@@ -697,7 +697,7 @@ void PdfEncoding::writeToUnicodeCMap(PdfObject& cmapObj) const
 
     toUnicode.AppendToUnicodeEntries(output, temp);
     output.Write(
-        "\nendcmap\n"
+        "endcmap\n"
         "CMapName currentdict / CMap defineresource pop\n"
         "end\n"
         "end");

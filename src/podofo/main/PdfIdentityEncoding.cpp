@@ -71,15 +71,32 @@ void PdfIdentityEncoding::getExportObject(PdfIndirectObjectList& objects, PdfNam
             name = PdfName("Identity-V");
             break;
         default:
-            // TODO: Implement a custom CMap that has the correct
-            // range for other identities
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported");
+            // NOTE: Return no export object, assume exporting
+            // will be done by writing CMaps externally
+            break;
     }
+}
+
+void PdfIdentityEncoding::AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const
+{
+    // Just do a single cidrange
+    // CHECK-ME: This has not been verified for correctness
+
+    stream.Write("1 begincidrange\n");
+    m_Limits.FirstChar.WriteHexTo(temp);
+    stream.Write(temp);
+    stream.Write(" ");
+    m_Limits.LastChar.WriteHexTo(temp);
+    stream.Write(temp);
+    stream.Write(" ");
+    m_Limits.FirstChar.WriteHexTo(temp);
+    stream.Write(temp);
+    stream.Write("\nendcidrange\n");
 }
 
 void PdfIdentityEncoding::AppendToUnicodeEntries(OutputStream& stream, charbuff& temp) const
 {
-    // Very easy, just do a single bfrange
+    // Just do a single bfrange
     // Use PdfEncodingMap::AppendUTF16CodeTo
 
     u16string u16temp;
@@ -91,16 +108,7 @@ void PdfIdentityEncoding::AppendToUnicodeEntries(OutputStream& stream, charbuff&
     stream.Write(temp);
     stream.Write(" ");
     PdfEncodingMap::AppendUTF16CodeTo(stream, m_Limits.FirstChar.Code, u16temp);
-    stream.Write("\n");
-    stream.Write("endbfrange");
-}
-
-void PdfIdentityEncoding::AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const
-{
-    (void)stream;
-    (void)font;
-    (void)temp;
-    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+    stream.Write("\nendbfrange\n");
 }
 
 const PdfEncodingLimits& PdfIdentityEncoding::GetLimits() const

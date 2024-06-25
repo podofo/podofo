@@ -367,7 +367,7 @@ void PdfEncodingMapBase::AppendToUnicodeEntries(OutputStream& stream, charbuff& 
         PdfEncodingMap::AppendUTF16CodeTo(stream, pair.second, u16temp);
         stream.Write("\n");
     }
-    stream.Write("endbfchar");
+    stream.Write("endbfchar\n");
 }
 
 PdfEncodingMapBase::PdfEncodingMapBase(const shared_ptr<PdfCharCodeMap>& map, PdfEncodingMapType type)
@@ -430,7 +430,7 @@ void PdfEncodingMapOneByte::AppendToUnicodeEntries(OutputStream& stream, charbuf
         stream.Write("\n");
     }
     stream.Write("]\n");
-    stream.Write("endbfrange");
+    stream.Write("endbfrange\n");
 }
 
 void PdfEncodingMapOneByte::AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const
