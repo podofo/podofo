@@ -47,7 +47,7 @@ public:
     PdfXRefStreamParserObject(InputStreamDevice& device, PdfXRefEntries& entries);
 
 public:
-    void DelayedLoadImpl() override;
+    void delayedLoad() override;
 
     void ReadXRefTable();
 

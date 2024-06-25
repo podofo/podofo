@@ -27,7 +27,7 @@ PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfDocument* doc, InputStre
 {
 }
 
-void PdfXRefStreamParserObject::DelayedLoadImpl()
+void PdfXRefStreamParserObject::delayedLoad()
 {
     // NOTE: Ignore the encryption in the XREF as the XREF stream must no be encrypted (see PDF Reference 3.4.7)
 

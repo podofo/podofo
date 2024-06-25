@@ -230,7 +230,7 @@ void PdfArray::Write(OutputStream& device, PdfWriteFlags writeMode,
     device.Write(']');
 }
 
-void PdfArray::ResetDirtyInternal()
+void PdfArray::resetDirty()
 {
     // Propagate state to all subclasses
     for (auto& obj : m_Objects)

@@ -430,7 +430,7 @@ protected:
 
     /**
      * Dynamically load the contents of this object from a PDF file by calling
-     * the virtual method DelayedLoadImpl() if the object is not already loaded.
+     * the virtual method delayedLoad() if the object is not already loaded.
      *
      * For objects complete created in memory and those that do not support
      * deferred loading this function does nothing, since deferred loading
@@ -452,14 +452,14 @@ protected:
      * While this method is not `const' it may be called from a const context,
      * so be careful what you mess with.
      */
-    virtual void DelayedLoadImpl();
+    virtual void delayedLoad();
 
-    virtual void DelayedLoadStreamImpl();
+    virtual void delayedLoadStream();
 
     /**
      * \returns true if the stream was removed
      */
-    virtual bool RemoveStreamImpl();
+    virtual bool removeStream();
 
     virtual bool HasStreamToParse() const;
 
@@ -502,7 +502,7 @@ protected:
      *
      *  All constructors initialize a PdfVariant with delayed loading disabled .
      *  If you want delayed loading you must ask for it. If you do so, call
-     *  this method early in your ctor and be sure to override DelayedLoadImpl().
+     *  this method early in your ctor and be sure to override delayedLoad().
      */
     void EnableDelayedLoading();
 

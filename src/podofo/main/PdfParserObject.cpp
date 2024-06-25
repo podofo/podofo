@@ -66,7 +66,7 @@ void PdfParserObject::ParseStream()
     DelayedLoadStream();
 }
 
-void PdfParserObject::DelayedLoadImpl()
+void PdfParserObject::delayedLoad()
 {
     PdfTokenizer tokenizer;
     m_device->Seek(m_Offset);
@@ -76,7 +76,7 @@ void PdfParserObject::DelayedLoadImpl()
     Parse(tokenizer);
 }
 
-void PdfParserObject::DelayedLoadStreamImpl()
+void PdfParserObject::delayedLoadStream()
 {
     PODOFO_ASSERT(getStream() == nullptr);
 
@@ -97,7 +97,7 @@ void PdfParserObject::DelayedLoadStreamImpl()
     }
 }
 
-bool PdfParserObject::RemoveStreamImpl()
+bool PdfParserObject::removeStream()
 {
     bool hasStream = m_HasStream;
     m_HasStream = false;

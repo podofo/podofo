@@ -331,7 +331,7 @@ public:
     size_t size() const;
 
 protected:
-    void ResetDirtyInternal() override;
+    void resetDirty() override;
     void setChildrenParent() override;
 
 private:

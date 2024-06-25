@@ -26,7 +26,7 @@ void PdfDataContainer::SetOwner(PdfObject& owner)
 
 void PdfDataContainer::ResetDirty()
 {
-    ResetDirtyInternal();
+    resetDirty();
 }
 
 PdfObject* PdfDataContainer::GetIndirectObject(const PdfReference& ref) const

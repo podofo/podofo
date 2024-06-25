@@ -172,7 +172,7 @@ namespace PoDoFo {
 
     private:
         nullable<PdfDestination&> getDestination();
-        void OnActionSet() override;
+        void onActionSet() override;
 
     private:
         nullable<std::unique_ptr<PdfDestination>> m_Destination;

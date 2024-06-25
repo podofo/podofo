@@ -114,7 +114,7 @@ namespace PoDoFo {
         nullable<const PdfAction&> GetAction() const;
 
     protected:
-        virtual void OnActionSet();
+        virtual void onActionSet();
         void ResetAction();
 
     private:

@@ -55,7 +55,7 @@ nullable<PdfDestination&> PdfAnnotationLink::getDestination()
         return **m_Destination;
 }
 
-void PdfAnnotationLink::OnActionSet()
+void PdfAnnotationLink::onActionSet()
 {
     m_Destination = { };
     GetDictionary().RemoveKey("Dest");

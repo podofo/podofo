@@ -85,9 +85,6 @@ public:
     inline void SetIsTrailer(bool isTrailer) { m_IsTrailer = isTrailer; }
 
 protected:
-    void DelayedLoadImpl() override;
-    void DelayedLoadStreamImpl() override;
-    bool RemoveStreamImpl() override;
     PdfReference ReadReference(PdfTokenizer& tokenizer);
     void Parse(PdfTokenizer& tokenizer);
 
@@ -96,6 +93,10 @@ protected:
      *  \returns true if there is a stream
      */
     bool HasStreamToParse() const override;
+
+    void delayedLoad() override;
+    void delayedLoadStream() override;
+    bool removeStream() override;
 
 private:
     PdfParserObject(const PdfParserObject&) = delete;

@@ -260,7 +260,7 @@ void PdfDictionary::write(OutputStream& device, PdfWriteFlags writeMode, bool sk
         device.Write(">>");
 }
 
-void PdfDictionary::ResetDirtyInternal()
+void PdfDictionary::resetDirty()
 {
     // Propagate state to all sub objects
     for (auto& pair : m_Map)

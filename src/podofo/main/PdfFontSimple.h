@@ -38,8 +38,6 @@ private:
         const PdfEncoding& encoding);
 
 protected:
-    void Init();
-
     void embedFont() override final;
 
     void initImported() override;

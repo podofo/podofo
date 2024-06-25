@@ -41,7 +41,7 @@ public:
     inline PdfObject* GetOwner() { return m_Owner; }
 
 protected:
-    virtual void ResetDirtyInternal() = 0;
+    virtual void resetDirty() = 0;
     PdfObject* GetIndirectObject(const PdfReference& reference) const;
     PdfDocument* GetObjectDocument();
     void SetDirty();

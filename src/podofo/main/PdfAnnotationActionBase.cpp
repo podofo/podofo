@@ -33,7 +33,7 @@ void PdfAnnotationActionBase::SetAction(nullable<const PdfAction&> action)
     else
     {
         m_Action = PdfAction::Create(*action);
-        OnActionSet();
+        onActionSet();
         dict.AddKeyIndirect("A", action->GetObject());
     }
 }
@@ -48,7 +48,7 @@ nullable<const PdfAction&> PdfAnnotationActionBase::GetAction() const
     return const_cast<PdfAnnotationActionBase&>(*this).getAction();
 }
 
-void PdfAnnotationActionBase::OnActionSet()
+void PdfAnnotationActionBase::onActionSet()
 {
     // Do nothing
 }

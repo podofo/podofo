@@ -27,7 +27,9 @@ PdfIdentityEncoding::PdfIdentityEncoding(PdfEncodingMapType type,
         const PdfEncodingLimits& limits, PdfIdentityOrientation orientation) :
     PdfEncodingMap(type),
     m_Limits(limits),
-    m_orientation(orientation) { }
+    m_orientation(orientation)
+{
+}
 
 PdfIdentityEncoding::PdfIdentityEncoding(PdfIdentityOrientation orientation)
     : PdfIdentityEncoding(PdfEncodingMapType::CMap, getLimits(2), orientation)

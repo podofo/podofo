@@ -162,14 +162,14 @@ void PdfObject::DelayedLoad() const
     if (m_IsDelayedLoadDone)
         return;
 
-    const_cast<PdfObject&>(*this).DelayedLoadImpl();
+    const_cast<PdfObject&>(*this).delayedLoad();
     m_IsDelayedLoadDone = true;
     const_cast<PdfObject&>(*this).SetVariantOwner();
 }
 
-void PdfObject::DelayedLoadImpl()
+void PdfObject::delayedLoad()
 {
-    // Default implementation of virtual void DelayedLoadImpl() throws, since delayed
+    // Default implementation of virtual void delayedLoad() throws, since delayed
     // loading should not be enabled except by types that support it.
     PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
 }
@@ -300,11 +300,11 @@ PdfObjectStream& PdfObject::GetOrCreateStream()
 
 void PdfObject::RemoveStream()
 {
-    DelayedLoadImpl();
+    delayedLoad();
     // Unconditionally set the stream as already loaded,
     // then just remove it
     m_IsDelayedLoadStreamDone = true;
-    bool hasStream = m_Stream != nullptr || RemoveStreamImpl();
+    bool hasStream = m_Stream != nullptr || removeStream();
     m_Stream = nullptr;
     if (hasStream)
         SetDirty();
@@ -380,7 +380,7 @@ void PdfObject::delayedLoadStream() const
     if (m_IsDelayedLoadStreamDone)
         return;
 
-    const_cast<PdfObject&>(*this).DelayedLoadStreamImpl();
+    const_cast<PdfObject&>(*this).delayedLoadStream();
     m_IsDelayedLoadStreamDone = true;
 }
 
@@ -429,14 +429,14 @@ void PdfObject::EnableDelayedLoadingStream()
     m_IsDelayedLoadStreamDone = false;
 }
 
-void PdfObject::DelayedLoadStreamImpl()
+void PdfObject::delayedLoadStream()
 {
     // Default implementation throws, since delayed loading of
     // streams should not be enabled except by types that support it.
     PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
 }
 
-bool PdfObject::RemoveStreamImpl()
+bool PdfObject::removeStream()
 {
     // Do nothing for regular object
     return false;

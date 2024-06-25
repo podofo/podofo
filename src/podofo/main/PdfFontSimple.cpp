@@ -48,7 +48,7 @@ void PdfFontSimple::getFontMatrixArray(PdfArray& fontMatrix) const
         fontMatrix.Add(PdfObject(matrix[i]));
 }
 
-void PdfFontSimple::Init()
+void PdfFontSimple::initImported()
 {
     PdfName subType;
     switch (GetType())
@@ -104,9 +104,4 @@ void PdfFontSimple::embedFont()
     }
 
     EmbedFontFile(*m_Descriptor);
-}
-
-void PdfFontSimple::initImported()
-{
-    this->Init();
 }

@@ -295,7 +295,7 @@ public:
     bool operator!=(const PdfArray& rhs) const;
 
 protected:
-    void ResetDirtyInternal() override;
+    void resetDirty() override;
     void setChildrenParent() override;
 
 private:
