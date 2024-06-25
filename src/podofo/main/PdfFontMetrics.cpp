@@ -319,7 +319,7 @@ bool PdfFontMetrics::TryGetImplicitEncoding(PdfEncodingMapConstPtr& encoding) co
         FT_Face face;
         if (TryGetOrLoadFace(face))
         {
-            encoding = getFontType1Encoding(face);
+            encoding = getFontType1ImplicitEncoding(face);
             return true;
         }
     }

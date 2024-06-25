@@ -341,7 +341,7 @@ protected:
 
 private:
     void initBaseFontNameSafe();
-    static PdfEncodingMapConstPtr getFontType1Encoding(FT_Face face);
+    static PdfEncodingMapConstPtr getFontType1ImplicitEncoding(FT_Face face);
 
 private:
     PdfFontMetrics(const PdfFontMetrics& rhs) = delete;
