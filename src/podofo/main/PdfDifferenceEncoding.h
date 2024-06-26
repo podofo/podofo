@@ -113,24 +113,32 @@ public:
      *  \param difference the differences in this encoding
      *  \param baseEncoding the base encoding of this font
      */
-    PdfDifferenceEncoding(const PdfDifferenceList& difference,
-        const PdfEncodingMapConstPtr& baseEncoding);
+    PdfDifferenceEncoding(const PdfEncodingMapConstPtr& baseEncoding,
+        const PdfDifferenceList& differences);
 
+public:
     /** Create a new PdfDifferenceEncoding from an existing object
-     *  in a PDF file.
      *
      *  \param obj object for the difference encoding
      *  \param metrics an existing font metrics
      */
-    static std::unique_ptr<PdfDifferenceEncoding> Create(const PdfObject& obj,
-        const PdfFontMetrics& metrics);
+    static bool TryCreateFromObject(const PdfObject& obj, const PdfFontMetrics& metrics,
+        std::unique_ptr<PdfDifferenceEncoding>& encoding);
+
+    /** Create a new PdfDifferenceEncoding from an existing object
+     *
+     * \param obj object for the difference encoding
+     * \param metrics an existing font metrics
+     * \returns On success, returns a non null PdfDifferenceEncoding
+     * \remarks throws on failure
+     */
+    static std::unique_ptr<PdfDifferenceEncoding> CreateFromObject(const PdfObject& obj, const PdfFontMetrics& metrics);
 
     /** Convert a standard character name to a unicode code point
      *
      *  \param name a standard character name
      *  \returns an unicode code point
      */
-    static char32_t NameToCodePoint(const PdfName& name);
     static char32_t NameToCodePoint(const std::string_view& name);
 
     /** Convert an unicode code point to a standard character name
@@ -157,8 +165,8 @@ private:
     void buildReverseMap();
 
 private:
-    PdfDifferenceList m_differences;
     PdfEncodingMapConstPtr m_baseEncoding;
+    PdfDifferenceList m_differences;
     bool m_reverseMapBuilt;
     std::unordered_map<char32_t, unsigned char> m_reverseMap;
 };

@@ -2481,27 +2481,43 @@ size_t PdfDifferenceList::GetCount() const
     return m_differences.size();
 }
 
-PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfDifferenceList& difference,
-    const PdfEncodingMapConstPtr& baseEncoding) :
+PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfEncodingMapConstPtr& baseEncoding,
+        const PdfDifferenceList& differences) :
     PdfEncodingMapOneByte({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }),
-    m_differences(difference),
     m_baseEncoding(baseEncoding),
+    m_differences(differences),
     m_reverseMapBuilt(false)
 {
     if (baseEncoding == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Base encoding must be non null");
 }
 
-unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
-    const PdfObject& obj, const PdfFontMetrics& metrics)
+unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::CreateFromObject(const PdfObject& obj, const PdfFontMetrics& metrics)
 {
+    unique_ptr<PdfDifferenceEncoding> ret;
+    if (!TryCreateFromObject(obj, metrics, ret))
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Unable to parse a valid difference encoding");
+
+    return ret;
+}
+
+bool PdfDifferenceEncoding::TryCreateFromObject(const PdfObject& obj,
+    const PdfFontMetrics& metrics, std::unique_ptr<PdfDifferenceEncoding>& encoding)
+{
+    const PdfDictionary* dict;
+    if (!obj.TryGetDictionary(dict))
+    {
+        encoding.reset();
+        return false;
+    }
+
     bool explicitNames = false;
     if (metrics.GetFontFileType() == PdfFontFileType::Type3)
         explicitNames = true;
 
     // See Table 5.11 PdfRefence 1.7.
     PdfEncodingMapConstPtr baseEncoding;
-    auto baseEncodingObj = obj.GetDictionary().FindKey("BaseEncoding");
+    auto baseEncodingObj = dict->FindKey("BaseEncoding");
     if (baseEncodingObj != nullptr)
     {
         const PdfName& baseEncodingName = baseEncodingObj->GetName();
@@ -2514,7 +2530,11 @@ unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
         else if (baseEncodingName == "StandardEncoding")
             baseEncoding = PdfEncodingMapFactory::StandardEncodingInstance();
         else
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Invalid /BaseEncoding {}", baseEncodingName.GetString());;
+        {
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, "Invalid /BaseEncoding {}", baseEncodingName.GetString());
+            encoding.reset();
+            return false;
+        }
     }
 
     PdfEncodingMapConstPtr implicitEncoding;
@@ -2528,9 +2548,10 @@ unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
 
     // Read the differences key
     PdfDifferenceList difference;
-    if (obj.GetDictionary().HasKey("Differences"))
+    auto differencesObj = dict->FindKey("Differences");
+    if (differencesObj != nullptr)
     {
-        auto& differences = obj.GetDictionary().MustFindKey("Differences").GetArray();
+        auto& differences = differencesObj->GetArray();
         int64_t curCode = -1;
         for (auto& diff : differences)
         {
@@ -2546,7 +2567,10 @@ unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
         }
     }
 
-    return unique_ptr<PdfDifferenceEncoding>(new PdfDifferenceEncoding(difference, baseEncoding));
+    // CHECK-ME: should we verify it actually have a /Differences?
+
+    encoding.reset(new PdfDifferenceEncoding(baseEncoding, difference));
+    return true;
 }
 
 void PdfDifferenceEncoding::getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
@@ -2641,11 +2665,6 @@ void PdfDifferenceEncoding::buildReverseMap()
     }
 
     m_reverseMapBuilt = true;
-}
-
-char32_t PdfDifferenceEncoding::NameToCodePoint(const PdfName& name)
-{
-    return NameToCodePoint((string_view)name.GetString());
 }
 
 char32_t PdfDifferenceEncoding::NameToCodePoint(const string_view& name)

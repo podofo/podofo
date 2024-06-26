@@ -13,17 +13,12 @@ namespace PoDoFo
 {
     class PODOFO_API PdfCMapEncoding final : public PdfEncodingMapBase
     {
-        friend class PdfEncodingMap;
+        friend class PdfEncodingMapFactory;
 
     public:
         /** Construct a PdfCMapEncoding from a map
          */
         PdfCMapEncoding(PdfCharCodeMap&& map);
-
-    public:
-        /** Construct an encoding map from an object
-         */
-        static std::unique_ptr<PdfEncodingMap> CreateFromObject(const PdfObject& cmapObj);
 
     private:
         PdfCMapEncoding(PdfCharCodeMap&& map, const PdfEncodingLimits& limits);

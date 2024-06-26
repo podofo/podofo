@@ -73,7 +73,8 @@ namespace PoDoFo
         PdfEncoding(unsigned id, const PdfEncodingLimits& limits, PdfFont* font,
             const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode);
 
-        static PdfEncoding Create(const PdfObject& fontObj, const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode);
+        static PdfEncoding Create(const PdfEncodingLimits& parsedLimits, const PdfEncodingMapConstPtr& encoding,
+            const PdfEncodingMapConstPtr& toUnicode);
 
         /** Encoding shim that mocks an wrap existing encoding. Used by PdfFont
          */

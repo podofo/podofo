@@ -14,6 +14,7 @@
 #include "PdfPostScriptTokenizer.h"
 #include "PdfArray.h"
 #include "PdfIdentityEncoding.h"
+#include "PdfEncodingMapFactory.h"
 #include <podofo/auxiliary/StreamDevice.h>
 
 using namespace std;
@@ -44,10 +45,26 @@ PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map)
 PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, const PdfEncodingLimits& limits)
     : PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap), m_Limits(limits) { }
 
-unique_ptr<PdfEncodingMap> PdfCMapEncoding::CreateFromObject(const PdfObject& cmapObj)
+unique_ptr<PdfEncodingMap> PdfEncodingMapFactory::ParseCMapEncoding(const PdfObject& cmapObj)
 {
+    unique_ptr<PdfEncodingMap> ret;
+    if (!TryParseCMapEncoding(cmapObj, ret))
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Unable to parse a valid CMap");
+
+    return ret;
+}
+
+bool PdfEncodingMapFactory::TryParseCMapEncoding(const PdfObject& cmapObj, unique_ptr<PdfEncodingMap>& encoding)
+{
+    auto stream = cmapObj.GetStream();
+    if (stream == nullptr)
+    {
+        encoding.reset();
+        return false;
+    }
+
     CodeLimits codeLimits;
-    auto map = parseCMapObject(cmapObj.MustGetStream(), codeLimits);
+    auto map = parseCMapObject(*stream, codeLimits);
     auto mapLimits = map.GetLimits();
     // NOTE: In some cases the encoding is degenerate and has no code
     // entries at all, but the CMap may still encode the code size
@@ -82,12 +99,14 @@ unique_ptr<PdfEncodingMap> PdfCMapEncoding::CreateFromObject(const PdfObject& cm
 
         if (identity)
         {
-            return unique_ptr<PdfIdentityEncoding>(new PdfIdentityEncoding(
+            encoding.reset(new PdfIdentityEncoding(
                 PdfEncodingMapType::CMap, mapLimits, PdfIdentityOrientation::Unkwnown));
+            return true;
         }
     }
 
-    return unique_ptr<PdfCMapEncoding>(new PdfCMapEncoding(std::move(map), mapLimits));
+    encoding.reset(new PdfCMapEncoding(std::move(map), mapLimits));
+    return true;
 }
 
 const PdfEncodingLimits& PdfCMapEncoding::GetLimits() const

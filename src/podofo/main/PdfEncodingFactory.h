@@ -55,8 +55,8 @@ public:
     static PdfEncoding CreateMacExpertEncoding();
 
 private:
-    static PdfEncodingMapConstPtr createEncodingMap(
-        const PdfObject& obj, const PdfFontMetrics& metrics);
+    static PdfEncodingMapConstPtr createEncodingMap(const PdfObject& obj,
+        const PdfFontMetrics& metrics);
 
 private:
     PdfEncodingFactory() = delete;

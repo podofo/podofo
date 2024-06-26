@@ -55,27 +55,10 @@ PdfEncoding::PdfEncoding(unsigned id, const PdfEncodingLimits& limits, PdfFont* 
 {
 }
 
-PdfEncoding PdfEncoding::Create(const PdfObject& fontObj, const PdfEncodingMapConstPtr& encoding,
+PdfEncoding PdfEncoding::Create(const PdfEncodingLimits& parsedLimits, const PdfEncodingMapConstPtr& encoding,
     const PdfEncodingMapConstPtr& toUnicode)
 {
-    PdfEncodingLimits limits;
-    auto firstCharObj = fontObj.GetDictionary().FindKey("FirstChar");
-    if (firstCharObj != nullptr)
-        limits.FirstChar = PdfCharCode(static_cast<unsigned>(firstCharObj->GetNumber()));
-
-    auto lastCharObj = fontObj.GetDictionary().FindKey("LastChar");
-    if (lastCharObj != nullptr)
-        limits.LastChar = PdfCharCode(static_cast<unsigned>(lastCharObj->GetNumber()));
-
-    if (limits.LastChar.Code > limits.FirstChar.Code)
-    {
-        // If found valid /FirstChar and /LastChar, valorize
-        //  also the code size limits
-        limits.MinCodeSize = utls::GetCharCodeSize(limits.FirstChar.Code);
-        limits.MaxCodeSize = utls::GetCharCodeSize(limits.LastChar.Code);
-    }
-
-    return PdfEncoding(GetNextId(), limits, nullptr, encoding, toUnicode);
+    return PdfEncoding(GetNextId(), parsedLimits, nullptr, encoding, toUnicode);
 }
 
 unique_ptr<PdfEncoding> PdfEncoding::CreateSchim(const PdfEncoding& encoding, PdfFont& font)

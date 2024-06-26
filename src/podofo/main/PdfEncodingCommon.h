@@ -67,6 +67,9 @@ namespace PoDoFo
     public:
         PdfEncodingLimits(unsigned char minCodeSize, unsigned char maxCodeSize,
             const PdfCharCode& firstCharCode, const PdfCharCode& lastCharCode);
+
+        /** Create invalid limits
+         */
         PdfEncodingLimits();
 
         /** Determines if the limits are valid

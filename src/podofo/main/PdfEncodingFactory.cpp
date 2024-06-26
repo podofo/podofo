@@ -59,11 +59,28 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfObject& fontObj, const P
         }
     }
 
-    return PdfEncoding::Create(fontObj, encoding, toUnicode);
+    PdfEncodingLimits parsedLimits;
+    auto firstCharObj = fontObj.GetDictionary().FindKey("FirstChar");
+    if (firstCharObj != nullptr)
+        parsedLimits.FirstChar = PdfCharCode(static_cast<unsigned>(firstCharObj->GetNumber()));
+
+    auto lastCharObj = fontObj.GetDictionary().FindKey("LastChar");
+    if (lastCharObj != nullptr)
+        parsedLimits.LastChar = PdfCharCode(static_cast<unsigned>(lastCharObj->GetNumber()));
+
+    if (parsedLimits.LastChar.Code > parsedLimits.FirstChar.Code)
+    {
+        // If found valid /FirstChar and /LastChar, valorize
+        //  also the code size limits
+        parsedLimits.MinCodeSize = utls::GetCharCodeSize(parsedLimits.FirstChar.Code);
+        parsedLimits.MaxCodeSize = utls::GetCharCodeSize(parsedLimits.LastChar.Code);
+    }
+
+    return PdfEncoding::Create(parsedLimits, encoding, toUnicode);
 }
 
-PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(
-    const PdfObject& obj, const PdfFontMetrics& metrics)
+PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(const PdfObject& obj,
+    const PdfFontMetrics& metrics)
 {
     if (obj.IsName())
     {
@@ -97,11 +114,13 @@ PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(
                 return PdfEncodingMapFactory::TwoBytesVerticalIdentityEncodingInstance();
         }
 
-        if (obj.HasStream())
-            return PdfCMapEncoding::CreateFromObject(obj);
+        unique_ptr<PdfEncodingMap> cmapEnc;
+        if (PdfEncodingMapFactory::TryParseCMapEncoding(obj, cmapEnc))
+            return std::move(cmapEnc);
 
-        // CHECK-ME: should we verify if it's a reference by searching /Differences?
-        return PdfDifferenceEncoding::Create(obj, metrics);
+        unique_ptr<PdfDifferenceEncoding> diffEnc;
+        if (PdfDifferenceEncoding::TryCreateFromObject(obj, metrics, diffEnc))
+            return std::move(diffEnc);
     }
 
     return nullptr;

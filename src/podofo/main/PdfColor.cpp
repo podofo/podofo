@@ -660,7 +660,7 @@ PdfColor PdfColor::CreateFromObject(const PdfObject& obj)
 {
     PdfColor ret;
     if (!TryCreateFromObject(obj, ret))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "PdfColor::FromArray supports only GrayScale, RGB and CMYK colors");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "PdfColor::CreateFromObject supports only GrayScale, RGB and CMYK colors");
 
     return ret;
 }

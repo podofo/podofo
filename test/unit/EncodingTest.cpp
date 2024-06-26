@@ -122,7 +122,7 @@ TEST_CASE("testDifferencesObject")
     difference.AddDifference(5, "E");
     difference.AddDifference(9, "F");
 
-    PdfDifferenceEncoding encoding(difference, PdfEncodingMapFactory::MacRomanEncodingInstance());
+    PdfDifferenceEncoding encoding(PdfEncodingMapFactory::MacRomanEncodingInstance(), difference);
 
     // Check for encoding key
     PdfMemDocument doc;
@@ -165,7 +165,7 @@ TEST_CASE("testDifferencesEncoding")
     PdfMemDocument doc;
 
     PdfFontCreateParams params;
-    params.Encoding = PdfEncoding(std::make_shared<PdfDifferenceEncoding>(difference, PdfEncodingMapFactory::WinAnsiEncodingInstance()));
+    params.Encoding = PdfEncoding(std::make_shared<PdfDifferenceEncoding>(PdfEncodingMapFactory::WinAnsiEncodingInstance(), difference));
     auto& font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica, params);
 
     charbuff encoded;
@@ -266,7 +266,7 @@ TEST_CASE("testGetCharCode")
     PdfDifferenceList difference;
     difference.AddDifference((unsigned char)'A', "B");
     difference.AddDifference((unsigned char)'B', "A");
-    PdfEncoding differenceEncoding(std::make_shared<PdfDifferenceEncoding>(difference, PdfEncodingMapFactory::WinAnsiEncodingInstance()));
+    PdfEncoding differenceEncoding(std::make_shared<PdfDifferenceEncoding>(PdfEncodingMapFactory::WinAnsiEncodingInstance(), difference));
     outofRangeHelper(differenceEncoding);
 }
 
@@ -285,7 +285,7 @@ TEST_CASE("testToUnicodeParse")
     auto& toUnicodeObj = doc.GetObjects().CreateDictionaryObject();
     toUnicodeObj.GetOrCreateStream().SetData(toUnicode);
 
-    PdfEncoding encoding(std::make_shared<PdfIdentityEncoding>(2), PdfCMapEncoding::CreateFromObject(toUnicodeObj));
+    PdfEncoding encoding(std::make_shared<PdfIdentityEncoding>(2), PdfEncodingMapFactory::ParseCMapEncoding(toUnicodeObj));
 
     auto utf8str = encoding.ConvertToUtf8(PdfString::FromRaw(encodedStr));
     REQUIRE(utf8str == expected);
@@ -318,7 +318,7 @@ TEST_CASE("testToUnicodeParse")
             auto& invalidObject = invalidList.CreateDictionaryObject();
             invalidObject.GetOrCreateStream().SetData(bufferview(toUnicodeInvalidTests[i], char_traits<char>::length(toUnicodeInvalidTests[i])));
 
-            PdfEncoding encodingTestInvalid(std::make_shared<PdfIdentityEncoding>(2), PdfCMapEncoding::CreateFromObject(invalidObject));
+            PdfEncoding encodingTestInvalid(std::make_shared<PdfIdentityEncoding>(2), PdfEncodingMapFactory::ParseCMapEncoding(invalidObject));
 
             auto unicodeStringTestInvalid = encodingTestInvalid.ConvertToUtf8(PdfString::FromRaw(encodedStr));
 

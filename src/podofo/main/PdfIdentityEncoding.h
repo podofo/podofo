@@ -29,7 +29,7 @@ enum class PdfIdentityOrientation
  */
 class PODOFO_API PdfIdentityEncoding final : public PdfEncodingMap
 {
-    friend class PdfCMapEncoding;
+    friend class PdfEncodingMapFactory;
 
 public:
     /**
