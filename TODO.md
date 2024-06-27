@@ -1,23 +1,27 @@
 ### 1.0
 
 #### API Review
-- PdfExtGState accessibility
 - Consider converting protected PdfFontMetrics::GetFaceHandle() to return just FT_Face,
 and reference the face with FT_Reference_Face
+- PdfFontManager: Remove GetOrCreateFont(face)
+- PdfDocument: Review AttachFile, GetAttachment, AddNamedDestination
+- PdfMemDocument: Consider removing SetEncrypt(encrypt)
+- Check accessibility of PdfEncrypt.h classes, check AESV3 naming
 - Remove PdfEncryptMD5Base::GetMD5Binary and PdfEncryptMD5Base::GetMD5String and use common functions
+- PdfEncrypt: Consider removing CreateFromEncrypt (shared_ptr in PdfMemDocument could be used now)
+- PdfWriter/PdfImmediateWriter: Evaluate moving to private
+- PdfWriter: Check if SetEncrypt() should accept mutable reference instead
+- Evaluate hide/protect/remove PdfIndirectObjectList: RemoveObject, RemoveObject, ReplaceObject
+- Evaluate make private PdfIndirectObjectList:SetCanReuseObjectNumbers
+- PdfExtGState accessibility
 - PdfField: Evaluate make a virtual getValueObject()
 - Evaluate removing PdfObject::Null and PdfVariant::Null and introduce nullptr_t constructor overloads
-- PdfMemDocument: Consider removing SetEncrypt(encrypt)
 - PdfCanvas: Add CopyTo facilities, see PdfContents
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
 - PdfPage: Add GetFields() iteration
-- Check accessibility of PdfEncrypt.h classes, check AESV3 naming
-- Evaluate make PdfObjectStream not flate filter by default in PdfMemDocument?
 - PdfDocument: Add GetAnnotationFields()/GetAllFields() iteration
 - Review PdfPage::SetICCProfile(), PdfImage::SetICCProfile()
-- PdfWriter: Check if SetEncrypt() should accept mutable reference instead
 - PdfErrorCode: Check all values
-- PdfEncrypt: Consider removing CreateFromEncrypt (shared_ptr in PdfMemDocument could be used now)
 - Review PdfPageCollection::AppendDocumentPages(),
   PdfPageCollection::InsertDocumentPageAt(), PdfPage::MoveAt() (???)
 #### Features
@@ -26,6 +30,7 @@ either assume UTF-8 and/or checks for used codepoints
 
 ### After 1.0
 - Check/Review doxygen doc
+- Evaluate make PdfObjectStream not flate filter by default in PdfMemDocument?
 - Evaluate move more utf8::next to utf8::unchecked::next
 - Add a PdfRect-like class PdfCorners that avoid coordinates normalization
   by default

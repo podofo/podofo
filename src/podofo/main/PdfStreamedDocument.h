@@ -10,9 +10,11 @@
 #include "PdfDeclarations.h"
 
 #include "PdfDocument.h"
-#include "PdfImmediateWriter.h"
+#include <podofo/auxiliary/OutputDevice.h>
 
 namespace PoDoFo {
+
+class PdfImmediateWriter;
 
 /** PdfStreamedDocument is the preferred class for
  *  creating new PDF documents.

@@ -8,7 +8,6 @@
 #include "PdfExtGState.h"
 
 #include "PdfDictionary.h"
-#include "PdfWriter.h"
 #include "PdfStringStream.h"
 #include "PdfPage.h"
 

@@ -10,7 +10,7 @@
 #include <podofo/auxiliary/StreamDevice.h>
 
 #include "PdfParser.h"
-#include "PdfImmediateWriter.h"
+#include "PdfWriter.h"
 #include "PdfCommon.h"
 
 using namespace std;

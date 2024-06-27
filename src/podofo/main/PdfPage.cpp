@@ -8,9 +8,6 @@
 #include "PdfPage.h"
 
 #include "PdfDictionary.h"
-#include "PdfVariant.h"
-#include "PdfWriter.h"
-#include "PdfObjectStream.h"
 #include "PdfColor.h"
 #include "PdfDocument.h"
 #include "PdfPageCollection.h"

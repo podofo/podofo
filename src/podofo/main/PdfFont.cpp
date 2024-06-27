@@ -18,7 +18,6 @@
 #include "PdfEncodingFactory.h"
 #include <podofo/auxiliary/InputStream.h>
 #include "PdfObjectStream.h"
-#include "PdfWriter.h"
 #include "PdfCharCodeMap.h"
 #include "PdfFontMetrics.h"
 #include "PdfPage.h"
