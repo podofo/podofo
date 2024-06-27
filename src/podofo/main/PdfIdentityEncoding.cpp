@@ -89,7 +89,7 @@ void PdfIdentityEncoding::AppendCIDMappingEntries(OutputStream& stream, const Pd
     m_Limits.LastChar.WriteHexTo(temp);
     stream.Write(temp);
     stream.Write(" ");
-    m_Limits.FirstChar.WriteHexTo(temp);
+    utls::FormatTo(temp, m_Limits.FirstChar.Code);
     stream.Write(temp);
     stream.Write("\nendcidrange\n");
 }
