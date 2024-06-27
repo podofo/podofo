@@ -23,6 +23,7 @@
 #        include_directories(${INCLUDE_DIRECTORIES} ${CATCH_INCLUDE_DIR})                          #
 #                                                                                                  #
 #        file(GLOB SOURCE_FILES "*.cpp")                                                           #
+#        list(FILTER SOURCE_FILES EXCLUDE REGEX "^\\._")                                           #
 #        add_executable(${PROJECT_NAME} ${SOURCE_FILES})                                           #
 #                                                                                                  #
 #        include(ParseAndAddCatchTests)                                                            #

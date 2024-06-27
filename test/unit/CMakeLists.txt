@@ -1,4 +1,5 @@
 file(GLOB SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.h" "*.cpp")
+list(FILTER SOURCE_FILES EXCLUDE REGEX "^\\._")
 source_group("" FILES ${SOURCE_FILES})
 
 include_directories(

@@ -16,6 +16,7 @@ x86/
 *.autosave
 .qmake.stash
 .*/
+._*
 *.kdev4
 *-swp
 .gradle/
