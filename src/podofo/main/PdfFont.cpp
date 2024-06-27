@@ -177,12 +177,13 @@ void PdfFont::InitImported(bool wantEmbed, bool wantSubset)
     m_SubsettingEnabled = wantEmbed && wantSubset && SupportsSubsetting();
     if (m_SubsettingEnabled)
     {
+        // If it exist a glyph for the space character,
+        // add it for subsetting. NOTE: Search the GID
+        // in the font program
         unsigned gid;
         char32_t spaceCp = U' ';
-        if (TryGetGID(spaceCp, PdfGlyphAccess::Width, gid))
+        if (TryGetGID(spaceCp, PdfGlyphAccess::FontProgram, gid))
         {
-            // If it exist a glyph for space character
-            // always add it for subsetting
             unicodeview codepoints(&spaceCp, 1);
             PdfCID cid;
             (void)tryAddSubsetGID(gid, codepoints, cid);
