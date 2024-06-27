@@ -295,12 +295,17 @@ void FontTrueTypeSubset::LoadGID(GlyphContext& ctx, unsigned gid)
 
     glyphData.GlyphAdvOffset = glyphData.GlyphOffset + 5 * sizeof(uint16_t);
 
+    // NOTE: Some fonts may truncate countour section,
+    // skip reading on EOF in that case
     m_device->Seek(glyphData.GlyphOffset);
-    utls::ReadInt16BE(*m_device, ctx.ContourCount);
-    if (ctx.ContourCount < 0)
+    if (!m_device->Eof())
     {
-        glyphData.IsCompound = true;
-        LoadCompound(ctx, glyphData);
+        utls::ReadInt16BE(*m_device, ctx.ContourCount);
+        if (ctx.ContourCount < 0)
+        {
+            glyphData.IsCompound = true;
+            LoadCompound(ctx, glyphData);
+        }
     }
 }
 
