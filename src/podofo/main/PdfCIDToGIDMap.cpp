@@ -25,7 +25,7 @@ PdfCIDToGIDMap PdfCIDToGIDMap::Create(const PdfObject& cidToGidMapObj, PdfGlyphA
     auto buffer = cidToGidMapObj.MustGetStream().GetCopy();
     for (unsigned i = 0, count = (unsigned)buffer.size() / 2; i < count; i++)
     {
-        unsigned gid = (unsigned)buffer[i * 2 + 0] << 8 | (unsigned)buffer[i * 2 + 1];
+        unsigned gid = (unsigned)((uint8_t)buffer[i * 2 + 0] << 8 | (uint8_t)buffer[i * 2 + 1]);
         map[i] = gid;
     }
 
