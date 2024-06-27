@@ -92,7 +92,7 @@ cmake --build . --config Debug
 Install [brew](https://brew.sh/), then from the source root run:
 
 ```
-brew install fontconfig freetype openssl libxml2 jpeg-turbo libpng libtiff libidn
+brew install fontconfig freetype openssl libxml2 jpeg-turbo libpng libtiff libidn cmake
 mkdir build
 cd build
 cmake  -DCMAKE_BUILD_TYPE=Debug -DCMAKE_FIND_FRAMEWORK=NEVER -DCMAKE_PREFIX_PATH=`brew --prefix` -DFontconfig_INCLUDE_DIR=`brew --prefix fontconfig`/include -DOPENSSL_ROOT_DIR=`brew --prefix openssl@3` ..
