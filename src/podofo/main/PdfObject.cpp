@@ -183,7 +183,7 @@ void PdfObject::SetVariantOwner()
             m_Variant.GetDictionaryUnsafe().SetOwner(*this);
             break;
         case PdfDataType::Array:
-            m_Variant.GetDictionaryUnsafe().SetOwner(*this);
+            m_Variant.GetArrayUnsafe().SetOwner(*this);
             break;
         default:
             break;
