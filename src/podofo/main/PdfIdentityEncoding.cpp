@@ -79,6 +79,8 @@ void PdfIdentityEncoding::getExportObject(PdfIndirectObjectList& objects, PdfNam
 
 void PdfIdentityEncoding::AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const
 {
+    (void)font;
+
     // Just do a single cidrange
     // CHECK-ME: This has not been verified for correctness
 

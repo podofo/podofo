@@ -384,33 +384,6 @@ unique_ptr<const PdfFontMetrics> PdfFontManager::getFontMetrics(const string_vie
     return ret;
 }
 
-PdfFont& PdfFontManager::GetOrCreateFont(FT_Face face, const PdfFontCreateParams& params)
-{
-    string fontName = FT_Get_Postscript_Name(face);
-    if (fontName.empty())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Could not retrieve fontname for font!");
-
-    bool italic = (face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
-    bool bold = (face->style_flags & FT_STYLE_FLAG_BOLD) != 0;
-    PdfFontStyle style = PdfFontStyle::Regular;
-    if (italic)
-        style |= PdfFontStyle::Italic;
-    if (bold)
-        style |= PdfFontStyle::Bold;
-
-    // Explicitly search the cached fonts with the given name and font style
-    auto found = m_cachedQueries.find(Descriptor(
-        fontName,
-        PdfStandard14FontType::Unknown,
-        params.Encoding,
-        true,
-        style));
-    if (found != m_cachedQueries.end())
-        return *found->second[0];
-
-    return getOrCreateFontHashed(PdfFontMetricsFreetype::CreateFromFace(face), params);
-}
-
 void PdfFontManager::EmbedFonts()
 {
     // Embed all imported fonts

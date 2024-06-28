@@ -23,11 +23,7 @@ class PODOFO_API PdfFontMetricsFreetype final : public PdfFontMetrics
     friend class PdfFontManager;
 
 public:
-    /// <summary>
-    /// Create a metrics from a FT_Face
-    /// </summary>
-    /// <param name="face">The FT_Face. Font data is copied</param>
-    static std::unique_ptr<const PdfFontMetricsFreetype> CreateFromFace(FT_Face face);
+    ~PdfFontMetricsFreetype();
 
     std::unique_ptr<PdfCMapEncoding> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const override;
 
@@ -95,7 +91,7 @@ public:
 
     const datahandle& GetFontFileDataHandle() const override;
 
-    const FreeTypeFacePtr& GetFaceHandle() const override;
+    FT_Face GetFaceHandle() const override;
 
 protected:
     bool getIsBoldHint() const override;
@@ -107,7 +103,7 @@ protected:
 private:
     static std::unique_ptr<const PdfFontMetricsFreetype> CreateSubstituteMetrics(const PdfFontMetrics& metrics);
 
-    PdfFontMetricsFreetype(const FreeTypeFacePtr& face, const datahandle& data, const PdfFontMetrics* refMetrics = nullptr);
+    PdfFontMetricsFreetype(FT_Face face, const datahandle& data, const PdfFontMetrics* refMetrics = nullptr);
 
     void init(const PdfFontMetrics* refMetrics);
 
@@ -118,7 +114,7 @@ private:
     bool tryBuildFallbackUnicodeMap();
 
 private:
-    FreeTypeFacePtr m_Face;
+    FT_Face m_Face;
     datahandle m_Data;
     PdfCIDToGIDMapConstPtr m_CIDToGIDMap;
     PdfFontFileType m_FontFileType;

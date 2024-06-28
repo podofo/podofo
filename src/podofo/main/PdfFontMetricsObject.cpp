@@ -618,8 +618,8 @@ PdfFontStretch stretchFromString(const string_view& str)
 
 void PdfFontMetricsObject::tryLoadBuiltinCIDToGIDMap()
 {
-    FT_Face face;
-    if (TryGetOrLoadFace(face) && face->num_charmaps != 0)
+    auto face = GetFaceHandle();
+    if (face != nullptr && face->num_charmaps != 0)
     {
         CIDToGIDMap map;
 

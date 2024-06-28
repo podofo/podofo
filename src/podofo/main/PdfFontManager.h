@@ -90,16 +90,6 @@ public:
     PdfFont& GetOrCreateFont(const PdfFontMetricsConstPtr& metrics,
         const PdfFontCreateParams& params = { });
 
-    /**
-     * \param face a valid freetype font face. The face is
-     *        referenced and the font data is copied
-     * \param params font creation params
-     *
-     * \returns a PdfFont object or nullptr if the font could
-     *          not be created or found.
-     */
-    PdfFont& GetOrCreateFont(FT_Face face, const PdfFontCreateParams& params = { });
-
     /** Try to search for fontmetrics from the given fontname and parameters
      *
      * \returns the found metrics. Null if not found

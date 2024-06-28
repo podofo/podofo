@@ -17,16 +17,6 @@ FORWARD_DECLARE_FREETYPE();
 
 namespace PoDoFo {
 
-class PODOFO_API FreeTypeFacePtr final : public std::shared_ptr<FT_FaceRec_>
-{
-public:
-    FreeTypeFacePtr();
-    FreeTypeFacePtr(FT_Face face);
-    FreeTypeFacePtr(const FreeTypeFacePtr&) = default;
-    FreeTypeFacePtr& operator=(const FreeTypeFacePtr&) = default;
-    void reset(FT_Face face = nullptr);
-};
-
 class PdfFontMetrics;
 
 /** Convenience typedef for a const PdfEncoding shared ptr
@@ -43,9 +33,10 @@ class PODOFO_API PdfFontMetrics
 {
     friend class PdfFont;
     friend class PdfFontManager;
+    friend class PdfFontMetricsBase;
     friend class PdfFontMetricsFreetype;
 
-protected:
+private:
     PdfFontMetrics();
 
 public:
@@ -127,13 +118,6 @@ public:
      * \returns a binary buffer of data containing the font data
      */
     bufferview GetOrLoadFontFileData() const;
-
-    /** Get direct access to the internal FreeType handle
-     *
-     *  \returns the internal freetype handle
-     */
-    bool TryGetOrLoadFace(FT_Face& face) const;
-    FT_Face GetOrLoadFace() const;
 
     /** Get the actual font file object from a /FontFile like key, if available
      *
@@ -337,7 +321,7 @@ protected:
     virtual bool getIsBoldHint() const = 0;
     virtual bool getIsItalicHint() const = 0;
     virtual const datahandle& GetFontFileDataHandle() const = 0;
-    virtual const FreeTypeFacePtr& GetFaceHandle() const = 0;
+    virtual FT_Face GetFaceHandle() const = 0;
 
 private:
     void initBaseFontNameSafe();
@@ -356,19 +340,25 @@ private:
 
 class PODOFO_API PdfFontMetricsBase : public PdfFontMetrics
 {
-protected:
+    friend class PdfFontMetricsStandard14;
+    friend class PdfFontMetricsObject;
+
+private:
     PdfFontMetricsBase();
+
+public:
+    ~PdfFontMetricsBase();
 
 protected:
     const datahandle& GetFontFileDataHandle() const override final;
-    const FreeTypeFacePtr& GetFaceHandle() const override final;
+    FT_Face GetFaceHandle() const override final;
     virtual datahandle getFontFileDataHandle() const = 0;
 
 private:
     bool m_dataInit;
     datahandle m_Data;
     bool m_faceInit;
-    FreeTypeFacePtr m_Face;
+    FT_Face m_Face;
 };
 
 

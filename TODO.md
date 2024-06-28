@@ -1,9 +1,6 @@
 ### 1.0
 
 #### API Review
-- Consider converting protected PdfFontMetrics::GetFaceHandle() to return just FT_Face,
-and reference the face with FT_Reference_Face
-- PdfFontManager: Remove GetOrCreateFont(face)
 - PdfDocument: Review AttachFile, GetAttachment, AddNamedDestination
 - PdfMemDocument: Consider removing SetEncrypt(encrypt)
 - Check accessibility of PdfEncrypt.h classes, check AESV3 naming

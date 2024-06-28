@@ -81,21 +81,6 @@ bufferview PdfFontMetrics::GetOrLoadFontFileData() const
     return GetFontFileDataHandle().view();
 }
 
-FT_Face PdfFontMetrics::GetOrLoadFace() const
-{
-    FT_Face face;
-    if (!TryGetOrLoadFace(face))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::FreeType, "Error loading FreeType face");
-
-    return face;
-}
-
-bool PdfFontMetrics::TryGetOrLoadFace(FT_Face& face) const
-{
-    face = GetFaceHandle().get();
-    return face != nullptr;
-}
-
 const PdfObject* PdfFontMetrics::GetFontFileObject() const
 {
     // Return nullptr by default
@@ -316,8 +301,8 @@ bool PdfFontMetrics::TryGetImplicitEncoding(PdfEncodingMapConstPtr& encoding) co
     {
         // 2.1) An encoding stored in the font program (Type1)
         // ISO 32000-1:2008 9.6.6.2 "Encodings for Type 1 Fonts"
-        FT_Face face;
-        if (TryGetOrLoadFace(face))
+        auto face = GetFaceHandle();
+        if (face != nullptr)
         {
             encoding = getFontType1ImplicitEncoding(face);
             return true;
@@ -369,7 +354,12 @@ const PdfCIDToGIDMapConstPtr& PdfFontMetrics::getCIDToGIDMap() const
 }
 
 PdfFontMetricsBase::PdfFontMetricsBase()
-    : m_dataInit(false), m_faceInit(false) { }
+    : m_dataInit(false), m_faceInit(false), m_Face(nullptr) { }
+
+PdfFontMetricsBase::~PdfFontMetricsBase()
+{
+    FT_Done_Face(m_Face);
+}
 
 const datahandle& PdfFontMetricsBase::GetFontFileDataHandle() const
 {
@@ -383,33 +373,20 @@ const datahandle& PdfFontMetricsBase::GetFontFileDataHandle() const
     return m_Data;
 }
 
-const FreeTypeFacePtr& PdfFontMetricsBase::GetFaceHandle() const
+FT_Face PdfFontMetricsBase::GetFaceHandle() const
 {
     if (!m_faceInit)
     {
         auto& rthis = const_cast<PdfFontMetricsBase&>(*this);
         auto view = GetFontFileDataHandle().view();
-        // NOTE: The data always represent a face, collections are not allowed
-        FT_Face face = nullptr;
-        if (view.size() != 0 && (face = FT::CreateFaceFromBuffer(view)) != nullptr)
-            rthis.m_Face = FreeTypeFacePtr(face);
-        else
-            rthis.m_Face = FreeTypeFacePtr();
+        // NOTE: The data always represent a face, collections are not 
+        if (view.size() != 0)
+            rthis.m_Face = FT::CreateFaceFromBuffer(view);
 
         rthis.m_faceInit = true;
     }
 
     return m_Face;
-}
-
-FreeTypeFacePtr::FreeTypeFacePtr() { }
-
-FreeTypeFacePtr::FreeTypeFacePtr(FT_Face face)
-    : shared_ptr<FT_FaceRec_>(face, FT_Done_Face) {}
-
-void FreeTypeFacePtr::reset(FT_Face face)
-{
-    shared_ptr<FT_FaceRec_>::reset(face, FT_Done_Face);
 }
 
 FT_Face getFontFaceFromFile(const string_view& filepath, unsigned faceIndex, unique_ptr<charbuff>& data)
