@@ -41,13 +41,17 @@ source_group("" FILES ${PODOFO_SOURCES})
 
 macro(add_source subdir subdir_path)
     file(GLOB_RECURSE SOURCE_FILES "${subdir_path}/*")
+    list(FILTER SOURCE_FILES EXCLUDE REGEX "/\\._")
+    list(FILTER SOURCE_FILES EXCLUDE REGEX "^\\._")
     # Set visual studio source group
     source_group(${subdir} FILES ${SOURCE_FILES})
     # Add subdir to source files
     list(APPEND PODOFO_SOURCES ${SOURCE_FILES})
     # Set non private headers for install
     set(HEADER_FILES ${SOURCE_FILES})
-    list(FILTER HEADER_FILES EXCLUDE REGEX "\.cpp$")
+    list(FILTER HEADER_FILES EXCLUDE REGEX "\\.cpp$")
+    list(FILTER HEADER_FILES EXCLUDE REGEX "/\\._")
+    list(FILTER HEADER_FILES EXCLUDE REGEX "^\\._")
 endmacro()
 
 foreach(subdir main auxiliary)

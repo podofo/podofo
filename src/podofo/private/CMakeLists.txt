@@ -1,4 +1,6 @@
 file(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*")
+list(FILTER SOURCE_FILES EXCLUDE REGEX "/\\._")
+list(FILTER SOURCE_FILES EXCLUDE REGEX "^\\._")
 
 # Set visual studio source group
 source_group("" FILES ${SOURCE_FILES})
