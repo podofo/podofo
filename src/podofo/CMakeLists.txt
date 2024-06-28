@@ -40,7 +40,7 @@ endif()
 source_group("" FILES ${PODOFO_SOURCES})
 
 macro(add_source subdir subdir_path)
-    file(GLOB_RECURSE SOURCE_FILES "${subdir_path}/*")
+    file(GLOB_RECURSE SOURCE_FILES "${subdir_path}/[^.]*")
     # Set visual studio source group
     source_group(${subdir} FILES ${SOURCE_FILES})
     # Add subdir to source files
