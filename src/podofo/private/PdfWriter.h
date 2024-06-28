@@ -7,13 +7,10 @@
 #ifndef PDF_WRITER_H
 #define PDF_WRITER_H
 
-#include "PdfDeclarations.h"
 #include <podofo/auxiliary/InputDevice.h>
 #include <podofo/auxiliary/OutputDevice.h>
-#include "PdfIndirectObjectList.h"
-#include "PdfObject.h"
-
-#include "PdfEncrypt.h"
+#include <podofo/main/PdfIndirectObjectList.h>
+#include <podofo/main/PdfEncrypt.h>
 
 namespace PoDoFo {
 
@@ -27,7 +24,7 @@ class PdfXRef;
  *
  *  Most users will want to use PdfDocument.
  */
-class PODOFO_API PdfWriter
+class PdfWriter
 {
 private:
     PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer, PdfVersion version);

@@ -7,9 +7,8 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfImmediateWriter.h"
 
-#include "PdfStreamedObjectStream.h"
-#include "PdfMemoryObjectStream.h"
-#include <podofo/private/PdfXRefStream.h>
+#include "PdfXRefStream.h"
+#include <podofo/main/PdfStreamedObjectStream.h>
 
 using namespace std;
 using namespace PoDoFo;

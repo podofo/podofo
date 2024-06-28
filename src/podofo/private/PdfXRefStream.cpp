@@ -7,7 +7,7 @@
 #include "PdfDeclarationsPrivate.h"
 #include "PdfXRefStream.h"
 
-#include <podofo/main/PdfWriter.h>
+#include "PdfWriter.h"
 #include <podofo/main/PdfDictionary.h>
 
 using namespace PoDoFo;

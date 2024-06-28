@@ -4,19 +4,14 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#include <podofo/private/PdfDeclarationsPrivate.h>
+#include "PdfDeclarationsPrivate.h"
 #include "PdfWriter.h"
 
-#include "PdfData.h"
-#include "PdfDate.h"
-#include "PdfDictionary.h"
-#include "PdfObject.h"
-#include "PdfParser.h"
-#include "PdfParserObject.h"
-#include "PdfObjectStream.h"
-#include "PdfVariant.h"
-#include <podofo/private/PdfXRefStream.h>
 #include <podofo/auxiliary/StreamDevice.h>
+#include <podofo/main/PdfDate.h>
+#include <podofo/main/PdfDictionary.h>
+#include <podofo/main/PdfParserObject.h>
+#include "PdfXRefStream.h"
 
 #define PDF_MAGIC           "\xe2\xe3\xcf\xd3\n"
 // 10 spaces

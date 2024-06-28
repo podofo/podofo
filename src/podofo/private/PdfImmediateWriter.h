@@ -7,8 +7,6 @@
 #ifndef PDF_IMMEDIATE_WRITER_H
 #define PDF_IMMEDIATE_WRITER_H
 
-#include "PdfDeclarations.h"
-#include "PdfIndirectObjectList.h"
 #include "PdfWriter.h"
 
 namespace PoDoFo {
@@ -20,7 +18,7 @@ class PdfXRef;
 /** A kind of PdfWriter that writes objects with streams immediately to
  *  an OutputStreamDevice
  */
-class PODOFO_API PdfImmediateWriter final : private PdfWriter,
+class PdfImmediateWriter final : private PdfWriter,
     private PdfIndirectObjectList::Observer,
     private PdfIndirectObjectList::StreamFactory
 {

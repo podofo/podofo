@@ -8,9 +8,9 @@
 #include "PdfMemDocument.h"
 
 #include <podofo/auxiliary/StreamDevice.h>
+#include <podofo/private/PdfWriter.h>
 
 #include "PdfParser.h"
-#include "PdfWriter.h"
 #include "PdfCommon.h"
 
 using namespace std;

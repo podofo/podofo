@@ -7,7 +7,7 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfStreamedDocument.h"
 #include <podofo/auxiliary/StreamDevice.h>
-#include "PdfImmediateWriter.h"
+#include <podofo/private/PdfImmediateWriter.h>
 
 using namespace std;
 using namespace PoDoFo;
