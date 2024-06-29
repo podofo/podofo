@@ -290,7 +290,7 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
     info->Write(length, m_WriteFlags, nullptr, m_buffer);
 
     charbuff buffer(length.GetLength());
-    StringStreamDevice device(buffer);
+    StringStreamDevice device(buffer, DeviceAccess::Write, false);
     info->Write(device, m_WriteFlags, nullptr, m_buffer);
 
     // calculate the MD5 Sum

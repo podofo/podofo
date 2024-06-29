@@ -135,9 +135,15 @@ public:
         m_container(&container),
         m_Position(ate ? container.size() : 0) { }
 
+    /**
+     * \remarks by default it set the current position at the begin of the container
+     */
     ContainerStreamDevice(const TContainer& container) :
         ContainerStreamDevice(const_cast<TContainer&>(container), DeviceAccess::Read, false) { }
 
+    /**
+     * \remarks by default it set the current position at the end of the container 
+     */
     ContainerStreamDevice(TContainer& container) :
         ContainerStreamDevice(container, DeviceAccess::ReadWrite, true) { }
 
