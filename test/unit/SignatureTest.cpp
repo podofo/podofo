@@ -68,14 +68,14 @@ TEST_CASE("TestSignature1")
         auto stream = std::make_shared<StandardStreamDevice>(ss);
         input.CopyTo(*stream);
         testSignature(stream, pkey1);
-        REQUIRE(ssl::ComputeMD5Str(ss.str()) == "312837C62DA72DBC13D588A2AD42BFC1");
+        REQUIRE(ssl::ComputeMD5Str(ss.str()) == "80A270D52775E42E85F3DD3BA55D3793");
     }
 
     {
         utls::ReadTo(buff, inputPath);
         auto stream = std::make_shared<BufferStreamDevice>(buff);
         testSignature(stream, pkey8);
-        REQUIRE(ssl::ComputeMD5Str(buff) == "312837C62DA72DBC13D588A2AD42BFC1");
+        REQUIRE(ssl::ComputeMD5Str(buff) == "80A270D52775E42E85F3DD3BA55D3793");
     }
 
     {
@@ -83,7 +83,7 @@ TEST_CASE("TestSignature1")
         auto stream = std::make_shared<FileStreamDevice>(outputPath, FileMode::Open);
         testSignature(stream, pkey8);
         utls::ReadTo(buff, outputPath);
-        REQUIRE(ssl::ComputeMD5Str(buff) == "312837C62DA72DBC13D588A2AD42BFC1");
+        REQUIRE(ssl::ComputeMD5Str(buff) == "80A270D52775E42E85F3DD3BA55D3793");
     }
 }
 
@@ -121,7 +121,7 @@ TEST_CASE("TestSignature2")
     PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
 
     utls::ReadTo(buff, outputPath);
-    REQUIRE(ssl::ComputeMD5Str(buff) == "312837C62DA72DBC13D588A2AD42BFC1");
+    REQUIRE(ssl::ComputeMD5Str(buff) == "80A270D52775E42E85F3DD3BA55D3793");
 }
 
 // Test sequential signing with external service
@@ -160,7 +160,7 @@ TEST_CASE("TestSignature3")
     ctx.FinishSigning(results);
     
     utls::ReadTo(buff, outputPath);
-    REQUIRE(ssl::ComputeMD5Str(buff) == "312837C62DA72DBC13D588A2AD42BFC1");
+    REQUIRE(ssl::ComputeMD5Str(buff) == "80A270D52775E42E85F3DD3BA55D3793");
 }
 
 TEST_CASE("TestSaveOnSigning")

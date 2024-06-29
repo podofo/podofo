@@ -285,11 +285,11 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
     info->WriteFinal(length, m_WriteFlags, nullptr, m_buffer);
 
     charbuff buffer(length.GetLength());
-    StringStreamDevice device(buffer);
+    StringStreamDevice device(buffer, DeviceAccess::Write, false);
     info->WriteFinal(device, m_WriteFlags, nullptr, m_buffer);
 
     // calculate the MD5 Sum
-    identifier = PdfString(ssl::ComputeMD5({ buffer.data(), length.GetLength() }), true);
+    identifier = PdfString(ssl::ComputeMD5(buffer), true);
     if (originalIdentifier != nullptr && !originalIdentifierFound)
         *originalIdentifier = identifier;
 }
