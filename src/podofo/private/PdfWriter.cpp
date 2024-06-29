@@ -12,6 +12,7 @@
 #include <podofo/main/PdfDictionary.h>
 #include <podofo/main/PdfParserObject.h>
 #include "PdfXRefStream.h"
+#include "OpenSSLInternal.h"
 
 #define PDF_MAGIC           "\xe2\xe3\xcf\xd3\n"
 // 10 spaces
@@ -288,9 +289,7 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
     info->WriteFinal(device, m_WriteFlags, nullptr, m_buffer);
 
     // calculate the MD5 Sum
-    identifier = PdfEncryptMD5Base::GetMD5String(reinterpret_cast<unsigned char*>(buffer.data()),
-        static_cast<unsigned>(length.GetLength()));
-
+    identifier = PdfString(ssl::ComputeMD5({ buffer.data(), length.GetLength() }), true);
     if (originalIdentifier != nullptr && !originalIdentifierFound)
         *originalIdentifier = identifier;
 }

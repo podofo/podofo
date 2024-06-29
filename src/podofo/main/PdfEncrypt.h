@@ -531,14 +531,6 @@ public:
 
     void CreateEncryptionDictionary(PdfDictionary& dictionary) const override;
 
-    /** Create a PdfString of MD5 data generated from a buffer in memory.
-     *  \param buffer the buffer of which to calculate the MD5 sum
-     *  \param length the length of the buffer
-     *
-     *  \returns an MD5 sum as PdfString
-     */
-    static PdfString GetMD5String(const unsigned char* buffer, unsigned length);
-
     // Calculate the binary MD5 message digest of the given data
     static void GetMD5Binary(const unsigned char* data, unsigned length, unsigned char* digest);
 

@@ -908,15 +908,6 @@ void PdfEncryptMD5Base::GenerateInitialVector(unsigned char iv[]) const
         static_cast<unsigned>(m_documentId.length()), iv);
 }
     
-PdfString PdfEncryptMD5Base::GetMD5String(const unsigned char* buffer, unsigned length)
-{
-    char data[MD5_DIGEST_LENGTH];
-
-    GetMD5Binary(buffer, length, reinterpret_cast<unsigned char*>(data));
-
-    return PdfString::FromRaw({ data, MD5_DIGEST_LENGTH });
-}
-    
 void PdfEncryptMD5Base::CreateEncryptionDictionary(PdfDictionary& dictionary) const
 {
     dictionary.AddKey(PdfName::KeyFilter, PdfName("Standard"));
