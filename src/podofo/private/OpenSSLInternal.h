@@ -87,10 +87,8 @@ namespace ssl
 
     void ComputeHash(const PoDoFo::bufferview& data, PoDoFo::PdfHashingAlgorithm hashing,
         unsigned char* hash, unsigned& length);
-    void ComputeMD5Str(const PoDoFo::bufferview& data,
-        unsigned char* hash, unsigned& length);
-    void ComputeSHA1Str(const PoDoFo::bufferview& data,
-        unsigned char* hash, unsigned& length);
+    void ComputeMD5(const PoDoFo::bufferview& data, unsigned char* hash);
+    void ComputeSHA1(const PoDoFo::bufferview& data, unsigned char* hash);
 
     void GetOpenSSLError(std::string& err);
 

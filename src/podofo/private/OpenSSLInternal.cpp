@@ -291,13 +291,15 @@ void ssl::ComputeHash(const bufferview& data, PdfHashingAlgorithm hashing,
     computeHash(data, ssl::GetEVP_MD(hashing), hash, length);
 }
 
-void ssl::ComputeMD5Str(const bufferview& data, unsigned char* hash, unsigned& length)
+void ssl::ComputeMD5(const bufferview& data, unsigned char* hash)
 {
+    unsigned length;
     computeHash(data, ssl::MD5(), hash, length);
 }
 
-void ssl::ComputeSHA1Str(const bufferview& data, unsigned char* hash, unsigned& length)
+void ssl::ComputeSHA1(const bufferview& data, unsigned char* hash)
 {
+    unsigned length;
     computeHash(data, ssl::SHA1(), hash, length);
 }
 

@@ -835,7 +835,7 @@ void PdfEncryptMD5Base::CreateObjKey(unsigned char objkey[16], unsigned& pnKeyLe
         nkey[m_keyLength + 8] = 0x54;
     }
 
-    GetMD5Binary(nkey, nkeylen, objkey);
+    ssl::ComputeMD5(bufferview((const char*)nkey, nkeylen), objkey);
     pnKeyLen = (m_keyLength <= 11) ? m_keyLength + 5 : 16;
 }
 
@@ -885,27 +885,10 @@ void PdfEncryptRC4Base::RC4(const unsigned char* key, unsigned keylen,
     if (status != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error RC4-encrypting data");
 }
-        
-void PdfEncryptMD5Base::GetMD5Binary(const unsigned char* data, unsigned length, unsigned char* digest)
-{
-    int rc;
-    unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
-    if (ctx == nullptr || (rc = EVP_DigestInit_ex(ctx.get(), ssl::MD5(), nullptr)) != 1)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
-
-    rc = EVP_DigestUpdate(ctx.get(), data, length);
-    if (rc != 1)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
-
-    rc = EVP_DigestFinal_ex(ctx.get(), digest, nullptr);
-    if (rc != 1)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
-}
 
 void PdfEncryptMD5Base::GenerateInitialVector(unsigned char iv[]) const
 {
-    GetMD5Binary(reinterpret_cast<const unsigned char*>(m_documentId.c_str()),
-        static_cast<unsigned>(m_documentId.length()), iv);
+    ssl::ComputeMD5(m_documentId, iv);
 }
     
 void PdfEncryptMD5Base::CreateEncryptionDictionary(PdfDictionary& dictionary) const

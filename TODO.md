@@ -4,7 +4,6 @@
 - PdfDocument: Review AttachFile, GetAttachment, AddNamedDestination
 - PdfMemDocument: Consider removing SetEncrypt(encrypt)
 - Check accessibility of PdfEncrypt.h classes, check AESV3 naming
-- Remove PdfEncryptMD5Base::GetMD5Binary and PdfEncryptMD5Base::GetMD5String and use common functions
 - PdfEncrypt: Consider removing CreateFromEncrypt (shared_ptr in PdfMemDocument could be used now)
 - PdfWriter: Check if SetEncrypt() should accept mutable reference instead
 - Evaluate hide/protect/remove PdfIndirectObjectList: RemoveObject, RemoveObject, ReplaceObject

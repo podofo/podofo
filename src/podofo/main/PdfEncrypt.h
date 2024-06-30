@@ -531,9 +531,6 @@ public:
 
     void CreateEncryptionDictionary(PdfDictionary& dictionary) const override;
 
-    // Calculate the binary MD5 message digest of the given data
-    static void GetMD5Binary(const unsigned char* data, unsigned length, unsigned char* digest);
-
     // NOTE: We must declare again without body otherwise the other Authenticate overload hides it
     bool Authenticate(const std::string_view& password, const std::string_view& documentId) override = 0;
 
