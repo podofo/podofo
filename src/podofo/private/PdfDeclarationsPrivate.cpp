@@ -1142,6 +1142,9 @@ string utls::GetWin32ErrorMessage(unsigned rc)
 
 unsigned char utls::GetCharCodeSize(unsigned code)
 {
+    if (code==0) {
+        return 1;
+    }
     return (unsigned char)(std::log(code) / std::log(256)) + 1;
 }
 
