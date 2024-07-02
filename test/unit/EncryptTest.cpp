@@ -172,6 +172,29 @@ TEST_CASE("testEnableAlgorithms")
     REQUIRE(testAlgorithms == PdfEncrypt::GetEnabledEncryptionAlgorithms());
 }
 
+TEST_CASE("testBadLength")
+{
+    // avoid segfaulting in openssl call by checking key length
+    PdfObject object;
+    object.GetDictionary().AddKey("Filter", PdfName("Standard"));
+    object.GetDictionary().AddKey("V", static_cast<int64_t>(4L));
+    object.GetDictionary().AddKey("R", static_cast<int64_t>(4L));
+    object.GetDictionary().AddKey("P", static_cast<int64_t>(-44));
+    object.GetDictionary().AddKey("O", PdfString(""));
+    object.GetDictionary().AddKey("U", PdfString(""));
+    object.GetDictionary().AddKey("Length", static_cast<int64_t>(-4));
+
+    try
+    {
+        (void)PdfEncrypt::CreateFromObject(object);
+        REQUIRE(false);
+    }
+    catch (PdfError& error)
+    {
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidEncryptionDict);
+    }
+}
+
 TEST_CASE("testLoadEncrypedFilePdfParser")
 {
     string tempFile = TestUtils::GetTestOutputFilePath("testLoadEncrypedFilePdfParser.pdf");

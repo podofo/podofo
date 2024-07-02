@@ -473,17 +473,32 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreateFromObject(const PdfObject& encryptObj)
     try
     {
         lV = static_cast<unsigned>(encryptObj.GetDictionary().MustGetKey("V").GetNumber());
+        if (lV < 0 || lV > 4) {
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEncryptionDict);
+        }
         rValue = static_cast<unsigned>(encryptObj.GetDictionary().MustGetKey("R").GetNumber());
+        if (rValue < 2 || rValue > 4) {
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEncryptionDict);
+        }
 
         // The value of the P entry shall be interpreted as an unsigned
         // 32-bit quantity containing a set of flags
-        pValue = static_cast<PdfPermissions>(encryptObj.GetDictionary().MustGetKey("P").GetNumber() & 0xFFFFFFFF);
+        uint32_t pInt = encryptObj.GetDictionary().MustGetKey("P").GetNumber() & 0xFFFFFFFF;
+        if ((pInt & 0b11111111111111111111000011000011) != 0b11111111111111111111000011000000 // reserved bit
+            ) {
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEncryptionDict);
+        }
+        pValue = static_cast<PdfPermissions>(pInt);
 
         oValue = encryptObj.GetDictionary().MustGetKey("O").GetString();
         uValue = encryptObj.GetDictionary().MustGetKey("U").GetString();
 
-        if (encryptObj.GetDictionary().HasKey("Length"))
+        if (encryptObj.GetDictionary().HasKey("Length")) {
             length = encryptObj.GetDictionary().GetKey("Length")->GetNumber();
+            if (length < 40 || length > 128 || (length & 0x7) != 0) {
+                PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEncryptionDict);
+            }
+        }
         else
             length = 0;
 
