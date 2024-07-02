@@ -195,6 +195,9 @@ bool tryExtractDataFromTTC(FT_Face face, charbuff& buffer)
     size = numFonts * sizeof(uint32_t);
     rc = FT_Load_Sfnt_Table(face, 0, sizeof(TTCF_Header), (FT_Byte*)offsets.data(), &size);
     CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
+    if (face->face_index < 0 || static_cast<size_t>(face->face_index) >= offsets.size())
+        return false;
+
     uint32_t faceOffset = FROM_BIG_ENDIAN(offsets[face->face_index]);
 
     // Prepare the final buffer
