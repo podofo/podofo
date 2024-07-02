@@ -180,7 +180,7 @@ bool tryExtractDataFromTTC(FT_Face face, charbuff& buffer)
     FT_ULong size;
 
     uint32_t tag;
-    size = sizeof(FT_ULong);
+    size = sizeof(uint32_t);
     rc = FT_Load_Sfnt_Table(face, 0, 0, (FT_Byte*)&tag, &size);
     if (rc != 0 || FROM_BIG_ENDIAN(tag) != TTAG_ttcf)
         return false;
