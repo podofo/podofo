@@ -413,6 +413,7 @@ private:
 
 private:
     // To be used by PdfWriter
+    // CHECK-ME: Evaluate remove this and have PdfEncrypt truly stateless
     static std::unique_ptr<PdfEncrypt> CreateFromEncrypt(const PdfEncrypt& rhs);
 
 private:

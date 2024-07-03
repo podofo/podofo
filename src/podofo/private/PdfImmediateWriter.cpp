@@ -32,7 +32,7 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
     if (encrypt != nullptr)
     {
         this->SetEncrypt(*encrypt);
-        encrypt->GenerateEncryptionKey(GetIdentifier());
+        GetEncrypt()->GenerateEncryptionKey(GetIdentifier());
     }
 
     // Start with writing the header

@@ -300,7 +300,7 @@ void PdfWriter::SetEncryptObj(PdfObject& obj)
 }
 
 // CHECK-ME: Should this accept a mutable reference instead,
-// to reflect changes on the source encrypt (see usage on PdfMemDocument)
+// to reflect changes on the source encrypt (see usage on PdfMemDocument)?
 void PdfWriter::SetEncrypt(const PdfEncrypt& encrypt)
 {
     m_Encrypt = PdfEncrypt::CreateFromEncrypt(encrypt);
