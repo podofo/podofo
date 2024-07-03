@@ -1,6 +1,15 @@
 ### 1.0
 
 #### API Review
+- PdfEncrypt:
+  * Remove m_documentId
+  * Remove m_encryptionKey
+  * Remove AESCryptoEngine, RC4CryptoEngine, and m_ctx EVP_CIPHER_CTX
+  * Create PdfEncryptContext with m_documentId, m_encryptionKey, if autenthicated user or owner, m_ctx (EVP_CIPHER_CTX)
+  * Authenticate should also return PdfEncryptContext and be const;
+  * Rename GenerateEncryptionKey -> GetEncryptionContext(documentId, ctx). Should crash if loaded PdfEncrypt but ctx is null || not authenticated
+
+- nullable: Rearrange m_hasValue to be after m_value (small optimization)
 - PdfDocument: Review AttachFile, GetAttachment, AddNamedDestination
 - PdfMemDocument: Consider removing SetEncrypt(encrypt)
 - PdfWriter: Check if SetEncrypt() should accept mutable reference instead

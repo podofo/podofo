@@ -176,6 +176,16 @@ public:
      */
     void GenerateEncryptionKey(const PdfString& documentId);
 
+    /**
+     * Tries to authenticate a user using either the user or owner password
+     *
+     * \param password owner or user password
+     * \param documentId the documentId of the PDF file
+     *
+     * \returns true if either the owner or user password matches password
+     */
+    PdfAuthResult Authenticate(const std::string_view& password, const PdfString& documentId);
+
     /** Fill all keys into a encryption dictionary.
      *  This dictionary is usually added to the PDF files trailer
      *  under the /Encryption key.
@@ -208,16 +218,6 @@ public:
      *  \returns a OutputStream that encrypts all data.
      */
     virtual std::unique_ptr<OutputStream> CreateEncryptionOutputStream(OutputStream& outputStream, const PdfReference& objref) = 0;
-
-    /**
-     * Tries to authenticate a user using either the user or owner password
-     *
-     * \param password owner or user password
-     * \param documentId the documentId of the PDF file
-     *
-     * \returns true if either the owner or user password matches password
-     */
-    PdfAuthResult Authenticate(const std::string_view& password, const PdfString& documentId);
 
     /** Get the encryption algorithm of this object.
      * \returns the PdfEncryptAlgorithm of this object

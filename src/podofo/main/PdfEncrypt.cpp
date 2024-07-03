@@ -588,7 +588,7 @@ PdfEncrypt::PdfEncrypt() :
     m_oValueSize(0),
     m_EncryptMetadata(false)
 {
-};
+}
 
 void PdfEncrypt::Init(PdfEncryptAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision, PdfPermissions pValue,
     const bufferview& uValue, const bufferview& oValue, bool encryptedMetadata)
@@ -674,7 +674,7 @@ void PdfEncryptMD5Base::ComputeOwnerKey(const unsigned char userPad[32], const u
     if ((revision == 3) || (revision == 4))
     {
         // only use for the input as many bit as the key consists of
-        for (int k = 0; k < 50; ++k)
+        for (int k = 0; k < 50; k++)
         {
             rc = EVP_DigestInit_ex(ctx.get(), ssl::MD5(), nullptr);
             if (rc != 1)
@@ -689,9 +689,9 @@ void PdfEncryptMD5Base::ComputeOwnerKey(const unsigned char userPad[32], const u
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
         }
         std::memcpy(ownerKey, userPad, 32);
-        for (unsigned i = 0; i < 20; ++i)
+        for (unsigned i = 0; i < 20; i++)
         {
-            for (unsigned j = 0; j < keyLength; ++j)
+            for (unsigned j = 0; j < keyLength; j++)
             {
                 if (authenticate)
                     mkey[j] = static_cast<unsigned char>(static_cast<unsigned>(digest[j] ^ (19 - i)));
@@ -770,7 +770,7 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     // only use the really needed bits as input for the hash
     if (revision == 3 || revision == 4)
     {
-        for (k = 0; k < 50; ++k)
+        for (k = 0; k < 50; k++)
         {
             rc = EVP_DigestInit_ex(ctx.get(), ssl::MD5(), nullptr);
             if (rc != 1)
@@ -1672,7 +1672,7 @@ PdfAuthResult PdfEncryptAESV3::Authenticate(const string_view& password, const s
 
     // Test 1: is it the user key ?
     unsigned char hashValue[32];
-    computeHash(pswd_sasl, pswdLen, GetRevision(), GetUValueRaw() + 32, 0, hashValue); // user Validation Salt
+    computeHash(pswd_sasl, pswdLen, GetRevision(), GetUValueRaw() + 32, nullptr, hashValue); // user Validation Salt
 
     bool success = CheckKey(hashValue, GetUValueRaw());
     if (success)
@@ -1680,7 +1680,7 @@ PdfAuthResult PdfEncryptAESV3::Authenticate(const string_view& password, const s
         ret = PdfAuthResult::User;
         // ISO 32000: "Compute an intermediate user key by computing the SHA-256 hash of
         // the UTF-8 password concatenated with the 8 bytes of user Key Salt"
-        computeHash(pswd_sasl, pswdLen, GetRevision(), GetUValueRaw() + 40, 0, hashValue); // user Key Salt
+        computeHash(pswd_sasl, pswdLen, GetRevision(), GetUValueRaw() + 40, nullptr, hashValue); // user Key Salt
 
         // ISO 32000: "The 32-byte result is the key used to decrypt the 32-byte UE string using
         // AES-256 in CBC mode with no padding and an initialization vector of zero.
