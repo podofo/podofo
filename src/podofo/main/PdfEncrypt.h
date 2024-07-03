@@ -17,8 +17,6 @@ class PdfDictionary;
 class InputStream;
 class PdfObject;
 class OutputStream;
-class AESCryptoEngine;
-class RC4CryptoEngine;
 
 /* Class representing PDF encryption methods. (For internal use only)
  * Based on code from Ulrich Telle: http://wxcode.sourceforge.net/components/wxpdfdoc/
@@ -38,7 +36,7 @@ class RC4CryptoEngine;
  *
  *  Adobe Reader supports only keys with 40, 128 or 256 bits!
  */
-enum class PdfKeyLength
+enum class PdfKeyLength : uint16_t
 {
     L40 = 40,
     L56 = 56,
@@ -50,17 +48,12 @@ enum class PdfKeyLength
 #endif //PODOFO_HAVE_LIBIDN
 };
 
-#ifdef PODOFO_HAVE_LIBIDN
-enum class PdfAESV3Revision
-{
-    R5 = 5,
-    R6 = 6,
-};
-#endif //PODOFO_HAVE_LIBIDN
-
 /** Set user permissions/restrictions on a document
  */
-enum class PdfPermissions
+// ISO 32000-2:2020 7.6.4.2 "Standard encryption dictionary":
+// "The value of the P entry shall be interpreted as an unsigned
+// 32-bit quantity containing a set of flags."
+enum class PdfPermissions : uint32_t
 {
     None = 0,
     Print = 0x00000004,  ///< Allow printing the document
@@ -84,16 +77,23 @@ enum class PdfPermissions
 /**
  * The encryption algorithm.
  */
-enum class PdfEncryptAlgorithm
+enum class PdfEncryptAlgorithm : uint8_t
 {
     None = 0,
     RC4V1 = 1,      ///< RC4 Version 1 encryption using a 40bit key
     RC4V2 = 2,      ///< RC4 Version 2 encryption using a key with 40-128bit
     AESV2 = 4,      ///< AES encryption with a 128 bit key (PDF1.6)
 #ifdef PODOFO_HAVE_LIBIDN
-    AESV3 = 8,      ///< AES encryption with a 256 bit key (PDF1.7 extension 3) - Support added by P. Zent
+    AESV3R5 = 8,    ///< AES encryption with a 256 bit key (PDF1.7 extension 3, deprecated in PDF 2.0)
     AESV3R6 = 16,   ///< AES encryption with a 256 bit key, Revision 6 (PDF1.7 extension 8, PDF 2.0)
 #endif //PODOFO_HAVE_LIBIDN
+};
+
+enum class PdfAuthResult
+{
+    Failed = 0, ///< Failed to authenticate to this PDF
+    User,       ///< Success authenticating a user for this PDF
+    Owner,      ///< Success authenticating the owner for this PDF
 };
 
 /** A class that is used to encrypt a PDF file and
@@ -108,6 +108,10 @@ enum class PdfEncryptAlgorithm
  */
 class PODOFO_API PdfEncrypt
 {
+    friend class PdfEncryptMD5Base;
+    friend class PdfEncryptAESV3;
+    friend class PdfWriter;
+
 public:
     virtual ~PdfEncrypt();
 
@@ -144,12 +148,6 @@ public:
      */
     static std::unique_ptr<PdfEncrypt> CreateFromObject(const PdfObject& obj);
 
-    /** Copy constructor
-     *
-     *  \param rhs another PdfEncrypt object which is copied
-     */
-    static std::unique_ptr<PdfEncrypt> CreateFromEncrypt(const PdfEncrypt& rhs);
-
     /**
      * Retrieve the list of encryption algorithms that are used
      * when loading a PDF document.
@@ -162,18 +160,6 @@ public:
      * \return an or'ed together list of all enabled encryption algorithms
      */
     static PdfEncryptAlgorithm GetEnabledEncryptionAlgorithms();
-
-    /**
-     * Specify the list of encryption algorithms that should be used by PoDoFo
-     * when loading a PDF document.
-     *
-     * This can be used to disable for example AES encryption/decryption
-     * which is unstable in certain cases.
-     *
-     * \see GetEnabledEncryptionAlgorithms
-     * \see IsEncryptionEnabled
-     */
-    static void SetEnabledEncryptionAlgorithms(PdfEncryptAlgorithm nEncryptionAlgorithms);
 
     /**
      * Test if a certain encryption algorithm is enabled for loading PDF documents.
@@ -231,7 +217,7 @@ public:
      *
      * \returns true if either the owner or user password matches password
      */
-    bool Authenticate(const std::string_view& password, const PdfString& documentId);
+    PdfAuthResult Authenticate(const std::string_view& password, const PdfString& documentId);
 
     /** Get the encryption algorithm of this object.
      * \returns the PdfEncryptAlgorithm of this object
@@ -247,8 +233,7 @@ public:
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    inline bool IsOwnerPasswordSet() const { return !m_ownerPass.empty(); }
-
+    bool IsOwnerPasswordSet() const;
 
     /** Checks if printing this document is allowed.
      *  Every PDF consuming applications has to adhere this value!
@@ -322,34 +307,6 @@ public:
      */
     bool IsHighPrintAllowed() const;
 
-    /** Get the U object value (user)
-     */
-    const unsigned char* GetUValue() const { return m_uValue; }
-
-    /** Get the O object value (owner)
-     */
-    const unsigned char* GetOValue() const { return m_oValue; }
-
-    /** Get the encryption key value (owner)
-     */
-    const unsigned char* GetEncryptionKey() const { return m_encryptionKey; }
-
-    /** Get the P object value (protection)
-     */
-    PdfPermissions GetPValue() const { return m_pValue; }
-
-    /** Get the revision number of the encryption method
-     */
-    int GetRevision() const { return m_rValue; }
-
-    /** Get the key length of the encryption key in bits
-     */
-    int GetKeyLength() const;
-
-    /** Is metadata encrypted
-     */
-    bool IsMetadataEncrypted() const { return m_EncryptMetadata; }
-
     /** Encrypt a character span
      */
     void EncryptTo(charbuff& out, const bufferview& view, const PdfReference& objref) const;
@@ -366,103 +323,115 @@ public:
      */
     virtual size_t CalculateStreamOffset() const = 0;
 
-protected:
-    PdfEncrypt();
+    unsigned GetKeyLengthBytes() const;
 
-    PdfEncrypt(const PdfEncrypt& rhs);
+    /** Get the U object value (user)
+     */
+    bufferview GetUValue() const;
+
+    /** Get the O object value (owner)
+     */
+    bufferview GetOValue() const;
+
+public:
+    /** Get the key length of the encryption key in bits
+     */
+    PdfKeyLength GetKeyLength() const { return m_KeyLength; }
+
+    /** Get the P object value (protection)
+     */
+    inline PdfPermissions GetPValue() const { return m_pValue; }
+
+    /** Get the revision number of the encryption method
+     */
+    inline unsigned GetRevision() const { return m_rValue; }
+
+    inline bool IsMetadataEncrypted() const { return m_EncryptMetadata; }
+
+    inline const std::string& GetDocumentId() const { return m_documentId; }
 
 protected:
+    inline const unsigned char* GetUValueRaw() const { return m_uValue; }
+
+    inline const unsigned char* GetOValueRaw() const { return m_oValue; }
+
+    inline const std::string& GetUserPassword() const { return m_userPass; }
+
+    inline const std::string& GetOwnerPassword() const { return m_ownerPass; }
+
+    /** Get the encryption key value (owner)
+     */
+
+    inline const unsigned char* GetEncryptionKey() const { return m_encryptionKey; }
+
+protected:
+    void Init(PdfEncryptAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision,
+        PdfPermissions pValue, const bufferview& uValue, const bufferview& oValue,
+        bool encryptedMetadata);
+
+    void Init(const std::string_view& userPassword, const std::string_view& ownerPassword,
+        PdfEncryptAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision,
+        PdfPermissions pValue, bool encryptedMetadata);
+
     virtual void Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
         char* outStr, size_t& outLen) const = 0;
 
     virtual void Encrypt(const char* inStr, size_t inLen, const PdfReference& objref,
         char* outStr, size_t outLen) const = 0;
 
-    virtual bool Authenticate(const std::string_view& password, const  std::string_view& documentId) = 0;
+    virtual PdfAuthResult Authenticate(const std::string_view& password, const std::string_view& documentId, unsigned char encryptionKey[32]) = 0;
 
-    virtual void GenerateEncryptionKey(const std::string_view& documentId) = 0;
+    virtual void GenerateEncryptionKey(const std::string_view& documentId,
+        unsigned char uValue[48], unsigned char oValue[48], unsigned char encryptionKey[32]) = 0;
 
     // Check two keys for equality
-    bool CheckKey(unsigned char key1[32], unsigned char key2[32]);
+    bool CheckKey(const unsigned char key1[32], const unsigned char key2[32]);
 
+    class AESCryptoEngine;
+    class RC4CryptoEngine;
+
+#ifdef PODOFO_HAVE_LIBIDN
+    enum class PdfRC4Revision
+    {
+        R2 = 2,
+        R3 = 3,
+    };
+
+    enum class PdfAESV3Revision
+    {
+        R5 = 5,
+        R6 = 6,
+    };
+#endif //PODOFO_HAVE_LIBIDN
+
+private:
+    PdfEncrypt();
+
+    PdfEncrypt(const PdfEncrypt& rhs) = default;
+
+    PdfEncrypt& operator=(PdfEncrypt& rhs) = delete;
+
+private:
+    // To be used by PdfWriter
+    static std::unique_ptr<PdfEncrypt> CreateFromEncrypt(const PdfEncrypt& rhs);
+
+private:
     PdfEncryptAlgorithm m_Algorithm;   // The used encryption algorithm
-    PdfKeyLength m_eKeyLength;         // The encryption key length, as enum value
-    unsigned m_keyLength;              // Length of encryption key
-    int m_rValue;                      // Revision
+    unsigned char m_rValue;            // Revision
+    PdfKeyLength m_KeyLength;          // The encryption key length, as enum value
     PdfPermissions m_pValue;           // P entry in pdf document
-    std::string m_userPass;            // User password
-    std::string m_ownerPass;           // Owner password
     unsigned char m_uValue[48];        // U entry in pdf document
     unsigned char m_oValue[48];        // O entry in pdf document
     unsigned char m_encryptionKey[32]; // Encryption key
-    std::string m_documentId;          // DocumentID of the current document
+    unsigned char m_uValueSize;
+    unsigned char m_oValueSize;
     bool m_EncryptMetadata;            // Is metadata encrypted
-
-private:
-    static PdfEncryptAlgorithm s_EnabledEncryptionAlgorithms; // Or'ed int containing the enabled encryption algorithms
+    std::string m_userPass;            // User password
+    std::string m_ownerPass;           // Owner password
+    std::string m_documentId;          // DocumentID of the current document
 };
 
 #ifdef PODOFO_HAVE_LIBIDN
-
-/** A pure virtual class that is used to encrypt a PDF file (AES-256)
- *  This class is the base for classes that implement algorithms based on SHA hashes
- *
- *  Client code is working only with PdfEncrypt class and knows nothing
- *	about PdfEncrypt*, it is created through CreatePdfEncrypt factory method
- *
- */
-class PdfEncryptSHABase : public PdfEncrypt
-{
-public:
-    PdfEncryptSHABase();
-
-    // copy constructor
-    PdfEncryptSHABase(const PdfEncrypt& rhs);
-
-    void CreateEncryptionDictionary(PdfDictionary& dictionary) const override;
-
-    // Get the UE object value (user)
-    const unsigned char* GetUEValue() const { return m_ueValue; }
-
-    // Get the OE object value (owner)
-    const unsigned char* GetOEValue() const { return m_oeValue; }
-
-    // Get the Perms object value (encrypted protection)
-    const unsigned char* GetPermsValue() const { return m_permsValue; }
-
-    bool Authenticate(const std::string_view& documentID, const std::string_view& password,
-        const bufferview& uValue, const std::string_view& ueValue,
-        const bufferview& oValue, const std::string_view& oeValue,
-        PdfPermissions pValue, const std::string_view& permsValue,
-        int lengthValue, int rValue);
-
-protected:
-    // NOTE: We must declare again without body otherwise the other Authenticate overload hides it
-    bool Authenticate(const std::string_view& password, const std::string_view& documentId) override = 0;
-
-    // Generate initial vector
-    void GenerateInitialVector(unsigned char iv[]) const;
-
-    // Compute encryption key to be used with AES-256
-    void ComputeEncryptionKey();
-
-    // Compute hash for password and salt with optional uValue
-    void ComputeHash(const unsigned char* pswd, unsigned pswdLen, unsigned char salt[8], unsigned char uValue[48], unsigned char hashValue[32]);
-
-    // Generate the U and UE entries
-    void ComputeUserKey(const unsigned char* userpswd, unsigned len);
-
-    // Generate the O and OE entries
-    void ComputeOwnerKey(const unsigned char* userpswd, unsigned len);
-
-    // Preprocess password for use in EAS-256 Algorithm
-    // outBuf needs to be at least 127 bytes long
-    void PreprocessPassword(const std::string_view& password, unsigned char* outBuf, unsigned& len);
-
-    unsigned char m_ueValue[32];        // UE entry in pdf document
-    unsigned char m_oeValue[32];        // OE entry in pdf document
-    unsigned char m_permsValue[16];     // Perms entry in pdf document
-};
 
 /** A pure virtual class that is used to encrypt a PDF file (RC4, AES-128)
  *  This class is the base for classes that implement algorithms based on MD5 hashes
@@ -473,88 +442,36 @@ protected:
  */
 #endif // PODOFO_HAVE_LIBIDN
 
-/** A pure virtual class that is used to encrypt a PDF file (AES-128/256)
- *  This class is the base for classes that implement algorithms based on AES
- *
- *  Client code is working only with PdfEncrypt class and knows nothing
- *	about PdfEncrypt*, it is created through CreatePdfEncrypt factory method
- *
- */
-class PdfEncryptAESBase
+class PdfEncryptMD5Base : public PdfEncrypt
 {
-public:
-    ~PdfEncryptAESBase();
+    friend class PdfEncryptRC4;
+    friend class PdfEncryptAESV2;
 
-protected:
-    PdfEncryptAESBase();
-
-    void BaseDecrypt(const unsigned char* key, unsigned keylen, const unsigned char* iv,
-        const unsigned char* textin, size_t textlen,
-        unsigned char* textout, size_t& textoutlen) const;
-    void BaseEncrypt(const unsigned char* key, unsigned keylen, const unsigned char* iv,
-        const unsigned char* textin, size_t textlen,
-        unsigned char* textout, size_t textoutlen) const;
-
-    AESCryptoEngine* m_aes;                // AES encryptor
-};
-
-/** A pure virtual class that is used to encrypt a PDF file (RC4-40..128)
- *  This class is the base for classes that implement algorithms based on RC4
- *
- *  Client code is working only with PdfEncrypt class and knows nothing
- *	about PdfEncrypt*, it is created through CreatePdfEncrypt factory method
- *
- */
-class PdfEncryptRC4Base
-{
-public:
-    ~PdfEncryptRC4Base();
-
-protected:
-    PdfEncryptRC4Base();
-
-    // AES encryption
-    void RC4(const unsigned char* key, unsigned keylen,
-        const unsigned char* textin, size_t textlen,
-        unsigned char* textout, size_t textoutlen) const;
-
-    RC4CryptoEngine* m_rc4;                // AES encryptor
-};
-
-class PdfEncryptMD5Base : public PdfEncrypt, public PdfEncryptRC4Base
-{
-public:
+private:
     PdfEncryptMD5Base();
 
-    // copy constructor
-    PdfEncryptMD5Base(const PdfEncrypt& rhs);
+    PdfEncryptMD5Base(const PdfEncryptMD5Base& rhs);
 
+public:
     void CreateEncryptionDictionary(PdfDictionary& dictionary) const override;
 
     // NOTE: We must declare again without body otherwise the other Authenticate overload hides it
-    bool Authenticate(const std::string_view& password, const std::string_view& documentId) override = 0;
-
-    bool Authenticate(const std::string_view& documentID, const std::string_view& password,
-        const bufferview& uValue, const bufferview& oValue,
-        PdfPermissions pValue, int lengthValue, int rValue);
+    PdfAuthResult Authenticate(const std::string_view& password, const std::string_view& documentId, unsigned char encryptionKey[32]) override = 0;
 
 protected:
-
-    // Generate initial vector
-    void GenerateInitialVector(unsigned char iv[]) const;
-
     // Compute owner key
-    void ComputeOwnerKey(const unsigned char userPad[32], const unsigned char ownerPad[32],
-        int keylength, int revision, bool authenticate, unsigned char ownerKey[32]);
+    static void ComputeOwnerKey(const unsigned char userPad[32], const unsigned char ownerPad[32],
+        unsigned keylength, unsigned revision, bool authenticate, RC4CryptoEngine& rc4, unsigned char ownerKey[32]);
 
     // Pad a password to 32 characters
-    void PadPassword(const std::string_view& password, unsigned char pswd[32]);
+    static void PadPassword(const std::string_view& password, unsigned char pswd[32]);
 
     // Compute encryption key and user key
-    void ComputeEncryptionKey(const std::string_view& documentID,
+    static void ComputeEncryptionKey(const std::string_view& documentID,
         const unsigned char userPad[32], const unsigned char ownerKey[32],
-        PdfPermissions pValue, PdfKeyLength keyLength, int revision,
-        unsigned char userKey[32], bool encryptMetadata);
+        PdfPermissions pValue, unsigned keyLength, unsigned revision,
+        bool encryptMetadata, RC4CryptoEngine& rc4,
+        unsigned char userKey[32], unsigned char encryptionKey[32]);
 
     /** Create the encryption key for the current object.
      *
@@ -563,9 +480,12 @@ protected:
      */
     void CreateObjKey(unsigned char objkey[16], unsigned& pnKeyLen, const PdfReference& objref) const;
 
+    RC4CryptoEngine& GetRC4() const;
+
+private:
+    std::unique_ptr<RC4CryptoEngine> m_rc4;
     unsigned char m_rc4key[16];         // last RC4 key
     unsigned char m_rc4last[256];       // last RC4 state table
-
 };
 
 /** A class that is used to encrypt a PDF file (AES-128)
@@ -574,30 +494,39 @@ protected:
  *	about PdfEncryptAES*, it is created through CreatePdfEncrypt factory method
  *
  */
-class PdfEncryptAESV2 : public PdfEncryptMD5Base, public PdfEncryptAESBase
+class PdfEncryptAESV2 final : public PdfEncryptMD5Base
 {
-public:
-    PdfEncryptAESV2(PdfString oValue, PdfString uValue, PdfPermissions pValue, bool bEncryptMetadata);
-    PdfEncryptAESV2(const std::string_view& userPassword, const std::string_view& ownerPassword,
-        PdfPermissions protection = PdfPermissions::Default);
-    PdfEncryptAESV2(const PdfEncrypt& rhs);
+    friend class PdfEncrypt;
 
+private:
+    PdfEncryptAESV2(PdfString oValue, PdfString uValue, PdfPermissions pValue, bool encryptMetadata);
+    PdfEncryptAESV2(const std::string_view& userPassword, const std::string_view& ownerPassword,
+        PdfPermissions protection);
+    PdfEncryptAESV2(const PdfEncryptAESV2& rhs);
+
+public:
     std::unique_ptr<InputStream> CreateEncryptionInputStream(InputStream& inputStream, size_t inputLen, const PdfReference& objref) override;
     std::unique_ptr<OutputStream> CreateEncryptionOutputStream(OutputStream& outputStream, const PdfReference& objref) override;
-
-    void Encrypt(const char* inStr, size_t inLen, const PdfReference& objref,
-        char* outStr, size_t outLen) const override;
-    void Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
-        char* outStr, size_t& outLen) const override;
 
     size_t CalculateStreamOffset() const override;
 
     size_t CalculateStreamLength(size_t length) const override;
 
 protected:
-    void GenerateEncryptionKey(const std::string_view& documentId) override;
+    void Encrypt(const char* inStr, size_t inLen, const PdfReference& objref,
+        char* outStr, size_t outLen) const override;
+    void Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
+        char* outStr, size_t& outLen) const override;
 
-    bool Authenticate(const std::string_view& password, const std::string_view& documentId) override;
+    void GenerateEncryptionKey(const std::string_view& documentId, unsigned char uValue[48], unsigned char oValue[48], unsigned char encryptionKey[32]) override;
+
+    PdfAuthResult Authenticate(const std::string_view& password, const std::string_view& documentId, unsigned char encryptionKey[32]) override;
+
+private:
+    void generateInitialVector(unsigned char iv[]) const;
+
+private:
+    std::unique_ptr<AESCryptoEngine> m_aes;
 };
 
 #ifdef PODOFO_HAVE_LIBIDN
@@ -608,32 +537,77 @@ protected:
  *	about PdfEncryptAES*, it is created through CreatePdfEncrypt factory method
  *
  */
-class PdfEncryptAESV3 : public PdfEncryptSHABase, public PdfEncryptAESBase
+class PdfEncryptAESV3 final : public PdfEncrypt
 {
-public:
+    friend class PdfEncrypt;
+
+private:
     PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString uValue, PdfString ueValue,
         PdfPermissions pValue, PdfString permsValue, PdfAESV3Revision rev);
     PdfEncryptAESV3(const std::string_view& userPassword, const std::string_view& ownerPassword,
-        PdfAESV3Revision rev, PdfPermissions protection = PdfPermissions::Default);
-    PdfEncryptAESV3(const PdfEncrypt& rhs);
+        PdfAESV3Revision rev, PdfPermissions protection);
+    PdfEncryptAESV3(const PdfEncryptAESV3& rhs);
 
+public:
     std::unique_ptr<InputStream> CreateEncryptionInputStream(InputStream& inputStream, size_t inputLen, const PdfReference& objref) override;
     std::unique_ptr<OutputStream> CreateEncryptionOutputStream(OutputStream& outputStream, const PdfReference& objref) override;
 
+    size_t CalculateStreamOffset() const override;
+
+    size_t CalculateStreamLength(size_t length) const override;
+
+    void CreateEncryptionDictionary(PdfDictionary& dictionary) const override;
+
+    // Get the UE object value (user)
+    bufferview GetUEValue() const;
+
+    // Get the OE object value (owner)
+    bufferview GetOEValue() const;
+
+    // Get the Perms object value (encrypted protection)
+    bufferview GetPermsValue() const;
+
+protected:
     // Encrypt a character string
     void Encrypt(const char* inStr, size_t inLen, const PdfReference& objref,
         char* outStr, size_t outLen) const override;
     void Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
         char* outStr, size_t& outLen) const override;
 
-    size_t CalculateStreamOffset() const override;
+    PdfAuthResult Authenticate(const std::string_view& password, const std::string_view& documentId, unsigned char encryptionKey[32]) override;
 
-    size_t CalculateStreamLength(size_t length) const override;
+    void GenerateEncryptionKey(const std::string_view& documentId, unsigned char uValue[48], unsigned char oValue[48], unsigned char encryptionKey[32]) override;
 
-protected:
-    bool Authenticate(const std::string_view& password, const std::string_view& documentId) override;
+private:
+    // Generate initial vector
+    static void generateInitialVector(unsigned char iv[]);
 
-    void GenerateEncryptionKey(const std::string_view& documentId) override;
+    // Preprocess password for use in EAS-256 Algorithm
+    // outBuf needs to be at least 127 bytes long
+    static void preprocessPassword(const std::string_view& password, unsigned char* outBuf, unsigned& len);
+
+    // Compute encryption key to be used with AES-256
+    static void computeEncryptionKey(unsigned keyLength, unsigned char encryptionKey[32]);
+
+    // Compute hash for password and salt with optional uValue
+    static void computeHash(const unsigned char* pswd, unsigned pswdLen, unsigned revision,
+        const unsigned char salt[8], const unsigned char uValue[48], unsigned char hashValue[32]);
+
+    // Generate the U and UE entries
+    static void computeUserKey(const unsigned char* userpswd, unsigned len, unsigned revision,
+        unsigned keyLength, const unsigned char encryptionKey[32],
+        unsigned char uValue[48], unsigned char ueValue[32]);
+
+    // Generate the O and OE entries
+    static void computeOwnerKey(const unsigned char* userpswd, unsigned len, unsigned revision,
+        unsigned keyLength, const unsigned char encryptionKey[32], const unsigned char uValue[48],
+        unsigned char oValue[48], unsigned char oeValue[32]);
+
+private:
+    std::unique_ptr<AESCryptoEngine> m_aes;
+    unsigned char m_ueValue[32];        // UE entry in pdf document
+    unsigned char m_oeValue[32];        // OE entry in pdf document
+    unsigned char m_permsValue[16];     // Perms entry in pdf document
 };
 
 #endif // PODOFO_HAVE_LIBIDN
@@ -644,23 +618,20 @@ protected:
  *	about PdfEncryptRC4, it is created through CreatePdfEncrypt factory method
  *
  */
-class PdfEncryptRC4 : public PdfEncryptMD5Base
+class PdfEncryptRC4 final : public PdfEncryptMD5Base
 {
-public:
+    friend class PdfEncrypt;
+
+private:
     PdfEncryptRC4(PdfString oValue, PdfString uValue,
-        PdfPermissions pValue, int rValue, PdfEncryptAlgorithm algorithm, int length, bool encryptMetadata);
+        PdfPermissions pValue, PdfRC4Revision revision, PdfEncryptAlgorithm algorithm, PdfKeyLength keyLength, bool encryptMetadata);
     PdfEncryptRC4(const std::string_view& userPassword, const std::string_view& ownerPassword,
-        PdfPermissions protection = PdfPermissions::Default,
-        PdfEncryptAlgorithm algorithm = PdfEncryptAlgorithm::RC4V1,
-        PdfKeyLength keyLength = PdfKeyLength::L40);
-    PdfEncryptRC4(const PdfEncrypt& rhs);
+        PdfPermissions protection,
+        PdfEncryptAlgorithm algorithm,
+        PdfKeyLength keyLength);
+    PdfEncryptRC4(const PdfEncryptRC4& rhs) = default;
 
-    void Encrypt(const char* inStr, size_t inLen, const PdfReference& objref,
-        char* outStr, size_t outLen) const override;
-
-    void Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
-        char* outStr, size_t& outLen) const override;
-
+public:
     std::unique_ptr<InputStream> CreateEncryptionInputStream(InputStream& inputStream, size_t inputLen, const PdfReference& objref) override;
 
     std::unique_ptr<OutputStream> CreateEncryptionOutputStream(OutputStream& outputStream, const PdfReference& objref) override;
@@ -670,9 +641,15 @@ public:
     size_t CalculateStreamLength(size_t length) const override;
 
 protected:
-    void GenerateEncryptionKey(const std::string_view& documentId) override;
+    void Encrypt(const char* inStr, size_t inLen, const PdfReference& objref,
+        char* outStr, size_t outLen) const override;
 
-    bool Authenticate(const std::string_view& password, const std::string_view& documentId) override;
+    void Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
+        char* outStr, size_t& outLen) const override;
+
+    void GenerateEncryptionKey(const std::string_view& documentId, unsigned char uValue[48], unsigned char oValue[48], unsigned char encryptionKey[32]) override;
+
+    PdfAuthResult Authenticate(const std::string_view& password, const std::string_view& documentId, unsigned char encryptionKey[32]) override;
 };
 
 }

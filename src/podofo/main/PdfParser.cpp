@@ -652,8 +652,8 @@ void PdfParser::ReadObjects(InputStreamDevice& device)
         }
 
         // Generate encryption keys
-        bool isAuthenticated = m_Encrypt->Authenticate(m_Password, this->getDocumentId());
-        if (!isAuthenticated)
+        auto result = m_Encrypt->Authenticate(m_Password, this->getDocumentId());
+        if (result == PdfAuthResult::Failed)
         {
             // authentication failed so we need a password from the user.
             // The user can set the password using PdfParser::SetPassword

@@ -320,14 +320,6 @@ void ssl::GetOpenSSLError(string& err)
 const EVP_CIPHER* ssl::Rc4()
 {
     ssl::Init();
-#if OPENSSL_VERSION_MAJOR >= 3
-    if (s_SSL.GetRc4() == nullptr)
-    {
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "OpenSSL RC4 legacy provider was not found. "
-            "Recompile OpenSSL or ensure OPENSSL_MODULES variable is correctly set to load "
-            "legacy providers (e.g. legacy.dll)");
-    }
-#endif // OPENSSL_VERSION_MAJOR >= 3
     return s_SSL.GetRc4();
 }
 

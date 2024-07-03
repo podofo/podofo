@@ -46,14 +46,14 @@ struct Paths
     }
 } s_init;
 
-TEST_CASE("testDefault")
+TEST_CASE("TestDefaultEncryption")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD);
     testAuthenticate(*encrypt);
     testEncrypt(*encrypt);
 }
 
-TEST_CASE("testRC4")
+TEST_CASE("TestRC4")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
         PdfEncryptAlgorithm::RC4V1,
@@ -63,7 +63,7 @@ TEST_CASE("testRC4")
     testEncrypt(*encrypt);
 }
 
-TEST_CASE("testRC4v2_40")
+TEST_CASE("TestRC4v2_40")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
         PdfEncryptAlgorithm::RC4V2,
@@ -73,7 +73,7 @@ TEST_CASE("testRC4v2_40")
     testEncrypt(*encrypt);
 }
 
-TEST_CASE("testRC4v2_56")
+TEST_CASE("TestRC4v2_56")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
         PdfEncryptAlgorithm::RC4V2,
@@ -83,7 +83,7 @@ TEST_CASE("testRC4v2_56")
     testEncrypt(*encrypt);
 }
 
-TEST_CASE("testRC4v2_80")
+TEST_CASE("TestRC4v2_80")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
         PdfEncryptAlgorithm::RC4V2,
@@ -93,7 +93,7 @@ TEST_CASE("testRC4v2_80")
     testEncrypt(*encrypt);
 }
 
-TEST_CASE("testRC4v2_96")
+TEST_CASE("TestRC4v2_96")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
         PdfEncryptAlgorithm::RC4V2,
@@ -103,7 +103,7 @@ TEST_CASE("testRC4v2_96")
     testEncrypt(*encrypt);
 }
 
-TEST_CASE("testRC4v2_128")
+TEST_CASE("TestRC4v2_128")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
         PdfEncryptAlgorithm::RC4V2,
@@ -113,7 +113,7 @@ TEST_CASE("testRC4v2_128")
     testEncrypt(*encrypt);
 }
 
-TEST_CASE("testAESV2")
+TEST_CASE("TestAESV2")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
         PdfEncryptAlgorithm::AESV2,
@@ -127,10 +127,10 @@ TEST_CASE("testAESV2")
 
 #ifdef PODOFO_HAVE_LIBIDN
 
-TEST_CASE("testAESV3")
+TEST_CASE("TestAESV3R5")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
-        PdfEncryptAlgorithm::AESV3,
+        PdfEncryptAlgorithm::AESV3R5,
         PdfKeyLength::L256);
 
     testAuthenticate(*encrypt);
@@ -155,55 +155,21 @@ TEST_CASE("testAESV3R6")
 
 TEST_CASE("testEnableAlgorithms")
 {
-    auto enabledAlgorithms = PdfEncrypt::GetEnabledEncryptionAlgorithms();
-
     // By default every algorithms should be enabled
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V1));
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V2));
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV2));
 #ifdef PODOFO_HAVE_LIBIDN
-    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3));
+    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3R5));
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3R6));
 #endif // PODOFO_HAVE_LIBIDN
 
     PdfEncryptAlgorithm testAlgorithms = PdfEncryptAlgorithm::AESV2;
     testAlgorithms |= PdfEncryptAlgorithm::RC4V1 | PdfEncryptAlgorithm::RC4V2;
 #ifdef PODOFO_HAVE_LIBIDN
-    testAlgorithms |= PdfEncryptAlgorithm::AESV3 | PdfEncryptAlgorithm::AESV3R6;;
+    testAlgorithms |= PdfEncryptAlgorithm::AESV3R5 | PdfEncryptAlgorithm::AESV3R6;;
 #endif // PODOFO_HAVE_LIBIDN
     REQUIRE(testAlgorithms == PdfEncrypt::GetEnabledEncryptionAlgorithms());
-
-    // Disable AES
-    PdfEncrypt::SetEnabledEncryptionAlgorithms(PdfEncryptAlgorithm::RC4V1 |
-        PdfEncryptAlgorithm::RC4V2);
-
-    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V1));
-    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V2));
-    REQUIRE(!PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV2));
-
-    REQUIRE((PdfEncryptAlgorithm::RC4V1 | PdfEncryptAlgorithm::RC4V2) ==
-        PdfEncrypt::GetEnabledEncryptionAlgorithms());
-
-    PdfObject object;
-    object.GetDictionary().AddKey("Filter", PdfName("Standard"));
-    object.GetDictionary().AddKey("V", static_cast<int64_t>(4L));
-    object.GetDictionary().AddKey("R", static_cast<int64_t>(4L));
-    object.GetDictionary().AddKey("P", static_cast<int64_t>(1L));
-    object.GetDictionary().AddKey("O", PdfString(""));
-    object.GetDictionary().AddKey("U", PdfString(""));
-
-    try
-    {
-        (void)PdfEncrypt::CreateFromObject(object);
-        REQUIRE(false);
-    }
-    catch (PdfError& error)
-    {
-        REQUIRE(error.GetCode() == PdfErrorCode::UnsupportedFilter);
-    }
-
-    // Restore default
-    PdfEncrypt::SetEnabledEncryptionAlgorithms(enabledAlgorithms);
 }
 
 TEST_CASE("testLoadEncrypedFilePdfParser")
@@ -297,11 +263,11 @@ void testAuthenticate(PdfEncrypt& encrypt)
     encrypt.GenerateEncryptionKey(documentId);
 
     INFO("authenticate using user password");
-    REQUIRE(encrypt.Authenticate(PDF_USER_PASSWORD, documentId));
+    REQUIRE(encrypt.Authenticate(PDF_USER_PASSWORD, documentId) == PdfAuthResult::User);
     INFO("authenticate using owner password");
-    REQUIRE(encrypt.Authenticate(PDF_OWNER_PASSWORD, documentId));
+    REQUIRE(encrypt.Authenticate(PDF_OWNER_PASSWORD, documentId) == PdfAuthResult::Owner);
     INFO("authenticate using wrong password");
-    REQUIRE(!encrypt.Authenticate("wrongpassword", documentId));
+    REQUIRE(encrypt.Authenticate("wrongpassword", documentId) == PdfAuthResult::Failed);
 }
 
 void testEncrypt(PdfEncrypt& encrypt)
