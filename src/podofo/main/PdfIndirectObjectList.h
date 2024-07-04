@@ -315,21 +315,27 @@ private:
      */
     void CollectGarbage();
 
-private:
-    void pushObject(const ObjectList::const_iterator& hintpos, ObjectList::node_type& node, PdfObject* obj);
+public:
+    /**
+     *  \returns whether can re-use free object numbers when creating new objects.
+     */
+    inline bool GetCanReuseObjectNumbers() const { return m_CanReuseObjectNumbers; }
 
-    std::unique_ptr<PdfObject> removeObject(const iterator& it, bool markAsFree);
-
-    void addNewObject(PdfObject* obj);
+    /** \returns a list of free references in this vector
+     */
+    inline const ReferenceList& GetFreeObjects() const { return m_FreeObjects; }
 
     /**
-     * \returns the next free object reference
+     * \returns a pointer to a PdfDocument that is the parent of this list.
+     * Might be nullptr if the vector has no parent.
      */
-    PdfReference getNextFreeObject();
+    inline PdfDocument* GetDocument() const { return m_Document; }
 
-    int32_t tryAddFreeObject(uint32_t objnum, uint32_t gennum);
-
-    void visitObject(const PdfObject& obj, std::unordered_set<PdfReference>& referencedObj);
+    /**
+     * \returns a reference to a PdfDocument that is the parent of this list.
+     * \remarks throws if the parent is nullptr
+     */
+    PdfDocument& MustGetDocument() const;
 
 public:
     /** Iterator pointing at the beginning of the vector
@@ -348,21 +354,27 @@ public:
 
     size_t size() const;
 
-public:
+private:
+    void pushObject(const ObjectList::const_iterator& hintpos, ObjectList::node_type& node, PdfObject* obj);
+
+    std::unique_ptr<PdfObject> removeObject(const iterator& it, bool markAsFree);
+
+    void addNewObject(PdfObject* obj);
+
+    /**
+     * \returns the next free object reference
+     */
+    PdfReference getNextFreeObject();
+
+    int32_t tryAddFreeObject(uint32_t objnum, uint32_t gennum);
+
+    void visitObject(const PdfObject& obj, std::unordered_set<PdfReference>& referencedObj);
+
     /** \returns a pointer to a PdfDocument that is the
      *           parent of this vector.
      *           Might be nullptr if the vector has no parent.
      */
-    inline PdfDocument& GetDocument() const { return *m_Document; }
-
-    /**
-     *  \returns whether can re-use free object numbers when creating new objects.
-     */
-    inline bool GetCanReuseObjectNumbers() const { return m_CanReuseObjectNumbers; }
-
-    /** \returns a list of free references in this vector
-     */
-    inline const ReferenceList& GetFreeObjects() const { return m_FreeObjects; }
+    inline PdfDocument& GetDocumentUnsafe() const { return *m_Document; }
 
 private:
     PdfDocument* m_Document;
