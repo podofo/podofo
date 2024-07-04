@@ -619,6 +619,8 @@ bool PdfEncrypt::CheckKey(const unsigned char key1[32], const unsigned char key2
     // Check whether the right password had been given
     bool success = true;
     unsigned keyLength = GetKeyLengthBytes();
+    if (keyLength > 32)
+        keyLength = 32;
     for (unsigned k = 0; success && k < keyLength; k++)
         success = success && (key1[k] == key2[k]);
 
@@ -716,6 +718,9 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     unsigned j;
     unsigned k;
     int rc;
+
+    if (keyLength > MD5_DIGEST_LENGTH)
+        keyLength = MD5_DIGEST_LENGTH;
 
     unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
     if (ctx == nullptr || (rc = EVP_DigestInit_ex(ctx.get(), ssl::MD5(), nullptr)) != 1)
@@ -836,6 +841,8 @@ void PdfEncryptMD5Base::CreateObjKey(unsigned char objkey[16], unsigned& pnKeyLe
     const unsigned g = static_cast<unsigned>(objref.GenerationNumber());
 
     unsigned keyLength = GetKeyLengthBytes();
+    if (keyLength > MD5_DIGEST_LENGTH)
+        keyLength = MD5_DIGEST_LENGTH;
     unsigned nkeylen = keyLength + 5;
     unsigned char nkey[MD5_DIGEST_LENGTH + 5 + 4];
     for (unsigned j = 0; j < keyLength; j++)
@@ -977,6 +984,8 @@ void PdfEncryptRC4::GenerateEncryptionKey(const string_view& documentId,
     PadPassword(GetOwnerPassword(), ownerpswd);
 
     unsigned keyLength = GetKeyLengthBytes();
+    if (keyLength > MD5_DIGEST_LENGTH)
+        keyLength = MD5_DIGEST_LENGTH;
 
     // Compute O value
     ComputeOwnerKey(userpswd, ownerpswd, keyLength, GetRevision(), false, GetRC4(), oValue);
@@ -996,6 +1005,8 @@ PdfAuthResult PdfEncryptRC4::Authenticate(const string_view& password, const str
     PadPassword(password, pswd);
 
     unsigned keyLength = GetKeyLengthBytes();
+    if (keyLength > MD5_DIGEST_LENGTH)
+        keyLength = MD5_DIGEST_LENGTH;
 
     // Check password: 1) as user password, 2) as owner password
     ComputeEncryptionKey(documentId, pswd, GetOValueRaw(), GetPValue(), keyLength, GetRevision(),
@@ -1191,6 +1202,8 @@ void PdfEncryptAESV2::GenerateEncryptionKey(const string_view& documentId,
     PadPassword(GetOwnerPassword(), ownerpswd);
 
     unsigned keyLength = GetKeyLengthBytes();
+    if (keyLength > MD5_DIGEST_LENGTH)
+        keyLength = MD5_DIGEST_LENGTH;
 
     // Compute O value
     ComputeOwnerKey(userpswd, ownerpswd, keyLength, GetRevision(), false, GetRC4(), oValue);
@@ -1209,6 +1222,8 @@ PdfAuthResult PdfEncryptAESV2::Authenticate(const string_view& password, const s
     PdfAuthResult ret = PdfAuthResult::Failed;
 
     unsigned keyLength = GetKeyLengthBytes();
+    if (keyLength > MD5_DIGEST_LENGTH)
+        keyLength = MD5_DIGEST_LENGTH;
 
     // Check password: 1) as user password, 2) as owner password
     unsigned char userKey[32];
@@ -1607,6 +1622,8 @@ void PdfEncryptAESV3::GenerateEncryptionKey(const string_view& documentId,
     preprocessPassword(GetOwnerPassword(), ownerpswd, ownerpswdLen);
 
     unsigned keyLength = GetKeyLengthBytes();
+    if (keyLength > 32)
+        keyLength = 32;
 
     // Compute encryption key
     computeEncryptionKey(keyLength, encryptionKey);
@@ -1732,7 +1749,10 @@ void PdfEncryptAESV3::Encrypt(const char* inStr, size_t inLen, const PdfReferenc
     (void)objref;
     size_t offset = CalculateStreamOffset();
     this->generateInitialVector((unsigned char*)outStr);
-    m_aes->Encrypt(GetEncryptionKey(), GetKeyLengthBytes(), (unsigned char*)outStr, (const unsigned char*)inStr, inLen, (unsigned char*)outStr + offset, outLen - offset);
+    unsigned keyLength = GetKeyLengthBytes();
+    if (keyLength > 32)
+        keyLength = 32;
+    m_aes->Encrypt(GetEncryptionKey(), keyLength, (unsigned char*)outStr, (const unsigned char*)inStr, inLen, (unsigned char*)outStr + offset, outLen - offset);
 }
 
 void PdfEncryptAESV3::Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
@@ -1747,7 +1767,10 @@ void PdfEncryptAESV3::Decrypt(const char* inStr, size_t inLen, const PdfReferenc
         return;
     }
 
-    m_aes->Decrypt(GetEncryptionKey(), GetKeyLengthBytes(), (const unsigned char*)inStr, (const unsigned char*)inStr + offset, inLen - offset, (unsigned char*)outStr, outLen);
+    unsigned keyLength = GetKeyLengthBytes();
+    if (keyLength > 32)
+        keyLength = 32;
+    m_aes->Decrypt(GetEncryptionKey(), keyLength, (const unsigned char*)inStr, (const unsigned char*)inStr + offset, inLen - offset, (unsigned char*)outStr, outLen);
 }
 
 // R5 Support added by P.Zent,
