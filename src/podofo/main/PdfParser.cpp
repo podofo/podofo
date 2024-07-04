@@ -450,7 +450,7 @@ void PdfParser::ReadXRefSubsection(InputStreamDevice& device, int64_t& firstObje
     if (objectCount < 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "ReadXRefSubsection: object count is negative");
 
-    m_entries.Enlarge(static_cast<uint64_t>(firstObject) + static_cast<uint64_t>(objectCount));
+    m_entries.Enlarge(firstObject + objectCount);
 
     // consume all whitespaces
     char ch;
