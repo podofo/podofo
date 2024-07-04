@@ -64,7 +64,7 @@ namespace PoDoFo
          *
          *  \param newSize new size of the vector. It's in64_t to detect possible overflows
          */
-        void Enlarge(int64_t newSize);
+        void Enlarge(uint64_t newSize);
         void Clear();
         PdfXRefEntry& operator[](unsigned index);
         const PdfXRefEntry& operator[](unsigned index) const;

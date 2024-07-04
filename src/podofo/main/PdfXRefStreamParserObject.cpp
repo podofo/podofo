@@ -115,16 +115,16 @@ void PdfXRefStreamParserObject::parseStream(const int64_t wArray[W_ARRAY_SIZE], 
     size_t offset = 0;
     while (it != indices.end())
     {
-        int64_t firstObj = *it++;
-        int64_t count = *it++;
+        uint64_t firstObj = static_cast<uint64_t>(*it++);
+        uint64_t count = static_cast<uint64_t>(*it++);
 
         if ((offset + count * entryLen) > buffer.size())
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRefStream, "Invalid count in XRef stream");
 
         m_entries->Enlarge(firstObj + count);
-        for (unsigned index = 0; index < (unsigned)count; index++)
+        for (unsigned index = 0; index < count; index++)
         {
-            unsigned objIndex = (unsigned)firstObj + index;
+            auto objIndex = firstObj + index;
             auto& entry = (*m_entries)[objIndex];
             if (objIndex < m_entries->GetSize() && !entry.Parsed)
                 readXRefStreamEntry(entry, buffer.data() + offset, wArray);
