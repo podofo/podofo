@@ -8,6 +8,7 @@
 #include "PdfParser.h"
 
 #include <algorithm>
+#include <numerics/checked_math.h>
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
@@ -29,6 +30,7 @@ constexpr unsigned MAX_XREF_SESSION_COUNT = 512;
 
 using namespace std;
 using namespace PoDoFo;
+using namespace chromium::base::internal;
 
 static bool CheckEOL(char e1, char e2);
 static bool CheckXRefEntryType(char c);
@@ -446,11 +448,17 @@ void PdfParser::ReadXRefSubsection(InputStreamDevice& device, int64_t& firstObje
 #endif // PODOFO_VERBOSE_DEBUG 
 
     if (firstObject < 0)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "ReadXRefSubsection: first object is negative");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef, "ReadXRefSubsection: First object is negative");
     if (objectCount < 0)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "ReadXRefSubsection: object count is negative");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef, "ReadXRefSubsection: Object count is negative");
 
-    m_entries.Enlarge((uint64_t)(firstObject + objectCount));
+    CheckedNumeric first((uint64_t)firstObject);
+    CheckedNumeric count((uint64_t)objectCount);
+    unsigned newSize;
+    if (!(first + count).AssignIfValid(&newSize))
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "ReadXRefSubsection: Object count has reached maximum allowed size");
+
+    m_entries.Enlarge(newSize);
 
     // consume all whitespaces
     char ch;

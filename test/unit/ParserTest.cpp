@@ -512,9 +512,7 @@ void testReadXRefSubsection()
         }
         catch (PdfError& error)
         {
-            // too many indirect objects in Trailer /Size key throws PdfErrorCode::ValueOutOfRange
-            // but too many indirect objects in xref table throws PdfErrorCode::InvalidXRef
-            REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
+            REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
         }
         catch (exception&)
         {
@@ -569,7 +567,7 @@ void testReadXRefSubsection()
         catch (PdfError& error)
         {
             if (maxObjects >= (size_t)PdfParser::GetMaxObjectCount())
-                REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
+                REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
             else
                 REQUIRE(error.GetCode() == PdfErrorCode::OutOfMemory);
         }
@@ -611,7 +609,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE((error.GetCode() == PdfErrorCode::ValueOutOfRange || error.GetCode() == PdfErrorCode::NoXRef));
+        REQUIRE((error.GetCode() == PdfErrorCode::InvalidXRef || error.GetCode() == PdfErrorCode::NoXRef));
     }
     catch (exception&)
     {
@@ -650,7 +648,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
     }
     catch (exception&)
     {
@@ -696,7 +694,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
     catch (exception&)
     {
@@ -736,7 +734,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
     catch (exception&)
     {
@@ -759,7 +757,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
     }
     catch (exception&)
     {
@@ -799,9 +797,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        // weird: different errors returned depending on architecture 
-        REQUIRE((error.GetCode() == PdfErrorCode::ValueOutOfRange || sizeof(size_t) == 4));
-        REQUIRE((error.GetCode() == PdfErrorCode::InvalidXRef || sizeof(size_t) == 8));
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
     catch (exception&)
     {
@@ -822,7 +818,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
     }
     catch (exception&)
     {
@@ -842,7 +838,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
     catch (exception&)
     {
@@ -862,7 +858,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
     catch (exception&)
     {
@@ -882,7 +878,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
     catch (exception&)
     {
@@ -906,7 +902,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
     }
     catch (exception&)
     {
@@ -946,9 +942,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        // weird: different errors returned depending on architecture 
-        REQUIRE((error.GetCode() == PdfErrorCode::ValueOutOfRange || sizeof(size_t) == 4));
-        REQUIRE((error.GetCode() == PdfErrorCode::InvalidXRef || sizeof(size_t) == 8));
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
     catch (exception&)
     {
@@ -968,7 +962,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
     }
     catch (exception&)
     {

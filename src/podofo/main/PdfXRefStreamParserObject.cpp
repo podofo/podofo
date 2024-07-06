@@ -7,6 +7,8 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfXRefStreamParserObject.h"
 
+#include <numerics/checked_math.h>
+
 #include "PdfParser.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
@@ -15,6 +17,7 @@
 
 using namespace std;
 using namespace PoDoFo;
+using namespace chromium::base::internal;
 
 PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfDocument& doc, InputStreamDevice& device, PdfXRefEntries& entries)
     : PdfXRefStreamParserObject(&doc, device, entries) { }
@@ -115,16 +118,27 @@ void PdfXRefStreamParserObject::parseStream(const int64_t wArray[W_ARRAY_SIZE], 
     size_t offset = 0;
     while (it != indices.end())
     {
-        int64_t firstObj = *it++;
-        int64_t count = *it++;
+        int64_t firstObject = *it++;
+        int64_t objectCount = *it++;
 
-        if ((offset + count * entryLen) > buffer.size())
+        if (firstObject < 0)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRefStream, "PdfXRefStreamParserObject: First object is negative");
+        if (objectCount < 0)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRefStream, "PdfXRefStreamParserObject: Object count is negative");
+
+        if ((offset + (size_t)objectCount * entryLen) > buffer.size())
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRefStream, "Invalid count in XRef stream");
 
-        m_entries->Enlarge(firstObj + count);
-        for (unsigned index = 0; index < (unsigned)count; index++)
+        CheckedNumeric first((uint64_t)firstObject);
+        CheckedNumeric count((uint64_t)objectCount);
+        unsigned newSize;
+        if (!(first + count).AssignIfValid(&newSize))
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "PdfXRefStreamParserObject: Object count has reached maximum allowed size");
+
+        m_entries->Enlarge(newSize);
+        for (unsigned index = 0; index < (unsigned)objectCount; index++)
         {
-            unsigned objIndex = (unsigned)firstObj + index;
+            unsigned objIndex = (unsigned)firstObject + index;
             auto& entry = (*m_entries)[objIndex];
             if (objIndex < m_entries->GetSize() && !entry.Parsed)
                 readXRefStreamEntry(entry, buffer.data() + offset, wArray);

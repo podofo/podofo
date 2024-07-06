@@ -77,14 +77,11 @@ unsigned PdfXRefEntries::GetSize() const
     return (unsigned)m_entries.size();
 }
 
-void PdfXRefEntries::Enlarge(int64_t newSize)
+void PdfXRefEntries::Enlarge(unsigned newSize)
 {
-    if (newSize < 0)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "New size must be positive");
-
     // allow caller to specify a max object count to avoid very slow load times on large documents
-    if (newSize > (int64_t)PdfParser::GetMaxObjectCount())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef, "New size is greater than max pdf object count");
+    if (newSize > PdfParser::GetMaxObjectCount())
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "New size is greater than max pdf object count");
 
     if (m_entries.size() >= (size_t)newSize)
         return;
