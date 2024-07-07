@@ -9,7 +9,8 @@
 
 #include <numerics/checked_math.h>
 
-#include "PdfParser.h"
+#include <podofo/private/PdfParser.h>
+
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfObjectStream.h"
@@ -213,19 +214,19 @@ void PdfXRefStreamParserObject::readXRefStreamEntry(PdfXRefEntry& entry, char* b
             // a free object
             entry.ObjectNumber = entryRaw[1];
             entry.Generation = (uint32_t)entryRaw[2];
-            entry.Type = XRefEntryType::Free;
+            entry.Type = PdfXRefEntryType::Free;
             break;
         case 1:
             // normal uncompressed object
             entry.Offset = entryRaw[1];
             entry.Generation = (uint32_t)entryRaw[2];
-            entry.Type = XRefEntryType::InUse;
+            entry.Type = PdfXRefEntryType::InUse;
             break;
         case 2:
             // object that is part of an object stream
             entry.ObjectNumber = entryRaw[1]; // object number of the stream
             entry.Index = (uint32_t)entryRaw[2]; // index in the object stream
-            entry.Type = XRefEntryType::Compressed;
+            entry.Type = PdfXRefEntryType::Compressed;
             break;
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRefType);

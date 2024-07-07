@@ -317,6 +317,34 @@ string PoDoFo::ExtractFontHints(const string_view& fontName, bool& isItalic, boo
     return extractFontHints(fontName, true, isItalic, isBold);
 }
 
+char PoDoFo::XRefEntryTypeToChar(PdfXRefEntryType type)
+{
+    switch (type)
+    {
+        case PdfXRefEntryType::Free:
+            return 'f';
+        case PdfXRefEntryType::InUse:
+            return 'n';
+        case PdfXRefEntryType::Unknown:
+        case PdfXRefEntryType::Compressed:
+        default:
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+}
+
+PdfXRefEntryType PoDoFo::XRefEntryTypeFromChar(char c)
+{
+    switch (c)
+    {
+        case 'f':
+            return PdfXRefEntryType::Free;
+        case 'n':
+            return PdfXRefEntryType::InUse;
+        default:
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRef);
+    }
+}
+
 // NOTE: This function is condsidered to be slow. Avoid calling it frequently
 // https://github.com/podofo/podofo/issues/30
 string extractFontHints(const string_view& fontName, bool trimSubsetPrefix, bool& isItalic, bool& isBold)

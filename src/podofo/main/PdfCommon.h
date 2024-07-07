@@ -36,6 +36,9 @@ public:
     /** The if the given logging severity enabled or not
      */
     static bool IsLoggingSeverityEnabled(PdfLogSeverity logSeverity);
+
+    static unsigned GetMaxObjectCount();
+    static void SetMaxObjectCount(unsigned maxObjectCount);
 };
 
 }

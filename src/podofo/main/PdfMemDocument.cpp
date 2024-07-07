@@ -9,8 +9,8 @@
 
 #include <podofo/auxiliary/StreamDevice.h>
 #include <podofo/private/PdfWriter.h>
+#include <podofo/private/PdfParser.h>
 
-#include "PdfParser.h"
 #include "PdfCommon.h"
 
 using namespace std;

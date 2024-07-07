@@ -7,11 +7,10 @@
 #ifndef PDF_PARSER_H
 #define PDF_PARSER_H
 
-#include "PdfDeclarations.h"
-#include "PdfParserObject.h"
-#include "PdfXRefEntry.h"
-#include "PdfIndirectObjectList.h"
-#include "PdfTokenizer.h"
+#include <podofo/main/PdfParserObject.h>
+#include <podofo/main/PdfXRefEntry.h>
+#include <podofo/main/PdfIndirectObjectList.h>
+#include <podofo/main/PdfTokenizer.h>
 
 namespace PoDoFo {
 
@@ -23,9 +22,9 @@ class PdfEncrypt;
  * the PdfWriter class.
  * Most PDF features are supported
  */
-class PODOFO_API PdfParser
+class PdfParser
 {
-    PODOFO_UNIT_TEST(PdfParserTest);
+    friend class PdfParserTest;
     friend class PdfDocument;
     friend class PdfWriter;
 
@@ -66,10 +65,6 @@ public:
     bool IsEncrypted() const;
 
     const PdfObject& GetTrailer() const;
-
-public:
-    static unsigned GetMaxObjectCount();
-    static void SetMaxObjectCount(unsigned maxObjectCount);
 
 public:
     /** If you try to open an encrypted PDF file, which requires

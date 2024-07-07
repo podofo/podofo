@@ -4,23 +4,21 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#include <podofo/private/PdfDeclarationsPrivate.h>
+#include "PdfDeclarationsPrivate.h"
 #include "PdfParser.h"
 
 #include <algorithm>
 #include <numerics/checked_math.h>
 
-#include "PdfArray.h"
-#include "PdfDictionary.h"
-#include "PdfEncrypt.h"
-#include <podofo/auxiliary/InputDevice.h>
-#include "PdfMemoryObjectStream.h"
 #include <podofo/auxiliary/OutputDevice.h>
-#include "PdfObjectStream.h"
-#include "PdfVariant.h"
-#include "PdfXRefStreamParserObject.h"
+#include <podofo/auxiliary/InputDevice.h>
 
-#include <podofo/private/PdfObjectStreamParser.h>
+#include <podofo/main/PdfArray.h>
+#include <podofo/main/PdfDictionary.h>
+#include <podofo/main/PdfEncrypt.h>
+#include <podofo/main/PdfMemoryObjectStream.h>
+#include <podofo/main/PdfXRefStreamParserObject.h>
+#include "PdfObjectStreamParser.h"
 
 constexpr unsigned PDF_VERSION_LENGHT = 3;
 constexpr unsigned PDF_MAGIC_LENGHT = 8;
@@ -35,8 +33,6 @@ using namespace chromium::base::internal;
 static bool CheckEOL(char e1, char e2);
 static bool CheckXRefEntryType(char c);
 static bool ReadMagicWord(char ch, unsigned& cursoridx);
-
-static unsigned s_MaxObjectCount = (1U << 23) - 1;
 
 PdfParser::PdfParser(PdfIndirectObjectList& objects) :
     m_buffer(std::make_shared<charbuff>(PdfTokenizer::BufferSize)),
@@ -495,7 +491,7 @@ void PdfParser::ReadXRefSubsection(InputStreamDevice& device, int64_t& firstObje
             if (!CheckXRefEntryType(chType))
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef, "Invalid used keyword, must be either 'n' or 'f'");
 
-            XRefEntryType type = XRefEntryTypeFromChar(chType);
+            PdfXRefEntryType type = XRefEntryTypeFromChar(chType);
 
             if (read != 5 || !CheckEOL(empty1, empty2))
             {
@@ -505,13 +501,13 @@ void PdfParser::ReadXRefSubsection(InputStreamDevice& device, int64_t& firstObje
 
             switch (type)
             {
-                case XRefEntryType::Free:
+                case PdfXRefEntryType::Free:
                 {
                     // The variant is the number of the next free object
                     entry.ObjectNumber = variant;
                     break;
                 }
-                case XRefEntryType::InUse:
+                case PdfXRefEntryType::InUse:
                 {
                     // Support also files with whitespace offset before magic start
                     variant += (uint64_t)m_magicOffset;
@@ -690,7 +686,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
         {
             switch (entry.Type)
             {
-                case XRefEntryType::InUse:
+                case PdfXRefEntryType::InUse:
                 {
                     if (entry.Offset > 0)
                     {
@@ -754,7 +750,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                     }
                     break;
                 }
-                case XRefEntryType::Free:
+                case PdfXRefEntryType::Free:
                 {
                     // NOTE: We don't need entry.ObjectNumber, which is supposed to be
                     // the entry of the next free object
@@ -763,7 +759,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
 
                     break;
                 }
-                case XRefEntryType::Compressed:
+                case PdfXRefEntryType::Compressed:
                     compressedObjects[entry.ObjectNumber].push_back(i);
                     break;
                 default:
@@ -959,16 +955,6 @@ const PdfObject& PdfParser::GetTrailer() const
 bool PdfParser::IsEncrypted() const
 {
     return m_Encrypt != nullptr;
-}
-
-unsigned PdfParser::GetMaxObjectCount()
-{
-    return s_MaxObjectCount;
-}
-
-void PdfParser::SetMaxObjectCount(unsigned maxObjectCount)
-{
-    s_MaxObjectCount = maxObjectCount;
 }
 
 // Read magic word keeping cursor

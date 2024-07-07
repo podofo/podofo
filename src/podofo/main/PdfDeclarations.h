@@ -789,6 +789,15 @@ enum class PdfHashingAlgorithm
     SHA512,
 };
 
+// Values cast directly to XRefStm binary representation
+enum class PdfXRefEntryType : int8_t
+{
+    Unknown = -1,
+    Free = 0,
+    InUse = 1,
+    Compressed = 2,
+};
+
 // NOTE: This may change in the future
 using Matrix2D = std::array<double, 6>;
 

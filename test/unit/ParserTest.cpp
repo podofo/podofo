@@ -19,10 +19,10 @@
 */
 
 #include <limits>
-
 #include <sstream>
 
 #include <PdfTest.h>
+#include <podofo/private/PdfParser.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -107,17 +107,17 @@ TEST_CASE("TestRemoveStream")
 
 TEST_CASE("TestMaxObjectCount")
 {
-    PdfParser::SetMaxObjectCount(numeric_limits<unsigned short>::max());
+    PdfCommon::SetMaxObjectCount(numeric_limits<unsigned short>::max());
     testReadXRefSubsection();
 
-    PdfParser::SetMaxObjectCount(maxNumberOfIndirectObjects);
+    PdfCommon::SetMaxObjectCount(maxNumberOfIndirectObjects);
     testReadXRefSubsection();
 }
 
 // NOTE: This test is too long to be normally done on every run
 TEST_CASE("TestMaxObjectCount2", "[.]")
 {
-    PdfParser::SetMaxObjectCount(numeric_limits<unsigned>::max());
+    PdfCommon::SetMaxObjectCount(numeric_limits<unsigned>::max());
     testReadXRefSubsection();
 }
 
@@ -466,15 +466,15 @@ void testReadXRefSubsection()
     // check PoDoFo throws PdfError and not anything derived from exception
     // check PoDoFo can't allocate unrestricted amounts of memory
 
-    if (PdfParser::GetMaxObjectCount() <= maxNumberOfIndirectObjects)
+    if (PdfCommon::GetMaxObjectCount() <= maxNumberOfIndirectObjects)
     {
         try
         {
-            string strInput = generateXRefEntries(PdfParser::GetMaxObjectCount());
+            string strInput = generateXRefEntries(PdfCommon::GetMaxObjectCount());
             PdfIndirectObjectList objects;
             PdfParserTest parser(objects, strInput);
             firstObject = 0;
-            objectCount = PdfParser::GetMaxObjectCount();
+            objectCount = PdfCommon::GetMaxObjectCount();
             parser.ReadXRefSubsection(firstObject, objectCount);
             // expected to succeed
         }
@@ -489,16 +489,16 @@ void testReadXRefSubsection()
     }
     else
     {
-        // test has been called from testMaxObjectCount with PdfParser::SetMaxObjectCount()
+        // test has been called from testMaxObjectCount with PdfCommon::SetMaxObjectCount()
         // set to a large value (large allocs are tested in address space tests below)
     }
 
-    // don't run the following test if PdfParser::GetMaxObjectCount()+1 will overflow
+    // don't run the following test if PdfCommon::GetMaxObjectCount()+1 will overflow
     // in the numXRefEntries calculation below (otherwise we get an ASAN error)
-    if (PdfParser::GetMaxObjectCount() < numeric_limits<unsigned>::max())
+    if (PdfCommon::GetMaxObjectCount() < numeric_limits<unsigned>::max())
     {
         // don't generate xrefs for high values of GetMaxObjectCount() e.g. don't try to generate 2**63 xrefs
-        unsigned numXRefEntries = std::min(maxNumberOfIndirectObjects + 1, PdfParser::GetMaxObjectCount() + 1);
+        unsigned numXRefEntries = std::min(maxNumberOfIndirectObjects + 1, PdfCommon::GetMaxObjectCount() + 1);
 
         try
         {
@@ -506,7 +506,7 @@ void testReadXRefSubsection()
             PdfIndirectObjectList objects;
             PdfParserTest parser(objects, strInput);
             firstObject = 0;
-            objectCount = (int64_t)PdfParser::GetMaxObjectCount() + 1;
+            objectCount = (int64_t)PdfCommon::GetMaxObjectCount() + 1;
             parser.ReadXRefSubsection(firstObject, objectCount);
             FAIL("PdfError not thrown");
         }
@@ -538,7 +538,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        // if objectCount > PdfParser::GetMaxObjectCount() then we'll see PdfErrorCode::InvalidXRef
+        // if objectCount > PdfCommon::GetMaxObjectCount() then we'll see PdfErrorCode::InvalidXRef
         // otherwise we'll see PdfErrorCode::ValueOutOfRange or PdfErrorCode::OutOfMemory (see testMaxObjectCount)
         REQUIRE((error.GetCode() == PdfErrorCode::InvalidXRef
             || error.GetCode() == PdfErrorCode::ValueOutOfRange
@@ -566,7 +566,7 @@ void testReadXRefSubsection()
         }
         catch (PdfError& error)
         {
-            if (maxObjects >= (size_t)PdfParser::GetMaxObjectCount())
+            if (maxObjects >= (size_t)PdfCommon::GetMaxObjectCount())
                 REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
             else
                 REQUIRE(error.GetCode() == PdfErrorCode::OutOfMemory);
@@ -678,7 +678,7 @@ void testReadXRefSubsection()
     // wrong buffer size to be calculated and then triggered buffer overflow (CVE-2017-6844)   
     // the overflow checks in ReadXRefSubsection depend on the value returned by GetMaxObjectCount
     // if the value changes these checks need looked at again
-    REQUIRE(PdfParser::GetMaxObjectCount() <= numeric_limits<unsigned>::max());
+    REQUIRE(PdfCommon::GetMaxObjectCount() <= numeric_limits<unsigned>::max());
 
     // test CVE-2017-5853 signed integer overflow in firstObject + objectCount
     // CVE-2017-5853 1.1 - firstObject < 0
@@ -804,14 +804,14 @@ void testReadXRefSubsection()
         FAIL("Wrong exception type");
     }
 
-    // CVE-2017-5853 1.8 - firstObject = PdfParser::GetMaxObjectCount()
+    // CVE-2017-5853 1.8 - firstObject = PdfCommon::GetMaxObjectCount()
     try
     {
         string strInput = " ";
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, strInput);
-        REQUIRE(PdfParser::GetMaxObjectCount() > 0);
-        firstObject = PdfParser::GetMaxObjectCount();
+        REQUIRE(PdfCommon::GetMaxObjectCount() > 0);
+        firstObject = PdfCommon::GetMaxObjectCount();
         objectCount = 1;
         parser.ReadXRefSubsection(firstObject, objectCount);
         FAIL("PdfError not thrown");
@@ -949,14 +949,14 @@ void testReadXRefSubsection()
         FAIL("Wrong exception type");
     }
 
-    // CVE-2017-5853 2.8 - objectCount = PdfParser::GetMaxObjectCount()
+    // CVE-2017-5853 2.8 - objectCount = PdfCommon::GetMaxObjectCount()
     try
     {
         string strInput = " ";
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, strInput);
         firstObject = 1;
-        objectCount = PdfParser::GetMaxObjectCount();
+        objectCount = PdfCommon::GetMaxObjectCount();
         parser.ReadXRefSubsection(firstObject, objectCount);
         FAIL("PdfError not thrown");
     }
@@ -2834,7 +2834,7 @@ size_t getStackOverflowDepth()
     // overflowDepth must be less than GetMaxObjectCount otherwise PdfParser::ResizeOffsets
     // throws an error when reading the xref offsets table, and no recursive calls are made
     // must also be allocate less than half of address space to prevent out-of-memory exceptions
-    REQUIRE(overflowDepth < PdfParser::GetMaxObjectCount());
+    REQUIRE(overflowDepth < PdfCommon::GetMaxObjectCount());
     REQUIRE(overflowDepth * parserObjectSize < numeric_limits<size_t>::max() / 2);
 
     return overflowDepth;

@@ -265,12 +265,12 @@ void PdfXRef::WriteXRefEntry(OutputStreamDevice& device, const PdfReference& ref
     uint64_t variant;
     switch (entry.Type)
     {
-        case XRefEntryType::Free:
+        case PdfXRefEntryType::Free:
         {
             variant = entry.ObjectNumber;
             break;
         }
-        case XRefEntryType::InUse:
+        case PdfXRefEntryType::InUse:
         {
             variant = entry.Offset;
             break;

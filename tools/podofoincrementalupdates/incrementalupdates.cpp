@@ -8,6 +8,8 @@
 #include <cstdlib>
 #include <cstdio>
 
+#include <podofo/private/PdfParser.h>
+
 using namespace std;
 using namespace PoDoFo;
 

@@ -6,14 +6,15 @@
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfXRefEntry.h"
-#include "PdfParser.h"
+
+#include "PdfCommon.h"
 
 using namespace PoDoFo;
 
 PdfXRefEntry::PdfXRefEntry() :
     Unknown1(0),
     Unknown2(0),
-    Type(XRefEntryType::Unknown),
+    Type(PdfXRefEntryType::Unknown),
     Parsed(false)
 { }
 
@@ -22,7 +23,7 @@ PdfXRefEntry PdfXRefEntry::CreateFree(uint32_t object, uint16_t generation)
     PdfXRefEntry ret;
     ret.ObjectNumber = object;
     ret.Generation = generation;
-    ret.Type = XRefEntryType::Free;
+    ret.Type = PdfXRefEntryType::Free;
     return ret;
 }
 
@@ -31,7 +32,7 @@ PdfXRefEntry PdfXRefEntry::CreateInUse(uint64_t offset, uint16_t generation)
     PdfXRefEntry ret;
     ret.Offset = offset;
     ret.Generation = generation;
-    ret.Type = XRefEntryType::InUse;
+    ret.Type = PdfXRefEntryType::InUse;
     return ret;
 }
 
@@ -40,36 +41,8 @@ PdfXRefEntry PdfXRefEntry::CreateCompressed(uint32_t object, unsigned index)
     PdfXRefEntry ret;
     ret.ObjectNumber = object;
     ret.Index = index;
-    ret.Type = XRefEntryType::Compressed;
+    ret.Type = PdfXRefEntryType::Compressed;
     return ret;
-}
-
-char PoDoFo::XRefEntryTypeToChar(XRefEntryType type)
-{
-    switch (type)
-    {
-        case XRefEntryType::Free:
-            return 'f';
-        case XRefEntryType::InUse:
-            return 'n';
-        case XRefEntryType::Unknown:
-        case XRefEntryType::Compressed:
-        default:
-            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
-    }
-}
-
-XRefEntryType PoDoFo::XRefEntryTypeFromChar(char c)
-{
-    switch (c)
-    {
-        case 'f':
-            return XRefEntryType::Free;
-        case 'n':
-            return XRefEntryType::InUse;
-        default:
-            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRef);
-    }
 }
 
 unsigned PdfXRefEntries::GetSize() const
@@ -80,7 +53,7 @@ unsigned PdfXRefEntries::GetSize() const
 void PdfXRefEntries::Enlarge(unsigned newSize)
 {
     // allow caller to specify a max object count to avoid very slow load times on large documents
-    if (newSize > PdfParser::GetMaxObjectCount())
+    if (newSize > PdfCommon::GetMaxObjectCount())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "New size is greater than max pdf object count");
 
     if (m_entries.size() >= (size_t)newSize)

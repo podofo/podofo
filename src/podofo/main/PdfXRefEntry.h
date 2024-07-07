@@ -12,15 +12,6 @@
 
 namespace PoDoFo
 {
-    // Values cast directly to XRefStm binary representation
-    enum class XRefEntryType : int8_t
-    {
-        Unknown = -1,
-        Free = 0,
-        InUse = 1,
-        Compressed = 2,
-    };
-
     struct PODOFO_API PdfXRefEntry final
     {
         PdfXRefEntry();
@@ -46,12 +37,9 @@ namespace PoDoFo
             uint32_t Index;         // Index of the object in the stream for Compressed entries
             uint32_t Unknown2;
         };
-        XRefEntryType Type;
+        PdfXRefEntryType Type;
         bool Parsed;
     };
-
-    char XRefEntryTypeToChar(XRefEntryType type);
-    XRefEntryType XRefEntryTypeFromChar(char c);
 
     class PODOFO_API PdfXRefEntries final
     {

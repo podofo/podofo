@@ -65,10 +65,10 @@ void PdfXRefStream::WriteXRefEntry(OutputStreamDevice& device, const PdfReferenc
 
     switch (entry.Type)
     {
-        case XRefEntryType::Free:
+        case PdfXRefEntryType::Free:
             stmEntry.Variant = AS_BIG_ENDIAN(static_cast<uint32_t>(entry.ObjectNumber));
             break;
-        case XRefEntryType::InUse:
+        case PdfXRefEntryType::InUse:
             stmEntry.Variant = AS_BIG_ENDIAN(static_cast<uint32_t>(entry.Offset));
             break;
         default:

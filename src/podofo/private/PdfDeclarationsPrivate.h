@@ -177,6 +177,9 @@ namespace PoDoFo
     {
         LogMessage(logSeverity, COMMON_FORMAT(msg, args...));
     }
+
+    char XRefEntryTypeToChar(PdfXRefEntryType type);
+    PdfXRefEntryType XRefEntryTypeFromChar(char c);
 }
 
 /**

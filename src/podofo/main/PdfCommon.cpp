@@ -22,6 +22,8 @@ PODOFO_EXPORT LogMessageCallback s_LogMessageCallback;
 
 PODOFO_EXPORT ssl::OpenSSLMain s_SSL;
 
+static unsigned s_MaxObjectCount = (1U << 23) - 1;
+
 void ssl::Init()
 {
     // Initialize the OpenSSL singleton
@@ -57,4 +59,14 @@ PdfLogSeverity PdfCommon::GetMaxLoggingSeverity()
 bool PdfCommon::IsLoggingSeverityEnabled(PdfLogSeverity logSeverity)
 {
     return logSeverity <= s_MaxLogSeverity;
+}
+
+unsigned PdfCommon::GetMaxObjectCount()
+{
+    return s_MaxObjectCount;
+}
+
+void PdfCommon::SetMaxObjectCount(unsigned maxObjectCount)
+{
+    s_MaxObjectCount = maxObjectCount;
 }
