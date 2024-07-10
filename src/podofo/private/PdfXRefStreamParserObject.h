@@ -27,7 +27,7 @@ class PdfXRefStreamParserObject final : public PdfParserObject
     friend class PdfParser;
 
     static constexpr unsigned W_ARRAY_SIZE = 3;
-    static constexpr unsigned W_MAX_BYTES = 4;
+    static constexpr unsigned W_MAX_BYTES = 8;
 
 private:
     /** Parse the object data from the given file handle starting at
