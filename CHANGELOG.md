@@ -5,6 +5,7 @@
 - Reviewed PdfFileSpec, PdfAction, PdfDestination API and their usage in
 PdfOutlineItem, PdfOutlines, PdfAnnotationActionBase, PdfAnnotationLink PdfAnnotationFileAttachment
 - Reviewed PdfNameTree
+- PdfDocument: Added GetFieldsIterator()
 
 ## Version 0.10.3
 - Fixed big performance regression introduced in 0.10, see #108

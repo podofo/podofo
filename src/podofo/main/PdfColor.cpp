@@ -7,16 +7,7 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfColor.h"
 
-#include <algorithm>
-#include <cctype>
-
-#include "PdfDocument.h"
-#include "PdfArray.h"
-#include "PdfDictionary.h"
-#include "PdfObjectStream.h"
 #include "PdfTokenizer.h"
-#include "PdfVariant.h"
-#include <podofo/auxiliary/InputDevice.h>
 #include <podofo/auxiliary/StreamDevice.h>
 
 using namespace std;

@@ -45,13 +45,13 @@ namespace PoDoFo
     public:
         using FieldList = std::vector<std::shared_ptr<PdfField>>;
 
-        template <typename TObject, typename TListIterator>
+        template <typename TField, typename TListIterator>
         class Iterator final
         {
             friend class PdfFieldChildrenCollectionBase;
         public:
             using difference_type = void;
-            using value_type = TObject*;
+            using value_type = TField*;
             using pointer = void;
             using reference = void;
             using iterator_category = std::forward_iterator_tag;
@@ -74,6 +74,12 @@ namespace PoDoFo
             {
                 m_iterator++;
                 return *this;
+            }
+            Iterator operator++(int)
+            {
+                auto copy = *this;
+                m_iterator++;
+                return copy;
             }
             value_type operator*()
             {

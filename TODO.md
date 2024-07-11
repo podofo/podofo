@@ -20,10 +20,10 @@
 - Evaluate removing PdfObject::Null and PdfVariant::Null and introduce nullptr_t constructor overloads
 - PdfCanvas: Add CopyTo facilities, see PdfContents
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
-- PdfPage: Add GetFields() iteration
 - PdfDocument: Add GetAnnotationFields()/GetAllFields() iteration
 - Review PdfPage::SetICCProfile(), PdfImage::SetICCProfile()
 - PdfErrorCode: Check all values
+- PdfField: Make PdfFieldChildrenCollectionBase m_Children a unique_ptr, and lazy load that
 - Review PdfPageCollection::AppendDocumentPages(),
   PdfPageCollection::InsertDocumentPageAt(), PdfPage::MoveAt() (???)
 #### Features

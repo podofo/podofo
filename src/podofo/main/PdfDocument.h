@@ -27,6 +27,66 @@ class PdfAction;
 class PdfDestination;
 class PdfFileSpec;
 class PdfEncrypt;
+class PdfDocument;
+
+template <typename TField>
+class PdfDocumentFieldIterableBase final
+{
+    friend class PdfDocument;
+
+public:
+    PdfDocumentFieldIterableBase();
+
+private:
+    PdfDocumentFieldIterableBase(PdfDocument& doc);
+
+public:
+    class Iterator final
+    {
+        friend class PdfDocumentFieldIterableBase;
+    public:
+        using difference_type = void;
+        using value_type = TField*;
+        using pointer = void;
+        using reference = void;
+        using iterator_category = std::forward_iterator_tag;
+    public:
+        Iterator();
+    private:
+        Iterator(PdfDocument& doc);
+    public:
+        Iterator(const Iterator&) = default;
+        Iterator& operator=(const Iterator&) = default;
+        bool operator==(const Iterator& rhs) const;
+        bool operator!=(const Iterator& rhs) const;
+        Iterator& operator++();
+        Iterator operator++(int);
+        value_type operator*() { return m_Field; }
+        value_type operator->() { return m_Field; }
+    private:
+        void increment();
+        void stepIntoPageOrForm(PdfPageCollection& pages);
+        bool stepIntoPageAnnot(PdfAnnotationCollection& annots);
+        void stepIntoFormField(PdfAcroForm& form);
+    private:
+        PdfDocument* m_doc;
+        unsigned m_pageIndex;
+        PdfAnnotationCollection::iterator m_pageAnnotIterator;
+        PdfAcroForm::iterator m_acroFormIterator;
+        value_type m_Field;
+        std::unordered_set<PdfReference> m_visitedObjs;
+    };
+
+public:
+    Iterator begin() const;
+    Iterator end() const;
+
+private:
+    PdfDocument* m_doc;
+};
+
+using PdfDocumentFieldIterable = PdfDocumentFieldIterableBase<PdfField>;
+using PdfDocumentConstFieldIterable = PdfDocumentFieldIterableBase<const PdfField>;
 
 /** PdfDocument is the core interface for working with PDF documents.
  *
@@ -204,6 +264,14 @@ public:
     PdfOutlines& MustGetOutlines();
 
     const PdfOutlines& MustGetOutlines() const;
+
+    /**
+     * Get an iterator for all fields in the document. All annotion fields
+     * in the pages will be returned, plus non annotation fields in the /AcroForm
+     * (eg. invisibile signatures)
+     */
+    PdfDocumentFieldIterable GetFieldsIterator();
+    PdfDocumentConstFieldIterable GetFieldsIterator() const;
 
     /** Clear all internal structures and reset PdfDocument to an empty state.
       */
@@ -383,6 +451,188 @@ template<typename TAction>
 std::unique_ptr<TAction> PdfDocument::CreateAction()
 {
     return std::unique_ptr<TAction>(static_cast<TAction*>(createAction(typeid(TAction))));
+}
+
+template<typename TField>
+PdfDocumentFieldIterableBase<TField>::PdfDocumentFieldIterableBase()
+    : m_doc(nullptr)
+{
+}
+
+template<typename TField>
+PdfDocumentFieldIterableBase<TField>::PdfDocumentFieldIterableBase(PdfDocument& doc)
+    : m_doc(&doc)
+{
+}
+
+template<typename TField>
+typename PdfDocumentFieldIterableBase<TField>::Iterator PdfDocumentFieldIterableBase<TField>::begin() const
+{
+    if (m_doc == nullptr)
+        return Iterator();
+    else
+        return Iterator(*m_doc);
+}
+
+template<typename TField>
+typename PdfDocumentFieldIterableBase<TField>::Iterator PdfDocumentFieldIterableBase<TField>::end() const
+{
+    return Iterator();
+}
+
+template<typename TField>
+PdfDocumentFieldIterableBase<TField>::Iterator::Iterator()
+    : m_doc(nullptr), m_pageIndex(0), m_Field(nullptr)
+{
+}
+
+template<typename TField>
+PdfDocumentFieldIterableBase<TField>::Iterator::Iterator(PdfDocument& doc)
+    : m_doc(&doc), m_pageIndex(0), m_Field(nullptr)
+{
+    stepIntoPageOrForm(doc.GetPages());
+}
+
+template<typename TField>
+bool PdfDocumentFieldIterableBase<TField>::Iterator::operator==(const Iterator& rhs) const
+{
+    if (m_doc == nullptr && rhs.m_doc == nullptr)
+        return true;
+
+    return m_doc == rhs.m_doc && m_pageIndex == rhs.m_pageIndex && m_pageAnnotIterator == rhs.m_pageAnnotIterator && m_acroFormIterator == rhs.m_acroFormIterator;
+}
+
+template<typename TField>
+bool PdfDocumentFieldIterableBase<TField>::Iterator::operator!=(const Iterator& rhs) const
+{
+    if (m_doc == nullptr && rhs.m_doc == nullptr)
+        return false;
+
+    return m_doc != rhs.m_doc || m_pageIndex != rhs.m_pageIndex || m_pageAnnotIterator != rhs.m_pageAnnotIterator || m_acroFormIterator != rhs.m_acroFormIterator;
+}
+
+template<typename TField>
+typename PdfDocumentFieldIterableBase<TField>::Iterator& PdfDocumentFieldIterableBase<TField>::Iterator::operator++()
+{
+    increment();
+    return *this;
+}
+
+template<typename TField>
+typename PdfDocumentFieldIterableBase<TField>::Iterator PdfDocumentFieldIterableBase<TField>::Iterator::operator++(int)
+{
+    auto copy = *this;
+    increment();
+    return copy;
+}
+
+template<typename TField>
+void PdfDocumentFieldIterableBase<TField>::Iterator::increment()
+{
+    if (m_doc == nullptr)
+        return;
+
+    auto& pages = m_doc->GetPages();
+    if (m_pageIndex < pages.GetCount())
+    {
+        m_pageAnnotIterator++;
+        if (stepIntoPageAnnot(pages.GetPageAt(m_pageIndex).GetAnnotations()))
+            return;
+
+        m_pageIndex++;
+        stepIntoPageOrForm(pages);
+    }
+    else
+    {
+        m_acroFormIterator++;
+        stepIntoFormField(m_doc->MustGetAcroForm());
+    }
+}
+
+// Update the iterator for the current page index, or swith to form iteration
+template<typename TField>
+void PdfDocumentFieldIterableBase<TField>::Iterator::stepIntoPageOrForm(PdfPageCollection& pages)
+{
+    while (true)
+    {
+        if (m_pageIndex >= pages.GetCount())
+            break;
+
+        auto& annots = pages.GetPageAt(m_pageIndex).GetAnnotations();
+        m_pageAnnotIterator = annots.begin();
+        if (stepIntoPageAnnot(annots))
+            return;
+
+        m_pageIndex++;
+    }
+
+    auto form = m_doc->GetAcroForm();
+    if (form != nullptr)
+    {
+        m_acroFormIterator = form->begin();
+        stepIntoFormField(*form);
+        return;
+    }
+
+    // End of iteration
+    m_doc = nullptr;
+    m_Field = nullptr;
+    m_visitedObjs.clear();
+}
+
+// Verify the current page annotation iterator. It updates the current field
+// and returns true if a valid unvisited field is found, false otherwise
+template<typename TField>
+bool PdfDocumentFieldIterableBase<TField>::Iterator::stepIntoPageAnnot(PdfAnnotationCollection& annots)
+{
+    while (true)
+    {
+        if (m_pageAnnotIterator == annots.end())
+            break;
+
+        auto& annot = **m_pageAnnotIterator;
+        PdfField* field = nullptr;
+        if (annot.GetType() == PdfAnnotationType::Widget &&
+            (field = &static_cast<PdfAnnotationWidget&>(annot).GetField(),
+                m_visitedObjs.find(field->GetObject().GetIndirectReference()) == m_visitedObjs.end()))
+        {
+            m_Field = field;
+            m_visitedObjs.insert(field->GetObject().GetIndirectReference());
+            return true;
+        }
+
+        m_pageAnnotIterator++;
+    }
+
+    return false;
+}
+
+// Verify the current AcroForm field iterator. It updates the current field
+// if a valid unvisited leaf field is found, or it ends the iteration otherwise
+template<typename TField>
+void PdfDocumentFieldIterableBase<TField>::Iterator::stepIntoFormField(PdfAcroForm& form)
+{
+    while (true)
+    {
+        if (m_acroFormIterator == form.end())
+            break;
+
+        auto& field = **m_acroFormIterator;
+        if (field.GetChildren().GetCount() == 0
+            && m_visitedObjs.find(field.GetObject().GetIndirectReference()) == m_visitedObjs.end())
+        {
+            m_Field = &field;
+            m_visitedObjs.insert(field.GetObject().GetIndirectReference());
+            return;
+        }
+
+        m_acroFormIterator++;
+    }
+
+    // End of iteration
+    m_doc = nullptr;
+    m_Field = nullptr;
+    m_visitedObjs.clear();
 }
 
 };

@@ -162,6 +162,12 @@ public:
             m_iterator++;
             return *this;
         }
+        Iterator operator++(int)
+        {
+            auto copy = *this;
+            m_iterator++;
+            return copy;
+        }
         value_type operator*()
         {
             return *m_iterator;

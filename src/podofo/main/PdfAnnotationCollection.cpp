@@ -91,21 +91,25 @@ unsigned PdfAnnotationCollection::GetCount() const
 
 PdfAnnotationCollection::iterator PdfAnnotationCollection::begin()
 {
+    initAnnotations();
     return m_Annots.begin();
 }
 
 PdfAnnotationCollection::iterator PdfAnnotationCollection::end()
 {
+    initAnnotations();
     return m_Annots.end();
 }
 
 PdfAnnotationCollection::const_iterator PdfAnnotationCollection::begin() const
 {
+    const_cast<PdfAnnotationCollection&>(*this).initAnnotations();
     return m_Annots.begin();
 }
 
 PdfAnnotationCollection::const_iterator PdfAnnotationCollection::end() const
 {
+    const_cast<PdfAnnotationCollection&>(*this).initAnnotations();
     return m_Annots.end();
 }
 

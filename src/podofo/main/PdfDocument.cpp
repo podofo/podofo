@@ -649,6 +649,16 @@ const PdfOutlines& PdfDocument::MustGetOutlines() const
     return *m_Outlines;
 }
 
+PdfDocumentFieldIterable PdfDocument::GetFieldsIterator()
+{
+    return PdfDocumentFieldIterable(*this);
+}
+
+PdfDocumentConstFieldIterable PdfDocument::GetFieldsIterator() const
+{
+    return PdfDocumentConstFieldIterable(const_cast<PdfDocument&>(*this));
+}
+
 unique_ptr<PdfImage> PdfDocument::CreateImage(const string_view& prefix)
 {
     return unique_ptr<PdfImage>(new PdfImage(*this, prefix));

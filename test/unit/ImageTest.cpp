@@ -38,17 +38,17 @@ TEST_CASE("TestImage2")
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("Hierarchies1.pdf"));
     // Try to extract jpeg image
-    auto imageObj = doc.GetObjects().GetObject(PdfReference(36, 0));
+    auto& imageObj = doc.GetObjects().MustGetObject(PdfReference(156, 0));
     charbuff buffer;
 
     // Unpacking directly the stream shall throw since it has jpeg content
-    ASSERT_THROW_WITH_ERROR_CODE(imageObj->GetStream()->CopyTo(buffer), PdfErrorCode::UnsupportedFilter);
+    ASSERT_THROW_WITH_ERROR_CODE(imageObj.MustGetStream().CopyTo(buffer), PdfErrorCode::UnsupportedFilter);
 
     // Unpacking using UnpackToSafe() should succeed
-    imageObj->GetStream()->CopyToSafe(buffer);
+    imageObj.MustGetStream().CopyToSafe(buffer);
 
     unique_ptr<PdfImage> image;
-    REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(*imageObj, image));
+    REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(imageObj, image));
 
     image->DecodeTo(buffer, PdfPixelFormat::BGRA);
     charbuff ppmbuffer;

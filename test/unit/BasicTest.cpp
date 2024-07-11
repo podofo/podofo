@@ -51,6 +51,26 @@ TEST_CASE("TestIterations")
     }
 }
 
+TEST_CASE("TestIterations2")
+{
+    PdfMemDocument doc;
+    vector<PdfField*> fields;
+    for (auto field : doc.GetFieldsIterator())
+    {
+        fields.push_back(field);
+    }
+
+    REQUIRE(fields.size() == 0);
+
+    doc.Load(TestUtils::GetTestInputFilePath("Hierarchies1.pdf"));
+    for (auto field : doc.GetFieldsIterator())
+    {
+        fields.push_back(field);
+    }
+
+    REQUIRE(fields.size() == 25);
+}
+
 TEST_CASE("ErrorFilePath")
 {
     try
