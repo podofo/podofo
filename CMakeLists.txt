@@ -67,7 +67,7 @@ set(PODOFO_MAIN_CMAKELISTS_READ TRUE)
 if(PODOFO_BUILD_LIB_ONLY)
     set(PODOFO_BUILD_TEST FALSE)
     set(PODOFO_BUILD_EXAMPLES FALSE)
-    set(PODOFO_BUILD_TOOLS FALSE)
+    set(PODOFO_BUILD_UNSUPPORTED_TOOLS FALSE)
 else()
     if (NOT DEFINED PODOFO_BUILD_TEST)
         set(PODOFO_BUILD_TEST TRUE)
@@ -77,8 +77,8 @@ else()
         set(PODOFO_BUILD_EXAMPLES TRUE)
     endif()
 
-    if (NOT DEFINED PODOFO_BUILD_TOOLS)
-        set(PODOFO_BUILD_TOOLS FALSE)
+    if (NOT DEFINED PODOFO_BUILD_UNSUPPORTED_TOOLS)
+        set(PODOFO_BUILD_UNSUPPORTED_TOOLS FALSE)
     endif()
 
     # We assume a standalone build so we set output
@@ -275,7 +275,7 @@ if(PODOFO_BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
-if(PODOFO_BUILD_TOOLS)
+if(PODOFO_BUILD_UNSUPPORTED_TOOLS)
     add_subdirectory(tools)
 endif()
 

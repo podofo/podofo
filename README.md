@@ -133,7 +133,7 @@ cmake --build . --config Debug
 
 - `PODOFO_BUILD_EXAMPLES`: Build the examples, defaults to TRUE;
 
-- `PODOFO_BUILD_TOOLS`: Build the PoDoFo tools, defaults to FALSE. See
+- `PODOFO_BUILD_UNSUPPORTED_TOOLS`: Build the PoDoFo tools, defaults to FALSE. See
 the relevant [section](https://github.com/podofo/podofo/#podofo-tools) in the Readme;
 
 - `PODOFO_BUILD_LIB_ONLY`: If TRUE, it will build only the library component.
@@ -192,12 +192,12 @@ PoDoFo has an unstable API that is the result of an extensive API review of PoDo
 
 ## PoDoFo Tools
 
-> **Warning**: Tools are currently **untested** and **unmaintained**.
+> **Warning**: Tools are currently **unsupported**, **untested** and **unmaintained**.
 
 PoDoFo tools are still available in the source [tree](https://github.com/podofo/podofo/)
 but their compilation is disabled by default because they are unsted/unmaintained,
 and will not receive support until their status is cleared. It's not recommended to include them in software distributions.
-If you want to build them make sure to bootstrap the CMake project with ```-DPODOFO_BUILD_TOOLS=TRUE```.
+If you want to build them make sure to bootstrap the CMake project with ```-DPODOFO_BUILD_UNSUPPORTED_TOOLS=TRUE```.
 Tools are conveniently enabled in the [playground](https://github.com/podofo/podofo/tree/master/playground)
 at least to ensure library changes won't break their compilation.
 
