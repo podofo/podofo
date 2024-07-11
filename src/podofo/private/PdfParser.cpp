@@ -28,7 +28,7 @@ constexpr unsigned MAX_XREF_SESSION_COUNT = 512;
 
 using namespace std;
 using namespace PoDoFo;
-using namespace chromium::base::internal;
+using namespace chromium::base;
 
 static bool CheckEOL(char e1, char e2);
 static bool CheckXRefEntryType(char c);

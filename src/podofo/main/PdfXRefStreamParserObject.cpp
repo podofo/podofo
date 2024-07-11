@@ -18,7 +18,7 @@
 
 using namespace std;
 using namespace PoDoFo;
-using namespace chromium::base::internal;
+using namespace chromium::base;
 
 PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfDocument& doc, InputStreamDevice& device, PdfXRefEntries& entries)
     : PdfXRefStreamParserObject(&doc, device, entries) { }
