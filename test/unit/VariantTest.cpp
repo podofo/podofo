@@ -7,6 +7,7 @@
  */
 
 #include <PdfTest.h>
+#include <podofo/private/PdfParserObject.h>
 
 using namespace std;
 using namespace PoDoFo;

@@ -49,6 +49,7 @@ class PODOFO_API PdfObject
     friend class PdfXRefStream;
     friend class PdfDictionaryElement;
     friend class PdfArrayElement;
+    friend class PdfParserObject;
 
 public:
     static PdfObject Null;
@@ -425,9 +426,10 @@ public:
     const PdfObjectStream* GetStream() const;
     PdfObjectStream* GetStream();
 
-protected:
+private:
     PdfObject(PdfVariant&& var, const PdfReference& indirectReference, bool isDirty);
 
+protected:
     /**
      * Dynamically load the contents of this object from a PDF file by calling
      * the virtual method delayedLoad() if the object is not already loaded.

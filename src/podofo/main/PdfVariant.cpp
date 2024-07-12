@@ -7,11 +7,12 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfVariant.h"
 
+#include <podofo/auxiliary/StreamDevice.h>
+#include <podofo/private/PdfParserObject.h>
+
 #include "PdfArray.h"
 #include "PdfData.h"
 #include "PdfDictionary.h"
-#include "PdfParserObject.h"
-#include <podofo/auxiliary/StreamDevice.h>
 
 using namespace PoDoFo;
 using namespace std;

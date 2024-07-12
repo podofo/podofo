@@ -10,7 +10,7 @@
 #include <podofo/auxiliary/StreamDevice.h>
 #include <podofo/main/PdfDate.h>
 #include <podofo/main/PdfDictionary.h>
-#include <podofo/main/PdfParserObject.h>
+#include "PdfParserObject.h"
 #include "PdfXRefStream.h"
 #include "OpenSSLInternal.h"
 

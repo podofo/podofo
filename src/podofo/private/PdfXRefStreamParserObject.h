@@ -7,12 +7,12 @@
 #ifndef PDF_XREF_STREAM_PARSER_OBJECT_H
 #define PDF_XREF_STREAM_PARSER_OBJECT_H
 
-#include "PdfDeclarations.h"
-#include "PdfXRefEntry.h"
 #include "PdfParserObject.h"
+#include "PdfXRefEntry.h"
 
 namespace PoDoFo
 {
+
 // CHECK-ME: Consider make this class not inherit PdfParserObject and consider mark that final
 /**
  * A utility class for PdfParser that can parse
@@ -22,7 +22,7 @@ namespace PoDoFo
  * This is only marked PODOFO_API for the benefit of the tests,
  * the class is for internal use only.
  */
-class PODOFO_API PdfXRefStreamParserObject final : public PdfParserObject
+class PdfXRefStreamParserObject final : public PdfParserObject
 {
     friend class PdfParser;
 

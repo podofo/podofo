@@ -7,10 +7,10 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfParserObject.h"
 
-#include "PdfArray.h"
-#include "PdfDictionary.h"
+#include <podofo/main/PdfArray.h>
+#include <podofo/main/PdfDictionary.h>
 
-#include <podofo/private/PdfFilterFactory.h>
+#include "PdfFilterFactory.h"
 
 using namespace PoDoFo;
 using namespace std;

@@ -56,8 +56,6 @@
 #include "main/PdfMemoryObjectStream.h"
 #include "main/PdfName.h"
 #include "main/PdfObject.h"
-#include "main/PdfParserObject.h"
-#include "main/PdfXRefStreamParserObject.h"
 #include "main/PdfReference.h"
 #include "main/PdfSigner.h"
 #include "main/PdfSignerCms.h"

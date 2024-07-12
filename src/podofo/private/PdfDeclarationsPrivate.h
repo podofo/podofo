@@ -32,6 +32,7 @@
 
 #include <podofo/main/PdfDeclarations.h>
 #include <podofo/auxiliary/Convert.h>
+#include "PdfXRefEntry.h"
 
 #ifdef _WIN32
 // Microsoft itself assumes little endian

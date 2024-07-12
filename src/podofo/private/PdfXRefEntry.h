@@ -8,11 +8,20 @@
 #ifndef PDF_XREF_ENTRY_H
 #define PDF_XREF_ENTRY_H
 
-#include "PdfDeclarations.h"
+#include <podofo/main/PdfDeclarations.h>
 
 namespace PoDoFo
 {
-    struct PODOFO_API PdfXRefEntry final
+    // Values cast directly to XRefStm binary representation
+    enum class PdfXRefEntryType : int8_t
+    {
+        Unknown = -1,
+        Free = 0,
+        InUse = 1,
+        Compressed = 2,
+    };
+
+    struct PdfXRefEntry final
     {
         PdfXRefEntry();
 
@@ -41,7 +50,7 @@ namespace PoDoFo
         bool Parsed;
     };
 
-    class PODOFO_API PdfXRefEntries final
+    class PdfXRefEntries final
     {
     public:
         unsigned GetSize() const;

@@ -7,9 +7,8 @@
 #ifndef PDF_PARSER_OBJECT_H
 #define PDF_PARSER_OBJECT_H
 
-#include "PdfDeclarations.h"
-#include "PdfObject.h"
-#include "PdfTokenizer.h"
+#include <podofo/main/PdfObject.h>
+#include <podofo/main/PdfTokenizer.h>
 
 namespace PoDoFo {
 
@@ -19,7 +18,7 @@ class PdfEncrypt;
  * A PdfParserObject constructs a PdfObject from a PDF file.
  * Parsing starts always at the current file position.
  */
-class PODOFO_API PdfParserObject : public PdfObject
+class PdfParserObject : public PdfObject
 {
     friend class PdfParser;
 

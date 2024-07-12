@@ -17,7 +17,7 @@
 #include <podofo/main/PdfDictionary.h>
 #include <podofo/main/PdfEncrypt.h>
 #include <podofo/main/PdfMemoryObjectStream.h>
-#include <podofo/main/PdfXRefStreamParserObject.h>
+#include "PdfXRefStreamParserObject.h"
 #include "PdfObjectStreamParser.h"
 
 constexpr unsigned PDF_VERSION_LENGHT = 3;

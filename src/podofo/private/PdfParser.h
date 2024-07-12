@@ -7,10 +7,11 @@
 #ifndef PDF_PARSER_H
 #define PDF_PARSER_H
 
-#include <podofo/main/PdfParserObject.h>
-#include <podofo/main/PdfXRefEntry.h>
 #include <podofo/main/PdfIndirectObjectList.h>
 #include <podofo/main/PdfTokenizer.h>
+
+#include "PdfParserObject.h"
+#include "PdfXRefEntry.h"
 
 namespace PoDoFo {
 

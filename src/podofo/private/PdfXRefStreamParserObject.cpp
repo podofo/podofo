@@ -9,12 +9,10 @@
 
 #include <numerics/checked_math.h>
 
-#include <podofo/private/PdfParser.h>
+#include <podofo/main/PdfArray.h>
+#include <podofo/main/PdfDictionary.h>
 
-#include "PdfArray.h"
-#include "PdfDictionary.h"
-#include "PdfObjectStream.h"
-#include "PdfVariant.h"
+#include "PdfParser.h"
 
 using namespace std;
 using namespace PoDoFo;
