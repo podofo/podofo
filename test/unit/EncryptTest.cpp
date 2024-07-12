@@ -8,6 +8,7 @@
 
 #include <PdfTest.h>
 #include <podofo/private/PdfParser.h>
+#include <podofo/private/OpenSSLInternal.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -46,6 +47,45 @@ struct Paths
             PdfPermissions::HighPrint;
     }
 } s_init;
+
+TEST_CASE("TestEncryptedPDFs")
+{
+    constexpr string_view ReferenceHash("298ACCFDC32BB2BC32BFD580883219AB");
+
+    charbuff buffer;
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TemplateClearText.pdf"));
+    doc.GetObjects().MustGetObject(PdfReference(11, 0)).MustGetStream().CopyTo(buffer);
+    REQUIRE(ssl::ComputeMD5Str(buffer) == ReferenceHash);
+
+    vector<string> testPaths = {
+        TestUtils::GetTestInputFilePath("RC4V2-40.pdf"),
+        TestUtils::GetTestInputFilePath("RC4V2-56.pdf"),
+        TestUtils::GetTestInputFilePath("RC4V2-80.pdf"),
+        TestUtils::GetTestInputFilePath("RC4V2-96.pdf"),
+        TestUtils::GetTestInputFilePath("RC4V2-128.pdf"),
+        TestUtils::GetTestInputFilePath("AESV2-128.pdf"),
+        TestUtils::GetTestInputFilePath("AESV3R6-256.pdf"),
+        TestUtils::GetTestInputFilePath("RC4V2-40_KeyLength41Violation.pdf"),
+        TestUtils::GetTestInputFilePath("RC4V2-56_KeyLength57Violation.pdf"),
+        TestUtils::GetTestInputFilePath("RC4V2-80_KeyLength81Violation.pdf"),
+        TestUtils::GetTestInputFilePath("RC4V2-96_KeyLength97Violation.pdf"),
+        TestUtils::GetTestInputFilePath("RC4V2-128_KeyLength129Violation.pdf"),
+        TestUtils::GetTestInputFilePath("AESV2-128_KeyLength129Violation.pdf"),
+        TestUtils::GetTestInputFilePath("AESV3R6-256_KeyLength257Violation.pdf"),
+    };
+
+    for (auto& path : testPaths)
+    {
+        doc.Load(path, "userpass");
+        doc.GetObjects().MustGetObject(PdfReference(11, 0)).MustGetStream().CopyTo(buffer);
+        REQUIRE(ssl::ComputeMD5Str(buffer) == ReferenceHash);
+
+        doc.Load(path, "ownerpass");
+        doc.GetObjects().MustGetObject(PdfReference(11, 0)).MustGetStream().CopyTo(buffer);
+        REQUIRE(ssl::ComputeMD5Str(buffer) == ReferenceHash);
+    }
+}
 
 TEST_CASE("TestDefaultEncryption")
 {

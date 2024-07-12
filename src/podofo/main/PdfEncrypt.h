@@ -30,18 +30,22 @@ class OutputStream;
  * Licence:     wxWindows licence
  */
 
-/** A enum specifying a valid keylength for a PDF encryption key.
- *  Keys must be in the range 40 to 128 bit and have to be a
- *  multiple of 8.
- *
- *  Adobe Reader supports only keys with 40, 128 or 256 bits!
+/** A enum specifying a valid keylength for a PDF encryption key
  */
 enum class PdfKeyLength : uint16_t
 {
+    Unknown = 0,
     L40 = 40,
+    L48 = 48,
     L56 = 56,
+    L64 = 64,
+    L72 = 72,
     L80 = 80,
+    L88 = 88,
     L96 = 96,
+    L104 = 104,
+    L112 = 112,
+    L120 = 120,
     L128 = 128,
 #ifdef PODOFO_HAVE_LIBIDN
     L256 = 256
@@ -133,7 +137,7 @@ public:
         const std::string_view& ownerPassword,
         PdfPermissions protection = PdfPermissions::Default,
         PdfEncryptAlgorithm algorithm = PdfEncryptAlgorithm::AESV2,
-        PdfKeyLength keyLength = PdfKeyLength::L40);
+        PdfKeyLength keyLength = PdfKeyLength::Unknown);
 
     /** Initialize a PdfEncrypt object from an encryption dictionary in a PDF file.
      *
@@ -323,6 +327,9 @@ public:
      */
     virtual size_t CalculateStreamOffset() const = 0;
 
+    /** Get the key length in bytes
+     * \remarks The maximum is 32 bytes
+     */
     unsigned GetKeyLengthBytes() const;
 
     /** Get the U object value (user)
@@ -624,8 +631,9 @@ class PdfEncryptRC4 final : public PdfEncryptMD5Base
     friend class PdfEncrypt;
 
 private:
-    PdfEncryptRC4(PdfString oValue, PdfString uValue,
-        PdfPermissions pValue, PdfRC4Revision revision, PdfEncryptAlgorithm algorithm, PdfKeyLength keyLength, bool encryptMetadata);
+    PdfEncryptRC4(PdfString oValue, PdfString uValue, PdfPermissions pValue,
+        PdfRC4Revision revision, PdfEncryptAlgorithm algorithm,
+        unsigned keyLength, bool encryptMetadata);
     PdfEncryptRC4(const std::string_view& userPassword, const std::string_view& ownerPassword,
         PdfPermissions protection,
         PdfEncryptAlgorithm algorithm,
@@ -651,6 +659,9 @@ protected:
     void GenerateEncryptionKey(const std::string_view& documentId, unsigned char uValue[48], unsigned char oValue[48], unsigned char encryptionKey[32]) override;
 
     PdfAuthResult Authenticate(const std::string_view& password, const std::string_view& documentId, unsigned char encryptionKey[32]) override;
+
+private:
+    static unsigned normalizeKeyLength(unsigned keyLength);
 };
 
 }

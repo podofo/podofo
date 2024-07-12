@@ -433,17 +433,32 @@ unique_ptr<PdfEncrypt> PdfEncrypt::Create(const string_view& userPassword,
     {
 #ifdef PODOFO_HAVE_LIBIDN
         case PdfEncryptAlgorithm::AESV3R5:
+        {
+            if (keyLength != PdfKeyLength::Unknown && keyLength != PdfKeyLength::L256)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, "Invalid encryption key length for AESV3. Only 256 bit is supported");
+
             return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(userPassword, ownerPassword,
                 PdfAESV3Revision::R5, protection));
+        }
         case PdfEncryptAlgorithm::AESV3R6:
+        {
+            if (keyLength != PdfKeyLength::Unknown && keyLength != PdfKeyLength::L256)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, "Invalid encryption key length for AESV3. Only 256 bit is supported");
+
             return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(userPassword, ownerPassword,
                 PdfAESV3Revision::R6, protection));
+        }
 #endif // PODOFO_HAVE_LIBIDN
         case PdfEncryptAlgorithm::RC4V2:
         case PdfEncryptAlgorithm::RC4V1:
             return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(userPassword, ownerPassword, protection, algorithm, keyLength));
         case PdfEncryptAlgorithm::AESV2:
+        {
+            if (keyLength != PdfKeyLength::Unknown && keyLength != PdfKeyLength::L128)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, "Invalid encryption key length for AESV2. Only 128 bit is supported");
+
             return unique_ptr<PdfEncrypt>(new PdfEncryptAESV2(userPassword, ownerPassword, protection));
+        }
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
@@ -516,19 +531,14 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreateFromObject(const PdfObject& encryptObj)
     if ((lV == 1) && (rValue == 2 || rValue == 3)
         && PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V1))
     {
-        return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(oValue, uValue, pValue, (PdfRC4Revision)rValue, PdfEncryptAlgorithm::RC4V1, PdfKeyLength::L40, encryptMetadata));
+        return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(oValue, uValue, pValue, (PdfRC4Revision)rValue,
+            PdfEncryptAlgorithm::RC4V1, (unsigned)PdfKeyLength::L40, encryptMetadata));
     }
     else if ((((lV == 2) && (rValue == 3)) || cfmName == "V2")
         && PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V2))
     {
-        // length is int64_t. Please make changes in encryption algorithms
-        // Check key length length here to prevent
-        // stack-based buffer over-read later in this file
-        if (length > MD5_DIGEST_LENGTH * CHAR_BIT) // length in bits, md5 in bytes
-        {
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Given key length too large for MD5");
-        }
-        return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(oValue, uValue, pValue, (PdfRC4Revision)rValue, PdfEncryptAlgorithm::RC4V2, (PdfKeyLength)length, encryptMetadata));
+        return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(oValue, uValue, pValue, (PdfRC4Revision)rValue,
+            PdfEncryptAlgorithm::RC4V2, (unsigned)length, encryptMetadata));
     }
     else
     {
@@ -1022,6 +1032,12 @@ PdfAuthResult PdfEncryptRC4::Authenticate(const string_view& password, const str
     return ret;
 }
 
+unsigned PdfEncryptRC4::normalizeKeyLength(unsigned keyLength)
+{
+    keyLength = keyLength - keyLength % 8u;
+    return std::clamp(keyLength, 40u, 128u);
+}
+
 size_t PdfEncryptRC4::CalculateStreamOffset() const
 {
     return 0;
@@ -1058,7 +1074,7 @@ unique_ptr<InputStream> PdfEncryptRC4::CreateEncryptionInputStream(InputStream& 
 }
 
 PdfEncryptRC4::PdfEncryptRC4(PdfString oValue, PdfString uValue, PdfPermissions pValue, PdfRC4Revision revision,
-    PdfEncryptAlgorithm algorithm, PdfKeyLength keyLength, bool encryptMetadata)
+    PdfEncryptAlgorithm algorithm, unsigned keyLength, bool encryptMetadata)
 {
     auto& uValueData = uValue.GetRawData();
     if (uValueData.size() < 32)
@@ -1068,13 +1084,13 @@ PdfEncryptRC4::PdfEncryptRC4(PdfString oValue, PdfString uValue, PdfPermissions 
     if (oValueData.size() < 32)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, "/O value is invalid");
 
-    Init(algorithm, keyLength, (unsigned char)revision, pValue, { uValueData.data(), 32 }, { oValueData.data(), 32 }, encryptMetadata);
+    Init(algorithm, (PdfKeyLength)normalizeKeyLength(keyLength), (unsigned char)revision, pValue,
+        {uValueData.data(), 32}, {oValueData.data(), 32}, encryptMetadata);
 }
 
 PdfEncryptRC4::PdfEncryptRC4(const string_view& userPassword, const string_view& ownerPassword, PdfPermissions protection,
     PdfEncryptAlgorithm algorithm, PdfKeyLength keyLength)
 {
-    unsigned keyLengthInt = (unsigned)keyLength;
     unsigned char rValue;
 
     switch (algorithm)
@@ -1082,15 +1098,49 @@ PdfEncryptRC4::PdfEncryptRC4(const string_view& userPassword, const string_view&
         case PdfEncryptAlgorithm::RC4V1:
         {
             rValue = 2;
-            keyLengthInt = 40;
+            if (keyLength == PdfKeyLength::Unknown)
+            {
+                keyLength = PdfKeyLength::L40;
+            }
+            else
+            {
+                if (keyLength != PdfKeyLength::L40)
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, "Invalid encryption key length for RC4V1. Only 40 bit is supported");
+            }
+
             break;
         }
         case PdfEncryptAlgorithm::RC4V2:
         {
-            // Normalize invalid keylengths
-            keyLengthInt = keyLengthInt - keyLengthInt % 8;
-            keyLengthInt = keyLengthInt >= 40 ? (keyLengthInt <= 128 ? keyLengthInt : 128) : 40;
             rValue = 3;
+            if (keyLength == PdfKeyLength::Unknown)
+            {
+                keyLength = PdfKeyLength::L128;
+            }
+            else
+            {
+                switch (keyLength)
+                {
+                    case PdfKeyLength::L40:
+                    case PdfKeyLength::L48:
+                    case PdfKeyLength::L56:
+                    case PdfKeyLength::L64:
+                    case PdfKeyLength::L72:
+                    case PdfKeyLength::L80:
+                    case PdfKeyLength::L88:
+                    case PdfKeyLength::L96:
+                    case PdfKeyLength::L104:
+                    case PdfKeyLength::L112:
+                    case PdfKeyLength::L120:
+                    case PdfKeyLength::L128:
+                        break;
+                    case PdfKeyLength::L256:
+                    default:
+                        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict,
+                            "Invalid encryption key length for RC4V2. Only a multiple of 8 from 40bit to 128bit is supported");;
+                }
+            }
+
             break;
         }
         default:
@@ -1099,7 +1149,7 @@ PdfEncryptRC4::PdfEncryptRC4(const string_view& userPassword, const string_view&
         }
     }
 
-    Init(userPassword, ownerPassword, algorithm, (PdfKeyLength)keyLengthInt, rValue, PERMS_DEFAULT | protection, true);
+    Init(userPassword, ownerPassword, algorithm, keyLength, rValue, PERMS_DEFAULT | protection, true);
 }
 
 unique_ptr<OutputStream> PdfEncryptRC4::CreateEncryptionOutputStream(OutputStream& outputStream, const PdfReference& objref)
