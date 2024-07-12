@@ -327,7 +327,7 @@ public:
      */
     virtual size_t CalculateStreamOffset() const = 0;
 
-    /** Get the key length in bytes
+    /** Get the encryption key length in bytes
      * \remarks The maximum is 32 bytes
      */
     unsigned GetKeyLengthBytes() const;
@@ -341,7 +341,7 @@ public:
     bufferview GetOValue() const;
 
 public:
-    /** Get the key length of the encryption key in bits
+    /** Get the length of the encryption key in bits
      */
     PdfKeyLength GetKeyLength() const { return m_KeyLength; }
 
@@ -366,9 +366,8 @@ protected:
 
     inline const std::string& GetOwnerPassword() const { return m_ownerPass; }
 
-    /** Get the encryption key value (owner)
+    /** Get the encryption key value
      */
-
     inline const unsigned char* GetEncryptionKey() const { return m_encryptionKey; }
 
 protected:

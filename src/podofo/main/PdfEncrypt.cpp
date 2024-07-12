@@ -603,6 +603,8 @@ PdfEncrypt::PdfEncrypt() :
 void PdfEncrypt::Init(PdfEncryptAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision, PdfPermissions pValue,
     const bufferview& uValue, const bufferview& oValue, bool encryptedMetadata)
 {
+    PODOFO_ASSERT((size_t)keyLength / 8 <= std::size(m_encryptionKey));
+
     m_Algorithm = algorithm;
     m_KeyLength = keyLength;
     m_rValue = revision;
@@ -615,6 +617,8 @@ void PdfEncrypt::Init(PdfEncryptAlgorithm algorithm, PdfKeyLength keyLength, uns
 void PdfEncrypt::Init(const string_view& userPassword, const string_view& ownerPassword,
     PdfEncryptAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision, PdfPermissions pValue, bool encryptedMetadata)
 {
+    PODOFO_ASSERT((size_t)keyLength / 8 <= std::size(m_encryptionKey));
+
     m_userPass = userPassword;
     m_ownerPass = ownerPassword;
     m_Algorithm = algorithm;
@@ -629,6 +633,7 @@ bool PdfEncrypt::CheckKey(const unsigned char key1[32], const unsigned char key2
     // Check whether the right password had been given
     bool success = true;
     unsigned keyLength = GetKeyLengthBytes();
+    PODOFO_INVARIANT(keyLength <= 32);
     for (unsigned k = 0; success && k < keyLength; k++)
         success = success && (key1[k] == key2[k]);
 
@@ -668,6 +673,8 @@ void PdfEncryptMD5Base::ComputeOwnerKey(const unsigned char userPad[32], const u
     unsigned char mkey[MD5_DIGEST_LENGTH];
     unsigned char digest[MD5_DIGEST_LENGTH];
     int rc;
+
+    PODOFO_INVARIANT(keyLength <= MD5_DIGEST_LENGTH);
 
     unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
     if (ctx == nullptr || (rc = EVP_DigestInit_ex(ctx.get(), ssl::MD5(), nullptr)) != 1)
@@ -726,6 +733,8 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     unsigned j;
     unsigned k;
     int rc;
+
+    PODOFO_INVARIANT(keyLength <= MD5_DIGEST_LENGTH);
 
     unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
     if (ctx == nullptr || (rc = EVP_DigestInit_ex(ctx.get(), ssl::MD5(), nullptr)) != 1)
@@ -846,6 +855,8 @@ void PdfEncryptMD5Base::CreateObjKey(unsigned char objkey[16], unsigned& pnKeyLe
     const unsigned g = static_cast<unsigned>(objref.GenerationNumber());
 
     unsigned keyLength = GetKeyLengthBytes();
+    PODOFO_INVARIANT(keyLength <= MD5_DIGEST_LENGTH);
+
     unsigned nkeylen = keyLength + 5;
     unsigned char nkey[MD5_DIGEST_LENGTH + 5 + 4];
     for (unsigned j = 0; j < keyLength; j++)
@@ -1516,6 +1527,7 @@ void PdfEncryptAESV3::computeUserKey(const unsigned char* userpswd, unsigned len
     EVP_CIPHER_CTX_set_padding(aes.get(), 0); // disable padding
 
     int dataOutMoved;
+    PODOFO_INVARIANT(keyLength <= 32);
     rc = EVP_EncryptUpdate(aes.get(), ueValue, &dataOutMoved, encryptionKey, (int)keyLength);
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
@@ -1562,6 +1574,7 @@ void PdfEncryptAESV3::computeOwnerKey(const unsigned char* ownerpswd, unsigned l
     EVP_CIPHER_CTX_set_padding(aes.get(), 0); // disable padding
 
     int dataOutMoved;
+    PODOFO_INVARIANT(keyLength <= 32);
     rc = EVP_EncryptUpdate(aes.get(), oeValue, &dataOutMoved, encryptionKey, (int)keyLength);
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
@@ -1593,6 +1606,7 @@ void PdfEncryptAESV3::computeEncryptionKey(unsigned keyLength, unsigned char enc
     // Seed once for all
     srand((unsigned)time(nullptr));
 
+    PODOFO_INVARIANT(keyLength <= 32);
     for (unsigned i = 0; i < keyLength; i++)
         encryptionKey[i] = rand() % 255;
 }
