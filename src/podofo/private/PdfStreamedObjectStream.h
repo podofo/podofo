@@ -6,9 +6,9 @@
 #ifndef PDF_STREAMED_OBJECT_STREAM_H
 #define PDF_STREAMED_OBJECT_STREAM_H
 
-#include "PdfDeclarations.h"
+#include <podofo/main/PdfDeclarations.h>
 
-#include "PdfObjectStreamProvider.h"
+#include <podofo/main/PdfObjectStreamProvider.h>
 
 namespace PoDoFo {
 
@@ -28,7 +28,7 @@ class OutputStreamDevice;
  *  \see PdfIndirectObjectList
  *  \see PdfObjectStream
  */
-class PODOFO_API PdfStreamedObjectStream final : public PdfObjectStreamProvider
+class PdfStreamedObjectStream final : public PdfObjectStreamProvider
 {
     class ObjectOutputStream;
     friend class ObjectOutputStream;

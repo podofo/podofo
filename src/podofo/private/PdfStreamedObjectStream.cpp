@@ -3,12 +3,13 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#include <podofo/private/PdfDeclarationsPrivate.h>
+#include "PdfDeclarationsPrivate.h"
 #include "PdfStreamedObjectStream.h"
 
-#include "PdfDocument.h"
 #include <podofo/auxiliary/OutputDevice.h>
-#include "PdfDictionary.h"
+
+#include <podofo/main/PdfDocument.h>
+#include <podofo/main/PdfDictionary.h>
 
 using namespace std;
 using namespace PoDoFo;

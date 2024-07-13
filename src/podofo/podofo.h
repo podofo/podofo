@@ -51,7 +51,6 @@
 #include "main/PdfPredefinedEncoding.h"
 #include "main/PdfEncrypt.h"
 #include "main/PdfExtension.h"
-#include "main/PdfStreamedObjectStream.h"
 #include "main/PdfCanvasInputDevice.h"
 #include "main/PdfMemoryObjectStream.h"
 #include "main/PdfName.h"

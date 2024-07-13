@@ -11,9 +11,10 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfEncrypt.h"
-#include "PdfStreamedObjectStream.h"
 #include "PdfMemoryObjectStream.h"
+
 #include <podofo/auxiliary/StreamDevice.h>
+#include <podofo/private/PdfStreamedObjectStream.h>
 
 using namespace std;
 using namespace PoDoFo;
