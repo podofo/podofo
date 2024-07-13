@@ -8,7 +8,6 @@
   * Create PdfEncryptContext with m_documentId, m_encryptionKey, if autenthicated user or owner, m_ctx (EVP_CIPHER_CTX)
   * Authenticate should also return PdfEncryptContext and be const;
   * Rename GenerateEncryptionKey -> GetEncryptionContext(documentId, ctx). Should crash if loaded PdfEncrypt but ctx is null || not authenticated
-
 - nullable: Rearrange m_hasValue to be after m_value (small optimization)
 - PdfDocument: Review AttachFile, GetAttachment, AddNamedDestination
 - PdfMemDocument: Consider removing SetEncrypt(encrypt)
@@ -20,12 +19,12 @@
 - Evaluate removing PdfObject::Null and PdfVariant::Null and introduce nullptr_t constructor overloads
 - PdfCanvas: Add CopyTo facilities, see PdfContents
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
-- PdfDocument: Add GetAnnotationFields()/GetAllFields() iteration
 - Review PdfPage::SetICCProfile(), PdfImage::SetICCProfile()
 - PdfErrorCode: Check all values
 - PdfField: Make PdfFieldChildrenCollectionBase m_Children a unique_ptr, and lazy load that
 - Review PdfPageCollection::AppendDocumentPages(),
   PdfPageCollection::InsertDocumentPageAt(), PdfPage::MoveAt() (???)
+
 #### Features
 - Evaluate adding PdfString(string&&) and PdfName(string&&) constructors that
 either assume UTF-8 and/or checks for used codepoints

@@ -62,6 +62,13 @@ TEST_CASE("TestIterations2")
 
     REQUIRE(fields.size() == 0);
 
+    doc.GetPages().CreatePage(Rect(0, 0, 300, 300));
+    for (auto field : doc.GetPages().GetPageAt(0).GetFieldsIterator())
+    {
+        fields.push_back(field);
+    }
+    REQUIRE(fields.size() == 0);
+
     doc.Load(TestUtils::GetTestInputFilePath("Hierarchies1.pdf"));
     for (auto field : doc.GetFieldsIterator())
     {
@@ -69,6 +76,14 @@ TEST_CASE("TestIterations2")
     }
 
     REQUIRE(fields.size() == 25);
+
+    fields.clear();
+    for (auto field : doc.GetPages().GetPageAt(0).GetFieldsIterator())
+    {
+        fields.push_back(field);
+    }
+
+    REQUIRE(fields.size() == 23);
 }
 
 TEST_CASE("ErrorFilePath")

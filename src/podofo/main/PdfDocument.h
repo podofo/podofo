@@ -35,10 +35,12 @@ class PdfDocumentFieldIterableBase final
     friend class PdfDocument;
 
 public:
-    PdfDocumentFieldIterableBase();
+    PdfDocumentFieldIterableBase()
+        : m_doc(nullptr) { }
 
 private:
-    PdfDocumentFieldIterableBase(PdfDocument& doc);
+    PdfDocumentFieldIterableBase(PdfDocument& doc)
+        : m_doc(&doc) { }
 
 public:
     class Iterator final
@@ -266,7 +268,7 @@ public:
     const PdfOutlines& MustGetOutlines() const;
 
     /**
-     * Get an iterator for all fields in the document. All annotion fields
+     * Get an iterator for all fields in the document. All widget annotation fields
      * in the pages will be returned, plus non annotation fields in the /AcroForm
      * (eg. invisibile signatures)
      */
@@ -451,18 +453,6 @@ template<typename TAction>
 std::unique_ptr<TAction> PdfDocument::CreateAction()
 {
     return std::unique_ptr<TAction>(static_cast<TAction*>(createAction(typeid(TAction))));
-}
-
-template<typename TField>
-PdfDocumentFieldIterableBase<TField>::PdfDocumentFieldIterableBase()
-    : m_doc(nullptr)
-{
-}
-
-template<typename TField>
-PdfDocumentFieldIterableBase<TField>::PdfDocumentFieldIterableBase(PdfDocument& doc)
-    : m_doc(&doc)
-{
 }
 
 template<typename TField>

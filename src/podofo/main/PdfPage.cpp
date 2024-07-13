@@ -415,6 +415,16 @@ void PdfPage::SetICCProfile(const string_view& csTag, InputStream& stream,
     GetOrCreateResources().GetDictionary().AddKey("ColorSpace", iccBasedDictionary);
 }
 
+PdfPageFieldIterable PdfPage::GetFieldsIterator()
+{
+    return PdfPageFieldIterable(*this);
+}
+
+PdfPageConstFieldIterable PdfPage::GetFieldsIterator() const
+{
+    return PdfPageConstFieldIterable(const_cast<PdfPage&>(*this));
+}
+
 PdfContents& PdfPage::GetOrCreateContents()
 {
     ensureContentsCreated();
