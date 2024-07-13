@@ -29,13 +29,13 @@ namespace PoDoFo
     {
     public:
         nullable()
-            : m_hasValue(false), m_value{ } { }
+            : m_value{ }, m_hasValue(false) { }
 
         nullable(T value)
-            : m_hasValue(true), m_value(std::move(value)) { }
+            : m_value(std::move(value)), m_hasValue(true) { }
 
         nullable(std::nullptr_t)
-            : m_hasValue(false), m_value{ } { }
+            : m_value{ }, m_hasValue(false) { }
 
         nullable(const nullable& value) = default;
 
@@ -121,8 +121,8 @@ namespace PoDoFo
         friend bool operator!=(std::nullptr_t, const nullable<T2>& rhs);
 
     private:
-        bool m_hasValue;
         T m_value;
+        bool m_hasValue;
     };
 
     // Template specialization for references
@@ -131,19 +131,19 @@ namespace PoDoFo
     {
     public:
         nullable()
-            : m_hasValue(false), m_value{ } { }
+            : m_value{ }, m_hasValue(false){ }
 
         nullable(T& value)
-            : m_hasValue(true), m_value(&value) { }
+            : m_value(&value), m_hasValue(true) { }
 
         nullable(std::nullptr_t)
-            : m_hasValue(false), m_value{ } { }
+            : m_value{ }, m_hasValue(false) { }
 
         // Allow nullable<const T&>::nullable(const nullable<T&>&)
         template <typename T2, std::enable_if_t<std::is_convertible<std::add_pointer_t<std::remove_reference_t<T2>>,
             std::add_pointer_t<std::remove_reference_t<T>>>::value, int> = 0>
         nullable(const nullable<T2&>& value)
-            : m_hasValue(reinterpret_cast<const nullable&>(value).m_hasValue), m_value(reinterpret_cast<const nullable&>(value).m_value) { }
+            : m_value(reinterpret_cast<const nullable&>(value).m_value), m_hasValue(reinterpret_cast<const nullable&>(value).m_hasValue) { }
 
         nullable(const nullable& value) = default;
 
@@ -215,8 +215,8 @@ namespace PoDoFo
         friend bool operator!=(std::nullptr_t, const nullable<T2>& rhs);
 
     private:
-        bool m_hasValue;
         T* m_value;
+        bool m_hasValue;
     };
 
     template <typename T2>
