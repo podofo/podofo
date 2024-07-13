@@ -1,4 +1,5 @@
 ## 0.10.1 -> 1.0.0
+- `PdfStreamedObjectStream`: Removed from public API, it's an internal implementation detail
 - `PdfXRefEntry`,`PdfXRefEntries`, `PdfParserObject`, `PdfXRefStreamParserObject`: Removed from public API,
 they are internal implementation details
 - `PdfParser`: Taken out of the public API, moved `GetMaxObjectCount`/`SetMaxObjectCount` to `PdfCommon`
