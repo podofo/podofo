@@ -116,11 +116,11 @@ PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(const PdfObject& ob
 
         unique_ptr<PdfEncodingMap> cmapEnc;
         if (PdfEncodingMapFactory::TryParseCMapEncoding(obj, cmapEnc))
-            return std::move(cmapEnc);
+            return cmapEnc;
 
         unique_ptr<PdfDifferenceEncoding> diffEnc;
         if (PdfDifferenceEncoding::TryCreateFromObject(obj, metrics, diffEnc))
-            return std::move(diffEnc);
+            return diffEnc;
     }
 
     return nullptr;

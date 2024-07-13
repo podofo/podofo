@@ -553,11 +553,8 @@ PdfObject PdfColorSpaceFilterSeparation::GetExportObject(PdfIndirectObjectList& 
             csArr.Add(PdfName(m_Name));
             csArr.Add(PdfName("DeviceGray"));
             csArr.Add(csTintFunc.GetIndirectReference());
-    
-            return std::move(csArr);
+            return csArr;
         }
-        break;
-    
         case PdfColorSpaceType::DeviceRGB:
         {
             char data[3 * 2];
@@ -588,11 +585,8 @@ PdfObject PdfColorSpaceFilterSeparation::GetExportObject(PdfIndirectObjectList& 
             csArr.Add(PdfName(m_Name));
             csArr.Add(PdfName("DeviceRGB"));
             csArr.Add(csTintFunc.GetIndirectReference());
-    
-            return std::move(csArr);
-            break;
+            return csArr;
         }
-    
         case PdfColorSpaceType::DeviceCMYK:
         {
             char data[4 * 2];
@@ -627,16 +621,13 @@ PdfObject PdfColorSpaceFilterSeparation::GetExportObject(PdfIndirectObjectList& 
             csArr.Add(csTintFunc.GetIndirectReference());
     
             csTintFunc.GetOrCreateStream().SetData(bufferview(data, 4 * 2)); // set stream as last, so that it will work with PdfStreamedDocument
-    
-            return std::move(csArr);
-            break;
+            return csArr;
         }
 
         case PdfColorSpaceType::Unknown:
         default:
         {
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
-            break;
         }
     }
 }

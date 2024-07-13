@@ -108,7 +108,7 @@ nullable<charbuff> PdfFileSpec::GetEmbeddedData() const
 
     charbuff ret;
     stream->CopyTo(ret);
-    return std::move(ret);
+    return ret;
 }
 
 void PdfFileSpec::setData(InputStream& input, size_t size)

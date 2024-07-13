@@ -637,7 +637,7 @@ void PdfImage::loadFromTiffHandle(void* handle, unsigned imageIndex)
     int32_t resolutionUnit;
 
     // Set the page/image index in the tiff context
-    TIFFSetDirectory(hInTiffHandle, (uint16)imageIndex);
+    TIFFSetDirectory(hInTiffHandle, (uint16_t)imageIndex);
 
     TIFFGetField(hInTiffHandle, TIFFTAG_IMAGEWIDTH, &width);
     TIFFGetField(hInTiffHandle, TIFFTAG_IMAGELENGTH, &height);
