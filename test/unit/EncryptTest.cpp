@@ -111,10 +111,9 @@ TEST_CASE("TestEncryptDecryptPDFs")
 
     charbuff pdfBuffer;
     charbuff objBuffer;
+    PdfMemDocument doc;
     for (unsigned i = 0; i < std::size(algorithms); i++)
     {
-        PdfMemDocument doc;
-
         doc.Load(TestUtils::GetTestInputFilePath("TemplateClearText.pdf"));
         doc.SetEncrypted("userpass", "ownerpass", PdfPermissions::Default,
             algorithms[i], keyLengths[i]);

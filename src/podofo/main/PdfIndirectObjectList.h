@@ -211,12 +211,6 @@ public:
      */
     void Detach(Observer& observer);
 
-    /** Sets a StreamFactory which is used whenever CreateStream is called.
-     *
-     *  \param factory a stream factory or nullptr to reset to the default factory
-     */
-    void SetStreamFactory(StreamFactory* factory);
-
     /** Creates a stream object
      *  This method is a factory for PdfObjectStream objects.
      *
@@ -314,6 +308,12 @@ private:
      * turn should reference all other objects).
      */
     void CollectGarbage();
+
+    /** Sets a StreamFactory which is used whenever CreateStream is called.
+     *
+     *  \param factory a stream factory or nullptr to reset to the default factory
+     */
+    void SetStreamFactory(StreamFactory* factory);
 
 public:
     /**

@@ -73,7 +73,7 @@ PdfIndirectObjectList::PdfIndirectObjectList() :
 PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document) :
     m_Document(&document),
     m_CanReuseObjectNumbers(true),
-    m_ObjectCount(1),
+    m_ObjectCount(1),   // The document has always the trailer, which is not inserted
     m_StreamFactory(nullptr)
 {
 }
@@ -107,8 +107,13 @@ void PdfIndirectObjectList::Clear()
         delete obj;
 
     m_Objects.clear();
-    m_ObjectCount = 1;
-    m_StreamFactory = nullptr;
+    if (m_Document == nullptr)
+        m_ObjectCount = 0;
+    else // The document has always the trailer, which is not inserted
+        m_ObjectCount = 1;
+    m_FreeObjects.clear();
+    m_unavailableObjects.clear();
+    m_objectStreams.clear();
 }
 
 PdfObject& PdfIndirectObjectList::MustGetObject(const PdfReference& ref) const

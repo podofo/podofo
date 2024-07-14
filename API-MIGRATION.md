@@ -1,4 +1,5 @@
 ## 0.10.1 -> 1.0.0
+- `PdfIndirectObjectList`: `SetStreamFactory` is now private, it's supposed to be used only by private PdfImmediateWriter
 - `PdfExtGState`:
   * Costructor is now private, create it through `PdfDocument::CreateExtGState()`
   * All methods now accept nullable
@@ -91,7 +92,7 @@ The following is an incomplete list of 0.9.8 -> 0.10.0 API modifications. Feel f
 
 - Removed all `pdf_int*` types and moved to standard `int*_t` types;
 - Removed `pdf_long` and all usages converted to either `size_t` and `ssize_t`;
-- Renamed `PdfVecObjects` ->` PdfIndirectObjectList`
+- Renamed `PdfVecObjects` -> `PdfIndirectObjectList`
 - Renamed `PdfFontCache` -> `PdfFontManager`
 - Renamed `PdfNamesTree` -> `PdfNameTree`
 - Renamed `PdfPagesTree` -> `PdfPageCollection`
