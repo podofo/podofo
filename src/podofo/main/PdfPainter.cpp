@@ -747,12 +747,20 @@ void PdfPainter::restore()
     TextState.SetState(current.TextState);
 }
 
-void PdfPainter::SetExtGState(const PdfExtGState& inGState)
+void PdfPainter::SetExtGState(const PdfExtGState& extGState)
 {
     checkStream();
-    checkStatus(StatusDefault);
-    this->addToPageResources(PdfResourceType::ExtGState, inGState.GetIdentifier(), inGState.GetObject());
-    PoDoFo::WriteOperator_gs(m_stream, inGState.GetIdentifier().GetString());
+    auto found = m_resNameCache.find(extGState.GetObject().GetIndirectReference());
+    if (found == m_resNameCache.end())
+    {
+        auto name = m_canvas->GetOrCreateResources().AddResource(PdfResourceType::ExtGState, extGState.GetObject());
+        m_resNameCache[extGState.GetObject().GetIndirectReference()] = name;
+        PoDoFo::WriteOperator_gs(m_stream, name);
+    }
+    else
+    {
+        PoDoFo::WriteOperator_gs(m_stream, found->second);
+    }
 }
 
 // TODO: Validate when marked content can be put
@@ -1329,6 +1337,18 @@ void PdfGraphicsStateWrapper::SetStrokeColor(const PdfColorRaw& color)
 
     m_state->StrokeColor = color;
     m_painter->SetStrokeColor(color, *m_state->StrokeColorSpaceFilter);
+}
+
+void PdfGraphicsStateWrapper::SetExtGState(const PdfExtGState& extGState)
+{
+    if (m_state->ExtGState != nullptr
+        && m_state->ExtGState->GetObject().GetIndirectReference() == extGState.GetObject().GetIndirectReference())
+    {
+        return;
+    }
+
+    m_state->ExtGState.reset(new PdfExtGState(extGState));
+    m_painter->SetExtGState(extGState);
 }
 
 PdfTextStateWrapper::PdfTextStateWrapper(PdfPainter& painter, PdfTextState& state)

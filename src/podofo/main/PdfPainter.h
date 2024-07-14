@@ -99,6 +99,7 @@ public:
     void SetStrokeColor(const PdfColor& color);
     void SetFillColor(const PdfColorRaw& color);
     void SetStrokeColor(const PdfColorRaw& color);
+    void SetExtGState(const PdfExtGState& extGState);
 
 public:
     const Matrix& GetCurrentMatrix() { return m_state->CTM; }
@@ -443,11 +444,6 @@ public:
      */
     void Restore();
 
-    /** Sets a specific PdfExtGState as being active
-     *	\param inGState the specific ExtGState to set
-     */
-    void SetExtGState(const PdfExtGState& inGState);
-
     /** Set the floating point precision.
      *
      *  \param precision write this many decimal places
@@ -526,6 +522,7 @@ private:
     void SetCharSpacing(double value);
     void SetWordSpacing(double value);
     void SetTextRenderingMode(PdfTextRenderingMode value);
+    void SetExtGState(const PdfExtGState& extGState);
 
 private:
     void writeTextState();

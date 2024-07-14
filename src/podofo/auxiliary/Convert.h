@@ -354,6 +354,188 @@ namespace PoDoFo
         }
     };
 
+    template<>
+    struct Convert<PdfRenderingIntent>
+    {
+        static std::string_view ToString(PdfRenderingIntent value)
+        {
+            using namespace std;
+            switch (value)
+            {
+                case PdfRenderingIntent::AbsoluteColorimetric:
+                    return "AbsoluteColorimetric"sv;
+                case PdfRenderingIntent::RelativeColorimetric:
+                    return "RelativeColorimetric"sv;
+                case PdfRenderingIntent::Perceptual:
+                    return "Perceptual"sv;
+                case PdfRenderingIntent::Saturation:
+                    return "Saturation"sv;
+                case PdfRenderingIntent::Unknown:
+                default:
+                    throw PdfError(PdfErrorCode::InvalidEnumValue, __FILE__, __LINE__);
+            }
+        }
+
+        static bool TryParse(const std::string_view& str, PdfRenderingIntent& value)
+        {
+            if (str == "AbsoluteColorimetric")
+            {
+                value = PdfRenderingIntent::AbsoluteColorimetric;
+                return true;
+            }
+            else if (str == "RelativeColorimetric")
+            {
+                value = PdfRenderingIntent::RelativeColorimetric;
+                return true;
+            }
+            else if (str == "Perceptual")
+            {
+                value = PdfRenderingIntent::Perceptual;
+                return true;
+            }
+            else if (str == "Saturation")
+            {
+                value = PdfRenderingIntent::Saturation;
+                return true;
+            }
+
+            return false;
+        }
+    };
+
+    template<>
+    struct Convert<PdfBlendMode>
+    {
+        static std::string_view ToString(PdfBlendMode value)
+        {
+            using namespace std;
+            switch (value)
+            {
+                case PdfBlendMode::Normal:
+                    return "Normal"sv;
+                case PdfBlendMode::Multiply:
+                    return "Multiply"sv;
+                case PdfBlendMode::Screen:
+                    return "Screen"sv;
+                case PdfBlendMode::Overlay:
+                    return "Overlay"sv;
+                case PdfBlendMode::Darken:
+                    return "Darken"sv;
+                case PdfBlendMode::Lighten:
+                    return "Lighten"sv;
+                case PdfBlendMode::ColorDodge:
+                    return "ColorDodge"sv;
+                case PdfBlendMode::ColorBurn:
+                    return "ColorBurn"sv;
+                case PdfBlendMode::HardLight:
+                    return "HardLight"sv;
+                case PdfBlendMode::SoftLight:
+                    return "SoftLight"sv;
+                case PdfBlendMode::Difference:
+                    return "Difference"sv;
+                case PdfBlendMode::Exclusion:
+                    return "Exclusion"sv;
+                case PdfBlendMode::Hue:
+                    return "Hue"sv;
+                case PdfBlendMode::Saturation:
+                    return "Saturation"sv;
+                case PdfBlendMode::Color:
+                    return "Color"sv;
+                case PdfBlendMode::Luminosity:
+                    return "Luminosity"sv;
+                case PdfBlendMode::Unknown:
+                default:
+                    throw PdfError(PdfErrorCode::InvalidEnumValue, __FILE__, __LINE__);
+            }
+        }
+
+        static bool TryParse(const std::string_view& str, PdfBlendMode& value)
+        {
+            if (str == "Normal")
+            {
+                value = PdfBlendMode::Normal;
+                return true;
+            }
+            else if (str == "Multiply")
+            {
+                value = PdfBlendMode::Multiply;
+                return true;
+            }
+            else if (str == "Screen")
+            {
+                value = PdfBlendMode::Screen;
+                return true;
+            }
+            else if (str == "Overlay")
+            {
+                value = PdfBlendMode::Overlay;
+                return true;
+            }
+            else if (str == "Darken")
+            {
+                value = PdfBlendMode::Darken;
+                return true;
+            }
+            else if (str == "Lighten")
+            {
+                value = PdfBlendMode::Lighten;
+                return true;
+            }
+            else if (str == "ColorDodge")
+            {
+                value = PdfBlendMode::ColorDodge;
+                return true;
+            }
+            else if (str == "ColorBurn")
+            {
+                value = PdfBlendMode::ColorBurn;
+                return true;
+            }
+            else if (str == "HardLight")
+            {
+                value = PdfBlendMode::HardLight;
+                return true;
+            }
+            else if (str == "SoftLight")
+            {
+                value = PdfBlendMode::SoftLight;
+                return true;
+            }
+            else if (str == "Difference")
+            {
+                value = PdfBlendMode::Difference;
+                return true;
+            }
+            else if (str == "Exclusion")
+            {
+                value = PdfBlendMode::Exclusion;
+                return true;
+            }
+            else if (str == "Hue")
+            {
+                value = PdfBlendMode::Hue;
+                return true;
+            }
+            else if (str == "Saturation")
+            {
+                value = PdfBlendMode::Saturation;
+                return true;
+            }
+            else if (str == "Color")
+            {
+                value = PdfBlendMode::Color;
+                return true;
+            }
+            else if (str == "Luminosity")
+            {
+                value = PdfBlendMode::Luminosity;
+                return true;
+            }
+
+            return false;
+        }
+    };
+
     template<typename T>
     std::string_view ToString(T value)
     {

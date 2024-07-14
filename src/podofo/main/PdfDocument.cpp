@@ -8,6 +8,7 @@
 #include <podofo/private/XMPUtils.h>
 #include "PdfDocument.h"
 
+#include "PdfExtGState.h"
 #include "PdfDestination.h"
 #include "PdfFileSpec.h"
 
@@ -680,6 +681,11 @@ unique_ptr<PdfColorSpace> PdfDocument::CreateColorSpace(const PdfColorSpaceFilte
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Only non trivial color spaces can be constructed through document");
 
     return unique_ptr<PdfColorSpace>(new PdfColorSpace(*this, filter));
+}
+
+unique_ptr<PdfExtGState> PdfDocument::CreateExtGState()
+{
+    return unique_ptr<PdfExtGState>(new PdfExtGState(*this));
 }
 
 unique_ptr<PdfAction> PdfDocument::CreateAction(PdfActionType type)

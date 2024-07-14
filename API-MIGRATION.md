@@ -1,4 +1,12 @@
 ## 0.10.1 -> 1.0.0
+- `PdfExtGState`:
+  * Costructor is now private, create it through `PdfDocument::CreateExtGState()`
+  * All methods now accept nullable
+  * `SetOverprint` -> `SetOverprintEnabled`
+  * `SetFillOverprint` -> `SetFillOverprintEnabled`
+  * `SetStrokeOverprint` -> `SetStrokeOverprintEnabled`
+  * `SetRenderingIntent` uses `PdfRenderingIntent` enum
+  * `SetBlendMode` uses `PdfBlendMode` enum
 - `PdfStreamedObjectStream`: Removed from public API, it's an internal implementation detail
 - `PdfXRefEntry`,`PdfXRefEntries`, `PdfParserObject`, `PdfXRefStreamParserObject`: Removed from public API,
 they are internal implementation details

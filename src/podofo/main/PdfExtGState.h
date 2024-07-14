@@ -7,12 +7,11 @@
 #ifndef PDF_EXTGSTATE_H
 #define PDF_EXTGSTATE_H
 
-#include "PdfDeclarations.h"
-
 #include "PdfElement.h"
-#include "PdfName.h"
 
 namespace PoDoFo {
+
+class PdfGraphicsStateWrapper;
 
 /** This class wraps the ExtGState object used in the Resource
  *  Dictionary of a Content-supporting element (page, Pattern, etc.)
@@ -21,7 +20,10 @@ namespace PoDoFo {
  */
 class PODOFO_API PdfExtGState final : public PdfDictionaryElement
 {
-public:
+    friend class PdfDocument;
+    friend class PdfGraphicsStateWrapper;
+
+private:
     /** Create a new PdfExtGState object which will introduce itself
      *  automatically to every page object it is used on.
      *
@@ -29,63 +31,53 @@ public:
      *
      */
     PdfExtGState(PdfDocument& doc);
+    PdfExtGState(const PdfExtGState&) = default;
 
+public:
     /** Sets the opacity value to be used for fill operations
-     *  \param opac a floating point value from 0 (transparent) to 1 (opaque)
+     *  \param opacity a floating point value from 0 (transparent) to 1 (opaque)
      */
-    void SetFillOpacity(double opac);
+    void SetFillOpacity(nullable<double> opacity);
 
     /** Sets the opacity value to be used for stroking operations
-     *  \param opac a floating point value from 0 (transparent) to 1 (opaque)
+     *  \param opacity a floating point value from 0 (transparent) to 1 (opaque)
      */
-    void SetStrokeOpacity(double opac);
+    void SetStrokeOpacity(nullable<double> opacity);
 
     /** Sets the transparency blend mode
      *  \param blendMode one of the predefined blending modes (see PdfDeclarations.h)
      */
-    void SetBlendMode(const std::string_view& blendMode);
+    void SetBlendMode(nullable<PdfBlendMode> blendMode);
 
     /** Enables/Disables overprinting for both Fill & Stroke
      *  \param enable enable or disable
      */
-    void SetOverprint(bool enable = true);
+    void SetOverprintEnabled(nullable<bool> enabled);
 
     /** Enables/Disables overprinting for Fill operations
      *  \param enable enable or disable
      */
-    void SetFillOverprint(bool enable = true);
+    void SetFillOverprintEnabled(nullable<bool> enabled);
 
     /** Enables/Disables overprinting for Stroke operations
      *  \param enable enable or disable
      */
-    void SetStrokeOverprint(bool enable = true);
+    void SetStrokeOverprintEnabled(nullable<bool> enabled);
 
     /** Enables/Disables non-zero overprint mode
      *  \param enable enable or disable
      */
-    void SetNonZeroOverprint(bool enable = true);
+    void SetNonZeroOverprintEnabled(nullable<bool> enabled);
 
     /** Set the Rendering Intent
      *  \param intent one of the predefined intents
      */
-    void SetRenderingIntent(const std::string_view& intent);
+    void SetRenderingIntent(nullable<PdfRenderingIntent> intent);
 
     /** Set the frequency for halftones
      *  \param frequency screen frequency, measured in halftone cells per inch in device space
      */
     void SetFrequency(double frequency);
-
-    /** Returns the identifier of this ExtGState how it is known
-     *  in the pages resource dictionary.
-     *  \returns PdfName containing the identifier (e.g. /ExtGS13)
-     */
-    inline const PdfName& GetIdentifier() const { return m_Identifier; }
-
-private:
-    void Init();
-
-private:
-    PdfName m_Identifier;
 };
 
 };

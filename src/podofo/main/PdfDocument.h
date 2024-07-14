@@ -25,6 +25,7 @@ namespace PoDoFo {
 
 class PdfAction;
 class PdfDestination;
+class PdfExtGState;
 class PdfFileSpec;
 class PdfEncrypt;
 class PdfDocument;
@@ -175,6 +176,8 @@ public:
     std::unique_ptr<PdfDestination> CreateDestination();
 
     std::unique_ptr<PdfColorSpace> CreateColorSpace(const PdfColorSpaceFilterPtr& filter);
+
+    std::unique_ptr<PdfExtGState> CreateExtGState();
 
     template <typename Taction>
     std::unique_ptr<Taction> CreateAction();

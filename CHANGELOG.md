@@ -5,6 +5,7 @@
 - Reviewed PdfFileSpec, PdfAction, PdfDestination API and their usage in
 PdfOutlineItem, PdfOutlines, PdfAnnotationActionBase, PdfAnnotationLink PdfAnnotationFileAttachment
 - Reviewed PdfNameTree
+- Reviewed PdfExtGState
 - PdfDocument: Added GetFieldsIterator()
 - PdfPage: Added GetFieldsIterator()
 

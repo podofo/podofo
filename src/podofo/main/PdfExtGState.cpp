@@ -15,60 +15,76 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfExtGState::PdfExtGState(PdfDocument& doc)
-    : PdfDictionaryElement(doc, "ExtGState")
+    : PdfDictionaryElement(doc, "ExtGState") { }
+
+void PdfExtGState::SetFillOpacity(nullable<double> opacity)
 {
-    PdfStringStream out;
-
-    // Implementation note: the identifier is always
-    // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "ExtGS" << this->GetObject().GetIndirectReference().ObjectNumber();
-    m_Identifier = PdfName(out.GetString());
-
-    this->Init();
+    if (opacity == nullptr)
+        GetDictionary().RemoveKey("ca");
+    else
+        GetDictionary().AddKey("ca", PdfVariant(*opacity));
 }
 
-void PdfExtGState::Init()
+void PdfExtGState::SetStrokeOpacity(nullable<double> opacity)
 {
+    if (opacity == nullptr)
+        GetDictionary().RemoveKey("CA");
+    else
+        GetDictionary().AddKey("CA", PdfVariant(*opacity));
 }
 
-void PdfExtGState::SetFillOpacity(double opac)
+void PdfExtGState::SetBlendMode(nullable<PdfBlendMode> blendMode)
 {
-    this->GetObject().GetDictionary().AddKey("ca", PdfVariant(opac));
+    if (blendMode == nullptr)
+        GetDictionary().RemoveKey("BM");
+    else
+        GetDictionary().AddKey("BM", PdfName(PoDoFo::ToString(*blendMode)));
 }
 
-void PdfExtGState::SetStrokeOpacity(double opac)
+void PdfExtGState::SetOverprintEnabled(nullable<bool> enabled)
 {
-    this->GetObject().GetDictionary().AddKey("CA", PdfVariant(opac));
+    if (enabled == nullptr)
+    {
+        GetDictionary().RemoveKey("OP");
+        GetDictionary().RemoveKey("op");
+    }
+    else
+    {
+        GetDictionary().AddKey("OP", PdfVariant(*enabled));
+        GetDictionary().RemoveKey("op");
+    }
 }
 
-void PdfExtGState::SetBlendMode(const string_view& blendMode)
+void PdfExtGState::SetFillOverprintEnabled(nullable<bool> enabled)
 {
-    this->GetObject().GetDictionary().AddKey("BM", PdfName(blendMode));
+    if (enabled == nullptr)
+        GetDictionary().RemoveKey("op");
+    else
+        GetDictionary().AddKey("op", PdfVariant(*enabled));
 }
 
-void PdfExtGState::SetOverprint(bool enable)
+void PdfExtGState::SetStrokeOverprintEnabled(nullable<bool> enabled)
 {
-    this->GetObject().GetDictionary().AddKey("OP", PdfVariant(enable));
+    if (enabled == nullptr)
+        GetDictionary().RemoveKey("OP");
+    else
+        GetDictionary().AddKey("OP", PdfVariant(*enabled));
 }
 
-void PdfExtGState::SetFillOverprint(bool enable)
+void PdfExtGState::SetNonZeroOverprintEnabled(nullable<bool> enabled)
 {
-    this->GetObject().GetDictionary().AddKey("op", PdfVariant(enable));
+    if (enabled == nullptr)
+        GetDictionary().RemoveKey("OPM");
+    else
+        GetDictionary().AddKey("OPM", PdfVariant(static_cast<int64_t>(*enabled ? 1 : 0)));
 }
 
-void PdfExtGState::SetStrokeOverprint(bool enable)
+void PdfExtGState::SetRenderingIntent(nullable<PdfRenderingIntent> intent)
 {
-    this->GetObject().GetDictionary().AddKey("OP", PdfVariant(enable));
-}
-
-void PdfExtGState::SetNonZeroOverprint(bool enable)
-{
-    this->GetObject().GetDictionary().AddKey("OPM", PdfVariant(static_cast<int64_t>(enable ? 1 : 0)));
-}
-
-void PdfExtGState::SetRenderingIntent(const string_view& intent)
-{
-    this->GetObject().GetDictionary().AddKey("RI", PdfName(intent));
+    if (intent == nullptr)
+        GetDictionary().RemoveKey("RI");
+    else
+        GetDictionary().AddKey("RI", PdfName(PoDoFo::ToString(*intent)));
 }
 
 void PdfExtGState::SetFrequency(double frequency)
@@ -79,5 +95,5 @@ void PdfExtGState::SetFrequency(double frequency)
     halftoneDict.AddKey("Angle", PdfVariant(45.0));
     halftoneDict.AddKey("SpotFunction", PdfName("SimpleDot"));
 
-    this->GetObject().GetDictionary().AddKey("HT", halftoneDict);
+    GetDictionary().AddKey("HT", halftoneDict);
 }

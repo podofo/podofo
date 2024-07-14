@@ -13,7 +13,6 @@
 - PdfWriter: Check if SetEncrypt() should accept mutable reference instead
 - Evaluate hide/protect/remove PdfIndirectObjectList: RemoveObject, RemoveObject, ReplaceObject
 - Evaluate make private PdfIndirectObjectList:SetCanReuseObjectNumbers
-- PdfExtGState accessibility
 - PdfField: Evaluate make a virtual getValueObject()
 - Evaluate removing PdfObject::Null and PdfVariant::Null and introduce nullptr_t constructor overloads
 - PdfCanvas: Add CopyTo facilities, see PdfContents

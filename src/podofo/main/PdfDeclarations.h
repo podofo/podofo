@@ -739,6 +739,7 @@ enum class PdfOperator
  */
 enum class PdfRenderingIntent
 {
+    Unknown = 0,
     AbsoluteColorimetric,
     RelativeColorimetric,
     Perceptual,
@@ -750,6 +751,7 @@ enum class PdfRenderingIntent
  */
 enum class PdfBlendMode
 {
+    Unknown = 0,
     Normal,
     Multiply,
     Screen,

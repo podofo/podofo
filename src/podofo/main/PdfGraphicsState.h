@@ -9,6 +9,7 @@
 
 #include <podofo/auxiliary/Matrix.h>
 #include "PdfColorSpaceFilter.h"
+#include "PdfExtGState.h"
 
 namespace PoDoFo
 {
@@ -25,6 +26,7 @@ namespace PoDoFo
         PdfColorRaw StrokeColor;
         PdfColorSpaceFilterPtr FillColorSpaceFilter = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
         PdfColorSpaceFilterPtr StrokeColorSpaceFilter = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
+        std::shared_ptr<PdfExtGState> ExtGState;
     };
 }
 
