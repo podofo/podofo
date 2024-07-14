@@ -932,13 +932,13 @@ void PdfPainter::SetFillColorSpace(const PdfColorSpace& colorSpace)
     auto found = m_resNameCache.find(colorSpace.GetObject().GetIndirectReference());
     if (found == m_resNameCache.end())
     {
-        PoDoFo::WriteOperator_cs(m_stream, found->second);
-    }
-    else
-    {
         auto name = m_canvas->GetOrCreateResources().AddResource(PdfResourceType::ColorSpace, colorSpace.GetObject());
         m_resNameCache[colorSpace.GetObject().GetIndirectReference()] = name;
         PoDoFo::WriteOperator_cs(m_stream, name);
+    }
+    else
+    {
+        PoDoFo::WriteOperator_cs(m_stream, found->second);
     }
 }
 
@@ -948,13 +948,13 @@ void PdfPainter::SetStrokeColorSpace(const PdfColorSpace& colorSpace)
     auto found = m_resNameCache.find(colorSpace.GetObject().GetIndirectReference());
     if (found == m_resNameCache.end())
     {
-        PoDoFo::WriteOperator_CS(m_stream, found->second);
-    }
-    else
-    {
         auto name = m_canvas->GetOrCreateResources().AddResource(PdfResourceType::ColorSpace, colorSpace.GetObject());
         m_resNameCache[colorSpace.GetObject().GetIndirectReference()] = name;
         PoDoFo::WriteOperator_CS(m_stream, name);
+    }
+    else
+    {
+        PoDoFo::WriteOperator_CS(m_stream, found->second);
     }
 }
 
