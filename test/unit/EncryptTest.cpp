@@ -20,6 +20,8 @@ static void createEncryptedPdf(const string_view& filename);
 charbuff s_encBuffer;
 PdfPermissions s_protection;
 
+constexpr string_view ReferenceHash("298ACCFDC32BB2BC32BFD580883219AB");
+
 #define PDF_USER_PASSWORD "user"
 #define PDF_OWNER_PASSWORD "podofo"
 
@@ -50,8 +52,6 @@ struct Paths
 
 TEST_CASE("TestEncryptedPDFs")
 {
-    constexpr string_view ReferenceHash("298ACCFDC32BB2BC32BFD580883219AB");
-
     charbuff buffer;
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("TemplateClearText.pdf"));
@@ -84,6 +84,52 @@ TEST_CASE("TestEncryptedPDFs")
         doc.Load(path, "ownerpass");
         doc.GetObjects().MustGetObject(PdfReference(11, 0)).MustGetStream().CopyTo(buffer);
         REQUIRE(ssl::ComputeMD5Str(buffer) == ReferenceHash);
+    }
+}
+
+TEST_CASE("TestEncryptDecryptPDFs")
+{
+    PdfEncryptionAlgorithm algorithms[] = {
+        PdfEncryptionAlgorithm::RC4V2,
+        PdfEncryptionAlgorithm::RC4V2,
+        PdfEncryptionAlgorithm::RC4V2,
+        PdfEncryptionAlgorithm::RC4V2,
+        PdfEncryptionAlgorithm::RC4V2,
+        PdfEncryptionAlgorithm::AESV2,
+        PdfEncryptionAlgorithm::AESV3R6,
+    };
+
+    PdfKeyLength keyLengths[] = {
+        PdfKeyLength::L40,
+        PdfKeyLength::L56,
+        PdfKeyLength::L80,
+        PdfKeyLength::L96,
+        PdfKeyLength::L128,
+        PdfKeyLength::L128,
+        PdfKeyLength::L256,
+    };
+
+    charbuff pdfBuffer;
+    charbuff objBuffer;
+    for (unsigned i = 0; i < std::size(algorithms); i++)
+    {
+        PdfMemDocument doc;
+
+        doc.Load(TestUtils::GetTestInputFilePath("TemplateClearText.pdf"));
+        doc.SetEncrypted("userpass", "ownerpass", PdfPermissions::Default,
+            algorithms[i], keyLengths[i]);
+
+        pdfBuffer.clear();
+        BufferStreamDevice device(pdfBuffer);
+        doc.Save(device);
+
+        doc.LoadFromBuffer(pdfBuffer, "userpass");
+        doc.GetObjects().MustGetObject(PdfReference(11, 0)).MustGetStream().CopyTo(objBuffer);
+        REQUIRE(ssl::ComputeMD5Str(objBuffer) == ReferenceHash);
+
+        doc.LoadFromBuffer(pdfBuffer, "ownerpass");
+        doc.GetObjects().MustGetObject(PdfReference(11, 0)).MustGetStream().CopyTo(objBuffer);
+        REQUIRE(ssl::ComputeMD5Str(objBuffer) == ReferenceHash);
     }
 }
 

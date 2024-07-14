@@ -370,6 +370,8 @@ protected:
      */
     inline const unsigned char* GetEncryptionKey() const { return m_encryptionKey; }
 
+    int64_t GetPValueForSerialization() const;
+
 protected:
     void Init(PdfEncryptionAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision,
         PdfPermissions pValue, const bufferview& uValue, const bufferview& oValue,

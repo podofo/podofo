@@ -490,8 +490,8 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreateFromObject(const PdfObject& encryptObj)
         lV = static_cast<unsigned>(encryptObj.GetDictionary().MustGetKey("V").GetNumber());
         rValue = static_cast<unsigned>(encryptObj.GetDictionary().MustGetKey("R").GetNumber());
 
-        // The value of the P entry shall be interpreted as an unsigned
-        // 32-bit quantity containing a set of flags
+        // "The value of the P entry shall be interpreted as an unsigned
+        // 32-bit quantity containing a set of flags"
         pValue = static_cast<PdfPermissions>(encryptObj.GetDictionary().MustGetKey("P").GetNumber() & 0xFFFFFFFF);
 
         oValue = encryptObj.GetDictionary().MustGetKey("O").GetString();
@@ -598,6 +598,17 @@ PdfEncrypt::PdfEncrypt() :
     m_oValueSize(0),
     m_EncryptMetadata(false)
 {
+}
+
+int64_t PdfEncrypt::GetPValueForSerialization() const
+{
+    // NOTE: While "The value of the P entry shall be
+    // interpreted as an unsigned 32-bit quantity", PDFs
+    // tend to write it a signed integer, which is weird
+    // but still acceptable. We convert it first to int32_t
+    // again before casting to a PDF 64 bit number to
+    // preserve the same form
+    return (int64_t)(int32_t)m_pValue;
 }
 
 void PdfEncrypt::Init(PdfEncryptionAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision, PdfPermissions pValue,
@@ -984,7 +995,7 @@ void PdfEncryptMD5Base::CreateEncryptionDictionary(PdfDictionary& dictionary) co
 
     dictionary.AddKey("O", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetOValueRaw()), 32 }));
     dictionary.AddKey("U", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetUValueRaw()), 32 }));
-    dictionary.AddKey("P", PdfVariant(static_cast<int64_t>(this->GetPValue())));
+    dictionary.AddKey("P", PdfVariant(GetPValueForSerialization()));
 }
     
 void PdfEncryptRC4::GenerateEncryptionKey(const string_view& documentId,
@@ -1635,10 +1646,10 @@ void PdfEncryptAESV3::CreateEncryptionDictionary(PdfDictionary& dictionary) cons
     dictionary.AddKey("StrF", PdfName("StdCF"));
     dictionary.AddKey("StmF", PdfName("StdCF"));
 
-    dictionary.AddKey("P", PdfVariant(static_cast<int64_t>(this->GetPValue())));
+    dictionary.AddKey("P", PdfVariant(GetPValueForSerialization()));
 
-    dictionary.AddKey("OE", PdfString::FromRaw(GetUEValue()));
-    dictionary.AddKey("UE", PdfString::FromRaw(GetOEValue()));
+    dictionary.AddKey("OE", PdfString::FromRaw(GetOEValue()));
+    dictionary.AddKey("UE", PdfString::FromRaw(GetUEValue()));
     dictionary.AddKey("Perms", PdfString::FromRaw(GetPermsValue()));
 }
 
