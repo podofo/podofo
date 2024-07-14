@@ -81,7 +81,7 @@ enum class PdfPermissions : uint32_t
 /**
  * The encryption algorithm.
  */
-enum class PdfEncryptAlgorithm : uint8_t
+enum class PdfEncryptionAlgorithm : uint8_t
 {
     None = 0,
     RC4V1 = 1,      ///< RC4 Version 1 encryption using a 40bit key
@@ -136,7 +136,7 @@ public:
     static std::unique_ptr<PdfEncrypt> Create(const std::string_view& userPassword,
         const std::string_view& ownerPassword,
         PdfPermissions protection = PdfPermissions::Default,
-        PdfEncryptAlgorithm algorithm = PdfEncryptAlgorithm::AESV2,
+        PdfEncryptionAlgorithm algorithm = PdfEncryptionAlgorithm::AESV2,
         PdfKeyLength keyLength = PdfKeyLength::Unknown);
 
     /** Initialize a PdfEncrypt object from an encryption dictionary in a PDF file.
@@ -163,7 +163,7 @@ public:
      *
      * \return an or'ed together list of all enabled encryption algorithms
      */
-    static PdfEncryptAlgorithm GetEnabledEncryptionAlgorithms();
+    static PdfEncryptionAlgorithm GetEnabledEncryptionAlgorithms();
 
     /**
      * Test if a certain encryption algorithm is enabled for loading PDF documents.
@@ -172,7 +172,7 @@ public:
      * \see GetEnabledEncryptionAlgorithms
      * \see SetEnabledEncryptionAlgorithms
      */
-    static bool IsEncryptionEnabled(PdfEncryptAlgorithm algorithm);
+    static bool IsEncryptionEnabled(PdfEncryptionAlgorithm algorithm);
 
     /** Generate encryption key from user and owner passwords and protection key
      *
@@ -226,7 +226,7 @@ public:
     /** Get the encryption algorithm of this object.
      * \returns the PdfEncryptAlgorithm of this object
      */
-    inline PdfEncryptAlgorithm GetEncryptAlgorithm() const { return m_Algorithm; }
+    inline PdfEncryptionAlgorithm GetEncryptAlgorithm() const { return m_Algorithm; }
 
     /** Checks if an owner password is set.
      *  An application reading PDF must adhere to permissions for printing,
@@ -371,12 +371,12 @@ protected:
     inline const unsigned char* GetEncryptionKey() const { return m_encryptionKey; }
 
 protected:
-    void Init(PdfEncryptAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision,
+    void Init(PdfEncryptionAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision,
         PdfPermissions pValue, const bufferview& uValue, const bufferview& oValue,
         bool encryptedMetadata);
 
     void Init(const std::string_view& userPassword, const std::string_view& ownerPassword,
-        PdfEncryptAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision,
+        PdfEncryptionAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision,
         PdfPermissions pValue, bool encryptedMetadata);
 
     virtual void Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
@@ -423,7 +423,7 @@ private:
     static std::unique_ptr<PdfEncrypt> CreateFromEncrypt(const PdfEncrypt& rhs);
 
 private:
-    PdfEncryptAlgorithm m_Algorithm;   // The used encryption algorithm
+    PdfEncryptionAlgorithm m_Algorithm;   // The used encryption algorithm
     unsigned char m_rValue;            // Revision
     PdfKeyLength m_KeyLength;          // The encryption key length, as enum value
     PdfPermissions m_pValue;           // P entry in pdf document
@@ -631,11 +631,11 @@ class PdfEncryptRC4 final : public PdfEncryptMD5Base
 
 private:
     PdfEncryptRC4(PdfString oValue, PdfString uValue, PdfPermissions pValue,
-        PdfRC4Revision revision, PdfEncryptAlgorithm algorithm,
+        PdfRC4Revision revision, PdfEncryptionAlgorithm algorithm,
         unsigned keyLength, bool encryptMetadata);
     PdfEncryptRC4(const std::string_view& userPassword, const std::string_view& ownerPassword,
         PdfPermissions protection,
-        PdfEncryptAlgorithm algorithm,
+        PdfEncryptionAlgorithm algorithm,
         PdfKeyLength keyLength);
     PdfEncryptRC4(const PdfEncryptRC4& rhs) = default;
 
@@ -665,6 +665,6 @@ private:
 
 }
 ENABLE_BITMASK_OPERATORS(PoDoFo::PdfPermissions);
-ENABLE_BITMASK_OPERATORS(PoDoFo::PdfEncryptAlgorithm);
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfEncryptionAlgorithm);
 
 #endif // PDF_ENCRYPT_H

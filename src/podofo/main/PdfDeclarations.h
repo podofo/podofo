@@ -775,7 +775,7 @@ enum class PdfSignatureType
     Pkcs7 = 2,
 };
 
-enum class PdfEncryptionAlgorithm
+enum class PdfSignatureEncryption
 {
     Unknown = 0,
     RSA,

@@ -40,7 +40,7 @@ namespace PoDoFo
     struct PODOFO_API PdfSignerCmsParams final
     {
         PdfSignatureType SignatureType = PdfSignatureType::PAdES_B;
-        PdfEncryptionAlgorithm Encryption = PdfEncryptionAlgorithm::RSA;
+        PdfSignatureEncryption Encryption = PdfSignatureEncryption::RSA;
         PdfHashingAlgorithm Hashing = PdfHashingAlgorithm::SHA256;
         PdfSigningService SigningService;
         nullable<std::chrono::seconds> SigningTimeUTC;

@@ -25,7 +25,7 @@ namespace PoDoFo
 {
     struct CmsContextParams
     {
-        PdfEncryptionAlgorithm Encryption = PdfEncryptionAlgorithm::RSA;
+        PdfSignatureEncryption Encryption = PdfSignatureEncryption::RSA;
         PdfHashingAlgorithm Hashing = PdfHashingAlgorithm::SHA256;
         bool SkipWriteMIMECapabilities = false;
         bool SkipWriteSigningTime = false;

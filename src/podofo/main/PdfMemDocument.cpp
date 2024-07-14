@@ -298,7 +298,7 @@ void PdfMemDocument::beforeWrite(PdfSaveOptions opts)
 }
 
 void PdfMemDocument::SetEncrypted(const string_view& userPassword, const string_view& ownerPassword,
-    PdfPermissions protection, PdfEncryptAlgorithm algorithm,
+    PdfPermissions protection, PdfEncryptionAlgorithm algorithm,
     PdfKeyLength keyLength)
 {
     m_Encrypt = PdfEncrypt::Create(userPassword, ownerPassword, protection, algorithm, keyLength);

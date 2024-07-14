@@ -97,7 +97,7 @@ TEST_CASE("TestDefaultEncryption")
 TEST_CASE("TestRC4")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
-        PdfEncryptAlgorithm::RC4V1,
+        PdfEncryptionAlgorithm::RC4V1,
         PdfKeyLength::L40);
 
     testAuthenticate(*encrypt);
@@ -107,7 +107,7 @@ TEST_CASE("TestRC4")
 TEST_CASE("TestRC4v2_40")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
-        PdfEncryptAlgorithm::RC4V2,
+        PdfEncryptionAlgorithm::RC4V2,
         PdfKeyLength::L40);
 
     testAuthenticate(*encrypt);
@@ -117,7 +117,7 @@ TEST_CASE("TestRC4v2_40")
 TEST_CASE("TestRC4v2_56")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
-        PdfEncryptAlgorithm::RC4V2,
+        PdfEncryptionAlgorithm::RC4V2,
         PdfKeyLength::L56);
 
     testAuthenticate(*encrypt);
@@ -127,7 +127,7 @@ TEST_CASE("TestRC4v2_56")
 TEST_CASE("TestRC4v2_80")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
-        PdfEncryptAlgorithm::RC4V2,
+        PdfEncryptionAlgorithm::RC4V2,
         PdfKeyLength::L80);
 
     testAuthenticate(*encrypt);
@@ -137,7 +137,7 @@ TEST_CASE("TestRC4v2_80")
 TEST_CASE("TestRC4v2_96")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
-        PdfEncryptAlgorithm::RC4V2,
+        PdfEncryptionAlgorithm::RC4V2,
         PdfKeyLength::L96);
 
     testAuthenticate(*encrypt);
@@ -147,7 +147,7 @@ TEST_CASE("TestRC4v2_96")
 TEST_CASE("TestRC4v2_128")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
-        PdfEncryptAlgorithm::RC4V2,
+        PdfEncryptionAlgorithm::RC4V2,
         PdfKeyLength::L128);
 
     testAuthenticate(*encrypt);
@@ -157,7 +157,7 @@ TEST_CASE("TestRC4v2_128")
 TEST_CASE("TestAESV2")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
-        PdfEncryptAlgorithm::AESV2,
+        PdfEncryptionAlgorithm::AESV2,
         PdfKeyLength::L128);
 
     testAuthenticate(*encrypt);
@@ -171,7 +171,7 @@ TEST_CASE("TestAESV2")
 TEST_CASE("TestAESV3R5")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
-        PdfEncryptAlgorithm::AESV3R5,
+        PdfEncryptionAlgorithm::AESV3R5,
         PdfKeyLength::L256);
 
     testAuthenticate(*encrypt);
@@ -183,7 +183,7 @@ TEST_CASE("TestAESV3R5")
 TEST_CASE("testAESV3R6")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
-        PdfEncryptAlgorithm::AESV3R6,
+        PdfEncryptionAlgorithm::AESV3R6,
         PdfKeyLength::L256);
 
     testAuthenticate(*encrypt);
@@ -197,18 +197,18 @@ TEST_CASE("testAESV3R6")
 TEST_CASE("testEnableAlgorithms")
 {
     // By default every algorithms should be enabled
-    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V1));
-    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V2));
-    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV2));
+    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptionAlgorithm::RC4V1));
+    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptionAlgorithm::RC4V2));
+    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptionAlgorithm::AESV2));
 #ifdef PODOFO_HAVE_LIBIDN
-    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3R5));
-    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3R6));
+    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptionAlgorithm::AESV3R5));
+    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptionAlgorithm::AESV3R6));
 #endif // PODOFO_HAVE_LIBIDN
 
-    PdfEncryptAlgorithm testAlgorithms = PdfEncryptAlgorithm::AESV2;
-    testAlgorithms |= PdfEncryptAlgorithm::RC4V1 | PdfEncryptAlgorithm::RC4V2;
+    PdfEncryptionAlgorithm testAlgorithms = PdfEncryptionAlgorithm::AESV2;
+    testAlgorithms |= PdfEncryptionAlgorithm::RC4V1 | PdfEncryptionAlgorithm::RC4V2;
 #ifdef PODOFO_HAVE_LIBIDN
-    testAlgorithms |= PdfEncryptAlgorithm::AESV3R5 | PdfEncryptAlgorithm::AESV3R6;;
+    testAlgorithms |= PdfEncryptionAlgorithm::AESV3R5 | PdfEncryptionAlgorithm::AESV3R6;;
 #endif // PODOFO_HAVE_LIBIDN
     REQUIRE(testAlgorithms == PdfEncrypt::GetEnabledEncryptionAlgorithms());
 }

@@ -166,7 +166,7 @@ public:
      */
     void SetEncrypted(const std::string_view& userPassword, const std::string_view& ownerPassword,
         PdfPermissions protection = PdfPermissions::Default,
-        PdfEncryptAlgorithm algorithm = PdfEncryptAlgorithm::AESV2,
+        PdfEncryptionAlgorithm algorithm = PdfEncryptionAlgorithm::AESV2,
         PdfKeyLength keyLength = PdfKeyLength::L128);
 
     /** Encrypt the document during writing using a PdfEncrypt object
