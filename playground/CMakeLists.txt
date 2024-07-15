@@ -31,7 +31,12 @@ if(NOT EXISTS "${DEPS_PATH}")
     message(FATAL_ERROR "Deps path doesn't exists: try fetch git submodules with:\n    git submodule update --init")
 endif()
 
+cmake_host_system_information(RESULT CORE_COUNT QUERY NUMBER_OF_PHYSICAL_CORES)
+
 if (MSVC)
+    # Set parallel compilation by default in Visual Studio
+    add_compile_options("/MP${CORE_COUNT}")
+
     # Ignore warnings about missing pdbs
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4099")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4099")
