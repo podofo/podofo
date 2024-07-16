@@ -82,13 +82,21 @@ OpenSSLMain::~OpenSSLMain()
 
 // Add signing-certificate-v2 attribute as defined in rfc5035
 // https://tools.ietf.org/html/rfc5035
-void ssl::AddSigningCertificateV2(CMS_SignerInfo* signer, const bufferview& hash)
+void ssl::AddSigningCertificateV2(CMS_SignerInfo* signer, const bufferview& hash, PdfHashingAlgorithm hashing)
 {
+    unique_ptr<X509_ALGOR, decltype(&X509_ALGOR_free)> x509Algor(X509_ALGOR_new(), X509_ALGOR_free);
+    if (x509Algor == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error X509_ALGOR_new");
+
+    X509_ALGOR_set_md(x509Algor.get(), ssl::GetEVP_MD(hashing));
+
     unsigned char* buf = nullptr;
     MY_ESS_SIGNING_CERT_V2 certV2{ };
     ASN1_OCTET_STRING hashstr{ };
     ASN1_OCTET_STRING_set(&hashstr, (const unsigned char*)hash.data(), (int)hash.size());
     MY_ESS_CERT_ID_V2 certIdV2{ };
+
+    certIdV2.hash_alg = x509Algor.get();
     certIdV2.hash = &hashstr;
     certV2.cert_ids = sk_MY_ESS_CERT_ID_V2_new_null();
     if (!sk_MY_ESS_CERT_ID_V2_push(certV2.cert_ids, &certIdV2))

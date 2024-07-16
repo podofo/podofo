@@ -57,7 +57,7 @@ namespace ssl
 {
     const EVP_MD* GetEVP_MD(PoDoFo::PdfHashingAlgorithm hashing);
     unsigned GetEVP_Size(PoDoFo::PdfHashingAlgorithm hashing);
-    void AddSigningCertificateV2(CMS_SignerInfo* signer, const PoDoFo::bufferview& hash);
+    void AddSigningCertificateV2(CMS_SignerInfo* signer, const PoDoFo::bufferview& hash, PoDoFo::PdfHashingAlgorithm hashing);
     void ComputeHashToSign(CMS_SignerInfo* si, BIO* chain, bool doWrapDigest, PoDoFo::charbuff& hashToSign);
 
     // Load a ASN.1 encoded private key (PKCS#1 or PKCS#8 formats supported)

@@ -226,7 +226,7 @@ void CmsContext::reset()
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "CMS_add1_signer");
 
     if (m_parameters.AddSigningCertificateV2)
-        ssl::AddSigningCertificateV2(m_signer, m_certHash);
+        ssl::AddSigningCertificateV2(m_signer, m_certHash, m_parameters.Hashing);
 }
 
 void CmsContext::checkAppendStarted()
