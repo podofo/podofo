@@ -74,7 +74,7 @@ PdfIndirectObjectList::PdfIndirectObjectList() :
 
 PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document) :
     m_Document(&document),
-    m_ObjectCount(1),   // The document has always the trailer, which is not inserted
+    m_ObjectCount(0),
     m_StreamFactory(nullptr)
 {
 }
@@ -107,10 +107,7 @@ void PdfIndirectObjectList::Clear()
         delete obj;
 
     m_Objects.clear();
-    if (m_Document == nullptr)
-        m_ObjectCount = 0;
-    else // The document has always the trailer, which is not inserted
-        m_ObjectCount = 1;
+    m_ObjectCount = 0;
     m_FreeObjects.clear();
     m_unavailableObjects.clear();
     m_objectStreams.clear();
@@ -176,11 +173,13 @@ PdfReference PdfIndirectObjectList::getNextFreeObject()
         return freeObjectRef;
     }
 
-    // If no free objects are available, create a new object with generation 0
-    uint32_t nextObjectNum = static_cast<uint32_t>(m_ObjectCount);
+    // If no free objects are available, create a new object number with generation 0
+    uint32_t nextObjectNum = static_cast<uint32_t>(m_ObjectCount + 1);
     while (true)
     {
-        if ((size_t)(nextObjectNum + 1) == MaxReserveSize)
+        // CHECK-ME: We have to check the modern specifications
+        // which probably removed the old ISO 32000-1:2008 limit
+        if ((size_t)nextObjectNum > MaxReserveSize)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Reached the maximum number of indirect objects");
 
         // Check also if the object number it not available,
@@ -458,12 +457,11 @@ void PdfIndirectObjectList::SetStreamFactory(StreamFactory* factory)
 
 void PdfIndirectObjectList::tryIncrementObjectCount(const PdfReference& ref)
 {
-    if (ref.ObjectNumber() >= m_ObjectCount)
+    if (ref.ObjectNumber() > m_ObjectCount)
     {
-        // "m_ObjectCount" is used for the next free object number.
-        // We need to use the greatest object number + 1 for the next free object number.
-        // Otherwise, object number overlap would have occurred.
-        m_ObjectCount = ref.ObjectNumber() + 1;
+        // "m_ObjectCount" is used to determine the next available object number.
+        // It shall be the highest object number otherwise overlaps may occur
+        m_ObjectCount = ref.ObjectNumber();
     }
 }
 

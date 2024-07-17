@@ -101,7 +101,11 @@ public:
     unsigned GetSize() const;
 
     /**
-     * \returns the logical object count in the document
+     * \returns the logical object count in the document.
+     * \remarks It corresponds to the highest object number
+     *   ever used and it never decreases. This value is used
+     *   to determine the next available object number, when
+     *   the free object list is empty
      */
     inline unsigned GetObjectCount() const { return m_ObjectCount; }
 
