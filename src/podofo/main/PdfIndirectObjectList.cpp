@@ -153,25 +153,6 @@ unique_ptr<PdfObject> PdfIndirectObjectList::RemoveObject(const iterator& it)
     return removeObject(it, true);
 }
 
-unique_ptr<PdfObject> PdfIndirectObjectList::ReplaceObject(const PdfReference& ref, PdfObject* obj)
-{
-    if (obj == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Object must be non null");
-
-    auto it = m_Objects.lower_bound(ref);
-    if (it == m_Objects.end())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to find object with reference {}", ref.ToString());
-
-    auto hintpos = it;
-    hintpos++;
-    auto node = m_Objects.extract(it);
-    unique_ptr<PdfObject> ret(node.value());
-    node.value() = obj;
-    obj->SetIndirectReference(ref);
-    pushObject(hintpos, node, obj);
-    return ret;
-}
-
 unique_ptr<PdfObject> PdfIndirectObjectList::removeObject(const iterator& it, bool markAsFree)
 {
     auto obj = *it;

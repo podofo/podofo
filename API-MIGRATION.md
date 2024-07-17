@@ -1,5 +1,7 @@
 ## 0.10.1 -> 1.0.0
-- `PdfIndirectObjectList`: `SetStreamFactory` is now private, it's supposed to be used only by private PdfImmediateWriter
+- `PdfIndirectObjectList`:
+  * `SetStreamFactory` is now private, it's supposed to be used only by private PdfImmediateWriter
+  * `ReplaceObject`: Removed, it was added during pdfmm times when there was no better way to rewrite object streams without temporary objects
 - `PdfExtGState`:
   * Costructor is now private, create it through `PdfDocument::CreateExtGState()`
   * All methods now accept nullable
