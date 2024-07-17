@@ -64,7 +64,6 @@ private:
 
 PdfIndirectObjectList::PdfIndirectObjectList() :
     m_Document(nullptr),
-    m_CanReuseObjectNumbers(true),
     m_ObjectCount(0),
     m_StreamFactory(nullptr)
 {
@@ -72,7 +71,6 @@ PdfIndirectObjectList::PdfIndirectObjectList() :
 
 PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document) :
     m_Document(&document),
-    m_CanReuseObjectNumbers(true),
     m_ObjectCount(1),   // The document has always the trailer, which is not inserted
     m_StreamFactory(nullptr)
 {
@@ -80,7 +78,6 @@ PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document) :
 
 PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document, const PdfIndirectObjectList& rhs)  :
     m_Document(&document),
-    m_CanReuseObjectNumbers(rhs.m_CanReuseObjectNumbers),
     m_ObjectCount(rhs.m_ObjectCount),
     m_FreeObjects(rhs.m_FreeObjects),
     m_unavailableObjects(rhs.m_unavailableObjects),
@@ -169,7 +166,7 @@ unique_ptr<PdfObject> PdfIndirectObjectList::removeObject(const iterator& it, bo
 PdfReference PdfIndirectObjectList::getNextFreeObject()
 {
     // Try to first use list of free objects
-    if (m_CanReuseObjectNumbers && !m_FreeObjects.empty())
+    if (!m_FreeObjects.empty())
     {
         PdfReference freeObjectRef = m_FreeObjects.front();
         m_FreeObjects.pop_front();
@@ -440,14 +437,6 @@ void PdfIndirectObjectList::EndAppendStream(PdfObjectStream& stream)
 {
     for (auto& observer : m_observers)
         observer->EndAppendStream(stream);
-}
-
-void PdfIndirectObjectList::SetCanReuseObjectNumbers(bool canReuseObjectNumbers)
-{
-    m_CanReuseObjectNumbers = canReuseObjectNumbers;
-
-    if (!m_CanReuseObjectNumbers)
-        m_FreeObjects.clear();
 }
 
 unsigned PdfIndirectObjectList::GetSize() const

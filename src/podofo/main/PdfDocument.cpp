@@ -63,7 +63,6 @@ void PdfDocument::Clear()
     m_Outlines = nullptr;
     m_NameTrees = nullptr;
     m_Objects.Clear();
-    m_Objects.SetCanReuseObjectNumbers(true);
     clear();
 }
 

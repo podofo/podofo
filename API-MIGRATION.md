@@ -2,6 +2,9 @@
 - `PdfIndirectObjectList`:
   * `SetStreamFactory` is now private, it's supposed to be used only by private PdfImmediateWriter
   * `ReplaceObject`: Removed, it was added during pdfmm times when there was no better way to rewrite object streams without temporary objects
+  * `SetCanReuseObjectNumbers`, `GetCanReuseObjectNumbers`: Removed, the default is true ans it's untested with false. Reusing object numbers
+    is a standard PDF feature and it's better to fix bugs in that part (if any) than allowing to mess with internal indirect object numbering
+    in the public API
 - `PdfExtGState`:
   * Costructor is now private, create it through `PdfDocument::CreateExtGState()`
   * All methods now accept nullable

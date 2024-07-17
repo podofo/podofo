@@ -106,15 +106,6 @@ public:
 
     ~PdfIndirectObjectList();
 
-    /** Enable/disable object numbers re-use.
-     *  By default object numbers re-use is enabled.
-     *
-     *  \param canReuseObjectNumbers if true, free object numbers can be re-used when creating new objects.
-     *
-     *  If set to false, the list of free object numbers is automatically cleared.
-     */
-    void SetCanReuseObjectNumbers(bool canReuseObjectNumbers);
-
     /** Removes all objects from the vector
      *  and resets it to the default state.
      *
@@ -309,11 +300,6 @@ private:
     void SetStreamFactory(StreamFactory* factory);
 
 public:
-    /**
-     *  \returns whether can re-use free object numbers when creating new objects.
-     */
-    inline bool GetCanReuseObjectNumbers() const { return m_CanReuseObjectNumbers; }
-
     /** \returns a list of free references in this vector
      */
     inline const ReferenceList& GetFreeObjects() const { return m_FreeObjects; }
@@ -371,7 +357,6 @@ private:
 
 private:
     PdfDocument* m_Document;
-    bool m_CanReuseObjectNumbers;
     ObjectList m_Objects;
     unsigned m_ObjectCount;
     ReferenceList m_FreeObjects;
