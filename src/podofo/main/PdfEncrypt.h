@@ -114,7 +114,7 @@ class PODOFO_API PdfEncrypt
 {
     friend class PdfEncryptMD5Base;
     friend class PdfEncryptAESV3;
-    friend class PdfWriter;
+    PODOFO_PRIVATE_FRIEND(PdfWriter);
 
 public:
     virtual ~PdfEncrypt();

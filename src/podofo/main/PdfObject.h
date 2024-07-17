@@ -40,16 +40,16 @@ class PODOFO_API PdfObject
     friend class PdfObjectStream;
     friend class PdfObjectOutputStream;
     friend class PdfDataContainer;
-    friend class PdfObjectStreamParser;
-    friend class PdfParser;
-    friend class PdfStreamedObjectStream;
-    friend class PdfWriter;
-    friend class PdfImmediateWriter;
-    friend class PdfXRef;
-    friend class PdfXRefStream;
     friend class PdfDictionaryElement;
     friend class PdfArrayElement;
-    friend class PdfParserObject;
+    PODOFO_PRIVATE_FRIEND(PdfStreamedObjectStream);
+    PODOFO_PRIVATE_FRIEND(PdfObjectStreamParser);
+    PODOFO_PRIVATE_FRIEND(PdfParser);
+    PODOFO_PRIVATE_FRIEND(PdfParserObject);
+    PODOFO_PRIVATE_FRIEND(PdfWriter);
+    PODOFO_PRIVATE_FRIEND(PdfImmediateWriter);
+    PODOFO_PRIVATE_FRIEND(PdfXRef);
+    PODOFO_PRIVATE_FRIEND(PdfXRefStream);
 
 public:
     static PdfObject Null;

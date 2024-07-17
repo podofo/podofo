@@ -15,7 +15,6 @@
 namespace PoDoFo {
 
 class PdfParser;
-class PdfWriter;
 
 /** PdfMemDocument is the core class for reading and manipulating
  *  PDF files and writing them back to disk.
@@ -32,11 +31,10 @@ class PdfWriter;
  *  \see PdfDocument
  *  \see PdfStreamedDocument
  *  \see PdfParser
- *  \see PdfWriter
  */
 class PODOFO_API PdfMemDocument final : public PdfDocument
 {
-    friend class PdfWriter;
+    PODOFO_PRIVATE_FRIEND(PdfWriter);
 
 public:
     /** Construct a new PdfMemDocument

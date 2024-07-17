@@ -30,11 +30,11 @@ using ReferenceList = std::deque<PdfReference>;
  */
 class PODOFO_API PdfIndirectObjectList final
 {
-    friend class PdfWriter;
     friend class PdfDocument;
-    friend class PdfParser;
-    friend class PdfObjectStreamParser;
-    friend class PdfImmediateWriter;
+    PODOFO_PRIVATE_FRIEND(PdfObjectStreamParser);
+    PODOFO_PRIVATE_FRIEND(PdfImmediateWriter);
+    PODOFO_PRIVATE_FRIEND(PdfParser);
+    PODOFO_PRIVATE_FRIEND(PdfWriter);
 
 private:
     // Comparator to enable heterogeneous lookup with

@@ -27,7 +27,7 @@ class PODOFO_API PdfMemoryObjectStream final : public PdfObjectStreamProvider
 {
     friend class PdfObject;
     friend class PdfIndirectObjectList;
-    friend class PdfImmediateWriter;
+    PODOFO_PRIVATE_FRIEND(PdfImmediateWriter);
 
 private:
     PdfMemoryObjectStream();

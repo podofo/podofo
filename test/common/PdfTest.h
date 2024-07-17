@@ -13,7 +13,6 @@
 
 #include <PdfTestConfig.h>
 
-#define PODOFO_UNIT_TEST(classname) friend class classname
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include <podofo/podofo.h>
 

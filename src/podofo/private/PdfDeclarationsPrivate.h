@@ -26,11 +26,13 @@
 #include "numbers_compat.h"
 #include "charconv_compat.h"
 
- // Macro to define friendship with test classes.
- // Must be defined before base declarations
-#define PODOFO_UNIT_TEST(classname) friend class classname
-
 #include <podofo/main/PdfDeclarations.h>
+
+// Redefine empty PODOFO_PRIVATE_FRIEND to specify actual
+// friendship with private classes
+#undef PODOFO_PRIVATE_FRIEND
+#define PODOFO_PRIVATE_FRIEND(classname) friend class classname
+
 #include <podofo/auxiliary/Convert.h>
 #include "PdfXRefEntry.h"
 
