@@ -102,13 +102,13 @@ namespace PoDoFo
     };
 }
 
-METHOD_AS_TEST_CASE(PdfParserTest::TestReadXRefContents);
-METHOD_AS_TEST_CASE(PdfParserTest::TestMaxObjectCount);
-METHOD_AS_TEST_CASE(PdfParserTest::TestMaxObjectCount, "", "[.]");
-METHOD_AS_TEST_CASE(PdfParserTest::TestReadXRefStreamContents);
-METHOD_AS_TEST_CASE(PdfParserTest::TestIsPdfFile);
-METHOD_AS_TEST_CASE(PdfParserTest::TestNestedArrays);
-METHOD_AS_TEST_CASE(PdfParserTest::TestNestedDictionaries);
+METHOD_AS_TEST_CASE(PdfParserTest::TestReadXRefContents, "TestReadXRefContents");
+METHOD_AS_TEST_CASE(PdfParserTest::TestMaxObjectCount, "TestMaxObjectCount");
+METHOD_AS_TEST_CASE(PdfParserTest::TestMaxObjectCount2, "TestMaxObjectCount2", "[.]");
+METHOD_AS_TEST_CASE(PdfParserTest::TestReadXRefStreamContents, "TestReadXRefStreamContents");
+METHOD_AS_TEST_CASE(PdfParserTest::TestIsPdfFile, "TestIsPdfFile");
+METHOD_AS_TEST_CASE(PdfParserTest::TestNestedArrays, "TestNestedArrays");
+METHOD_AS_TEST_CASE(PdfParserTest::TestNestedDictionaries, "TestNestedDictionaries");
 
 TEST_CASE("TestRemoveStream")
 {

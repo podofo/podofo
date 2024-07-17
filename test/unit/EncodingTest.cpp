@@ -25,7 +25,7 @@ namespace PoDoFo
     };
 }
 
-METHOD_AS_TEST_CASE(PdfEncodingTest::TestToUnicodeParse)
+METHOD_AS_TEST_CASE(PdfEncodingTest::TestToUnicodeParse, "TestToUnicodeParse")
 
 TEST_CASE("testDifferences")
 {

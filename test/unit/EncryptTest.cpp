@@ -62,7 +62,7 @@ namespace
     } s_init;
 }
 
-METHOD_AS_TEST_CASE(PdfEncryptTest::TestLoadEncrypedFilePdfParser)
+METHOD_AS_TEST_CASE(PdfEncryptTest::TestLoadEncrypedFilePdfParser, "TestLoadEncrypedFilePdfParser")
 
 TEST_CASE("TestEncryptedPDFs")
 {
