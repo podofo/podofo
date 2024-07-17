@@ -25,30 +25,44 @@ constexpr string_view ReferenceHash("298ACCFDC32BB2BC32BFD580883219AB");
 #define PDF_USER_PASSWORD "user"
 #define PDF_OWNER_PASSWORD "podofo"
 
-struct Paths
+namespace PoDoFo
 {
-    Paths()
+    class PdfEncryptTest
     {
-        const char* buffer1 = "Somekind of drawing \001 buffer that possibly \003 could contain PDF drawing commands";
-        const char* buffer2 = " possibly could contain PDF drawing\003  commands";
+    public:
+        static void TestLoadEncrypedFilePdfParser();
+    };
+}
 
-        size_t len = strlen(buffer1) + 2 * strlen(buffer2);
-        s_encBuffer.resize(len);
+namespace
+{
+    struct Paths
+    {
+        Paths()
+        {
+            const char* buffer1 = "Somekind of drawing \001 buffer that possibly \003 could contain PDF drawing commands";
+            const char* buffer2 = " possibly could contain PDF drawing\003  commands";
 
-        memcpy(s_encBuffer.data(), buffer1, strlen(buffer1) * sizeof(char));
-        memcpy(s_encBuffer.data() + strlen(buffer1), buffer2, strlen(buffer2));
-        memcpy(s_encBuffer.data() + strlen(buffer1) + strlen(buffer2), buffer2, strlen(buffer2));
+            size_t len = strlen(buffer1) + 2 * strlen(buffer2);
+            s_encBuffer.resize(len);
 
-        s_protection = PdfPermissions::Print |
-            PdfPermissions::Edit |
-            PdfPermissions::Copy |
-            PdfPermissions::EditNotes |
-            PdfPermissions::FillAndSign |
-            PdfPermissions::Accessible |
-            PdfPermissions::DocAssembly |
-            PdfPermissions::HighPrint;
-    }
-} s_init;
+            memcpy(s_encBuffer.data(), buffer1, strlen(buffer1) * sizeof(char));
+            memcpy(s_encBuffer.data() + strlen(buffer1), buffer2, strlen(buffer2));
+            memcpy(s_encBuffer.data() + strlen(buffer1) + strlen(buffer2), buffer2, strlen(buffer2));
+
+            s_protection = PdfPermissions::Print |
+                PdfPermissions::Edit |
+                PdfPermissions::Copy |
+                PdfPermissions::EditNotes |
+                PdfPermissions::FillAndSign |
+                PdfPermissions::Accessible |
+                PdfPermissions::DocAssembly |
+                PdfPermissions::HighPrint;
+        }
+    } s_init;
+}
+
+METHOD_AS_TEST_CASE(PdfEncryptTest::TestLoadEncrypedFilePdfParser)
 
 TEST_CASE("TestEncryptedPDFs")
 {
@@ -258,7 +272,7 @@ TEST_CASE("testEnableAlgorithms")
     REQUIRE(testAlgorithms == PdfEncrypt::GetEnabledEncryptionAlgorithms());
 }
 
-TEST_CASE("testLoadEncrypedFilePdfParser")
+void PdfEncryptTest::TestLoadEncrypedFilePdfParser()
 {
     string tempFile = TestUtils::GetTestOutputFilePath("testLoadEncrypedFilePdfParser.pdf");
     createEncryptedPdf(tempFile);

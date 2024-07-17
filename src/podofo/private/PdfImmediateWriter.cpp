@@ -20,7 +20,7 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
     m_OpenStream(false)
 {
     // Register as observer for PdfIndirectObjectList
-    GetObjects().Attach(*this);
+    GetObjects().AttachObserver(*this);
     // Register as stream factory for PdfIndirectObjectList
     GetObjects().SetStreamFactory(this);
 

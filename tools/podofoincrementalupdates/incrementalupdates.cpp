@@ -25,8 +25,9 @@ void print_help()
 
 int get_info(const string_view& filepath)
 {
+    (void)filepath;
     int updateCount = 0;
-
+    /* FIX-ME: Broken after PdfIndirectObjectList API review
     PdfIndirectObjectList objects;
     PdfParser parser(objects);
 
@@ -36,7 +37,7 @@ int get_info(const string_view& filepath)
     updateCount = parser.GetNumberOfIncrementalUpdates();
 
     printf("%s\t=\t%i\t(Number of incremental updates)\n", filepath.data(), updateCount);
-
+    */
     return updateCount;
 }
 

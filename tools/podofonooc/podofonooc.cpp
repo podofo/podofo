@@ -79,6 +79,8 @@ void Main(const cspan<string_view>& args)
                 if (!ocToRemove.empty() && find(ocToRemove.begin(), ocToRemove.end(), ocgName) == ocToRemove.end())
                     continue;
 
+                /* FIXME: The following used PdfIndirectObjectList::RemoveObject(), which has been removed
+                   It should be fixed by just removing they key from the dictionaries and then rely on garbage collection
                 for (auto it2 = objects.rbegin(); it2 != objects.rend(); it2++)
                 {
                     auto ob = *it2;
@@ -99,6 +101,7 @@ void Main(const cspan<string_view>& args)
                 }
 
                 objects.RemoveObject(ocgRef);
+                */
             }
         }
     }

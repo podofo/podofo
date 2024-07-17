@@ -16,12 +16,16 @@ using namespace PoDoFo;
 
 static void outofRangeHelper(PdfEncoding& encoding);
 
-inline ostream& operator<<(ostream& o, const PdfVariant& s)
+namespace PoDoFo
 {
-    string str;
-    s.ToString(str);
-    return o << str;
+    class PdfEncodingTest
+    {
+    public:
+        static void TestToUnicodeParse();
+    };
 }
+
+METHOD_AS_TEST_CASE(PdfEncodingTest::TestToUnicodeParse)
 
 TEST_CASE("testDifferences")
 {
@@ -270,7 +274,7 @@ TEST_CASE("testGetCharCode")
     outofRangeHelper(differenceEncoding);
 }
 
-TEST_CASE("testToUnicodeParse")
+void PdfEncodingTest::TestToUnicodeParse()
 {
     string_view toUnicode =
         "3 beginbfrange\n"

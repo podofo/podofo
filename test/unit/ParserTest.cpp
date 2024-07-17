@@ -29,7 +29,6 @@ using namespace PoDoFo;
 
 static string generateXRefEntries(size_t count);
 static bool canOutOfMemoryKillUnitTests();
-static void testReadXRefSubsection();
 static size_t getStackOverflowDepth();
 
 // this value is from Table C.1 in Appendix C.2 Architectural Limits in PDF 32000-1:2008
@@ -46,6 +45,15 @@ namespace PoDoFo
             : PdfParser(objectList), m_buffer(std::move(buff)), m_device(new SpanStreamDevice(m_buffer))
         {
         }
+
+        static void TestReadXRefContents();
+        static void TestMaxObjectCount();
+        static void TestMaxObjectCount2();
+        static void TestReadXRefStreamContents();
+        static void TestReadObjects();
+        static void TestIsPdfFile();
+        static void TestNestedArrays();
+        static void TestNestedDictionaries();
 
         void ReadXRefContents(size_t offset, bool positionAtEnd)
         {
@@ -86,10 +94,21 @@ namespace PoDoFo
         const shared_ptr<InputStreamDevice>& GetDevice() { return m_device; }
 
     private:
+        static void testReadXRefSubsection();
+
+    private:
         string m_buffer;
         shared_ptr<InputStreamDevice> m_device;
     };
 }
+
+METHOD_AS_TEST_CASE(PdfParserTest::TestReadXRefContents);
+METHOD_AS_TEST_CASE(PdfParserTest::TestMaxObjectCount);
+METHOD_AS_TEST_CASE(PdfParserTest::TestMaxObjectCount, "", "[.]");
+METHOD_AS_TEST_CASE(PdfParserTest::TestReadXRefStreamContents);
+METHOD_AS_TEST_CASE(PdfParserTest::TestIsPdfFile);
+METHOD_AS_TEST_CASE(PdfParserTest::TestNestedArrays);
+METHOD_AS_TEST_CASE(PdfParserTest::TestNestedDictionaries);
 
 TEST_CASE("TestRemoveStream")
 {
@@ -105,7 +124,7 @@ TEST_CASE("TestRemoveStream")
     REQUIRE(!imageObj.HasStream());
 }
 
-TEST_CASE("TestMaxObjectCount")
+void PdfParserTest::TestMaxObjectCount()
 {
     PdfCommon::SetMaxObjectCount(numeric_limits<unsigned short>::max());
     testReadXRefSubsection();
@@ -115,14 +134,13 @@ TEST_CASE("TestMaxObjectCount")
 }
 
 // NOTE: This test is too long to be normally done on every run
-TEST_CASE("TestMaxObjectCount2", "[.]")
+void PdfParserTest::TestMaxObjectCount2()
 {
     PdfCommon::SetMaxObjectCount(numeric_limits<unsigned>::max());
     testReadXRefSubsection();
 }
 
-
-TEST_CASE("TestReadXRefContents")
+void PdfParserTest::TestReadXRefContents()
 {
     try
     {
@@ -447,7 +465,7 @@ TEST_CASE("TestReadXRefContents")
     }
 }
 
-void testReadXRefSubsection()
+void PdfParserTest::testReadXRefSubsection()
 {
     int64_t firstObject = 0;
     int64_t objectCount = 0;
@@ -1068,7 +1086,7 @@ void testReadXRefSubsection()
     }
 }
 
-TEST_CASE("TestReadXRefStreamContents")
+void PdfParserTest::TestReadXRefStreamContents()
 {
     // test valid stream
     try
@@ -1788,7 +1806,7 @@ TEST_CASE("TestReadXRefStreamContents")
     }
 }
 
-TEST_CASE("testReadObjects")
+void PdfParserTest::TestReadObjects()
 {
     // CVE-2017-8378 - m_offsets out-of-bounds access when referenced encryption dictionary object doesn't exist
     try
@@ -1817,7 +1835,7 @@ TEST_CASE("testReadObjects")
     }
 }
 
-TEST_CASE("testIsPdfFile")
+void PdfParserTest::TestIsPdfFile()
 {
     try
     {
@@ -1997,7 +2015,7 @@ TEST_CASE("testSaveIncrementalRoundTrip")
 }
 
 // CVE-2018-8002, CVE-2021-30470
-TEST_CASE("testNestedArrays")
+void PdfParserTest::TestNestedArrays()
 {
     // test valid stream
     // generate an XRef stream with no deeply nested arrays
@@ -2106,7 +2124,7 @@ TEST_CASE("testNestedArrays")
 }
 
 // CVE-2018-8002, CVE-2021-30470
-TEST_CASE("testNestedDictionaries")
+void PdfParserTest::TestNestedDictionaries()
 {
     // test valid stream
     // generate an XRef stream with no deeply nested dictionaries

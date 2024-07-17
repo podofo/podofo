@@ -5,6 +5,8 @@
   * `SetCanReuseObjectNumbers`, `GetCanReuseObjectNumbers`: Removed, the default is true ans it's untested with false. Reusing object numbers
     is a standard PDF feature and it's better to fix bugs in that part (if any) than allowing to mess with internal indirect object numbering
     in the public API
+  * `RemoveObject()`, `CreateStream()`, `Attach()` `Detach`, `Clear()`,`BeginAppendStream()`,`EndAppendStream()`, `TryIncrementObjectCount()`:
+    Removed from the public API: They have always been for inner use and dangerous to call for the user. For object removal we now rely on garbage collection
 - `PdfExtGState`:
   * Costructor is now private, create it through `PdfDocument::CreateExtGState()`
   * All methods now accept nullable

@@ -23,44 +23,47 @@ using namespace PoDoFo;
 static constexpr size_t MaxReserveSize = 8388607; // cf. Table C.1 in section C.2 of PDF32000_2008.pdf
 static constexpr unsigned MaxXRefGenerationNum = 65535;
 
-struct ObjectComparatorPredicate
+namespace
 {
-public:
-    inline bool operator()(const PdfObject* obj1, const PdfObject* obj2) const
+    struct ObjectComparatorPredicate
     {
-        return obj1->GetIndirectReference() < obj2->GetIndirectReference();
-    }
-};
+    public:
+        inline bool operator()(const PdfObject* obj1, const PdfObject* obj2) const
+        {
+            return obj1->GetIndirectReference() < obj2->GetIndirectReference();
+        }
+    };
 
-struct ReferenceComparatorPredicate
-{
-public:
-    inline bool operator()(const PdfReference& obj1, const PdfReference& obj2) const
+    struct ReferenceComparatorPredicate
     {
-        return obj1 < obj2;
-    }
-};
+    public:
+        inline bool operator()(const PdfReference& obj1, const PdfReference& obj2) const
+        {
+            return obj1 < obj2;
+        }
+    };
 
-//RG: 1) Should this class not be moved to the header file
-class ObjectsComparator
-{
-public:
-    ObjectsComparator(const PdfReference& ref)
-        : m_ref(ref) { }
-
-    bool operator()(const PdfObject* p1) const
+    //RG: 1) Should this class not be moved to the header file
+    class ObjectsComparator
     {
-        return p1 ? (p1->GetIndirectReference() == m_ref) : false;
-    }
+    public:
+        ObjectsComparator(const PdfReference& ref)
+            : m_ref(ref) { }
 
-private:
-    ObjectsComparator() = delete;
-    ObjectsComparator(const ObjectsComparator& rhs) = delete;
-    ObjectsComparator& operator=(const ObjectsComparator& rhs) = delete;
+        bool operator()(const PdfObject* p1) const
+        {
+            return p1 ? (p1->GetIndirectReference() == m_ref) : false;
+        }
 
-private:
-    const PdfReference m_ref;
-};
+    private:
+        ObjectsComparator() = delete;
+        ObjectsComparator(const ObjectsComparator& rhs) = delete;
+        ObjectsComparator& operator=(const ObjectsComparator& rhs) = delete;
+
+    private:
+        const PdfReference m_ref;
+    };
+}
 
 PdfIndirectObjectList::PdfIndirectObjectList() :
     m_Document(nullptr),
@@ -273,14 +276,13 @@ void PdfIndirectObjectList::AddFreeObject(const PdfReference& reference)
         PoDoFo::LogMessage(PdfLogSeverity::Debug, "Adding {} to free list, is already contained in it!", reference.ObjectNumber());
         return;
     }
-    else
-    {
-        // Insert so that list stays sorted
-        m_FreeObjects.insert(it.first, reference);
 
-        // When append free objects from external doc we need plus one number objects
-        TryIncrementObjectCount(reference);
-    }
+    // Insert so that list stays sorted
+    m_FreeObjects.insert(it.first, reference);
+
+    // When manually appending free objects we also
+    // need to update the object count
+    tryIncrementObjectCount(reference);
 }
 
 void PdfIndirectObjectList::AddObjectStream(uint32_t objectNum)
@@ -321,7 +323,7 @@ void PdfIndirectObjectList::pushObject(const ObjectList::const_iterator& hintpos
         m_Objects.insert(hintpos, obj);
     else
         m_Objects.insert(hintpos, std::move(node));
-    TryIncrementObjectCount(obj->GetIndirectReference());
+    tryIncrementObjectCount(obj->GetIndirectReference());
 }
 
 void PdfIndirectObjectList::CollectGarbage()
@@ -397,7 +399,7 @@ void PdfIndirectObjectList::visitObject(const PdfObject& obj, unordered_set<PdfR
     }
 }
 
-void PdfIndirectObjectList::Detach(Observer& observer)
+void PdfIndirectObjectList::DetachObserver(Observer& observer)
 {
     auto it = m_observers.begin();
     while (it != m_observers.end())
@@ -444,7 +446,7 @@ unsigned PdfIndirectObjectList::GetSize() const
     return (unsigned)m_Objects.size();
 }
 
-void PdfIndirectObjectList::Attach(Observer& observer)
+void PdfIndirectObjectList::AttachObserver(Observer& observer)
 {
     m_observers.push_back(&observer);
 }
@@ -454,7 +456,7 @@ void PdfIndirectObjectList::SetStreamFactory(StreamFactory* factory)
     m_StreamFactory = factory;
 }
 
-void PdfIndirectObjectList::TryIncrementObjectCount(const PdfReference& ref)
+void PdfIndirectObjectList::tryIncrementObjectCount(const PdfReference& ref)
 {
     if (ref.ObjectNumber() >= m_ObjectCount)
     {

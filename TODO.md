@@ -11,8 +11,6 @@
 - PdfDocument: Review AttachFile, GetAttachment, AddNamedDestination
 - PdfMemDocument: Consider removing SetEncrypt(encrypt)
 - PdfWriter: Check if SetEncrypt() should accept mutable reference instead
-- Evaluate hide/protect/remove PdfIndirectObjectList: RemoveObject, RemoveObject, ReplaceObject
-- Evaluate make private PdfIndirectObjectList:SetCanReuseObjectNumbers
 - PdfField: Evaluate make a virtual getValueObject()
 - Evaluate removing PdfObject::Null and PdfVariant::Null and introduce nullptr_t constructor overloads
 - PdfCanvas: Add CopyTo facilities, see PdfContents
@@ -20,8 +18,6 @@
 - Review PdfPage::SetICCProfile(), PdfImage::SetICCProfile()
 - PdfErrorCode: Check all values
 - PdfField: Make PdfFieldChildrenCollectionBase m_Children a unique_ptr, and lazy load that
-- Review PdfPageCollection::AppendDocumentPages(),
-  PdfPageCollection::InsertDocumentPageAt(), PdfPage::MoveAt() (???)
 
 #### Features
 - Evaluate adding PdfString(string&&) and PdfName(string&&) constructors that
@@ -61,6 +57,8 @@ either assume UTF-8 and/or checks for used codepoints
   "Digital Signature Appearances" document specification
 - PdfParser: Handle invalid startxref by rebuilding the index,
   similarly to what pdf.js does
+- Review PdfPageCollection::AppendDocumentPages(),
+  PdfPageCollection::InsertDocumentPageAt(), PdfPage::MoveAt() code
 - Add text shaping with Harfbuzz https://github.com/harfbuzz/harfbuzz
 - Add fail safe sign/update mechanism, meaning the stream gets trimmed
   to initial length if there's a crash. Not so easy, especially since
