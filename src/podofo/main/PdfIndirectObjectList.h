@@ -42,6 +42,7 @@ class PODOFO_API PdfIndirectObjectList final
     PODOFO_PRIVATE_FRIEND(PdfEncryptTest);
 
 private:
+    // NOTE: For testing only
     PdfIndirectObjectList();
 
 public:
@@ -102,23 +103,15 @@ public:
     /**
      * \returns the logical object count in the document
      */
-    unsigned GetObjectCount() const { return m_ObjectCount; }
+    inline unsigned GetObjectCount() const { return m_ObjectCount; }
 
     /** \returns a list of free references in this vector
      */
     inline const PdfFreeObjectList& GetFreeObjects() const { return m_FreeObjects; }
 
-    /**
-     * \returns a pointer to a PdfDocument that is the parent of this list.
-     * Might be nullptr if the vector has no parent.
+    /** \returns a reference to the owner document
      */
-    inline PdfDocument* GetDocument() const { return m_Document; }
-
-    /**
-     * \returns a reference to a PdfDocument that is the parent of this list.
-     * \remarks throws if the parent is nullptr
-     */
-    PdfDocument& MustGetDocument() const;
+    inline PdfDocument& GetDocument() const { return *m_Document; }
 
 public:
     // Comparator to enable heterogeneous lookup with
@@ -320,12 +313,6 @@ private:
      *  \param factory a stream factory or nullptr to reset to the default factory
      */
     void SetStreamFactory(StreamFactory* factory);
-
-    /** \returns a pointer to a PdfDocument that is the
-     *           parent of this vector.
-     *           Might be nullptr if the vector has no parent.
-     */
-    inline PdfDocument& GetDocumentUnsafe() const { return *m_Document; }
 
 private:
     // Use deque as many insertions are here way faster than with using std::list

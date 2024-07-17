@@ -220,7 +220,7 @@ void PdfParser::readNextTrailer(InputStreamDevice& device)
         PODOFO_RAISE_ERROR(PdfErrorCode::NoTrailer);
 
     // Ignore the encryption in the trailer as the trailer may not be encrypted
-    auto trailer = new PdfParserObject(m_Objects->GetDocumentUnsafe(), device, -1);
+    auto trailer = new PdfParserObject(m_Objects->GetDocument(), device, -1);
     trailer->SetIsTrailer(true);
 
     unique_ptr<PdfParserObject> trailerTemp;
@@ -547,7 +547,7 @@ void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset,
     utls::RecursionGuard guard;
 
     device.Seek(offset);
-    auto xrefObjTrailer = new PdfXRefStreamParserObject(m_Objects->GetDocumentUnsafe(), device, m_entries);
+    auto xrefObjTrailer = new PdfXRefStreamParserObject(m_Objects->GetDocument(), device, m_entries);
     try
     {
         xrefObjTrailer->ParseStream();
@@ -691,7 +691,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                     if (entry.Offset > 0)
                     {
                         PdfReference reference(i, (uint16_t)entry.Generation);
-                        unique_ptr<PdfParserObject> obj(new PdfParserObject(m_Objects->GetDocumentUnsafe(), reference, device, (ssize_t)entry.Offset));
+                        unique_ptr<PdfParserObject> obj(new PdfParserObject(m_Objects->GetDocument(), reference, device, (ssize_t)entry.Offset));
                         try
                         {
                             obj->SetEncrypt(m_Encrypt);
@@ -701,7 +701,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                                 if (typeObj != nullptr && typeObj->IsName() && typeObj->GetName() == "XRef")
                                 {
                                     // XRef is never encrypted
-                                    obj.reset(new PdfParserObject(m_Objects->GetDocumentUnsafe(), reference, device, (ssize_t)entry.Offset));
+                                    obj.reset(new PdfParserObject(m_Objects->GetDocument(), reference, device, (ssize_t)entry.Offset));
                                     if (m_LoadOnDemand)
                                         obj->DelayedLoad();
                                 }

@@ -467,14 +467,6 @@ void PdfIndirectObjectList::tryIncrementObjectCount(const PdfReference& ref)
     }
 }
 
-PdfDocument& PdfIndirectObjectList::MustGetDocument() const
-{
-    if (m_Document == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
-    return *m_Document;
-}
-
 PdfIndirectObjectList::iterator PdfIndirectObjectList::begin() const
 {
     return m_Objects.begin();
