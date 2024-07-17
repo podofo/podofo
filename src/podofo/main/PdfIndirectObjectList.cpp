@@ -16,11 +16,11 @@
 #include "PdfReference.h"
 #include "PdfObjectStream.h"
 #include "PdfDocument.h"
+#include "PdfCommon.h"
 
 using namespace std;
 using namespace PoDoFo;
 
-static constexpr size_t MaxReserveSize = 8388607; // cf. Table C.1 in section C.2 of PDF32000_2008.pdf
 static constexpr unsigned MaxXRefGenerationNum = 65535;
 
 namespace
@@ -177,9 +177,7 @@ PdfReference PdfIndirectObjectList::getNextFreeObject()
     uint32_t nextObjectNum = static_cast<uint32_t>(m_ObjectCount + 1);
     while (true)
     {
-        // CHECK-ME: We have to check the modern specifications
-        // which probably removed the old ISO 32000-1:2008 limit
-        if ((size_t)nextObjectNum > MaxReserveSize)
+        if (nextObjectNum > PdfCommon::GetMaxObjectCount())
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Reached the maximum number of indirect objects");
 
         // Check also if the object number it not available,
