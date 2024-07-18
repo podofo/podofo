@@ -43,11 +43,6 @@ PdfParser::PdfParser(PdfIndirectObjectList& objects) :
     this->reset();
 }
 
-PdfParser::~PdfParser()
-{
-    reset();
-}
-
 void PdfParser::reset()
 {
     m_PdfVersion = PdfVersionDefault;
@@ -117,7 +112,7 @@ void PdfParser::ReadDocumentStructure(InputStreamDevice& device)
 
     try
     {
-        findXRef(device, &m_XRefOffset);
+        findXRef(device, m_XRefOffset);
     }
     catch (PdfError& e)
     {
@@ -244,7 +239,7 @@ void PdfParser::readNextTrailer(InputStreamDevice& device)
 
         try
         {
-            ReadXRefStreamContents(device, static_cast<size_t>(trailer->GetDictionary().FindKeyAs<int64_t>("XRefStm", 0)), false);
+            ReadXRefStreamContents(device, static_cast<size_t>(trailer->GetDictionary().FindKeyAs<int64_t>("XRefStm", 0)));
         }
         catch (PdfError& e)
         {
@@ -285,7 +280,7 @@ void PdfParser::readNextTrailer(InputStreamDevice& device)
     }
 }
 
-void PdfParser::findXRef(InputStreamDevice& device, size_t* xRefOffset)
+void PdfParser::findXRef(InputStreamDevice& device, size_t& xRefOffset)
 {
     // ISO32000-1:2008, 7.5.5 File Trailer "Conforming readers should read a PDF file from its end"
     findTokenBackward(device, "startxref", PDF_XREF_BUF, m_lastEOFOffset);
@@ -307,10 +302,10 @@ void PdfParser::findXRef(InputStreamDevice& device, size_t* xRefOffset)
     }
 
     // Support also files with whitespace offset before magic start
-    *xRefOffset = (size_t)m_tokenizer.ReadNextNumber(device) + m_magicOffset;
+    xRefOffset = (size_t)m_tokenizer.ReadNextNumber(device) + m_magicOffset;
 }
 
-void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset, bool positionAtEnd)
+void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset)
 {
     utls::RecursionGuard guard;
 
@@ -336,7 +331,7 @@ void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset, bool 
     {
         // Invalid "startxref"
          // ignore returned value and get offset from the device
-        findXRef(device, &offset);
+        findXRef(device, offset);
         offset = device.GetPosition();
         // TODO: hard coded value "4"
         m_buffer->resize(PDF_XREF_BUF * 4);
@@ -364,7 +359,7 @@ void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset, bool 
         else
         {
             m_HasXRefStream = true;
-            ReadXRefStreamContents(device, offset, positionAtEnd);
+            ReadXRefStreamContents(device, offset);
             return;
         }
     }
@@ -390,10 +385,7 @@ void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset, bool 
             PoDoFo::LogMessage(PdfLogSeverity::Debug, "Reading numbers: {} {}", firstObject, objectCount);
 #endif // PODOFO_VERBOSE_DEBUG
 
-            if (positionAtEnd)
-                device.Seek(static_cast<ssize_t>(objectCount * PDF_XREF_ENTRY_SIZE), SeekDirection::Current);
-            else
-                ReadXRefSubsection(device, firstObject, objectCount);
+            ReadXRefSubsection(device, firstObject, objectCount);
         }
         catch (PdfError& e)
         {
@@ -542,7 +534,7 @@ void PdfParser::ReadXRefSubsection(InputStreamDevice& device, int64_t& firstObje
     }
 }
 
-void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset, bool readOnlyTrailer)
+void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset)
 {
     utls::RecursionGuard guard;
 
@@ -570,9 +562,6 @@ void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset,
         mergeTrailer(*xrefObjTrailer);
     }
 
-    if (readOnlyTrailer)
-        return;
-
     xrefObjTrailer->ReadXRefTable();
 
     // Check for a previous XRefStm or xref table
@@ -586,7 +575,7 @@ void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset,
             // PDFs that have been through multiple PDF tools may have a mix of xref tables (ISO 32000-1 7.5.4) 
             // and XRefStm streams (ISO 32000-1 7.5.8.1) and in the Prev chain, 
             // so call ReadXRefContents (which deals with both) instead of ReadXRefStreamContents 
-            ReadXRefContents(device, previousOffset, readOnlyTrailer);
+            ReadXRefContents(device, previousOffset);
         }
         catch (PdfError& e)
         {

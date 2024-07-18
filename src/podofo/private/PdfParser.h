@@ -38,10 +38,6 @@ public:
      */
     PdfParser(PdfIndirectObjectList& objects);
 
-    /** Delete the PdfParser and all PdfObjects
-     */
-    ~PdfParser();
-
     /** Open a PDF file and parse it.
      *
      *  \param device the input device to read from
@@ -58,7 +54,7 @@ public:
      *
      *  \see SetPassword
      */
-    void Parse(InputStreamDevice& device, bool loadOnDemand = true);
+    void Parse(InputStreamDevice& device, bool loadOnDemand);
 
     /**
      * \returns true if this PdfWriter creates an encrypted PDF file
@@ -175,12 +171,8 @@ private:
     /** Reads the xref table from a pdf file.
      *  If there is no xref table, ReadXRefStreamContents() is called.
      *  \param offset read the table from this offset
-     *  \param positionAtEnd if true the xref table is not read, but the
-     *                        file stream is positioned directly
-     *                        after the table, which allows reading
-     *                        a following trailer dictionary.
      */
-    void ReadXRefContents(InputStreamDevice& device, size_t offset, bool positionAtEnd = false);
+    void ReadXRefContents(InputStreamDevice& device, size_t offset);
 
     /** Read a xref subsection
      *
@@ -198,7 +190,7 @@ private:
      *  \param readOnlyTrailer only the trailer is skipped over, the contents
      *         of the xref stream are not parsed
      */
-    void ReadXRefStreamContents(InputStreamDevice& device, size_t offset, bool readOnlyTrailer);
+    void ReadXRefStreamContents(InputStreamDevice& device, size_t offset);
 
     /** Reads all objects from the pdf into memory
      *  from the previously read entries
@@ -241,7 +233,7 @@ private:
      *  and saves its byteoffset to pXRefOffset.
      *  \param xRefOffset store the byte offset of the xref section into this variable.
      */
-    void findXRef(InputStreamDevice& device, size_t* xRefOffset);
+    void findXRef(InputStreamDevice& device, size_t& xRefOffset);
 
     /** Reads all objects from the pdf into memory
      *  from the previously read entries
