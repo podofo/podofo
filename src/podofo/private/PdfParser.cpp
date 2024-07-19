@@ -238,12 +238,7 @@ void PdfParser::readNextTrailer(InputStreamDevice& device, bool skipFollowPrevio
     int64_t xrefStmOffset;
     if (trailer->GetDictionary().TryFindKeyAs<int64_t>("XRefStm", xrefStmOffset))
     {
-        // Whenever we read a XRefStm key, 
-        // we know that the file was updated.
-        if (!trailer->GetDictionary().HasKey("Prev"))
-            m_IncrementalUpdateCount++;
-
-        // The trailer is hybrid-reference file’s trailer with a
+        // The trailer is hybrid-reference file's trailer with a
         // separate XRef stream: just read it
         try
         {
