@@ -147,8 +147,8 @@ private:
 private:
     struct StringData
     {
-        PdfStringState State;
         charbuff Chars;
+        PdfStringState State;
     };
 
 private:

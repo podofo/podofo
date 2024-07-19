@@ -146,12 +146,11 @@ private:
 private:
     struct NameData
     {
-        bool IsUtf8Expanded;
-
         // The unescaped name raw data, without leading '/'.
         // It can store also the utf8 expanded string, if coincident
         charbuff Chars;
         std::unique_ptr<std::string> Utf8String;
+        bool IsUtf8Expanded;
     };
 private:
     std::shared_ptr<NameData> m_data;

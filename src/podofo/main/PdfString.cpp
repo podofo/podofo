@@ -30,12 +30,12 @@ enum class StringEncoding
 static StringEncoding getEncoding(const string_view& view);
 
 PdfString::PdfString()
-    : m_data(new StringData{ PdfStringState::Ascii, { } }), m_isHex(false)
+    : m_data(new StringData{ { }, PdfStringState::Ascii }), m_isHex(false)
 {
 }
 
 PdfString::PdfString(charbuff&& buff, bool isHex)
-    : m_data(new StringData{ PdfStringState::RawBuffer, std::move(buff) }), m_isHex(isHex)
+    : m_data(new StringData{ std::move(buff), PdfStringState::RawBuffer }), m_isHex(isHex)
 {
 }
 
@@ -265,15 +265,15 @@ void PdfString::initFromUtf8String(const string_view& view)
 
     if (view.length() == 0)
     {
-        m_data.reset(new StringData{ PdfStringState::Ascii, { } });
+        m_data.reset(new StringData{ { }, PdfStringState::Ascii });
         return;
     }
 
     bool isAsciiEqual;
     if (PoDoFo::CheckValidUTF8ToPdfDocEcondingChars(view, isAsciiEqual))
-        m_data.reset(new StringData{ isAsciiEqual ? PdfStringState::Ascii : PdfStringState::PdfDocEncoding, charbuff(view) });
+        m_data.reset(new StringData{ charbuff(view), isAsciiEqual ? PdfStringState::Ascii : PdfStringState::PdfDocEncoding });
     else
-        m_data.reset(new StringData{ PdfStringState::Unicode, charbuff(view) });
+        m_data.reset(new StringData{ charbuff(view), PdfStringState::Unicode });
 }
 
 void PdfString::evaluateString() const

@@ -46,7 +46,7 @@ const PdfName PdfName::KeyNames = PdfName("Names");
 const PdfName PdfName::KeyLimits = PdfName("Limits");
 
 PdfName::PdfName()
-    : m_data(new NameData{ true, { }, nullptr })
+    : m_data(new NameData{ { }, nullptr, true })
 {
 }
 
@@ -71,7 +71,7 @@ PdfName::PdfName(const PdfName& rhs)
 }
 
 PdfName::PdfName(charbuff&& buff)
-    : m_data(new NameData{ false, std::move(buff), nullptr })
+    : m_data(new NameData{ std::move(buff), nullptr, false })
 {
 }
 
@@ -82,7 +82,7 @@ void PdfName::initFromUtf8String(const string_view& view)
 
     if (view.length() == 0)
     {
-        m_data.reset(new NameData{ true, { }, nullptr });
+        m_data.reset(new NameData{ { }, nullptr, true });
         return;
     }
 
@@ -91,9 +91,9 @@ void PdfName::initFromUtf8String(const string_view& view)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidName, "Characters in string must be PdfDocEncoding character set");
 
     if (isAsciiEqual)
-        m_data.reset(new NameData{ true, charbuff(view), nullptr });
+        m_data.reset(new NameData{ charbuff(view), nullptr, true });
     else
-        m_data.reset(new NameData{ true, (charbuff)PoDoFo::ConvertUTF8ToPdfDocEncoding(view), std::make_unique<string>(view) });
+        m_data.reset(new NameData{ (charbuff)PoDoFo::ConvertUTF8ToPdfDocEncoding(view), std::make_unique<string>(view), true });
 }
 
 PdfName PdfName::FromEscaped(const string_view& view)
