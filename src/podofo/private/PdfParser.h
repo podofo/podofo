@@ -63,6 +63,13 @@ public:
 
     const PdfObject& GetTrailer() const;
 
+    /**
+     * Try retrieve the previous revision offset of the document before signing
+     * \param currOffset the current offset where to start the search
+     * \param eofOffset the previous revision EOF offset
+     */
+    static bool TryGetPreviousRevisionOffset(InputStreamDevice& input, size_t currOffset, size_t& eofOffset);
+
 public:
     /** If you try to open an encrypted PDF file, which requires
      *  a password to open, PoDoFo will throw a PdfError( PdfErrorCode::InvalidPassword )
@@ -90,7 +97,7 @@ public:
      *
      * \returns the number of incremental updates to the parsed PDF.
      */
-    inline int GetNumberOfIncrementalUpdates() const { return m_IncrementalUpdateCount; }
+    inline int GetIncrementalUpdatesCount() const { return m_IncrementalUpdateCount; }
 
     /** Get a reference to the sorted internal objects vector.
      *  \returns the internal objects vector.
@@ -163,16 +170,21 @@ public:
     inline std::shared_ptr<PdfEncrypt> GetEncrypt() { return m_Encrypt; }
 
 private:
-    /** Reads the xref sections and the trailers of the file
-     *  in the correct order in the memory
+    /**
+     * Reads the xref sections and the trailers of the file
+     * in the correct order in the memory
+     * \param eofSearchOffset the offset where to start the search for EOF
+     * \param skipFollowPrevious don't follow previous incremental update
      */
-    void ReadDocumentStructure(InputStreamDevice& device);
+    void ReadDocumentStructure(InputStreamDevice& device, ssize_t eofSearchOffset = -1, bool skipFollowPrevious = false);
 
-    /** Reads the xref table from a pdf file.
-     *  If there is no xref table, ReadXRefStreamContents() is called.
-     *  \param offset read the table from this offset
+    /**
+     * Reads the xref table from a pdf file.
+     * If there is no xref table, ReadXRefStreamContents() is called.
+     * \param offset read the table from this offset
+     * \param skipFollowPrevious don't follow previous incremental update
      */
-    void ReadXRefContents(InputStreamDevice& device, size_t offset);
+    void ReadXRefContents(InputStreamDevice& device, size_t offset, bool skipFollowPrevious);
 
     /** Read a xref subsection
      *
@@ -190,7 +202,7 @@ private:
      *  \param readOnlyTrailer only the trailer is skipped over, the contents
      *         of the xref stream are not parsed
      */
-    void ReadXRefStreamContents(InputStreamDevice& device, size_t offset);
+    void ReadXRefStreamContents(InputStreamDevice& device, size_t offset, bool skipFollowPrevious);
 
     /** Reads all objects from the pdf into memory
      *  from the previously read entries
@@ -262,7 +274,7 @@ private:
      */
     void readCompressedObjectFromStream(uint32_t objNo, const cspan<int64_t>& objectList);
 
-    void readNextTrailer(InputStreamDevice& device);
+    void readNextTrailer(InputStreamDevice& device, bool skipFollowPrevious);
 
 
     /** Checks for the existence of the %%EOF marker at the end of the file.

@@ -14,6 +14,8 @@
 #include "PdfField.h"
 #include "PdfDate.h"
 #include "PdfData.h"
+#include <podofo/auxiliary/InputDevice.h>
+#include <podofo/auxiliary/OutputDevice.h>
 
 namespace PoDoFo {
 
@@ -123,6 +125,13 @@ public:
 
     PdfSignature* GetParent();
     const PdfSignature* GetParent() const;
+
+    /**
+     * Try retrieve the previous revision of the document before signing (if it occurred)
+     * \param input the input device for the document where to search
+     * \param output the output device that will hold the previous revision
+     */
+    bool TryGetPreviousRevision(InputStreamDevice& input, OutputStreamDevice& output) const;
 
 protected:
     PdfObject* getValueObject() const;

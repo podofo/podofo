@@ -248,3 +248,48 @@ TEST_CASE("TestPdfSignerCms")
         }
     }
 }
+
+TEST_CASE("TestGetPreviousRevision")
+{
+    {
+        charbuff currBuffer;
+
+        utls::ReadTo(currBuffer, TestUtils::GetTestInputFilePath("TestBlankSigned.pdf"));
+        auto input = std::make_shared<BufferStreamDevice>(currBuffer);
+
+        PdfMemDocument doc;
+        doc.LoadFromDevice(input);
+        auto& signature = dynamic_cast<PdfSignature&>(
+            dynamic_cast<PdfAnnotationWidget&>(
+                doc.GetPages().GetPageAt(0).GetAnnotations().GetAnnotAt(0)).GetField());
+
+        charbuff prevBuffer;
+        BufferStreamDevice output(prevBuffer);
+
+        REQUIRE(signature.TryGetPreviousRevision(*input, output));
+
+        charbuff refBuffer;
+        utls::ReadTo(refBuffer, TestUtils::GetTestInputFilePath("blank.pdf"));
+        REQUIRE(prevBuffer == refBuffer);
+    }
+
+    {
+        charbuff currBuffer;
+
+        utls::ReadTo(currBuffer, TestUtils::GetTestInputFilePath("TestSaveOnSigning.pdf"));
+        auto input = std::make_shared<BufferStreamDevice>(currBuffer);
+
+        PdfMemDocument doc;
+        doc.LoadFromDevice(input);
+        auto& signature = dynamic_cast<PdfSignature&>(
+            dynamic_cast<PdfAnnotationWidget&>(
+                doc.GetPages().GetPageAt(0).GetAnnotations().GetAnnotAt(0)).GetField());
+
+        charbuff prevBuffer;
+        BufferStreamDevice output(prevBuffer);
+
+        // This file is signed but has not incremental updates,
+        // so the previous revision is undefined
+        REQUIRE(!signature.TryGetPreviousRevision(*input, output));
+    }
+}

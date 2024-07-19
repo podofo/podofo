@@ -8,6 +8,7 @@ PdfOutlineItem, PdfOutlines, PdfAnnotationActionBase, PdfAnnotationLink PdfAnnot
 - Reviewed PdfExtGState
 - PdfDocument: Added GetFieldsIterator()
 - PdfPage: Added GetFieldsIterator()
+- PdfSignature: Added TryGetPreviousRevision()
 
 ## Version 0.10.3
 - Fixed big performance regression introduced in 0.10, see #108

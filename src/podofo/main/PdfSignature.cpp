@@ -8,6 +8,9 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfSignature.h"
 
+#include <numerics/checked_math.h>
+#include <podofo/private/PdfParser.h>
+
 #include "PdfDocument.h"
 #include "PdfDictionary.h"
 #include "PdfData.h"
@@ -18,6 +21,7 @@
 
 using namespace std;
 using namespace PoDoFo;
+using namespace chromium::base;
 
 PdfSignature::PdfSignature(PdfAcroForm& acroform, const shared_ptr<PdfField>& parent) :
     PdfField(acroform, PdfFieldType::Signature, parent),
@@ -212,6 +216,35 @@ nullable<PdfDate> PdfSignature::GetSignatureDate() const
     }
 
     return date;
+}
+
+bool PdfSignature::TryGetPreviousRevision(InputStreamDevice& input, OutputStreamDevice& output) const
+{
+    const PdfArray* byteRange = nullptr;
+    m_ValueObj->GetDictionary().TryFindKeyAs("ByteRange", byteRange);
+    if (byteRange == nullptr || byteRange->GetSize() < 4)
+        return false;
+
+    int64_t lastRangeOffset;
+    int64_t lastRangeLength;
+    if (!byteRange->TryGetAtAs(byteRange->GetSize() - 1, lastRangeOffset)
+        || !byteRange->TryGetAtAs(byteRange->GetSize() - 2, lastRangeLength)
+        || lastRangeOffset < 0 || lastRangeLength < 0)
+    {
+        return false;
+    }
+
+    size_t signedRevisionOffset;
+    if (!(CheckedNumeric((size_t)lastRangeOffset) + CheckedNumeric((size_t)lastRangeLength)).AssignIfValid(&signedRevisionOffset))
+        return false;
+
+    size_t previousRevisionOffset;
+    if (!PdfParser::TryGetPreviousRevisionOffset(input, signedRevisionOffset, previousRevisionOffset))
+        return false;
+
+    input.Seek(0);
+    input.CopyTo(output, previousRevisionOffset);
+    return true;
 }
 
 PdfObject* PdfSignature::getValueObject() const

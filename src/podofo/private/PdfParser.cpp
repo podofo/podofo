@@ -93,10 +93,15 @@ void PdfParser::Parse(InputStreamDevice& device, bool loadOnDemand)
     }
 }
 
-void PdfParser::ReadDocumentStructure(InputStreamDevice& device)
+void PdfParser::ReadDocumentStructure(InputStreamDevice& device, ssize_t eofSearchOffset, bool skipFollowPrevious)
 {
-    // position at the end of the file to search the xref table.
-    device.Seek(0, SeekDirection::End);
+    // Position at the end of the file, or the given
+    // offset, to search the xref table.
+    if (eofSearchOffset < 0)
+        device.Seek(0, SeekDirection::End);
+    else
+        device.Seek(eofSearchOffset, SeekDirection::Begin);
+
     m_FileSize = device.GetPosition();
 
     // Validate the eof marker and when not in strict mode accept garbage after it
@@ -130,7 +135,7 @@ void PdfParser::ReadDocumentStructure(InputStreamDevice& device)
         // line in case of linearized PDFs. See ISO 32000-1:2008
         // "F.3.11 Main Cross-Reference and Trailer"
         // https://stackoverflow.com/a/70564329/213871
-        ReadXRefContents(device, m_XRefOffset);
+        ReadXRefContents(device, m_XRefOffset, skipFollowPrevious);
     }
     catch (PdfError& e)
     {
@@ -207,7 +212,7 @@ void PdfParser::mergeTrailer(const PdfObject& trailer)
         m_Trailer->GetDictionary().AddKey("ID", *obj);
 }
 
-void PdfParser::readNextTrailer(InputStreamDevice& device)
+void PdfParser::readNextTrailer(InputStreamDevice& device, bool skipFollowPrevious)
 {
     utls::RecursionGuard guard;
     string_view token;
@@ -230,16 +235,19 @@ void PdfParser::readNextTrailer(InputStreamDevice& device)
         mergeTrailer(*trailer);
     }
 
-    if (trailer->GetDictionary().HasKey("XRefStm"))
+    int64_t xrefStmOffset;
+    if (trailer->GetDictionary().TryFindKeyAs<int64_t>("XRefStm", xrefStmOffset))
     {
         // Whenever we read a XRefStm key, 
         // we know that the file was updated.
         if (!trailer->GetDictionary().HasKey("Prev"))
             m_IncrementalUpdateCount++;
 
+        // The trailer is hybrid-reference file’s trailer with a
+        // separate XRef stream: just read it
         try
         {
-            ReadXRefStreamContents(device, static_cast<size_t>(trailer->GetDictionary().FindKeyAs<int64_t>("XRefStm", 0)));
+            ReadXRefStreamContents(device, static_cast<size_t>(xrefStmOffset), skipFollowPrevious);
         }
         catch (PdfError& e)
         {
@@ -250,8 +258,7 @@ void PdfParser::readNextTrailer(InputStreamDevice& device)
 
     auto prevObj = trailer->GetDictionary().FindKey("Prev");
     int64_t offset;
-    if (prevObj != nullptr
-        && prevObj->TryGetNumber(offset))
+    if (prevObj != nullptr && prevObj->TryGetNumber(offset))
     {
         if (offset > 0)
         {
@@ -259,18 +266,21 @@ void PdfParser::readNextTrailer(InputStreamDevice& device)
             // we know that the file was updated.
             m_IncrementalUpdateCount++;
 
-            try
+            if (!skipFollowPrevious)
             {
-                if (m_visitedXRefOffsets.find((size_t)offset) == m_visitedXRefOffsets.end())
-                    ReadXRefContents(device, (size_t)offset);
-                else
-                    PoDoFo::LogMessage(PdfLogSeverity::Warning, "XRef contents at offset {} requested twice, skipping the second read",
-                        static_cast<int64_t>(offset));
-            }
-            catch (PdfError& e)
-            {
-                PODOFO_PUSH_FRAME_INFO(e, "Unable to load /Prev xref entries");
-                throw e;
+                try
+                {
+                    if (m_visitedXRefOffsets.find((size_t)offset) == m_visitedXRefOffsets.end())
+                        ReadXRefContents(device, (size_t)offset, false);
+                    else
+                        PoDoFo::LogMessage(PdfLogSeverity::Warning, "XRef contents at offset {} requested twice, skipping the second read",
+                            static_cast<int64_t>(offset));
+                }
+                catch (PdfError& e)
+                {
+                    PODOFO_PUSH_FRAME_INFO(e, "Unable to load /Prev xref entries");
+                    throw e;
+                }
             }
         }
         else
@@ -305,7 +315,7 @@ void PdfParser::findXRef(InputStreamDevice& device, size_t& xRefOffset)
     xRefOffset = (size_t)m_tokenizer.ReadNextNumber(device) + m_magicOffset;
 }
 
-void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset)
+void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset, bool skipFollowPrevious)
 {
     utls::RecursionGuard guard;
 
@@ -359,7 +369,7 @@ void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset)
         else
         {
             m_HasXRefStream = true;
-            ReadXRefStreamContents(device, offset);
+            ReadXRefStreamContents(device, offset, skipFollowPrevious);
             return;
         }
     }
@@ -403,7 +413,7 @@ void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset)
 
     try
     {
-        readNextTrailer(device);
+        readNextTrailer(device, skipFollowPrevious);
     }
     catch (PdfError& e)
     {
@@ -534,7 +544,7 @@ void PdfParser::ReadXRefSubsection(InputStreamDevice& device, int64_t& firstObje
     }
 }
 
-void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset)
+void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset, bool skipFollowPrevious)
 {
     utls::RecursionGuard guard;
 
@@ -568,23 +578,27 @@ void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset)
     size_t previousOffset;
     if (xrefObjTrailer->TryGetPreviousOffset(previousOffset) && previousOffset != offset)
     {
-        try
-        {
-            m_IncrementalUpdateCount++;
+        m_IncrementalUpdateCount++;
 
-            // PDFs that have been through multiple PDF tools may have a mix of xref tables (ISO 32000-1 7.5.4) 
-            // and XRefStm streams (ISO 32000-1 7.5.8.1) and in the Prev chain, 
-            // so call ReadXRefContents (which deals with both) instead of ReadXRefStreamContents 
-            ReadXRefContents(device, previousOffset);
-        }
-        catch (PdfError& e)
+        if (!skipFollowPrevious)
         {
-            // Be forgiving, the error happens when an entry in XRef
-            // stream points to a wrong place (offset) in the PDF file.
-            if (e != PdfErrorCode::NoNumber)
+            try
             {
-                PODOFO_PUSH_FRAME(e);
-                throw e;
+
+                // PDFs that have been through multiple PDF tools may have a mix of xref tables (ISO 32000-1 7.5.4) 
+                // and XRefStm streams (ISO 32000-1 7.5.8.1) and in the Prev chain, 
+                // so call ReadXRefContents (which deals with both) instead of ReadXRefStreamContents 
+                ReadXRefContents(device, previousOffset, false);
+            }
+            catch (PdfError& e)
+            {
+                // Be forgiving, the error happens when an entry in XRef
+                // stream points to a wrong place (offset) in the PDF file.
+                if (e != PdfErrorCode::NoNumber)
+                {
+                    PODOFO_PUSH_FRAME(e);
+                    throw e;
+                }
             }
         }
     }
@@ -592,9 +606,9 @@ void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset)
 
 void PdfParser::ReadObjects(InputStreamDevice& device)
 {
-    if (m_Trailer == nullptr) {
+    if (m_Trailer == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::NoTrailer);
-    }
+
     // Check for encryption and make sure that the encryption object
     // is loaded before all other objects
     PdfObject* encrypt = m_Trailer->GetDictionary().GetKey("Encrypt");
@@ -939,6 +953,38 @@ const PdfObject& PdfParser::GetTrailer() const
         PODOFO_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *m_Trailer;
+}
+
+bool PdfParser::TryGetPreviousRevisionOffset(InputStreamDevice& input, size_t currOffset, size_t& eofOffset)
+{
+    eofOffset = numeric_limits<size_t>::max();
+
+    // NOTE: We partially parse the document, just reading
+    // the xref entries of the current revision, and not
+    // following previous incremental updates
+    PdfIndirectObjectList objects;
+    PdfParser parser(objects);
+    parser.ReadDocumentStructure(input, (ssize_t)currOffset, true);
+    if (parser.GetIncrementalUpdatesCount() == 0)
+        return false;
+
+    // We Iterate parsed entries and find the one with
+    // the lower offset, which will be deemed the EOF
+    // offset of the previous revision
+    auto& entries = parser.m_entries;
+    bool foundValidEntry = false;
+    for (unsigned i = 0; i < entries.GetSize(); i++)
+    {
+        auto& entry = entries[i];
+        if (entry.Parsed && entry.Type == PdfXRefEntryType::InUse
+            && entry.Offset < eofOffset)
+        {
+            eofOffset = entry.Offset;
+            foundValidEntry = true;
+        }
+    }
+
+    return foundValidEntry;
 }
 
 bool PdfParser::IsEncrypted() const

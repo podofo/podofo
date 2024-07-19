@@ -55,39 +55,33 @@ namespace PoDoFo
         static void TestNestedArrays();
         static void TestNestedDictionaries();
 
-        void ReadXRefContents(size_t offset)
+        void ReadXRefContents(size_t offset, bool skipFollowPrevious)
         {
-            // call protected method
-            PdfParser::ReadXRefContents(*m_device, offset);
+            PdfParser::ReadXRefContents(*m_device, offset, skipFollowPrevious);
         }
 
         void ReadXRefSubsection(int64_t firstObject, int64_t objectCount)
         {
-            // call protected method
             PdfParser::ReadXRefSubsection(*m_device, firstObject, objectCount);
         }
 
-        void ReadXRefStreamContents(size_t offset)
+        void ReadXRefStreamContents(size_t offset, bool skipFollowPrevious)
         {
-            // call protected method
-            PdfParser::ReadXRefStreamContents(*m_device, offset);
+            PdfParser::ReadXRefStreamContents(*m_device, offset, skipFollowPrevious);
         }
 
         void ReadDocumentStructure()
         {
-            // call protected method
             PdfParser::ReadDocumentStructure(*m_device);
         }
 
         void ReadObjects()
         {
-            // call protected method
             PdfParser::ReadObjects(*m_device);
         }
 
         bool IsPdfFile()
         {
-            // call protected method
             return PdfParser::IsPdfFile(*m_device);
         }
 
@@ -162,7 +156,7 @@ void PdfParserTest::TestReadXRefContents()
         oss << "%EOF";
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, oss.str());
-        parser.ReadXRefContents(0);
+        parser.ReadXRefContents(0, false);
         // expected to succeed
     }
     catch (PdfError&)
@@ -194,7 +188,7 @@ void PdfParserTest::TestReadXRefContents()
         oss << "%EOF";
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, oss.str());
-        parser.ReadXRefContents(0);
+        parser.ReadXRefContents(0, false);
     }
     catch (PdfError& error)
     {
@@ -231,7 +225,7 @@ void PdfParserTest::TestReadXRefContents()
         oss << "%EOF";
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, oss.str());
-        parser.ReadXRefContents(0);
+        parser.ReadXRefContents(0, false);
         // succeeds reading badly formed xref entries  - should it?
     }
     catch (PdfError& error)
@@ -299,7 +293,7 @@ void PdfParserTest::TestReadXRefContents()
 
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, oss.str());
-        parser.ReadXRefContents(offsetXrefStm1);
+        parser.ReadXRefContents(offsetXrefStm1, false);
         // succeeds in current code - should it?
     }
     catch (PdfError& error)
@@ -376,7 +370,7 @@ void PdfParserTest::TestReadXRefContents()
 
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, oss.str());
-        parser.ReadXRefContents(offsetXrefStm2);
+        parser.ReadXRefContents(offsetXrefStm2, false);
         // succeeds in current code - should it?
     }
     catch (PdfError& error)
@@ -452,7 +446,7 @@ void PdfParserTest::TestReadXRefContents()
 
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, oss.str());
-        parser.ReadXRefContents(currentOffset);
+        parser.ReadXRefContents(currentOffset, false);
         // succeeds in current code - should it?
     }
     catch (PdfError& error)
@@ -1125,7 +1119,7 @@ void PdfParserTest::TestReadXRefStreamContents()
 
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, oss.str());
-        parser.ReadXRefStreamContents(offsetXRefObject);
+        parser.ReadXRefStreamContents(offsetXRefObject, false);
         // should succeed
     }
     catch (PdfError&)
@@ -2059,7 +2053,7 @@ void PdfParserTest::TestNestedArrays()
     {
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, buffer);
-        parser.ReadXRefStreamContents(offsetXRefObject);
+        parser.ReadXRefStreamContents(offsetXRefObject, false);
         REQUIRE(true);
     }
 
@@ -2113,7 +2107,7 @@ void PdfParserTest::TestNestedArrays()
 
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, buffer);
-        parser.ReadXRefStreamContents(offsetXRefObject);
+        parser.ReadXRefStreamContents(offsetXRefObject, false);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -2168,7 +2162,7 @@ void PdfParserTest::TestNestedDictionaries()
     {
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, buffer);
-        parser.ReadXRefStreamContents(offsetXRefObject);
+        parser.ReadXRefStreamContents(offsetXRefObject, false);
         REQUIRE(true);
     }
 
@@ -2223,7 +2217,7 @@ void PdfParserTest::TestNestedDictionaries()
 
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, buffer);
-        parser.ReadXRefStreamContents(offsetXRefObject);
+        parser.ReadXRefStreamContents(offsetXRefObject, false);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
