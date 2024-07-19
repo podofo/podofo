@@ -238,11 +238,6 @@ void PdfParser::readNextTrailer(InputStreamDevice& device)
 
     if (trailer->GetDictionary().HasKey("XRefStm"))
     {
-        // Whenever we read a XRefStm key, 
-        // we know that the file was updated.
-        if (!trailer->GetDictionary().HasKey("Prev"))
-            m_IncrementalUpdateCount++;
-
         try
         {
             ReadXRefStreamContents(device, static_cast<size_t>(trailer->GetDictionary().FindKeyAs<int64_t>("XRefStm", 0)), false);
