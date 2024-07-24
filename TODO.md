@@ -13,7 +13,6 @@
 - PdfWriter: Check if SetEncrypt() should accept mutable reference instead
 - PdfField: Evaluate make a virtual getValueObject()
 - Evaluate removing PdfObject::Null and PdfVariant::Null and introduce nullptr_t constructor overloads
-- PdfCanvas: Add CopyTo facilities, see PdfContents
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
 - Review PdfPage::SetICCProfile(), PdfImage::SetICCProfile()
 - PdfErrorCode: Check all values

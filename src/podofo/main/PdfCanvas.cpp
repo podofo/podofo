@@ -11,6 +11,7 @@
 #include "PdfDictionary.h"
 #include "PdfName.h"
 #include "PdfObjectStream.h"
+#include <podofo/auxiliary/StreamDevice.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -25,6 +26,20 @@ const PdfObject* PdfCanvas::GetContentsObject() const
 PdfObject* PdfCanvas::GetContentsObject()
 {
     return getContentsObject();
+}
+
+charbuff PdfCanvas::GetContentsCopy() const
+{
+    charbuff ret;
+    CopyContentsTo(ret);
+    return ret;
+}
+
+void PdfCanvas::CopyContentsTo(charbuff& buffer) const
+{
+    buffer.clear();
+    BufferStreamDevice stream(buffer);
+    CopyContentsTo(stream);
 }
 
 PdfObject* PdfCanvas::GetFromResources(PdfResourceType type, const string_view& key)

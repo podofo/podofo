@@ -355,6 +355,14 @@ void PdfPage::EnsureResourcesCreated()
     ensureResourcesCreated();
 }
 
+void PdfPage::CopyContentsTo(OutputStream& stream) const
+{
+    if (m_Contents == nullptr)
+        return;
+
+    m_Contents->CopyTo(stream);
+}
+
 void PdfPage::SetMediaBox(const Rect& rect, bool raw)
 {
     setPageBox("MediaBox", rect, raw);

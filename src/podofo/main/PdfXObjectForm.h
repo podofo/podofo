@@ -70,6 +70,7 @@ private:
     PdfDictionaryElement& getElement() override;
     PdfObjectStream& GetOrCreateContentsStream(PdfStreamAppendFlags flags) override;
     PdfObjectStream& ResetContentsStream() override;
+    void CopyContentsTo(OutputStream& stream) const override;
     void initXObject(const Rect& rect);
     void initAfterPageInsertion(const PdfPage& page);
 

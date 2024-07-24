@@ -297,6 +297,8 @@ private:
 
     void EnsureResourcesCreated() override;
 
+    void CopyContentsTo(OutputStream& stream) const override;
+
     PdfObjectStream& GetOrCreateContentsStream(PdfStreamAppendFlags flags) override;
 
     PdfObjectStream& ResetContentsStream() override;

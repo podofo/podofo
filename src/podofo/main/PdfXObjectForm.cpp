@@ -83,6 +83,15 @@ PdfObjectStream& PdfXObjectForm::ResetContentsStream()
     return ret;
 }
 
+void PdfXObjectForm::CopyContentsTo(OutputStream& stream) const
+{
+    auto objStream = GetObject().GetStream();
+    if (objStream == nullptr)
+        return;
+
+    objStream->CopyTo(stream);
+}
+
 Rect PdfXObjectForm::GetRect() const
 {
     return m_Rect;

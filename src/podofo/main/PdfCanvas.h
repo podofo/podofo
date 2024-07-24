@@ -49,6 +49,14 @@ public:
      */ 
     virtual PdfObjectStream& ResetContentsStream() = 0;
 
+    charbuff GetContentsCopy() const;
+
+    /**
+     * \remarks It clears the buffer before copying
+     */
+    void CopyContentsTo(charbuff& buffer) const;
+    virtual void CopyContentsTo(OutputStream& stream) const = 0;
+
     /** Get an element from the pages resources dictionary,
      *  using a type (category) and a key.
      *

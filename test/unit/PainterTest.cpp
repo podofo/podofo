@@ -43,15 +43,19 @@ namespace
             PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
         }
 
+        void CopyContentsTo(OutputStream& stream) const override
+        {
+            auto objStream = m_resourceObj.GetStream();
+            if (objStream == nullptr)
+                return;
+
+            objStream->CopyTo(stream);
+        }
+
         bool HasRotation(double& teta) const override
         {
             teta = 0;
             return false;
-        }
-
-        charbuff GetCopy() const
-        {
-            return m_resourceObj.MustGetStream().GetCopy();
         }
 
         void EnsureResourcesCreated() override
@@ -101,7 +105,7 @@ TEST_CASE("TestPainter1")
     painter.SetCanvas(canvas);
     drawSample(painter);
     painter.FinishDrawing();
-    auto copy = canvas.GetCopy();
+    auto copy = canvas.GetContentsCopy();
     REQUIRE(copy == s_expected);
 }
 
