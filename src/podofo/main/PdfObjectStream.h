@@ -164,7 +164,8 @@ public:
     charbuff GetCopySafe() const;
 
     /** Unwrap the stream to the given buffer, unpacking non media filters
-     * \remarks throws if the stream contains media filters, like DCTDecode
+     * \remarks throws if the stream contains media filters, like DCTDecode.
+     * It clears the buffer before copying
      */
     void CopyTo(charbuff& buffer, bool raw = false) const;
 
@@ -173,7 +174,8 @@ public:
     void CopyToSafe(charbuff& buffer) const;
 
     /** Unwrap the stream and write it to the given stream, unpacking non media filters
-     * \remarks throws if the stream contains media filters, like DCTDecode
+     * \remarks throws if the stream contains media filters, like DCTDecode.
+     * It clears the buffer before copying
      */
     void CopyTo(OutputStream& stream, bool raw = false) const;
 

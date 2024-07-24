@@ -43,6 +43,7 @@ charbuff PdfContents::GetCopy() const
 
 void PdfContents::CopyTo(charbuff& buffer) const
 {
+    buffer.clear();
     BufferStreamDevice stream(buffer);
     CopyTo(stream);
 }

@@ -40,6 +40,10 @@ public:
     inline PdfObject& GetObject() { return *m_object; }
 
     charbuff GetCopy() const;
+
+    /**
+     * \remarks It clears the buffer before copying
+     */
     void CopyTo(charbuff& buffer) const;
     void CopyTo(OutputStream& stream) const;
 
