@@ -226,24 +226,14 @@ void PdfParserObject::parseStream()
 
 ReadStream:
     m_device->Seek(streamOffset);	// reset it before reading!
-    if (m_Encrypt != nullptr && !m_Encrypt->IsMetadataEncrypted())
-    {
-        // If metadata is not encrypted the Filter is set to "Crypt"
-        auto filterObj = this->m_Variant.GetDictionaryUnsafe().FindKey(PdfName::KeyFilter);
-        if (filterObj != nullptr && filterObj->IsArray())
-        {
-            auto& filters = filterObj->GetArray();
-            for (unsigned i = 0; i < filters.GetSize(); i++)
-            {
-                auto& obj = filters.MustFindAt(i);
-                if (obj.IsName() && obj.GetName() == "Crypt")
-                    m_Encrypt = nullptr;
-            }
-        }
-    }
 
     // Set stream raw data without marking the object dirty
-    if (m_Encrypt != nullptr)
+    // NOTE: /Metadata objects may be unencrypted even if the
+    // whole document is encrypted
+    const PdfName* type;
+    if (m_Encrypt != nullptr && (m_Encrypt->IsMetadataEncrypted()
+        || !this->m_Variant.GetDictionaryUnsafe().TryFindKeyAs(PdfName::KeyType, type)
+        || *type != "Metadata"))
     {
         auto input = m_Encrypt->CreateEncryptionInputStream(*m_device, static_cast<size_t>(size), GetIndirectReference());
         getOrCreateStream().InitData(*input, static_cast<ssize_t>(size), PdfFilterFactory::CreateFilterList(*this));

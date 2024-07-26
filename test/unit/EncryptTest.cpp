@@ -356,6 +356,18 @@ TEST_CASE("TestEncryptBigBuffer")
     }
 }
 
+TEST_CASE("TestEncryptMetadataFalse")
+{
+    PdfMemDocument doc;
+    // This one has /EncryptMetadata false and /Filter[/Crypt] in /Metadata
+    doc.Load(TestUtils::GetTestInputFilePath("EncryptMetadataFalseCrypt.pdf"), "userpass");
+    REQUIRE(doc.GetMetadata().GetProducer()->GetString() == "PoDoFo - http://podofo.sf.net");
+
+    // This one has /EncryptMetadata false and no /Filter in /Metadata. Should still work
+    doc.Load(TestUtils::GetTestInputFilePath("EncryptMetadataFalseNoCrypt.pdf"), "userpass");
+    REQUIRE(doc.GetMetadata().GetProducer()->GetString() == "PoDoFo - http://podofo.sf.net");
+}
+
 void testAuthenticate(PdfEncrypt& encrypt)
 {
     PdfString documentId = PdfString::FromHexData("BF37541A9083A51619AD5924ECF156DF");
