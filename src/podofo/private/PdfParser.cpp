@@ -974,7 +974,7 @@ bool PdfParser::TryGetPreviousRevisionOffset(InputStreamDevice& input, size_t cu
         if (entry.Parsed && entry.Type == PdfXRefEntryType::InUse
             && entry.Offset < eofOffset)
         {
-            eofOffset = entry.Offset;
+            eofOffset = (size_t)entry.Offset;
             foundValidEntry = true;
         }
     }
