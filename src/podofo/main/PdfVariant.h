@@ -292,7 +292,7 @@ public:
      *                  or nullptr to not encrypt this object
      */
     void Write(OutputStream& stream, PdfWriteFlags writeMode,
-        const PdfStatefulEncrypt& encrypt, charbuff& buffer) const;
+        const PdfStatefulEncrypt* encrypt, charbuff& buffer) const;
 
     /** Assign the values of another PdfVariant to this one.
      *  \param rhs an existing variant which is copied.

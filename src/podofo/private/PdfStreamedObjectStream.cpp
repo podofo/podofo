@@ -107,7 +107,7 @@ unique_ptr<OutputStream> PdfStreamedObjectStream::GetOutputStream(PdfObject& obj
     }
 }
 
-void PdfStreamedObjectStream::Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt)
+void PdfStreamedObjectStream::Write(OutputStream& stream, const PdfStatefulEncrypt* encrypt)
 {
     (void)stream;
     (void)encrypt;

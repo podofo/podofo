@@ -17,9 +17,8 @@ namespace PoDoFo
     class PODOFO_API PdfStatefulEncrypt final
     {
     public:
-        PdfStatefulEncrypt();
         PdfStatefulEncrypt(const PdfEncrypt& encrypt, const PdfReference& objref);
-        PdfStatefulEncrypt(const PdfStatefulEncrypt&) = default;
+
     public:
         /** Encrypt a character span
          */
@@ -31,10 +30,9 @@ namespace PoDoFo
 
         size_t CalculateStreamLength(size_t length) const;
 
-        bool HasEncrypt() const { return m_encrypt != nullptr; }
-
-    public:
-        PdfStatefulEncrypt& operator=(const PdfStatefulEncrypt&) = default;
+    private:
+        PdfStatefulEncrypt(const PdfStatefulEncrypt&) = delete;
+        PdfStatefulEncrypt& operator=(const PdfStatefulEncrypt&) = delete;
 
     private:
         const PdfEncrypt* m_encrypt;

@@ -144,7 +144,7 @@ void PdfVariant::clear()
 }
 
 void PdfVariant::Write(OutputStream& device, PdfWriteFlags writeMode,
-    const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
+    const PdfStatefulEncrypt* encrypt, charbuff& buffer) const
 {
     switch (m_DataType)
     {
@@ -235,7 +235,7 @@ void PdfVariant::ToString(string& str) const
 
     charbuff buffer;
     StringStreamDevice device(str);
-    this->Write(device, writeFlags, PdfStatefulEncrypt(), buffer);
+    this->Write(device, writeFlags, nullptr, buffer);
 }
 
 PdfVariant& PdfVariant::operator=(const PdfVariant& rhs)

@@ -301,7 +301,7 @@ public:
     bool RemoveKey(const std::string_view& key);
 
     void Write(OutputStream& stream, PdfWriteFlags writeMode,
-        const PdfStatefulEncrypt& encrypt, charbuff& buffer) const override;
+        const PdfStatefulEncrypt* encrypt, charbuff& buffer) const override;
 
     using PdfDataProvider::ToString;
 
@@ -344,7 +344,7 @@ private:
     PdfObject* findKey(const std::string_view& key) const;
     PdfObject* findKeyParent(const std::string_view& key) const;
     void write(OutputStream& stream, PdfWriteFlags writeMode, bool skipDelimiters,
-        const PdfStatefulEncrypt& encrypt, charbuff& buffer) const;
+        const PdfStatefulEncrypt* encrypt, charbuff& buffer) const;
 
 private:
     PdfDictionaryMap m_Map;

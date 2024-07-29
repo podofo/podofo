@@ -123,7 +123,7 @@ public:
     void Clear();
 
     void Write(OutputStream& stream, PdfWriteFlags writeMode,
-        const PdfStatefulEncrypt& encrypt, charbuff& buffer) const override;
+        const PdfStatefulEncrypt* encrypt, charbuff& buffer) const override;
 
     template <typename T>
     T GetAtAs(unsigned idx) const;

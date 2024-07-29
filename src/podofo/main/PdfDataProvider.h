@@ -49,7 +49,7 @@ public:
      *                  or nullptr to not encrypt this object
      */
     virtual void Write(OutputStream& stream, PdfWriteFlags writeMode,
-        const PdfStatefulEncrypt& encrypt, charbuff& buffer) const = 0;
+        const PdfStatefulEncrypt* encrypt, charbuff& buffer) const = 0;
 
 protected:
     PdfDataProvider(const PdfDataProvider&) = default;

@@ -197,7 +197,7 @@ bool PdfDictionary::RemoveKey(const string_view& key)
 }
 
 void PdfDictionary::Write(OutputStream& device, PdfWriteFlags writeMode,
-    const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
+    const PdfStatefulEncrypt* encrypt, charbuff& buffer) const
 {
     return write(device, writeMode, false, encrypt, buffer);
 }
@@ -218,7 +218,7 @@ void PdfDictionary::ToString(string& str, bool skipDelimiters) const
 }
 
 void PdfDictionary::write(OutputStream& device, PdfWriteFlags writeMode, bool skipDelimiters,
-    const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
+    const PdfStatefulEncrypt* encrypt, charbuff& buffer) const
 {
     if (!skipDelimiters)
     {

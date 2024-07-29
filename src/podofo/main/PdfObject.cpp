@@ -224,9 +224,9 @@ void PdfObject::write(OutputStream& stream, bool skipLengthFix,
 {
     DelayedLoad();
     DelayedLoadStream();
-    PdfStatefulEncrypt encrypt;
+    unique_ptr<PdfStatefulEncrypt> encrypt;
     if (encrypt_ != nullptr)
-        encrypt = PdfStatefulEncrypt(*encrypt_, m_IndirectReference);
+        encrypt.reset(new PdfStatefulEncrypt(*encrypt_, m_IndirectReference));
 
     if (m_IndirectReference.IsIndirect())
         WriteHeader(stream, writeMode, buffer);
@@ -258,8 +258,8 @@ void PdfObject::write(OutputStream& stream, bool skipLengthFix,
         if (!skipLengthFix)
         {
             size_t length = m_Stream->GetLength();
-            if (encrypt.HasEncrypt())
-                length = encrypt.CalculateStreamLength(length);
+            if (encrypt != nullptr)
+                length = encrypt->CalculateStreamLength(length);
 
             // Add the key without triggering SetDirty
             const_cast<PdfObject&>(*this).m_Variant.GetDictionaryUnsafe()
@@ -267,11 +267,11 @@ void PdfObject::write(OutputStream& stream, bool skipLengthFix,
         }
     }
 
-    m_Variant.Write(stream, writeMode, encrypt, buffer);
+    m_Variant.Write(stream, writeMode, encrypt.get(), buffer);
     stream.Write('\n');
 
     if (m_Stream != nullptr)
-        m_Stream->Write(stream, encrypt);
+        m_Stream->Write(stream, encrypt.get());
 
     if (m_IndirectReference.IsIndirect())
         stream.Write("endobj\n");

@@ -103,12 +103,12 @@ void PdfImmediateWriter::BeginAppendStream(PdfObjectStream& stream)
     obj.SetImmutable();
 
     // Manually handle writing the object
-    PdfStatefulEncrypt statefulEncrypt;
+    unique_ptr<PdfStatefulEncrypt> statefulEncrypt;
     if (encrypt != nullptr)
-        statefulEncrypt = PdfStatefulEncrypt(*encrypt, obj.GetIndirectReference());
+        statefulEncrypt.reset(new PdfStatefulEncrypt(*encrypt, obj.GetIndirectReference()));
 
     obj.WriteHeader(*m_Device, this->GetWriteFlags(), m_buffer);
-    obj.GetVariant().Write(*m_Device, this->GetWriteFlags(), statefulEncrypt, m_buffer);
+    obj.GetVariant().Write(*m_Device, this->GetWriteFlags(), statefulEncrypt.get(), m_buffer);
     obj.ResetDirty();
     m_Device->Write("\nstream\n");
 

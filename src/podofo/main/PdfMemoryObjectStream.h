@@ -45,7 +45,7 @@ public:
 
     std::unique_ptr<OutputStream> GetOutputStream(PdfObject& obj) override;
 
-    void Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt) override;
+    void Write(OutputStream& stream, const PdfStatefulEncrypt* encrypt) override;
 
     size_t GetLength() const override;
 

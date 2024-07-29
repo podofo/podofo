@@ -200,7 +200,7 @@ PdfObjectStream& PdfObjectStream::operator=(PdfObjectStream&& rhs) noexcept
     return (*this);
 }
 
-void PdfObjectStream::Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt)
+void PdfObjectStream::Write(OutputStream& stream, const PdfStatefulEncrypt* encrypt)
 {
     m_Provider->Write(stream, encrypt);
 }

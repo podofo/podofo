@@ -34,7 +34,7 @@ public:
 
     virtual std::unique_ptr<OutputStream> GetOutputStream(PdfObject& obj) = 0;
 
-    virtual void Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt) = 0;
+    virtual void Write(OutputStream& stream, const PdfStatefulEncrypt* encrypt) = 0;
 
     virtual size_t GetLength() const = 0;
 };

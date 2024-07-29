@@ -60,7 +60,7 @@ public:
      *  \param len   length of the hex-encoded data.
      *  \param encrypt if !nullptr, assume the hex data is encrypted and should be decrypted after hex-decoding.
      */
-    static PdfString FromHexData(const std::string_view& hexView, const PdfStatefulEncrypt& encrypt = { });
+    static PdfString FromHexData(const std::string_view& hexView, const PdfStatefulEncrypt* encrypt = { });
 
     /** Check if this is a hex string.
      *
@@ -95,7 +95,7 @@ public:
     const std::string& GetRawData() const;
 
     void Write(OutputStream& stream, PdfWriteFlags writeMode,
-        const PdfStatefulEncrypt& encrypt, charbuff& buffer) const override;
+        const PdfStatefulEncrypt* encrypt, charbuff& buffer) const override;
 
     /** Copy an existing PdfString
      *  \param rhs another PdfString to copy

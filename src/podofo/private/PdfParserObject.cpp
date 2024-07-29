@@ -116,9 +116,9 @@ PdfReference PdfParserObject::ReadReference(PdfTokenizer& tokenizer)
 // or PdfObject method calls here.
 void PdfParserObject::Parse(PdfTokenizer& tokenizer)
 {
-    PdfStatefulEncrypt encrypt;
+    unique_ptr<PdfStatefulEncrypt> encrypt;
     if (m_Encrypt != nullptr)
-        encrypt = PdfStatefulEncrypt(*m_Encrypt, GetIndirectReference());
+        encrypt.reset(new PdfStatefulEncrypt(*m_Encrypt, GetIndirectReference()));
 
     // Do not call ReadNextVariant directly,
     // but TryReadNextToken, to handle empty objects like:
@@ -134,7 +134,7 @@ void PdfParserObject::Parse(PdfTokenizer& tokenizer)
     // Check if we have an empty object or data
     if (token != "endobj")
     {
-        tokenizer.ReadNextVariant(*m_device, token, tokenType, m_Variant, encrypt);
+        tokenizer.ReadNextVariant(*m_device, token, tokenType, m_Variant, encrypt.get());
 
         if (!m_IsTrailer)
         {

@@ -109,8 +109,8 @@ public:
      *  \param variant write the read variant to this value
      *  \param encrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadNextVariant(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt = { });
-    bool TryReadNextVariant(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt = { });
+    void ReadNextVariant(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt = { });
+    bool TryReadNextVariant(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt = { });
 
 public:
     /** Returns true if the given character is a whitespace
@@ -173,8 +173,8 @@ protected:
      *  \param variant write the read variant to this value
      *  \param encrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadNextVariant(InputStreamDevice& device, const std::string_view& token, PdfTokenType tokenType, PdfVariant& variant, const PdfStatefulEncrypt& encrypt);
-    bool TryReadNextVariant(InputStreamDevice& device, const std::string_view& token, PdfTokenType tokenType, PdfVariant& variant, const PdfStatefulEncrypt& encrypt);
+    void ReadNextVariant(InputStreamDevice& device, const std::string_view& token, PdfTokenType tokenType, PdfVariant& variant, const PdfStatefulEncrypt* encrypt);
+    bool TryReadNextVariant(InputStreamDevice& device, const std::string_view& token, PdfTokenType tokenType, PdfVariant& variant, const PdfStatefulEncrypt* encrypt);
 
     /** Add a token to the queue of tokens.
      *  tryReadNextToken() will return all enqueued tokens first before
@@ -193,7 +193,7 @@ protected:
      *  \param variant store the dictionary into this variable
      *  \param encrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadDictionary(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt);
+    void ReadDictionary(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt);
 
     /** Read an array from the input device
      *  and store it into a variant.
@@ -201,7 +201,7 @@ protected:
      *  \param variant store the array into this variable
      *  \param encrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadArray(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt);
+    void ReadArray(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt);
 
     /** Read a string from the input device
      *  and store it into a variant.
@@ -209,7 +209,7 @@ protected:
      *  \param variant store the string into this variable
      *  \param encrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadString(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt);
+    void ReadString(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt);
 
     /** Read a hex string from the input device
      *  and store it into a variant.
@@ -217,7 +217,7 @@ protected:
      *  \param variant store the hex string into this variable
      *  \param encrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadHexString(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt);
+    void ReadHexString(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt);
 
     /** Read a name from the input device
      *  and store it into a variant.
@@ -237,7 +237,7 @@ protected:
     PdfLiteralDataType DetermineDataType(InputStreamDevice& device, const std::string_view& token, PdfTokenType tokenType, PdfVariant& variant);
 
 private:
-    bool tryReadDataType(InputStreamDevice& device, PdfLiteralDataType dataType, PdfVariant& variant, const PdfStatefulEncrypt& encrypt);
+    bool tryReadDataType(InputStreamDevice& device, PdfLiteralDataType dataType, PdfVariant& variant, const PdfStatefulEncrypt* encrypt);
 
 private:
     using TokenizerPair = std::pair<std::string, PdfTokenType>;

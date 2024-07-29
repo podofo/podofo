@@ -215,7 +215,7 @@ private:
      *  \param device write to this outputdevice.
      *  \param encrypt encrypt stream data using this object
      */
-    void Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt);
+    void Write(OutputStream& stream, const PdfStatefulEncrypt* encrypt);
 
     PdfObject& GetParent() { return *m_Parent; }
 
