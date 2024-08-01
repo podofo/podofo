@@ -10,7 +10,7 @@
 #include <podofo/auxiliary/InputDevice.h>
 #include <podofo/auxiliary/OutputDevice.h>
 #include <podofo/main/PdfIndirectObjectList.h>
-#include <podofo/main/PdfEncrypt.h>
+#include <podofo/main/PdfEncryptSession.h>
 
 namespace PoDoFo {
 
@@ -56,7 +56,7 @@ public:
      *
      *  \param encrypt an encryption object which is used to encrypt the written PDF file
      */
-    void SetEncrypt(const PdfEncrypt& encrypt);
+    void SetEncrypt(PdfEncryptSession& encrypt);
 
 
     /** Add required keys to a trailer object
@@ -155,7 +155,7 @@ protected:
 
 
     const PdfObject& GetTrailer() { return *m_Trailer; }
-    PdfEncrypt* GetEncrypt() { return m_Encrypt.get(); }
+    PdfEncryptSession* GetEncrypt() { return m_Encrypt; }
     PdfObject* GetEncryptObj() { return m_EncryptObj; }
     const PdfString& GetIdentifier() { return m_identifier; }
     void SetIdentifier(const PdfString& identifier) { m_identifier = identifier; }
@@ -171,8 +171,8 @@ private:
 
     bool m_UseXRefStream;
 
-    std::unique_ptr<PdfEncrypt> m_Encrypt;    // If not nullptr encrypt all strings and streams and
-                                               // create an encryption dictionary in the trailer
+    PdfEncryptSession* m_Encrypt;             // If not nullptr encrypt all strings and streams and
+                                              // create an encryption dictionary in the trailer
     PdfObject* m_EncryptObj;                  // Used to temporarily store the encryption dictionary
 
     PdfSaveOptions m_SaveOptions;

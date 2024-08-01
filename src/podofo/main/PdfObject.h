@@ -315,7 +315,7 @@ public:
      *                 writing will stop right before this key!
      */
     void Write(OutputStream& stream, PdfWriteFlags writeMode,
-        const PdfEncrypt* encrypt, charbuff& buffer) const;
+        const PdfStatefulEncrypt* encrypt, charbuff& buffer) const;
 
     /** Get a handle to a PDF stream object.
      *  If the PDF object does not have a stream,
@@ -516,7 +516,7 @@ private:
     PdfDictionary& GetDictionaryUnsafe() { return m_Variant.GetDictionaryUnsafe(); }
     PdfArray& GetArrayUnsafe() { return m_Variant.GetArrayUnsafe(); }
     void WriteFinal(OutputStream& stream, PdfWriteFlags writeMode,
-        const PdfEncrypt* encrypt, charbuff& buffer);
+        const PdfStatefulEncrypt* encrypt, charbuff& buffer);
 
     // To be called by PdfStreamedObjectStream
     void SetNumberNoDirtySet(int64_t l);
@@ -535,7 +535,7 @@ private:
 
 private:
     void write(OutputStream& stream, bool skipLengthFix,
-        PdfWriteFlags writeMode, const PdfEncrypt* encrypt, charbuff& buffer) const;
+        PdfWriteFlags writeMode, const PdfStatefulEncrypt* encrypt, charbuff& buffer) const;
 
     void assertMutable() const;
 

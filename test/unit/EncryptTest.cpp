@@ -13,8 +13,8 @@
 using namespace std;
 using namespace PoDoFo;
 
-static void testAuthenticate(PdfEncrypt& encrypt);
-static void testEncrypt(PdfEncrypt& encrypt);
+static void testAuthenticate(PdfEncrypt& encrypt, PdfEncryptContext& context);
+static void testEncrypt(PdfEncrypt& encrypt, PdfEncryptContext& context);
 static void createEncryptedPdf(const string_view& filename);
 
 charbuff s_encBuffer;
@@ -149,8 +149,10 @@ TEST_CASE("TestEncryptDecryptPDFs")
 TEST_CASE("TestDefaultEncryption")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD);
-    testAuthenticate(*encrypt);
-    testEncrypt(*encrypt);
+
+    PdfEncryptContext context;
+    testAuthenticate(*encrypt, context);
+    testEncrypt(*encrypt, context);
 }
 
 TEST_CASE("TestRC4")
@@ -159,8 +161,9 @@ TEST_CASE("TestRC4")
         PdfEncryptionAlgorithm::RC4V1,
         PdfKeyLength::L40);
 
-    testAuthenticate(*encrypt);
-    testEncrypt(*encrypt);
+    PdfEncryptContext context;
+    testAuthenticate(*encrypt, context);
+    testEncrypt(*encrypt, context);
 }
 
 TEST_CASE("TestRC4v2_40")
@@ -169,8 +172,9 @@ TEST_CASE("TestRC4v2_40")
         PdfEncryptionAlgorithm::RC4V2,
         PdfKeyLength::L40);
 
-    testAuthenticate(*encrypt);
-    testEncrypt(*encrypt);
+    PdfEncryptContext context;
+    testAuthenticate(*encrypt, context);
+    testEncrypt(*encrypt, context);
 }
 
 TEST_CASE("TestRC4v2_56")
@@ -179,8 +183,9 @@ TEST_CASE("TestRC4v2_56")
         PdfEncryptionAlgorithm::RC4V2,
         PdfKeyLength::L56);
 
-    testAuthenticate(*encrypt);
-    testEncrypt(*encrypt);
+    PdfEncryptContext context;
+    testAuthenticate(*encrypt, context);
+    testEncrypt(*encrypt, context);
 }
 
 TEST_CASE("TestRC4v2_80")
@@ -189,8 +194,9 @@ TEST_CASE("TestRC4v2_80")
         PdfEncryptionAlgorithm::RC4V2,
         PdfKeyLength::L80);
 
-    testAuthenticate(*encrypt);
-    testEncrypt(*encrypt);
+    PdfEncryptContext context;
+    testAuthenticate(*encrypt, context);
+    testEncrypt(*encrypt, context);
 }
 
 TEST_CASE("TestRC4v2_96")
@@ -199,8 +205,9 @@ TEST_CASE("TestRC4v2_96")
         PdfEncryptionAlgorithm::RC4V2,
         PdfKeyLength::L96);
 
-    testAuthenticate(*encrypt);
-    testEncrypt(*encrypt);
+    PdfEncryptContext context;
+    testAuthenticate(*encrypt, context);
+    testEncrypt(*encrypt, context);
 }
 
 TEST_CASE("TestRC4v2_128")
@@ -209,8 +216,9 @@ TEST_CASE("TestRC4v2_128")
         PdfEncryptionAlgorithm::RC4V2,
         PdfKeyLength::L128);
 
-    testAuthenticate(*encrypt);
-    testEncrypt(*encrypt);
+    PdfEncryptContext context;
+    testAuthenticate(*encrypt, context);
+    testEncrypt(*encrypt, context);
 }
 
 TEST_CASE("TestAESV2")
@@ -219,10 +227,11 @@ TEST_CASE("TestAESV2")
         PdfEncryptionAlgorithm::AESV2,
         PdfKeyLength::L128);
 
-    testAuthenticate(*encrypt);
+    PdfEncryptContext context;
+    testAuthenticate(*encrypt, context);
     // AES decryption is not yet implemented.
     // Therefore we have to disable this test.
-    //TestEncrypt(encrypt);
+    //TestEncrypt(encrypt, context);
 }
 
 #ifdef PODOFO_HAVE_LIBIDN
@@ -233,27 +242,29 @@ TEST_CASE("TestAESV3R5")
         PdfEncryptionAlgorithm::AESV3R5,
         PdfKeyLength::L256);
 
-    testAuthenticate(*encrypt);
+    PdfEncryptContext context;
+    testAuthenticate(*encrypt, context);
     // AES decryption is not yet implemented.
     // Therefore we have to disable this test.
-    //TestEncrypt(encrypt);
+    //TestEncrypt(encrypt, context);
 }
 
-TEST_CASE("testAESV3R6")
+TEST_CASE("TestAESV3R6")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
         PdfEncryptionAlgorithm::AESV3R6,
         PdfKeyLength::L256);
 
-    testAuthenticate(*encrypt);
+    PdfEncryptContext context;
+    testAuthenticate(*encrypt, context);
     // AES decryption is not yet implemented.
     // Therefore we have to disable this test.
-    //TestEncrypt(encrypt);
+    //TestEncrypt(encrypt, context);
 }
 
 #endif // PODOFO_HAVE_LIBIDN
 
-TEST_CASE("testEnableAlgorithms")
+TEST_CASE("TestEnableAlgorithms")
 {
     // By default every algorithms should be enabled
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptionAlgorithm::RC4V1));
@@ -298,7 +309,7 @@ void PdfEncryptTest::TestLoadEncrypedFilePdfParser()
     parser.SetPassword(PDF_USER_PASSWORD);
 }
 
-TEST_CASE("testLoadEncrypedFilePdfMemDocument")
+TEST_CASE("TestLoadEncrypedFilePdfMemDocument")
 {
     string tempFile = TestUtils::GetTestOutputFilePath("testLoadEncrypedFilePdfMemDocument.pdf");
     createEncryptedPdf(tempFile);
@@ -368,27 +379,43 @@ TEST_CASE("TestEncryptMetadataFalse")
     REQUIRE(doc.GetMetadata().GetProducer()->GetString() == "PoDoFo - http://podofo.sf.net");
 }
 
-void testAuthenticate(PdfEncrypt& encrypt)
+TEST_CASE("TestRemoveEncryption")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("AESV2-128.pdf"), "userpass");
+    doc.SetEncrypt(nullptr);
+    doc.Save(TestUtils::GetTestOutputFilePath("Decrypted.pdf"));
+    doc.Load(TestUtils::GetTestOutputFilePath("Decrypted.pdf"));
+    charbuff objBuffer;
+    doc.GetObjects().MustGetObject(PdfReference(11, 0)).MustGetStream().CopyTo(objBuffer);
+    REQUIRE(ssl::ComputeMD5Str(objBuffer) == ReferenceHash);
+}
+
+void testAuthenticate(PdfEncrypt& encrypt, PdfEncryptContext& context)
 {
     PdfString documentId = PdfString::FromHexData("BF37541A9083A51619AD5924ECF156DF");
 
-    encrypt.GenerateEncryptionKey(documentId);
+    encrypt.GetEncryptionContext(documentId, context);
 
+    PdfEncryptContext authenticationTestContext;
     INFO("authenticate using user password");
-    REQUIRE(encrypt.Authenticate(PDF_USER_PASSWORD, documentId) == PdfAuthResult::User);
+    encrypt.Authenticate(PDF_USER_PASSWORD, documentId, authenticationTestContext);
+    REQUIRE(authenticationTestContext.GetAuthResult() == PdfAuthResult::User);
     INFO("authenticate using owner password");
-    REQUIRE(encrypt.Authenticate(PDF_OWNER_PASSWORD, documentId) == PdfAuthResult::Owner);
+    encrypt.Authenticate(PDF_OWNER_PASSWORD, documentId, authenticationTestContext);
+    REQUIRE(authenticationTestContext.GetAuthResult() == PdfAuthResult::Owner);
     INFO("authenticate using wrong password");
-    REQUIRE(encrypt.Authenticate("wrongpassword", documentId) == PdfAuthResult::Failed);
+    encrypt.Authenticate("wrongpassword", documentId, authenticationTestContext);
+    REQUIRE(authenticationTestContext.GetAuthResult() == PdfAuthResult::Failed);
 }
 
-void testEncrypt(PdfEncrypt& encrypt)
+void testEncrypt(PdfEncrypt& encrypt, PdfEncryptContext& context)
 {
     charbuff encrypted;
     // Encrypt buffer
     try
     {
-        encrypt.EncryptTo(encrypted, s_encBuffer, PdfReference(7, 0));
+        encrypt.EncryptTo(encrypted, s_encBuffer, context, PdfReference(7, 0));
     }
     catch (PdfError& e)
     {
@@ -399,7 +426,7 @@ void testEncrypt(PdfEncrypt& encrypt)
     // Decrypt buffer
     try
     {
-        encrypt.DecryptTo(decrypted, encrypted, PdfReference(7, 0));
+        encrypt.DecryptTo(decrypted, encrypted, context, PdfReference(7, 0));
     }
     catch (PdfError& e)
     {

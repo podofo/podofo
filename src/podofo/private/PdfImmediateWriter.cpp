@@ -7,6 +7,8 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfImmediateWriter.h"
 
+#include <podofo/main/PdfStatefulEncrypt.h>
+
 #include "PdfXRefStream.h"
 #include "PdfStreamedObjectStream.h"
 
@@ -14,7 +16,7 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const PdfObject& trailer,
-        OutputStreamDevice& device, PdfVersion version, PdfEncrypt* encrypt, PdfSaveOptions opts) :
+        OutputStreamDevice& device, PdfVersion version, const shared_ptr<PdfEncrypt>& encrypt, PdfSaveOptions opts) :
     PdfWriter(objects, trailer),
     m_Device(&device),
     m_OpenStream(false)
@@ -31,8 +33,9 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
     // Setup encryption
     if (encrypt != nullptr)
     {
-        this->SetEncrypt(*encrypt);
-        GetEncrypt()->GenerateEncryptionKey(GetIdentifier());
+        m_encrypt.reset(new PdfEncryptSession(encrypt));
+        this->SetEncrypt(*m_encrypt);
+        encrypt->GetEncryptionContext(GetIdentifier(), m_encrypt->GetContext());
     }
 
     // Start with writing the header
@@ -62,7 +65,7 @@ void PdfImmediateWriter::finish()
     {
         // Add our own Encryption dictionary
         SetEncryptObj(GetObjects().CreateDictionaryObject());
-        encrypt->CreateEncryptionDictionary(GetEncryptObj()->GetDictionary());
+        encrypt->GetEncrypt().CreateEncryptionDictionary(GetEncryptObj()->GetDictionary());
     }
 
     // Write all the remaining objects
@@ -90,7 +93,7 @@ void PdfImmediateWriter::BeginAppendStream(PdfObjectStream& stream)
     if (encrypt != nullptr)
     {
         auto& streamedObjectStream = dynamic_cast<PdfStreamedObjectStream&>(stream.GetProvider());
-        streamedObjectStream.SetEncrypted(*encrypt);
+        streamedObjectStream.SetEncrypt(encrypt->GetEncrypt(), encrypt->GetContext());
     }
 
     auto& obj = stream.GetParent();
@@ -105,7 +108,7 @@ void PdfImmediateWriter::BeginAppendStream(PdfObjectStream& stream)
     // Manually handle writing the object
     unique_ptr<PdfStatefulEncrypt> statefulEncrypt;
     if (encrypt != nullptr)
-        statefulEncrypt.reset(new PdfStatefulEncrypt(*encrypt, obj.GetIndirectReference()));
+        statefulEncrypt.reset(new PdfStatefulEncrypt(encrypt->GetEncrypt(), encrypt->GetContext(), obj.GetIndirectReference()));
 
     obj.WriteHeader(*m_Device, this->GetWriteFlags(), m_buffer);
     obj.GetVariant().Write(*m_Device, this->GetWriteFlags(), statefulEncrypt.get(), m_buffer);

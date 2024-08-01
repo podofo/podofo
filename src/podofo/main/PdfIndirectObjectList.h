@@ -7,8 +7,6 @@
 #ifndef PDF_INDIRECT_OBJECT_LIST_H
 #define PDF_INDIRECT_OBJECT_LIST_H
 
-#include <list>
-
 #include "PdfObject.h"
 
 namespace PoDoFo {
@@ -319,9 +317,6 @@ private:
     void SetStreamFactory(StreamFactory* factory);
 
 private:
-    // Use deque as many insertions are here way faster than with using std::list
-    // This is especially useful for PDFs like PDFReference17.pdf with
-    // lots of free objects.
     using ObjectNumSet = std::set<uint32_t>;
     using ReferenceSet = std::set<PdfReference>;
     using ObserverList = std::vector<Observer*>;

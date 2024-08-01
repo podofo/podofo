@@ -7,8 +7,6 @@
 #ifndef PDF_OBJECT_STREAM_PROVIDER_H
 #define PDF_OBJECT_STREAM_PROVIDER_H
 
-#include "PdfDeclarations.h"
-
 #include "PdfEncrypt.h"
 #include <podofo/auxiliary/InputStream.h>
 #include <podofo/auxiliary/OutputStream.h>

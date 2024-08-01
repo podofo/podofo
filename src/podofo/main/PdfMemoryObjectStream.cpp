@@ -8,6 +8,7 @@
 #include "PdfMemoryObjectStream.h"
 
 #include <podofo/auxiliary/StreamDevice.h>
+#include "PdfStatefulEncrypt.h"
 
 using namespace std;
 using namespace PoDoFo;

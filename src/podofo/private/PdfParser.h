@@ -56,11 +56,6 @@ public:
      */
     void Parse(InputStreamDevice& device, bool loadOnDemand);
 
-    /**
-     * \returns true if this PdfWriter creates an encrypted PDF file
-     */
-    bool IsEncrypted() const;
-
     const PdfObject& GetTrailer() const;
 
     /**
@@ -121,11 +116,6 @@ public:
     inline size_t GetFileSize() const { return m_FileSize; }
 
     /**
-     * \returns the parsers encryption object or nullptr if the read PDF file was not encrypted
-     */
-    inline const PdfEncrypt* GetEncrypt() const { return m_Encrypt.get(); }
-
-    /**
      * \returns true if strict parsing mode is enabled
      *
      * \see SetStringParsing
@@ -167,7 +157,7 @@ public:
 
     inline bool HasXRefStream() const { return m_HasXRefStream; }
 
-    inline std::shared_ptr<PdfEncrypt> GetEncrypt() { return m_Encrypt; }
+    const PdfEncryptSession* GetEncrypt() const { return m_Encrypt.get(); }
 
 private:
     /**
@@ -323,7 +313,7 @@ private:
     PdfIndirectObjectList* m_Objects;
 
     std::unique_ptr<PdfParserObject> m_Trailer;
-    std::shared_ptr<PdfEncrypt> m_Encrypt;
+    std::shared_ptr<PdfEncryptSession> m_Encrypt;
 
     std::string m_Password;
 

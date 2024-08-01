@@ -28,6 +28,7 @@ PdfWriter::PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer, P
     m_Trailer(&trailer),
     m_Version(version),
     m_UseXRefStream(false),
+    m_Encrypt(nullptr),
     m_EncryptObj(nullptr),
     m_SaveOptions(PdfSaveOptions::None),
     m_WriteFlags(PdfWriteFlags::None),
@@ -71,11 +72,11 @@ void PdfWriter::Write(OutputStreamDevice& device)
     // setup encrypt dictionary
     if (m_Encrypt != nullptr)
     {
-        m_Encrypt->GenerateEncryptionKey(m_identifier);
+        m_Encrypt->GetEncrypt().GetEncryptionContext(m_identifier, m_Encrypt->GetContext());
 
         // Add our own Encryption dictionary
         m_EncryptObj = &m_Objects->CreateDictionaryObject();
-        m_Encrypt->CreateEncryptionDictionary(m_EncryptObj->GetDictionary());
+        m_Encrypt->GetEncrypt().CreateEncryptionDictionary(m_EncryptObj->GetDictionary());
     }
 
     unique_ptr<PdfXRef> xRef;
@@ -125,8 +126,14 @@ void PdfWriter::WritePdfHeader(OutputStreamDevice& device)
 
 void PdfWriter::WritePdfObjects(OutputStreamDevice& device, const PdfIndirectObjectList& objects, PdfXRef& xref)
 {
+    unique_ptr<PdfStatefulEncrypt> encrypt;
     for (PdfObject* obj : objects)
     {
+        if (m_Encrypt != nullptr && obj != m_EncryptObj)
+            encrypt.reset(new PdfStatefulEncrypt(m_Encrypt->GetEncrypt(), m_Encrypt->GetContext(), obj->GetIndirectReference()));
+        else
+            encrypt.reset();
+
         if (m_IncrementalUpdate && !obj->IsDirty())
         {
             if (m_rewriteXRefTable)
@@ -167,7 +174,7 @@ void PdfWriter::WritePdfObjects(OutputStreamDevice& device, const PdfIndirectObj
         {
             xref.AddInUseObject(obj->GetIndirectReference(), device.GetPosition());
             // Also make sure that we do not encrypt the encryption dictionary!
-            obj->WriteFinal(device, m_WriteFlags, obj == m_EncryptObj ? nullptr : m_Encrypt.get(), m_buffer);
+            obj->WriteFinal(device, m_WriteFlags, encrypt.get(), m_buffer);
         }
     }
 
@@ -299,11 +306,9 @@ void PdfWriter::SetEncryptObj(PdfObject& obj)
     m_EncryptObj = &obj;
 }
 
-// CHECK-ME: Should this accept a mutable reference instead,
-// to reflect changes on the source encrypt (see usage on PdfMemDocument)?
-void PdfWriter::SetEncrypt(const PdfEncrypt& encrypt)
+void PdfWriter::SetEncrypt(PdfEncryptSession& encrypt)
 {
-    m_Encrypt = PdfEncrypt::CreateFromEncrypt(encrypt);
+    m_Encrypt = &encrypt;
 }
 
 void PdfWriter::SetUseXRefStream(bool useXRefStream)

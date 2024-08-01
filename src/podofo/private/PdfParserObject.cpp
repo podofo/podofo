@@ -118,7 +118,7 @@ void PdfParserObject::Parse(PdfTokenizer& tokenizer)
 {
     unique_ptr<PdfStatefulEncrypt> encrypt;
     if (m_Encrypt != nullptr)
-        encrypt.reset(new PdfStatefulEncrypt(*m_Encrypt, GetIndirectReference()));
+        encrypt.reset(new PdfStatefulEncrypt(m_Encrypt->GetEncrypt(), m_Encrypt->GetContext(), GetIndirectReference()));
 
     // Do not call ReadNextVariant directly,
     // but TryReadNextToken, to handle empty objects like:
@@ -231,11 +231,11 @@ ReadStream:
     // NOTE: /Metadata objects may be unencrypted even if the
     // whole document is encrypted
     const PdfName* type;
-    if (m_Encrypt != nullptr && (m_Encrypt->IsMetadataEncrypted()
+    if (m_Encrypt != nullptr && (m_Encrypt->GetEncrypt().IsMetadataEncrypted()
         || !this->m_Variant.GetDictionaryUnsafe().TryFindKeyAs(PdfName::KeyType, type)
         || *type != "Metadata"))
     {
-        auto input = m_Encrypt->CreateEncryptionInputStream(*m_device, static_cast<size_t>(size), GetIndirectReference());
+        auto input = m_Encrypt->GetEncrypt().CreateEncryptionInputStream(*m_device, static_cast<size_t>(size), m_Encrypt->GetContext(), GetIndirectReference());
         getOrCreateStream().InitData(*input, static_cast<ssize_t>(size), PdfFilterFactory::CreateFilterList(*this));
         // Release the encrypt object after loading the stream.
         // It's not needed for serialization here

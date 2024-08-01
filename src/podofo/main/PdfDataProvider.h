@@ -8,11 +8,11 @@
 #define PDF_DATATYPE_H
 
 #include "PdfDeclarations.h"
-#include "PdfStatefulEncrypt.h"
 
 namespace PoDoFo {
 
 class OutputStream;
+class PdfStatefulEncrypt;
 
 /** An interface for data provider classes that are stored in a PdfVariant
  *  

@@ -1,4 +1,7 @@
 ## 0.10.1 -> 1.0.0
+- `PdfEncrypt`:
+  * `GenerateEncryptionKey` renamed to `GetEncryptionContext` and takes `PdfEncryptContxt` as an argument
+  * `Authenticate`, `EncryptTo`, `DecryptTo`, `CreateEncryptionInputStream`, `CreateEncryptionOutputStream` now take `PdfEncryptContxt` as an argument
 - `PdfIndirectObjectList`:
   * `SetStreamFactory` is now private, it's supposed to be used only by private PdfImmediateWriter
   * `ReplaceObject`: Removed, it was added during pdfmm times when there was no better way to rewrite object streams without temporary objects

@@ -41,7 +41,7 @@ public:
      *  \param writeMode additional options for writing the pdf
      */
     PdfImmediateWriter(PdfIndirectObjectList& objects, const PdfObject& trailer, OutputStreamDevice& device,
-        PdfVersion version = PdfVersion::V1_5, PdfEncrypt* encrypt = nullptr,
+        PdfVersion version = PdfVersion::V1_5, const std::shared_ptr<PdfEncrypt>& encrypt = nullptr,
         PdfSaveOptions opts = PdfSaveOptions::None);
 
     ~PdfImmediateWriter();
@@ -59,6 +59,7 @@ private:
     OutputStreamDevice* m_Device;
     std::vector<PdfObject*> m_writtenObjects;
     std::unique_ptr<PdfXRef> m_xRef;
+    std::unique_ptr<PdfEncryptSession> m_encrypt;
     bool m_OpenStream;
 };
 

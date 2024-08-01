@@ -11,17 +11,18 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfStatefulEncrypt::PdfStatefulEncrypt(const PdfEncrypt& encrypt, const PdfReference& objref)
-    : m_encrypt(&encrypt), m_currReference(objref) { }
+
+PdfStatefulEncrypt::PdfStatefulEncrypt(const PdfEncrypt& encrypt, PdfEncryptContext& context, const PdfReference& objref)
+    : m_encrypt(&encrypt), m_context(&context), m_currReference(objref) { }
 
 void PdfStatefulEncrypt::EncryptTo(charbuff& out, const bufferview& view) const
 {
-    m_encrypt->EncryptTo(out, view, m_currReference);
+    m_encrypt->EncryptTo(out, view, *m_context, m_currReference);
 }
 
 void PdfStatefulEncrypt::DecryptTo(charbuff& out, const bufferview& view) const
 {
-    m_encrypt->DecryptTo(out, view, m_currReference);
+    m_encrypt->DecryptTo(out, view, *m_context, m_currReference);
 }
 
 size_t PdfStatefulEncrypt::CalculateStreamLength(size_t length) const

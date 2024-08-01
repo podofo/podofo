@@ -1,15 +1,17 @@
 ## Version 1.0.0-dev
-- Fixed PdfStreamedDocument, see #88
-- Added high-level signing API, see PdfSignerCMS and "TestSignature1" test case
-- Set PdfSignature to have correct /ByteRange and /Contents after signing with PoDoFo::SignDocument
-- Reviewed PdfFileSpec, PdfAction, PdfDestination API and their usage in
-PdfOutlineItem, PdfOutlines, PdfAnnotationActionBase, PdfAnnotationLink PdfAnnotationFileAttachment
-- Reviewed PdfNameTree
-- Reviewed PdfExtGState
-- PdfDocument: Added GetFieldsIterator()
-- PdfPage: Added GetFieldsIterator()
-- PdfSignature: Added TryGetPreviousRevision()
-- PdfCanvas: Added CopyContentsTo()
+- Fixed `PdfStreamedDocument`, see #88
+- Added high-level signing API, see `PdfSignerCMS` and "TestSignature1" test case
+- Set `PdfSignature` to have correct `/ByteRange` and `/Contents` after signing with `PoDoFo::SignDocument`
+- Reviewed `PdfFileSpec`, `PdfAction`, `PdfDestination` API and their usage in
+`PdfOutlineItem`, `PdfOutlines`, `PdfAnnotationActionBase`, `PdfAnnotationLink`, `PdfAnnotationFileAttachment`
+- Reviewed `PdfNameTree`
+- Reviewed `PdfExtGState`
+- `PdfDocument`: Added `GetFieldsIterator()`
+- `PdfPage`: Added `GetFieldsIterator()`
+- `PdfSignature`: Added `TryGetPreviousRevision()`
+- `PdfCanvas`: Added `CopyContentsTo()`
+- `PdfEncrypt` is now stateless: added `PdfEncryptContext` as a
+   separate state context and used as argument in `PdfEncrypt` methods
 
 ## Version 0.10.3
 - Fixed big performance regression introduced in 0.10, see #108

@@ -10,9 +10,12 @@
 // ---------------------------
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
+#include <podofo/private/OpenSSLInternal.h>
+
+// Early define PODOFO_CRYPT_CTX to desired type
+#define PODOFO_CRYPT_CTX EVP_CIPHER_CTX
 #include "PdfEncrypt.h"
 
-#include <podofo/private/OpenSSLInternal.h>
 #include <openssl/md5.h>
 
 #include "PdfDictionary.h"
@@ -35,58 +38,22 @@ PdfEncryptionAlgorithm s_EnabledEncryptionAlgorithms;
 #define AES_IV_LENGTH 16
 #define AES_BLOCK_SIZE 16
 
-namespace PoDoFo
+constexpr unsigned char padding[] =
+"\x28\xBF\x4E\x5E\x4E\x75\x8A\x41\x64\x00\x4E\x56\xFF\xFA\x01\x08\x2E\x2E\x00\xB6\xD0\x68\x3E\x80\x2F\x0C\xA9\xFE\x64\x53\x69\x7A";
+
+static void AESDecrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned keylen, const unsigned char* iv,
+    const unsigned char* textin, size_t textlen,
+    unsigned char* textout, size_t& textoutlen);
+static void AESEncrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned keylen, const unsigned char* iv,
+    const unsigned char* textin, size_t textlen,
+    unsigned char* textout, size_t textoutlen);
+
+static void RC4Encrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned keylen,
+    const unsigned char* textin, size_t textlen,
+    unsigned char* textout, size_t textoutlen);
+
+namespace
 {
-/** A class that is used to encrypt a PDF file (AES-128/256)
- *  This class is the base for classes that implement algorithms based on AES
- *
- *  Client code is working only with PdfEncrypt class and knows nothing
- *	about PdfEncrypt*, it is created through CreatePdfEncrypt factory method
- *
- */
-class PdfEncrypt::AESCryptoEngine
-{
-public:
-    AESCryptoEngine();
-
-    ~AESCryptoEngine();
-
-    void Decrypt(const unsigned char* key, unsigned keylen, const unsigned char* iv,
-        const unsigned char* textin, size_t textlen,
-        unsigned char* textout, size_t& textoutlen);
-    void Encrypt(const unsigned char* key, unsigned keylen, const unsigned char* iv,
-        const unsigned char* textin, size_t textlen,
-        unsigned char* textout, size_t textoutlen);
-
-    EVP_CIPHER_CTX* GetSSLCtx() const { return m_ctx; }
-private:
-    EVP_CIPHER_CTX* m_ctx;
-};
-
-/** A class that is used to encrypt a PDF file (RC4-40..128)
- *  This class is the base for classes that implement algorithms based on RC4
- *
- *  Client code is working only with PdfEncrypt class and knows nothing
- *	about PdfEncrypt*, it is created through CreatePdfEncrypt factory method
- *
- */
-class PdfEncrypt::RC4CryptoEngine
-{
-public:
-    RC4CryptoEngine();
-
-    ~RC4CryptoEngine();
-
-    // AES encryption
-    void Encrypt(const unsigned char* key, unsigned keylen,
-        const unsigned char* textin, size_t textlen,
-        unsigned char* textout, size_t textoutlen);
-
-    EVP_CIPHER_CTX* GetSSLCtx() const { return m_ctx; }
-private:
-    EVP_CIPHER_CTX* m_ctx;
-};
-
 /** A class that can encrypt/decrpyt streamed data block wise
  *  This is used in the input and output stream encryption implementation.
  *  Only the RC4 encryption algorithm is supported
@@ -95,7 +62,7 @@ class PdfRC4Stream
 {
 public:
     PdfRC4Stream(unsigned char rc4key[256], unsigned char rc4last[256],
-        unsigned char* key, unsigned keylen) :
+        const unsigned char* key, unsigned keylen) :
         m_a(0), m_b(0)
     {
         size_t i;
@@ -123,10 +90,6 @@ public:
         {
             std::memcpy(m_rc4, rc4last, 256);
         }
-    }
-
-    ~PdfRC4Stream()
-    {
     }
 
     /** Encrypt or decrypt a block
@@ -161,10 +124,8 @@ public:
 
 private:
     unsigned char m_rc4[256];
-
     int m_a;
     int m_b;
-
 };
 
 /** An OutputStream that encrypt all data written
@@ -174,7 +135,7 @@ class PdfRC4OutputStream : public OutputStream
 {
 public:
     PdfRC4OutputStream(OutputStream& outputStream, unsigned char rc4key[256],
-        unsigned char rc4last[256], unsigned char* key, unsigned keylen) :
+        unsigned char rc4last[256], const unsigned char* key, unsigned keylen) :
         m_OutputStream(&outputStream), m_stream(rc4key, rc4last, key, keylen)
     {
     }
@@ -200,7 +161,7 @@ class PdfRC4InputStream : public InputStream
 {
 public:
     PdfRC4InputStream(InputStream& inputStream, size_t inputLen, unsigned char rc4key[256], unsigned char rc4last[256],
-        unsigned char* key, unsigned keylen) :
+        const unsigned char* key, unsigned keylen) :
         m_InputStream(&inputStream),
         m_inputLen(inputLen),
         m_stream(rc4key, rc4last, key, keylen) { }
@@ -351,39 +312,40 @@ private:
     size_t m_drainLeft;
 };
 
+struct RC4EncryptContext
+{
+    unsigned char Rc4key[16];         // last RC4 key
+    unsigned char Rc4last[256];       // last RC4 state table
+};
+
 }
 
 PdfEncrypt::~PdfEncrypt()
 {
-    // Clear sensitive information to not leave traces in memory
-    std::memset(m_userPass.data(), 0, m_userPass.size());
-    std::memset(m_ownerPass.data(), 0, m_ownerPass.size());
-    std::memset(m_encryptionKey, 0, std::size(m_encryptionKey));
+    clearSensitiveInfo();
 }
 
-void PdfEncrypt::GenerateEncryptionKey(const PdfString& documentId)
+void PdfEncrypt::GetEncryptionContext(const PdfString& documentId, PdfEncryptContext& context)
 {
-    GenerateEncryptionKey(documentId.GetRawData(), m_uValue, m_oValue, m_encryptionKey);
-    m_documentId = documentId.GetRawData();
-}
+    if (!m_fromScratch && !context.IsAuthenticated())
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unexpected non autenticated context");
 
-PdfAuthResult PdfEncrypt::Authenticate(const string_view& password, const PdfString& documentId)
-{
-    auto ret = Authenticate(password, documentId.GetRawData(), m_encryptionKey);
-    switch (ret)
+    GenerateEncryptionKey(documentId.GetRawData(), context.GetAuthResult(), context.GetCryptCtx(),
+        m_uValue, m_oValue, context.m_encryptionKey);
+
+    if (m_fromScratch)
     {
-        case PdfAuthResult::User:
-            m_userPass = password;
-            m_documentId = documentId.GetRawData();
-            break;
-        case PdfAuthResult::Owner:
-            m_ownerPass = password;
-            m_documentId = documentId.GetRawData();
-            break;
-        default:
-            break;
+        clearSensitiveInfo();
+        // When creating an encrypt from scratch we
+        // can assume we are the owner of the document
+        context.m_AuthResult = PdfAuthResult::Owner;
+        m_fromScratch = false;
     }
-    return ret;
+}
+
+void PdfEncrypt::Authenticate(const string_view& password, const PdfString& documentId, PdfEncryptContext& context) const
+{
+    context.m_AuthResult = Authenticate(password, documentId.GetRawData(), context.GetCryptCtx(), context.m_encryptionKey);
 }
 
 PdfEncryptionAlgorithm PdfEncrypt::GetEnabledEncryptionAlgorithms()
@@ -416,9 +378,6 @@ bool PdfEncrypt::IsEncryptionEnabled(PdfEncryptionAlgorithm algorithm)
     auto enabledAlgorithms = GetEnabledEncryptionAlgorithms();
     return (enabledAlgorithms & algorithm) != PdfEncryptionAlgorithm::None;
 }
-
-static unsigned char padding[] =
-"\x28\xBF\x4E\x5E\x4E\x75\x8A\x41\x64\x00\x4E\x56\xFF\xFA\x01\x08\x2E\x2E\x00\xB6\xD0\x68\x3E\x80\x2F\x0C\xA9\xFE\x64\x53\x69\x7A";
 
 unique_ptr<PdfEncrypt> PdfEncrypt::Create(const string_view& userPassword,
     const string_view& ownerPassword,
@@ -586,6 +545,13 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreateFromEncrypt(const PdfEncrypt& rhs)
     }
 }
 
+void PdfEncrypt::clearSensitiveInfo()
+{
+    // Clear sensitive information to not leave traces in memory
+    std::memset(m_userPass.data(), 0, m_userPass.size());
+    std::memset(m_ownerPass.data(), 0, m_ownerPass.size());
+}
+
 PdfEncrypt::PdfEncrypt() :
     m_Algorithm(PdfEncryptionAlgorithm::None),
     m_rValue(0),
@@ -593,10 +559,10 @@ PdfEncrypt::PdfEncrypt() :
     m_pValue(PdfPermissions::None),
     m_uValue{ },
     m_oValue{ },
-    m_encryptionKey{ },
     m_uValueSize(0),
     m_oValueSize(0),
-    m_EncryptMetadata(false)
+    m_EncryptMetadata(false),
+    m_fromScratch(false)
 {
 }
 
@@ -614,8 +580,6 @@ int64_t PdfEncrypt::GetPValueForSerialization() const
 void PdfEncrypt::Init(PdfEncryptionAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision, PdfPermissions pValue,
     const bufferview& uValue, const bufferview& oValue, bool encryptedMetadata)
 {
-    PODOFO_ASSERT((size_t)keyLength / 8 <= std::size(m_encryptionKey));
-
     m_Algorithm = algorithm;
     m_KeyLength = keyLength;
     m_rValue = revision;
@@ -628,8 +592,6 @@ void PdfEncrypt::Init(PdfEncryptionAlgorithm algorithm, PdfKeyLength keyLength, 
 void PdfEncrypt::Init(const string_view& userPassword, const string_view& ownerPassword,
     PdfEncryptionAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision, PdfPermissions pValue, bool encryptedMetadata)
 {
-    PODOFO_ASSERT((size_t)keyLength / 8 <= std::size(m_encryptionKey));
-
     m_userPass = userPassword;
     m_ownerPass = ownerPassword;
     m_Algorithm = algorithm;
@@ -637,9 +599,10 @@ void PdfEncrypt::Init(const string_view& userPassword, const string_view& ownerP
     m_rValue = revision;
     m_pValue = pValue;
     m_EncryptMetadata = encryptedMetadata;
+    m_fromScratch = true;
 }
 
-bool PdfEncrypt::CheckKey(const unsigned char key1[32], const unsigned char key2[32])
+bool PdfEncrypt::CheckKey(const unsigned char key1[32], const unsigned char key2[32]) const
 {
     // Check whether the right password had been given
     bool success = true;
@@ -651,16 +614,83 @@ bool PdfEncrypt::CheckKey(const unsigned char key1[32], const unsigned char key2
     return success;
 }
 
+PdfEncryptContext::PdfEncryptContext() :
+    m_encryptionKey{ },
+    m_AuthResult(PdfAuthResult::Unkwnon),
+    m_cryptCtx(nullptr),
+    m_customCtx(nullptr),
+    m_customCtxSize(0)
+{
+}
+
+PdfEncryptContext::~PdfEncryptContext()
+{
+    // Clear sensitive information to not leave traces in memory
+    std::memset(m_encryptionKey, 0, std::size(m_encryptionKey));
+    if (m_customCtx != nullptr)
+        std::memset(m_customCtx, 0, m_customCtxSize);
+
+    EVP_CIPHER_CTX_free(m_cryptCtx);
+    ::operator delete(m_customCtx);
+}
+
+PdfEncryptContext::PdfEncryptContext(const PdfEncryptContext& rhs) :
+    m_AuthResult(rhs.m_AuthResult),
+    m_cryptCtx(nullptr),
+    m_customCtx(nullptr),
+    m_customCtxSize(0)
+{
+    std::memcpy(m_encryptionKey, rhs.m_encryptionKey, std::size(m_encryptionKey));
+    if (rhs.m_customCtx != nullptr)
+    {
+        m_customCtx = ::operator new(rhs.m_customCtxSize);
+        std::memcpy(m_customCtx, rhs.m_customCtx, rhs.m_customCtxSize);
+        m_customCtxSize = rhs.m_customCtxSize;
+    }
+}
+
+PdfEncryptContext& PdfEncryptContext::operator=(const PdfEncryptContext& rhs)
+{
+    m_AuthResult = rhs.m_AuthResult;
+    std::memcpy(m_encryptionKey, rhs.m_encryptionKey, std::size(m_encryptionKey));
+    EVP_CIPHER_CTX_free(m_cryptCtx);
+    m_cryptCtx = nullptr;
+    ::operator delete(m_customCtx);
+    if (rhs.m_customCtx == nullptr)
+    {
+        m_customCtx = nullptr;
+        m_customCtxSize = 0;
+    }
+    else
+    {
+        m_customCtx = ::operator new(rhs.m_customCtxSize);
+        std::memcpy(m_customCtx, rhs.m_customCtx, rhs.m_customCtxSize);
+        m_customCtxSize = rhs.m_customCtxSize;
+    }
+
+    return *this;
+}
+
+bool PdfEncryptContext::IsAuthenticated() const
+{
+    return m_AuthResult == PdfAuthResult::User || m_AuthResult == PdfAuthResult::Owner;
+}
+
+EVP_CIPHER_CTX* PdfEncryptContext::GetCryptCtx()
+{
+    if (m_cryptCtx == nullptr)
+        m_cryptCtx = EVP_CIPHER_CTX_new();
+
+    return m_cryptCtx;
+}
+
 PdfEncryptMD5Base::PdfEncryptMD5Base()
-    : m_rc4(new RC4CryptoEngine()), m_rc4key{ }, m_rc4last{ }
 {
 }
 
 PdfEncryptMD5Base::PdfEncryptMD5Base(const PdfEncryptMD5Base& rhs)
-    : PdfEncrypt(rhs), m_rc4(new RC4CryptoEngine())
+    : PdfEncrypt(rhs)
 {
-    std::memcpy(m_rc4key, rhs.m_rc4key, std::size(m_rc4key));
-    std::memcpy(m_rc4last, rhs.m_rc4last, std::size(m_rc4last));
 }
 
 void PdfEncryptMD5Base::PadPassword(const string_view& password, unsigned char pswd[32])
@@ -679,7 +709,7 @@ void PdfEncryptMD5Base::PadPassword(const string_view& password, unsigned char p
 }
 
 void PdfEncryptMD5Base::ComputeOwnerKey(const unsigned char userPad[32], const unsigned char ownerPad[32],
-    unsigned keyLength, unsigned revision, bool authenticate, RC4CryptoEngine& rc4, unsigned char ownerKey[32])
+    unsigned keyLength, unsigned revision, bool authenticate, EVP_CIPHER_CTX* crypt, unsigned char ownerKey[32])
 {
     unsigned char mkey[MD5_DIGEST_LENGTH];
     unsigned char digest[MD5_DIGEST_LENGTH];
@@ -687,15 +717,15 @@ void PdfEncryptMD5Base::ComputeOwnerKey(const unsigned char userPad[32], const u
 
     PODOFO_INVARIANT(keyLength <= MD5_DIGEST_LENGTH);
 
-    unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
-    if (ctx == nullptr || (rc = EVP_DigestInit_ex(ctx.get(), ssl::MD5(), nullptr)) != 1)
+    unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> md(EVP_MD_CTX_new(), EVP_MD_CTX_free);
+    if (md == nullptr || (rc = EVP_DigestInit_ex(md.get(), ssl::MD5(), nullptr)) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
 
-    rc = EVP_DigestUpdate(ctx.get(), ownerPad, 32);
+    rc = EVP_DigestUpdate(md.get(), ownerPad, 32);
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
-    rc = EVP_DigestFinal_ex(ctx.get(), digest, nullptr);
+    rc = EVP_DigestFinal_ex(md.get(), digest, nullptr);
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
@@ -704,15 +734,15 @@ void PdfEncryptMD5Base::ComputeOwnerKey(const unsigned char userPad[32], const u
         // only use for the input as many bit as the key consists of
         for (int k = 0; k < 50; k++)
         {
-            rc = EVP_DigestInit_ex(ctx.get(), ssl::MD5(), nullptr);
+            rc = EVP_DigestInit_ex(md.get(), ssl::MD5(), nullptr);
             if (rc != 1)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
 
-            rc = EVP_DigestUpdate(ctx.get(), digest, keyLength);
+            rc = EVP_DigestUpdate(md.get(), digest, keyLength);
             if (rc != 1)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
-            rc = EVP_DigestFinal_ex(ctx.get(), digest, nullptr);
+            rc = EVP_DigestFinal_ex(md.get(), digest, nullptr);
             if (rc != 1)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
         }
@@ -726,19 +756,19 @@ void PdfEncryptMD5Base::ComputeOwnerKey(const unsigned char userPad[32], const u
                 else
                     mkey[j] = static_cast<unsigned char>(static_cast<unsigned>(digest[j] ^ i));
             }
-            rc4.Encrypt(mkey, keyLength, ownerKey, 32, ownerKey, 32);
+            RC4Encrypt(crypt, mkey, keyLength, ownerKey, 32, ownerKey, 32);
         }
     }
     else
     {
-        rc4.Encrypt(digest, 5, userPad, 32, ownerKey, 32);
+        RC4Encrypt(crypt, digest, 5, userPad, 32, ownerKey, 32);
     }
 }
 
 void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     const unsigned char userPad[32], const unsigned char ownerKey[32],
     PdfPermissions pValue, unsigned keyLength, unsigned revision,
-    bool encryptMetadata, RC4CryptoEngine& rc4,
+    bool encryptMetadata, EVP_CIPHER_CTX* crypt,
     unsigned char userKey[32], unsigned char encryptionKey[32])
 {
     unsigned j;
@@ -747,15 +777,15 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
 
     PODOFO_INVARIANT(keyLength <= MD5_DIGEST_LENGTH);
 
-    unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
-    if (ctx == nullptr || (rc = EVP_DigestInit_ex(ctx.get(), ssl::MD5(), nullptr)) != 1)
+    unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> md(EVP_MD_CTX_new(), EVP_MD_CTX_free);
+    if (md == nullptr || (rc = EVP_DigestInit_ex(md.get(), ssl::MD5(), nullptr)) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
 
-    rc = EVP_DigestUpdate(ctx.get(), userPad, 32);
+    rc = EVP_DigestUpdate(md.get(), userPad, 32);
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
-    rc = EVP_DigestUpdate(ctx.get(), ownerKey, 32);
+    rc = EVP_DigestUpdate(md.get(), ownerKey, 32);
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
@@ -764,7 +794,7 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     ext[1] = static_cast<unsigned char> (((unsigned)pValue >> 8) & 0xFF);
     ext[2] = static_cast<unsigned char> (((unsigned)pValue >> 16) & 0xFF);
     ext[3] = static_cast<unsigned char> (((unsigned)pValue >> 24) & 0xFF);
-    rc = EVP_DigestUpdate(ctx.get(), ext, 4);
+    rc = EVP_DigestUpdate(md.get(), ext, 4);
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
@@ -777,7 +807,7 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
         {
             docId[j] = static_cast<unsigned char>(documentId[j]);
         }
-        rc = EVP_DigestUpdate(ctx.get(), docId.data(), docIdLength);
+        rc = EVP_DigestUpdate(md.get(), docId.data(), docIdLength);
         if (rc != 1)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
     }
@@ -787,13 +817,13 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     if (!encryptMetadata)
     {
         unsigned char noMetaAddition[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-        rc = EVP_DigestUpdate(ctx.get(), noMetaAddition, 4);
+        rc = EVP_DigestUpdate(md.get(), noMetaAddition, 4);
         if (rc != 1)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
     }
 
     unsigned char digest[MD5_DIGEST_LENGTH];
-    rc = EVP_DigestFinal_ex(ctx.get(), digest, nullptr);
+    rc = EVP_DigestFinal_ex(md.get(), digest, nullptr);
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
@@ -802,15 +832,15 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     {
         for (k = 0; k < 50; k++)
         {
-            rc = EVP_DigestInit_ex(ctx.get(), ssl::MD5(), nullptr);
+            rc = EVP_DigestInit_ex(md.get(), ssl::MD5(), nullptr);
             if (rc != 1)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
 
-            rc = EVP_DigestUpdate(ctx.get(), digest, keyLength);
+            rc = EVP_DigestUpdate(md.get(), digest, keyLength);
             if (rc != 1)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
-            rc = EVP_DigestFinal_ex(ctx.get(), digest, nullptr);
+            rc = EVP_DigestFinal_ex(md.get(), digest, nullptr);
             if (rc != 1)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
         }
@@ -821,22 +851,22 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     // Setup user key
     if (revision == 3 || revision == 4)
     {
-        rc = EVP_DigestInit_ex(ctx.get(), ssl::MD5(), nullptr);
+        rc = EVP_DigestInit_ex(md.get(), ssl::MD5(), nullptr);
         if (rc != 1)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
 
-        rc = EVP_DigestUpdate(ctx.get(), padding, 32);
+        rc = EVP_DigestUpdate(md.get(), padding, 32);
         if (rc != 1)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
         if (docId.size() != 0)
         {
-            rc = EVP_DigestUpdate(ctx.get(), docId.data(), docIdLength);
+            rc = EVP_DigestUpdate(md.get(), docId.data(), docIdLength);
             if (rc != 1)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
         }
 
-        rc = EVP_DigestFinal_ex(ctx.get(), digest, nullptr);
+        rc = EVP_DigestFinal_ex(md.get(), digest, nullptr);
         if (rc != 1)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
@@ -851,16 +881,17 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
                 digest[j] = static_cast<unsigned char>(encryptionKey[j] ^ k);
             }
 
-            rc4.Encrypt(digest, keyLength, userKey, 16, userKey, 16);
+            RC4Encrypt(crypt, digest, keyLength, userKey, 16, userKey, 16);
         }
     }
     else
     {
-        rc4.Encrypt(encryptionKey, keyLength, padding, 32, userKey, 32);
+        RC4Encrypt(crypt, encryptionKey, keyLength, padding, 32, userKey, 32);
     }
 }
 
-void PdfEncryptMD5Base::CreateObjKey(unsigned char objkey[16], unsigned& pnKeyLen, const PdfReference& objref) const
+void PdfEncryptMD5Base::CreateObjKey(unsigned char objkey[16], unsigned& pnKeyLen,
+    const unsigned char encryptionKey[32], const PdfReference& objref) const
 {
     const unsigned n = static_cast<unsigned>(objref.ObjectNumber());
     const unsigned g = static_cast<unsigned>(objref.GenerationNumber());
@@ -871,7 +902,7 @@ void PdfEncryptMD5Base::CreateObjKey(unsigned char objkey[16], unsigned& pnKeyLe
     unsigned nkeylen = keyLength + 5;
     unsigned char nkey[MD5_DIGEST_LENGTH + 5 + 4];
     for (unsigned j = 0; j < keyLength; j++)
-        nkey[j] = m_encryptionKey[j];
+        nkey[j] = encryptionKey[j];
 
     nkey[keyLength + 0] = static_cast<unsigned char>(0xFF & n);
     nkey[keyLength + 1] = static_cast<unsigned char>(0xFF & (n >> 8));
@@ -893,26 +924,7 @@ void PdfEncryptMD5Base::CreateObjKey(unsigned char objkey[16], unsigned& pnKeyLe
     pnKeyLen = (keyLength <= 11) ? keyLength + 5 : 16;
 }
 
-PdfEncrypt::RC4CryptoEngine& PdfEncryptMD5Base::GetRC4() const
-{
-    return *m_rc4;
-}
-    
-/**
- * RC4 is the legacy encryption algorithm used in PDF format
- */
-
-PdfEncrypt::RC4CryptoEngine::RC4CryptoEngine()
-    : m_ctx(EVP_CIPHER_CTX_new())
-{
-}
-
-PdfEncrypt::RC4CryptoEngine::~RC4CryptoEngine()
-{
-    EVP_CIPHER_CTX_free(m_ctx);
-}
-
-void PdfEncrypt::RC4CryptoEngine::Encrypt(const unsigned char* key, unsigned keylen,
+void RC4Encrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned keylen,
     const unsigned char* textin, size_t textlen,
     unsigned char* textout, size_t textoutlen)
 {
@@ -926,25 +938,25 @@ void PdfEncrypt::RC4CryptoEngine::Encrypt(const unsigned char* key, unsigned key
 #endif // OPENSSL_VERSION_MAJOR >= 3
 
     // Don't set the key because we will modify the parameters
-    int status = EVP_EncryptInit_ex(m_ctx, ssl::Rc4(), nullptr, nullptr, nullptr);
+    int status = EVP_EncryptInit_ex(ctx, ssl::Rc4(), nullptr, nullptr, nullptr);
     if (status != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing RC4 encryption engine");
 
-    status = EVP_CIPHER_CTX_set_key_length(m_ctx, keylen);
+    status = EVP_CIPHER_CTX_set_key_length(ctx, keylen);
     if (status != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing RC4 encryption engine");
 
     // We finished modifying parameters so now we can set the key
-    status = EVP_EncryptInit_ex(m_ctx, nullptr, nullptr, key, nullptr);
+    status = EVP_EncryptInit_ex(ctx, nullptr, nullptr, key, nullptr);
     if (status != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing RC4 encryption engine");
 
     int dataOutMoved;
-    status = EVP_EncryptUpdate(m_ctx, textout, &dataOutMoved, textin, (int)textlen);
+    status = EVP_EncryptUpdate(ctx, textout, &dataOutMoved, textin, (int)textlen);
     if (status != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error RC4-encrypting data");
 
-    status = EVP_EncryptFinal_ex(m_ctx, &textout[dataOutMoved], &dataOutMoved);
+    status = EVP_EncryptFinal_ex(ctx, &textout[dataOutMoved], &dataOutMoved);
     if (status != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error RC4-encrypting data");
 }
@@ -998,9 +1010,12 @@ void PdfEncryptMD5Base::CreateEncryptionDictionary(PdfDictionary& dictionary) co
     dictionary.AddKey("P", PdfVariant(GetPValueForSerialization()));
 }
     
-void PdfEncryptRC4::GenerateEncryptionKey(const string_view& documentId,
+void PdfEncryptRC4::GenerateEncryptionKey(
+    const string_view& documentId, PdfAuthResult authResult, EVP_CIPHER_CTX* ctx,
     unsigned char uValue[48], unsigned char oValue[48], unsigned char encryptionKey[32])
 {
+    (void)authResult;
+
     unsigned char userpswd[32];
     unsigned char ownerpswd[32];
 
@@ -1011,14 +1026,15 @@ void PdfEncryptRC4::GenerateEncryptionKey(const string_view& documentId,
     unsigned keyLength = GetKeyLengthBytes();
 
     // Compute O value
-    ComputeOwnerKey(userpswd, ownerpswd, keyLength, GetRevision(), false, GetRC4(), oValue);
+    ComputeOwnerKey(userpswd, ownerpswd, keyLength, GetRevision(), false, ctx, oValue);
 
     // Compute encryption key and U value
     ComputeEncryptionKey(documentId, userpswd,
-        oValue, GetPValue(), keyLength, GetRevision(), IsMetadataEncrypted(), GetRC4(), uValue, encryptionKey);
+        oValue, GetPValue(), keyLength, GetRevision(), IsMetadataEncrypted(), ctx, uValue, encryptionKey);
 }
     
-PdfAuthResult PdfEncryptRC4::Authenticate(const string_view& password, const string_view& documentId, unsigned char encryptionKey[32])
+PdfAuthResult PdfEncryptRC4::Authenticate(const string_view& password, const string_view& documentId,
+    EVP_CIPHER_CTX* ctx, unsigned char encryptionKey[32]) const
 {
     bool success = false;
 
@@ -1031,7 +1047,7 @@ PdfAuthResult PdfEncryptRC4::Authenticate(const string_view& password, const str
 
     // Check password: 1) as user password, 2) as owner password
     ComputeEncryptionKey(documentId, pswd, GetOValueRaw(), GetPValue(), keyLength, GetRevision(),
-        IsMetadataEncrypted(), GetRC4(), userKey, encryptionKey);
+        IsMetadataEncrypted(), ctx, userKey, encryptionKey);
 
     PdfAuthResult ret = PdfAuthResult::Failed;
     success = CheckKey(userKey, GetUValueRaw());
@@ -1042,9 +1058,9 @@ PdfAuthResult PdfEncryptRC4::Authenticate(const string_view& password, const str
     else
     {
         unsigned char userpswd[32];
-        ComputeOwnerKey(GetOValueRaw(), pswd, keyLength, GetRevision(), true, GetRC4(), userpswd);
+        ComputeOwnerKey(GetOValueRaw(), pswd, keyLength, GetRevision(), true, ctx, userpswd);
         ComputeEncryptionKey(documentId, userpswd, GetOValueRaw(), GetPValue(), keyLength, GetRevision(),
-            IsMetadataEncrypted(), GetRC4(), userKey, encryptionKey);
+            IsMetadataEncrypted(), ctx, userKey, encryptionKey);
         success = CheckKey(userKey, GetUValueRaw());
 
         if (success)
@@ -1070,29 +1086,31 @@ size_t PdfEncryptRC4::CalculateStreamLength(size_t length) const
     return length;
 }
 
-void PdfEncryptRC4::Encrypt(const char* inStr, size_t inLen, const PdfReference& objref,
-    char* outStr, size_t outLen) const
+void PdfEncryptRC4::Encrypt(const char* inStr, size_t inLen, PdfEncryptContext& context,
+    const PdfReference& objref, char* outStr, size_t outLen) const
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
-    CreateObjKey(objkey, keylen, objref);
-    GetRC4().Encrypt(objkey, keylen, (const unsigned char*)inStr, inLen,
+    CreateObjKey(objkey, keylen, context.GetEncryptionKey(), objref);
+    RC4Encrypt(context.GetCryptCtx(), objkey, keylen, (const unsigned char*)inStr, inLen,
         (unsigned char*)outStr, outLen);
 }
 
-void PdfEncryptRC4::Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
-    char* outStr, size_t& outLen) const
+void PdfEncryptRC4::Decrypt(const char* inStr, size_t inLen, PdfEncryptContext& context,
+    const PdfReference& objref, char* outStr, size_t& outLen) const
 {
-    Encrypt(inStr, inLen, objref, outStr, outLen);
+    Encrypt(inStr, inLen, context, objref, outStr, outLen);
 }
 
-unique_ptr<InputStream> PdfEncryptRC4::CreateEncryptionInputStream(InputStream& inputStream, size_t inputLen, const PdfReference& objref)
+unique_ptr<InputStream> PdfEncryptRC4::CreateEncryptionInputStream(InputStream& inputStream, size_t inputLen,
+    PdfEncryptContext& context, const PdfReference& objref) const
 {
     (void)inputLen;
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
-    this->CreateObjKey(objkey, keylen, objref);
-    return unique_ptr<InputStream>(new PdfRC4InputStream(inputStream, inputLen, m_rc4key, m_rc4last, objkey, keylen));
+    this->CreateObjKey(objkey, keylen, context.GetEncryptionKey(), objref);
+    auto& rc4Ctx = context.GetCustomCtx<RC4EncryptContext>();
+    return unique_ptr<InputStream>(new PdfRC4InputStream(inputStream, inputLen, rc4Ctx.Rc4key, rc4Ctx.Rc4last, objkey, keylen));
 }
 
 PdfEncryptRC4::PdfEncryptRC4(PdfString oValue, PdfString uValue, PdfPermissions pValue, PdfRC4Revision revision,
@@ -1174,25 +1192,17 @@ PdfEncryptRC4::PdfEncryptRC4(const string_view& userPassword, const string_view&
     Init(userPassword, ownerPassword, algorithm, keyLength, rValue, PERMS_DEFAULT | protection, true);
 }
 
-unique_ptr<OutputStream> PdfEncryptRC4::CreateEncryptionOutputStream(OutputStream& outputStream, const PdfReference& objref)
+unique_ptr<OutputStream> PdfEncryptRC4::CreateEncryptionOutputStream(OutputStream& outputStream,
+    PdfEncryptContext& context, const PdfReference& objref) const
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
-    this->CreateObjKey(objkey, keylen, objref);
-    return unique_ptr<OutputStream>(new PdfRC4OutputStream(outputStream, m_rc4key, m_rc4last, objkey, keylen));
-}
-    
-PdfEncrypt::AESCryptoEngine::AESCryptoEngine()
-    : m_ctx(EVP_CIPHER_CTX_new())
-{
+    this->CreateObjKey(objkey, keylen, context.GetEncryptionKey(), objref);
+    auto& rc4Ctx = context.GetCustomCtx<RC4EncryptContext>();
+    return unique_ptr<OutputStream>(new PdfRC4OutputStream(outputStream, rc4Ctx.Rc4key, rc4Ctx.Rc4last, objkey, keylen));
 }
 
-PdfEncrypt::AESCryptoEngine::~AESCryptoEngine()
-{
-    EVP_CIPHER_CTX_free(m_ctx);
-}
-
-void PdfEncrypt::AESCryptoEngine::Decrypt(const unsigned char* key, unsigned keyLen, const unsigned char* iv,
+void AESDecrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned keyLen, const unsigned char* iv,
     const unsigned char* textin, size_t textlen, unsigned char* textout, size_t& outLen)
 {
     if ((textlen % 16) != 0)
@@ -1200,10 +1210,10 @@ void PdfEncrypt::AESCryptoEngine::Decrypt(const unsigned char* key, unsigned key
 
     int rc;
     if (keyLen == (int)PdfKeyLength::L128 / 8)
-        rc = EVP_DecryptInit_ex(m_ctx, ssl::Aes128(), nullptr, key, iv);
+        rc = EVP_DecryptInit_ex(ctx, ssl::Aes128(), nullptr, key, iv);
 #ifdef PODOFO_HAVE_LIBIDN
     else if (keyLen == (int)PdfKeyLength::L256 / 8)
-        rc = EVP_DecryptInit_ex(m_ctx, ssl::Aes256(), nullptr, key, iv);
+        rc = EVP_DecryptInit_ex(ctx, ssl::Aes256(), nullptr, key, iv);
 #endif
     else
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid AES key length");
@@ -1212,18 +1222,18 @@ void PdfEncrypt::AESCryptoEngine::Decrypt(const unsigned char* key, unsigned key
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES decryption engine");
 
     int dataOutMoved;
-    rc = EVP_DecryptUpdate(m_ctx, textout, &dataOutMoved, textin, (int)textlen);
+    rc = EVP_DecryptUpdate(ctx, textout, &dataOutMoved, textin, (int)textlen);
     outLen = dataOutMoved;
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-decryption data");
 
-    rc = EVP_DecryptFinal_ex(m_ctx, textout + outLen, &dataOutMoved);
+    rc = EVP_DecryptFinal_ex(ctx, textout + outLen, &dataOutMoved);
     outLen += dataOutMoved;
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-decryption data final");
 }
 
-void PdfEncrypt::AESCryptoEngine::Encrypt(const unsigned char* key, unsigned keyLen, const unsigned char* iv,
+void AESEncrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned keyLen, const unsigned char* iv,
     const unsigned char* textin, size_t textlen,
     unsigned char* textout, size_t textoutlen)
 {
@@ -1231,10 +1241,10 @@ void PdfEncrypt::AESCryptoEngine::Encrypt(const unsigned char* key, unsigned key
 
     int rc;
     if (keyLen == (int)PdfKeyLength::L128 / 8)
-        rc = EVP_EncryptInit_ex(m_ctx, ssl::Aes128(), nullptr, key, iv);
+        rc = EVP_EncryptInit_ex(ctx, ssl::Aes128(), nullptr, key, iv);
 #ifdef PODOFO_HAVE_LIBIDN
     else if (keyLen == (int)PdfKeyLength::L256 / 8)
-        rc = EVP_EncryptInit_ex(m_ctx, ssl::Aes256(), nullptr, key, iv);
+        rc = EVP_EncryptInit_ex(ctx, ssl::Aes256(), nullptr, key, iv);
 #endif
     else
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid AES key length");
@@ -1243,18 +1253,22 @@ void PdfEncrypt::AESCryptoEngine::Encrypt(const unsigned char* key, unsigned key
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
 
     int dataOutMoved;
-    rc = EVP_EncryptUpdate(m_ctx, textout, &dataOutMoved, textin, (int)textlen);
+    rc = EVP_EncryptUpdate(ctx, textout, &dataOutMoved, textin, (int)textlen);
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 
-    rc = EVP_EncryptFinal_ex(m_ctx, &textout[dataOutMoved], &dataOutMoved);
+    rc = EVP_EncryptFinal_ex(ctx, &textout[dataOutMoved], &dataOutMoved);
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 }
     
-void PdfEncryptAESV2::GenerateEncryptionKey(const string_view& documentId,
+void PdfEncryptAESV2::GenerateEncryptionKey(
+    const string_view& documentId, PdfAuthResult authResult, EVP_CIPHER_CTX* ctx,
     unsigned char uValue[48], unsigned char oValue[48], unsigned char encryptionKey[32])
 {
+    (void)authResult;
+    (void)ctx;
+
     unsigned char userpswd[32];
     unsigned char ownerpswd[32];
 
@@ -1265,14 +1279,15 @@ void PdfEncryptAESV2::GenerateEncryptionKey(const string_view& documentId,
     unsigned keyLength = GetKeyLengthBytes();
 
     // Compute O value
-    ComputeOwnerKey(userpswd, ownerpswd, keyLength, GetRevision(), false, GetRC4(), oValue);
+    ComputeOwnerKey(userpswd, ownerpswd, keyLength, GetRevision(), false, ctx, oValue);
 
     // Compute encryption key and U value
     ComputeEncryptionKey(documentId, userpswd,
-        oValue, GetPValue(), keyLength, GetRevision(), IsMetadataEncrypted(), GetRC4(), uValue, encryptionKey);
+        oValue, GetPValue(), keyLength, GetRevision(), IsMetadataEncrypted(), ctx, uValue, encryptionKey);
 }
 
-PdfAuthResult PdfEncryptAESV2::Authenticate(const string_view& password, const string_view& documentId, unsigned char encryptionKey[32])
+PdfAuthResult PdfEncryptAESV2::Authenticate(const string_view& password, const string_view& documentId,
+    EVP_CIPHER_CTX* ctx, unsigned char encryptionKey[32]) const
 {
     // Pad password
     unsigned char pswd[32];
@@ -1285,7 +1300,7 @@ PdfAuthResult PdfEncryptAESV2::Authenticate(const string_view& password, const s
     // Check password: 1) as user password, 2) as owner password
     unsigned char userKey[32];
     ComputeEncryptionKey(documentId, pswd, GetOValueRaw(), GetPValue(), keyLength, GetRevision(),
-        IsMetadataEncrypted(), GetRC4(), userKey, encryptionKey);
+        IsMetadataEncrypted(), ctx, userKey, encryptionKey);
 
     bool success = CheckKey(userKey, GetUValueRaw());
     if (success)
@@ -1295,9 +1310,9 @@ PdfAuthResult PdfEncryptAESV2::Authenticate(const string_view& password, const s
     else
     {
         unsigned char userpswd[32];
-        ComputeOwnerKey(GetOValueRaw(), pswd, keyLength, GetRevision(), true, GetRC4(), userpswd);
+        ComputeOwnerKey(GetOValueRaw(), pswd, keyLength, GetRevision(), true, ctx, userpswd);
         ComputeEncryptionKey(documentId, userpswd, GetOValueRaw(), GetPValue(), keyLength, GetRevision(),
-            IsMetadataEncrypted(), GetRC4(), userKey, encryptionKey);
+            IsMetadataEncrypted(), ctx, userKey, encryptionKey);
         success = CheckKey(userKey, GetUValueRaw());
 
         if (success)
@@ -1307,9 +1322,9 @@ PdfAuthResult PdfEncryptAESV2::Authenticate(const string_view& password, const s
     return ret;
 }
 
-void PdfEncryptAESV2::generateInitialVector(unsigned char iv[]) const
+void PdfEncryptAESV2::generateInitialVector(const string_view& documentId, unsigned char iv[]) const
 {
-    ssl::ComputeMD5(GetDocumentId(), iv);
+    ssl::ComputeMD5(documentId, iv);
 }
     
 size_t PdfEncryptAESV2::CalculateStreamOffset() const
@@ -1317,24 +1332,24 @@ size_t PdfEncryptAESV2::CalculateStreamOffset() const
     return AES_IV_LENGTH;
 }
     
-void PdfEncryptAESV2::Encrypt(const char* inStr, size_t inLen, const PdfReference& objref,
-    char* outStr, size_t outLen) const
+void PdfEncryptAESV2::Encrypt(const char* inStr, size_t inLen, PdfEncryptContext& context,
+    const PdfReference& objref, char* outStr, size_t outLen) const
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
-    CreateObjKey(objkey, keylen, objref);
+    CreateObjKey(objkey, keylen, context.GetEncryptionKey(), objref);
     size_t offset = CalculateStreamOffset();
-    generateInitialVector((unsigned char *)outStr);
-    m_aes->Encrypt(objkey, keylen, (unsigned char*)outStr, (const unsigned char*)inStr,
+    generateInitialVector(context.GetDocumentId(), (unsigned char *)outStr);
+    AESEncrypt(context.GetCryptCtx(), objkey, keylen, (unsigned char*)outStr, (const unsigned char*)inStr,
         inLen, (unsigned char*)outStr + offset, outLen - offset);
 }
 
-void PdfEncryptAESV2::Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
-    char* outStr, size_t& outLen) const
+void PdfEncryptAESV2::Decrypt(const char* inStr, size_t inLen, PdfEncryptContext& context,
+    const PdfReference& objref, char* outStr, size_t& outLen) const
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
-    CreateObjKey(objkey, keylen, objref);
+    CreateObjKey(objkey, keylen, context.GetEncryptionKey(), objref);
 
     size_t offset = CalculateStreamOffset();
     if (inLen <= offset)
@@ -1344,19 +1359,17 @@ void PdfEncryptAESV2::Decrypt(const char* inStr, size_t inLen, const PdfReferenc
         return;
     }
 
-    m_aes->Decrypt(objkey, keylen, (const unsigned char*)inStr,
+    AESDecrypt(context.GetCryptCtx(), objkey, keylen, (const unsigned char*)inStr,
         (const unsigned char*)inStr + offset,
         inLen - offset, (unsigned char*)outStr, outLen);
 }
     
 PdfEncryptAESV2::PdfEncryptAESV2(const string_view& userPassword, const string_view& ownerPassword, PdfPermissions protection)
-    : m_aes(new AESCryptoEngine())
 {
     Init(userPassword, ownerPassword, PdfEncryptionAlgorithm::AESV2, PdfKeyLength::L128, 4, PERMS_DEFAULT | protection, true);
 }
     
 PdfEncryptAESV2::PdfEncryptAESV2(PdfString oValue, PdfString uValue, PdfPermissions pValue, bool encryptMetadata)
-    : m_aes(new AESCryptoEngine())
 {
     auto& oValueData = oValue.GetRawData();
     if (oValueData.size() < 32)
@@ -1371,7 +1384,7 @@ PdfEncryptAESV2::PdfEncryptAESV2(PdfString oValue, PdfString uValue, PdfPermissi
 }
 
 PdfEncryptAESV2::PdfEncryptAESV2(const PdfEncryptAESV2& rhs)
-    : PdfEncryptMD5Base(rhs), m_aes(new AESCryptoEngine()) { }
+    : PdfEncryptMD5Base(rhs) { }
 
 size_t PdfEncryptAESV2::CalculateStreamLength(size_t length) const
 {
@@ -1382,22 +1395,25 @@ size_t PdfEncryptAESV2::CalculateStreamLength(size_t length) const
     return realLength;
 }
     
-unique_ptr<InputStream> PdfEncryptAESV2::CreateEncryptionInputStream(InputStream& inputStream, size_t inputLen, const PdfReference& objref)
+unique_ptr<InputStream> PdfEncryptAESV2::CreateEncryptionInputStream(InputStream& inputStream, size_t inputLen,
+    PdfEncryptContext& context, const PdfReference& objref) const
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
-    this->CreateObjKey(objkey, keylen, objref);
+    this->CreateObjKey(objkey, keylen, context.GetEncryptionKey(), objref);
     return unique_ptr<InputStream>(new PdfAESInputStream(inputStream, inputLen, objkey, keylen));
 }
     
-unique_ptr<OutputStream> PdfEncryptAESV2::CreateEncryptionOutputStream(OutputStream& outputStream, const PdfReference& objref)
+unique_ptr<OutputStream> PdfEncryptAESV2::CreateEncryptionOutputStream(OutputStream& outputStream,
+    PdfEncryptContext& context, const PdfReference& objref) const
 {
     (void)outputStream;
+    (void)context;
     (void)objref;
-    /*unsigned char objkey[MD5_DIGEST_LENGTH];
-     int keylen;
+    // unsigned char objkey[MD5_DIGEST_LENGTH];
+    // int keylen;
 
-     this->CreateObjKey( objkey, &keylen );*/
+    // this->CreateObjKey( objkey, &keylen );
 
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "CreateEncryptionOutputStream does not yet support AESV2");
 }
@@ -1668,10 +1684,13 @@ bufferview PdfEncryptAESV3::GetPermsValue() const
     return bufferview((const char*)m_permsValue, std::size(m_permsValue));
 }
     
-void PdfEncryptAESV3::GenerateEncryptionKey(const string_view& documentId,
+void PdfEncryptAESV3::GenerateEncryptionKey(
+    const string_view& documentId, PdfAuthResult authResult, EVP_CIPHER_CTX* ctx,
     unsigned char uValue[48], unsigned char oValue[48], unsigned char encryptionKey[32])
 {
     (void)documentId;
+    (void)authResult;
+    (void)ctx;
 
     // Prepare passwords
     unsigned char userpswd[127];
@@ -1720,7 +1739,7 @@ void PdfEncryptAESV3::GenerateEncryptionKey(const string_view& documentId,
 
     int rc;
     unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> aes(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
-    if (aes == nullptr || (rc = EVP_EncryptInit_ex(aes.get(), ssl::Aes256(), nullptr, GetEncryptionKey(), nullptr)) != 1)
+    if (aes == nullptr || (rc = EVP_EncryptInit_ex(aes.get(), ssl::Aes256(), nullptr, encryptionKey, nullptr)) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
 
     EVP_CIPHER_CTX_set_padding(aes.get(), 0); // disable padding
@@ -1735,7 +1754,8 @@ void PdfEncryptAESV3::GenerateEncryptionKey(const string_view& documentId,
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 }
 
-PdfAuthResult PdfEncryptAESV3::Authenticate(const string_view& password, const string_view& documentId, unsigned char encryptionKey[32])
+PdfAuthResult PdfEncryptAESV3::Authenticate(const string_view& password, const string_view& documentId,
+    EVP_CIPHER_CTX* ctx, unsigned char encryptionKey[32]) const
 {
     (void)documentId;
     PdfAuthResult ret = PdfAuthResult::Failed;
@@ -1760,11 +1780,10 @@ PdfAuthResult PdfEncryptAESV3::Authenticate(const string_view& password, const s
         // ISO 32000: "The 32-byte result is the key used to decrypt the 32-byte UE string using
         // AES-256 in CBC mode with no padding and an initialization vector of zero.
         // The 32-byte result is the file encryption key"
-        EVP_CIPHER_CTX* aes = m_aes->GetSSLCtx();
-        EVP_DecryptInit_ex(aes, ssl::Aes256(), nullptr, hashValue, 0); // iv zero
-        EVP_CIPHER_CTX_set_padding(aes, 0); // no padding
+        EVP_DecryptInit_ex(ctx, ssl::Aes256(), nullptr, hashValue, 0); // iv zero
+        EVP_CIPHER_CTX_set_padding(ctx, 0); // no padding
         int lOutLen;
-        EVP_DecryptUpdate(aes, encryptionKey, &lOutLen, m_ueValue, 32);
+        EVP_DecryptUpdate(ctx, encryptionKey, &lOutLen, m_ueValue, 32);
     }
     else
     {
@@ -1783,11 +1802,10 @@ PdfAuthResult PdfEncryptAESV3::Authenticate(const string_view& password, const s
             // ISO 32000: "The 32-byte result is the key used to decrypt the 32-byte OE string using
             // AES-256 in CBC mode with no padding and an initialization vector of zero.
             // The 32-byte result is the file encryption key"
-            EVP_CIPHER_CTX* aes = m_aes->GetSSLCtx();
-            EVP_DecryptInit_ex(aes, ssl::Aes256(), nullptr, hashValue, 0); // iv zero
-            EVP_CIPHER_CTX_set_padding(aes, 0); // no padding
+            EVP_DecryptInit_ex(ctx, ssl::Aes256(), nullptr, hashValue, 0); // iv zero
+            EVP_CIPHER_CTX_set_padding(ctx, 0); // no padding
             int lOutLen;
-            EVP_DecryptUpdate(aes, encryptionKey, &lOutLen, m_oeValue, 32);
+            EVP_DecryptUpdate(ctx, encryptionKey, &lOutLen, m_oeValue, 32);
         }
     }
 
@@ -1801,17 +1819,18 @@ size_t PdfEncryptAESV3::CalculateStreamOffset() const
     return AES_IV_LENGTH;
 }
 
-void PdfEncryptAESV3::Encrypt(const char* inStr, size_t inLen, const PdfReference& objref,
-    char* outStr, size_t outLen) const
+void PdfEncryptAESV3::Encrypt(const char* inStr, size_t inLen, PdfEncryptContext& context,
+    const PdfReference& objref, char* outStr, size_t outLen) const
 {
     (void)objref;
     size_t offset = CalculateStreamOffset();
     this->generateInitialVector((unsigned char*)outStr);
-    m_aes->Encrypt(GetEncryptionKey(), GetKeyLengthBytes(), (unsigned char*)outStr, (const unsigned char*)inStr, inLen, (unsigned char*)outStr + offset, outLen - offset);
+    AESEncrypt(context.GetCryptCtx(), context.GetEncryptionKey(), GetKeyLengthBytes(),
+        (unsigned char*)outStr, (const unsigned char*)inStr, inLen, (unsigned char*)outStr + offset, outLen - offset);
 }
 
-void PdfEncryptAESV3::Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
-    char* outStr, size_t& outLen) const
+void PdfEncryptAESV3::Decrypt(const char* inStr, size_t inLen, PdfEncryptContext& context,
+    const PdfReference& objref, char* outStr, size_t& outLen) const
 {
     (void)objref;
     size_t offset = CalculateStreamOffset();
@@ -1822,13 +1841,14 @@ void PdfEncryptAESV3::Decrypt(const char* inStr, size_t inLen, const PdfReferenc
         return;
     }
 
-    m_aes->Decrypt(GetEncryptionKey(), GetKeyLengthBytes(), (const unsigned char*)inStr, (const unsigned char*)inStr + offset, inLen - offset, (unsigned char*)outStr, outLen);
+    AESDecrypt(context.GetCryptCtx(), context.GetEncryptionKey(), GetKeyLengthBytes(),
+        (const unsigned char*)inStr, (const unsigned char*)inStr + offset, inLen - offset, (unsigned char*)outStr, outLen);
 }
 
 // R5 Support added by P.Zent,
 PdfEncryptAESV3::PdfEncryptAESV3(const string_view& userPassword, const string_view& ownerPassword,
         PdfAESV3Revision revision, PdfPermissions protection)
-    : m_aes(new AESCryptoEngine()), m_ueValue{ }, m_oeValue{ }, m_permsValue{ }
+    : m_ueValue{ }, m_oeValue{ }, m_permsValue{ }
 {
     Init(userPassword, ownerPassword, revision == PdfAESV3Revision::R6 ? PdfEncryptionAlgorithm::AESV3R6 : PdfEncryptionAlgorithm::AESV3R5,
         PdfKeyLength::L256, (unsigned char)revision, m_pValue = PERMS_DEFAULT | protection, true);
@@ -1836,7 +1856,6 @@ PdfEncryptAESV3::PdfEncryptAESV3(const string_view& userPassword, const string_v
 
 PdfEncryptAESV3::PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString uValue,
         PdfString ueValue, PdfPermissions pValue, PdfString permsValue, PdfAESV3Revision revision)
-    : m_aes(new AESCryptoEngine())
 {
     auto& uValueData = uValue.GetRawData();
     if (uValueData.size() < 48)
@@ -1868,7 +1887,7 @@ PdfEncryptAESV3::PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString 
 }
 
 PdfEncryptAESV3::PdfEncryptAESV3(const PdfEncryptAESV3& rhs)
-    : PdfEncrypt(rhs), m_aes(new AESCryptoEngine())
+    : PdfEncrypt(rhs)
 {
     std::memcpy(m_permsValue, rhs.m_permsValue, std::size(m_permsValue));
     std::memcpy(m_ueValue, rhs.m_ueValue, std::size(m_permsValue));
@@ -1884,15 +1903,18 @@ size_t PdfEncryptAESV3::CalculateStreamLength(size_t length) const
     return realLength;
 }
 
-unique_ptr<InputStream> PdfEncryptAESV3::CreateEncryptionInputStream(InputStream& inputStream, size_t inputLen, const PdfReference& objref)
+unique_ptr<InputStream> PdfEncryptAESV3::CreateEncryptionInputStream(InputStream& inputStream, size_t inputLen,
+    PdfEncryptContext& context, const PdfReference& objref) const
 {
     (void)objref;
-    return unique_ptr<InputStream>(new PdfAESInputStream(inputStream, inputLen, GetEncryptionKey(), 32));
+    return unique_ptr<InputStream>(new PdfAESInputStream(inputStream, inputLen, context.GetEncryptionKey(), 32));
 }
 
-unique_ptr<OutputStream> PdfEncryptAESV3::CreateEncryptionOutputStream(OutputStream& outputStream, const PdfReference& objref)
+unique_ptr<OutputStream> PdfEncryptAESV3::CreateEncryptionOutputStream(OutputStream& outputStream,
+    PdfEncryptContext& context, const PdfReference& objref) const
 {
     (void)outputStream;
+    (void)context;
     (void)objref;
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "CreateEncryptionOutputStream does not yet support AESV3");
 }
@@ -1905,14 +1927,14 @@ void PdfEncryptAESV3::generateInitialVector(unsigned char iv[])
         iv[i] = rand() % 255;
 }
 
-void PdfEncrypt::EncryptTo(charbuff& out, const bufferview& view, const PdfReference& objref) const
+void PdfEncrypt::EncryptTo(charbuff& out, const bufferview& view, PdfEncryptContext& context, const PdfReference& objref) const
 {
     size_t outputLen = this->CalculateStreamLength(view.size());
     out.resize(outputLen);
-    this->Encrypt(view.data(), view.size(), objref, out.data(), outputLen);
+    this->Encrypt(view.data(), view.size(), context, objref, out.data(), outputLen);
 }
 
-void PdfEncrypt::DecryptTo(charbuff& out, const bufferview& view, const PdfReference& objref) const
+void PdfEncrypt::DecryptTo(charbuff& out, const bufferview& view, PdfEncryptContext& context, const PdfReference& objref) const
 {
     // FIX-ME: The following clearly seems hardcoded for AES
     // It was found like this in PdfString and PdfTokenizer
@@ -1920,7 +1942,7 @@ void PdfEncrypt::DecryptTo(charbuff& out, const bufferview& view, const PdfRefer
     // needed, including RC4
     size_t outBufferLen = view.size() - this->CalculateStreamOffset();
     out.resize(outBufferLen + 16 - (outBufferLen % 16));
-    this->Decrypt(view.data(), view.size(), objref, out.data(), outBufferLen);
+    this->Decrypt(view.data(), view.size(), context, objref, out.data(), outBufferLen);
     out.resize(outBufferLen);
     out.shrink_to_fit();
 }

@@ -1,15 +1,7 @@
 ### 1.0
 
 #### API Review
-- PdfEncrypt:
-  * Remove m_documentId
-  * Remove m_encryptionKey
-  * Remove AESCryptoEngine, RC4CryptoEngine, and m_ctx EVP_CIPHER_CTX
-  * Create PdfEncryptContext with m_documentId, m_encryptionKey, if autenthicated user or owner, m_ctx (EVP_CIPHER_CTX)
-  * Authenticate should also return PdfEncryptContext and be const;
-  * Rename GenerateEncryptionKey -> GetEncryptionContext(documentId, ctx). Should crash if loaded PdfEncrypt but ctx is null || not authenticated
-- PdfDocument: Review AttachFile, GetAttachment, AddNamedDestination. Rename LoadFromDevice(device) to just Load(device)
-- PdfMemDocument: Consider removing SetEncrypt(encrypt)
+- PdfDocument: Review AttachFile, GetAttachment, FreeObjectMemory, AddNamedDestination. Rename LoadFromDevice(device) to just Load(device)
 - PdfWriter: Check if SetEncrypt() should accept mutable reference instead
 - PdfField: Evaluate make a virtual getValueObject()
 - Evaluate removing PdfObject::Null and PdfVariant::Null and introduce nullptr_t constructor overloads
@@ -18,6 +10,8 @@
 - PdfErrorCode: Check all values
 - PdfField: Make PdfFieldChildrenCollectionBase m_Children a unique_ptr, and lazy load that
 - Evaluate IntputStreamDevice CopyTo() should do seek(0)
+- PdfName: Make PdfKnownNames and move known names there
+- Evaluate removing PdfError::GetCallStack()
 
 #### Features
 - Evaluate adding PdfString(string&&) and PdfName(string&&) constructors that

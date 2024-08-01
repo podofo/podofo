@@ -606,22 +606,23 @@ void PdfParser::ReadObjects(InputStreamDevice& device)
 
     // Check for encryption and make sure that the encryption object
     // is loaded before all other objects
-    PdfObject* encrypt = m_Trailer->GetDictionary().GetKey("Encrypt");
-    if (encrypt != nullptr && !encrypt->IsNull())
+    auto encryptObj = m_Trailer->GetDictionary().GetKey("Encrypt");
+    if (encryptObj != nullptr && !encryptObj->IsNull())
     {
 #ifdef PODOFO_VERBOSE_DEBUG
         PoDoFo::LogMessage(PdfLogSeverity::Debug, "The PDF file is encrypted");
 #endif // PODOFO_VERBOSE_DEBUG
 
+        shared_ptr<PdfEncrypt> encrypt;
         PdfReference encryptRef;
-        if (encrypt->TryGetReference(encryptRef))
+        if (encryptObj->TryGetReference(encryptRef))
         {
             unsigned i = encryptRef.ObjectNumber();
             if (i <= 0 || i >= m_entries.GetSize())
             {
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict,
                     "Encryption dictionary references a nonexistent object {} {} R",
-                    encrypt->GetReference().ObjectNumber(), encrypt->GetReference().GenerationNumber());
+                    encryptObj->GetReference().ObjectNumber(), encryptObj->GetReference().GenerationNumber());
             }
 
             // The encryption dictionary is not encrypted
@@ -632,7 +633,7 @@ void PdfParser::ReadObjects(InputStreamDevice& device)
                 // NOTE: Never add the encryption dictionary to m_Objects
                 // we create a new one, if we need it for writing
                 m_entries[i].Parsed = false;
-                m_Encrypt = PdfEncrypt::CreateFromObject(*obj);
+                encrypt = PdfEncrypt::CreateFromObject(*obj);
             }
             catch (PdfError& e)
             {
@@ -643,9 +644,9 @@ void PdfParser::ReadObjects(InputStreamDevice& device)
 
             }
         }
-        else if (encrypt->IsDictionary())
+        else if (encryptObj->IsDictionary())
         {
-            m_Encrypt = PdfEncrypt::CreateFromObject(*encrypt);
+            encrypt = PdfEncrypt::CreateFromObject(*encryptObj);
         }
         else
         {
@@ -653,9 +654,11 @@ void PdfParser::ReadObjects(InputStreamDevice& device)
                 "The encryption entry in the trailer is neither an object nor a reference");
         }
 
+        m_Encrypt.reset(new PdfEncryptSession(encrypt));
+
         // Generate encryption keys
-        auto result = m_Encrypt->Authenticate(m_Password, this->getDocumentId());
-        if (result == PdfAuthResult::Failed)
+        encrypt->Authenticate(m_Password, this->getDocumentId(), m_Encrypt->GetContext());
+        if (m_Encrypt->GetContext().GetAuthResult() == PdfAuthResult::Failed)
         {
             // authentication failed so we need a password from the user.
             // The user can set the password using PdfParser::SetPassword
@@ -692,16 +695,20 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                         unique_ptr<PdfParserObject> obj(new PdfParserObject(m_Objects->GetDocument(), reference, device, (ssize_t)entry.Offset));
                         try
                         {
-                            obj->SetEncrypt(m_Encrypt);
-                            if (m_Encrypt != nullptr && obj->IsDictionary())
+                            if (m_Encrypt != nullptr)
                             {
-                                auto typeObj = obj->GetDictionary().GetKey(PdfName::KeyType);
-                                if (typeObj != nullptr && typeObj->IsName() && typeObj->GetName() == "XRef")
+                                obj->SetEncrypt(m_Encrypt);
+                                PdfDictionary* objDict;
+                                if (obj->TryGetDictionary(objDict))
                                 {
-                                    // XRef is never encrypted
-                                    obj.reset(new PdfParserObject(m_Objects->GetDocument(), reference, device, (ssize_t)entry.Offset));
-                                    if (m_LoadOnDemand)
-                                        obj->DelayedLoad();
+                                    auto typeObj = objDict->GetKey(PdfName::KeyType);
+                                    if (typeObj != nullptr && typeObj->IsName() && typeObj->GetName() == "XRef")
+                                    {
+                                        // XRef is never encrypted
+                                        obj.reset(new PdfParserObject(m_Objects->GetDocument(), reference, device, (ssize_t)entry.Offset));
+                                        if (m_LoadOnDemand)
+                                            obj->DelayedLoad();
+                                    }
                                 }
                             }
 
@@ -980,11 +987,6 @@ bool PdfParser::TryGetPreviousRevisionOffset(InputStreamDevice& input, size_t cu
     }
 
     return foundValidEntry;
-}
-
-bool PdfParser::IsEncrypted() const
-{
-    return m_Encrypt != nullptr;
 }
 
 // Read magic word keeping cursor

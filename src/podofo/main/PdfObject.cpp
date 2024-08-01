@@ -10,7 +10,7 @@
 #include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
-#include "PdfEncrypt.h"
+#include "PdfStatefulEncrypt.h"
 #include "PdfMemoryObjectStream.h"
 
 #include <podofo/auxiliary/StreamDevice.h>
@@ -206,12 +206,12 @@ void PdfObject::initObject()
 }
 
 void PdfObject::Write(OutputStream& stream, PdfWriteFlags writeMode,
-    const PdfEncrypt* encrypt, charbuff& buffer) const
+    const PdfStatefulEncrypt* encrypt, charbuff& buffer) const
 {
     write(stream, true, writeMode, encrypt, buffer);
 }
 
-void PdfObject::WriteFinal(OutputStream& stream, PdfWriteFlags writeMode, const PdfEncrypt* encrypt, charbuff& buffer)
+void PdfObject::WriteFinal(OutputStream& stream, PdfWriteFlags writeMode, const PdfStatefulEncrypt* encrypt, charbuff& buffer)
 {
     write(stream, false, writeMode, encrypt, buffer);
 
@@ -220,13 +220,10 @@ void PdfObject::WriteFinal(OutputStream& stream, PdfWriteFlags writeMode, const 
 }
 
 void PdfObject::write(OutputStream& stream, bool skipLengthFix,
-    PdfWriteFlags writeMode, const PdfEncrypt* encrypt_, charbuff& buffer) const
+    PdfWriteFlags writeMode, const PdfStatefulEncrypt* encrypt, charbuff& buffer) const
 {
     DelayedLoad();
     DelayedLoadStream();
-    unique_ptr<PdfStatefulEncrypt> encrypt;
-    if (encrypt_ != nullptr)
-        encrypt.reset(new PdfStatefulEncrypt(*encrypt_, m_IndirectReference));
 
     if (m_IndirectReference.IsIndirect())
         WriteHeader(stream, writeMode, buffer);
@@ -267,11 +264,11 @@ void PdfObject::write(OutputStream& stream, bool skipLengthFix,
         }
     }
 
-    m_Variant.Write(stream, writeMode, encrypt.get(), buffer);
+    m_Variant.Write(stream, writeMode, encrypt, buffer);
     stream.Write('\n');
 
     if (m_Stream != nullptr)
-        m_Stream->Write(stream, encrypt.get());
+        m_Stream->Write(stream, encrypt);
 
     if (m_IndirectReference.IsIndirect())
         stream.Write("endobj\n");

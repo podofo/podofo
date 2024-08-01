@@ -7,14 +7,17 @@
 #ifndef PDF_MEM_DOCUMENT_H
 #define PDF_MEM_DOCUMENT_H
 
-#include "PdfDocument.h"
-#include "PdfExtension.h"
 #include <podofo/auxiliary/InputDevice.h>
 #include <podofo/auxiliary/OutputDevice.h>
+
+#include "PdfDocument.h"
+#include "PdfExtension.h"
+#include "PdfEncryptSession.h"
 
 namespace PoDoFo {
 
 class PdfParser;
+class PdfEncryptSession;
 
 /** PdfMemDocument is the core class for reading and manipulating
  *  PDF files and writing them back to disk.
@@ -251,7 +254,7 @@ private:
     PdfVersion m_InitialVersion;
     bool m_HasXRefStream;
     int64_t m_PrevXRefOffset;
-    std::shared_ptr<PdfEncrypt> m_Encrypt;
+    std::unique_ptr<PdfEncryptSession> m_Encrypt;
     std::shared_ptr<InputStreamDevice> m_device;
 };
 

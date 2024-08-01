@@ -6,9 +6,8 @@
 #ifndef PDF_STREAMED_OBJECT_STREAM_H
 #define PDF_STREAMED_OBJECT_STREAM_H
 
-#include <podofo/main/PdfDeclarations.h>
-
 #include <podofo/main/PdfObjectStreamProvider.h>
+#include <podofo/main/PdfEncrypt.h>
 
 namespace PoDoFo {
 
@@ -66,13 +65,14 @@ private:
      *
      *  \param encrypt an encryption object or nullptr if no encryption should be done
      */
-    void SetEncrypted(PdfEncrypt& encrypt);
+    void SetEncrypt(PdfEncrypt& encrypt, PdfEncryptContext& context);
 
     void FinishOutput();
 
 private:
     OutputStreamDevice* m_Device;
-    PdfEncrypt* m_CurrEncrypt;
+    PdfEncrypt* m_Encrypt;
+    PdfEncryptContext* m_EncryptContext;
     size_t m_Length;
     PdfObject* m_LengthObj;
 };

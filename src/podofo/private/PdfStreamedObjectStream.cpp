@@ -56,7 +56,7 @@ private:
 
 PdfStreamedObjectStream::PdfStreamedObjectStream(OutputStreamDevice& device) :
     m_Device(&device),
-    m_CurrEncrypt(nullptr),
+    m_Encrypt(nullptr),
     m_Length(0),
     m_LengthObj(nullptr)
 {
@@ -96,14 +96,14 @@ unique_ptr<InputStream> PdfStreamedObjectStream::GetInputStream(PdfObject& obj)
 
 unique_ptr<OutputStream> PdfStreamedObjectStream::GetOutputStream(PdfObject& obj)
 {
-    if (m_CurrEncrypt == nullptr)
+    if (m_Encrypt == nullptr)
     {
         return std::make_unique<ObjectOutputStream>(*this, *m_Device);
     }
     else
     {
         return std::make_unique<ObjectOutputStream>(*this,
-            m_CurrEncrypt->CreateEncryptionOutputStream(*m_Device, obj.GetIndirectReference()));
+            m_Encrypt->CreateEncryptionOutputStream(*m_Device, *m_EncryptContext, obj.GetIndirectReference()));
     }
 }
 
@@ -121,15 +121,16 @@ size_t PdfStreamedObjectStream::GetLength() const
 
 void PdfStreamedObjectStream::FinishOutput()
 {
-    if (m_CurrEncrypt != nullptr)
-        m_Length = m_CurrEncrypt->CalculateStreamLength(m_Length);
+    if (m_Encrypt != nullptr)
+        m_Length = m_Encrypt->CalculateStreamLength(m_Length);
 
     // Finally set the actual length of the stream
     // on the /Length indirect object
     m_LengthObj->SetNumber(static_cast<int64_t>(m_Length));
 }
 
-void PdfStreamedObjectStream::SetEncrypted(PdfEncrypt& encrypt)
+void PdfStreamedObjectStream::SetEncrypt(PdfEncrypt& encrypt, PdfEncryptContext& context)
 {
-    m_CurrEncrypt = &encrypt;
+    m_Encrypt = &encrypt;
+    m_EncryptContext = &context;
 }

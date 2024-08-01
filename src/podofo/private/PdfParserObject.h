@@ -9,10 +9,9 @@
 
 #include <podofo/main/PdfObject.h>
 #include <podofo/main/PdfTokenizer.h>
+#include <podofo/main/PdfEncryptSession.h>
 
 namespace PoDoFo {
-
-class PdfEncrypt;
 
 /**
  * A PdfParserObject constructs a PdfObject from a PDF file.
@@ -79,7 +78,7 @@ public:
      */
     inline ssize_t GetOffset() const { return m_Offset; }
 
-    inline void SetEncrypt(const std::shared_ptr<PdfEncrypt>& encrypt) { m_Encrypt = encrypt; }
+    inline void SetEncrypt(const std::shared_ptr<PdfEncryptSession>& encrypt) { m_Encrypt = encrypt; }
 
     inline void SetIsTrailer(bool isTrailer) { m_IsTrailer = isTrailer; }
 
@@ -114,7 +113,7 @@ private:
     void checkReference(PdfTokenizer& tokenizer);
 
 private:
-    std::shared_ptr<PdfEncrypt> m_Encrypt;
+    std::shared_ptr<PdfEncryptSession> m_Encrypt;
     InputStreamDevice* m_device;
     size_t m_Offset;
     size_t m_StreamOffset;

@@ -44,9 +44,9 @@ PdfMemDocument::PdfMemDocument(const PdfMemDocument& rhs) :
     m_HasXRefStream(rhs.m_HasXRefStream),
     m_PrevXRefOffset(rhs.m_PrevXRefOffset)
 {
-    auto encryptObj = GetTrailer().GetDictionary().FindKey("Encrypt");
-    if (encryptObj != nullptr)
-        m_Encrypt = PdfEncrypt::CreateFromObject(*encryptObj);
+    // Do a full copy of the encrypt session
+    if (rhs.m_Encrypt != nullptr)
+        m_Encrypt.reset(new PdfEncryptSession(rhs.m_Encrypt->GetEncrypt(), rhs.m_Encrypt->GetContext()));
 }
 
 void PdfMemDocument::clear()
@@ -83,12 +83,9 @@ void PdfMemDocument::initFromParser(PdfParser& parser)
         PoDoFo::LogMessage(PdfLogSeverity::Debug, debug);
     }
 
-    if (parser.IsEncrypted())
-    {
-        // All PdfParser instances have a pointer to a PdfEncrypt object.
-        // So we have to take ownership of it (command the parser to give it).
-        m_Encrypt = parser.GetEncrypt();
-    }
+    auto encrypt = parser.GetEncrypt();
+    if (encrypt != nullptr)
+        m_Encrypt.reset(new PdfEncryptSession(*encrypt));
 
     Init();
 }
@@ -172,10 +169,6 @@ bool PdfMemDocument::HasPdfExtension(const PdfName& ns, int64_t level) const {
     return false;
 }
 
-/** Return the list of all vendor-specific extensions to the current PDF version.
- *  \param ns  namespace of the extension
- *  \param level  level of the extension
- */
 vector<PdfExtension> PdfMemDocument::GetPdfExtensions() const
 {
     vector<PdfExtension> ret;
@@ -200,10 +193,6 @@ vector<PdfExtension> PdfMemDocument::GetPdfExtensions() const
     return ret;
 }
 
-/** Remove a vendor-specific extension to the current PDF version.
- *  \param ns  namespace of the extension
- *  \param level  level of the extension
- */
 void PdfMemDocument::RemovePdfExtension(const PdfName& ns, int64_t level)
 {
     if (this->HasPdfExtension(ns, level))
@@ -301,12 +290,15 @@ void PdfMemDocument::SetEncrypted(const string_view& userPassword, const string_
     PdfPermissions protection, PdfEncryptionAlgorithm algorithm,
     PdfKeyLength keyLength)
 {
-    m_Encrypt = PdfEncrypt::Create(userPassword, ownerPassword, protection, algorithm, keyLength);
+    m_Encrypt.reset(new PdfEncryptSession(PdfEncrypt::Create(userPassword, ownerPassword, protection, algorithm, keyLength)));
 }
 
 void PdfMemDocument::SetEncrypt(unique_ptr<PdfEncrypt>&& encrypt)
 {
-    m_Encrypt = std::move(encrypt);
+    if (encrypt == nullptr)
+        m_Encrypt = nullptr;
+    else
+        m_Encrypt.reset(new PdfEncryptSession(std::move(encrypt)));
 }
 
 void PdfMemDocument::FreeObjectMemory(const PdfReference& ref, bool force)
@@ -331,7 +323,10 @@ void PdfMemDocument::FreeObjectMemory(PdfObject* obj, bool force)
 
 const PdfEncrypt* PdfMemDocument::GetEncrypt() const
 {
-    return m_Encrypt.get();
+    if (m_Encrypt == nullptr)
+        return nullptr;
+
+    return &m_Encrypt->GetEncrypt();
 }
 
 void PdfMemDocument::SetPdfVersion(PdfVersion version)
