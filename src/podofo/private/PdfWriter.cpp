@@ -201,8 +201,9 @@ void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t size, bool onlySize
             trailer.GetDictionary().AddKey(PdfName("Encrypt"), m_EncryptObj->GetIndirectReference());
 
         PdfArray array;
-        // The ID is the same unless the PDF was incrementally updated
-        if (m_IncrementalUpdate && !m_originalIdentifier.IsEmpty())
+        // The ID must stay the same if this is an incremental update
+        // or the /Encrypt entry was parsed
+        if ((m_IncrementalUpdate || (m_Encrypt != nullptr && m_Encrypt->GetEncrypt().IsParsed())) && !m_originalIdentifier.IsEmpty())
             array.Add(m_originalIdentifier);
         else
             array.Add(m_identifier);

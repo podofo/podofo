@@ -866,10 +866,11 @@ void PdfParser::findTokenBackward(InputStreamDevice& device, const char* token, 
 
 const PdfString& PdfParser::getDocumentId()
 {
-    if (!m_Trailer->GetDictionary().HasKey("ID"))
+    const PdfArray* idArr;
+    if (!m_Trailer->GetDictionary().TryFindKeyAs("ID", idArr))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, "No document ID found in trailer");
 
-    return m_Trailer->GetDictionary().GetKey("ID")->GetArray()[0].GetString();
+    return (*idArr)[0].GetString();
 }
 
 void PdfParser::updateDocumentVersion()

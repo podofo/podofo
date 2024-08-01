@@ -327,25 +327,33 @@ PdfEncrypt::~PdfEncrypt()
 
 void PdfEncrypt::GetEncryptionContext(const PdfString& documentId, PdfEncryptContext& context)
 {
-    if (!m_fromScratch && !context.IsAuthenticated())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unexpected non autenticated context");
+    if (m_valuesFilled)
+    {
+        if (!context.IsAuthenticated())
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unexpected non autenticated context");
+
+        // If params are already filled, then it's not necessary
+        // (nor possible) to regenerate them
+        return;
+    }
 
     GenerateEncryptionKey(documentId.GetRawData(), context.GetAuthResult(), context.GetCryptCtx(),
         m_uValue, m_oValue, context.m_encryptionKey);
+    context.m_documentId = documentId.GetRawData();
 
-    if (m_fromScratch)
-    {
-        clearSensitiveInfo();
-        // When creating an encrypt from scratch we
-        // can assume we are the owner of the document
-        context.m_AuthResult = PdfAuthResult::Owner;
-        m_fromScratch = false;
-    }
+    PODOFO_INVARIANT(!m_valuesFilled);
+
+    clearSensitiveInfo();
+    // When creating an encrypt from scratch we
+    // can assume we are the owner of the document
+    context.m_AuthResult = PdfAuthResult::Owner;
+    m_valuesFilled = true;
 }
 
 void PdfEncrypt::Authenticate(const string_view& password, const PdfString& documentId, PdfEncryptContext& context) const
 {
     context.m_AuthResult = Authenticate(password, documentId.GetRawData(), context.GetCryptCtx(), context.m_encryptionKey);
+    context.m_documentId = documentId.GetRawData();
 }
 
 PdfEncryptionAlgorithm PdfEncrypt::GetEnabledEncryptionAlgorithms()
@@ -562,7 +570,8 @@ PdfEncrypt::PdfEncrypt() :
     m_uValueSize(0),
     m_oValueSize(0),
     m_EncryptMetadata(false),
-    m_fromScratch(false)
+    m_IsParsed(false),
+    m_valuesFilled(false)
 {
 }
 
@@ -587,6 +596,8 @@ void PdfEncrypt::Init(PdfEncryptionAlgorithm algorithm, PdfKeyLength keyLength, 
     std::memcpy(m_uValue, uValue.data(), uValue.size());
     std::memcpy(m_oValue, oValue.data(), oValue.size());
     m_EncryptMetadata = encryptedMetadata;
+    m_IsParsed = true;
+    m_valuesFilled = true;
 }
 
 void PdfEncrypt::Init(const string_view& userPassword, const string_view& ownerPassword,
@@ -599,7 +610,6 @@ void PdfEncrypt::Init(const string_view& userPassword, const string_view& ownerP
     m_rValue = revision;
     m_pValue = pValue;
     m_EncryptMetadata = encryptedMetadata;
-    m_fromScratch = true;
 }
 
 bool PdfEncrypt::CheckKey(const unsigned char key1[32], const unsigned char key2[32]) const
@@ -1267,7 +1277,6 @@ void PdfEncryptAESV2::GenerateEncryptionKey(
     unsigned char uValue[48], unsigned char oValue[48], unsigned char encryptionKey[32])
 {
     (void)authResult;
-    (void)ctx;
 
     unsigned char userpswd[32];
     unsigned char ownerpswd[32];
@@ -1690,7 +1699,6 @@ void PdfEncryptAESV3::GenerateEncryptionKey(
 {
     (void)documentId;
     (void)authResult;
-    (void)ctx;
 
     // Prepare passwords
     unsigned char userpswd[127];
@@ -1738,18 +1746,17 @@ void PdfEncryptAESV3::GenerateEncryptionKey(
     // Encrypt Perms value
 
     int rc;
-    unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> aes(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
-    if (aes == nullptr || (rc = EVP_EncryptInit_ex(aes.get(), ssl::Aes256(), nullptr, encryptionKey, nullptr)) != 1)
+    if ((rc = EVP_EncryptInit_ex(ctx, ssl::Aes256(), nullptr, encryptionKey, nullptr)) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
 
-    EVP_CIPHER_CTX_set_padding(aes.get(), 0); // disable padding
+    EVP_CIPHER_CTX_set_padding(ctx, 0); // disable padding
 
     int dataOutMoved;
-    rc = EVP_EncryptUpdate(aes.get(), m_permsValue, &dataOutMoved, perms, 16);
+    rc = EVP_EncryptUpdate(ctx, m_permsValue, &dataOutMoved, perms, 16);
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 
-    rc = EVP_EncryptFinal_ex(aes.get(), &m_permsValue[dataOutMoved], &dataOutMoved);
+    rc = EVP_EncryptFinal_ex(ctx, &m_permsValue[dataOutMoved], &dataOutMoved);
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 }

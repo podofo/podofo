@@ -409,6 +409,37 @@ void testAuthenticate(PdfEncrypt& encrypt, PdfEncryptContext& context)
     REQUIRE(authenticationTestContext.GetAuthResult() == PdfAuthResult::Failed);
 }
 
+TEST_CASE("TestPreserveEncrypt")
+{
+    vector<string> testPaths = {
+        TestUtils::GetTestInputFilePath("AESV3R6-256.pdf"),
+        TestUtils::GetTestInputFilePath("AESV2-128.pdf"),
+        TestUtils::GetTestInputFilePath("RC4V2-128.pdf")
+    };
+
+    // Saving the PDF should preserve both user/owner authorizations
+
+    PdfMemDocument doc;
+    charbuff pdfBuffer;
+    for (auto& path : testPaths)
+    {
+        doc.Load(path, "userpass");
+        pdfBuffer.clear();
+        BufferStreamDevice device(pdfBuffer);
+        doc.Save(device);
+        doc.LoadFromBuffer(pdfBuffer, "ownerpass");
+    }
+
+    for (auto& path : testPaths)
+    {
+        doc.Load(path, "ownerpass");
+        pdfBuffer.clear();
+        BufferStreamDevice device(pdfBuffer);
+        doc.Save(device);
+        doc.LoadFromBuffer(pdfBuffer, "userpass");
+    }
+}
+
 void testEncrypt(PdfEncrypt& encrypt, PdfEncryptContext& context)
 {
     charbuff encrypted;

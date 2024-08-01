@@ -365,6 +365,8 @@ public:
 
     inline bool IsMetadataEncrypted() const { return m_EncryptMetadata; }
 
+    inline bool IsParsed() const { return m_IsParsed; }
+
 protected:
     inline const unsigned char* GetUValueRaw() const { return m_uValue; }
 
@@ -437,7 +439,8 @@ private:
     unsigned char m_uValueSize;
     unsigned char m_oValueSize;
     bool m_EncryptMetadata;            // Is metadata encrypted
-    bool m_fromScratch;                // True if the object is initialized from scratch with password
+    bool m_IsParsed;                   // True if the object is created from parsed values
+    bool m_valuesFilled;               // True if the object O/U values were filled
     std::string m_userPass;            // User password
     std::string m_ownerPass;           // Owner password
 

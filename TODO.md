@@ -19,6 +19,8 @@ either assume UTF-8 and/or checks for used codepoints
 
 ### After 1.0
 - Check/Review doxygen doc
+- If the doc is updated, then should not allow to set an encryption
+- If the doc is updated and has an encryption, it should not allow to remove it
 - Evaluate make PdfObjectStream not flate filter by default in PdfMemDocument?
 - Evaluate move more utf8::next to utf8::unchecked::next
 - Add a PdfRect-like class PdfCorners that avoid coordinates normalization
