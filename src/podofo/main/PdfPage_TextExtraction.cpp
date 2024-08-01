@@ -8,8 +8,7 @@
 #include "PdfPage.h"
 
 #include <regex>
-#include <deque>
-#include <stack>
+#include <list>
 
 #include <utf8cpp/utf8.h>
 
