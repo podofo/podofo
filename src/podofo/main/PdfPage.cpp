@@ -93,7 +93,7 @@ void PdfPage::ensureContentsCreated()
         return;
 
     m_Contents.reset(new PdfContents(*this));
-    GetDictionary().AddKey(PdfName::KeyContents,
+    GetDictionary().AddKey(PdfNames::Contents,
         m_Contents->GetObject().GetIndirectReference());
 }
 

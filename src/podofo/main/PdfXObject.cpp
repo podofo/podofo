@@ -26,7 +26,7 @@ PdfXObject::PdfXObject(PdfDocument& doc, PdfXObjectType subType, const string_vi
     : PdfDictionaryElement(doc, "XObject"), m_Type(subType)
 {
     initIdentifiers(prefix);
-    this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName(toString(subType)));
+    this->GetObject().GetDictionary().AddKey(PdfNames::Subtype, PdfName(toString(subType)));
 }
 
 PdfXObject::PdfXObject(PdfObject& obj, PdfXObjectType subType)
@@ -100,7 +100,7 @@ PdfXObjectType PdfXObject::getPdfXObjectType(const PdfObject& obj)
     // Table 93 of ISO 32000-2:2020(E), the /Type key is optional,
     // so we don't check for it. If present it should be "XObject"
     const PdfName* name;
-    auto subTypeObj = obj.GetDictionary().FindKey(PdfName::KeySubtype);
+    auto subTypeObj = obj.GetDictionary().FindKey(PdfNames::Subtype);
     if (subTypeObj == nullptr || !subTypeObj->TryGetName(name))
         return PdfXObjectType::Unknown;
 

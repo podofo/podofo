@@ -196,10 +196,10 @@ PdfObject& PdfIndirectObjectList::CreateDictionaryObject(const string_view& type
 {
     auto dict = PdfDictionary();
     if (!type.empty())
-        dict.AddKey(PdfName::KeyType, PdfName(type));
+        dict.AddKey(PdfNames::Type, PdfName(type));
 
     if (!subtype.empty())
-        dict.AddKey(PdfName::KeySubtype, PdfName(subtype));
+        dict.AddKey(PdfNames::Subtype, PdfName(subtype));
 
     auto ret = new PdfObject(std::move(dict));
     ret->setDirty();

@@ -31,7 +31,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     m_IsBoldHint(false)
 {
     const PdfObject* obj;
-    const PdfName& subType = font.GetDictionary().MustFindKey(PdfName::KeySubtype).GetName();
+    const PdfName& subType = font.GetDictionary().MustFindKey(PdfNames::Subtype).GetName();
 
     // Set a default identity matrix. Widths are normally in
     // thousands of a unit of text space
@@ -97,7 +97,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
                 m_FontFileObject = descriptor->GetDictionary().FindKey("FontFile3");
                 if (m_FontFileObject != nullptr)
                 {
-                    auto fontFileSubtype = m_FontFileObject->GetDictionary().FindKeyAs<PdfName>(PdfName::KeySubtype);
+                    auto fontFileSubtype = m_FontFileObject->GetDictionary().FindKeyAs<PdfName>(PdfNames::Subtype);
                     if (m_FontFileType == PdfFontFileType::Type1)
                     {
                         if (fontFileSubtype == "Type1C")
@@ -172,7 +172,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             m_FontFileObject = descriptor->GetDictionary().FindKey("FontFile3");
             if (m_FontFileObject != nullptr)
             {
-                auto fontFileSubtype = m_FontFileObject->GetDictionary().FindKeyAs<PdfName>(PdfName::KeySubtype);
+                auto fontFileSubtype = m_FontFileObject->GetDictionary().FindKeyAs<PdfName>(PdfNames::Subtype);
                 if (subType == "CIDFontType0")
                 {
                     if (fontFileSubtype == "CIDFontType0C")

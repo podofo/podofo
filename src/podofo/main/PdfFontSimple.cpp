@@ -66,7 +66,7 @@ void PdfFontSimple::initImported()
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 
-    this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName(subType));
+    this->GetObject().GetDictionary().AddKey(PdfNames::Subtype, PdfName(subType));
     this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(GetName()));
     m_Encoding->ExportToFont(*this);
 

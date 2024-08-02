@@ -145,7 +145,7 @@ void PdfParser::ReadDocumentStructure(InputStreamDevice& device, ssize_t eofSear
 
     int64_t entriesCount;
     if (m_Trailer != nullptr && m_Trailer->IsDictionary()
-        && (entriesCount = m_Trailer->GetDictionary().FindKeyAs<int64_t>(PdfName::KeySize, -1)) >= 0
+        && (entriesCount = m_Trailer->GetDictionary().FindKeyAs<int64_t>(PdfNames::Size, -1)) >= 0
         && m_entries.GetSize() > (unsigned)entriesCount)
     {
         // Total number of xref entries to read is greater than the /Size
@@ -191,9 +191,9 @@ void PdfParser::mergeTrailer(const PdfObject& trailer)
     PODOFO_ASSERT(m_Trailer != nullptr);
 
     // Only update keys, if not already present
-    auto obj = trailer.GetDictionary().GetKey(PdfName::KeySize);
-    if (obj != nullptr && !m_Trailer->GetDictionary().HasKey(PdfName::KeySize))
-        m_Trailer->GetDictionary().AddKey(PdfName::KeySize, *obj);
+    auto obj = trailer.GetDictionary().GetKey(PdfNames::Size);
+    if (obj != nullptr && !m_Trailer->GetDictionary().HasKey(PdfNames::Size))
+        m_Trailer->GetDictionary().AddKey(PdfNames::Size, *obj);
 
     obj = trailer.GetDictionary().GetKey("Root");
     if (obj != nullptr && !m_Trailer->GetDictionary().HasKey("Root"))
@@ -701,7 +701,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                                 PdfDictionary* objDict;
                                 if (obj->TryGetDictionary(objDict))
                                 {
-                                    auto typeObj = objDict->GetKey(PdfName::KeyType);
+                                    auto typeObj = objDict->GetKey(PdfNames::Type);
                                     if (typeObj != nullptr && typeObj->IsName() && typeObj->GetName() == "XRef")
                                     {
                                         // XRef is never encrypted

@@ -40,14 +40,14 @@ void PdfXRefStreamParserObject::delayedLoad()
 
     // Do some very basic error checking
     auto& dict = m_Variant.GetDictionary();
-    auto keyObj = dict.FindKey(PdfName::KeyType);
+    auto keyObj = dict.FindKey(PdfNames::Type);
     if (keyObj == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
 
     if (!keyObj->IsName() || keyObj->GetName() != "XRef")
         PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
 
-    if (!dict.HasKey(PdfName::KeySize)
+    if (!dict.HasKey(PdfNames::Size)
         || !dict.HasKey("W"))
     {
         PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
@@ -62,7 +62,7 @@ void PdfXRefStreamParserObject::delayedLoad()
 
 void PdfXRefStreamParserObject::ReadXRefTable()
 {
-    int64_t size = this->GetDictionary().FindKeyAs<int64_t>(PdfName::KeySize, 0);
+    int64_t size = this->GetDictionary().FindKeyAs<int64_t>(PdfNames::Size, 0);
     auto& arrObj = this->GetDictionary().MustFindKey("W");
 
     // The pdf reference states that W is always an array with 3 entries

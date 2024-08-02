@@ -456,7 +456,7 @@ void PdfFont::FillDescriptor(PdfDictionary& dict) const
         dict.AddKey("FontFamily", PdfString(familyName));
     if ((stretch = m_Metrics->GetFontStretch()) != PdfFontStretch::Unknown)
         dict.AddKey("FontStretch", PdfName(toString(stretch)));
-    dict.AddKey(PdfName::KeyFlags, static_cast<int64_t>(m_Metrics->GetFlags()));
+    dict.AddKey(PdfNames::Flags, static_cast<int64_t>(m_Metrics->GetFlags()));
     dict.AddKey("ItalicAngle", static_cast<int64_t>(std::round(m_Metrics->GetItalicAngle())));
 
     PdfArray bbox;
@@ -555,7 +555,7 @@ void PdfFont::EmbedFontFileType1CCF(PdfObject& descriptor, const bufferview& dat
         else
             subtype = PdfName("Type1C");
 
-        dict.AddKey(PdfName::KeySubtype, subtype);
+        dict.AddKey(PdfNames::Subtype, subtype);
     }, data);
 }
 
@@ -572,7 +572,7 @@ void PdfFont::EmbedFontFileOpenType(PdfObject& descriptor, const bufferview& dat
 {
     embedFontFileData(descriptor, "FontFile3", [](PdfDictionary& dict)
     {
-        dict.AddKey(PdfName::KeySubtype, PdfName("OpenType"));
+        dict.AddKey(PdfNames::Subtype, PdfName("OpenType"));
     }, data);
 }
 

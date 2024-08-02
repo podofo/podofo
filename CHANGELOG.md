@@ -12,6 +12,7 @@
 - `PdfCanvas`: Added `CopyContentsTo()`
 - `PdfEncrypt` is now stateless: added `PdfEncryptContext` as a
    separate state context and used as argument in `PdfEncrypt` methods
+- Added `PdfNames` and moved all known names there from `PdfName`
 
 ## Version 0.10.3
 - Fixed big performance regression introduced in 0.10, see #108

@@ -186,7 +186,7 @@ void PdfWriter::WritePdfObjects(OutputStreamDevice& device, const PdfIndirectObj
 
 void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t size, bool onlySizeKey) const
 {
-    trailer.GetDictionary().AddKey(PdfName::KeySize, static_cast<int64_t>(size));
+    trailer.GetDictionary().AddKey(PdfNames::Size, static_cast<int64_t>(size));
 
     if (!onlySizeKey)
     {

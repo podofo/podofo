@@ -2,7 +2,6 @@
 
 #### API Review
 - PdfDocument: Review AttachFile, GetAttachment, FreeObjectMemory, AddNamedDestination. Rename LoadFromDevice(device) to just Load(device)
-- PdfWriter: Check if SetEncrypt() should accept mutable reference instead
 - PdfField: Evaluate make a virtual getValueObject()
 - Evaluate removing PdfObject::Null and PdfVariant::Null and introduce nullptr_t constructor overloads
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
@@ -10,7 +9,6 @@
 - PdfErrorCode: Check all values
 - PdfField: Make PdfFieldChildrenCollectionBase m_Children a unique_ptr, and lazy load that
 - Evaluate IntputStreamDevice CopyTo() should do seek(0)
-- PdfName: Make PdfKnownNames and move known names there
 - Evaluate removing PdfError::GetCallStack()
 
 #### Features

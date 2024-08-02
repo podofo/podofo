@@ -34,7 +34,7 @@ bool PdfFileSpec::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFileSpec>& f
     const PdfObject* typeObj;
     const PdfString* typeStr;
     if (!obj.TryGetDictionary(dict)
-        || (typeObj = dict->FindKey(PdfName::KeyType)) == nullptr
+        || (typeObj = dict->FindKey(PdfNames::Type)) == nullptr
         || typeObj->TryGetString(typeStr)
         || typeStr->GetString() != "Filespec")
     {

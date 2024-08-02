@@ -136,7 +136,7 @@ void PdfObjectStream::Unwrap()
         auto& mediaDecodeParms = inputStream.GetMediaDecodeParms();
         if (mediaFilters.size() == 1)
         {
-            dict.AddKey(PdfName::KeyFilter, PdfName(PoDoFo::FilterToName(mediaFilters[0])));
+            dict.AddKey(PdfNames::Filter, PdfName(PoDoFo::FilterToName(mediaFilters[0])));
             if (mediaDecodeParms[0] != nullptr)
                 dict.AddKeyIndirectSafe(DecodeParmsKey, *mediaDecodeParms[0]);
         }
@@ -146,7 +146,7 @@ void PdfObjectStream::Unwrap()
             for (unsigned i = 0; i < mediaFilters.size(); i++)
                 filters.Add(PdfName(PoDoFo::FilterToName(mediaFilters[i])));
 
-            dict.AddKey(PdfName::KeyFilter, filters);
+            dict.AddKey(PdfNames::Filter, filters);
 
             if (mediaDecodeParms.size() != 0)
             {
@@ -223,15 +223,15 @@ void PdfObjectStream::MoveFrom(PdfObjectStream& rhs)
     // both objects after the stream has been moved
     auto& lhsDict = m_Parent->GetDictionaryUnsafe();
     auto& rhsDict = rhs.m_Parent->GetDictionaryUnsafe();
-    auto filter = rhsDict.FindKey(PdfName::KeyFilter);
+    auto filter = rhsDict.FindKey(PdfNames::Filter);
     if (filter == nullptr)
     {
-        lhsDict.RemoveKey(PdfName::KeyFilter);
+        lhsDict.RemoveKey(PdfNames::Filter);
     }
     else
     {
-        lhsDict.AddKey(PdfName::KeyFilter, *filter);
-        rhsDict.RemoveKey(PdfName::KeyFilter);
+        lhsDict.AddKey(PdfNames::Filter, *filter);
+        rhsDict.RemoveKey(PdfNames::Filter);
     }
 
     auto decodeParms = rhsDict.FindKey(DecodeParmsKey);
@@ -262,11 +262,11 @@ void PdfObjectStream::CopyFrom(const PdfObjectStream& rhs)
     // Copy the /Filter and /DecodeParms keys
     auto& lhsDict = m_Parent->GetDictionaryUnsafe();
     auto& rhsDict = rhs.m_Parent->GetDictionaryUnsafe();
-    auto filter = rhsDict.FindKey(PdfName::KeyFilter);
+    auto filter = rhsDict.FindKey(PdfNames::Filter);
     if (filter == nullptr)
-        lhsDict.RemoveKey(PdfName::KeyFilter);
+        lhsDict.RemoveKey(PdfNames::Filter);
     else
-        lhsDict.AddKey(PdfName::KeyFilter, *filter);
+        lhsDict.AddKey(PdfNames::Filter, *filter);
 
     auto decodeParms = rhsDict.FindKey(DecodeParmsKey);
     if (decodeParms == nullptr)
@@ -480,7 +480,7 @@ PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
         if (filters.size() == 0)
         {
             m_output = stream.m_Provider->GetOutputStream(stream.GetParent());
-            m_stream->GetParent().GetDictionaryUnsafe().RemoveKey(PdfName::KeyFilter);
+            m_stream->GetParent().GetDictionaryUnsafe().RemoveKey(PdfNames::Filter);
             m_stream->m_Filters.clear();
         }
         else
@@ -499,7 +499,7 @@ PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
 
             if (filters.size() == 1)
             {
-                m_stream->GetParent().GetDictionaryUnsafe().AddKey(PdfName::KeyFilter,
+                m_stream->GetParent().GetDictionaryUnsafe().AddKey(PdfNames::Filter,
                     PdfName(PoDoFo::FilterToName(filters.front())));
             }
             else // filters.size() > 1
@@ -508,7 +508,7 @@ PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
                 for (auto filterType : filters)
                     arrFilters.Add(PdfName(PoDoFo::FilterToName(filterType)));
 
-                m_stream->GetParent().GetDictionaryUnsafe().AddKey(PdfName::KeyFilter, arrFilters);
+                m_stream->GetParent().GetDictionaryUnsafe().AddKey(PdfNames::Filter, arrFilters);
             }
 
             m_stream->m_Filters = std::move(filters);

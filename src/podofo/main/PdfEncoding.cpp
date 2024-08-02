@@ -556,7 +556,7 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
         cmapName.append("-subset");
 
     // Table 120: Additional entries in a CMap stream dictionary
-    cmapDict.AddKey(PdfName::KeyType, PdfName("CMap"));
+    cmapDict.AddKey(PdfNames::Type, PdfName("CMap"));
     cmapDict.AddKey("CMapName", PdfName(cmapName));
 
     charbuff temp;

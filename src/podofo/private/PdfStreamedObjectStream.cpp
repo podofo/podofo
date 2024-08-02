@@ -68,7 +68,7 @@ void PdfStreamedObjectStream::Init(PdfObject& obj)
     // with stream size after the stream has been written
     // back to the device
     m_LengthObj = &obj.GetDocument()->GetObjects().CreateObject(static_cast<int64_t>(0));
-    obj.GetDictionary().AddKey(PdfName::KeyLength, m_LengthObj->GetIndirectReference());
+    obj.GetDictionary().AddKey(PdfNames::Length, m_LengthObj->GetIndirectReference());
 }
 
 void PdfStreamedObjectStream::Clear()

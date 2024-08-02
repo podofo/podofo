@@ -524,7 +524,7 @@ PdfObject PdfColorSpaceFilterSeparation::GetExportObject(PdfIndirectObjectList& 
     encode.Add(static_cast<int64_t>(1));
     csTintFunc.GetDictionary().AddKey("Encode", encode);
     
-    csTintFunc.GetDictionary().AddKey(PdfName::KeyFilter, PdfName("FlateDecode"));
+    csTintFunc.GetDictionary().AddKey(PdfNames::Filter, PdfName("FlateDecode"));
     csTintFunc.GetDictionary().AddKey("FunctionType", PdfVariant(static_cast<int64_t>(0)));
     //csTintFunc->GetDictionary().AddKey( "FunctionType",
     //                                    PdfVariant( static_cast<int64_t>(EPdfFunctionType::Sampled) ) );

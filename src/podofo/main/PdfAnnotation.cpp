@@ -36,8 +36,8 @@ PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const R
     PdfArray arr;
     rect.ToArray(arr);
 
-    GetDictionary().AddKey(PdfName::KeySubtype, name);
-    GetDictionary().AddKey(PdfName::KeyRect, arr);
+    GetDictionary().AddKey(PdfNames::Subtype, name);
+    GetDictionary().AddKey(PdfNames::Rect, arr);
     GetDictionary().AddKey("P", page.GetObject().GetIndirectReference());
 
     // Default set print flag
@@ -53,7 +53,7 @@ PdfAnnotation::PdfAnnotation(PdfObject& obj, PdfAnnotationType annotType)
 Rect PdfAnnotation::GetRectRaw() const
 {
     const PdfArray* arr;
-    if (!GetDictionary().TryFindKeyAs(PdfName::KeyRect, arr))
+    if (!GetDictionary().TryFindKeyAs(PdfNames::Rect, arr))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Missing /Rect element");
 
     return Rect::FromArray(*arr);
@@ -68,7 +68,7 @@ void PdfAnnotation::SetRectRaw(const Rect& rect)
 {
     PdfArray arr;
     rect.ToArray(arr);
-    GetDictionary().AddKey(PdfName::KeyRect, arr);
+    GetDictionary().AddKey(PdfNames::Rect, arr);
 }
 
 void PdfAnnotation::SetRect(const Rect& rect)
@@ -76,7 +76,7 @@ void PdfAnnotation::SetRect(const Rect& rect)
     PdfArray arr;
     auto transformed = PoDoFo::TransformRectPage(rect, MustGetPage(), false);
     transformed.ToArray(arr);
-    GetDictionary().AddKey(PdfName::KeyRect, arr);
+    GetDictionary().AddKey(PdfNames::Rect, arr);
 }
 
 unique_ptr<PdfAnnotation> PdfAnnotation::Create(PdfPage& page, const type_info& typeInfo, const Rect& rect)
@@ -567,7 +567,7 @@ PdfAnnotationType PdfAnnotation::getAnnotationType(const type_info& typeInfo)
 PdfAnnotationType PdfAnnotation::getAnnotationType(const PdfObject& obj)
 {
     const PdfName* name;
-    auto subTypeObj = obj.GetDictionary().FindKey(PdfName::KeySubtype);
+    auto subTypeObj = obj.GetDictionary().FindKey(PdfNames::Subtype);
     if (subTypeObj == nullptr || !subTypeObj->TryGetName(name))
         return PdfAnnotationType::Unknown;
 

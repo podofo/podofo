@@ -195,19 +195,19 @@ const PdfName& getResourceTypeName(PdfResourceType type)
     switch (type)
     {
         case PdfResourceType::ExtGState:
-            return PdfName::KeyExtGState;
+            return PdfNames::ExtGState;
         case PdfResourceType::ColorSpace:
-            return PdfName::KeyColorSpace;
+            return PdfNames::ColorSpace;
         case PdfResourceType::Pattern:
-            return PdfName::KeyPattern;
+            return PdfNames::Pattern;
         case PdfResourceType::Shading:
-            return PdfName::KeyShading;
+            return PdfNames::Shading;
         case PdfResourceType::XObject:
-            return PdfName::KeyXObject;
+            return PdfNames::XObject;
         case PdfResourceType::Font:
-            return PdfName::KeyFont;
+            return PdfNames::Font;
         case PdfResourceType::Properties:
-            return PdfName::KeyProperties;
+            return PdfNames::Properties;
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }

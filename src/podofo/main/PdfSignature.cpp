@@ -97,13 +97,13 @@ void PdfSignature::PrepareForSigning(const string_view& filter,
     EnsureValueObject();
     auto& dict = m_ValueObj->GetDictionary();
     // This must be ensured before any signing operation
-    dict.AddKey(PdfName::KeyFilter, PdfName(filter));
+    dict.AddKey(PdfNames::Filter, PdfName(filter));
     dict.AddKey("SubFilter", PdfName(subFilter));
-    dict.AddKey(PdfName::KeyType, PdfName(type));
+    dict.AddKey(PdfNames::Type, PdfName(type));
 
     // Prepare contents data
     PdfData contentsData = PdfData(beacons.ContentsBeacon, beacons.ContentsOffset);
-    m_ValueObj->GetDictionary().AddKey(PdfName::KeyContents, PdfVariant(std::move(contentsData)));
+    m_ValueObj->GetDictionary().AddKey(PdfNames::Contents, PdfVariant(std::move(contentsData)));
 
     // Prepare byte range data
     PdfData byteRangeData = PdfData(beacons.ByteRangeBeacon, beacons.ByteRangeOffset);

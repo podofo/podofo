@@ -26,7 +26,7 @@ class PODOFO_API PdfName final : public PdfDataProvider
 {
 public:
     /** Constructor to create nullptr strings.
-     *  use PdfName::KeyNull instead of this constructor
+     *  use PdfNames::Null instead of this constructor
      */
     PdfName();
 
@@ -115,30 +115,6 @@ public:
      */
     operator std::string_view() const;
 
-    // TODO: Move these somewhere else
-    static const PdfName KeyContents;
-    static const PdfName KeyFlags;
-    static const PdfName KeyLength;
-    static const PdfName KeyNull;
-    static const PdfName KeyRect;
-    static const PdfName KeySize;
-    static const PdfName KeySubtype;
-    static const PdfName KeyType;
-    static const PdfName KeyFilter;
-    static const PdfName KeyParent;
-    static const PdfName KeyKids;
-    static const PdfName KeyCount;
-    static const PdfName KeyExtGState;
-    static const PdfName KeyColorSpace;
-    static const PdfName KeyPattern;
-    static const PdfName KeyShading;
-    static const PdfName KeyXObject;
-    static const PdfName KeyFont;
-    static const PdfName KeyProperties;
-    static const PdfName KeyAP;
-    static const PdfName KeyNames;
-    static const PdfName KeyLimits;
-
 private:
     void expandUtf8String() const;
     void initFromUtf8String(const std::string_view& view);
@@ -154,6 +130,39 @@ private:
     };
 private:
     std::shared_ptr<NameData> m_data;
+};
+
+/**
+ * A storage class for several known PdfName entries
+ */
+class PODOFO_API PdfNames final
+{
+private:
+    PdfNames() = delete;
+
+public:
+    static const PdfName Contents;
+    static const PdfName Flags;
+    static const PdfName Length;
+    static const PdfName Null;
+    static const PdfName Rect;
+    static const PdfName Size;
+    static const PdfName Subtype;
+    static const PdfName Type;
+    static const PdfName Filter;
+    static const PdfName Parent;
+    static const PdfName Kids;
+    static const PdfName Count;
+    static const PdfName ExtGState;
+    static const PdfName ColorSpace;
+    static const PdfName Pattern;
+    static const PdfName Shading;
+    static const PdfName XObject;
+    static const PdfName Font;
+    static const PdfName Properties;
+    static const PdfName AP;
+    static const PdfName Names;
+    static const PdfName Limits;
 };
 
 };

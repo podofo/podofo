@@ -33,7 +33,7 @@ public:
     PdfNameTreeNode(PdfNameTreeNode* parent, PdfObject& obj)
         : PdfDictionaryElement(obj), m_Parent(parent)
     {
-        m_HasKids = GetDictionary().HasKey(PdfName::KeyKids);
+        m_HasKids = GetDictionary().HasKey(PdfNames::Kids);
     }
 
     bool AddValue(const PdfString& key, const PdfObject& value);
@@ -52,7 +52,7 @@ bool PdfNameTreeNode::AddValue(const PdfString& key, const PdfObject& value)
 {
     if (m_HasKids)
     {
-        const PdfArray& kids = GetDictionary().MustFindKey(PdfName::KeyKids).GetArray();
+        const PdfArray& kids = GetDictionary().MustFindKey(PdfNames::Kids).GetArray();
         auto it = kids.begin();
         PdfObject* childObj = nullptr;
         PdfNameLimits limits = PdfNameLimits::Before; // RG: TODO Compiler complains that this variable should be initialised
@@ -104,7 +104,7 @@ bool PdfNameTreeNode::AddValue(const PdfString& key, const PdfObject& value)
         bool rebalance = false;
         PdfArray limits;
 
-        auto namesObj = GetDictionary().FindKey(PdfName::KeyNames);
+        auto namesObj = GetDictionary().FindKey(PdfNames::Names);
         if (namesObj != nullptr)
         {
             auto& arr = namesObj->GetArray();
@@ -151,19 +151,19 @@ bool PdfNameTreeNode::AddValue(const PdfString& key, const PdfObject& value)
 
             // create a child object
             auto& child = GetDocument().GetObjects().CreateDictionaryObject();
-            child.GetDictionary().AddKey(PdfName::KeyNames, arr);
-            child.GetDictionary().AddKey(PdfName::KeyLimits, limits);
+            child.GetDictionary().AddKey(PdfNames::Names, arr);
+            child.GetDictionary().AddKey(PdfNames::Limits, limits);
 
             PdfArray kids;
             kids.Add(child.GetIndirectReference());
-            GetDictionary().AddKey(PdfName::KeyKids, kids);
+            GetDictionary().AddKey(PdfNames::Kids, kids);
             m_HasKids = true;
         }
 
         if (m_Parent != nullptr)
         {
             // Root node is not allowed to have a limits key!
-            GetDictionary().AddKey(PdfName::KeyLimits, limits);
+            GetDictionary().AddKey(PdfNames::Limits, limits);
         }
 
         if (rebalance)
@@ -179,7 +179,7 @@ void PdfNameTreeNode::SetLimits()
 
     if (m_HasKids)
     {
-        auto kidsObj = GetDictionary().FindKey(PdfName::KeyKids);
+        auto kidsObj = GetDictionary().FindKey(PdfNames::Kids);
         if (kidsObj != nullptr && kidsObj->IsArray())
         {
             auto& kidsArr = kidsObj->GetArray();
@@ -187,7 +187,7 @@ void PdfNameTreeNode::SetLimits()
             auto child = GetDocument().GetObjects().GetObject(refFirst);
             PdfObject* limitsObj = nullptr;
             if (child != nullptr
-                && (limitsObj = child->GetDictionary().FindKey(PdfName::KeyLimits)) != nullptr
+                && (limitsObj = child->GetDictionary().FindKey(PdfNames::Limits)) != nullptr
                 && limitsObj->IsArray())
             {
                 limits.Add(limitsObj->GetArray().front());
@@ -196,7 +196,7 @@ void PdfNameTreeNode::SetLimits()
             auto refLast = kidsArr.back().GetReference();
             child = GetDocument().GetObjects().GetObject(refLast);
             if (child != nullptr
-                && (limitsObj = child->GetDictionary().FindKey(PdfName::KeyLimits)) != nullptr
+                && (limitsObj = child->GetDictionary().FindKey(PdfNames::Limits)) != nullptr
                 && limitsObj->IsArray())
             {
                 limits.Add(limitsObj->GetArray().back());
@@ -210,9 +210,9 @@ void PdfNameTreeNode::SetLimits()
                 GetObject().GetIndirectReference().GenerationNumber());
         }
     }
-    else // has PdfName::KeyNames
+    else // has PdfNames::Names
     {
-        auto namesObj = GetDictionary().FindKey(PdfName::KeyNames);
+        auto namesObj = GetDictionary().FindKey(PdfNames::Names);
         if (namesObj != nullptr && namesObj->IsArray())
         {
             auto& namesArr = namesObj->GetArray();
@@ -229,16 +229,16 @@ void PdfNameTreeNode::SetLimits()
     if (m_Parent != nullptr)
     {
         // Root node is not allowed to have a limits key!
-        GetDictionary().AddKey(PdfName::KeyLimits, limits);
+        GetDictionary().AddKey(PdfNames::Limits, limits);
     }
 }
 
 bool PdfNameTreeNode::Rebalance()
 {
     PdfArray& arr = m_HasKids
-        ? GetDictionary().MustFindKey(PdfName::KeyKids).GetArray()
-        : GetDictionary().MustFindKey(PdfName::KeyNames).GetArray();
-    PdfName key = m_HasKids ? PdfName::KeyKids : PdfName::KeyNames;
+        ? GetDictionary().MustFindKey(PdfNames::Kids).GetArray()
+        : GetDictionary().MustFindKey(PdfNames::Names).GetArray();
+    PdfName key = m_HasKids ? PdfNames::Kids : PdfNames::Names;
     const unsigned arrLength = m_HasKids ? BalanceTreeMax : BalanceTreeMax * 2;
 
     if (arr.size() > arrLength)
@@ -255,12 +255,12 @@ bool PdfNameTreeNode::Rebalance()
         {
             m_HasKids = true;
             child1 = &GetDocument().GetObjects().CreateDictionaryObject();
-            GetDictionary().RemoveKey(PdfName::KeyNames);
+            GetDictionary().RemoveKey(PdfNames::Names);
         }
         else
         {
             child1 = &GetObject();
-            kids = GetDictionary().MustFindKey(PdfName::KeyKids).GetArray();
+            kids = GetDictionary().MustFindKey(PdfNames::Kids).GetArray();
         }
 
         auto child2 = &GetDocument().GetObjects().CreateDictionaryObject();
@@ -288,9 +288,9 @@ bool PdfNameTreeNode::Rebalance()
         }
 
         if (m_Parent == nullptr)
-            GetDictionary().AddKey(PdfName::KeyKids, kids);
+            GetDictionary().AddKey(PdfNames::Kids, kids);
         else
-            m_Parent->GetDictionary().AddKey(PdfName::KeyKids, kids);
+            m_Parent->GetDictionary().AddKey(PdfNames::Kids, kids);
 
         // Important is to the the limits
         // of the children first,
@@ -385,7 +385,7 @@ PdfObject* PdfNameTrees::getKeyValue(PdfObject& obj, const PdfString& key) const
     if (checkLimits(obj, key) != PdfNameLimits::Inside)
         return nullptr;
 
-    auto kidsObj = obj.GetDictionary().FindKey(PdfName::KeyKids);
+    auto kidsObj = obj.GetDictionary().FindKey(PdfNames::Kids);
     if (kidsObj != nullptr)
     {
         auto& kids = kidsObj->GetArray();
@@ -412,7 +412,7 @@ PdfObject* PdfNameTrees::getKeyValue(PdfObject& obj, const PdfString& key) const
     }
     else
     {
-        auto& names = obj.GetDictionary().MustFindKey(PdfName::KeyNames).GetArray();
+        auto& names = obj.GetDictionary().MustFindKey(PdfNames::Names).GetArray();
         PdfArray::iterator it = names.begin();
 
         // a names array is a set of PdfString/PdfObject pairs
@@ -471,7 +471,7 @@ PdfObject* PdfNameTrees::getValue(const string_view& name, const string_view& ke
 void PdfNameTrees::addToDictionary(PdfObject& obj, PdfDictionary& dict)
 {
     utls::RecursionGuard guard;
-    auto kidsObj = obj.GetDictionary().FindKey(PdfName::KeyKids);
+    auto kidsObj = obj.GetDictionary().FindKey(PdfNames::Kids);
     PdfObject* namesObj;
     if (kidsObj != nullptr)
     {
@@ -491,7 +491,7 @@ void PdfNameTrees::addToDictionary(PdfObject& obj, PdfDictionary& dict)
             }
         }
     }
-    else if ((namesObj = obj.GetDictionary().FindKey(PdfName::KeyNames)) != nullptr)
+    else if ((namesObj = obj.GetDictionary().FindKey(PdfNames::Names)) != nullptr)
     {
         auto& names = namesObj->GetArray();
         auto it = names.begin();
@@ -525,7 +525,7 @@ void PdfNameTrees::addToDictionary(PdfObject& obj, PdfDictionary& dict)
  */
 PdfNameLimits checkLimits(const PdfObject& obj, const string_view& key)
 {
-    auto limitsObj = obj.GetDictionary().FindKey(PdfName::KeyLimits);
+    auto limitsObj = obj.GetDictionary().FindKey(PdfNames::Limits);
     if (limitsObj != nullptr)
     {
         auto& limits = limitsObj->GetArray();
@@ -566,7 +566,7 @@ const PdfName& getNameTreeTypeName(PdfKnownNameTree type)
         case PdfKnownNameTree::Dests:
             return names.Dests;
         case PdfKnownNameTree::AP:
-            return PdfName::KeyAP;
+            return PdfNames::AP;
         case PdfKnownNameTree::JavaScript:
             return names.JavaScript;
         case PdfKnownNameTree::Pages:

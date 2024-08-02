@@ -228,7 +228,7 @@ void PdfDictionary::write(OutputStream& device, PdfWriteFlags writeMode, bool sk
             device.Write("<<");
     }
 
-    if (this->HasKey(PdfName::KeyType))
+    if (this->HasKey(PdfNames::Type))
     {
         // Type has to be the first key in any dictionary
         if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
@@ -236,7 +236,7 @@ void PdfDictionary::write(OutputStream& device, PdfWriteFlags writeMode, bool sk
         else
             device.Write("/Type");
 
-        this->getKey(PdfName::KeyType)->GetVariant().Write(device, writeMode, encrypt, buffer);
+        this->getKey(PdfNames::Type)->GetVariant().Write(device, writeMode, encrypt, buffer);
 
         if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
             device.Write('\n');
@@ -244,7 +244,7 @@ void PdfDictionary::write(OutputStream& device, PdfWriteFlags writeMode, bool sk
 
     for (auto& pair : m_Map)
     {
-        if (pair.first != PdfName::KeyType)
+        if (pair.first != PdfNames::Type)
         {
             pair.first.Write(device, writeMode, encrypt, buffer);
             if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)

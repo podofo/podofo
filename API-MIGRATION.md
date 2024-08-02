@@ -1,4 +1,5 @@
 ## 0.10.1 -> 1.0.0
+- Added `PdfNames` and moved all known `PdfName::Key...` names from there 
 - `PdfEncrypt`:
   * `GenerateEncryptionKey` renamed to `EnsureEncryptionInitialized` and takes `PdfEncryptContxt` as an argument
   * `Authenticate`, `EncryptTo`, `DecryptTo`, `CreateEncryptionInputStream`, `CreateEncryptionOutputStream` now take `PdfEncryptContxt` as an argument

@@ -61,7 +61,7 @@ void PdfFontCID::initImported()
     PdfArray arr;
 
     // Now setting each of the entries of the font
-    this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName("Type0"));
+    this->GetObject().GetDictionary().AddKey(PdfNames::Subtype, PdfName("Type0"));
     this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(this->GetName()));
 
     // The descendant font is a CIDFont:
@@ -85,7 +85,7 @@ void PdfFontCID::initImported()
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
     }
-    m_descendantFont->GetDictionary().AddKey(PdfName::KeySubtype, subtype);
+    m_descendantFont->GetDictionary().AddKey(PdfNames::Subtype, subtype);
 
     // Same base font as the owner font:
     m_descendantFont->GetDictionary().AddKey("BaseFont", PdfName(this->GetName()));
