@@ -163,6 +163,44 @@ TEST_CASE("TestSignature3")
     REQUIRE(ssl::ComputeMD5Str(buff) == "FB93FC8C74529094F909D4C423268865");
 }
 
+TEST_CASE("TestSignEncryptedDoc")
+{
+    auto inputPath = TestUtils::GetTestInputFilePath("AESV3R6-256.pdf");
+    auto outputPath = TestUtils::GetTestOutputFilePath("TestSignEncryptedDoc.pdf");
+
+    fs::copy_file(fs::u8path(inputPath), fs::u8path(outputPath), fs::copy_options::overwrite_existing);
+    auto stream = std::make_shared<FileStreamDevice>(outputPath, FileMode::Open);
+
+    // X509 Certificate
+    string cert;
+    TestUtils::ReadTestInputFile("mycert.der", cert);
+
+    // RSA Private key coefficients in der format (binary)
+    string pkey;
+    TestUtils::ReadTestInputFile("mykey-pkcs8.der", pkey);
+
+    auto date = PdfDate::ParseW3C("2024-07-31T17:03:42+02:00");
+
+    {
+        PdfMemDocument doc(stream, "userpass");
+        auto& page = doc.GetPages().GetPageAt(0);
+        auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+        signature.SetSignatureDate(date);
+        auto signer = PdfSignerCms(cert, pkey);
+        PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
+    }
+
+    {
+        // Just reload the signed document with owner password as a simple test
+        PdfMemDocument doc(stream, "ownerpass");
+        auto& page = doc.GetPages().GetPageAt(0);
+        auto& annot = page.GetAnnotations().GetAnnotAt(0);
+        auto& field = dynamic_cast<PdfAnnotationWidget&>(annot).GetField();
+        auto& signature = dynamic_cast<PdfSignature&>(field);
+        REQUIRE(signature.GetSignatureDate() == date);
+    }
+}
+
 TEST_CASE("TestSaveOnSigning")
 {
     PdfMemDocument doc;
