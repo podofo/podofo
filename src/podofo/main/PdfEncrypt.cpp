@@ -1699,6 +1699,9 @@ void PdfEncryptAESV3::GenerateEncryptionKey(
 {
     (void)documentId;
     (void)authResult;
+    (void)ctx;  // CHECK-ME: Investigate why we can't reuse
+                // the context supplied cipher context here
+                // in OpenSSL 3.3. Doing so will break tests
 
     // Prepare passwords
     unsigned char userpswd[127];
@@ -1746,17 +1749,18 @@ void PdfEncryptAESV3::GenerateEncryptionKey(
     // Encrypt Perms value
 
     int rc;
-    if ((rc = EVP_EncryptInit_ex(ctx, ssl::Aes256(), nullptr, encryptionKey, nullptr)) != 1)
+    unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> aes(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
+    if ((rc = EVP_EncryptInit_ex(aes.get(), ssl::Aes256(), nullptr, encryptionKey, nullptr)) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
 
-    EVP_CIPHER_CTX_set_padding(ctx, 0); // disable padding
+    EVP_CIPHER_CTX_set_padding(aes.get(), 0); // disable padding
 
     int dataOutMoved;
-    rc = EVP_EncryptUpdate(ctx, m_permsValue, &dataOutMoved, perms, 16);
+    rc = EVP_EncryptUpdate(aes.get(), m_permsValue, &dataOutMoved, perms, 16);
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 
-    rc = EVP_EncryptFinal_ex(ctx, &m_permsValue[dataOutMoved], &dataOutMoved);
+    rc = EVP_EncryptFinal_ex(aes.get(), &m_permsValue[dataOutMoved], &dataOutMoved);
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 }
@@ -1765,6 +1769,10 @@ PdfAuthResult PdfEncryptAESV3::Authenticate(const string_view& password, const s
     EVP_CIPHER_CTX* ctx, unsigned char encryptionKey[32]) const
 {
     (void)documentId;
+    (void)ctx;  // CHECK-ME: Investigate why we can't reuse
+                // the context supplied cipher context here
+                // in OpenSSL 3.3. Doing so will break tests
+
     PdfAuthResult ret = PdfAuthResult::Failed;
 
     // Prepare password
@@ -1787,10 +1795,11 @@ PdfAuthResult PdfEncryptAESV3::Authenticate(const string_view& password, const s
         // ISO 32000: "The 32-byte result is the key used to decrypt the 32-byte UE string using
         // AES-256 in CBC mode with no padding and an initialization vector of zero.
         // The 32-byte result is the file encryption key"
-        EVP_DecryptInit_ex(ctx, ssl::Aes256(), nullptr, hashValue, 0); // iv zero
-        EVP_CIPHER_CTX_set_padding(ctx, 0); // no padding
+        unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> aes(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
+        EVP_DecryptInit_ex(aes.get(), ssl::Aes256(), nullptr, hashValue, 0); // iv zero
+        EVP_CIPHER_CTX_set_padding(aes.get(), 0); // no padding
         int lOutLen;
-        EVP_DecryptUpdate(ctx, encryptionKey, &lOutLen, m_ueValue, 32);
+        EVP_DecryptUpdate(aes.get(), encryptionKey, &lOutLen, m_ueValue, 32);
     }
     else
     {
@@ -1809,10 +1818,11 @@ PdfAuthResult PdfEncryptAESV3::Authenticate(const string_view& password, const s
             // ISO 32000: "The 32-byte result is the key used to decrypt the 32-byte OE string using
             // AES-256 in CBC mode with no padding and an initialization vector of zero.
             // The 32-byte result is the file encryption key"
-            EVP_DecryptInit_ex(ctx, ssl::Aes256(), nullptr, hashValue, 0); // iv zero
-            EVP_CIPHER_CTX_set_padding(ctx, 0); // no padding
+            unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> aes(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
+            EVP_DecryptInit_ex(aes.get(), ssl::Aes256(), nullptr, hashValue, 0); // iv zero
+            EVP_CIPHER_CTX_set_padding(aes.get(), 0); // no padding
             int lOutLen;
-            EVP_DecryptUpdate(ctx, encryptionKey, &lOutLen, m_oeValue, 32);
+            EVP_DecryptUpdate(aes.get(), encryptionKey, &lOutLen, m_oeValue, 32);
         }
     }
 
