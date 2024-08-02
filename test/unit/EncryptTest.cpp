@@ -20,7 +20,7 @@ static void createEncryptedPdf(const string_view& filename);
 charbuff s_encBuffer;
 PdfPermissions s_protection;
 
-constexpr string_view ReferenceHash("298ACCFDC32BB2BC32BFD580883219AB");
+constexpr string_view ReferenceHash_R_11_0("298ACCFDC32BB2BC32BFD580883219AB");
 
 #define PDF_USER_PASSWORD "user"
 #define PDF_OWNER_PASSWORD "podofo"
@@ -70,7 +70,7 @@ TEST_CASE("TestEncryptedPDFs")
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("TemplateClearText.pdf"));
     doc.GetObjects().MustGetObject(PdfReference(11, 0)).MustGetStream().CopyTo(buffer);
-    REQUIRE(ssl::ComputeMD5Str(buffer) == ReferenceHash);
+    REQUIRE(ssl::ComputeMD5Str(buffer) == ReferenceHash_R_11_0);
 
     vector<string> testPaths = {
         TestUtils::GetTestInputFilePath("RC4V2-40.pdf"),
@@ -93,11 +93,11 @@ TEST_CASE("TestEncryptedPDFs")
     {
         doc.Load(path, "userpass");
         doc.GetObjects().MustGetObject(PdfReference(11, 0)).MustGetStream().CopyTo(buffer);
-        REQUIRE(ssl::ComputeMD5Str(buffer) == ReferenceHash);
+        REQUIRE(ssl::ComputeMD5Str(buffer) == ReferenceHash_R_11_0);
 
         doc.Load(path, "ownerpass");
         doc.GetObjects().MustGetObject(PdfReference(11, 0)).MustGetStream().CopyTo(buffer);
-        REQUIRE(ssl::ComputeMD5Str(buffer) == ReferenceHash);
+        REQUIRE(ssl::ComputeMD5Str(buffer) == ReferenceHash_R_11_0);
     }
 }
 
@@ -138,11 +138,11 @@ TEST_CASE("TestEncryptDecryptPDFs")
 
         doc.LoadFromBuffer(pdfBuffer, "userpass");
         doc.GetObjects().MustGetObject(PdfReference(11, 0)).MustGetStream().CopyTo(objBuffer);
-        REQUIRE(ssl::ComputeMD5Str(objBuffer) == ReferenceHash);
+        REQUIRE(ssl::ComputeMD5Str(objBuffer) == ReferenceHash_R_11_0);
 
         doc.LoadFromBuffer(pdfBuffer, "ownerpass");
         doc.GetObjects().MustGetObject(PdfReference(11, 0)).MustGetStream().CopyTo(objBuffer);
-        REQUIRE(ssl::ComputeMD5Str(objBuffer) == ReferenceHash);
+        REQUIRE(ssl::ComputeMD5Str(objBuffer) == ReferenceHash_R_11_0);
     }
 }
 
@@ -388,7 +388,7 @@ TEST_CASE("TestRemoveEncryption")
     doc.Load(TestUtils::GetTestOutputFilePath("Decrypted.pdf"));
     charbuff objBuffer;
     doc.GetObjects().MustGetObject(PdfReference(11, 0)).MustGetStream().CopyTo(objBuffer);
-    REQUIRE(ssl::ComputeMD5Str(objBuffer) == ReferenceHash);
+    REQUIRE(ssl::ComputeMD5Str(objBuffer) == ReferenceHash_R_11_0);
 }
 
 void testAuthenticate(PdfEncrypt& encrypt, PdfEncryptContext& context)
@@ -421,23 +421,35 @@ TEST_CASE("TestPreserveEncrypt")
 
     PdfMemDocument doc;
     charbuff pdfBuffer;
-    for (auto& path : testPaths)
+    charbuff objBuffer;
+    auto testSave = [&](bool incremental, bool isOwner)
     {
-        doc.Load(path, "userpass");
-        pdfBuffer.clear();
-        BufferStreamDevice device(pdfBuffer);
-        doc.Save(device);
-        doc.LoadFromBuffer(pdfBuffer, "ownerpass");
-    }
+        for (auto& path : testPaths)
+        {
+            doc.Load(path, isOwner ? "ownerpass" : "userpass");
+            pdfBuffer.clear();
+            BufferStreamDevice device(pdfBuffer);
+            if (incremental)
+            {
+                utls::ReadTo(pdfBuffer, path);
+                doc.SaveUpdate(device);
+            }
+            else
+            {
+                doc.Save(device);
+            }
 
-    for (auto& path : testPaths)
-    {
-        doc.Load(path, "ownerpass");
-        pdfBuffer.clear();
-        BufferStreamDevice device(pdfBuffer);
-        doc.Save(device);
-        doc.LoadFromBuffer(pdfBuffer, "userpass");
-    }
+            doc.LoadFromBuffer(pdfBuffer, isOwner ? "userpass" : "ownerpass");
+            doc.GetObjects().MustGetObject(PdfReference(11, 0)).MustGetStream().CopyTo(objBuffer);
+            REQUIRE(ssl::ComputeMD5Str(objBuffer) == ReferenceHash_R_11_0);
+        }
+    };
+
+    // Try all combinations regular/incremental save and user/owner access
+    testSave(false, false);
+    testSave(false, true);
+    testSave(true, false);
+    testSave(true, true);
 }
 
 void testEncrypt(PdfEncrypt& encrypt, PdfEncryptContext& context)
