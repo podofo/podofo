@@ -72,7 +72,7 @@ void PdfWriter::Write(OutputStreamDevice& device)
     // setup encrypt dictionary
     if (m_Encrypt != nullptr)
     {
-        m_Encrypt->GetEncrypt().GetEncryptionContext(m_identifier, m_Encrypt->GetContext());
+        m_Encrypt->GetEncrypt().EnsureEncryptionInitialized(m_identifier, m_Encrypt->GetContext());
 
         // Add our own Encryption dictionary
         m_EncryptObj = &m_Objects->CreateDictionaryObject();

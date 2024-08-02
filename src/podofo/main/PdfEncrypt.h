@@ -138,7 +138,7 @@ public:
      *  \param keyLength the length of the encryption key ranging from 40 to 128 bits
      *                    (only used if algorithm == PdfEncryptAlgorithm::RC4V2)
      *
-     *  \see GetEncryptionContext with the documentID to generate the real
+     *  \see EnsureEncryptionInitialized with the documentID to generate the real
      *       encryption key using this information
      */
     static std::unique_ptr<PdfEncrypt> Create(const std::string_view& userPassword,
@@ -182,11 +182,11 @@ public:
      */
     static bool IsEncryptionEnabled(PdfEncryptionAlgorithm algorithm);
 
-    /** Generate encryption key from user and owner passwords and protection key
+    /** Ensure encryption key and /O, /U, /OE, /UE values are initialized
      *
      *  \param documentId the documentId of the current document
      */
-    void GetEncryptionContext(const PdfString& documentId, PdfEncryptContext& context);
+    void EnsureEncryptionInitialized(const PdfString& documentId, PdfEncryptContext& context);
 
     /**
      * Tries to authenticate a user using either the user or owner password
@@ -379,11 +379,18 @@ protected:
     int64_t GetPValueForSerialization() const;
 
 protected:
-    void Init(PdfEncryptionAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision,
+    /**
+     * Init from parsed values
+     */
+    void InitFromValues(PdfEncryptionAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision,
         PdfPermissions pValue, const bufferview& uValue, const bufferview& oValue,
         bool encryptedMetadata);
 
-    void Init(const std::string_view& userPassword, const std::string_view& ownerPassword,
+    /**
+     * Init from scratch with user/owner password. Requires full
+     * initialization with EnsureEncryptionInitialized
+     */
+    void InitFromScratch(const std::string_view& userPassword, const std::string_view& ownerPassword,
         PdfEncryptionAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision,
         PdfPermissions pValue, bool encryptedMetadata);
 
@@ -440,7 +447,7 @@ private:
     unsigned char m_oValueSize;
     bool m_EncryptMetadata;            // Is metadata encrypted
     bool m_IsParsed;                   // True if the object is created from parsed values
-    bool m_valuesFilled;               // True if the object O/U values were filled
+    bool m_initialized;               // True if the object O/U values were filled
     std::string m_userPass;            // User password
     std::string m_ownerPass;           // Owner password
 

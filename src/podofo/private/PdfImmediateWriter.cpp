@@ -35,7 +35,7 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
     {
         m_encrypt.reset(new PdfEncryptSession(encrypt));
         this->SetEncrypt(*m_encrypt);
-        encrypt->GetEncryptionContext(GetIdentifier(), m_encrypt->GetContext());
+        encrypt->EnsureEncryptionInitialized(GetIdentifier(), m_encrypt->GetContext());
     }
 
     // Start with writing the header

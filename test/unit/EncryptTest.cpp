@@ -395,7 +395,7 @@ void testAuthenticate(PdfEncrypt& encrypt, PdfEncryptContext& context)
 {
     PdfString documentId = PdfString::FromHexData("BF37541A9083A51619AD5924ECF156DF");
 
-    encrypt.GetEncryptionContext(documentId, context);
+    encrypt.EnsureEncryptionInitialized(documentId, context);
 
     PdfEncryptContext authenticationTestContext;
     INFO("authenticate using user password");
