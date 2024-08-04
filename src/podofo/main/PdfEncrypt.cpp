@@ -589,6 +589,7 @@ int64_t PdfEncrypt::GetPValueForSerialization() const
 void PdfEncrypt::InitFromValues(PdfEncryptionAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision, PdfPermissions pValue,
     const bufferview& uValue, const bufferview& oValue, bool encryptedMetadata)
 {
+    PODOFO_ASSERT((size_t)keyLength / 8 <= std::size(((PdfEncryptContext*)nullptr)->m_encryptionKey));
     m_Algorithm = algorithm;
     m_KeyLength = keyLength;
     m_rValue = revision;
@@ -603,6 +604,7 @@ void PdfEncrypt::InitFromValues(PdfEncryptionAlgorithm algorithm, PdfKeyLength k
 void PdfEncrypt::InitFromScratch(const string_view& userPassword, const string_view& ownerPassword,
     PdfEncryptionAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision, PdfPermissions pValue, bool encryptedMetadata)
 {
+    PODOFO_ASSERT((size_t)keyLength / 8 <= std::size(((PdfEncryptContext*)nullptr)->m_encryptionKey));
     m_userPass = userPassword;
     m_ownerPass = ownerPassword;
     m_Algorithm = algorithm;
@@ -1946,6 +1948,7 @@ void PdfEncryptAESV3::generateInitialVector(unsigned char iv[])
 
 void PdfEncrypt::EncryptTo(charbuff& out, const bufferview& view, PdfEncryptContext& context, const PdfReference& objref) const
 {
+    PODOFO_ASSERT(m_initialized);
     size_t outputLen = this->CalculateStreamLength(view.size());
     out.resize(outputLen);
     this->Encrypt(view.data(), view.size(), context, objref, out.data(), outputLen);
@@ -1953,6 +1956,7 @@ void PdfEncrypt::EncryptTo(charbuff& out, const bufferview& view, PdfEncryptCont
 
 void PdfEncrypt::DecryptTo(charbuff& out, const bufferview& view, PdfEncryptContext& context, const PdfReference& objref) const
 {
+    PODOFO_ASSERT(m_initialized);
     // FIX-ME: The following clearly seems hardcoded for AES
     // It was found like this in PdfString and PdfTokenizer
     // Fix it so it will allocate the exact amount of memory
