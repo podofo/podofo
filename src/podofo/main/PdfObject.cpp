@@ -19,7 +19,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfObject PdfObject::Null = PdfVariant::Null;
+PdfObject PdfObject::Null = PdfObject(PdfVariant());
 
 PdfObject::PdfObject()
     : PdfObject(PdfDictionary(), PdfReference(), false) { }

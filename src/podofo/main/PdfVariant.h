@@ -318,6 +318,9 @@ public:
     inline PdfDataType GetDataType() const { return m_DataType; }
 
 private:
+    // Delete constructor with nullptr
+    PdfVariant(std::nullptr_t) = delete;
+
     PdfReference GetReferenceUnsafe() const;
     const PdfDictionary& GetDictionaryUnsafe() const;
     const PdfArray& GetArrayUnsafe() const;

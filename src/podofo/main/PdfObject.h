@@ -427,6 +427,9 @@ public:
     PdfObjectStream* GetStream();
 
 private:
+    // Delete constructor with nullptr
+    PdfObject(std::nullptr_t) = delete;
+
     PdfObject(PdfVariant&& var, const PdfReference& indirectReference, bool isDirty);
 
 protected:

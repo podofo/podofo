@@ -3,7 +3,6 @@
 #### API Review
 - PdfDocument: Review AttachFile, GetAttachment, FreeObjectMemory, AddNamedDestination. Rename LoadFromDevice(device) to just Load(device)
 - PdfField: Evaluate make a virtual getValueObject()
-- Evaluate removing PdfObject::Null and PdfVariant::Null and introduce nullptr_t constructor overloads
 - Review PdfPage::SetICCProfile(), PdfImage::SetICCProfile()
 - PdfErrorCode: Check all values
 - PdfField: Make PdfFieldChildrenCollectionBase m_Children a unique_ptr, and lazy load that
