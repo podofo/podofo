@@ -4,7 +4,6 @@
 - PdfDocument: Review AttachFile, GetAttachment, FreeObjectMemory, AddNamedDestination. Rename LoadFromDevice(device) to just Load(device)
 - PdfField: Evaluate make a virtual getValueObject()
 - Evaluate removing PdfObject::Null and PdfVariant::Null and introduce nullptr_t constructor overloads
-- PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
 - Review PdfPage::SetICCProfile(), PdfImage::SetICCProfile()
 - PdfErrorCode: Check all values
 - PdfField: Make PdfFieldChildrenCollectionBase m_Children a unique_ptr, and lazy load that
@@ -19,6 +18,7 @@ either assume UTF-8 and/or checks for used codepoints
 - Check/Review doxygen doc
 - If the doc is updated, then should not allow to set an encryption
 - If the doc is updated and has an encryption, it should not allow to remove it
+  in a following update
 - Evaluate make PdfObjectStream not flate filter by default in PdfMemDocument?
 - Evaluate move more utf8::next to utf8::unchecked::next
 - Add a PdfRect-like class PdfCorners that avoid coordinates normalization

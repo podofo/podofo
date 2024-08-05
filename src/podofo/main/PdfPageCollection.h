@@ -72,7 +72,8 @@ public:
      *  \param size a Rect specifying the size of the page (i.e the /MediaBox key) in PDF units
      *  \returns a pointer to a PdfPage object
      */
-    PdfPage& CreatePage(const Rect& size);
+    PdfPage& CreatePage(const nullable<Rect>& size = nullptr);
+    PdfPage& CreatePage(PdfPageSize pageSize);
 
     /** Creates a new page object and inserts it at index atIndex.
      *  The returned page is owned by the pages tree and will get deleted along
@@ -82,7 +83,8 @@ public:
      *  \param atIndex index where to insert the new page (0-based)
      *  \returns a pointer to a PdfPage object
      */
-    PdfPage& CreatePageAt(unsigned atIndex, const Rect& size);
+    PdfPage& CreatePageAt(unsigned atIndex, const nullable<Rect>& size = nullptr);
+    PdfPage& CreatePageAt(unsigned atIndex, PdfPageSize pageSize);
 
     /** Create count new page objects and insert at the index atIndex. This is significantly faster
      *  than calling CreatePageAt repeatedly.
@@ -91,7 +93,8 @@ public:
      *  \param count number of pages to create
      *  \param atIndex index where to insert the new page (0-based)
      */
-    void CreatePagesAt(unsigned atIndex, unsigned count, const Rect& size);
+    void CreatePagesAt(unsigned atIndex, unsigned count, const nullable<Rect>& size = nullptr);
+    void CreatePagesAt(unsigned atIndex, unsigned count, PdfPageSize pageSize);
 
     /** Appends another PdfDocument to this document.
      *  \param doc the document to append
@@ -205,6 +208,10 @@ private:
     void InsertPagesAt(unsigned atIndex, cspan<PdfPage*> pages);
 
 private:
+    void insertPageAt(unsigned atIndex, PdfPage& page);
+    void insertPagesAt(unsigned atIndex, cspan<PdfPage*> pages);
+    Rect getActualRect(const nullable<Rect>& size);
+
     PdfPage& getPage(const PdfReference& ref) const;
 
     void initPages();

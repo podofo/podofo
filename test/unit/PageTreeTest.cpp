@@ -103,7 +103,7 @@ TEST_CASE("testCreateDelete")
 
     {
         // write 1. page
-        auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+        auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
         painter.SetCanvas(page);
         painter.TextState.SetFont(*font, 16.0);
         painter.DrawText("Page 1", 200, 200);
@@ -113,7 +113,7 @@ TEST_CASE("testCreateDelete")
 
     {
         // write 2. page
-        auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+        auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
         painter.SetCanvas(page);
         painter.TextState.SetFont(*font, 16.0);
         painter.DrawText("Page 2", 200, 200);
@@ -127,7 +127,7 @@ TEST_CASE("testCreateDelete")
 
     {
         // write 3. page
-        auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+        auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
         painter.SetCanvas(page);
         painter.TextState.SetFont(*font, 16.0);
         painter.DrawText("Page 3", 200, 200);
@@ -246,7 +246,7 @@ void testInsert(PdfMemDocument& doc)
     const unsigned INSERTED_PAGE_FLAG2 = 1234 + 2;
 
     {
-        auto& page = doc.GetPages().CreatePageAt(0, PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+        auto& page = doc.GetPages().CreatePageAt(0, PdfPageSize::A4);
         page.GetObject().GetDictionary().AddKey(TEST_PAGE_KEY,
             static_cast<int64_t>(INSERTED_PAGE_FLAG));
     }
@@ -259,7 +259,7 @@ void testInsert(PdfMemDocument& doc)
 
     {
         // Insert at end 
-        auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+        auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
         page.GetObject().GetDictionary().AddKey(TEST_PAGE_KEY,
             static_cast<int64_t>(INSERTED_PAGE_FLAG1));
     }
@@ -270,7 +270,7 @@ void testInsert(PdfMemDocument& doc)
     // Insert in middle
     const unsigned INSERT_POINT = 50;
     {
-        auto& page = doc.GetPages().CreatePageAt(INSERT_POINT, PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+        auto& page = doc.GetPages().CreatePageAt(INSERT_POINT, PdfPageSize::A4);
         page.GetObject().GetDictionary().AddKey(TEST_PAGE_KEY,
             static_cast<int64_t>(INSERTED_PAGE_FLAG2));
     }
@@ -292,7 +292,7 @@ void createTestTree(PdfMemDocument& doc)
 {
     for (unsigned i = 0; i < TEST_NUM_PAGES; i++)
     {
-        auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+        auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
         page.GetObject().GetDictionary().AddKey(TEST_PAGE_KEY, static_cast<int64_t>(i));
         REQUIRE(doc.GetPages().GetCount() == i + 1);
     }

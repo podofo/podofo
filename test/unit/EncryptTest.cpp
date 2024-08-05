@@ -343,7 +343,7 @@ TEST_CASE("TestEncryptBigBuffer")
         // Create a document with a big enough buffer and ensure it won't
         // be compressed, so the encryption will operate on a big buffer 
         PdfMemDocument doc;
-        (void)doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+        (void)doc.GetPages().CreatePage(PdfPageSize::A4);
         auto& obj = doc.GetObjects().CreateDictionaryObject();
         {
             vector<char> testBuff(BufferSize);
@@ -483,7 +483,7 @@ void testEncrypt(PdfEncrypt& encrypt, PdfEncryptContext& context)
 void createEncryptedPdf(const string_view& filename)
 {
     PdfMemDocument doc;
-    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
     PdfPainter painter;
     painter.SetCanvas(page);
 

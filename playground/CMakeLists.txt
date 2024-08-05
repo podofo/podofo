@@ -88,10 +88,10 @@ if(WIN32)
 
     # OpenSSL
     set(OPENSSL_INCLUDE_DIR "${DEPS_PATH}/openssl/include" CACHE PATH "" FORCE)
-    set(LIB_EAY_DEBUG "${DEPS_PATH}/openssl/lib/${ARCH}/cryptod.lib" CACHE FILEPATH "" FORCE)
-    set(LIB_EAY_RELEASE "${DEPS_PATH}/openssl/lib/${ARCH}/crypto.lib" CACHE FILEPATH "" FORCE)
-    set(SSL_EAY_DEBUG "${DEPS_PATH}/openssl/lib/${ARCH}/ssld.lib" CACHE FILEPATH "" FORCE)
-    set(SSL_EAY_RELEASE "${DEPS_PATH}/openssl/lib/${ARCH}/ssl.lib" CACHE FILEPATH "" FORCE)
+    set(LIB_EAY_DEBUG "${DEPS_PATH}/openssl/lib/${ARCH}/libcrypto.lib" CACHE FILEPATH "" FORCE)
+    set(LIB_EAY_RELEASE "${DEPS_PATH}/openssl/lib/${ARCH}/libcrypto.lib" CACHE FILEPATH "" FORCE)
+    set(SSL_EAY_DEBUG "${DEPS_PATH}/openssl/lib/${ARCH}/libssl.lib" CACHE FILEPATH "" FORCE)
+    set(SSL_EAY_RELEASE "${DEPS_PATH}/openssl/lib/${ARCH}/libssl.lib" CACHE FILEPATH "" FORCE)
     # Libxml2
     set(LIBXML2_LIBRARY "${DEPS_PATH}/libxml2/lib/${ARCH}/libxml2${LIB_SUFFIX}.lib" CACHE FILEPATH "" FORCE)
     # Fontconfig

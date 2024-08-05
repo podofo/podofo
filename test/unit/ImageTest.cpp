@@ -95,7 +95,7 @@ TEST_CASE("TestImage3")
     {
         PdfMemDocument doc;
         PdfPainter painter;
-        auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+        auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
         painter.SetCanvas(page);
         auto img = doc.CreateImage();
         img->Load(TestUtils::GetTestInputFilePath("ReferenceImage.png"));
@@ -117,7 +117,7 @@ TEST_CASE("TestImage4")
     {
         PdfMemDocument doc;
         PdfPainter painter;
-        auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+        auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
         painter.SetCanvas(page);
         auto img = doc.CreateImage();
         img->Load(TestUtils::GetTestInputFilePath("ReferenceImage.jpg"));
@@ -211,7 +211,7 @@ TEST_CASE("TestImage7")
     {
         PdfMemDocument doc;
         PdfPainter painter;
-        auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+        auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
         painter.SetCanvas(page);
 
         auto img1 = doc.CreateImage();

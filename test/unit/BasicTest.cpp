@@ -24,9 +24,9 @@ TEST_CASE("TestIterations")
 {
     PdfMemDocument doc;
     PdfPage* pages[] = {
-        &doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4)),
-        &doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4)),
-        &doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4)),
+        &doc.GetPages().CreatePage(PdfPageSize::A4),
+        &doc.GetPages().CreatePage(PdfPageSize::A4),
+        &doc.GetPages().CreatePage(PdfPageSize::A4),
     };
 
     unsigned i = 0;

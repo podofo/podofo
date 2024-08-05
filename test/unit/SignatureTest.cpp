@@ -204,7 +204,7 @@ TEST_CASE("TestSignEncryptedDoc")
 TEST_CASE("TestSaveOnSigning")
 {
     PdfMemDocument doc;
-    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
     string x509certbuffer;
     TestUtils::ReadTestInputFile("mycert.der", x509certbuffer);
 

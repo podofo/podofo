@@ -86,6 +86,21 @@ const PdfPage& PdfPageCollection::GetPage(const PdfReference& ref) const
     return getPage(ref);
 }
 
+Rect PdfPageCollection::getActualRect(const nullable<Rect>& size)
+{
+    if (size == nullptr)
+    {
+        if (m_Pages.size() == 0)
+            return PdfPage::CreateStandardPageSize(PdfPageSize::A4);
+        else
+            return m_Pages[m_Pages.size() - 1]->GetRect();
+    }
+    else
+    {
+        return *size;
+    }
+}
+
 PdfPage& PdfPageCollection::getPage(const PdfReference& ref) const
 {
     // We have to search through all pages,
@@ -123,14 +138,25 @@ PdfPageCollection::const_iterator PdfPageCollection::end() const
 
 void PdfPageCollection::InsertPageAt(unsigned atIndex, PdfPage& pageObj)
 {
+    FlattenStructure();
     vector<PdfPage*> objs = { &pageObj };
-    InsertPagesAt(atIndex, objs);
+    insertPagesAt(atIndex, objs);
+}
+
+void PdfPageCollection::insertPageAt(unsigned atIndex, PdfPage& pageObj)
+{
+    vector<PdfPage*> objs = { &pageObj };
+    insertPagesAt(atIndex, objs);
 }
 
 void PdfPageCollection::InsertPagesAt(unsigned atIndex, cspan<PdfPage*> pages)
 {
     FlattenStructure();
+    insertPagesAt(atIndex, pages);
+}
 
+void PdfPageCollection::insertPagesAt(unsigned atIndex, cspan<PdfPage*> pages)
+{
     // Insert the pages and fix the indices
     m_Pages.insert(m_Pages.begin() + atIndex, pages.begin(), pages.end());
     for (unsigned i = atIndex; i < m_Pages.size(); i++)
@@ -149,26 +175,44 @@ void PdfPageCollection::InsertPagesAt(unsigned atIndex, cspan<PdfPage*> pages)
     GetDictionary().AddKey(PdfNames::Count, static_cast<int64_t>(m_Pages.size()));
 }
 
-PdfPage& PdfPageCollection::CreatePage(const Rect& size)
+PdfPage& PdfPageCollection::CreatePage(const nullable<Rect>& size_)
 {
+    FlattenStructure();
+    auto size = getActualRect(size_);
     auto page = new PdfPage(GetDocument(), size);
-    InsertPageAt((unsigned)m_Pages.size(), *page);
+    insertPageAt((unsigned)m_Pages.size(), *page);
     return *page;
 }
 
-PdfPage& PdfPageCollection::CreatePageAt(unsigned atIndex, const Rect& size)
+PdfPage& PdfPageCollection::CreatePage(PdfPageSize pageSize)
 {
+    return CreatePage(PdfPage::CreateStandardPageSize(pageSize));
+}
+
+PdfPage& PdfPageCollection::CreatePageAt(unsigned atIndex, const nullable<Rect>& size_)
+{
+    FlattenStructure();
+    auto size = getActualRect(size_);
+
     unsigned pageCount = this->GetCount();
     if (atIndex > pageCount)
         atIndex = pageCount;
 
     auto page = new PdfPage(GetDocument(), size);
-    InsertPageAt(atIndex, *page);
+    insertPageAt(atIndex, *page);
     return *page;
 }
 
-void PdfPageCollection::CreatePagesAt(unsigned atIndex, unsigned count, const Rect& size)
+PdfPage& PdfPageCollection::CreatePageAt(unsigned atIndex, PdfPageSize pageSize)
 {
+    return CreatePageAt(atIndex, PdfPage::CreateStandardPageSize(pageSize));
+}
+
+void PdfPageCollection::CreatePagesAt(unsigned atIndex, unsigned count, const nullable<Rect>& size_)
+{
+    FlattenStructure();
+    auto size = getActualRect(size_);
+
     unsigned pageCount = this->GetCount();
     if (atIndex > pageCount)
         atIndex = pageCount;
@@ -177,7 +221,12 @@ void PdfPageCollection::CreatePagesAt(unsigned atIndex, unsigned count, const Re
     for (unsigned i = 0; i < count; i++)
         pages[i] = new PdfPage(GetDocument(), size);
 
-    InsertPagesAt(atIndex, pages);
+    insertPagesAt(atIndex, pages);
+}
+
+void PdfPageCollection::CreatePagesAt(unsigned atIndex, unsigned count, PdfPageSize pageSize)
+{
+    CreatePagesAt(atIndex, count, PdfPage::CreateStandardPageSize(pageSize));
 }
 
 void PdfPageCollection::AppendDocumentPages(const PdfDocument& doc)

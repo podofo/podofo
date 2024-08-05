@@ -14,7 +14,7 @@ using namespace PoDoFo;
 TEST_CASE("TestEmptyContentsStream")
 {
     PdfMemDocument doc;
-    auto& page1 = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto& page1 = doc.GetPages().CreatePage(PdfPageSize::A4);
     REQUIRE(page1.GetDictionary().MustGetKey("Parent").GetReference() == doc.GetPages().GetObject().GetIndirectReference());
     auto& annot1 = page1.GetAnnotations().CreateAnnot<PdfAnnotationPopup>(Rect(300.0, 20.0, 250.0, 50.0));
     PdfString title("Author: Dominik Seichter");

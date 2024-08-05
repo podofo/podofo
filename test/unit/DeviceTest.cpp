@@ -29,7 +29,7 @@ TEST_CASE("testSaveIncremental")
 {
     PdfMemDocument doc;
     auto testPath = TestUtils::GetTestOutputFilePath("testSaveIncremental.pdf");
-    doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    doc.GetPages().CreatePage(PdfPageSize::A4);
     doc.Save(testPath);
     doc.Load(testPath);
     doc.SaveUpdate(testPath);
@@ -40,7 +40,7 @@ TEST_CASE("TestStreamedDocument")
 {
     auto testPath = TestUtils::GetTestOutputFilePath("TestStreamedDocument.pdf");
     PdfStreamedDocument document(testPath);
-    auto& page = document.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto& page = document.GetPages().CreatePage(PdfPageSize::A4);
     // NOTE: use a TTC version of the LiberationSans format to test TTC extraction
     auto& font = document.GetFonts().GetOrCreateFont(TestUtils::GetTestInputFilePath("Fonts", "LiberationSans.ttc"), 2);
     PdfPainter painter;

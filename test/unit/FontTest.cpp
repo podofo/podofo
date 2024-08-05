@@ -47,7 +47,7 @@ TEST_CASE("TestFonts")
 TEST_CASE("TestCreateFontExtract")
 {
     PdfMemDocument doc;
-    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
 
     // Play a bit with font path caching
     auto fontPath1 = TestUtils::GetTestInputFilePath("Fonts", "LiberationSans-Regular.ttf");

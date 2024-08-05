@@ -112,7 +112,7 @@ TEST_CASE("TestPainter1")
 TEST_CASE("TestPainter2")
 {
     PdfMemDocument doc;
-    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
     PdfPainter painter;
     painter.SetCanvas(page);
     drawSample(painter);
@@ -126,7 +126,7 @@ TEST_CASE("TestPainter2")
 TEST_CASE("TestPainter3")
 {
     PdfMemDocument doc;
-    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
     PdfPainter painter;
     painter.SetCanvas(page);
     painter.TextState.SetFont(doc.GetFonts().GetStandard14Font(PdfStandard14FontType::TimesRoman), 15);
@@ -160,7 +160,7 @@ Q
 TEST_CASE("TestPainter4")
 {
     PdfMemDocument doc;
-    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
 
     PdfFontCreateParams params;
     params.Encoding = PdfEncoding(PdfEncodingMapFactory::WinAnsiEncodingInstance());
@@ -324,7 +324,7 @@ Q
 TEST_CASE("TestPainter5")
 {
     PdfMemDocument doc;
-    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
 
     PdfFontCreateParams params;
     params.Encoding = PdfEncoding(PdfEncodingMapFactory::WinAnsiEncodingInstance());
@@ -361,7 +361,7 @@ Q
 TEST_CASE("TestPainter6")
 {
     PdfMemDocument doc;
-    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
 
     PdfFontCreateParams params;
     params.Encoding = PdfEncoding(PdfEncodingMapFactory::WinAnsiEncodingInstance());
@@ -400,7 +400,7 @@ TEST_CASE("TestAppend")
     string_view example = "BT (Hello) Tj ET";
 
     PdfMemDocument doc;
-    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
 
     auto& contents = page.GetOrCreateContents();
     auto& stream = contents.CreateStreamForAppending();
