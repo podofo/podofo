@@ -22,7 +22,7 @@ void hexchr(const unsigned char ch, T& it);
 static void EscapeNameTo(string& dst, const string_view& view);
 static string UnescapeName(const string_view& view);
 
-const PdfName PdfNames::Null = PdfName();
+const PdfName PdfName::Null = PdfName();
 const PdfName PdfNames::Contents = PdfName("Contents");
 const PdfName PdfNames::Flags = PdfName("Flags");
 const PdfName PdfNames::Length = PdfName("Length");

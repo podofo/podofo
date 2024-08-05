@@ -138,7 +138,7 @@ void PdfDocument::append(const PdfDocument& doc, bool appendAll)
             PdfName("MediaBox"),
             PdfName("CropBox"),
             PdfName("Rotate"),
-            PdfNames::Null
+            PdfName::Null
         };
 
         // append all pages now to our page tree
@@ -226,7 +226,7 @@ void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc,
         PdfName("MediaBox"),
         PdfName("CropBox"),
         PdfName("Rotate"),
-        PdfNames::Null
+        PdfName::Null
     };
 
     // append all page to our page tree

@@ -25,8 +25,13 @@ namespace PoDoFo {
 class PODOFO_API PdfName final : public PdfDataProvider
 {
 public:
-    /** Constructor to create nullptr strings.
-     *  use PdfNames::Null instead of this constructor
+    /** Null name, corresponds to "/"
+     */
+    static const PdfName Null;
+
+public:
+    /** Constructor to create null name (corresponds to "/")
+     *  use PdfName::Null instead of this constructor
      */
     PdfName();
 
@@ -39,9 +44,6 @@ public:
     PdfName(const char* str);
     PdfName(const std::string& str);
     PdfName(charbuff&& buff);
-
-    // Delete constructor with nullptr
-    PdfName(std::nullptr_t) = delete;
 
     /** Create a copy of an existing PdfName object.
      *  \param rhs another PdfName object
@@ -116,6 +118,9 @@ public:
     operator std::string_view() const;
 
 private:
+    // Delete constructor with nullptr
+    PdfName(std::nullptr_t) = delete;
+
     void expandUtf8String() const;
     void initFromUtf8String(const std::string_view& view);
 
@@ -144,7 +149,6 @@ public:
     static const PdfName Contents;
     static const PdfName Flags;
     static const PdfName Length;
-    static const PdfName Null;
     static const PdfName Rect;
     static const PdfName Size;
     static const PdfName Subtype;
