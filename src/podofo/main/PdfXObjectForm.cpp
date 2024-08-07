@@ -22,10 +22,12 @@ PdfXObjectForm::PdfXObjectForm(PdfDocument& doc, const Rect& rect, const string_
 PdfXObjectForm::PdfXObjectForm(PdfObject& obj)
     : PdfXObject(obj, PdfXObjectType::Form)
 {
-    if (obj.GetDictionary().HasKey("BBox"))
-        m_Rect = Rect::FromArray(obj.GetDictionary().MustFindKey("BBox").GetArray());
+    auto& dict = GetDictionary();
+    const PdfArray* arr;
+    if (dict.TryFindKeyAs("BBox", arr))
+        m_Rect = Rect::FromArray(*arr);
 
-    auto resources = obj.GetDictionary().FindKey("Resources");
+    auto resources = dict.FindKey("Resources");
     if (resources != nullptr)
         m_Resources.reset(new PdfResources(*resources));
 }
@@ -56,7 +58,7 @@ void PdfXObjectForm::SetRect(const Rect& rect)
 {
     PdfArray bbox;
     rect.ToArray(bbox);
-    GetObject().GetDictionary().AddKey("BBox", bbox);
+    GetDictionary().AddKey("BBox", bbox);
     m_Rect = rect;
 }
 
@@ -129,16 +131,16 @@ void PdfXObjectForm::initXObject(const Rect& rect)
 
     PdfArray bbox;
     rect.ToArray(bbox);
-    this->GetObject().GetDictionary().AddKey("BBox", bbox);
-    this->GetObject().GetDictionary().AddKey("FormType", PdfVariant(static_cast<int64_t>(1))); // only 1 is only defined in the specification.
-    this->GetObject().GetDictionary().AddKey("Matrix", m_Matrix);
+    GetDictionary().AddKey("BBox", bbox);
+    GetDictionary().AddKey("FormType", PdfVariant(static_cast<int64_t>(1))); // only 1 is only defined in the specification.
+    GetDictionary().AddKey("Matrix", m_Matrix);
 }
 
 void PdfXObjectForm::initAfterPageInsertion(const PdfPage& page)
 {
     PdfArray bbox;
     m_Rect.ToArray(bbox);
-    this->GetObject().GetDictionary().AddKey("BBox", bbox);
+    GetDictionary().AddKey("BBox", bbox);
 
     int rotation = page.GetRotation();
     // Swap offsets/width/height for vertical rotation
@@ -205,5 +207,5 @@ void PdfXObjectForm::initAfterPageInsertion(const PdfPage& page)
     matrix.Add(PdfObject(e));
     matrix.Add(PdfObject(f));
 
-    this->GetObject().GetDictionary().AddKey("Matrix", matrix);
+    GetDictionary().AddKey("Matrix", matrix);
 }
