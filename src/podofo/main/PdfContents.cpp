@@ -78,7 +78,7 @@ PdfObjectStream & PdfContents::CreateStreamForAppending(PdfStreamAppendFlags fla
     {
         // Create a /Contents array and put the current stream into it
         auto& newObjArray = m_parent->GetDocument().GetObjects().CreateArrayObject();
-        m_parent->GetObject().GetDictionary().AddKeyIndirect("Contents", newObjArray);
+        m_parent->GetDictionary().AddKeyIndirect("Contents", newObjArray);
         arr = &newObjArray.GetArray();
         arr->AddIndirect(*m_object);
         m_object = &newObjArray;
@@ -132,5 +132,5 @@ void PdfContents::copyTo(OutputStream& stream, const PdfArray& arr) const
 
 void PdfContents::reset()
 {
-    m_parent->GetObject().GetDictionary().AddKeyIndirect("Contents", *m_object);
+    m_parent->GetDictionary().AddKeyIndirect("Contents", *m_object);
 }

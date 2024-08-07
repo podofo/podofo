@@ -436,7 +436,7 @@ static void draw_annotation(PdfDocument& document,
 
 static PdfObject* find_existing_signature_field(PdfAcroForm& acroForm, const PdfString& name)
 {
-    PdfObject* fields = acroForm.GetObject().GetDictionary().GetKey("Fields");
+    PdfObject* fields = acroForm.GetDictionary().GetKey("Fields");
     if (fields)
     {
         if (fields->GetDataType() == PdfDataType::Reference)
@@ -826,15 +826,15 @@ void Main(const cspan<string_view>& args)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::PageNotFound, "The document has no page. Only documents with at least one page can be signed");
 
     auto& acroForm = document.GetOrCreateAcroForm();
-    if (!acroForm.GetObject().GetDictionary().HasKey("SigFlags") ||
-        !acroForm.GetObject().GetDictionary().MustGetKey("SigFlags").IsNumber() ||
-        acroForm.GetObject().GetDictionary().FindKeyAsSafe<int64_t>("SigFlags") != 3)
+    if (!acroForm.GetDictionary().HasKey("SigFlags") ||
+        !acroForm.GetDictionary().MustGetKey("SigFlags").IsNumber() ||
+        acroForm.GetDictionary().FindKeyAsSafe<int64_t>("SigFlags") != 3)
     {
-        if (acroForm.GetObject().GetDictionary().HasKey("SigFlags"))
-            acroForm.GetObject().GetDictionary().RemoveKey("SigFlags");
+        if (acroForm.GetDictionary().HasKey("SigFlags"))
+            acroForm.GetDictionary().RemoveKey("SigFlags");
 
         int64_t val = 3;
-        acroForm.GetObject().GetDictionary().AddKey("SigFlags", val);
+        acroForm.GetDictionary().AddKey("SigFlags", val);
     }
 
     if (acroForm.GetNeedAppearances())

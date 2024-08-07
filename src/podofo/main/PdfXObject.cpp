@@ -26,7 +26,7 @@ PdfXObject::PdfXObject(PdfDocument& doc, PdfXObjectType subType, const string_vi
     : PdfDictionaryElement(doc, "XObject"), m_Type(subType)
 {
     initIdentifiers(prefix);
-    this->GetObject().GetDictionary().AddKey(PdfNames::Subtype, PdfName(toString(subType)));
+    this->GetDictionary().AddKey(PdfNames::Subtype, PdfName(toString(subType)));
 }
 
 PdfXObject::PdfXObject(PdfObject& obj, PdfXObjectType subType)

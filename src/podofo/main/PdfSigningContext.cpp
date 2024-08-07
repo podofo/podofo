@@ -155,7 +155,7 @@ void PdfSigningContext::saveDocForSigning(PdfMemDocument& doc, StreamDevice& dev
 
     // TABLE 8.68 Signature flags: SignaturesExist (1) | AppendOnly (2)
     // NOTE: This enables the signature panel visualization
-    form.GetObject().GetDictionary().AddKey("SigFlags", (int64_t)3);
+    form.GetDictionary().AddKey("SigFlags", (int64_t)3);
 
     auto acroForm = doc.GetAcroForm();
     if (acroForm != nullptr)

@@ -247,7 +247,7 @@ void testInsert(PdfMemDocument& doc)
 
     {
         auto& page = doc.GetPages().CreatePageAt(0, PdfPageSize::A4);
-        page.GetObject().GetDictionary().AddKey(TEST_PAGE_KEY,
+        page.GetDictionary().AddKey(TEST_PAGE_KEY,
             static_cast<int64_t>(INSERTED_PAGE_FLAG));
     }
 
@@ -260,7 +260,7 @@ void testInsert(PdfMemDocument& doc)
     {
         // Insert at end 
         auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
-        page.GetObject().GetDictionary().AddKey(TEST_PAGE_KEY,
+        page.GetDictionary().AddKey(TEST_PAGE_KEY,
             static_cast<int64_t>(INSERTED_PAGE_FLAG1));
     }
 
@@ -271,7 +271,7 @@ void testInsert(PdfMemDocument& doc)
     const unsigned INSERT_POINT = 50;
     {
         auto& page = doc.GetPages().CreatePageAt(INSERT_POINT, PdfPageSize::A4);
-        page.GetObject().GetDictionary().AddKey(TEST_PAGE_KEY,
+        page.GetDictionary().AddKey(TEST_PAGE_KEY,
             static_cast<int64_t>(INSERTED_PAGE_FLAG2));
     }
 
@@ -293,7 +293,7 @@ void createTestTree(PdfMemDocument& doc)
     for (unsigned i = 0; i < TEST_NUM_PAGES; i++)
     {
         auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
-        page.GetObject().GetDictionary().AddKey(TEST_PAGE_KEY, static_cast<int64_t>(i));
+        page.GetDictionary().AddKey(TEST_PAGE_KEY, static_cast<int64_t>(i));
         REQUIRE(doc.GetPages().GetCount() == i + 1);
     }
 }
@@ -316,7 +316,7 @@ PdfMemDocument PdfPageTest::CreateTestTreeCustom()
         {
             unique_ptr<PdfPage> page(new PdfPage(doc, PdfPage::CreateStandardPageSize(PdfPageSize::A4)));
             page->SetIndex(j);
-            page->GetObject().GetDictionary().AddKey(TEST_PAGE_KEY,
+            page->GetDictionary().AddKey(TEST_PAGE_KEY,
                 static_cast<int64_t>(i) * COUNT + j);
 
             nodeKids.Add(page->GetObject().GetIndirectReference());
@@ -347,7 +347,7 @@ vector<unique_ptr<PdfPage>> PdfPageTest::CreateSamplePages(PdfMemDocument& doc, 
     {
         pages[i].reset(new PdfPage(doc, PdfPage::CreateStandardPageSize(PdfPageSize::A4)));
         pages[i]->SetIndex(i);
-        pages[i]->GetObject().GetDictionary().AddKey(TEST_PAGE_KEY, static_cast<int64_t>(i));
+        pages[i]->GetDictionary().AddKey(TEST_PAGE_KEY, static_cast<int64_t>(i));
 
         PdfPainter painter;
         painter.SetCanvas(*pages[i]);
@@ -461,7 +461,7 @@ void createNestedArrayTree(PdfMemDocument& doc)
     for (unsigned i = 0; i < COUNT; i++)
     {
         kids.Add(pages[i]->GetObject().GetIndirectReference());
-        pages[i]->GetObject().GetDictionary().AddKey("Parent", root.GetIndirectReference());
+        pages[i]->GetDictionary().AddKey("Parent", root.GetIndirectReference());
     }
 
     // create nested kids array
@@ -475,7 +475,7 @@ void createNestedArrayTree(PdfMemDocument& doc)
 
 bool isPageNumber(PdfPage& page, unsigned number)
 {
-    int64_t pageNumber = page.GetObject().GetDictionary().GetKeyAs<int64_t>(TEST_PAGE_KEY, -1);
+    int64_t pageNumber = page.GetDictionary().GetKeyAs<int64_t>(TEST_PAGE_KEY, -1);
 
     if (pageNumber != static_cast<int64_t>(number))
     {

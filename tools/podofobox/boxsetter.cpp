@@ -25,15 +25,15 @@ void BoxSetter::SetBox(PdfPage& page)
     PdfArray r;
     m_rect.ToArray(r);
     if (m_box.find("media") != string::npos)
-        page.GetObject().GetDictionary().AddKey("MediaBox", r);
+        page.GetDictionary().AddKey("MediaBox", r);
     else if (m_box.find("crop") != string::npos)
-        page.GetObject().GetDictionary().AddKey("CropBox", r);
+        page.GetDictionary().AddKey("CropBox", r);
     else if (m_box.find("bleed") != string::npos)
-        page.GetObject().GetDictionary().AddKey("BleedBox", r);
+        page.GetDictionary().AddKey("BleedBox", r);
     else if (m_box.find("trim") != string::npos)
-        page.GetObject().GetDictionary().AddKey("TrimBox", r);
+        page.GetDictionary().AddKey("TrimBox", r);
     else if (m_box.find("art") != string::npos)
-        page.GetObject().GetDictionary().AddKey("ArtBox", r);
+        page.GetDictionary().AddKey("ArtBox", r);
 
     // TODO check that box sizes are ordered
 }

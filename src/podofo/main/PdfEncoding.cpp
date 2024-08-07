@@ -325,7 +325,7 @@ const PdfCharCode& PdfEncoding::GetLastChar() const
 
 void PdfEncoding::ExportToFont(PdfFont& font) const
 {
-    auto& fontDict = font.GetObject().GetDictionary();
+    auto& fontDict = font.GetDictionary();
     if (font.IsCIDKeyed())
     {
         auto fontName = font.GetName();

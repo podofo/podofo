@@ -28,13 +28,13 @@ PdfCheckBox::PdfCheckBox(PdfObject& obj, PdfAcroForm* acroform)
 
 void PdfCheckBox::AddAppearanceStream(const PdfName& name, const PdfReference& reference)
 {
-    if (!GetObject().GetDictionary().HasKey("AP"))
-        GetObject().GetDictionary().AddKey("AP", PdfDictionary());
+    if (!GetDictionary().HasKey("AP"))
+        GetDictionary().AddKey("AP", PdfDictionary());
 
-    if (!GetObject().GetDictionary().MustFindKey("AP").GetDictionary().HasKey("N"))
-        GetObject().GetDictionary().MustFindKey("AP").GetDictionary().AddKey("N", PdfDictionary());
+    if (!GetDictionary().MustFindKey("AP").GetDictionary().HasKey("N"))
+        GetDictionary().MustFindKey("AP").GetDictionary().AddKey("N", PdfDictionary());
 
-    GetObject().GetDictionary().MustFindKey("AP").
+    GetDictionary().MustFindKey("AP").
         GetDictionary().MustFindKey("N").GetDictionary().AddKey(name, reference);
 }
 
@@ -50,13 +50,13 @@ void PdfCheckBox::SetAppearanceUnchecked(const PdfXObject& xobj)
 
 void PdfCheckBox::SetChecked(bool isChecked)
 {
-    GetObject().GetDictionary().AddKey("V", (isChecked ? PdfName("Yes") : PdfName("Off")));
-    GetObject().GetDictionary().AddKey("AS", (isChecked ? PdfName("Yes") : PdfName("Off")));
+    GetDictionary().AddKey("V", (isChecked ? PdfName("Yes") : PdfName("Off")));
+    GetDictionary().AddKey("AS", (isChecked ? PdfName("Yes") : PdfName("Off")));
 }
 
 bool PdfCheckBox::IsChecked() const
 {
-    auto& dict = GetObject().GetDictionary();
+    auto& dict = GetDictionary();
     if (dict.HasKey("V"))
     {
         auto& name = dict.MustFindKey("V").GetName();

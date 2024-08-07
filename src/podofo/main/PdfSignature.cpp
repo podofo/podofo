@@ -39,7 +39,7 @@ PdfSignature::PdfSignature(PdfAnnotationWidget& widget, const shared_ptr<PdfFiel
 
 PdfSignature::PdfSignature(PdfObject& obj, PdfAcroForm* acroform) :
     PdfField(obj, acroform, PdfFieldType::Signature),
-    m_ValueObj(this->GetObject().GetDictionary().FindKey("V"))
+    m_ValueObj(this->GetDictionary().FindKey("V"))
 {
     // NOTE: Do not call init() here
 }
@@ -55,7 +55,7 @@ void PdfSignature::init(PdfAcroForm& acroForm)
     // TABLE 8.68 Signature flags: SignaturesExist (1) | AppendOnly (2)
     // This will open signature panel when inspecting PDF with acrobat,
     // even if the signature is unsigned
-    acroForm.GetObject().GetDictionary().AddKey("SigFlags", (int64_t)3);
+    acroForm.GetDictionary().AddKey("SigFlags", (int64_t)3);
 }
 
 void PdfSignature::SetSignerName(nullable<const PdfString&> text)
@@ -152,7 +152,7 @@ void PdfSignature::AddCertificationReference(PdfCertPermission perm)
 
     auto& catalog = GetDocument().GetCatalog();
     PdfObject permObject;
-    permObject.GetDictionary().AddKey("DocMDP", this->GetObject().GetDictionary().GetKey("V")->GetReference());
+    permObject.GetDictionary().AddKey("DocMDP", this->GetDictionary().GetKey("V")->GetReference());
     catalog.GetDictionary().AddKey("Perms", permObject);
 
     PdfArray refers;
@@ -267,7 +267,7 @@ void PdfSignature::EnsureValueObject()
     if (m_ValueObj == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    GetObject().GetDictionary().AddKey("V", m_ValueObj->GetIndirectReference());
+    GetDictionary().AddKey("V", m_ValueObj->GetIndirectReference());
 }
 
 PdfSignature* PdfSignature::GetParent()

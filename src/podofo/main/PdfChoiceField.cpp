@@ -45,9 +45,9 @@ void PdChoiceField::InsertItem(const PdfString& value, nullable<const PdfString&
         objToAdd = value;
     }
 
-    auto optObj = GetObject().GetDictionary().FindKey("Opt");
+    auto optObj = GetDictionary().FindKey("Opt");
     if (optObj == nullptr)
-        optObj = &GetObject().GetDictionary().AddKey("Opt", PdfArray());
+        optObj = &GetDictionary().AddKey("Opt", PdfArray());
 
     // TODO: Sorting
     optObj->GetArray().Add(objToAdd);
@@ -57,7 +57,7 @@ void PdChoiceField::InsertItem(const PdfString& value, nullable<const PdfString&
 
 void PdChoiceField::RemoveItem(unsigned index)
 {
-    auto optObj = GetObject().GetDictionary().FindKey("Opt");
+    auto optObj = GetDictionary().FindKey("Opt");
     if (optObj == nullptr)
         return;
 
@@ -70,7 +70,7 @@ void PdChoiceField::RemoveItem(unsigned index)
 
 PdfString PdChoiceField::GetItem(unsigned index) const
 {
-    auto opt = GetObject().GetDictionary().FindKey("Opt");
+    auto opt = GetDictionary().FindKey("Opt");
     if (opt == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
@@ -95,7 +95,7 @@ PdfString PdChoiceField::GetItem(unsigned index) const
 
 nullable<const PdfString&> PdChoiceField::GetItemDisplayText(int index) const
 {
-    auto* opt = GetObject().GetDictionary().FindKey("Opt");
+    auto* opt = GetDictionary().FindKey("Opt");
     if (opt == nullptr)
         return { };
 
@@ -122,7 +122,7 @@ nullable<const PdfString&> PdChoiceField::GetItemDisplayText(int index) const
 
 unsigned PdChoiceField::GetItemCount() const
 {
-    auto* opt = GetObject().GetDictionary().FindKey("Opt");
+    auto* opt = GetDictionary().FindKey("Opt");
     if (opt == nullptr)
         return 0;
 
@@ -133,18 +133,18 @@ void PdChoiceField::SetSelectedIndex(int index)
 {
     AssertTerminalField();
     PdfString selected = this->GetItem(index);
-    GetObject().GetDictionary().AddKey("V", selected);
+    GetDictionary().AddKey("V", selected);
 }
 
 int PdChoiceField::GetSelectedIndex() const
 {
     AssertTerminalField();
-    auto* valueObj = GetObject().GetDictionary().FindKey("V");
+    auto* valueObj = GetDictionary().FindKey("V");
     if (valueObj == nullptr || !valueObj->IsString())
         return -1;
 
     auto& value = valueObj->GetString();
-    auto* opt = GetObject().GetDictionary().FindKey("Opt");
+    auto* opt = GetDictionary().FindKey("Opt");
     if (opt == nullptr)
         return -1;
 

@@ -808,10 +808,10 @@ void PdfField::SetValidateAction(const PdfAction& action)
 void PdfField::linkFieldObjectToParent(const shared_ptr<PdfField>& field, PdfField& parentField,
     const vector<string>& parentKeys, bool setParent, bool moveKeysToParent)
 {
-    auto& fieldDict = field->GetObject().GetDictionary();
+    auto& fieldDict = field->GetDictionary();
     if (moveKeysToParent)
     {
-        auto& parentDict = parentField.GetObject().GetDictionary();
+        auto& parentDict = parentField.GetDictionary();
         for (auto& pair : fieldDict)
         {
             string keyName = pair.first.GetString();

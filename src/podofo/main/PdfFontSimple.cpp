@@ -66,8 +66,8 @@ void PdfFontSimple::initImported()
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 
-    this->GetObject().GetDictionary().AddKey(PdfNames::Subtype, PdfName(subType));
-    this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(GetName()));
+    this->GetDictionary().AddKey(PdfNames::Subtype, PdfName(subType));
+    this->GetDictionary().AddKey("BaseFont", PdfName(GetName()));
     m_Encoding->ExportToFont(*this);
 
     if (!GetMetrics().IsStandard14FontMetrics() || IsEmbeddingEnabled())
@@ -76,7 +76,7 @@ void PdfFontSimple::initImported()
         // descriptor. Instead Standard14 fonts don't need any
         // metrics descriptor if the font is not embedded
         auto& descriptorObj = GetDocument().GetObjects().CreateDictionaryObject("FontDescriptor");
-        this->GetObject().GetDictionary().AddKeyIndirect("FontDescriptor", descriptorObj);
+        this->GetDictionary().AddKeyIndirect("FontDescriptor", descriptorObj);
         FillDescriptor(descriptorObj.GetDictionary());
         m_Descriptor = &descriptorObj;
     }
@@ -85,22 +85,22 @@ void PdfFontSimple::initImported()
 void PdfFontSimple::embedFont()
 {
     PODOFO_ASSERT(m_Descriptor != nullptr);
-    this->GetObject().GetDictionary().AddKey("FirstChar", PdfVariant(static_cast<int64_t>(m_Encoding->GetFirstChar().Code)));
-    this->GetObject().GetDictionary().AddKey("LastChar", PdfVariant(static_cast<int64_t>(m_Encoding->GetLastChar().Code)));
+    this->GetDictionary().AddKey("FirstChar", PdfVariant(static_cast<int64_t>(m_Encoding->GetFirstChar().Code)));
+    this->GetDictionary().AddKey("LastChar", PdfVariant(static_cast<int64_t>(m_Encoding->GetLastChar().Code)));
 
     PdfArray arr;
     this->getWidthsArray(arr);
 
     auto& widthsObj = GetDocument().GetObjects().CreateObject(std::move(arr));
-    this->GetObject().GetDictionary().AddKeyIndirect("Widths", widthsObj);
+    this->GetDictionary().AddKeyIndirect("Widths", widthsObj);
 
     if (GetType() == PdfFontType::Type3)
     {
         getFontMatrixArray(arr);
-        GetObject().GetDictionary().AddKey("FontMatrix", std::move(arr));
+        GetDictionary().AddKey("FontMatrix", std::move(arr));
 
         GetBoundingBox(arr);
-        GetObject().GetDictionary().AddKey("FontBBox", std::move(arr));
+        GetDictionary().AddKey("FontBBox", std::move(arr));
     }
 
     EmbedFontFile(*m_Descriptor);

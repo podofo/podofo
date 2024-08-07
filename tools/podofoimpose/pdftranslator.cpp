@@ -315,12 +315,12 @@ void PdfTranslator::setTarget(const string& target)
         for (itKey = pageKeys.begin(); itKey != pageKeys.end(); itKey++)
         {
             PdfName keyname(*itKey);
-            if (page.GetObject().GetDictionary().HasKey(keyname))
+            if (page.GetDictionary().HasKey(keyname))
             {
-                PdfObject* migObj = migrateResource(page.GetObject().GetDictionary().GetKey(keyname));
+                PdfObject* migObj = migrateResource(page.GetDictionary().GetKey(keyname));
                 if (nullptr == migObj)
                     continue;
-                xobj->GetObject().GetDictionary().AddKey(keyname, *migObj);
+                xobj->GetDictionary().AddKey(keyname, *migObj);
             }
         }
 
@@ -531,7 +531,7 @@ void PdfTranslator::impose()
                     // mabri: ML post archive URL is https://sourceforge.net/p/podofo/mailman/message/24609746/
                     // bbIndex->at(resourceIndex).ToVariant( bb );							
                     ((*bbIndex)[resourceIndex]).ToArray(bb);
-                    xo->GetObject().GetDictionary().AddKey("BBox", bb);
+                    xo->GetDictionary().AddKey("BBox", bb);
                 }
                 ostringstream op;
                 op << "OriginalPage" << resourceIndex;
@@ -548,7 +548,7 @@ void PdfTranslator::impose()
                     }
                     else if (resources[resourceIndex]->IsReference())
                     {
-                        xo->GetObject().GetDictionary().AddKey("Resources", *resources[resourceIndex]);
+                        xo->GetDictionary().AddKey("Resources", *resources[resourceIndex]);
                     }
                     else
                     {

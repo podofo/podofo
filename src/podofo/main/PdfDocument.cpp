@@ -363,7 +363,7 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
 
     // link resources from external doc to x-object
     if (pageObj.IsDictionary() && pageObj.GetDictionary().HasKey("Resources"))
-        xobj.GetObject().GetDictionary().AddKey("Resources", *pageObj.GetDictionary().GetKey("Resources"));
+        xobj.GetDictionary().AddKey("Resources", *pageObj.GetDictionary().GetKey("Resources"));
 
     // copy top-level content from external doc to x-object
     if (pageObj.IsDictionary() && pageObj.GetDictionary().HasKey("Contents"))

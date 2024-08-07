@@ -61,15 +61,15 @@ void PdfFontCID::initImported()
     PdfArray arr;
 
     // Now setting each of the entries of the font
-    this->GetObject().GetDictionary().AddKey(PdfNames::Subtype, PdfName("Type0"));
-    this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(this->GetName()));
+    this->GetDictionary().AddKey(PdfNames::Subtype, PdfName("Type0"));
+    this->GetDictionary().AddKey("BaseFont", PdfName(this->GetName()));
 
     // The descendant font is a CIDFont:
     m_descendantFont = &this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("Font");
 
     // The DecendantFonts, should be an indirect object:
     arr.Add(m_descendantFont->GetIndirectReference());
-    this->GetObject().GetDictionary().AddKey("DescendantFonts", arr);
+    this->GetDictionary().AddKey("DescendantFonts", arr);
 
     // Setting the /DescendantFonts
     PdfFontType fontType = GetType();
