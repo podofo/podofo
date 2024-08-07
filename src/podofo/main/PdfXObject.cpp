@@ -99,10 +99,19 @@ PdfXObjectType PdfXObject::getPdfXObjectType(const PdfObject& obj)
 {
     // Table 93 of ISO 32000-2:2020(E), the /Type key is optional,
     // so we don't check for it. If present it should be "XObject"
+    auto& dict = obj.GetDictionary();
     const PdfName* name;
-    auto subTypeObj = obj.GetDictionary().FindKey(PdfNames::Subtype);
+    auto subTypeObj = dict.FindKey(PdfNames::Subtype);
     if (subTypeObj == nullptr || !subTypeObj->TryGetName(name))
+    {
+        // NOTE: There are some forms missing both /Type and /Subtype
+        // We are a bit lenient here and consider it to be form if
+        // it has a "/BBox" and it's not a tiling pattern stream
+        if (obj.HasStream() && dict.HasKey("BBox") && !dict.HasKey("PatternType"))
+            return PdfXObjectType::Form;
+
         return PdfXObjectType::Unknown;
+    }
 
     return fromString(name->GetString());
 }
