@@ -19,7 +19,7 @@ PdfMetadata::PdfMetadata(PdfDocument& doc)
 {
 }
 
-void PdfMetadata::SetTitle(nullable<const PdfString&> title, bool trySyncXMP)
+void PdfMetadata::SetTitle(nullable<const PdfString&> title)
 {
     ensureInitialized();
     if (m_metadata.Title == title)
@@ -30,10 +30,8 @@ void PdfMetadata::SetTitle(nullable<const PdfString&> title, bool trySyncXMP)
         m_metadata.Title = nullptr;
     else
         m_metadata.Title = *title;
-    if (trySyncXMP)
-        trySyncXMPMetadata(false);
-    else
-        m_xmpSynced = false;
+
+    m_xmpSynced = false;
 }
 
 const nullable<PdfString>& PdfMetadata::GetTitle() const
@@ -42,7 +40,7 @@ const nullable<PdfString>& PdfMetadata::GetTitle() const
     return m_metadata.Title;
 }
 
-void PdfMetadata::SetAuthor(nullable<const PdfString&> author, bool trySyncXMP)
+void PdfMetadata::SetAuthor(nullable<const PdfString&> author)
 {
     if (m_metadata.Author == author)
         return;
@@ -52,10 +50,8 @@ void PdfMetadata::SetAuthor(nullable<const PdfString&> author, bool trySyncXMP)
         m_metadata.Author = nullptr;
     else
         m_metadata.Author = *author;
-    if (trySyncXMP)
-        trySyncXMPMetadata(false);
-    else
-        m_xmpSynced = false;
+
+    m_xmpSynced = false;
 }
 
 const nullable<PdfString>& PdfMetadata::GetAuthor() const
@@ -64,7 +60,7 @@ const nullable<PdfString>& PdfMetadata::GetAuthor() const
     return m_metadata.Author;
 }
 
-void PdfMetadata::SetSubject(nullable<const PdfString&> subject, bool trySyncXMP)
+void PdfMetadata::SetSubject(nullable<const PdfString&> subject)
 {
     ensureInitialized();
     if (m_metadata.Subject == subject)
@@ -75,10 +71,8 @@ void PdfMetadata::SetSubject(nullable<const PdfString&> subject, bool trySyncXMP
         m_metadata.Subject = nullptr;
     else
         m_metadata.Subject = *subject;
-    if (trySyncXMP)
-        trySyncXMPMetadata(false);
-    else
-        m_xmpSynced = false;
+
+    m_xmpSynced = false;
 }
 
 const nullable<PdfString>& PdfMetadata::GetSubject() const
@@ -93,15 +87,15 @@ const nullable<PdfString>& PdfMetadata::GetKeywordsRaw() const
     return m_metadata.Keywords;
 }
 
-void PdfMetadata::SetKeywords(vector<string> keywords, bool trySyncXMP)
+void PdfMetadata::SetKeywords(vector<string> keywords)
 {
     if (keywords.size() == 0)
-        setKeywords(nullptr, trySyncXMP);
+        setKeywords(nullptr);
     else
-        setKeywords(PdfString(PoDoFo::ToPdfKeywordsString(keywords)), trySyncXMP);
+        setKeywords(PdfString(PoDoFo::ToPdfKeywordsString(keywords)));
 }
 
-void PdfMetadata::setKeywords(nullable<const PdfString&> keywords, bool trySyncXMP)
+void PdfMetadata::setKeywords(nullable<const PdfString&> keywords)
 {
     ensureInitialized();
     if (m_metadata.Keywords == keywords)
@@ -112,10 +106,8 @@ void PdfMetadata::setKeywords(nullable<const PdfString&> keywords, bool trySyncX
         m_metadata.Keywords = nullptr;
     else
         m_metadata.Keywords = *keywords;
-    if (trySyncXMP)
-        trySyncXMPMetadata(false);
-    else
-        m_xmpSynced = false;
+
+    m_xmpSynced = false;
 }
 
 vector<string> PdfMetadata::GetKeywords() const
@@ -127,7 +119,7 @@ vector<string> PdfMetadata::GetKeywords() const
         return PoDoFo::ToPdfKeywordsList(*m_metadata.Keywords);
 }
 
-void PdfMetadata::SetCreator(nullable<const PdfString&> creator, bool trySyncXMP)
+void PdfMetadata::SetCreator(nullable<const PdfString&> creator)
 {
     ensureInitialized();
     if (m_metadata.Creator == creator)
@@ -138,10 +130,8 @@ void PdfMetadata::SetCreator(nullable<const PdfString&> creator, bool trySyncXMP
         m_metadata.Creator = nullptr;
     else
         m_metadata.Creator = *creator;
-    if (trySyncXMP)
-        trySyncXMPMetadata(false);
-    else
-        m_xmpSynced = false;
+
+    m_xmpSynced = false;
 }
 
 const nullable<PdfString>& PdfMetadata::GetCreator() const
@@ -150,7 +140,7 @@ const nullable<PdfString>& PdfMetadata::GetCreator() const
     return m_metadata.Creator;
 }
 
-void PdfMetadata::SetProducer(nullable<const PdfString&> producer, bool trySyncXMP)
+void PdfMetadata::SetProducer(nullable<const PdfString&> producer)
 {
     ensureInitialized();
     if (m_metadata.Producer == producer)
@@ -161,10 +151,8 @@ void PdfMetadata::SetProducer(nullable<const PdfString&> producer, bool trySyncX
         m_metadata.Producer = nullptr;
     else
         m_metadata.Producer = *producer;
-    if (trySyncXMP)
-        trySyncXMPMetadata(false);
-    else
-        m_xmpSynced = false;
+
+    m_xmpSynced = false;
 }
 
 const nullable<PdfString>& PdfMetadata::GetProducer() const
@@ -173,7 +161,7 @@ const nullable<PdfString>& PdfMetadata::GetProducer() const
     return m_metadata.Producer;
 }
 
-void PdfMetadata::SetCreationDate(nullable<PdfDate> date, bool trySyncXMP)
+void PdfMetadata::SetCreationDate(nullable<PdfDate> date)
 {
     ensureInitialized();
     if (m_metadata.CreationDate == date)
@@ -181,10 +169,8 @@ void PdfMetadata::SetCreationDate(nullable<PdfDate> date, bool trySyncXMP)
 
     m_doc->GetOrCreateInfo().SetCreationDate(date);
     m_metadata.CreationDate = date;
-    if (trySyncXMP)
-        trySyncXMPMetadata(false);
-    else
-        m_xmpSynced = false;
+
+    m_xmpSynced = false;
 }
 
 const nullable<PdfDate>& PdfMetadata::GetCreationDate() const
@@ -193,7 +179,7 @@ const nullable<PdfDate>& PdfMetadata::GetCreationDate() const
     return m_metadata.CreationDate;
 }
 
-void PdfMetadata::SetModifyDate(nullable<PdfDate> date, bool trySyncXMP)
+void PdfMetadata::SetModifyDate(nullable<PdfDate> date)
 {
     ensureInitialized();
     if (m_metadata.ModDate == date)
@@ -201,10 +187,8 @@ void PdfMetadata::SetModifyDate(nullable<PdfDate> date, bool trySyncXMP)
 
     m_doc->GetOrCreateInfo().SetModDate(date);
     m_metadata.ModDate = date;
-    if (trySyncXMP)
-        trySyncXMPMetadata(false);
-    else
-        m_xmpSynced = false;
+
+    m_xmpSynced = false;
 }
 
 const nullable<PdfDate>& PdfMetadata::GetModifyDate() const
@@ -257,7 +241,7 @@ PdfALevel PdfMetadata::GetPdfALevel() const
     return m_metadata.PdfaLevel;
 }
 
-void PdfMetadata::SetPdfALevel(PdfALevel level, bool trySyncXMP)
+void PdfMetadata::SetPdfALevel(PdfALevel level)
 {
     ensureInitialized();
     if (m_metadata.PdfaLevel == level)
@@ -267,27 +251,38 @@ void PdfMetadata::SetPdfALevel(PdfALevel level, bool trySyncXMP)
     {
         // The PDF/A level can be set only in XMP,
         // metadata let's ensure it exists
-        EnsureXMPMetadata();
+        CreateXMPMetadata(m_packet);
     }
 
     m_metadata.PdfaLevel = level;
-    if (trySyncXMP)
-        trySyncXMPMetadata(false);
-    else
-        m_xmpSynced = false;
+    m_xmpSynced = false;
 }
 
-void PdfMetadata::SyncXMPMetadata(bool forceCreationXMP)
+void PdfMetadata::SyncXMPMetadata(bool resetXMPPacket)
 {
     ensureInitialized();
     if (m_xmpSynced)
         return;
 
-    trySyncXMPMetadata(forceCreationXMP);
+    syncXMPMetadata(resetXMPPacket);
+}
+
+bool PdfMetadata::TrySyncXMPMetadata()
+{
+    ensureInitialized();
+    if (m_packet == nullptr)
+        return true;
+
+    if (m_xmpSynced)
+        return true;
+
+    syncXMPMetadata(false);
+    return true;
 }
 
 unique_ptr<PdfXMPPacket> PdfMetadata::TakeXMPPacket()
 {
+    ensureInitialized();
     if (m_packet == nullptr)
         return nullptr;
 
@@ -299,17 +294,6 @@ unique_ptr<PdfXMPPacket> PdfMetadata::TakeXMPPacket()
 
     invalidate();
     return std::move(m_packet);
-}
-
-void PdfMetadata::EnsureXMPMetadata()
-{
-    if (m_packet == nullptr)
-        PoDoFo::UpdateOrCreateXMPMetadata(m_packet, m_metadata);
-
-    // NOTE: Found dates without prefix "D:" that
-    // won't validate in veraPDF. Let's reset them
-    m_doc->GetOrCreateInfo().SetCreationDate(m_metadata.CreationDate);
-    m_doc->GetOrCreateInfo().SetModDate(m_metadata.ModDate);
 }
 
 void PdfMetadata::Invalidate()
@@ -387,10 +371,10 @@ void PdfMetadata::ensureInitialized()
     m_initialized = true;
 }
 
-void PdfMetadata::trySyncXMPMetadata(bool forceCreationXMP)
+void PdfMetadata::syncXMPMetadata(bool resetXMPPacket)
 {
-    if (m_packet == nullptr && !forceCreationXMP)
-        return;
+    if (resetXMPPacket)
+        m_packet.reset();
 
     PoDoFo::UpdateOrCreateXMPMetadata(m_packet, m_metadata);
     m_doc->GetCatalog().SetMetadataStreamValue(m_packet->ToString());

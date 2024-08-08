@@ -1,4 +1,7 @@
 ## 0.10.1 -> 1.0.0
+- `PdfMetadata`:
+  * Removed argument `trySyncXMP` from all functions setting values. Manually call new `TrySyncXMPMetadata` instead
+  * Removed `EnsureXMPMetadata`, use `SyncXMPMetadata` instead
 - Added `PdfNames` and moved all known `PdfName::Key...` names from there 
 - `PdfEncrypt`:
   * `GenerateEncryptionKey` renamed to `EnsureEncryptionInitialized` and takes `PdfEncryptContxt` as an argument

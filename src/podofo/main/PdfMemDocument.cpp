@@ -272,7 +272,8 @@ void PdfMemDocument::beforeWrite(PdfSaveOptions opts)
     if ((opts & PdfSaveOptions::NoMetadataUpdate) ==
         PdfSaveOptions::None)
     {
-        GetMetadata().SetModifyDate(PdfDate::LocalNow(), true);
+        GetMetadata().SetModifyDate(PdfDate::LocalNow());
+        (void)GetMetadata().TrySyncXMPMetadata();
     }
 
     GetFonts().EmbedFonts();

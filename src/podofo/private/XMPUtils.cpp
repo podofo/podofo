@@ -121,6 +121,13 @@ PdfXMPMetadata PoDoFo::GetXMPMetadata(const string_view& xmpview, unique_ptr<Pdf
     return metadata;
 }
 
+void PoDoFo::CreateXMPMetadata(unique_ptr<PdfXMPPacket>& packet)
+{
+    utls::InitXml();
+    if (packet == nullptr)
+        packet.reset(new PdfXMPPacket());
+}
+
 void PoDoFo::UpdateOrCreateXMPMetadata(unique_ptr<PdfXMPPacket>& packet, const PdfXMPMetadata& metatata)
 {
     utls::InitXml();

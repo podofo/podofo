@@ -13,6 +13,7 @@
 namespace PoDoFo
 {
     PdfXMPMetadata GetXMPMetadata(const std::string_view& xmpview, std::unique_ptr<PdfXMPPacket>& packet);
+    void CreateXMPMetadata(std::unique_ptr<PdfXMPPacket>& packet);
     void UpdateOrCreateXMPMetadata(std::unique_ptr<PdfXMPPacket>& packet, const PdfXMPMetadata& metatata);
 }
 
