@@ -290,7 +290,7 @@ void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
         }
         default:
         {
-            xmlNodeSetContent(element, XMLCHAR values[0].data());
+            xmlNodeAddContent(element, XMLCHAR values[0].data());
             break;
         }
     }
@@ -337,7 +337,7 @@ void utls::SetListNodeContent(xmlDocPtr doc, xmlNodePtr node, XMPListType seqTyp
                 THROW_LIBXML_EXCEPTION(utls::Format("Can't set xml:lang attribute on rdf:li node"));
         }
 
-        xmlNodeSetContent(liElem, XMLCHAR view.data());
+        xmlNodeAddContent(liElem, XMLCHAR view.data());
     }
 
     newNode = innerElem->children;
