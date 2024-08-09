@@ -2,12 +2,12 @@
 
 #### API Review
 - PdfDocument: Review AttachFile, GetAttachment, FreeObjectMemory, AddNamedDestination. Rename LoadFromDevice(device) to just Load(device)
-- PdfField: Evaluate make a virtual getValueObject()
 - Review PdfPage::SetICCProfile(), PdfImage::SetICCProfile()
 - PdfErrorCode: Check all values
 - PdfField: Make PdfFieldChildrenCollectionBase m_Children a unique_ptr, and lazy load that
 - Evaluate IntputStreamDevice CopyTo() should do seek(0)
 - Evaluate removing PdfError::GetCallStack()
+- FileStreamDevice: Make it use again C stdio
 
 #### Features
 - Evaluate adding PdfString(string&&) and PdfName(string&&) constructors that

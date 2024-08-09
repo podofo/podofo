@@ -244,7 +244,7 @@ protected:
     */
     static bool GetFieldFlags(const PdfObject& obj, int64_t& value);
 
-    PdfObject* getValueObject() const;
+    virtual PdfObject* getValueObject() const;
 
     void AssertTerminalField() const;
 

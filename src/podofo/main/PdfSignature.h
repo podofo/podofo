@@ -134,7 +134,7 @@ public:
     bool TryGetPreviousRevision(InputStreamDevice& input, OutputStreamDevice& output) const;
 
 protected:
-    PdfObject* getValueObject() const;
+    PdfObject* getValueObject() const override;
 
 private:
     /** Create space for signature
