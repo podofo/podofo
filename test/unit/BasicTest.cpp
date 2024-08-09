@@ -153,7 +153,7 @@ TEST_CASE("TestFileSpecAttachment")
     document.GetPages().CreatePage();
     auto fs = document.CreateFileSpec();
     fs->SetFilename(PdfString("Test.xml"));
-    fs->SetEmbeddedData(charbuff("<?xml version=\"1.0\"?><catalog></catalog>"));
+    fs->SetEmbeddedData(charbuff(string("<?xml version=\"1.0\"?><catalog></catalog>")));
     document.AttachFile(*fs);
     document.Save(TestUtils::GetTestOutputFilePath("TestFileSpecAttachment.pdf"));
 }
