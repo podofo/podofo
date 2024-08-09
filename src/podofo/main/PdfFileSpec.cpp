@@ -60,7 +60,7 @@ nullable<const PdfString&> PdfFileSpec::GetFilename() const
     return filenameObj->GetString();
 }
 
-void PdfFileSpec::SetFilename(nullable<const PdfString&>& filename)
+void PdfFileSpec::SetFilename(nullable<const PdfString&> filename)
 {
     auto& dict = GetDictionary();
     if (filename == nullptr)
@@ -70,7 +70,7 @@ void PdfFileSpec::SetFilename(nullable<const PdfString&>& filename)
     dict.RemoveKey("F");
 }
 
-void PdfFileSpec::SetEmbeddedData(nullable<const charbuff&>& data)
+void PdfFileSpec::SetEmbeddedData(nullable<const charbuff&> data)
 {
     if (data == nullptr)
     {

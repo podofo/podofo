@@ -40,9 +40,9 @@ public:
      */
     nullable<const PdfString&> GetFilename() const;
 
-    void SetFilename(nullable<const PdfString&>& filename);
+    void SetFilename(nullable<const PdfString&> filename);
 
-    void SetEmbeddedData(nullable<const charbuff&>& data);
+    void SetEmbeddedData(nullable<const charbuff&> data);
 
     void SetEmbeddedDataFromFile(const std::string_view& filepath);
 

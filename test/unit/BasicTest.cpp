@@ -146,3 +146,14 @@ TEST_CASE("TestNormalizeRangeRotations")
     ASSERT_EQUAL(utls::NormalizePageRotation(180.499999999), 180);
     ASSERT_EQUAL(utls::NormalizePageRotation(180.5), 270);
 }
+
+TEST_CASE("TestFileSpecAttachment")
+{
+    PdfMemDocument document;
+    document.GetPages().CreatePage();
+    auto fs = document.CreateFileSpec();
+    fs->SetFilename(PdfString("Test.xml"));
+    fs->SetEmbeddedData(charbuff("<?xml version=\"1.0\"?><catalog></catalog>"));
+    document.AttachFile(*fs);
+    document.Save(TestUtils::GetTestOutputFilePath("TestFileSpecAttachment.pdf"));
+}
