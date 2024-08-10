@@ -263,19 +263,11 @@ void PdfParser::readNextTrailer(InputStreamDevice& device, bool skipFollowPrevio
 
             if (!skipFollowPrevious)
             {
-                try
-                {
-                    if (m_visitedXRefOffsets.find((size_t)offset) == m_visitedXRefOffsets.end())
-                        ReadXRefContents(device, (size_t)offset, false);
-                    else
-                        PoDoFo::LogMessage(PdfLogSeverity::Warning, "XRef contents at offset {} requested twice, skipping the second read",
-                            static_cast<int64_t>(offset));
-                }
-                catch (PdfError& e)
-                {
-                    PODOFO_PUSH_FRAME_INFO(e, "Unable to load /Prev xref entries");
-                    throw;
-                }
+                if (m_visitedXRefOffsets.find((size_t)offset) == m_visitedXRefOffsets.end())
+                    ReadXRefContents(device, (size_t)offset, false);
+                else
+                    PoDoFo::LogMessage(PdfLogSeverity::Warning, "XRef contents at offset {} requested twice, skipping the second read",
+                        static_cast<int64_t>(offset));
             }
         }
         else
@@ -406,18 +398,7 @@ void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset, bool 
         }
     }
 
-    try
-    {
-        readNextTrailer(device, skipFollowPrevious);
-    }
-    catch (PdfError& e)
-    {
-        if (e != PdfErrorCode::NoTrailer)
-        {
-            PODOFO_PUSH_FRAME(e);
-            throw;
-        }
-    }
+    readNextTrailer(device, skipFollowPrevious);
 }
 
 bool CheckEOL(char e1, char e2)

@@ -192,7 +192,7 @@ void PdfParserTest::TestReadXRefContents()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::NoTrailer);
     }
     catch (exception&)
     {
@@ -230,7 +230,7 @@ void PdfParserTest::TestReadXRefContents()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::NoTrailer);
     }
     catch (exception&)
     {
@@ -2744,6 +2744,20 @@ TEST_CASE("TestReset")
 
     REQUIRE(doc.GetPages().GetCount() == 0);
     REQUIRE(doc.GetMetadata().GetCreator() == nullptr);
+}
+
+TEST_CASE("TestManyTrailer")
+{
+    try
+    {
+        PdfMemDocument doc;
+        doc.Load(TestUtils::GetTestInputFilePath("Empty160trailer.pdf"));
+    }
+    catch (PdfError&)
+    {
+        return;
+    }
+    FAIL("Should fail with stack overflow");
 }
 
 string generateXRefEntries(size_t count)
