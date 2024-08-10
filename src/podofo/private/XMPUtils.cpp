@@ -204,7 +204,7 @@ xmlNsPtr findOrCreateNamespace(xmlDocPtr doc, xmlNodePtr description, PdfANamesp
             href = "http://www.aiim.org/pdfa/ns/id/";
             break;
         default:
-            throw runtime_error("Unsupported");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unsupported");
     }
     auto xmlNs = xmlSearchNs(doc, description, XMLCHAR prefix);
     if (xmlNs == nullptr)
@@ -273,7 +273,7 @@ void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
             propName = "rev";
             break;
         default:
-            throw runtime_error("Unsupported");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unsupported");
     }
 
     auto element = xmlNewChild(description, xmlNs, XMLCHAR propName, nullptr);
@@ -401,7 +401,7 @@ void removeXMPProperty(xmlNodePtr description, XMPMetadataKind property)
             propname = "rev";
             break;
         default:
-            throw runtime_error("Unsupported");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unsupported");
     }
 
     xmlNodePtr elemModDate = nullptr;
@@ -503,7 +503,7 @@ void getPdfALevelComponents(PdfALevel level, string& levelStr, string& conforman
             revision = "2020";
             return;
         default:
-            throw runtime_error("Unsupported");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unsupported");
     }
 }
 

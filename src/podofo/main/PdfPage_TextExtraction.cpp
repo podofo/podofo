@@ -249,7 +249,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                         }
                         else
                         {
-                            throw runtime_error("Invalid flow");
+                            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid flow");
                         }
 
                         break;
@@ -419,7 +419,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
             }
             default:
             {
-                throw runtime_error("Unsupported PdfContentType");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Unsupported PdfContentType");
             }
         }
     }

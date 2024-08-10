@@ -514,7 +514,7 @@ void PdfFlateFilter::EncodeBlockInternal(const char* buffer, size_t len, int nMo
             // clean up after any output stream errors
             FailEncodeDecode();
             PODOFO_PUSH_FRAME(e);
-            throw e;
+            throw;
         }
     } while (m_stream.avail_out == 0);
 }
@@ -580,7 +580,7 @@ void PdfFlateFilter::DecodeBlockImpl(const char* buffer, size_t len)
             // clean up after any output stream errors
             FailEncodeDecode();
             PODOFO_PUSH_FRAME(e);
-            throw e;
+            throw;
         }
     } while (m_stream.avail_out == 0);
 }

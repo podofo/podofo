@@ -81,7 +81,7 @@ void PdfParser::Parse(InputStreamDevice& device, bool loadOnDemand)
         if (e.GetCode() == PdfErrorCode::InvalidPassword)
         {
             // Do not clean up, expect user to call ParseFile again
-            throw e;
+            throw;
         }
 
         // If this is being called from a constructor then the
@@ -89,7 +89,7 @@ void PdfParser::Parse(InputStreamDevice& device, bool loadOnDemand)
         // Clean up here  
         reset();
         PODOFO_PUSH_FRAME_INFO(e, "Unable to load objects from file");
-        throw e;
+        throw;
     }
 }
 
@@ -112,7 +112,7 @@ void PdfParser::ReadDocumentStructure(InputStreamDevice& device, ssize_t eofSear
     catch (PdfError& e)
     {
         PODOFO_PUSH_FRAME_INFO(e, "EOF marker could not be found");
-        throw e;
+        throw;
     }
 
     try
@@ -122,7 +122,7 @@ void PdfParser::ReadDocumentStructure(InputStreamDevice& device, ssize_t eofSear
     catch (PdfError& e)
     {
         PODOFO_PUSH_FRAME_INFO(e, "Unable to find startxref entry in file");
-        throw e;
+        throw;
     }
 
     try
@@ -140,7 +140,7 @@ void PdfParser::ReadDocumentStructure(InputStreamDevice& device, ssize_t eofSear
     catch (PdfError& e)
     {
         PODOFO_PUSH_FRAME_INFO(e, "Unable to load xref entries");
-        throw e;
+        throw;
     }
 
     int64_t entriesCount;
@@ -247,7 +247,7 @@ void PdfParser::readNextTrailer(InputStreamDevice& device, bool skipFollowPrevio
         catch (PdfError& e)
         {
             PODOFO_PUSH_FRAME_INFO(e, "Unable to load /XRefStm xref stream");
-            throw e;
+            throw;
         }
     }
 
@@ -274,7 +274,7 @@ void PdfParser::readNextTrailer(InputStreamDevice& device, bool skipFollowPrevio
                 catch (PdfError& e)
                 {
                     PODOFO_PUSH_FRAME_INFO(e, "Unable to load /Prev xref entries");
-                    throw e;
+                    throw;
                 }
             }
         }
@@ -401,7 +401,7 @@ void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset, bool 
             else
             {
                 PODOFO_PUSH_FRAME(e);
-                throw e;
+                throw;
             }
         }
     }
@@ -415,7 +415,7 @@ void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset, bool 
         if (e != PdfErrorCode::NoTrailer)
         {
             PODOFO_PUSH_FRAME(e);
-            throw e;
+            throw;
         }
     }
 }
@@ -592,7 +592,7 @@ void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset,
                 if (e != PdfErrorCode::NoNumber)
                 {
                     PODOFO_PUSH_FRAME(e);
-                    throw e;
+                    throw;
                 }
             }
         }
@@ -640,7 +640,7 @@ void PdfParser::ReadObjects(InputStreamDevice& device)
                 PODOFO_PUSH_FRAME_INFO(e, "Error while loading object {} {} R",
                     obj->GetIndirectReference().ObjectNumber(),
                     obj->GetIndirectReference().GenerationNumber());
-                throw e;
+                throw;
 
             }
         }
@@ -730,7 +730,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                                     obj->GetIndirectReference().ObjectNumber(),
                                     obj->GetIndirectReference().GenerationNumber(),
                                     entry.Offset, i);
-                                throw e;
+                                throw;
                             }
                         }
                     }

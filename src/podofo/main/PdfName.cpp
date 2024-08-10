@@ -78,7 +78,7 @@ PdfName::PdfName(charbuff&& buff)
 void PdfName::initFromUtf8String(const string_view& view)
 {
     if (view.data() == nullptr)
-        throw runtime_error("Name is null");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidName, "Name is null");
 
     if (view.length() == 0)
     {

@@ -329,7 +329,7 @@ void PdfFontManager::AddFontDirectory(const string_view& path)
         if (GetLastError() == ERROR_FILE_NOT_FOUND)
             return;
 
-        throw runtime_error(utls::Format("Invalid font directory {}", fontDir));
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid font directory {}", fontDir);
     }
 
     do

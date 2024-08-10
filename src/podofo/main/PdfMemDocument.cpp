@@ -223,7 +223,7 @@ void PdfMemDocument::Save(OutputStreamDevice& device, PdfSaveOptions opts)
     catch (PdfError& e)
     {
         PODOFO_PUSH_FRAME(e);
-        throw e;
+        throw;
     }
 }
 
@@ -263,7 +263,7 @@ void PdfMemDocument::SaveUpdate(OutputStreamDevice& device, PdfSaveOptions opts)
     catch (PdfError& e)
     {
         PODOFO_PUSH_FRAME(e);
-        throw e;
+        throw;
     }
 }
 

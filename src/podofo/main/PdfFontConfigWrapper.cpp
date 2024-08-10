@@ -102,7 +102,7 @@ string PdfFontConfigWrapper::SearchFontPath(const string_view fontPattern,
 void PdfFontConfigWrapper::AddFontDirectory(const string_view& path)
 {
     if (!FcConfigAppFontAddDir(m_FcConfig, (const FcChar8*)path.data()))
-        throw runtime_error("Unable to add font directory");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to add font directory");
 }
 
 FcConfig* PdfFontConfigWrapper::GetFcConfig()
@@ -154,7 +154,7 @@ void PdfFontConfigWrapper::createDefaultConfig()
 
     auto config = FcConfigCreate();
     if (config == nullptr)
-        throw runtime_error("Could not allocate font config");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Could not allocate font config");
 
     // Manually try to load the config to determine
     // if a system configuration exists. Tell FontConfig
@@ -168,14 +168,14 @@ void PdfFontConfigWrapper::createDefaultConfig()
         if (!FcConfigParseAndLoadFromMemory(config, (const FcChar8*)fontconf, true))
         {
             FcConfigDestroy(config);
-            throw runtime_error("Could not parse font config");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Could not parse font config");
         }
 
         // Load fonts for the config
         if (!FcConfigBuildFonts(config))
         {
             FcConfigDestroy(config);
-            throw runtime_error("Could not load fonts in fontconfig");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Could not parse font config");
         }
 
         m_FcConfig = config;

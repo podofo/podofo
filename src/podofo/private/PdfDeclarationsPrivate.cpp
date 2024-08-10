@@ -760,13 +760,13 @@ void utls::ReadTo(charbuff& str, istream& stream)
     stream.seekg(0, ios::end);
     auto tellg = stream.tellg();
     if (tellg == -1)
-        throw runtime_error("Error reading from stream");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidStream, "Error reading from stream");
 
     str.resize((size_t)tellg);
     stream.seekg(0, ios::beg);
     stream.read(str.data(), str.size());
     if (stream.fail())
-        throw runtime_error("Error reading from stream");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidStream, "Error reading from stream");
 }
 
 void utls::WriteTo(const string_view& filepath, const bufferview& view)

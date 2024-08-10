@@ -393,7 +393,7 @@ void PdfArray::resize(size_t size)
     AssertMutable();
 #ifndef NDEBUG
     if (size > numeric_limits<unsigned>::max())
-        throw length_error("Too big size");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Too big size");
 #endif
     // TODO: Check other checks PdfArray::Resize(...)
     m_Objects.resize(size);
@@ -404,7 +404,7 @@ void PdfArray::reserve(size_t size)
     AssertMutable();
 #ifndef NDEBUG
     if (size > numeric_limits<unsigned>::max())
-        throw length_error("Too big size");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Too big size");
 #endif
     m_Objects.reserve(size);
 }

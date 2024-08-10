@@ -22,7 +22,7 @@
  // https://en.wikipedia.org/wiki/Escape_character#ASCII_escape_character
 #define ESCAPE_CHARACTER "\033"
 #define CHECK_FIELD_NAME(name) if (name.find('.') != string::npos)\
-    throw runtime_error("Unsupported dot \".\" in field name. Use PdfField.CreateChild()");
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidKey, "Unsupported dot \".\" in field name. Use PdfField.CreateChild()");
 
 using namespace std;
 using namespace PoDoFo;
@@ -176,7 +176,7 @@ PdfField& PdfField::Create(const string_view& name,
             if (fieldName.has_value() && *fieldName == name)
             {
                 if (field->GetType() != type)
-                    throw runtime_error("Found field with same name and different type");
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidKey, "Found field with same name and different type");
 
                 candidateParent = field;
                 break;

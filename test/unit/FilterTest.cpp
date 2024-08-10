@@ -62,7 +62,7 @@ void testFilter(PdfFilterType filterType, const bufferview& view)
         else
         {
             e.AddToCallStack(__FILE__, __LINE__);
-            throw e;
+            throw;
         }
     }
 
@@ -81,7 +81,7 @@ void testFilter(PdfFilterType filterType, const bufferview& view)
         else
         {
             e.AddToCallStack(__FILE__, __LINE__);
-            throw e;
+            throw;
         }
     }
 

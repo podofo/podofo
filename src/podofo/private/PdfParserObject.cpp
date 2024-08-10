@@ -271,7 +271,7 @@ PdfReference PdfParserObject::readReference(PdfTokenizer& tokenizer)
     catch (PdfError& e)
     {
         PODOFO_PUSH_FRAME_INFO(e, "Object and generation number cannot be read");
-        throw e;
+        throw;
     }
 
     string_view token;

@@ -492,7 +492,7 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreateFromObject(const PdfObject& encryptObj)
     catch (PdfError& e)
     {
         PODOFO_PUSH_FRAME_INFO(e, "Invalid or missing key in encryption dictionary");
-        throw e;
+        throw;
     }
 
     if ((lV == 1) && (rValue == 2 || rValue == 3)

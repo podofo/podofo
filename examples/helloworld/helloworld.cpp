@@ -136,7 +136,7 @@ void HelloWorld(const string_view& filename)
             // Ignore errors this time
         }
 
-        throw e;
+        throw;
     }
 }
 

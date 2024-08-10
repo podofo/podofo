@@ -100,7 +100,7 @@ void ssl::AddSigningCertificateV2(CMS_SignerInfo* signer, const bufferview& hash
     certIdV2.hash = &hashstr;
     certV2.cert_ids = sk_MY_ESS_CERT_ID_V2_new_null();
     if (!sk_MY_ESS_CERT_ID_V2_push(certV2.cert_ids, &certIdV2))
-        throw runtime_error("Unable to add attribute");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Unable to add attribute");
 
     auto clean = [&]()
     {
@@ -113,7 +113,7 @@ void ssl::AddSigningCertificateV2(CMS_SignerInfo* signer, const bufferview& hash
         V_ASN1_SEQUENCE, buf, len) <= 0)
     {
         clean();
-        throw runtime_error("Unable to add attribute");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Unable to add attribute");
     }
 
     clean();

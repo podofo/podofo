@@ -107,7 +107,7 @@ void PdfWriter::Write(OutputStreamDevice& device)
         }
 
         PODOFO_PUSH_FRAME(e);
-        throw e;
+        throw;
     }
 
     // P.Zent: Delete Encryption dictionary (cannot be reused)

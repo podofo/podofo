@@ -261,7 +261,7 @@ PdfString::operator string_view() const
 void PdfString::initFromUtf8String(const string_view& view)
 {
     if (view.data() == nullptr)
-        throw runtime_error("String is null");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "String is null");
 
     if (view.length() == 0)
     {
@@ -325,13 +325,13 @@ void PdfString::evaluateString() const
                     break;
                 }
                 default:
-                    throw runtime_error("Unsupported");
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unsupported");
             }
 
             return;
         }
         default:
-            throw runtime_error("Unsupported");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unsupported");
     }
 }
 
@@ -350,7 +350,7 @@ bool PdfString::canPerformComparison(const PdfString& lhs, const PdfString& rhs)
 const string& PdfString::GetRawData() const
 {
     if (m_data->State != PdfStringState::RawBuffer)
-        throw runtime_error("The string buffer has been evaluated");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The string buffer has been evaluated");
 
     return m_data->Chars;
 }
