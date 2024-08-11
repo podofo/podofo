@@ -2711,6 +2711,7 @@ TEST_CASE("TestManyTrailer")
 {
     try
     {
+        PdfCommon::SetMaxRecursionDepth(256);
         PdfMemDocument doc;
         doc.Load(TestUtils::GetTestInputFilePath("Empty160trailer.pdf"));
     }

@@ -216,11 +216,6 @@ namespace utls
         RecursionGuard();
         ~RecursionGuard();
 
-        // set maximum recursion depth (set to 0 to disable recursion check)
-        static void SetMaxRecursionDepth(unsigned maxRecursionDepth);
-
-        static unsigned GetMaxRecursionDepth();
-
     private:
         void Enter();
         void Exit();
