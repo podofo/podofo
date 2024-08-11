@@ -7,10 +7,7 @@
 #ifndef PDF_ERROR_H
 #define PDF_ERROR_H
 
-// NOTE: PdfError.h should not include PdfDeclarations.h, since it is included by it.
-// It should avoid depending on anything defined in PdfDeclarations.h .
-#include <podofo/auxiliary/basedefs.h>
-#include <podofo/auxiliary/baseincludes.h>
+#include <podofo/main/PdfDeclarations.h>
 
 /** \file PdfError.h
  *  Error information and logging is implemented in this file.
@@ -93,20 +90,6 @@ enum class PdfErrorCode
     OpenSSL,                  ///< OpenSSL error
 };
 
-/**
- * Used in PoDoFo::LogMessage to specify the log level.
- *
- * \see PoDoFo::LogMessage
- */
-enum class PdfLogSeverity
-{
-    None = 0,            ///< Logging disabled
-    Error,               ///< Error
-    Warning,             ///< Warning
-    Information,         ///< Information message
-    Debug,               ///< Debug information
-};
-
 class PODOFO_API PdfErrorInfo final
 {
 public:
@@ -130,7 +113,6 @@ private:
 };
 
 using PdErrorInfoStack = std::deque<PdfErrorInfo>;
-using LogMessageCallback = std::function<void(PdfLogSeverity logSeverity, const std::string_view& msg)>;
 
 // This is required to generate the documentation with Doxygen.
 // Without this define doxygen thinks we have a class called PODOFO_EXCEPTION_API(PODOFO_API) ...
@@ -148,6 +130,8 @@ using LogMessageCallback = std::function<void(PdfLogSeverity logSeverity, const 
  */
 class PODOFO_EXCEPTION_API_DOXYGEN PdfError final : public std::exception
 {
+    PODOFO_PRIVATE_FRIEND(void AddToCallStack(PdfError& err, std::string filepath, unsigned line, std::string information));
+
 public:
     /** Create a PdfError object with a given error code.
      *  \param code the error code of this object
@@ -170,12 +154,6 @@ public:
      *  \returns this object
      */
     PdfError& operator=(const PdfError& rhs) = default;
-
-    /** Overloaded assignment operator
-     *  \param code a PdfErrorCode code
-     *  \returns this object
-     */
-    PdfError& operator=(const PdfErrorCode& code);
 
     /** Compares this PdfError object
      *  with an error code
@@ -203,21 +181,6 @@ public:
      */
     inline const PdErrorInfoStack& GetCallStack() const { return m_CallStack; }
 
-    /** Add callstack information to an error object. Always call this function
-     *  if you get an error object but do not handle the error but throw it again.
-     *
-     *  \param filepath the filename of the source file causing
-     *                 the error or nullptr. Typically you will use
-     *                 the gcc macro __FILE__ here.
-     *  \param line    the line of source causing the error
-     *                 or 0. Typically you will use the gcc
-     *                 macro __LINE__ here.
-     *  \param information additional information on the error,
-     *         e.g. how to fix the error. This string is intended to
-     *         be shown to the user.
-     */
-    void AddToCallStack(std::string filepath, unsigned line, std::string information = { });
-
     /** Print an error message to stderr. This includes callstack
      *  and extra info, if any of either was set.
      */
@@ -243,6 +206,21 @@ public:
     static std::string_view ErrorMessage(PdfErrorCode code);
 
 private:
+    /** Add callstack information to an error object. Always call this function
+     *  if you get an error object but do not handle the error but throw it again.
+     *
+     *  \param filepath the filename of the source file causing
+     *                 the error or nullptr. Typically you will use
+     *                 the gcc macro __FILE__ here.
+     *  \param line    the line of source causing the error
+     *                 or 0. Typically you will use the gcc
+     *                 macro __LINE__ here.
+     *  \param information additional information on the error,
+     *         e.g. how to fix the error. This string is intended to
+     *         be shown to the user.
+     */
+    void AddToCallStack(std::string&& filepath, unsigned line, std::string&& information);
+
     void initFullDescription();
 
 private:

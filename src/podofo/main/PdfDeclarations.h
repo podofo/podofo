@@ -7,10 +7,6 @@
 #ifndef PDF_DECLARATIONS_H
 #define PDF_DECLARATIONS_H
 
-#ifdef PDF_ERROR_H
-    #error "Don't include PdfDeclarations.h in PdfError.h"
-#endif
-
 /**
  * \file PdfDeclarations.h
  *      This file should be included as the FIRST file in every header of
@@ -26,9 +22,6 @@
 #include <podofo/auxiliary/baseincludes.h>
 
 #include <podofo/auxiliary/Version.h>
-
-// Error Handling Defines
-#include "PdfError.h"
 
 #define FORWARD_DECLARE_FCONFIG()\
 extern "C" {\
@@ -54,6 +47,20 @@ extern "C"\
  * to your application.
  */
 namespace PoDoFo {
+
+/**
+ * Used in PoDoFo::LogMessage to specify the log level.
+ *
+ * \see PoDoFo::LogMessage
+ */
+enum class PdfLogSeverity : uint8_t
+{
+    None = 0,            ///< Logging disabled
+    Error,               ///< Error
+    Warning,             ///< Warning
+    Information,         ///< Information message
+    Debug,               ///< Debug information
+};
 
 // Enums
 

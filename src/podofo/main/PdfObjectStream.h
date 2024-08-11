@@ -88,8 +88,8 @@ class PODOFO_API PdfObjectStream final
     friend class PdfObject;
     friend class PdfObjectInputStream;
     friend class PdfObjectOutputStream;
-    PODOFO_PRIVATE_FRIEND(PdfParserObject);
-    PODOFO_PRIVATE_FRIEND(PdfImmediateWriter);
+    PODOFO_PRIVATE_FRIEND(class PdfParserObject);
+    PODOFO_PRIVATE_FRIEND(class PdfImmediateWriter);
 
 private:
     /** Create a new PdfObjectStream object which has a parent PdfObject.

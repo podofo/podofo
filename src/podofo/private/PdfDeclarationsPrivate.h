@@ -29,9 +29,9 @@
 #include <podofo/main/PdfDeclarations.h>
 
 // Redefine empty PODOFO_PRIVATE_FRIEND to specify actual
-// friendship with private classes
+// friendship with private identifiers (class or methods)
 #undef PODOFO_PRIVATE_FRIEND
-#define PODOFO_PRIVATE_FRIEND(classname) friend class classname
+#define PODOFO_PRIVATE_FRIEND(identifier) friend identifier
 
 #include <podofo/auxiliary/Convert.h>
 #include "PdfXRefEntry.h"
@@ -120,13 +120,13 @@
    *
    * Add frame to error callastack
    */
-#define PODOFO_PUSH_FRAME(err) err.AddToCallStack(__FILE__, __LINE__)
+#define PODOFO_PUSH_FRAME(err) AddToCallStack(err, __FILE__, __LINE__, { })
 
    /** \def PODOFO_PUSH_FRAME_INFO(err, msg)
     *
     * Add frame to error callastack with msg information
     */
-#define PODOFO_PUSH_FRAME_INFO(err, msg, ...) err.AddToCallStack(__FILE__, __LINE__, COMMON_FORMAT(msg, ##__VA_ARGS__))
+#define PODOFO_PUSH_FRAME_INFO(err, msg, ...) AddToCallStack(err, __FILE__, __LINE__, COMMON_FORMAT(msg, ##__VA_ARGS__))
 
     /** \def PODOFO_PUSH_FRAME(err, msg)
      *
@@ -183,6 +183,8 @@ namespace PoDoFo
 
     char XRefEntryTypeToChar(PdfXRefEntryType type);
     PdfXRefEntryType XRefEntryTypeFromChar(char c);
+
+    void AddToCallStack(PdfError& err, std::string filepath, unsigned line, std::string information);
 }
 
 /**

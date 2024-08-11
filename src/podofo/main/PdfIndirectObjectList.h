@@ -31,13 +31,13 @@ class PODOFO_API PdfIndirectObjectList final
     friend class PdfDocument;
     friend class PdfObject;
     friend class PdfObjectOutputStream;
-    PODOFO_PRIVATE_FRIEND(PdfObjectStreamParser);
-    PODOFO_PRIVATE_FRIEND(PdfImmediateWriter);
-    PODOFO_PRIVATE_FRIEND(PdfParser);
-    PODOFO_PRIVATE_FRIEND(PdfWriter);
-    PODOFO_PRIVATE_FRIEND(PdfParserTest);
-    PODOFO_PRIVATE_FRIEND(PdfEncodingTest);
-    PODOFO_PRIVATE_FRIEND(PdfEncryptTest);
+    PODOFO_PRIVATE_FRIEND(class PdfObjectStreamParser);
+    PODOFO_PRIVATE_FRIEND(class PdfImmediateWriter);
+    PODOFO_PRIVATE_FRIEND(class PdfParser);
+    PODOFO_PRIVATE_FRIEND(class PdfWriter);
+    PODOFO_PRIVATE_FRIEND(class PdfParserTest);
+    PODOFO_PRIVATE_FRIEND(class PdfEncodingTest);
+    PODOFO_PRIVATE_FRIEND(class PdfEncryptTest);
 
 private:
     // NOTE: For testing only

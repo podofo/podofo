@@ -1,4 +1,3 @@
-#include "PdfDeclarationsPrivate.h"
 /**
  * SPDX-FileCopyrightText: (C) 2005 Dominik Seichter <domseichter@web.de>
  * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
@@ -22,6 +21,8 @@
  // NOTE: There's no <cstrings>, <strings.h> is a posix header
 #include <strings.h>
 #endif
+
+#include <podofo/main/PdfCommon.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -330,6 +331,11 @@ PdfXRefEntryType PoDoFo::XRefEntryTypeFromChar(char c)
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRef);
     }
+}
+
+void PoDoFo::AddToCallStack(PdfError& err, string filepath, unsigned line, string information)
+{
+    err.AddToCallStack(std::move(filepath), line, std::move(information));
 }
 
 // NOTE: This function is condsidered to be slow. Avoid calling it frequently

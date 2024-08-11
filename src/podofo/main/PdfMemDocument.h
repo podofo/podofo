@@ -37,7 +37,7 @@ class PdfEncryptSession;
  */
 class PODOFO_API PdfMemDocument final : public PdfDocument
 {
-    PODOFO_PRIVATE_FRIEND(PdfWriter);
+    PODOFO_PRIVATE_FRIEND(class PdfWriter);
 
 public:
     /** Construct a new PdfMemDocument

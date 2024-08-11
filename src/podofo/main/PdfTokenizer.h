@@ -51,7 +51,7 @@ struct PODOFO_API PdfTokenizerOptions final
  */
 class PODOFO_API PdfTokenizer
 {
-    PODOFO_PRIVATE_FRIEND(PdfParserObject);
+    PODOFO_PRIVATE_FRIEND(class PdfParserObject);
 
 public:
     static constexpr unsigned BufferSize = 4096;

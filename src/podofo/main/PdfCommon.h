@@ -10,6 +10,8 @@
 
 namespace PoDoFo {
 
+using LogMessageCallback = std::function<void(PdfLogSeverity logSeverity, const std::string_view& msg)>;
+
 class PODOFO_API PdfCommon final
 {
     PdfCommon() = delete;

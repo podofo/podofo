@@ -125,7 +125,7 @@ using PdfPageConstFieldIterable = PdfPageFieldIterableBase<const PdfField>;
  */
 class PODOFO_API PdfPage final : public PdfDictionaryElement, public PdfCanvas
 {
-    PODOFO_PRIVATE_FRIEND(PdfPageTest);
+    PODOFO_PRIVATE_FRIEND(class PdfPageTest);
     friend class PdfPageCollection;
     friend class PdfDocument;
 

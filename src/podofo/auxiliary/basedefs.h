@@ -100,8 +100,8 @@
     #define PODOFO_DEPRECATED
 #endif
 
-// Specify the friend class is defined in private symbols only
-#define PODOFO_PRIVATE_FRIEND(classname)
+// Specify the friend identifier is defined in private symbols only
+#define PODOFO_PRIVATE_FRIEND(identifier)
 
 // Include some useful compatibility defines
 #include "basecompat.h"

@@ -7,7 +7,7 @@
 #ifndef AUX_CONVERT_H
 #define AUX_CONVERT_H
 
-#include <podofo/main/PdfDeclarations.h>
+#include <podofo/main/PdfError.h>
 
 namespace PoDoFo
 {

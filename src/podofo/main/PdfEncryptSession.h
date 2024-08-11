@@ -17,8 +17,8 @@ namespace PoDoFo {
 class PODOFO_API PdfEncryptSession final
 {
     friend class PdfMemDocument;
-    PODOFO_PRIVATE_FRIEND(PdfParser);
-    PODOFO_PRIVATE_FRIEND(PdfImmediateWriter);
+    PODOFO_PRIVATE_FRIEND(class PdfParser);
+    PODOFO_PRIVATE_FRIEND(class PdfImmediateWriter);
 
 private:
     /** A copy constructor that does deep copy of PdfEncrypt as well

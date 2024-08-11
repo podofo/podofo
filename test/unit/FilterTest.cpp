@@ -59,11 +59,8 @@ void testFilter(PdfFilterType filterType, const bufferview& view)
             INFO(utls::Format("\t-> Encoding not supported for filter {}.", (unsigned)filterType));
             return;
         }
-        else
-        {
-            e.AddToCallStack(__FILE__, __LINE__);
-            throw;
-        }
+
+        throw;
     }
 
     INFO("\t-> Testing Decoding");
@@ -78,11 +75,8 @@ void testFilter(PdfFilterType filterType, const bufferview& view)
             INFO(utls::Format("\t-> Decoding not supported for filter {}", (int)filterType));
             return;
         }
-        else
-        {
-            e.AddToCallStack(__FILE__, __LINE__);
-            throw;
-        }
+
+        throw;
     }
 
     INFO(utls::Format("\t-> Original Data Length: {}", view.size()));

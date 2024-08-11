@@ -35,7 +35,7 @@ class PODOFO_API PdfVariant final
     friend class PdfObject;
     friend class PdfArray;
     friend class PdfDictionary;
-    PODOFO_PRIVATE_FRIEND(PdfParserObject);
+    PODOFO_PRIVATE_FRIEND(class PdfParserObject);
 
 private:
     PdfVariant(PdfDataType type);

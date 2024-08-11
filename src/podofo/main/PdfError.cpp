@@ -26,21 +26,11 @@ struct SourcePathOffset
 
 static SourcePathOffset s_PathOffset;
 
-PdfErrorInfo::PdfErrorInfo(string filepath, unsigned line, string info)
-    : m_Line(line), m_FilePath(std::move(filepath)), m_Info(std::move(info)) { }
-
 PdfError::PdfError(PdfErrorCode code, string filepath, unsigned line,
     string information)
 {
     m_Code = code;
     this->AddToCallStack(std::move(filepath), line, std::move(information));
-}
-
-PdfError& PdfError::operator=(const PdfErrorCode& code)
-{
-    m_Code = code;
-    m_CallStack.clear();
-    return *this;
 }
 
 bool PdfError::operator==(PdfErrorCode code)
@@ -332,10 +322,13 @@ void PdfError::initFullDescription()
     m_FullDescription = stream.take_str();
 }
 
-void PdfError::AddToCallStack(string filepath, unsigned line, string information)
+void PdfError::AddToCallStack(string&& filepath, unsigned line, string&& information)
 {
-    m_CallStack.push_front(PdfErrorInfo(std::move(filepath), line, information));
+    m_CallStack.push_front(PdfErrorInfo(std::move(filepath), line, std::move(information)));
 }
+
+PdfErrorInfo::PdfErrorInfo(string filepath, unsigned line, string info)
+    : m_Line(line), m_FilePath(std::move(filepath)), m_Info(std::move(info)) { }
 
 string_view PdfErrorInfo::GetFilePath() const
 {
