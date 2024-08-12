@@ -1,4 +1,5 @@
 ## 0.10.1 -> 1.0.0
+- `PdfAppearanceState`: Renamed to `PdfAppearanceStream`
 - `PdfMetadata`:
   * Removed argument `trySyncXMP` from all functions setting values. Manually call new `TrySyncXMPMetadata` instead
   * Removed `EnsureXMPMetadata`, use `SyncXMPMetadata` instead

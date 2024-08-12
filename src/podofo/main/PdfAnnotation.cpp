@@ -197,9 +197,9 @@ void PdfAnnotation::SetAppearanceStreamRaw(const PdfXObjectForm& xobj, PdfAppear
     setAppearanceStream(GetDictionary(), xobj.GetObject(), appearance, state);
 }
 
-void PdfAnnotation::GetAppearanceStreams(vector<PdfAppearanceIdentity>& streams) const
+void PdfAnnotation::GetAppearanceStreams(vector<PdfAppearanceStream>& states) const
 {
-    streams.clear();
+    states.clear();
     auto apDict = getAppearanceDictionary();
     if (apDict == nullptr)
         return;
@@ -218,19 +218,24 @@ void PdfAnnotation::GetAppearanceStreams(vector<PdfAppearanceIdentity>& streams)
             continue;
 
         PdfDictionary* apStateDict;
-        if ( pair1.second->HasStream())
+        if (pair1.second->HasStream())
         {
-            streams.push_back({ pair1.second, apType, PdfName() });
+            states.push_back({ pair1.second, apType, PdfName::Null });
         }
         else if (pair1.second->TryGetDictionary(apStateDict))
         {
             for (auto& pair2 : apStateDict->GetIndirectIterator())
             {
                 if (pair2.second->HasStream())
-                    streams.push_back({ pair2.second, apType, pair2.first });
+                    states.push_back({ pair2.second, apType, pair2.first });
             }
         }
     }
+}
+
+void PdfAnnotation::ClearAppearances()
+{
+    GetDictionary().AddKey("AP", PdfDictionary());
 }
 
 PdfObject* PdfAnnotation::GetAppearanceDictionaryObject()

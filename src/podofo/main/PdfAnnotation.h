@@ -16,7 +16,9 @@ namespace PoDoFo {
 class PdfPage;
 class PdfXObjectForm;
 
-struct PODOFO_API PdfAppearanceIdentity final
+/** A qualified appearance stream, with type and state name
+ */
+struct PODOFO_API PdfAppearanceStream final
 {
     const PdfObject* Object = nullptr;
     PdfAppearanceType Type = PdfAppearanceType::Normal;
@@ -93,7 +95,11 @@ public:
      */
     void SetAppearanceStreamRaw(const PdfXObjectForm& xobj, PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
 
-    void GetAppearanceStreams(std::vector<PdfAppearanceIdentity>& streams) const;
+    /** Get a list of qualified appearance streams
+     */
+    void GetAppearanceStreams(std::vector<PdfAppearanceStream>& states) const;
+
+    void ClearAppearances();
 
     /**
     * \returns the appearance /AP object for this annotation
