@@ -296,7 +296,7 @@ TEST_CASE("TestGetPreviousRevision")
         auto input = std::make_shared<BufferStreamDevice>(currBuffer);
 
         PdfMemDocument doc;
-        doc.LoadFromDevice(input);
+        doc.Load(input);
         auto& signature = dynamic_cast<PdfSignature&>(
             dynamic_cast<PdfAnnotationWidget&>(
                 doc.GetPages().GetPageAt(0).GetAnnotations().GetAnnotAt(0)).GetField());
@@ -318,7 +318,7 @@ TEST_CASE("TestGetPreviousRevision")
         auto input = std::make_shared<BufferStreamDevice>(currBuffer);
 
         PdfMemDocument doc;
-        doc.LoadFromDevice(input);
+        doc.Load(input);
         auto& signature = dynamic_cast<PdfSignature&>(
             dynamic_cast<PdfAnnotationWidget&>(
                 doc.GetPages().GetPageAt(0).GetAnnotations().GetAnnotAt(0)).GetField());

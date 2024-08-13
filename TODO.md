@@ -1,7 +1,7 @@
 ### 1.0
 
 #### API Review
-- PdfDocument: Review AttachFile, GetAttachment, FreeObjectMemory, AddNamedDestination. Rename LoadFromDevice(device) to just Load(device)
+- PdfDocument: Review AttachFile, GetAttachment, FreeObjectMemory, AddNamedDestination
 - Review PdfPage::SetICCProfile(), PdfImage::SetICCProfile()
 - PdfErrorCode: Check all values (Add MaxRecursionReached)
 - PdfField: Make PdfFieldChildrenCollectionBase m_Children a unique_ptr, and lazy load that

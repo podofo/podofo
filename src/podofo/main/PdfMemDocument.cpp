@@ -96,7 +96,7 @@ void PdfMemDocument::Load(const string_view& filename, const string_view& passwo
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     auto device = std::make_shared<FileStreamDevice>(filename);
-    LoadFromDevice(device, password);
+    Load(device, password);
 }
 
 void PdfMemDocument::LoadFromBuffer(const bufferview& buffer, const string_view& password)
@@ -105,10 +105,10 @@ void PdfMemDocument::LoadFromBuffer(const bufferview& buffer, const string_view&
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     auto device = std::make_shared<SpanStreamDevice>(buffer);
-    LoadFromDevice(device, password);
+    Load(device, password);
 }
 
-void PdfMemDocument::LoadFromDevice(const shared_ptr<InputStreamDevice>& device, const string_view& password)
+void PdfMemDocument::Load(const shared_ptr<InputStreamDevice>& device, const string_view& password)
 {
     if (device == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);

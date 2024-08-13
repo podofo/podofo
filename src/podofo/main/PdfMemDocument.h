@@ -75,7 +75,7 @@ public:
      *
      *  \see WriteUpdate, Load, LoadFromBuffer
      */
-    void LoadFromDevice(const std::shared_ptr<InputStreamDevice>& device, const std::string_view& password = { });
+    void Load(const std::shared_ptr<InputStreamDevice>& device, const std::string_view& password = { });
 
     /** Save the complete document to a file
      *

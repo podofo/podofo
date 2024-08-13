@@ -1172,7 +1172,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         // Parse a doc using XRef stream with invalid /W entries
-        doc.LoadFromDevice(device);
+        doc.Load(device);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1225,7 +1225,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         // Parse a doc using XRef stream with invalid /W entries
-        doc.LoadFromDevice(device);
+        doc.Load(device);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1277,7 +1277,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         // Parse a doc using XRef stream with invalid /W entries
-        doc.LoadFromDevice(device);
+        doc.Load(device);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1329,7 +1329,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         // Parse a doc using XRef stream with invalid /W entries
-        doc.LoadFromDevice(device);
+        doc.Load(device);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1378,7 +1378,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         // Parse a doc using XRef stream with invalid /W entries
-        doc.LoadFromDevice(device);
+        doc.Load(device);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1428,7 +1428,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         PdfXRefEntries offsets;
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
-        doc.LoadFromDevice(device);
+        doc.Load(device);
     }
     catch (PdfError&)
     {
@@ -1477,7 +1477,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         PdfXRefEntries offsets;
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
-        doc.LoadFromDevice(device);
+        doc.Load(device);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1529,7 +1529,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         PdfXRefEntries offsets;
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
-        doc.LoadFromDevice(device);
+        doc.Load(device);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1581,7 +1581,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         PdfXRefEntries offsets;
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
-        doc.LoadFromDevice(device);
+        doc.Load(device);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1633,7 +1633,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         PdfXRefEntries offsets;
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
-        doc.LoadFromDevice(device);
+        doc.Load(device);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1685,7 +1685,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         PdfXRefEntries offsets;
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
-        doc.LoadFromDevice(device);
+        doc.Load(device);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1737,7 +1737,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         PdfXRefEntries offsets;
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
-        doc.LoadFromDevice(device);
+        doc.Load(device);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1787,7 +1787,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         PdfXRefEntries offsets;
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
-        doc.LoadFromDevice(device);
+        doc.Load(device);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
