@@ -40,8 +40,8 @@ PdfDocument& PdfElement::GetDocument() const
     return *m_Object->GetDocument();
 }
 
-PdfDictionaryElement::PdfDictionaryElement(PdfDocument& parent, const string_view& type,
-    const string_view& subtype)
+PdfDictionaryElement::PdfDictionaryElement(PdfDocument& parent, const PdfName& type,
+    const PdfName& subtype)
     : PdfElement(parent.GetObjects().CreateDictionaryObject(type, subtype),
         PdfDataType::Dictionary)
 {

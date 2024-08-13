@@ -191,15 +191,15 @@ PdfReference PdfIndirectObjectList::getNextFreeObject()
     return PdfReference(nextObjectNum, 0);
 }
 
-PdfObject& PdfIndirectObjectList::CreateDictionaryObject(const string_view& type,
-    const string_view& subtype)
+PdfObject& PdfIndirectObjectList::CreateDictionaryObject(const PdfName& type,
+    const PdfName& subtype)
 {
     auto dict = PdfDictionary();
-    if (!type.empty())
-        dict.AddKey(PdfNames::Type, PdfName(type));
+    if (!type.IsNull())
+        dict.AddKey(PdfNames::Type, type);
 
-    if (!subtype.empty())
-        dict.AddKey(PdfNames::Subtype, PdfName(subtype));
+    if (!subtype.IsNull())
+        dict.AddKey(PdfNames::Subtype, subtype);
 
     auto ret = new PdfObject(std::move(dict));
     ret->setDirty();

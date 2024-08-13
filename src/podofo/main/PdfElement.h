@@ -79,8 +79,8 @@ protected:
      *  \param subtype optional value of the /SubType key of the object
      */
     PdfDictionaryElement(PdfDocument& parent,
-        const std::string_view& type = { },
-        const std::string_view& subtype = { });
+        const PdfName& type = PdfName::Null,
+        const PdfName& subtype = PdfName::Null);
 
     /** Create a PdfDictionaryElement from an existing PdfObject
      *  The object must be a dictionary.

@@ -70,8 +70,8 @@ public:
      *  \param subtype optional value of the /SubType key of the object
      *  \returns PdfObject pointer to the new PdfObject
      */
-    PdfObject& CreateDictionaryObject(const std::string_view& type = { },
-        const std::string_view& subtype = { });
+    PdfObject& CreateDictionaryObject(const PdfName& type = PdfName::Null,
+        const PdfName& subtype = PdfName::Null);
 
     PdfObject& CreateArrayObject();
 
