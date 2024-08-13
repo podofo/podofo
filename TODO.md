@@ -4,7 +4,6 @@
 - PdfDocument: Review AttachFile, GetAttachment, FreeObjectMemory, AddNamedDestination
 - Review PdfPage::SetICCProfile(), PdfImage::SetICCProfile()
 - PdfErrorCode: Check all values (Add MaxRecursionReached)
-- PdfField: Make PdfFieldChildrenCollectionBase m_Children a unique_ptr, and lazy load that
 - Evaluate IntputStreamDevice CopyTo() should do seek(0)
 - FileStreamDevice: Make it use again C stdio
 

@@ -16,6 +16,7 @@ using namespace PoDoFo;
 PdfFieldChildrenCollectionBase::PdfFieldChildrenCollectionBase(PdfField& field)
     : m_field(&field), m_kidsArray(nullptr)
 {
+    initFields();
 }
 
 PdfField& PdfFieldChildrenCollectionBase::CreateChild()
@@ -50,14 +51,13 @@ const PdfField& PdfFieldChildrenCollectionBase::GetField(const PdfReference& ref
 
 void PdfFieldChildrenCollectionBase::RemoveFieldAt(unsigned index)
 {
-    initFields();
     if (index >= m_Fields.size())
         PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
     if (m_Fields[index] != nullptr)
     {
         // It may be null if the annotation is invalid
-        m_fieldMap->erase(m_fieldMap->find(m_Fields[index]->GetObject().GetIndirectReference()));
+        m_fieldMap.erase(m_fieldMap.find(m_Fields[index]->GetObject().GetIndirectReference()));
     }
 
     m_kidsArray->RemoveAt(index);
@@ -70,15 +70,14 @@ void PdfFieldChildrenCollectionBase::RemoveFieldAt(unsigned index)
 
 void PdfFieldChildrenCollectionBase::RemoveField(const PdfReference& ref)
 {
-    initFields();
-    auto found = m_fieldMap->find(ref);
-    if (found == m_fieldMap->end())
+    auto found = m_fieldMap.find(ref);
+    if (found == m_fieldMap.end())
         return;
 
     unsigned index = found->second;
     m_Fields.erase(m_Fields.begin() + index);
     m_kidsArray->RemoveAt(index);
-    m_fieldMap->erase(found);
+    m_fieldMap.erase(found);
     fixIndices(index);
 
     // NOTE: No need to remove the object from the document
@@ -87,13 +86,11 @@ void PdfFieldChildrenCollectionBase::RemoveField(const PdfReference& ref)
 
 unsigned PdfFieldChildrenCollectionBase::GetCount() const
 {
-    const_cast<PdfFieldChildrenCollectionBase&>(*this).initFields();
     return (unsigned)m_Fields.size();
 }
 
 bool PdfFieldChildrenCollectionBase::HasKidsArray() const
 {
-    const_cast<PdfFieldChildrenCollectionBase&>(*this).initFields();
     return m_kidsArray != nullptr;
 }
 
@@ -120,11 +117,10 @@ PdfFieldChildrenCollectionBase::const_iterator PdfFieldChildrenCollectionBase::e
 PdfField& PdfFieldChildrenCollectionBase::AddChild(const shared_ptr<PdfField>& field)
 {
     PODOFO_ASSERT(field != nullptr);
-    initFields();
     if (m_kidsArray == nullptr)
         m_kidsArray = &m_field->GetDictionary().AddKey("Kids", PdfArray()).GetArray();
 
-    (*m_fieldMap)[field->GetObject().GetIndirectReference()] = m_kidsArray->GetSize();
+    m_fieldMap[field->GetObject().GetIndirectReference()] = m_kidsArray->GetSize();
     m_kidsArray->AddIndirectSafe(field->GetObject());
     auto ret = field.get();
     m_Fields.push_back(field);
@@ -142,7 +138,6 @@ PdfArray* PdfFieldChildrenCollectionBase::getKidsArray() const
 
 PdfField& PdfFieldChildrenCollectionBase::getFieldAt(unsigned index) const
 {
-    const_cast<PdfFieldChildrenCollectionBase&>(*this).initFields();
     if (index >= m_Fields.size())
         PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
@@ -151,16 +146,11 @@ PdfField& PdfFieldChildrenCollectionBase::getFieldAt(unsigned index) const
 
 PdfField& PdfFieldChildrenCollectionBase::getField(const PdfReference& ref) const
 {
-    const_cast<PdfFieldChildrenCollectionBase&>(*this).initFields();
-    return *m_Fields[(*m_fieldMap).at(ref)];
+    return *m_Fields[m_fieldMap.at(ref)];
 }
 
 void PdfFieldChildrenCollectionBase::initFields()
 {
-    if (m_fieldMap != nullptr)
-        return;
-
-    m_fieldMap.reset(new FieldMap());
     m_kidsArray = getKidsArray();
     if (m_kidsArray == nullptr)
         return;
@@ -170,7 +160,7 @@ void PdfFieldChildrenCollectionBase::initFields()
     unsigned i = 0;
     for (auto obj : m_kidsArray->GetIndirectIterator())
     {
-        (*m_fieldMap)[obj->GetIndirectReference()] = i;
+        m_fieldMap[obj->GetIndirectReference()] = i;
         // The annotation may be invalid. In that case we push a placeholder
         if (PdfField::TryCreateFromObject(*obj, field))
         {
@@ -188,7 +178,7 @@ void PdfFieldChildrenCollectionBase::initFields()
 
 void PdfFieldChildrenCollectionBase::fixIndices(unsigned index)
 {
-    for (auto& pair : *m_fieldMap)
+    for (auto& pair : m_fieldMap)
     {
         // Decrement indices where needed
         if (pair.second > index)

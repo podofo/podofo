@@ -35,8 +35,7 @@ PdfField::PdfField(PdfAnnotationWidget& widget,
     m_Widget(&widget),
     m_AcroForm(nullptr),
     m_FieldType(fieldType),
-    m_Parent(parent),
-    m_Children(*this)
+    m_Parent(parent)
 {
     if (parent == nullptr)
     {
@@ -55,8 +54,7 @@ PdfField::PdfField(PdfAcroForm& acroform, PdfFieldType fieldType,
     m_Widget(nullptr),
     m_AcroForm(&acroform),
     m_FieldType(fieldType),
-    m_Parent(parent),
-    m_Children(*this)
+    m_Parent(parent)
 {
     if (parent == nullptr)
     {
@@ -74,8 +72,7 @@ PdfField::PdfField(PdfObject& obj, PdfAcroForm* acroform, PdfFieldType fieldType
     PdfDictionaryElement(obj),
     m_Widget(nullptr),
     m_AcroForm(acroform),
-    m_FieldType(fieldType),
-    m_Children(*this)
+    m_FieldType(fieldType)
 {
 }
 
@@ -121,6 +118,12 @@ void PdfField::initParent()
     unique_ptr<PdfField> field;
     (void)TryCreateFromObject(*parent, field);
     m_Parent = shared_ptr<PdfField>(std::move(field));
+}
+
+void PdfField::initChildren()
+{
+    if (m_Children == nullptr)
+        m_Children.reset(new PdfFieldChildrenCollectionBase(*this));
 }
 
 unique_ptr<PdfField> PdfField::createChildField(PdfPage* page, const Rect& rect)
@@ -519,6 +522,18 @@ const PdfAnnotationWidget& PdfField::MustGetWidget() const
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Expected to retrieve a field with a linked widget annotation");
 
     return *m_Widget;
+}
+
+PdfFieldChildrenCollectionBase& PdfField::GetChildren()
+{
+    initChildren();
+    return *m_Children;
+}
+
+const PdfFieldChildrenCollectionBase& PdfField::GetChildren() const
+{
+    const_cast<PdfField&>(*this).initChildren();
+    return *m_Children;
 }
 
 void PdfField::SetFieldFlag(int64_t value, bool set)

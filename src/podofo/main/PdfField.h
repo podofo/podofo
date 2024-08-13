@@ -211,9 +211,9 @@ public:
 
     const PdfAnnotationWidget& MustGetWidget() const;
 
-    PdfFieldChildrenCollectionBase& GetChildren() { return m_Children; }
+    PdfFieldChildrenCollectionBase& GetChildren();
 
-    const PdfFieldChildrenCollectionBase& GetChildren() const { return m_Children; }
+    const PdfFieldChildrenCollectionBase& GetChildren() const;
 
 protected:
     /**
@@ -290,6 +290,7 @@ private:
 
     void init();
     void initParent();
+    void initChildren();
     void setName(const PdfString& name);
     void addAlternativeAction(const PdfName& name, const PdfAction& action);
     static bool tryCreateField(PdfObject& obj, PdfFieldType type,
@@ -305,7 +306,7 @@ private:
     PdfAcroForm* m_AcroForm;
     PdfFieldType m_FieldType;
     nullable<std::shared_ptr<PdfField>> m_Parent;
-    PdfFieldChildrenCollectionBase m_Children;
+    std::unique_ptr<PdfFieldChildrenCollectionBase> m_Children;
 };
 
 template<typename TField>

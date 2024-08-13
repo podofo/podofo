@@ -117,7 +117,7 @@ namespace PoDoFo
 
     private:
         FieldList m_Fields;
-        std::unique_ptr<FieldMap> m_fieldMap;
+        FieldMap m_fieldMap;
         PdfField* m_field;
         PdfArray* m_kidsArray;
     };
