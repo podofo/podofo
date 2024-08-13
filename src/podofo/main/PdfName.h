@@ -24,6 +24,8 @@ namespace PoDoFo {
  */
 class PODOFO_API PdfName final : public PdfDataProvider
 {
+    friend PdfName operator""_nm(const char*, size_t);
+
 public:
     /** Null name, corresponds to "/"
      */
@@ -37,8 +39,10 @@ public:
 
     /** Create a new PdfName object.
      *  \param str the unescaped value of this name. Please specify
-     *                 the name without the leading '/'.
-     *                 Has to be a zero terminated string.
+     *      the name without the leading '/'.
+     *      Has to be a zero terminated string.
+     * \remarks the input string will be checked for all characters
+     *      to be inside PdfDocEncoding character set
      */
     PdfName(const std::string_view& str);
     PdfName(const char* str);
@@ -121,6 +125,9 @@ private:
     // Delete constructor with nullptr
     PdfName(std::nullptr_t) = delete;
 
+    // Assume utf-8 expanded
+    PdfName(charbuff&& buff, bool utf8Expanded);
+
     void expandUtf8String() const;
     void initFromUtf8String(const std::string_view& view);
 
@@ -168,6 +175,10 @@ public:
     static const PdfName Names;
     static const PdfName Limits;
 };
+
+/** Create a PdfName without checking for PdfDocEncoding characters
+ */
+PdfName operator""_nm(const char* name, size_t len);
 
 };
 

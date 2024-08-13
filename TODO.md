@@ -1,15 +1,14 @@
 ### 1.0
 
-#### API Review
 - PdfDocument: Review AttachFile, GetAttachment, FreeObjectMemory, AddNamedDestination
 - Review PdfPage::SetICCProfile(), PdfImage::SetICCProfile()
 - PdfErrorCode: Check all values (Add MaxRecursionReached)
 - Evaluate IntputStreamDevice CopyTo() should do seek(0)
 - FileStreamDevice: Make it use again C stdio
+- Check all PdfName construction to use either PdfNames:: singletons or construct with literal ""_nm
 
 #### Features
-- Evaluate adding PdfString(string&&) and PdfName(string&&) constructors that
-either assume UTF-8 and/or checks for used codepoints
+- Evaluate adding PdfString(string&&) that assumes UTF-8
 
 ### After 1.0
 - Check/Review doxygen doc
