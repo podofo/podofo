@@ -7,9 +7,6 @@
 - FileStreamDevice: Make it use again C stdio
 - Check all PdfName construction to use either PdfNames:: singletons or construct with literal ""_nm
 
-#### Features
-- Evaluate adding PdfString(string&&) that assumes UTF-8
-
 ### After 1.0
 - Check/Review doxygen doc
 - If the doc is updated, then should not allow to set an encryption

@@ -42,13 +42,31 @@ PdfString::PdfString(charbuff&& buff, bool isHex)
 PdfString::PdfString(const char* str)
     : m_isHex(false)
 {
-    initFromUtf8String({ str, std::strlen(str) });
+    if (str == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "String is null");
+
+    initFromUtf8String(string(str, std::strlen(str)));
+}
+
+PdfString::PdfString(const std::string& str)
+    : m_isHex(false)
+{
+    initFromUtf8String(string(str));
 }
 
 PdfString::PdfString(const string_view& view)
     : m_isHex(false)
 {
-    initFromUtf8String(view);
+    if (view.data() == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "String is null");
+
+    initFromUtf8String(string(view));
+}
+
+PdfString::PdfString(std::string&& str)
+    : m_isHex(false)
+{
+    initFromUtf8String(std::move(str));
 }
 
 PdfString::PdfString(const PdfString& rhs)
@@ -258,22 +276,19 @@ PdfString::operator string_view() const
     return m_data->Chars;
 }
 
-void PdfString::initFromUtf8String(const string_view& view)
+void PdfString::initFromUtf8String(string&& str)
 {
-    if (view.data() == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "String is null");
-
-    if (view.length() == 0)
+    if (str.length() == 0)
     {
         m_data.reset(new StringData{ { }, PdfStringState::Ascii });
         return;
     }
 
     bool isAsciiEqual;
-    if (PoDoFo::CheckValidUTF8ToPdfDocEcondingChars(view, isAsciiEqual))
-        m_data.reset(new StringData{ charbuff(view), isAsciiEqual ? PdfStringState::Ascii : PdfStringState::PdfDocEncoding });
+    if (PoDoFo::CheckValidUTF8ToPdfDocEcondingChars(str, isAsciiEqual))
+        m_data.reset(new StringData{ charbuff(std::move(str)), isAsciiEqual ? PdfStringState::Ascii : PdfStringState::PdfDocEncoding });
     else
-        m_data.reset(new StringData{ charbuff(view), PdfStringState::Unicode });
+        m_data.reset(new StringData{ charbuff(std::move(str)), PdfStringState::Unicode });
 }
 
 void PdfString::evaluateString() const

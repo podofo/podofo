@@ -15,6 +15,7 @@
 - Added `PdfNames` and moved all known names there from `PdfName`
 - `PdfPageCollection`: Methods creating pages now takes PdfPageSize or default inferred from doc
 - `PdfName`: Added `PdfName operator""_nm(const char*, size_t)`
+- `PdfString`: Added `std::string&&` constructor
 
 ## Version 0.10.3
 - Fixed big performance regression introduced in 0.10, see #108

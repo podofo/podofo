@@ -31,22 +31,24 @@ public:
 
     PdfString(charbuff&& buff, bool isHex);
 
-    PdfString(const char* str);
-
     /** Construct a new PdfString from a utf-8 string
      *  The input string will be copied.
      *
-     *  \param view the string to copy
+     *  \param str the string to copy
      */
+    PdfString(const char* str);
+    PdfString(const std::string& str);
     PdfString(const std::string_view& view);
+
+    /** Construct a new PdfString from a utf-8 string
+     *  \param str the string to move from
+     */
+    PdfString(std::string&& str);
 
     /** Copy an existing PdfString
      *  \param rhs another PdfString to copy
      */
     PdfString(const PdfString& rhs);
-
-    // Delete constructor with nullptr
-    PdfString(std::nullptr_t) = delete;
 
     /** Construct a new PdfString from an utf-8 encoded string.
      *
@@ -131,6 +133,9 @@ public:
     operator std::string_view() const;
 
 private:
+    // Delete constructor with nullptr
+    PdfString(std::nullptr_t) = delete;
+
     /** Construct a new PdfString from a 0-terminated string.
      *
      *  The input string will be copied.
@@ -139,7 +144,7 @@ private:
      *  \param view the string to copy, must not be nullptr
      *
      */
-    void initFromUtf8String(const std::string_view& view);
+    void initFromUtf8String(std::string&& str);
     void evaluateString() const;
     bool isValidText() const;
     static bool canPerformComparison(const PdfString& lhs, const PdfString& rhs);
