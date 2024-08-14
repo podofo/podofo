@@ -24,7 +24,7 @@ namespace PoDoFo {
  */
 class PODOFO_API PdfName final : public PdfDataProvider
 {
-    friend PdfName operator""_nm(const char*, size_t);
+    friend PdfName operator""_n(const char*, size_t);
 
 public:
     /** Null name, corresponds to "/"
@@ -178,7 +178,7 @@ public:
 
 /** Create a PdfName without checking for PdfDocEncoding characters
  */
-PdfName operator""_nm(const char* name, size_t len);
+PdfName operator""_n(const char* name, size_t len);
 
 };
 

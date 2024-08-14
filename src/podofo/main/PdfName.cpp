@@ -23,27 +23,27 @@ static void EscapeNameTo(string& dst, const string_view& view);
 static string UnescapeName(const string_view& view);
 
 const PdfName PdfName::Null = PdfName();
-const PdfName PdfNames::Contents = "Contents"_nm;
-const PdfName PdfNames::Flags = "Flags"_nm;
-const PdfName PdfNames::Length = "Length"_nm;
-const PdfName PdfNames::Rect = "Rect"_nm;
-const PdfName PdfNames::Size = "Size"_nm;
-const PdfName PdfNames::Subtype = "Subtype"_nm;
-const PdfName PdfNames::Type = "Type"_nm;
-const PdfName PdfNames::Filter = "Filter"_nm;
-const PdfName PdfNames::Parent = "Parent"_nm;
-const PdfName PdfNames::Kids = "Kids"_nm;
-const PdfName PdfNames::Count = "Count"_nm;
-const PdfName PdfNames::ExtGState  = "ExtGState"_nm;
-const PdfName PdfNames::ColorSpace = "ColorSpace"_nm;
-const PdfName PdfNames::Pattern = "Pattern"_nm;
-const PdfName PdfNames::Shading = "Shading"_nm;
-const PdfName PdfNames::XObject = "XObject"_nm;
-const PdfName PdfNames::Font = "Font"_nm;
-const PdfName PdfNames::Properties = "Properties"_nm;
-const PdfName PdfNames::AP = "AP"_nm;
-const PdfName PdfNames::Names = "Names"_nm;
-const PdfName PdfNames::Limits = "Limits"_nm;
+const PdfName PdfNames::Contents = "Contents"_n;
+const PdfName PdfNames::Flags = "Flags"_n;
+const PdfName PdfNames::Length = "Length"_n;
+const PdfName PdfNames::Rect = "Rect"_n;
+const PdfName PdfNames::Size = "Size"_n;
+const PdfName PdfNames::Subtype = "Subtype"_n;
+const PdfName PdfNames::Type = "Type"_n;
+const PdfName PdfNames::Filter = "Filter"_n;
+const PdfName PdfNames::Parent = "Parent"_n;
+const PdfName PdfNames::Kids = "Kids"_n;
+const PdfName PdfNames::Count = "Count"_n;
+const PdfName PdfNames::ExtGState  = "ExtGState"_n;
+const PdfName PdfNames::ColorSpace = "ColorSpace"_n;
+const PdfName PdfNames::Pattern = "Pattern"_n;
+const PdfName PdfNames::Shading = "Shading"_n;
+const PdfName PdfNames::XObject = "XObject"_n;
+const PdfName PdfNames::Font = "Font"_n;
+const PdfName PdfNames::Properties = "Properties"_n;
+const PdfName PdfNames::AP = "AP"_n;
+const PdfName PdfNames::Names = "Names"_n;
+const PdfName PdfNames::Limits = "Limits"_n;
 
 PdfName::PdfName()
     : m_data(new NameData{ { }, nullptr, true })
@@ -341,7 +341,7 @@ void hexchr(const unsigned char ch, T& it)
     *(it++) = "0123456789ABCDEF"[ch % 16];
 }
 
-PdfName PoDoFo::operator""_nm(const char* name, size_t len)
+PdfName PoDoFo::operator""_n(const char* name, size_t len)
 {
     return PdfName(charbuff(name, len), true);
 }
