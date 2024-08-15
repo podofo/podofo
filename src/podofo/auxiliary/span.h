@@ -14,7 +14,7 @@ namespace PoDoFo
 
     /** Mutable span
      */
-    template <class T, size_t Extent = tcb::dynamic_extent, typename std::enable_if<!std::is_const<T>::value, int>::type = 0>
+    template <class T, size_t Extent = tcb::dynamic_extent, typename std::enable_if<!std::is_const_v<T>, int>::type = 0>
     using mspan = tcb::span<T, Extent>;
 }
 

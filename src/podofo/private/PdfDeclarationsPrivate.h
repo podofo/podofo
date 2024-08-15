@@ -305,7 +305,7 @@ namespace utls
 
     void FormatTo(std::string& str, double value, unsigned short precision);
 
-    template <typename T, typename = std::enable_if_t<std::is_integral<T>::value>>
+    template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
     inline bool TryParse(const std::string_view& str, T& val, int base = 10)
     {
         if (std::from_chars(str.data(), str.data() + str.size(), val, base).ec == std::errc())
@@ -314,7 +314,7 @@ namespace utls
             return false;
     }
 
-    template <typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
+    template <typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
     inline bool TryParse(const std::string_view& str, T& val, std::chars_format fmt = std::chars_format::fixed)
     {
         if (std::from_chars(str.data(), str.data() + str.size(), val, fmt).ec == std::errc())

@@ -24,7 +24,7 @@ namespace PoDoFo
     /**
      * Alternative to std::optional that supports reference (but not pointer) types
      */
-    template <typename T, typename = std::enable_if_t<!std::is_pointer<T>::value>>
+    template <typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
     class nullable final
     {
     public:
@@ -140,8 +140,8 @@ namespace PoDoFo
             : m_value{ }, m_hasValue(false) { }
 
         // Allow nullable<const T&>::nullable(const nullable<T&>&)
-        template <typename T2, std::enable_if_t<std::is_convertible<std::add_pointer_t<std::remove_reference_t<T2>>,
-            std::add_pointer_t<std::remove_reference_t<T>>>::value, int> = 0>
+        template <typename T2, std::enable_if_t<std::is_convertible_v<std::add_pointer_t<std::remove_reference_t<T2>>,
+            std::add_pointer_t<std::remove_reference_t<T>>>, int> = 0>
         nullable(const nullable<T2&>& value)
             : m_value(reinterpret_cast<const nullable&>(value).m_value), m_hasValue(reinterpret_cast<const nullable&>(value).m_hasValue) { }
 
