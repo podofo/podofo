@@ -31,14 +31,27 @@ public:
 
     PdfString(charbuff&& buff, bool isHex);
 
+    template<std::size_t N>
+    PdfString(const char(&str)[N])
+        : m_isHex(false)
+    {
+        initFromUtf8String(str, N - 1);
+    }
+
+    template<typename T, typename = std::enable_if_t<std::is_same_v<T, const char*>>>
+    PdfString(T str)
+        : m_isHex(false)
+    {
+        initFromUtf8String(str, std::char_traits<char>::length(str));
+    }
+
     /** Construct a new PdfString from a utf-8 string
      *  The input string will be copied.
      *
      *  \param str the string to copy
      */
-    PdfString(const char* str);
-    PdfString(const std::string& str);
     PdfString(const std::string_view& view);
+    PdfString(const std::string& str);
 
     /** Construct a new PdfString from a utf-8 string
      *  \param str the string to move from
@@ -144,6 +157,7 @@ private:
      *  \param view the string to copy, must not be nullptr
      *
      */
+    void initFromUtf8String(const char* str, size_t length);
     void initFromUtf8String(std::string&& str);
     void evaluateString() const;
     bool isValidText() const;

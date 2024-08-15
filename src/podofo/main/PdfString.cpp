@@ -39,15 +39,6 @@ PdfString::PdfString(charbuff&& buff, bool isHex)
 {
 }
 
-PdfString::PdfString(const char* str)
-    : m_isHex(false)
-{
-    if (str == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "String is null");
-
-    initFromUtf8String(string(str, std::strlen(str)));
-}
-
 PdfString::PdfString(const std::string& str)
     : m_isHex(false)
 {
@@ -274,6 +265,14 @@ PdfString::operator string_view() const
 {
     evaluateString();
     return m_data->Chars;
+}
+
+void PdfString::initFromUtf8String(const char* str, size_t length)
+{
+    if (str == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "String is null");
+
+    initFromUtf8String(string(str, length));
 }
 
 void PdfString::initFromUtf8String(string&& str)

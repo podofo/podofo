@@ -37,6 +37,18 @@ public:
      */
     PdfName();
 
+    template<std::size_t N>
+    PdfName(const char(&str)[N])
+    {
+        initFromUtf8String(str, N - 1);
+    }
+
+    template<typename T, typename = std::enable_if_t<std::is_same_v<T, const char*>>>
+    PdfName(T str)
+    {
+        initFromUtf8String(str, std::char_traits<char>::length(str));
+    }
+
     /** Create a new PdfName object.
      *  \param str the unescaped value of this name. Please specify
      *      the name without the leading '/'.
@@ -45,7 +57,6 @@ public:
      *      to be inside PdfDocEncoding character set
      */
     PdfName(const std::string_view& str);
-    PdfName(const char* str);
     PdfName(const std::string& str);
     PdfName(charbuff&& buff);
 
@@ -129,6 +140,7 @@ private:
     PdfName(charbuff&& buff, bool utf8Expanded);
 
     void expandUtf8String() const;
+    void initFromUtf8String(const char* str, size_t length);
     void initFromUtf8String(const std::string_view& view);
 
 private:

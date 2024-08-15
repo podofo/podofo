@@ -50,11 +50,6 @@ PdfName::PdfName()
 {
 }
 
-PdfName::PdfName(const char* str)
-{
-    initFromUtf8String(string_view(str, std::strlen(str)));
-}
-
 PdfName::PdfName(const string& str)
 {
     initFromUtf8String(str);
@@ -62,6 +57,9 @@ PdfName::PdfName(const string& str)
 
 PdfName::PdfName(const string_view& view)
 {
+    if (view.data() == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidName, "Name is null");
+
     initFromUtf8String(view);
 }
 
@@ -80,11 +78,16 @@ PdfName::PdfName(charbuff&& buff, bool utf8Expanded)
 {
 }
 
-void PdfName::initFromUtf8String(const string_view& view)
+void PdfName::initFromUtf8String(const char* str, size_t length)
 {
-    if (view.data() == nullptr)
+    if (str == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidName, "Name is null");
 
+    initFromUtf8String(string_view(str, length));
+}
+
+void PdfName::initFromUtf8String(const string_view& view)
+{
     if (view.length() == 0)
     {
         m_data.reset(new NameData{ { }, nullptr, true });
