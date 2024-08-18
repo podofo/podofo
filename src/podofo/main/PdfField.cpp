@@ -44,7 +44,7 @@ PdfField::PdfField(PdfAnnotationWidget& widget,
     else
     {
         // Set /Parent key to newly created field
-        GetDictionary().AddKey("Parent", parent->GetObject().GetIndirectReference());
+        GetDictionary().AddKey("Parent"_n, parent->GetObject().GetIndirectReference());
     }
 }
 
@@ -63,7 +63,7 @@ PdfField::PdfField(PdfAcroForm& acroform, PdfFieldType fieldType,
     else
     {
         // Set /Parent key to newly created field
-        GetDictionary().AddKey("Parent", parent->GetObject().GetIndirectReference());
+        GetDictionary().AddKey("Parent"_n, parent->GetObject().GetIndirectReference());
     }
 }
 
@@ -463,28 +463,28 @@ void PdfField::init()
     switch (m_FieldType)
     {
         case PdfFieldType::CheckBox:
-            dict.AddKey("FT", PdfName("Btn"));
+            dict.AddKey("FT"_n, "Btn"_n);
             break;
         case PdfFieldType::PushButton:
-            dict.AddKey("FT", PdfName("Btn"));
-            dict.AddKey("Ff", (int64_t)PdfButton::ePdfButton_PushButton);
+            dict.AddKey("FT"_n, "Btn"_n);
+            dict.AddKey("Ff"_n, (int64_t)PdfButton::ePdfButton_PushButton);
             break;
         case PdfFieldType::RadioButton:
-            dict.AddKey("FT", PdfName("Btn"));
-            dict.AddKey("Ff", (int64_t)(PdfButton::ePdfButton_Radio | PdfButton::ePdfButton_NoToggleOff));
+            dict.AddKey("FT"_n, "Btn"_n);
+            dict.AddKey("Ff"_n, (int64_t)(PdfButton::ePdfButton_Radio | PdfButton::ePdfButton_NoToggleOff));
             break;
         case PdfFieldType::TextBox:
-            dict.AddKey("FT", PdfName("Tx"));
+            dict.AddKey("FT"_n, "Tx"_n);
             break;
         case PdfFieldType::ListBox:
-            dict.AddKey("FT", PdfName("Ch"));
+            dict.AddKey("FT"_n, "Ch"_n);
             break;
         case PdfFieldType::ComboBox:
-            dict.AddKey("FT", PdfName("Ch"));
-            dict.AddKey("Ff", (int64_t)PdChoiceField::ePdfListField_Combo);
+            dict.AddKey("FT"_n, "Ch"_n);
+            dict.AddKey("Ff"_n, (int64_t)PdChoiceField::ePdfListField_Combo);
             break;
         case PdfFieldType::Signature:
-            dict.AddKey("FT", PdfName("Sig"));
+            dict.AddKey("FT"_n, "Sig"_n);
             break;
 
         case PdfFieldType::Unknown:
@@ -556,7 +556,7 @@ void PdfField::SetFieldFlag(int64_t value, bool set)
             curr ^= value;
     }
 
-    GetDictionary().AddKey("Ff", curr);
+    GetDictionary().AddKey("Ff"_n, curr);
 }
 
 bool PdfField::GetFieldFlag(int64_t value, bool defvalue) const
@@ -589,16 +589,16 @@ void PdfField::SetHighlightingMode(PdfHighlightingMode mode)
     switch (mode)
     {
         case PdfHighlightingMode::None:
-            value = "N";
+            value = "N"_n;
             break;
         case PdfHighlightingMode::Invert:
-            value = "I";
+            value = "I"_n;
             break;
         case PdfHighlightingMode::InvertOutline:
-            value = "O";
+            value = "O"_n;
             break;
         case PdfHighlightingMode::Push:
-            value = "P";
+            value = "P"_n;
             break;
         case PdfHighlightingMode::Unknown:
         default:
@@ -606,7 +606,7 @@ void PdfField::SetHighlightingMode(PdfHighlightingMode mode)
             break;
     }
 
-    GetDictionary().AddKey("H", value);
+    GetDictionary().AddKey("H"_n, value);
 }
 
 PdfHighlightingMode PdfField::GetHighlightingMode() const
@@ -644,7 +644,7 @@ void PdfField::SetName(nullable<const PdfString&> name)
 
 void PdfField::setName(const PdfString& name)
 {
-    GetDictionary().AddKey("T", name);
+    GetDictionary().AddKey("T"_n, name);
 }
 
 PdfObject* PdfField::GetValueObject()
@@ -687,7 +687,7 @@ string PdfField::GetFullName(bool skipEscapePartialName) const
 void PdfField::SetAlternateName(nullable<const PdfString&> name)
 {
     if (name.has_value())
-        GetDictionary().AddKey("TU", *name);
+        GetDictionary().AddKey("TU"_n, *name);
     else
         GetDictionary().RemoveKey("TU");
 }
@@ -705,7 +705,7 @@ nullable<const PdfString&> PdfField::GetAlternateName() const
 void PdfField::SetMappingName(nullable<const PdfString&> name)
 {
     if (name.has_value())
-        GetDictionary().AddKey("TM", *name);
+        GetDictionary().AddKey("TM"_n, *name);
     else
         GetDictionary().RemoveKey("TM");
 }
@@ -724,7 +724,7 @@ void PdfField::addAlternativeAction(const PdfName& name, const PdfAction& action
 {
     auto aaObj = GetDictionary().FindKey("AA");
     if (aaObj == nullptr)
-        aaObj = &GetDictionary().AddKey("AA", PdfDictionary());
+        aaObj = &GetDictionary().AddKey("AA"_n, PdfDictionary());
 
     aaObj->GetDictionary().AddKey(name, action.GetObject().GetIndirectReference());
 }
@@ -761,62 +761,62 @@ bool PdfField::IsNoExport() const
 
 void PdfField::SetMouseEnterAction(const PdfAction& action)
 {
-    this->addAlternativeAction("E", action);
+    this->addAlternativeAction("E"_n, action);
 }
 
 void PdfField::SetMouseLeaveAction(const PdfAction& action)
 {
-    this->addAlternativeAction("X", action);
+    this->addAlternativeAction("X"_n, action);
 }
 
 void PdfField::SetMouseDownAction(const PdfAction& action)
 {
-    this->addAlternativeAction("D", action);
+    this->addAlternativeAction("D"_n, action);
 }
 
 void PdfField::SetMouseUpAction(const PdfAction& action)
 {
-    this->addAlternativeAction("U", action);
+    this->addAlternativeAction("U"_n, action);
 }
 
 void PdfField::SetFocusEnterAction(const PdfAction& action)
 {
-    this->addAlternativeAction("Fo", action);
+    this->addAlternativeAction("Fo"_n, action);
 }
 
 void PdfField::SetFocusLeaveAction(const PdfAction& action)
 {
-    this->addAlternativeAction("BI", action);
+    this->addAlternativeAction("BI"_n, action);
 }
 
 void PdfField::SetPageOpenAction(const PdfAction& action)
 {
-    this->addAlternativeAction("PO", action);
+    this->addAlternativeAction("PO"_n, action);
 }
 
 void PdfField::SetPageCloseAction(const PdfAction& action)
 {
-    this->addAlternativeAction("PC", action);
+    this->addAlternativeAction("PC"_n, action);
 }
 
 void PdfField::SetPageVisibleAction(const PdfAction& action)
 {
-    this->addAlternativeAction("PV", action);
+    this->addAlternativeAction("PV"_n, action);
 }
 
 void PdfField::SetPageInvisibleAction(const PdfAction& action)
 {
-    this->addAlternativeAction("PI", action);
+    this->addAlternativeAction("PI"_n, action);
 }
 
 void PdfField::SetKeystrokeAction(const PdfAction& action)
 {
-    this->addAlternativeAction("K", action);
+    this->addAlternativeAction("K"_n, action);
 }
 
 void PdfField::SetValidateAction(const PdfAction& action)
 {
-    this->addAlternativeAction("V", action);
+    this->addAlternativeAction("V"_n, action);
 }
 
 // Link field and parent creating /P key and adding the field to /Kids
@@ -852,7 +852,7 @@ void PdfField::linkFieldObjectToParent(const shared_ptr<PdfField>& field, PdfFie
     {
         // Set /Parent key to existing field
         field->SetParent(parentField.GetPtr());
-        fieldDict.AddKey("Parent", parentField.GetObject().GetIndirectReference());
+        fieldDict.AddKey("Parent"_n, parentField.GetObject().GetIndirectReference());
     }
 }
 

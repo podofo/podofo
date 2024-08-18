@@ -16,7 +16,7 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfPage::PdfPage(PdfDocument& parent, const Rect& size) :
-    PdfDictionaryElement(parent, "Page"),
+    PdfDictionaryElement(parent, "Page"_n),
     m_Index(numeric_limits<unsigned>::max()),
     m_Contents(nullptr),
     m_Annotations(*this),
@@ -93,7 +93,7 @@ void PdfPage::ensureContentsCreated()
         return;
 
     m_Contents.reset(new PdfContents(*this));
-    GetDictionary().AddKey(PdfNames::Contents,
+    GetDictionary().AddKey("Contents"_n,
         m_Contents->GetObject().GetIndirectReference());
 }
 
@@ -242,7 +242,7 @@ Rect PdfPage::getPageBox(const string_view& inBox, bool isInheritable, bool raw)
     return pageBox;
 }
 
-void PdfPage::setPageBox(const string_view& inBox, const Rect& rect, bool raw)
+void PdfPage::setPageBox(const PdfName& inBox, const Rect& rect, bool raw)
 {
     auto actualRect = rect;
     if (!raw)
@@ -294,7 +294,7 @@ void PdfPage::SetRotation(int rotation)
 
     // We perform a normalization anyway
     rotation = utls::NormalizePageRotation(rotation);
-    this->GetDictionary().AddKey("Rotate", PdfVariant(static_cast<int64_t>(rotation)));
+    this->GetDictionary().AddKey("Rotate"_n, PdfVariant(static_cast<int64_t>(rotation)));
     m_Rotation = rotation;
 }
 
@@ -335,7 +335,7 @@ void PdfPage::FlattenStructure()
     if (m_parents.size() == 0)
         return;
 
-    constexpr string_view inheritableAttributes[] = {"Resources"sv, "MediaBox"sv, "CropBox"sv, "Rotate"sv};
+    static PdfName inheritableAttributes[] = { "Resources"_n, "MediaBox"_n, "CropBox"_n, "Rotate"_n };
 
     bool isShallow;
     // Move inherited attributes to current dictionary
@@ -365,27 +365,27 @@ void PdfPage::CopyContentsTo(OutputStream& stream) const
 
 void PdfPage::SetMediaBox(const Rect& rect, bool raw)
 {
-    setPageBox("MediaBox", rect, raw);
+    setPageBox("MediaBox"_n, rect, raw);
 }
 
 void PdfPage::SetCropBox(const Rect& rect, bool raw)
 {
-    setPageBox("CropBox", rect, raw);
+    setPageBox("CropBox"_n, rect, raw);
 }
 
 void PdfPage::SetTrimBox(const Rect& rect, bool raw)
 {
-    setPageBox("TrimBox", rect, raw);
+    setPageBox("TrimBox"_n, rect, raw);
 }
 
 void PdfPage::SetBleedBox(const Rect& rect, bool raw)
 {
-    setPageBox("BleedBox", rect, raw);
+    setPageBox("BleedBox"_n, rect, raw);
 }
 
 void PdfPage::SetArtBox(const Rect& rect, bool raw)
 {
-    setPageBox("ArtBox", rect, raw);
+    setPageBox("ArtBox"_n, rect, raw);
 }
 
 unsigned PdfPage::GetPageNumber() const
@@ -407,20 +407,20 @@ void PdfPage::SetICCProfile(const string_view& csTag, InputStream& stream,
     // Create a colorspace object
     auto& iccObject = this->GetDocument().GetObjects().CreateDictionaryObject();
     PdfName nameForCS = PoDoFo::ToString(alternateColorSpace);
-    iccObject.GetDictionary().AddKey("Alternate", nameForCS);
-    iccObject.GetDictionary().AddKey("N", colorComponents);
+    iccObject.GetDictionary().AddKey("Alternate"_n, nameForCS);
+    iccObject.GetDictionary().AddKey("N"_n, colorComponents);
     iccObject.GetOrCreateStream().SetData(stream);
 
     // Add the colorspace
     PdfArray array;
-    array.Add(PdfName("ICCBased"));
+    array.Add("ICCBased"_n);
     array.Add(iccObject.GetIndirectReference());
 
     PdfDictionary iccBasedDictionary;
     iccBasedDictionary.AddKey(csTag, array);
 
     // Add the colorspace to resource
-    GetOrCreateResources().GetDictionary().AddKey("ColorSpace", iccBasedDictionary);
+    GetOrCreateResources().GetDictionary().AddKey("ColorSpace"_n, iccBasedDictionary);
 }
 
 PdfPageFieldIterable PdfPage::GetFieldsIterator()

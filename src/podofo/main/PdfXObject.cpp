@@ -23,10 +23,10 @@ static string_view toString(PdfXObjectType type);
 static PdfXObjectType fromString(const string_view& str);
 
 PdfXObject::PdfXObject(PdfDocument& doc, PdfXObjectType subType, const string_view& prefix)
-    : PdfDictionaryElement(doc, "XObject"), m_Type(subType)
+    : PdfDictionaryElement(doc, "XObject"_n), m_Type(subType)
 {
     initIdentifiers(prefix);
-    this->GetDictionary().AddKey(PdfNames::Subtype, PdfName(toString(subType)));
+    this->GetDictionary().AddKey("Subtype"_n, PdfName(toString(subType)));
 }
 
 PdfXObject::PdfXObject(PdfObject& obj, PdfXObjectType subType)
@@ -101,7 +101,7 @@ PdfXObjectType PdfXObject::getPdfXObjectType(const PdfObject& obj)
     // so we don't check for it. If present it should be "XObject"
     auto& dict = obj.GetDictionary();
     const PdfName* name;
-    auto subTypeObj = dict.FindKey(PdfNames::Subtype);
+    auto subTypeObj = dict.FindKey("Subtype");
     if (subTypeObj == nullptr || !subTypeObj->TryGetName(name))
     {
         // NOTE: There are some forms missing both /Type and /Subtype
@@ -136,7 +136,7 @@ void PdfXObject::SetMatrix(const Matrix& m)
     arr.Add(m[4]);
     arr.Add(m[5]);
 
-    GetDictionary().AddKey("Matrix", std::move(arr));
+    GetDictionary().AddKey("Matrix"_n, std::move(arr));
 }
 
 bool PdfXObject::tryCreateFromObject(const PdfObject& obj, const type_info& typeInfo, PdfXObject*& xobj)

@@ -75,14 +75,14 @@ unique_ptr<PdfFont> PdfFont::createFontForType(PdfDocument& doc, const PdfFontMe
 bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
 {
     auto& dict = obj.GetDictionary();
-    PdfObject* objTypeKey = dict.FindKey(PdfNames::Type);
+    PdfObject* objTypeKey = dict.FindKey("Type");
     if (objTypeKey == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Font: No Type");
 
     if (objTypeKey->GetName() != "Font")
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
-    auto subTypeKey = dict.FindKey(PdfNames::Subtype);
+    auto subTypeKey = dict.FindKey("Subtype");
     if (subTypeKey == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Font: No SubType");
 

@@ -136,8 +136,8 @@ void PdfMemDocument::AddPdfExtension(const PdfName& ns, int64_t level)
         auto extensionsObj = this->GetCatalog().GetDictionary().FindKey("Extensions");
         PdfDictionary newExtension;
 
-        newExtension.AddKey("BaseVersion", PdfName(PoDoFo::GetPdfVersionName(m_Version)));
-        newExtension.AddKey("ExtensionLevel", PdfVariant(level));
+        newExtension.AddKey("BaseVersion"_n, PoDoFo::GetPdfVersionName(m_Version));
+        newExtension.AddKey("ExtensionLevel"_n, PdfVariant(level));
 
         if (extensionsObj != nullptr && extensionsObj->IsDictionary())
         {
@@ -147,12 +147,12 @@ void PdfMemDocument::AddPdfExtension(const PdfName& ns, int64_t level)
         {
             PdfDictionary extensions;
             extensions.AddKey(ns, newExtension);
-            this->GetCatalog().GetDictionary().AddKey("Extensions", extensions);
+            this->GetCatalog().GetDictionary().AddKey("Extensions"_n, extensions);
         }
     }
 }
 
-bool PdfMemDocument::HasPdfExtension(const PdfName& ns, int64_t level) const {
+bool PdfMemDocument::HasPdfExtension(const string_view& ns, int64_t level) const {
 
     auto extensions = this->GetCatalog().GetDictionary().FindKey("Extensions");
     if (extensions != nullptr)
@@ -193,7 +193,7 @@ vector<PdfExtension> PdfMemDocument::GetPdfExtensions() const
     return ret;
 }
 
-void PdfMemDocument::RemovePdfExtension(const PdfName& ns, int64_t level)
+void PdfMemDocument::RemovePdfExtension(const string_view& ns, int64_t level)
 {
     if (this->HasPdfExtension(ns, level))
         this->GetCatalog().GetDictionary().FindKey("Extensions")->GetDictionary().RemoveKey("ns");
@@ -252,7 +252,7 @@ void PdfMemDocument::SaveUpdate(OutputStreamDevice& device, PdfSaveOptions opts)
         if (this->GetPdfVersion() < PdfVersion::V1_0 || this->GetPdfVersion() > PdfVersion::V1_7)
             PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
-        GetCatalog().GetDictionary().AddKey("Version", PdfName(PoDoFo::GetPdfVersionName(GetPdfVersion())));
+        GetCatalog().GetDictionary().AddKey("Version"_n, PoDoFo::GetPdfVersionName(GetPdfVersion()));
     }
 
     try

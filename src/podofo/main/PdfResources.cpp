@@ -15,7 +15,7 @@ using namespace std;
 using namespace PoDoFo;
 
 static PdfArray getProcSet();
-static const PdfName& getResourceTypeName(PdfResourceType type);
+static PdfName getResourceTypeName(PdfResourceType type);
 static string_view getResourceTypePrefix(PdfResourceType type);
 
 PdfResources::PdfResources(PdfObject& obj) :
@@ -23,10 +23,10 @@ PdfResources::PdfResources(PdfObject& obj) :
     m_currResourceIds{ } { }
 
 PdfResources::PdfResources(PdfCanvas& canvas) :
-    PdfDictionaryElement(canvas.GetElement().GetDictionary().AddKey("Resources", PdfDictionary())),
+    PdfDictionaryElement(canvas.GetElement().GetDictionary().AddKey("Resources"_n, PdfDictionary())),
     m_currResourceIds{ }
 {
-    GetDictionary().AddKey("ProcSet", getProcSet());
+    GetDictionary().AddKey("ProcSet"_n, getProcSet());
 }
 
 bool PdfResources::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfResources>& resources)
@@ -182,32 +182,32 @@ PdfDictionary& PdfResources::getOrCreateDictionary(const string_view& type)
 PdfArray getProcSet()
 {
     PdfArray procset;
-    procset.Add(PdfName("PDF"));
-    procset.Add(PdfName("Text"));
-    procset.Add(PdfName("ImageB"));
-    procset.Add(PdfName("ImageC"));
-    procset.Add(PdfName("ImageI"));
+    procset.Add("PDF"_n);
+    procset.Add("Text"_n);
+    procset.Add("ImageB"_n);
+    procset.Add("ImageC"_n);
+    procset.Add("ImageI"_n);
     return procset;
 }
 
-const PdfName& getResourceTypeName(PdfResourceType type)
+PdfName getResourceTypeName(PdfResourceType type)
 {
     switch (type)
     {
         case PdfResourceType::ExtGState:
-            return PdfNames::ExtGState;
+            return "ExtGState"_n;
         case PdfResourceType::ColorSpace:
-            return PdfNames::ColorSpace;
+            return "ColorSpace"_n;
         case PdfResourceType::Pattern:
-            return PdfNames::Pattern;
+            return "Pattern"_n;
         case PdfResourceType::Shading:
-            return PdfNames::Shading;
+            return "Shading"_n;
         case PdfResourceType::XObject:
-            return PdfNames::XObject;
+            return "XObject"_n;
         case PdfResourceType::Font:
-            return PdfNames::Font;
+            return "Font"_n;
         case PdfResourceType::Properties:
-            return PdfNames::Properties;
+            return "Properties"_n;
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }

@@ -27,9 +27,9 @@ void PdfDestination::SetDestination(const PdfPage& page, PdfDestinationFit fit)
 {
     PdfName type;
     if (fit == PdfDestinationFit::Fit)
-        type = PdfName("Fit");
+        type = "Fit"_n;
     else if (fit == PdfDestinationFit::FitB)
-        type = PdfName("FitB");
+        type = "FitB"_n;
 
     auto& arr = GetArray();
     arr.Add(page.GetObject().GetIndirectReference());
@@ -43,7 +43,7 @@ void PdfDestination::SetDestination(const PdfPage& page, const Rect& rect)
 
     auto& arr = GetArray();
     arr.Add(page.GetObject().GetIndirectReference());
-    arr.Add(PdfName("FitR"));
+    arr.Add("FitR"_n);
     arr.insert(arr.end(), rectArr.begin(), rectArr.end());
 }
 
@@ -51,7 +51,7 @@ void PdfDestination::SetDestination(const PdfPage& page, double left, double top
 {
     auto& arr = GetArray();
     arr.Add(page.GetObject().GetIndirectReference());
-    arr.Add(PdfName("XYZ"));
+    arr.Add("XYZ"_n);
     arr.Add(left);
     arr.Add(top);
     arr.Add(zoom);
@@ -61,13 +61,13 @@ void PdfDestination::SetDestination(const PdfPage& page, PdfDestinationFit fit, 
 {
     PdfName type;
     if (fit == PdfDestinationFit::FitH)
-        type = PdfName("FitH");
+        type = "FitH"_n;
     else if (fit == PdfDestinationFit::FitV)
-        type = PdfName("FitV");
+        type = "FitV"_n;
     else if (fit == PdfDestinationFit::FitBH)
-        type = PdfName("FitBH");
+        type = "FitBH"_n;
     else if (fit == PdfDestinationFit::FitBV)
-        type = PdfName("FitBV");
+        type = "FitBV"_n;
     else
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidKey);
 
@@ -139,7 +139,7 @@ void PdfDestination::AddToDictionary(PdfDictionary& dictionary) const
         // Do not add empty destinations
         dictionary.RemoveKey("Dest");
     else
-        dictionary.AddKey("Dest", GetObject());
+        dictionary.AddKey("Dest"_n, GetObject());
 }
 
 PdfPage* PdfDestination::GetPage()

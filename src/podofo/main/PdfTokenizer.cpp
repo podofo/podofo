@@ -471,7 +471,7 @@ void PdfTokenizer::ReadDictionary(InputStreamDevice& device, PdfVariant& variant
             actualEncrypt = encrypt;
 
         val = PdfString::FromHexData({ contentsHexBuffer->size() ? contentsHexBuffer->data() : "", contentsHexBuffer->size() }, actualEncrypt);
-        dict.AddKey("Contents", std::move(val));
+        dict.AddKey("Contents"_n, std::move(val));
     }
 }
 

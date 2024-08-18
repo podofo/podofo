@@ -24,7 +24,7 @@ namespace PoDoFo {
  */
 class PODOFO_API PdfName final : public PdfDataProvider
 {
-    friend PdfName operator""_n(const char*, size_t);
+    friend PdfName PODOFO_API operator""_n(const char*, size_t);
 
 public:
     /** Null name, corresponds to "/"
@@ -157,40 +157,9 @@ private:
     std::string_view m_dataView;
 };
 
-/**
- * A storage class for several known PdfName entries
- */
-class PODOFO_API PdfNames final
-{
-private:
-    PdfNames() = delete;
-
-public:
-    static const PdfName Contents;
-    static const PdfName Flags;
-    static const PdfName Length;
-    static const PdfName Rect;
-    static const PdfName Size;
-    static const PdfName Subtype;
-    static const PdfName Type;
-    static const PdfName Filter;
-    static const PdfName Parent;
-    static const PdfName Kids;
-    static const PdfName Count;
-    static const PdfName ExtGState;
-    static const PdfName ColorSpace;
-    static const PdfName Pattern;
-    static const PdfName Shading;
-    static const PdfName XObject;
-    static const PdfName Font;
-    static const PdfName Properties;
-    static const PdfName AP;
-    static const PdfName Names;
-    static const PdfName Limits;
-};
-
 /** Create a PdfName from a string literal without checking for PdfDocEncoding characters
- * \remarks Only ASCII charset is supported, use with caution
+ * \remarks Use with caution: only string literals should be used, not
+ *      fixed size char arrays. Only ASCII charset is supported
  */
 inline PdfName operator""_n(const char* name, size_t length)
 {

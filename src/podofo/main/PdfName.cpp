@@ -23,27 +23,6 @@ static void escapeNameTo(string& dst, const bufferview& view);
 static string unescapeName(const string_view& view);
 
 const PdfName PdfName::Null = PdfName();
-const PdfName PdfNames::Contents = "Contents"_n;
-const PdfName PdfNames::Flags = "Flags"_n;
-const PdfName PdfNames::Length = "Length"_n;
-const PdfName PdfNames::Rect = "Rect"_n;
-const PdfName PdfNames::Size = "Size"_n;
-const PdfName PdfNames::Subtype = "Subtype"_n;
-const PdfName PdfNames::Type = "Type"_n;
-const PdfName PdfNames::Filter = "Filter"_n;
-const PdfName PdfNames::Parent = "Parent"_n;
-const PdfName PdfNames::Kids = "Kids"_n;
-const PdfName PdfNames::Count = "Count"_n;
-const PdfName PdfNames::ExtGState  = "ExtGState"_n;
-const PdfName PdfNames::ColorSpace = "ColorSpace"_n;
-const PdfName PdfNames::Pattern = "Pattern"_n;
-const PdfName PdfNames::Shading = "Shading"_n;
-const PdfName PdfNames::XObject = "XObject"_n;
-const PdfName PdfNames::Font = "Font"_n;
-const PdfName PdfNames::Properties = "Properties"_n;
-const PdfName PdfNames::AP = "AP"_n;
-const PdfName PdfNames::Names = "Names"_n;
-const PdfName PdfNames::Limits = "Limits"_n;
 
 PdfName::PdfName() { }
 

@@ -32,13 +32,13 @@ PdfTextBox::PdfTextBox(PdfObject& obj, PdfAcroForm* acroform)
 void PdfTextBox::init()
 {
     if (!GetDictionary().HasKey("DS"))
-        GetDictionary().AddKey("DS", PdfString("font: 12pt Helvetica"));
+        GetDictionary().AddKey("DS"_n, PdfString("font: 12pt Helvetica"));
 }
 
 void PdfTextBox::SetText(nullable<const PdfString&> text)
 {
     AssertTerminalField();
-    string_view key = this->IsRichText() ? "RV" : "V";
+    auto key = this->IsRichText() ? "RV"_n : "V"_n;
     if (text.has_value())
     {
 
@@ -58,7 +58,7 @@ void PdfTextBox::SetText(nullable<const PdfString&> text)
 nullable<const PdfString&> PdfTextBox::GetText() const
 {
     AssertTerminalField();
-    string_view key = this->IsRichText() ? "RV" : "V";
+    auto key = this->IsRichText() ? "RV"_n : "V"_n;
     auto obj = GetDictionary().FindKeyParent(key);
     const PdfString* str;
     if (obj == nullptr || !obj->TryGetString(str))
@@ -69,7 +69,7 @@ nullable<const PdfString&> PdfTextBox::GetText() const
 
 void PdfTextBox::SetMaxLen(int64_t maxLen)
 {
-    GetDictionary().AddKey("MaxLen", maxLen);
+    GetDictionary().AddKey("MaxLen"_n, maxLen);
 }
 
 int64_t PdfTextBox::GetMaxLen() const

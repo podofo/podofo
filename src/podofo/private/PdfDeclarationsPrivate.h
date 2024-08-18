@@ -34,6 +34,7 @@
 #define PODOFO_PRIVATE_FRIEND(identifier) friend identifier
 
 #include <podofo/auxiliary/Convert.h>
+#include <podofo/main/PdfName.h>
 #include "PdfXRefEntry.h"
 
 #ifdef _WIN32
@@ -148,7 +149,7 @@ namespace PoDoFo
 
     PdfVersion GetPdfVersion(const std::string_view& str);
 
-    std::string_view GetPdfVersionName(PdfVersion version);
+    const PdfName& GetPdfVersionName(PdfVersion version);
 
     /** Normalize base font name, removing known bold/italic/subset prefixes/suffixes
      */

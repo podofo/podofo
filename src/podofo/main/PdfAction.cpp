@@ -34,13 +34,13 @@ static const char* s_names[] = {
 };
 
 PdfAction::PdfAction(PdfDocument& doc, PdfActionType type)
-    : PdfDictionaryElement(doc, "Action"), m_Type(type)
+    : PdfDictionaryElement(doc, "Action"_n), m_Type(type)
 {
     PdfName typeName(utls::TypeNameForIndex((unsigned)type, s_names, (unsigned)std::size(s_names)));
     if (typeName.IsNull())
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    GetDictionary().AddKey("S", typeName);
+    GetDictionary().AddKey("S"_n, typeName);
 }
 
 PdfAction::PdfAction(PdfObject& obj, PdfActionType type)
@@ -240,7 +240,7 @@ unique_ptr<PdfAction> PdfAction::Create(const PdfAction& action)
 
 void PdfAction::AddToDictionary(PdfDictionary& dictionary) const
 {
-    dictionary.AddKey("A", this->GetObject());
+    dictionary.AddKey("A"_n, this->GetObject());
 }
 
 PdfActionGoTo::PdfActionGoTo(PdfDocument& doc)
@@ -308,7 +308,7 @@ void PdfActionURI::SetURI(nullable<const PdfString&> uri)
     if (uri == nullptr)
         GetDictionary().RemoveKey("URI");
     else
-        GetDictionary().AddKey("URI", *uri);
+        GetDictionary().AddKey("URI"_n, *uri);
 }
 
 nullable<const PdfString&> PdfActionURI::GetURI() const
@@ -405,7 +405,7 @@ void PdfActionJavaScript::SetScript(nullable<const PdfString&> script)
     if (script == nullptr)
         GetDictionary().RemoveKey("JS");
     else
-        GetDictionary().AddKey("JS", *script);
+        GetDictionary().AddKey("JS"_n, *script);
 }
 
 nullable<const PdfString&> PdfActionJavaScript::GetScript() const

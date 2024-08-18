@@ -196,10 +196,10 @@ PdfObject& PdfIndirectObjectList::CreateDictionaryObject(const PdfName& type,
 {
     auto dict = PdfDictionary();
     if (!type.IsNull())
-        dict.AddKey(PdfNames::Type, type);
+        dict.AddKey("Type"_n, type);
 
     if (!subtype.IsNull())
-        dict.AddKey(PdfNames::Subtype, subtype);
+        dict.AddKey("Subtype"_n, subtype);
 
     auto ret = new PdfObject(std::move(dict));
     ret->setDirty();

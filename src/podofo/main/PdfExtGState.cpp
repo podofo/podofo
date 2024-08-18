@@ -15,14 +15,14 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfExtGState::PdfExtGState(PdfDocument& doc)
-    : PdfDictionaryElement(doc, "ExtGState") { }
+    : PdfDictionaryElement(doc, "ExtGState"_n) { }
 
 void PdfExtGState::SetFillOpacity(nullable<double> opacity)
 {
     if (opacity == nullptr)
         GetDictionary().RemoveKey("ca");
     else
-        GetDictionary().AddKey("ca", PdfVariant(*opacity));
+        GetDictionary().AddKey("ca"_n, PdfVariant(*opacity));
 }
 
 void PdfExtGState::SetStrokeOpacity(nullable<double> opacity)
@@ -30,7 +30,7 @@ void PdfExtGState::SetStrokeOpacity(nullable<double> opacity)
     if (opacity == nullptr)
         GetDictionary().RemoveKey("CA");
     else
-        GetDictionary().AddKey("CA", PdfVariant(*opacity));
+        GetDictionary().AddKey("CA"_n, PdfVariant(*opacity));
 }
 
 void PdfExtGState::SetBlendMode(nullable<PdfBlendMode> blendMode)
@@ -38,7 +38,7 @@ void PdfExtGState::SetBlendMode(nullable<PdfBlendMode> blendMode)
     if (blendMode == nullptr)
         GetDictionary().RemoveKey("BM");
     else
-        GetDictionary().AddKey("BM", PdfName(PoDoFo::ToString(*blendMode)));
+        GetDictionary().AddKey("BM"_n, PdfName(PoDoFo::ToString(*blendMode)));
 }
 
 void PdfExtGState::SetOverprintEnabled(nullable<bool> enabled)
@@ -50,7 +50,7 @@ void PdfExtGState::SetOverprintEnabled(nullable<bool> enabled)
     }
     else
     {
-        GetDictionary().AddKey("OP", PdfVariant(*enabled));
+        GetDictionary().AddKey("OP"_n, PdfVariant(*enabled));
         GetDictionary().RemoveKey("op");
     }
 }
@@ -60,7 +60,7 @@ void PdfExtGState::SetFillOverprintEnabled(nullable<bool> enabled)
     if (enabled == nullptr)
         GetDictionary().RemoveKey("op");
     else
-        GetDictionary().AddKey("op", PdfVariant(*enabled));
+        GetDictionary().AddKey("op"_n, PdfVariant(*enabled));
 }
 
 void PdfExtGState::SetStrokeOverprintEnabled(nullable<bool> enabled)
@@ -68,7 +68,7 @@ void PdfExtGState::SetStrokeOverprintEnabled(nullable<bool> enabled)
     if (enabled == nullptr)
         GetDictionary().RemoveKey("OP");
     else
-        GetDictionary().AddKey("OP", PdfVariant(*enabled));
+        GetDictionary().AddKey("OP"_n, PdfVariant(*enabled));
 }
 
 void PdfExtGState::SetNonZeroOverprintEnabled(nullable<bool> enabled)
@@ -76,7 +76,7 @@ void PdfExtGState::SetNonZeroOverprintEnabled(nullable<bool> enabled)
     if (enabled == nullptr)
         GetDictionary().RemoveKey("OPM");
     else
-        GetDictionary().AddKey("OPM", PdfVariant(static_cast<int64_t>(*enabled ? 1 : 0)));
+        GetDictionary().AddKey("OPM"_n, PdfVariant(static_cast<int64_t>(*enabled ? 1 : 0)));
 }
 
 void PdfExtGState::SetRenderingIntent(nullable<PdfRenderingIntent> intent)
@@ -84,16 +84,16 @@ void PdfExtGState::SetRenderingIntent(nullable<PdfRenderingIntent> intent)
     if (intent == nullptr)
         GetDictionary().RemoveKey("RI");
     else
-        GetDictionary().AddKey("RI", PdfName(PoDoFo::ToString(*intent)));
+        GetDictionary().AddKey("RI"_n, PdfName(PoDoFo::ToString(*intent)));
 }
 
 void PdfExtGState::SetFrequency(double frequency)
 {
     PdfDictionary halftoneDict;
-    halftoneDict.AddKey("HalftoneType", PdfVariant(static_cast<int64_t>(1)));
-    halftoneDict.AddKey("Frequency", PdfVariant(frequency));
-    halftoneDict.AddKey("Angle", PdfVariant(45.0));
-    halftoneDict.AddKey("SpotFunction", PdfName("SimpleDot"));
+    halftoneDict.AddKey("HalftoneType"_n, PdfVariant(static_cast<int64_t>(1)));
+    halftoneDict.AddKey("Frequency"_n, PdfVariant(frequency));
+    halftoneDict.AddKey("Angle"_n, PdfVariant(45.0));
+    halftoneDict.AddKey("SpotFunction"_n, "SimpleDot"_n);
 
-    GetDictionary().AddKey("HT", halftoneDict);
+    GetDictionary().AddKey("HT"_n, halftoneDict);
 }

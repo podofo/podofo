@@ -47,7 +47,7 @@ void PdChoiceField::InsertItem(const PdfString& value, nullable<const PdfString&
 
     auto optObj = GetDictionary().FindKey("Opt");
     if (optObj == nullptr)
-        optObj = &GetDictionary().AddKey("Opt", PdfArray());
+        optObj = &GetDictionary().AddKey("Opt"_n, PdfArray());
 
     // TODO: Sorting
     optObj->GetArray().Add(objToAdd);
@@ -133,7 +133,7 @@ void PdChoiceField::SetSelectedIndex(int index)
 {
     AssertTerminalField();
     PdfString selected = this->GetItem(index);
-    GetDictionary().AddKey("V", selected);
+    GetDictionary().AddKey("V"_n, selected);
 }
 
 int PdChoiceField::GetSelectedIndex() const

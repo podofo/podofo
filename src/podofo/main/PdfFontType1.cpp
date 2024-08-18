@@ -74,7 +74,7 @@ void PdfFontType1::embedFontSubset()
     const char* buffer;
 
     auto contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
-    m_Descriptor->GetDictionary().AddKey("FontFile", contents->GetIndirectReference());
+    m_Descriptor->GetDictionary().AddKey("FontFile"_n, contents->GetIndirectReference());
 
     if (m_Metrics->GetFontFileData().empty())
         PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
@@ -286,9 +286,9 @@ void PdfFontType1::embedFontSubset()
     contents->GetOrCreateStream().Set(outBuff.data(), (size_t)outIndex);
 
     // enter length in dictionary
-    contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(length1)));
-    contents->GetDictionary().AddKey("Length2", PdfObject(static_cast<int64_t>(length2)));
-    contents->GetDictionary().AddKey("Length3", PdfObject(static_cast<int64_t>(length3)));
+    contents->GetDictionary().AddKey("Length1"_n, PdfObject(static_cast<int64_t>(length1)));
+    contents->GetDictionary().AddKey("Length2"_n, PdfObject(static_cast<int64_t>(length2)));
+    contents->GetDictionary().AddKey("Length3"_n, PdfObject(static_cast<int64_t>(length3)));
 }
 
 // TODO: Understand what this code was meant to do
@@ -305,7 +305,7 @@ void PdfFontType1::embedFontFile(PdfObject& descriptor)
 
     contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
 
-    descriptor.GetDictionary().AddKey("FontFile", contents->GetIndirectReference());
+    descriptor.GetDictionary().AddKey("FontFile"_n, contents->GetIndirectReference());
 
     if (m_Metrics->GetFontFileData().empty())
         PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
@@ -354,9 +354,9 @@ void PdfFontType1::embedFontFile(PdfObject& descriptor)
             case 3:									// end-of-file
             {
                 // First set pContents keys before writing stream, so that PdfTFontType1 works with streamed document
-                contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(length1)));
-                contents->GetDictionary().AddKey("Length2", PdfObject(static_cast<int64_t>(length2)));
-                contents->GetDictionary().AddKey("Length3", PdfObject(static_cast<int64_t>(length3)));
+                contents->GetDictionary().AddKey("Length1"_n, PdfObject(static_cast<int64_t>(length1)));
+                contents->GetDictionary().AddKey("Length2"_n, PdfObject(static_cast<int64_t>(length2)));
+                contents->GetDictionary().AddKey("Length3"_n, PdfObject(static_cast<int64_t>(length3)));
                 contents->GetOrCreateStream().Set(buffer.data(), size - 2);
                 return;
             }
@@ -383,9 +383,9 @@ void PdfFontType1::embedFontFile(PdfObject& descriptor)
 
     // TODO: Pdf Supports only Type1 fonts with binary encrypted sections and not the hex format
     contents->GetOrCreateStream().Set(buffer.data(), size);
-    contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(length1)));
-    contents->GetDictionary().AddKey("Length2", PdfObject(static_cast<int64_t>(length2)));
-    contents->GetDictionary().AddKey("Length3", PdfObject(static_cast<int64_t>(length3)));
+    contents->GetDictionary().AddKey("Length1"_n, PdfObject(static_cast<int64_t>(length1)));
+    contents->GetDictionary().AddKey("Length2"_n, PdfObject(static_cast<int64_t>(length2)));
+    contents->GetDictionary().AddKey("Length3"_n, PdfObject(static_cast<int64_t>(length3)));
 }
 
 bool PdfFontType1::FindSeac(const char* buffer, size_t length)

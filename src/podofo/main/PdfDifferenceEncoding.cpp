@@ -2589,14 +2589,14 @@ void PdfDifferenceEncoding::getExportObject(PdfIndirectObjectList& objects, PdfN
                 "Unexpected non null base export object at this stage");
         }
 
-        dict.AddKey("BaseEncoding", baseExportName);
+        dict.AddKey("BaseEncoding"_n, baseExportName);
     }
 
     if (m_differences.GetCount() != 0)
     {
         PdfArray differences;
         m_differences.ToArray(differences);
-        dict.AddKey("Differences", differences);
+        dict.AddKey("Differences"_n, differences);
     }
 }
 

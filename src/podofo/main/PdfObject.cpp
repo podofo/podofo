@@ -260,7 +260,7 @@ void PdfObject::write(OutputStream& stream, bool skipLengthFix,
 
             // Add the key without triggering SetDirty
             const_cast<PdfObject&>(*this).m_Variant.GetDictionaryUnsafe()
-                .AddKey(PdfNames::Length, static_cast<int64_t>(length), true);
+                .AddKey("Length"_n, static_cast<int64_t>(length), true);
         }
     }
 

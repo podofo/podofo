@@ -433,12 +433,12 @@ unique_ptr<PdfEncrypt> PdfEncrypt::Create(const string_view& userPassword,
 
 unique_ptr<PdfEncrypt> PdfEncrypt::CreateFromObject(const PdfObject& encryptObj)
 {
-    if (!encryptObj.GetDictionary().HasKey(PdfNames::Filter) ||
-        encryptObj.GetDictionary().GetKey(PdfNames::Filter)->GetName() != "Standard")
+    if (!encryptObj.GetDictionary().HasKey("Filter") ||
+        encryptObj.GetDictionary().GetKey("Filter")->GetName() != "Standard")
     {
-        if (encryptObj.GetDictionary().HasKey(PdfNames::Filter))
+        if (encryptObj.GetDictionary().HasKey("Filter"))
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Unsupported encryption filter: {}",
-                encryptObj.GetDictionary().GetKey(PdfNames::Filter)->GetName().GetString());
+                encryptObj.GetDictionary().GetKey("Filter")->GetName().GetString());
         else
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Encryption dictionary does not have a key /Filter");
     }
@@ -975,7 +975,7 @@ void RC4Encrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned keylen,
     
 void PdfEncryptMD5Base::CreateEncryptionDictionary(PdfDictionary& dictionary) const
 {
-    dictionary.AddKey(PdfNames::Filter, PdfName("Standard"));
+    dictionary.AddKey("Filter"_n, "Standard"_n);
 
     if (m_Algorithm == PdfEncryptionAlgorithm::AESV2 || !m_EncryptMetadata)
     {
@@ -983,43 +983,43 @@ void PdfEncryptMD5Base::CreateEncryptionDictionary(PdfDictionary& dictionary) co
         PdfDictionary stdCf;
 
         if (m_Algorithm == PdfEncryptionAlgorithm::RC4V2)
-            stdCf.AddKey("CFM", PdfName("V2"));
+            stdCf.AddKey("CFM"_n, "V2"_n);
         else
-            stdCf.AddKey("CFM", PdfName("AESV2"));
-        stdCf.AddKey("Length", static_cast<int64_t>(16));
+            stdCf.AddKey("CFM"_n, "AESV2"_n);
+        stdCf.AddKey("Length"_n, static_cast<int64_t>(16));
 
-        dictionary.AddKey("O", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetOValueRaw()), 32 }));
-        dictionary.AddKey("U", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetUValueRaw()), 32 }));
+        dictionary.AddKey("O"_n, PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetOValueRaw()), 32 }));
+        dictionary.AddKey("U"_n, PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetUValueRaw()), 32 }));
 
-        stdCf.AddKey("AuthEvent", PdfName("DocOpen"));
-        cf.AddKey("StdCF", stdCf);
+        stdCf.AddKey("AuthEvent"_n, "DocOpen"_n);
+        cf.AddKey("StdCF"_n, stdCf);
 
-        dictionary.AddKey("CF", cf);
-        dictionary.AddKey("StrF", PdfName("StdCF"));
-        dictionary.AddKey("StmF", PdfName("StdCF"));
+        dictionary.AddKey("CF"_n, cf);
+        dictionary.AddKey("StrF"_n, "StdCF"_n);
+        dictionary.AddKey("StmF"_n, "StdCF"_n);
 
-        dictionary.AddKey("V", static_cast<int64_t>(4));
-        dictionary.AddKey("R", static_cast<int64_t>(4));
-        dictionary.AddKey("Length", static_cast<int64_t>(128));
+        dictionary.AddKey("V"_n, static_cast<int64_t>(4));
+        dictionary.AddKey("R"_n, static_cast<int64_t>(4));
+        dictionary.AddKey("Length"_n, static_cast<int64_t>(128));
         if (!m_EncryptMetadata)
-            dictionary.AddKey("EncryptMetadata", PdfVariant(false));
+            dictionary.AddKey("EncryptMetadata"_n, PdfVariant(false));
     }
     else if (m_Algorithm == PdfEncryptionAlgorithm::RC4V1)
     {
-        dictionary.AddKey("V", static_cast<int64_t>(1));
+        dictionary.AddKey("V"_n, static_cast<int64_t>(1));
         // Can be 2 or 3
-        dictionary.AddKey("R", static_cast<int64_t>(m_rValue));
+        dictionary.AddKey("R"_n, static_cast<int64_t>(m_rValue));
     }
     else if (m_Algorithm == PdfEncryptionAlgorithm::RC4V2)
     {
-        dictionary.AddKey("V", static_cast<int64_t>(2));
-        dictionary.AddKey("R", static_cast<int64_t>(3));
-        dictionary.AddKey("Length", PdfVariant(static_cast<int64_t>(m_KeyLength)));
+        dictionary.AddKey("V"_n, static_cast<int64_t>(2));
+        dictionary.AddKey("R"_n, static_cast<int64_t>(3));
+        dictionary.AddKey("Length"_n, PdfVariant(static_cast<int64_t>(m_KeyLength)));
     }
 
-    dictionary.AddKey("O", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetOValueRaw()), 32 }));
-    dictionary.AddKey("U", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetUValueRaw()), 32 }));
-    dictionary.AddKey("P", PdfVariant(GetPValueForSerialization()));
+    dictionary.AddKey("O"_n, PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetOValueRaw()), 32 }));
+    dictionary.AddKey("U"_n, PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetUValueRaw()), 32 }));
+    dictionary.AddKey("P"_n, PdfVariant(GetPValueForSerialization()));
 }
     
 void PdfEncryptRC4::GenerateEncryptionKey(
@@ -1651,33 +1651,33 @@ void PdfEncryptAESV3::computeEncryptionKey(unsigned keyLength, unsigned char enc
     
 void PdfEncryptAESV3::CreateEncryptionDictionary(PdfDictionary& dictionary) const
 {
-    dictionary.AddKey(PdfNames::Filter, PdfName("Standard"));
+    dictionary.AddKey("Filter"_n, "Standard"_n);
 
     PdfDictionary cf;
     PdfDictionary stdCf;
 
-    dictionary.AddKey("V", static_cast<int64_t>(5));
-    dictionary.AddKey("R", static_cast<int64_t>(m_rValue));
-    dictionary.AddKey("Length", static_cast<int64_t>(256));
+    dictionary.AddKey("V"_n, static_cast<int64_t>(5));
+    dictionary.AddKey("R"_n, static_cast<int64_t>(m_rValue));
+    dictionary.AddKey("Length"_n, static_cast<int64_t>(256));
 
-    stdCf.AddKey("CFM", PdfName("AESV3"));
-    stdCf.AddKey("Length", static_cast<int64_t>(32));
+    stdCf.AddKey("CFM"_n, "AESV3"_n);
+    stdCf.AddKey("Length"_n, static_cast<int64_t>(32));
 
-    dictionary.AddKey("O", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetOValueRaw()), 48 }));
-    dictionary.AddKey("U", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetUValueRaw()), 48 }));
+    dictionary.AddKey("O"_n, PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetOValueRaw()), 48 }));
+    dictionary.AddKey("U"_n, PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetUValueRaw()), 48 }));
 
-    stdCf.AddKey("AuthEvent", PdfName("DocOpen"));
-    cf.AddKey("StdCF", stdCf);
+    stdCf.AddKey("AuthEvent"_n, "DocOpen"_n);
+    cf.AddKey("StdCF"_n, stdCf);
 
-    dictionary.AddKey("CF", cf);
-    dictionary.AddKey("StrF", PdfName("StdCF"));
-    dictionary.AddKey("StmF", PdfName("StdCF"));
+    dictionary.AddKey("CF"_n, cf);
+    dictionary.AddKey("StrF"_n, "StdCF"_n);
+    dictionary.AddKey("StmF"_n, "StdCF"_n);
 
-    dictionary.AddKey("P", PdfVariant(GetPValueForSerialization()));
+    dictionary.AddKey("P"_n, PdfVariant(GetPValueForSerialization()));
 
-    dictionary.AddKey("OE", PdfString::FromRaw(GetOEValue()));
-    dictionary.AddKey("UE", PdfString::FromRaw(GetUEValue()));
-    dictionary.AddKey("Perms", PdfString::FromRaw(GetPermsValue()));
+    dictionary.AddKey("OE"_n, PdfString::FromRaw(GetOEValue()));
+    dictionary.AddKey("UE"_n, PdfString::FromRaw(GetUEValue()));
+    dictionary.AddKey("Perms"_n, PdfString::FromRaw(GetPermsValue()));
 }
 
 bufferview PdfEncryptAESV3::GetUEValue() const

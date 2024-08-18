@@ -36,7 +36,7 @@ static string_view toString(PdfFontStretch stretch);
 
 PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding) :
-    PdfDictionaryElement(doc, "Font"),
+    PdfDictionaryElement(doc, "Font"_n),
     m_WordSpacingLengthRaw(-1),
     m_SpaceCharLengthRaw(-1),
     m_Metrics(metrics)
@@ -451,13 +451,13 @@ void PdfFont::FillDescriptor(PdfDictionary& dict) const
     double defaultWidth;
     PdfFontStretch stretch;
 
-    dict.AddKey("FontName", PdfName(this->GetName()));
+    dict.AddKey("FontName"_n, PdfName(this->GetName()));
     if ((familyName = m_Metrics->GetFontFamilyName()).length() != 0)
-        dict.AddKey("FontFamily", PdfString(familyName));
+        dict.AddKey("FontFamily"_n, PdfString(familyName));
     if ((stretch = m_Metrics->GetFontStretch()) != PdfFontStretch::Unknown)
-        dict.AddKey("FontStretch", PdfName(toString(stretch)));
-    dict.AddKey(PdfNames::Flags, static_cast<int64_t>(m_Metrics->GetFlags()));
-    dict.AddKey("ItalicAngle", static_cast<int64_t>(std::round(m_Metrics->GetItalicAngle())));
+        dict.AddKey("FontStretch"_n, PdfName(toString(stretch)));
+    dict.AddKey("Flags"_n, static_cast<int64_t>(m_Metrics->GetFlags()));
+    dict.AddKey("ItalicAngle"_n, static_cast<int64_t>(std::round(m_Metrics->GetItalicAngle())));
 
     PdfArray bbox;
     GetBoundingBox(bbox);
@@ -466,28 +466,28 @@ void PdfFont::FillDescriptor(PdfDictionary& dict) const
     if (GetType() == PdfFontType::Type3)
     {
         // ISO 32000-1:2008 "should be used for Type 3 fonts in Tagged PDF documents"
-        dict.AddKey("FontWeight", static_cast<int64_t>(m_Metrics->GetWeight()));
+        dict.AddKey("FontWeight"_n, static_cast<int64_t>(m_Metrics->GetWeight()));
     }
     else
     {
         if ((weight = m_Metrics->GetWeightRaw()) > 0)
-            dict.AddKey("FontWeight", static_cast<int64_t>(weight));
+            dict.AddKey("FontWeight"_n, static_cast<int64_t>(weight));
 
         // The following entries are all optional in /Type3 fonts
-        dict.AddKey("FontBBox", bbox);
-        dict.AddKey("Ascent", static_cast<int64_t>(std::round(m_Metrics->GetAscent() / matrix[3])));
-        dict.AddKey("Descent", static_cast<int64_t>(std::round(m_Metrics->GetDescent() / matrix[3])));
-        dict.AddKey("CapHeight", static_cast<int64_t>(std::round(m_Metrics->GetCapHeight() / matrix[3])));
+        dict.AddKey("FontBBox"_n, bbox);
+        dict.AddKey("Ascent"_n, static_cast<int64_t>(std::round(m_Metrics->GetAscent() / matrix[3])));
+        dict.AddKey("Descent"_n, static_cast<int64_t>(std::round(m_Metrics->GetDescent() / matrix[3])));
+        dict.AddKey("CapHeight"_n, static_cast<int64_t>(std::round(m_Metrics->GetCapHeight() / matrix[3])));
         // NOTE: StemV is measured horizontally
-        dict.AddKey("StemV", static_cast<int64_t>(std::round(m_Metrics->GetStemV() / matrix[0])));
+        dict.AddKey("StemV"_n, static_cast<int64_t>(std::round(m_Metrics->GetStemV() / matrix[0])));
 
         if ((xHeight = m_Metrics->GetXHeightRaw()) > 0)
-            dict.AddKey("XHeight", static_cast<int64_t>(std::round(xHeight / matrix[3])));
+            dict.AddKey("XHeight"_n, static_cast<int64_t>(std::round(xHeight / matrix[3])));
 
         if ((stemH = m_Metrics->GetStemHRaw()) > 0)
         {
             // NOTE: StemH is measured vertically
-            dict.AddKey("StemH", static_cast<int64_t>(std::round(stemH / matrix[3])));
+            dict.AddKey("StemH"_n, static_cast<int64_t>(std::round(stemH / matrix[3])));
         }
 
         if (!IsCIDKeyed())
@@ -497,16 +497,16 @@ void PdfFont::FillDescriptor(PdfDictionary& dict) const
             // in the CIDFont dictionary instead. See 9.7.4.3 Glyph
             // Metrics in CIDFonts in ISO 32000-1:2008
             if ((defaultWidth = m_Metrics->GetDefaultWidthRaw()) > 0)
-                dict.AddKey("MissingWidth", static_cast<int64_t>(std::round(defaultWidth / matrix[0])));
+                dict.AddKey("MissingWidth"_n, static_cast<int64_t>(std::round(defaultWidth / matrix[0])));
         }
     }
 
     if ((leading = m_Metrics->GetLeadingRaw()) > 0)
-        dict.AddKey("Leading", static_cast<int64_t>(std::round(leading / matrix[3])));
+        dict.AddKey("Leading"_n, static_cast<int64_t>(std::round(leading / matrix[3])));
     if ((avgWidth = m_Metrics->GetAvgWidthRaw()) > 0)
-        dict.AddKey("AvgWidth", static_cast<int64_t>(std::round(avgWidth / matrix[0])));
+        dict.AddKey("AvgWidth"_n, static_cast<int64_t>(std::round(avgWidth / matrix[0])));
     if ((maxWidth = m_Metrics->GetMaxWidthRaw()) > 0)
-        dict.AddKey("MaxWidth", static_cast<int64_t>(std::round(maxWidth / matrix[0])));
+        dict.AddKey("MaxWidth"_n, static_cast<int64_t>(std::round(maxWidth / matrix[0])));
 }
 
 void PdfFont::EmbedFontFile(PdfObject& descriptor)
@@ -537,42 +537,42 @@ void PdfFont::EmbedFontFile(PdfObject& descriptor)
 
 void PdfFont::EmbedFontFileType1(PdfObject& descriptor, const bufferview& data, unsigned length1, unsigned length2, unsigned length3)
 {
-    embedFontFileData(descriptor, "FontFile", [length1, length2, length3](PdfDictionary& dict)
+    embedFontFileData(descriptor, "FontFile"_n, [length1, length2, length3](PdfDictionary& dict)
     {
-        dict.AddKey("Length1", static_cast<int64_t>(length1));
-        dict.AddKey("Length2", static_cast<int64_t>(length2));
-        dict.AddKey("Length3", static_cast<int64_t>(length3));
+        dict.AddKey("Length1"_n, static_cast<int64_t>(length1));
+        dict.AddKey("Length2"_n, static_cast<int64_t>(length2));
+        dict.AddKey("Length3"_n, static_cast<int64_t>(length3));
     }, data);
 }
 
 void PdfFont::EmbedFontFileType1CCF(PdfObject& descriptor, const bufferview& data)
 {
-    embedFontFileData(descriptor, "FontFile3", [&](PdfDictionary& dict)
+    embedFontFileData(descriptor, "FontFile3"_n, [&](PdfDictionary& dict)
     {
         PdfName subtype;
         if (IsCIDKeyed())
-            subtype = PdfName("CIDFontType0C");
+            subtype = "CIDFontType0C"_n;
         else
-            subtype = PdfName("Type1C");
+            subtype = "Type1C"_n;
 
-        dict.AddKey(PdfNames::Subtype, subtype);
+        dict.AddKey("Subtype"_n, subtype);
     }, data);
 }
 
 void PdfFont::EmbedFontFileTrueType(PdfObject& descriptor, const bufferview& data)
 {
-    embedFontFileData(descriptor, "FontFile2", [&data](PdfDictionary& dict)
+    embedFontFileData(descriptor, "FontFile2"_n, [&data](PdfDictionary& dict)
     {
-        dict.AddKey("Length1", static_cast<int64_t>(data.size()));
+        dict.AddKey("Length1"_n, static_cast<int64_t>(data.size()));
     }, data);
 
 }
 
 void PdfFont::EmbedFontFileOpenType(PdfObject& descriptor, const bufferview& data)
 {
-    embedFontFileData(descriptor, "FontFile3", [](PdfDictionary& dict)
+    embedFontFileData(descriptor, "FontFile3"_n, [](PdfDictionary& dict)
     {
-        dict.AddKey(PdfNames::Subtype, PdfName("OpenType"));
+        dict.AddKey("Subtype"_n, "OpenType"_n);
     }, data);
 }
 

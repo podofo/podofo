@@ -175,7 +175,7 @@ void PdfParserObject::parseStream()
     int64_t size = -1;
     char ch;
 
-    auto& lengthObj = this->m_Variant.GetDictionaryUnsafe().MustFindKey(PdfNames::Length);
+    auto& lengthObj = this->m_Variant.GetDictionaryUnsafe().MustFindKey("Length");
     if (!lengthObj.TryGetNumber(size))
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidStreamLength);
 
@@ -232,7 +232,7 @@ ReadStream:
     // whole document is encrypted
     const PdfName* type;
     if (m_Encrypt != nullptr && (m_Encrypt->GetEncrypt().IsMetadataEncrypted()
-        || !this->m_Variant.GetDictionaryUnsafe().TryFindKeyAs(PdfNames::Type, type)
+        || !this->m_Variant.GetDictionaryUnsafe().TryFindKeyAs("Type", type)
         || *type != "Metadata"))
     {
         auto input = m_Encrypt->GetEncrypt().CreateEncryptionInputStream(*m_device, static_cast<size_t>(size), m_Encrypt->GetContext(), GetIndirectReference());

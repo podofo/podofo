@@ -126,7 +126,7 @@ PdfAnnotation& PdfAnnotationCollection::addAnnotation(unique_ptr<PdfAnnotation>&
 {
     initAnnotations();
     if (m_annotArray == nullptr)
-        m_annotArray = &m_Page->GetDictionary().AddKey("Annots", PdfArray()).GetArray();
+        m_annotArray = &m_Page->GetDictionary().AddKey("Annots"_n, PdfArray()).GetArray();
 
     (*m_annotMap)[annot->GetObject().GetIndirectReference()] = m_annotArray->GetSize();
     m_annotArray->AddIndirectSafe(annot->GetObject());

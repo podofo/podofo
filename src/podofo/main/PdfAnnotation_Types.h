@@ -58,7 +58,7 @@ namespace PoDoFo {
             if (quadPoints == nullptr)
                 dict.RemoveKey("QuadPoints");
             else
-                dict.AddKey("QuadPoints", *quadPoints);
+                dict.AddKey("QuadPoints"_n, *quadPoints);
         }
     };
 

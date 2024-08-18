@@ -332,7 +332,7 @@ private:
      */
     Rect getPageBox(const std::string_view& inBox, bool isInheritable, bool raw) const;
 
-    void setPageBox(const std::string_view& inBox, const Rect& rect, bool raw);
+    void setPageBox(const PdfName& inBox, const Rect& rect, bool raw);
 
     void loadRotation();
 

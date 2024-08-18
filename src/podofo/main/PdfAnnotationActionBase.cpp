@@ -34,7 +34,7 @@ void PdfAnnotationActionBase::SetAction(nullable<const PdfAction&> action)
     {
         m_Action = PdfAction::Create(*action);
         onActionSet();
-        dict.AddKeyIndirect("A", action->GetObject());
+        dict.AddKeyIndirect("A"_n, action->GetObject());
     }
 }
 
@@ -89,7 +89,7 @@ PdfAppearanceCharacteristics::PdfAppearanceCharacteristics(PdfObject& obj)
 void PdfAppearanceCharacteristics::SetBorderColor(nullable<const PdfColor&> color)
 {
     if (color.has_value())
-        GetDictionary().AddKey("BC", color->ToArray());
+        GetDictionary().AddKey("BC"_n, color->ToArray());
     else
         GetDictionary().RemoveKey("BC");
 }
@@ -110,7 +110,7 @@ PdfColor PdfAppearanceCharacteristics::GetBorderColor() const
 void PdfAppearanceCharacteristics::SetBackgroundColor(nullable<const PdfColor&> color)
 {
     if (color.has_value())
-        GetDictionary().AddKey("BG", color->ToArray());
+        GetDictionary().AddKey("BG"_n, color->ToArray());
     else
         GetDictionary().RemoveKey("BG");
 }
@@ -131,7 +131,7 @@ PdfColor PdfAppearanceCharacteristics::GetBackgroundColor() const
 void PdfAppearanceCharacteristics::SetRolloverCaption(nullable<const PdfString&> text)
 {
     if (text.has_value())
-        GetDictionary().AddKey("RC", *text);
+        GetDictionary().AddKey("RC"_n, *text);
     else
         GetDictionary().RemoveKey("RC");
 }
@@ -149,7 +149,7 @@ nullable<const PdfString&> PdfAppearanceCharacteristics::GetRolloverCaption() co
 void PdfAppearanceCharacteristics::SetAlternateCaption(nullable<const PdfString&> text)
 {
     if (text.has_value())
-        GetDictionary().AddKey("AC", *text);
+        GetDictionary().AddKey("AC"_n, *text);
     else
         GetDictionary().RemoveKey("AC");
 }
@@ -167,7 +167,7 @@ nullable<const PdfString&> PdfAppearanceCharacteristics::GetAlternateCaption() c
 void PdfAppearanceCharacteristics::SetCaption(nullable<const PdfString&> text)
 {
     if (text.has_value())
-        GetDictionary().AddKey("CA", *text);
+        GetDictionary().AddKey("CA"_n, *text);
     else
         GetDictionary().RemoveKey("CA");
 }

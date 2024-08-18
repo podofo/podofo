@@ -58,7 +58,7 @@ void PdfXObjectForm::SetRect(const Rect& rect)
 {
     PdfArray bbox;
     rect.ToArray(bbox);
-    GetDictionary().AddKey("BBox", bbox);
+    GetDictionary().AddKey("BBox"_n, bbox);
     m_Rect = rect;
 }
 
@@ -131,16 +131,16 @@ void PdfXObjectForm::initXObject(const Rect& rect)
 
     PdfArray bbox;
     rect.ToArray(bbox);
-    GetDictionary().AddKey("BBox", bbox);
-    GetDictionary().AddKey("FormType", PdfVariant(static_cast<int64_t>(1))); // only 1 is only defined in the specification.
-    GetDictionary().AddKey("Matrix", m_Matrix);
+    GetDictionary().AddKey("BBox"_n, bbox);
+    GetDictionary().AddKey("FormType"_n, PdfVariant(static_cast<int64_t>(1))); // only 1 is only defined in the specification.
+    GetDictionary().AddKey("Matrix"_n, m_Matrix);
 }
 
 void PdfXObjectForm::initAfterPageInsertion(const PdfPage& page)
 {
     PdfArray bbox;
     m_Rect.ToArray(bbox);
-    GetDictionary().AddKey("BBox", bbox);
+    GetDictionary().AddKey("BBox"_n, bbox);
 
     int rotation = page.GetRotation();
     // Swap offsets/width/height for vertical rotation
@@ -207,5 +207,5 @@ void PdfXObjectForm::initAfterPageInsertion(const PdfPage& page)
     matrix.Add(PdfObject(e));
     matrix.Add(PdfObject(f));
 
-    GetDictionary().AddKey("Matrix", matrix);
+    GetDictionary().AddKey("Matrix"_n, matrix);
 }

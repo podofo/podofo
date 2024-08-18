@@ -37,11 +37,11 @@ PdfOutlineItem::PdfOutlineItem(PdfObject& obj, PdfOutlineItem* parentOutline, Pd
 }
 
 PdfOutlineItem::PdfOutlineItem(PdfDocument& doc, PdfOutlineItem* parentOutline)
-    : PdfDictionaryElement(doc, "Outlines"), m_ParentOutline(nullptr), m_Prev(nullptr),
+    : PdfDictionaryElement(doc, "Outlines"_n), m_ParentOutline(nullptr), m_Prev(nullptr),
     m_Next(nullptr), m_First(nullptr), m_Last(nullptr), m_Destination(nullptr), m_Action(nullptr)
 {
     if (parentOutline != nullptr)
-        GetDictionary().AddKey("Parent", parentOutline->GetObject().GetIndirectReference());
+        GetDictionary().AddKey("Parent"_n, parentOutline->GetObject().GetIndirectReference());
 }
 
 PdfOutlineItem::~PdfOutlineItem()
@@ -115,8 +115,8 @@ void PdfOutlineItem::insertChildInternal(PdfOutlineItem* item, bool checkParent)
     if (m_First == nullptr)
         m_First = m_Last;
 
-    GetDictionary().AddKey("First", m_First->GetObject().GetIndirectReference());
-    GetDictionary().AddKey("Last", m_Last->GetObject().GetIndirectReference());
+    GetDictionary().AddKey("First"_n, m_First->GetObject().GetIndirectReference());
+    GetDictionary().AddKey("Last"_n, m_Last->GetObject().GetIndirectReference());
 }
 
 PdfOutlineItem& PdfOutlineItem::CreateNext(const PdfString& title)
@@ -133,7 +133,7 @@ PdfOutlineItem& PdfOutlineItem::CreateNext(const PdfString& title)
     m_Next = item.get();
     item->setPrevious(this);
 
-    GetDictionary().AddKey("Next", item->GetObject().GetIndirectReference());
+    GetDictionary().AddKey("Next"_n, item->GetObject().GetIndirectReference());
 
     if (m_ParentOutline != nullptr && item->Next() == nullptr)
         m_ParentOutline->setLast(item.get());
@@ -147,7 +147,7 @@ void PdfOutlineItem::setPrevious(PdfOutlineItem* item)
     if (m_Prev == nullptr)
         GetDictionary().RemoveKey("Prev");
     else
-        GetDictionary().AddKey("Prev", m_Prev->GetObject().GetIndirectReference());
+        GetDictionary().AddKey("Prev"_n, m_Prev->GetObject().GetIndirectReference());
 }
 
 void PdfOutlineItem::setNext(PdfOutlineItem* item)
@@ -156,7 +156,7 @@ void PdfOutlineItem::setNext(PdfOutlineItem* item)
     if (m_Next == nullptr)
         GetDictionary().RemoveKey("Next");
     else
-        GetDictionary().AddKey("Next", m_Next->GetObject().GetIndirectReference());
+        GetDictionary().AddKey("Next"_n, m_Next->GetObject().GetIndirectReference());
 }
 
 void PdfOutlineItem::setLast(PdfOutlineItem* item)
@@ -166,7 +166,7 @@ void PdfOutlineItem::setLast(PdfOutlineItem* item)
         GetDictionary().RemoveKey("Last");
 
     else
-        GetDictionary().AddKey("Last", m_Last->GetObject().GetIndirectReference());
+        GetDictionary().AddKey("Last"_n, m_Last->GetObject().GetIndirectReference());
 }
 
 void PdfOutlineItem::setFirst(PdfOutlineItem* item)
@@ -175,7 +175,7 @@ void PdfOutlineItem::setFirst(PdfOutlineItem* item)
     if (m_First == nullptr)
         GetDictionary().RemoveKey("First");
     else
-        GetDictionary().AddKey("First", m_First->GetObject().GetIndirectReference());
+        GetDictionary().AddKey("First"_n, m_First->GetObject().GetIndirectReference());
 }
 
 void PdfOutlineItem::Erase()
@@ -265,7 +265,7 @@ void PdfOutlineItem::SetAction(nullable<const PdfAction&> action)
         m_Action = PdfAction::Create(*action);
         m_Destination = { };
         dict.RemoveKey("Dest");
-        dict.AddKeyIndirect("A", action->GetObject());
+        dict.AddKeyIndirect("A"_n, action->GetObject());
     }
 }
 
@@ -298,7 +298,7 @@ nullable<PdfAction&> PdfOutlineItem::getAction()
 
 void PdfOutlineItem::SetTitle(const PdfString& title)
 {
-    GetDictionary().AddKey("Title", title);
+    GetDictionary().AddKey("Title"_n, title);
 }
 
 const PdfString& PdfOutlineItem::GetTitle() const
@@ -308,7 +308,7 @@ const PdfString& PdfOutlineItem::GetTitle() const
 
 void PdfOutlineItem::SetTextFormat(PdfOutlineFormat format)
 {
-    GetDictionary().AddKey("F", static_cast<int64_t>(format));
+    GetDictionary().AddKey("F"_n, static_cast<int64_t>(format));
 }
 
 PdfOutlineFormat PdfOutlineItem::GetTextFormat() const
@@ -323,7 +323,7 @@ PdfOutlineFormat PdfOutlineItem::GetTextFormat() const
 void PdfOutlineItem::SetTextColor(const PdfColor& color)
 {
     auto rgb = color.ConvertToRGB();
-    GetDictionary().AddKey("C", rgb.ToArray());
+    GetDictionary().AddKey("C"_n, rgb.ToArray());
 }
 
 

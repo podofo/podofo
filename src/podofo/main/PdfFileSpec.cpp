@@ -19,7 +19,7 @@ using namespace cmn;
 using namespace PoDoFo;
 
 PdfFileSpec::PdfFileSpec(PdfDocument& doc)
-    : PdfDictionaryElement(doc, "Filespec")
+    : PdfDictionaryElement(doc, "Filespec"_n)
 {
 }
 
@@ -34,7 +34,7 @@ bool PdfFileSpec::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFileSpec>& f
     const PdfObject* typeObj;
     const PdfString* typeStr;
     if (!obj.TryGetDictionary(dict)
-        || (typeObj = dict->FindKey(PdfNames::Type)) == nullptr
+        || (typeObj = dict->FindKey("Type")) == nullptr
         || typeObj->TryGetString(typeStr)
         || typeStr->GetString() != "Filespec")
     {
@@ -66,7 +66,7 @@ void PdfFileSpec::SetFilename(nullable<const PdfString&> filename)
     if (filename == nullptr)
         dict.RemoveKey("UF");
     else
-        dict.AddKey("UF", *filename);
+        dict.AddKey("UF"_n, *filename);
     dict.RemoveKey("F");
 }
 
@@ -113,14 +113,14 @@ nullable<charbuff> PdfFileSpec::GetEmbeddedData() const
 
 void PdfFileSpec::setData(InputStream& input, size_t size)
 {
-    auto& fObj = this->GetDocument().GetObjects().CreateDictionaryObject("EmbeddedFile");
+    auto& fObj = this->GetDocument().GetObjects().CreateDictionaryObject("EmbeddedFile"_n);
     fObj.GetOrCreateStream().SetData(input);
 
     // Add additional information about the embedded file to the stream
     PdfDictionary params;
-    params.AddKey("Size", static_cast<int64_t>(size));
+    params.AddKey("Size"_n, static_cast<int64_t>(size));
     // TODO: CreationDate and ModDate
-    fObj.GetDictionary().AddKey("Params", params);
-    auto& efObj = GetDictionary().AddKey("EF", PdfDictionary());
-    efObj.GetDictionary().AddKeyIndirect("F", fObj);
+    fObj.GetDictionary().AddKey("Params"_n, params);
+    auto& efObj = GetDictionary().AddKey("EF"_n, PdfDictionary());
+    efObj.GetDictionary().AddKeyIndirect("F"_n, fObj);
 }

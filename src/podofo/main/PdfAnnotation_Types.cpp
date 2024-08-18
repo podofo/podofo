@@ -70,7 +70,7 @@ void PdfAnnotationFileAttachment::SetFileAttachment(const nullable<PdfFileSpec&>
     }
     else
     {
-        GetDictionary().AddKeyIndirect("FS", fileSpec->GetObject());
+        GetDictionary().AddKeyIndirect("FS"_n, fileSpec->GetObject());
         m_FileSpec = unique_ptr<PdfFileSpec>(new PdfFileSpec(*fileSpec));
     }
 }
@@ -106,7 +106,7 @@ nullable<PdfFileSpec&> PdfAnnotationFileAttachment::getFileAttachment()
 void PdfAnnotationPopup::SetOpen(const nullable<bool>& value)
 {
     if (value.has_value())
-        GetDictionary().AddKey("Open", *value);
+        GetDictionary().AddKey("Open"_n, *value);
     else
         GetDictionary().RemoveKey("Open");
 }
@@ -119,7 +119,7 @@ bool PdfAnnotationPopup::GetOpen() const
 void PdfAnnotationText::SetOpen(const nullable<bool>& value)
 {
     if (value.has_value())
-        GetDictionary().AddKey("Open", *value);
+        GetDictionary().AddKey("Open"_n, *value);
     else
         GetDictionary().RemoveKey("Open");
 }

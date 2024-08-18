@@ -15,7 +15,7 @@ using namespace PoDoFo;
 PdfXRefStream::PdfXRefStream(PdfWriter& writer) :
     PdfXRef(writer),
     m_xrefStreamEntryIndex(-1),
-    m_xrefStreamObj(&writer.GetObjects().CreateDictionaryObject("XRef")),
+    m_xrefStreamObj(&writer.GetObjects().CreateDictionaryObject("XRef"_n)),
     m_offset(-1)
 {
 }
@@ -86,8 +86,8 @@ void PdfXRefStream::EndWriteImpl(OutputStreamDevice& device, charbuff& buffer)
     wArr.Add(static_cast<int64_t>(sizeof(XRefStreamEntry::Variant)));
     wArr.Add(static_cast<int64_t>(sizeof(XRefStreamEntry::Generation)));
  
-    m_xrefStreamObj->GetDictionary().AddKey("Index", m_indices);
-    m_xrefStreamObj->GetDictionary().AddKey("W", wArr);
+    m_xrefStreamObj->GetDictionary().AddKey("Index"_n, m_indices);
+    m_xrefStreamObj->GetDictionary().AddKey("W"_n, wArr);
  
     // Set the actual offset of the XRefStm object
     uint32_t offset = (uint32_t)device.GetPosition();

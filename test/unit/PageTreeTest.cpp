@@ -8,7 +8,7 @@
 
 #include <PdfTest.h>
 
-constexpr const char* TEST_PAGE_KEY = "TestPageNumber";
+#define TEST_PAGE_KEY "TestPageNumber"_n
 constexpr unsigned TEST_NUM_PAGES = 100;
 
 namespace PoDoFo
@@ -303,13 +303,13 @@ PdfMemDocument PdfPageTest::CreateTestTreeCustom()
     PdfMemDocument doc;
 
     constexpr unsigned COUNT = TEST_NUM_PAGES / 10;
-    auto& root = doc.GetObjects().CreateDictionaryObject("Pages");
-    doc.GetCatalog().GetDictionary().AddKeyIndirect("Pages", root);
+    auto& root = doc.GetObjects().CreateDictionaryObject("Pages"_n);
+    doc.GetCatalog().GetDictionary().AddKeyIndirect("Pages"_n, root);
     PdfArray rootKids;
 
     for (unsigned i = 0; i < COUNT; i++)
     {
-        auto& node = doc.GetObjects().CreateDictionaryObject("Pages");
+        auto& node = doc.GetObjects().CreateDictionaryObject("Pages"_n);
         PdfArray nodeKids;
 
         for (unsigned j = 0; j < COUNT; j++)
@@ -322,13 +322,13 @@ PdfMemDocument PdfPageTest::CreateTestTreeCustom()
             nodeKids.Add(page->GetObject().GetIndirectReference());
         }
 
-        node.GetDictionary().AddKey("Kids", nodeKids);
-        node.GetDictionary().AddKey("Count", static_cast<int64_t>(COUNT));
+        node.GetDictionary().AddKey("Kids"_n, nodeKids);
+        node.GetDictionary().AddKey("Count"_n, static_cast<int64_t>(COUNT));
         rootKids.Add(node.GetIndirectReference());
     }
 
-    root.GetDictionary().AddKey("Kids", rootKids);
-    root.GetDictionary().AddKey("Count", static_cast<int64_t>(TEST_NUM_PAGES));
+    root.GetDictionary().AddKey("Kids"_n, rootKids);
+    root.GetDictionary().AddKey("Count"_n, static_cast<int64_t>(TEST_NUM_PAGES));
 
     // NOTE: We must copy the document as the PdfPageCollection
     // in the source document is already initialized
@@ -367,10 +367,10 @@ vector<PdfObject*> createNodes(PdfMemDocument& doc, unsigned nodeCount)
 
     for (unsigned i = 0; i < nodeCount; ++i)
     {
-        nodes[i] = &doc.GetObjects().CreateDictionaryObject("Pages");
+        nodes[i] = &doc.GetObjects().CreateDictionaryObject("Pages"_n);
         // init required keys
-        nodes[i]->GetDictionary().AddKey("Kids", PdfArray());
-        nodes[i]->GetDictionary().AddKey("Count", PdfVariant(static_cast<int64_t>(0L)));
+        nodes[i]->GetDictionary().AddKey("Kids"_n, PdfArray());
+        nodes[i]->GetDictionary().AddKey("Count"_n, PdfVariant(static_cast<int64_t>(0L)));
     }
 
     return nodes;
@@ -461,7 +461,7 @@ void createNestedArrayTree(PdfMemDocument& doc)
     for (unsigned i = 0; i < COUNT; i++)
     {
         kids.Add(pages[i]->GetObject().GetIndirectReference());
-        pages[i]->GetDictionary().AddKey("Parent", root.GetIndirectReference());
+        pages[i]->GetDictionary().AddKey("Parent"_n, root.GetIndirectReference());
     }
 
     // create nested kids array
@@ -469,8 +469,8 @@ void createNestedArrayTree(PdfMemDocument& doc)
     nested.Add(kids);
 
     // manually insert pages into pagetree
-    root.GetDictionary().AddKey("Count", static_cast<int64_t>(COUNT));
-    root.GetDictionary().AddKey("Kids", nested);
+    root.GetDictionary().AddKey("Count"_n, static_cast<int64_t>(COUNT));
+    root.GetDictionary().AddKey("Kids"_n, nested);
 }
 
 bool isPageNumber(PdfPage& page, unsigned number)
@@ -493,7 +493,7 @@ void appendChildNode(PdfObject& parent, PdfObject& child)
     PdfObject* oldKids = parent.GetDictionary().FindKey("Kids");
     if (oldKids != nullptr && oldKids->IsArray()) kids = oldKids->GetArray();
     kids.Add(child.GetIndirectReference());
-    parent.GetDictionary().AddKey("Kids", kids);
+    parent.GetDictionary().AddKey("Kids"_n, kids);
 
     // 2. If the child is a page (leaf node), increase count of every parent
     //    (which also includes pParent)
@@ -505,11 +505,11 @@ void appendChildNode(PdfObject& parent, PdfObject& child)
             int64_t count = 0;
             if (node->GetDictionary().FindKey("Count")) count = node->GetDictionary().FindKey("Count")->GetNumber();
             count++;
-            node->GetDictionary().AddKey("Count", count);
+            node->GetDictionary().AddKey("Count"_n, count);
             node = node->GetDictionary().FindKey("Parent");
         }
     }
 
     // 3. Add Parent key to the child
-    child.GetDictionary().AddKey("Parent", parent.GetIndirectReference());
+    child.GetDictionary().AddKey("Parent"_n, parent.GetIndirectReference());
 }

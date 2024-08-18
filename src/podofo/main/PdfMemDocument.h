@@ -138,13 +138,13 @@ public:
      *  \param ns  namespace of the extension
      *  \param level  level of the extension
      */
-    bool HasPdfExtension(const PdfName& ns, int64_t level) const;
+    bool HasPdfExtension(const std::string_view& ns, int64_t level) const;
 
     /** Remove a vendor-specific extension to the current PDF version.
      *  \param ns  namespace of the extension
      *  \param level  level of the extension
      */
-    void RemovePdfExtension(const PdfName& ns, int64_t level);
+    void RemovePdfExtension(const std::string_view& ns, int64_t level);
 
     /** Return the list of all vendor-specific extensions to the current PDF version.
      *  \param ns  namespace of the extension

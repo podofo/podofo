@@ -77,7 +77,7 @@ void PdfDocument::Init()
     if (pagesRootObj == nullptr)
     {
         m_Pages.reset(new PdfPageCollection(*this));
-        m_Catalog->GetDictionary().AddKey("Pages", m_Pages->GetObject().GetIndirectReference());
+        m_Catalog->GetDictionary().AddKey("Pages"_n, m_Pages->GetObject().GetIndirectReference());
     }
     else
     {
@@ -134,10 +134,10 @@ void PdfDocument::append(const PdfDocument& doc, bool appendAll)
     if (appendAll)
     {
         const PdfName inheritableAttributes[] = {
-            PdfName("Resources"),
-            PdfName("MediaBox"),
-            PdfName("CropBox"),
-            PdfName("Rotate"),
+            "Resources"_n,
+            "MediaBox"_n,
+            "CropBox"_n,
+            "Rotate"_n,
             PdfName::Null
         };
 
@@ -222,10 +222,10 @@ void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc,
     }
 
     const PdfName inheritableAttributes[] = {
-        PdfName("Resources"),
-        PdfName("MediaBox"),
-        PdfName("CropBox"),
-        PdfName("Rotate"),
+        "Resources"_n,
+        "MediaBox"_n,
+        "CropBox"_n,
+        "Rotate"_n,
         PdfName::Null
     };
 
@@ -312,16 +312,16 @@ void PdfDocument::resetPrivate()
 {
     m_TrailerObj.reset(new PdfObject()); // The trailer is NO part of the vector of objects
     m_TrailerObj->SetDocument(this);
-    auto& catalog = m_Objects.CreateDictionaryObject("Catalog");
+    auto& catalog = m_Objects.CreateDictionaryObject("Catalog"_n);
     m_Trailer.reset(new PdfTrailer(*m_TrailerObj));
 
     m_Catalog.reset(new PdfCatalog(catalog));
-    m_TrailerObj->GetDictionary().AddKeyIndirect("Root", catalog);
+    m_TrailerObj->GetDictionary().AddKeyIndirect("Root"_n, catalog);
 
     auto& info = m_Objects.CreateDictionaryObject();
     m_Info.reset(new PdfInfo(info,
         PdfInfoInitial::WriteProducer | PdfInfoInitial::WriteCreationTime));
-    m_TrailerObj->GetDictionary().AddKeyIndirect("Info", info);
+    m_TrailerObj->GetDictionary().AddKeyIndirect("Info"_n, info);
 
     Init();
 }
@@ -332,7 +332,7 @@ PdfInfo& PdfDocument::GetOrCreateInfo()
     {
         auto info = &m_Objects.CreateDictionaryObject();
         m_Info.reset(new PdfInfo(*info));
-        m_TrailerObj->GetDictionary().AddKeyIndirect("Info", *info);
+        m_TrailerObj->GetDictionary().AddKeyIndirect("Info"_n, *info);
     }
 
     return *m_Info;
@@ -363,7 +363,7 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
 
     // link resources from external doc to x-object
     if (pageObj.IsDictionary() && pageObj.GetDictionary().HasKey("Resources"))
-        xobj.GetDictionary().AddKey("Resources", *pageObj.GetDictionary().GetKey("Resources"));
+        xobj.GetDictionary().AddKey("Resources"_n, *pageObj.GetDictionary().GetKey("Resources"));
 
     // copy top-level content from external doc to x-object
     if (pageObj.IsDictionary() && pageObj.GetDictionary().HasKey("Contents"))
@@ -486,7 +486,7 @@ PdfOutlines& PdfDocument::GetOrCreateOutlines()
         return *m_Outlines.get();
 
     m_Outlines.reset(new PdfOutlines(*this));
-    m_Catalog->GetDictionary().AddKey("Outlines", m_Outlines->GetObject().GetIndirectReference());
+    m_Catalog->GetDictionary().AddKey("Outlines"_n, m_Outlines->GetObject().GetIndirectReference());
     return *m_Outlines.get();
 }
 
@@ -497,7 +497,7 @@ PdfNameTrees& PdfDocument::GetOrCreateNames()
 
     PdfNameTrees tmpTree(*this);
     auto obj = &tmpTree.GetObject();
-    m_Catalog->GetDictionary().AddKey("Names", obj->GetIndirectReference());
+    m_Catalog->GetDictionary().AddKey("Names"_n, obj->GetIndirectReference());
     m_NameTrees.reset(new PdfNameTrees(*obj));
     return *m_NameTrees;
 }
@@ -508,7 +508,7 @@ PdfAcroForm& PdfDocument::GetOrCreateAcroForm(PdfAcroFormDefaulAppearance defaul
         return *m_AcroForm.get();
 
     m_AcroForm.reset(new PdfAcroForm(*this, defaultAppearance));
-    m_Catalog->GetDictionary().AddKey("AcroForm", m_AcroForm->GetObject().GetIndirectReference());
+    m_Catalog->GetDictionary().AddKey("AcroForm"_n, m_AcroForm->GetObject().GetIndirectReference());
     return *m_AcroForm.get();
 }
 

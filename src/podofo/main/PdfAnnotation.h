@@ -112,8 +112,8 @@ public:
      *  \param appearance an appearance type to get
      *  \param state a child state. Meaning depends on the annotation type
     */
-    PdfObject* GetAppearanceStream(PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
-    const PdfObject* GetAppearanceStream(PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "") const;
+    PdfObject* GetAppearanceStream(PdfAppearanceType appearance = PdfAppearanceType::Normal, const std::string_view& state = { });
+    const PdfObject* GetAppearanceStream(PdfAppearanceType appearance = PdfAppearanceType::Normal, const std::string_view& state = { }) const;
 
     /** Get the rectangle of this annotation.
      *  \returns a rectangle
@@ -225,7 +225,7 @@ private:
     static bool tryCreateFromObject(const PdfObject& obj, const std::type_info& typeInfo, PdfAnnotation*& xobj);
     static PdfAnnotationType getAnnotationType(const std::type_info& typeInfo);
     static PdfAnnotationType getAnnotationType(const PdfObject& obj);
-    PdfObject* getAppearanceStream(PdfAppearanceType appearance, const PdfName& state) const;
+    PdfObject* getAppearanceStream(PdfAppearanceType appearance, const std::string_view& state) const;
     PdfDictionary* getAppearanceDictionary() const;
 
 private:

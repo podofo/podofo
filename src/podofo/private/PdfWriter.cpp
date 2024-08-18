@@ -120,7 +120,7 @@ void PdfWriter::Write(OutputStreamDevice& device)
 
 void PdfWriter::WritePdfHeader(OutputStreamDevice& device)
 {
-    utls::FormatTo(m_buffer, "%PDF-{}\n%{}", PoDoFo::GetPdfVersionName(m_Version), PDF_MAGIC);
+    utls::FormatTo(m_buffer, "%PDF-{}\n%{}", PoDoFo::GetPdfVersionName(m_Version).GetString(), PDF_MAGIC);
     device.Write(m_buffer);
 }
 
@@ -186,19 +186,19 @@ void PdfWriter::WritePdfObjects(OutputStreamDevice& device, const PdfIndirectObj
 
 void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t size, bool onlySizeKey) const
 {
-    trailer.GetDictionary().AddKey(PdfNames::Size, static_cast<int64_t>(size));
+    trailer.GetDictionary().AddKey("Size"_n, static_cast<int64_t>(size));
 
     if (!onlySizeKey)
     {
         if (m_Trailer->GetDictionary().HasKey("Root"))
-            trailer.GetDictionary().AddKey("Root", *m_Trailer->GetDictionary().GetKey("Root"));
+            trailer.GetDictionary().AddKey("Root"_n, *m_Trailer->GetDictionary().GetKey("Root"));
         // It makes no sense to simple copy an encryption key
         // Either we have no encryption or we encrypt again by ourselves
         if (m_Trailer->GetDictionary().HasKey("Info"))
-            trailer.GetDictionary().AddKey("Info", *m_Trailer->GetDictionary().GetKey("Info"));
+            trailer.GetDictionary().AddKey("Info"_n, *m_Trailer->GetDictionary().GetKey("Info"));
 
         if (m_EncryptObj != nullptr)
-            trailer.GetDictionary().AddKey(PdfName("Encrypt"), m_EncryptObj->GetIndirectReference());
+            trailer.GetDictionary().AddKey("Encrypt"_n, m_EncryptObj->GetIndirectReference());
 
         PdfArray array;
         // The ID must stay the same if this is an incremental update
@@ -211,12 +211,12 @@ void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t size, bool onlySize
         array.Add(m_identifier);
 
         // finally add the key to the trailer dictionary
-        trailer.GetDictionary().AddKey("ID", array);
+        trailer.GetDictionary().AddKey("ID"_n, array);
 
         if (!m_rewriteXRefTable && m_PrevXRefOffset > 0)
         {
             PdfVariant value(m_PrevXRefOffset);
-            trailer.GetDictionary().AddKey("Prev", value);
+            trailer.GetDictionary().AddKey("Prev"_n, value);
         }
     }
 }
@@ -253,9 +253,9 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
         PdfString dateString = now.ToString();
 
         info.reset(new PdfObject());
-        info->GetDictionary().AddKey("CreationDate", dateString);
-        info->GetDictionary().AddKey("Creator", PdfString("PoDoFo"));
-        info->GetDictionary().AddKey("Producer", PdfString("PoDoFo"));
+        info->GetDictionary().AddKey("CreationDate"_n, dateString);
+        info->GetDictionary().AddKey("Creator"_n, PdfString("PoDoFo"));
+        info->GetDictionary().AddKey("Producer"_n, PdfString("PoDoFo"));
     }
     else
     {
@@ -289,7 +289,7 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
         }
     }
 
-    info->GetDictionary().AddKey("Location", PdfString("SOMEFILENAME"));
+    info->GetDictionary().AddKey("Location"_n, PdfString("SOMEFILENAME"));
     info->WriteFinal(length, m_WriteFlags, nullptr, m_buffer);
 
     charbuff buffer(length.GetLength());

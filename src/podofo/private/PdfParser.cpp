@@ -145,7 +145,7 @@ void PdfParser::ReadDocumentStructure(InputStreamDevice& device, ssize_t eofSear
 
     int64_t entriesCount;
     if (m_Trailer != nullptr && m_Trailer->IsDictionary()
-        && (entriesCount = m_Trailer->GetDictionary().FindKeyAs<int64_t>(PdfNames::Size, -1)) >= 0
+        && (entriesCount = m_Trailer->GetDictionary().FindKeyAs<int64_t>("Size", -1)) >= 0
         && m_entries.GetSize() > (unsigned)entriesCount)
     {
         // Total number of xref entries to read is greater than the /Size
@@ -191,25 +191,25 @@ void PdfParser::mergeTrailer(const PdfObject& trailer)
     PODOFO_ASSERT(m_Trailer != nullptr);
 
     // Only update keys, if not already present
-    auto obj = trailer.GetDictionary().GetKey(PdfNames::Size);
-    if (obj != nullptr && !m_Trailer->GetDictionary().HasKey(PdfNames::Size))
-        m_Trailer->GetDictionary().AddKey(PdfNames::Size, *obj);
+    auto obj = trailer.GetDictionary().GetKey("Size");
+    if (obj != nullptr && !m_Trailer->GetDictionary().HasKey("Size"))
+        m_Trailer->GetDictionary().AddKey("Size"_n, *obj);
 
     obj = trailer.GetDictionary().GetKey("Root");
     if (obj != nullptr && !m_Trailer->GetDictionary().HasKey("Root"))
-        m_Trailer->GetDictionary().AddKey("Root", *obj);
+        m_Trailer->GetDictionary().AddKey("Root"_n, *obj);
 
     obj = trailer.GetDictionary().GetKey("Encrypt");
     if (obj != nullptr && !m_Trailer->GetDictionary().HasKey("Encrypt"))
-        m_Trailer->GetDictionary().AddKey("Encrypt", *obj);
+        m_Trailer->GetDictionary().AddKey("Encrypt"_n, *obj);
 
     obj = trailer.GetDictionary().GetKey("Info");
     if (obj != nullptr && !m_Trailer->GetDictionary().HasKey("Info"))
-        m_Trailer->GetDictionary().AddKey("Info", *obj);
+        m_Trailer->GetDictionary().AddKey("Info"_n, *obj);
 
     obj = trailer.GetDictionary().GetKey("ID");
     if (obj != nullptr && !m_Trailer->GetDictionary().HasKey("ID"))
-        m_Trailer->GetDictionary().AddKey("ID", *obj);
+        m_Trailer->GetDictionary().AddKey("ID"_n, *obj);
 }
 
 void PdfParser::readNextTrailer(InputStreamDevice& device, bool skipFollowPrevious)
@@ -682,7 +682,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                                 PdfDictionary* objDict;
                                 if (obj->TryGetDictionary(objDict))
                                 {
-                                    auto typeObj = objDict->GetKey(PdfNames::Type);
+                                    auto typeObj = objDict->GetKey("Type");
                                     if (typeObj != nullptr && typeObj->IsName() && typeObj->GetName() == "XRef")
                                     {
                                         // XRef is never encrypted
@@ -871,8 +871,8 @@ void PdfParser::updateDocumentVersion()
                 {
                     PoDoFo::LogMessage(PdfLogSeverity::Information,
                         "Updating version from {} to {}",
-                        PoDoFo::GetPdfVersionName(m_PdfVersion),
-                        PoDoFo::GetPdfVersionName(version));
+                        PoDoFo::GetPdfVersionName(m_PdfVersion).GetString(),
+                        PoDoFo::GetPdfVersionName(version).GetString());
                     m_PdfVersion = version;
                 }
             }

@@ -16,6 +16,10 @@ It follows other lenient rules that are not truly enforced in all the code base,
 - Lower case field names for private fields used only in this class boundary, for example `m_privateField`;
 - Capitalized field names for private fields exposed by public getters/setters, example `m_Value`.
 
+### PoDoFo specifics
+
+- `PdfDictionary` and other methods doing lookups on `PdfName` with keys known at compile time: `GetKey`, `FindKey`, `FindKeyHas`, `HasKey`, `RemoveKey` methods (and in general non addition lookup methods) use string literals or `string_view`. For `AddKey`, `AddKeyIndirect`, `AddKeyIndirectSafe` use the "_n" user literal
+
 Some examples of expected coding style can be found at the following permalinks:
 
 - [PdfEncoding](https://github.com/podofo/podofo/blob/94145e4bd452cfd77b262dd672ec836da0c1530d/src/podofo/main/PdfEncoding.cpp)

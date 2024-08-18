@@ -118,7 +118,7 @@ PdfField& PdfFieldChildrenCollectionBase::AddChild(const shared_ptr<PdfField>& f
 {
     PODOFO_ASSERT(field != nullptr);
     if (m_kidsArray == nullptr)
-        m_kidsArray = &m_field->GetDictionary().AddKey("Kids", PdfArray()).GetArray();
+        m_kidsArray = &m_field->GetDictionary().AddKey("Kids"_n, PdfArray()).GetArray();
 
     m_fieldMap[field->GetObject().GetIndirectReference()] = m_kidsArray->GetSize();
     m_kidsArray->AddIndirectSafe(field->GetObject());

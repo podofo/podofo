@@ -27,7 +27,7 @@ PdfInfoHelper::~PdfInfoHelper()
 
 void PdfInfoHelper::OutputDocumentInfo(ostream& sOutStream)
 {
-    sOutStream << "\tPDF Version: " << PoDoFo::GetPdfVersionName(m_doc->GetMetadata().GetPdfVersion()) << endl;
+    sOutStream << "\tPDF Version: " << PoDoFo::GetPdfVersionName(m_doc->GetMetadata().GetPdfVersion()).GetString() << endl;
     sOutStream << "\tPage Count: " << m_doc->GetPages().GetCount() << endl;
     sOutStream << "\tPage Size: " << GuessFormat() << endl;
     sOutStream << endl;

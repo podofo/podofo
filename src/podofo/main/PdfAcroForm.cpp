@@ -21,7 +21,7 @@ PdfAcroForm::PdfAcroForm(PdfDocument& doc, PdfAcroFormDefaulAppearance defaultAp
     : PdfDictionaryElement(doc), m_fieldArray(nullptr)
 {
     // Initialize with an empty fields array
-    this->GetDictionary().AddKey("Fields", PdfArray());
+    this->GetDictionary().AddKey("Fields"_n, PdfArray());
     init(defaultAppearance);
 }
 
@@ -44,11 +44,11 @@ void PdfAcroForm::init(PdfAcroFormDefaulAppearance defaultAppearance)
 
         // Create DR key
         if (!this->GetDictionary().HasKey("DR"))
-            this->GetDictionary().AddKey("DR", PdfDictionary());
+            this->GetDictionary().AddKey("DR"_n, PdfDictionary());
         auto& resource = this->GetDictionary().MustFindKey("DR");
 
         if (!resource.GetDictionary().HasKey("Font"))
-            resource.GetDictionary().AddKey("Font", PdfDictionary());
+            resource.GetDictionary().AddKey("Font"_n, PdfDictionary());
 
         auto& fontDict = resource.GetDictionary().MustFindKey("Font");
         fontDict.GetDictionary().AddKey(font->GetIdentifier(), font->GetObject().GetIndirectReference());
@@ -56,7 +56,7 @@ void PdfAcroForm::init(PdfAcroFormDefaulAppearance defaultAppearance)
         // Create DA key
         PdfStringStream ss;
         ss << "0 0 0 rg 0 g /" << font->GetIdentifier().GetString() << " 0 Tf";
-        this->GetDictionary().AddKey("DA", PdfString(ss.GetString()));
+        this->GetDictionary().AddKey("DA"_n, PdfString(ss.GetString()));
     }
 }
 
@@ -181,7 +181,7 @@ PdfField& PdfAcroForm::AddField(unique_ptr<PdfField>&& field)
 {
     initFields();
     if (m_fieldArray == nullptr)
-        m_fieldArray = &GetDictionary().AddKey("Fields", PdfArray()).GetArray();
+        m_fieldArray = &GetDictionary().AddKey("Fields"_n, PdfArray()).GetArray();
 
     (*m_fieldMap)[field->GetObject().GetIndirectReference()] = m_fieldArray->GetSize();
     m_fieldArray->AddIndirectSafe(field->GetObject());
@@ -197,7 +197,7 @@ shared_ptr<PdfField> PdfAcroForm::GetFieldPtr(const PdfReference& ref)
 
 void PdfAcroForm::SetNeedAppearances(bool needAppearances)
 {
-    this->GetDictionary().AddKey("NeedAppearances", PdfVariant(needAppearances));
+    this->GetDictionary().AddKey("NeedAppearances"_n, PdfVariant(needAppearances));
 }
 
 bool PdfAcroForm::GetNeedAppearances() const

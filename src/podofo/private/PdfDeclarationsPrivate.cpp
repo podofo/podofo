@@ -47,20 +47,20 @@ static double modulo(double a, double b);
 
 struct VersionIdentity
 {
-    string_view Name;
+    PdfName Name;
     PdfVersion Version;
 };
 
 static VersionIdentity s_PdfVersions[] = {
-    { "1.0", PdfVersion::V1_0 },
-    { "1.1", PdfVersion::V1_1 },
-    { "1.2", PdfVersion::V1_2 },
-    { "1.3", PdfVersion::V1_3 },
-    { "1.4", PdfVersion::V1_4 },
-    { "1.5", PdfVersion::V1_5 },
-    { "1.6", PdfVersion::V1_6 },
-    { "1.7", PdfVersion::V1_7 },
-    { "2.0", PdfVersion::V2_0 },
+    { "1.0"_n, PdfVersion::V1_0 },
+    { "1.1"_n, PdfVersion::V1_1 },
+    { "1.2"_n, PdfVersion::V1_2 },
+    { "1.3"_n, PdfVersion::V1_3 },
+    { "1.4"_n, PdfVersion::V1_4 },
+    { "1.5"_n, PdfVersion::V1_5 },
+    { "1.6"_n, PdfVersion::V1_6 },
+    { "1.7"_n, PdfVersion::V1_7 },
+    { "2.0"_n, PdfVersion::V2_0 },
 };
 
 template<typename TInt, class = typename std::enable_if_t<std::is_integral_v<TInt>>>
@@ -130,7 +130,7 @@ PdfVersion PoDoFo::GetPdfVersion(const string_view& str)
     return PdfVersion::Unknown;
 }
 
-string_view PoDoFo::GetPdfVersionName(PdfVersion version)
+const PdfName& PoDoFo::GetPdfVersionName(PdfVersion version)
 {
     switch (version)
     {

@@ -65,10 +65,10 @@ void PdfIdentityEncoding::getExportObject(PdfIndirectObjectList& objects, PdfNam
     switch (m_orientation)
     {
         case PdfIdentityOrientation::Horizontal:
-            name = PdfName("Identity-H");
+            name = "Identity-H"_n;
             break;
         case PdfIdentityOrientation::Vertical:
-            name = PdfName("Identity-V");
+            name = "Identity-V"_n;
             break;
         default:
             // NOTE: Return no export object, assume exporting

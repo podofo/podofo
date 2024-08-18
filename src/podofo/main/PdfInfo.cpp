@@ -33,13 +33,13 @@ void PdfInfo::init(PdfInfoInitial initial)
     PdfString str = now.ToString();
 
     if ((initial & PdfInfoInitial::WriteCreationTime) == PdfInfoInitial::WriteCreationTime)
-        this->GetDictionary().AddKey("CreationDate", str);
+        this->GetDictionary().AddKey("CreationDate"_n, str);
 
     if ((initial & PdfInfoInitial::WriteModificationTime) == PdfInfoInitial::WriteModificationTime)
-        this->GetDictionary().AddKey("ModDate", str);
+        this->GetDictionary().AddKey("ModDate"_n, str);
 
     if ((initial & PdfInfoInitial::WriteProducer) == PdfInfoInitial::WriteProducer)
-        this->GetDictionary().AddKey("Producer", PdfString(PRODUCER_STRING));
+        this->GetDictionary().AddKey("Producer"_n, PdfString(PRODUCER_STRING));
 }
 
 nullable<const PdfString&> PdfInfo::getStringFromInfoDict(const string_view& name) const
@@ -55,7 +55,7 @@ nullable<const PdfString&> PdfInfo::getStringFromInfoDict(const string_view& nam
 void PdfInfo::SetAuthor(nullable<const PdfString&> value)
 {
     if (value.has_value())
-        this->GetDictionary().AddKey("Author", *value);
+        this->GetDictionary().AddKey("Author"_n, *value);
     else
         this->GetDictionary().RemoveKey("Author");
 }
@@ -63,7 +63,7 @@ void PdfInfo::SetAuthor(nullable<const PdfString&> value)
 void PdfInfo::SetCreator(nullable<const PdfString&> value)
 {
     if (value.has_value())
-        this->GetDictionary().AddKey("Creator", *value);
+        this->GetDictionary().AddKey("Creator"_n, *value);
     else
         this->GetDictionary().RemoveKey("Creator");
 }
@@ -71,7 +71,7 @@ void PdfInfo::SetCreator(nullable<const PdfString&> value)
 void PdfInfo::SetKeywords(nullable<const PdfString&> value)
 {
     if (value.has_value())
-        this->GetDictionary().AddKey("Keywords", *value);
+        this->GetDictionary().AddKey("Keywords"_n, *value);
     else
         this->GetDictionary().RemoveKey("Keywords");
 }
@@ -79,7 +79,7 @@ void PdfInfo::SetKeywords(nullable<const PdfString&> value)
 void PdfInfo::SetSubject(nullable<const PdfString&> value)
 {
     if (value.has_value())
-        this->GetDictionary().AddKey("Subject", *value);
+        this->GetDictionary().AddKey("Subject"_n, *value);
     else
         this->GetDictionary().RemoveKey("Subject");
 }
@@ -87,7 +87,7 @@ void PdfInfo::SetSubject(nullable<const PdfString&> value)
 void PdfInfo::SetTitle(nullable<const PdfString&> value)
 {
     if (value.has_value())
-        this->GetDictionary().AddKey("Title", *value);
+        this->GetDictionary().AddKey("Title"_n, *value);
     else
         this->GetDictionary().RemoveKey("Title");
 }
@@ -95,7 +95,7 @@ void PdfInfo::SetTitle(nullable<const PdfString&> value)
 void PdfInfo::SetProducer(nullable<const PdfString&> value)
 {
     if (value.has_value())
-        this->GetDictionary().AddKey("Producer", *value);
+        this->GetDictionary().AddKey("Producer"_n, *value);
     else
         this->GetDictionary().RemoveKey("Producer");
 }
@@ -105,9 +105,9 @@ void PdfInfo::SetTrapped(nullable<const PdfName&> trapped)
     if (trapped.has_value())
     {
         if (*trapped == "True" || *trapped == "False")
-            this->GetDictionary().AddKey("Trapped", *trapped);
+            this->GetDictionary().AddKey("Trapped"_n, *trapped);
         else
-            this->GetDictionary().AddKey("Trapped", PdfName("Unknown"));
+            this->GetDictionary().AddKey("Trapped"_n, "Unknown"_n);
     }
     else
     {
@@ -178,7 +178,7 @@ nullable<const PdfName&> PdfInfo::GetTrapped() const
 void PdfInfo::SetCreationDate(nullable<PdfDate> value)
 {
     if (value.has_value())
-        this->GetDictionary().AddKey("CreationDate", value->ToString());
+        this->GetDictionary().AddKey("CreationDate"_n, value->ToString());
     else
         this->GetDictionary().RemoveKey("CreationDate");
 }
@@ -186,7 +186,7 @@ void PdfInfo::SetCreationDate(nullable<PdfDate> value)
 void PdfInfo::SetModDate(nullable<PdfDate> value)
 {
     if (value.has_value())
-        this->GetDictionary().AddKey("ModDate", value->ToString());
+        this->GetDictionary().AddKey("ModDate"_n, value->ToString());
     else
         this->GetDictionary().RemoveKey("ModDate");
 }

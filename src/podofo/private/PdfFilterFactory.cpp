@@ -242,7 +242,7 @@ PdfFilterList PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj)
     PdfFilterList filters;
     const PdfObject* filterKeyObj = nullptr;
     if (filtersObj.IsDictionary()
-        && (filterKeyObj = filtersObj.GetDictionary().FindKey(PdfNames::Filter)) == nullptr
+        && (filterKeyObj = filtersObj.GetDictionary().FindKey("Filter")) == nullptr
         && filtersObj.IsArray())
     {
         filterKeyObj = &filtersObj;

@@ -332,12 +332,12 @@ void PdfEncoding::ExportToFont(PdfFont& font) const
 
         // The CIDSystemInfo, should be an indirect object
         auto& cidSystemInfo = font.GetDocument().GetObjects().CreateDictionaryObject();
-        cidSystemInfo.GetDictionary().AddKey("Registry", PdfString(CMAP_REGISTRY_NAME));
-        cidSystemInfo.GetDictionary().AddKey("Ordering", PdfString(fontName));
-        cidSystemInfo.GetDictionary().AddKey("Supplement", static_cast<int64_t>(0));
+        cidSystemInfo.GetDictionary().AddKey("Registry"_n, PdfString(CMAP_REGISTRY_NAME));
+        cidSystemInfo.GetDictionary().AddKey("Ordering"_n, PdfString(fontName));
+        cidSystemInfo.GetDictionary().AddKey("Supplement"_n, static_cast<int64_t>(0));
 
         // NOTE: Setting the CIDSystemInfo params in the descendant font object is required
-        font.GetDescendantFontObject().GetDictionary().AddKeyIndirect("CIDSystemInfo", cidSystemInfo);
+        font.GetDescendantFontObject().GetDictionary().AddKeyIndirect("CIDSystemInfo"_n, cidSystemInfo);
 
         // Some CMap encodings has a name representation, such as
         // Identity-H/Identity-V. NOTE: Use a fixed representation only
@@ -348,10 +348,10 @@ void PdfEncoding::ExportToFont(PdfFont& font) const
             auto& cmapObj = fontDict.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
 
             // NOTE: Setting the CIDSystemInfo params in the CMap stream object is required
-            cmapObj.GetDictionary().AddKeyIndirect("CIDSystemInfo", cidSystemInfo);
+            cmapObj.GetDictionary().AddKeyIndirect("CIDSystemInfo"_n, cidSystemInfo);
 
             writeCIDMapping(cmapObj, font, fontName);
-            fontDict.AddKeyIndirect("Encoding", cmapObj);
+            fontDict.AddKeyIndirect("Encoding"_n, cmapObj);
         }
     }
     else
@@ -362,7 +362,7 @@ void PdfEncoding::ExportToFont(PdfFont& font) const
 
     auto& cmapObj = fontDict.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
     writeToUnicodeCMap(cmapObj);
-    fontDict.AddKeyIndirect("ToUnicode", cmapObj);
+    fontDict.AddKeyIndirect("ToUnicode"_n, cmapObj);
 }
 
 PdfStringScanContext PdfEncoding::StartStringScan(const PdfString& encodedStr)
@@ -387,9 +387,9 @@ bool PdfEncoding::tryExportObjectTo(PdfDictionary& dictionary, bool wantCIDMappi
         return false;
 
     if (obj == nullptr)
-        dictionary.AddKey("Encoding", name);
+        dictionary.AddKey("Encoding"_n, name);
     else
-        dictionary.AddKeyIndirect("Encoding", *obj);
+        dictionary.AddKeyIndirect("Encoding"_n, *obj);
 
     return true;
 }
@@ -556,8 +556,8 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
         cmapName.append("-subset");
 
     // Table 120: Additional entries in a CMap stream dictionary
-    cmapDict.AddKey(PdfNames::Type, PdfName("CMap"));
-    cmapDict.AddKey("CMapName", PdfName(cmapName));
+    cmapDict.AddKey("Type"_n, "CMap"_n);
+    cmapDict.AddKey("CMapName"_n, PdfName(cmapName));
 
     charbuff temp;
     auto& stream = cmapObj.GetOrCreateStream();

@@ -33,12 +33,12 @@ void ImageExtractor::Init(const string_view& input, const string_view& output)
     {
         if (obj->IsDictionary())
         {
-            PdfObject* typeObj = obj->GetDictionary().GetKey(PdfNames::Type);
-            PdfObject* subtypeObj = obj->GetDictionary().GetKey(PdfNames::Subtype);
+            PdfObject* typeObj = obj->GetDictionary().GetKey("Type"_n);
+            PdfObject* subtypeObj = obj->GetDictionary().GetKey("Subtype"_n);
             if ((typeObj && typeObj->IsName() && (typeObj->GetName() == "XObject")) ||
                 (subtypeObj && subtypeObj->IsName() && (subtypeObj->GetName() == "Image")))
             {
-                auto filter = obj->GetDictionary().GetKey(PdfNames::Filter);
+                auto filter = obj->GetDictionary().GetKey("Filter"_n);
                 if (filter != nullptr && filter->IsArray() && filter->GetArray().GetSize() == 1 &&
                     filter->GetArray()[0].IsName() && (filter->GetArray()[0].GetName() == "DCTDecode"))
                     filter = &filter->GetArray()[0];

@@ -202,7 +202,7 @@ void PdfColorSpaceDeviceGray::FetchScanLine(unsigned char* dstScanLine, const un
 PdfObject PdfColorSpaceDeviceGray::GetExportObject(PdfIndirectObjectList& objects) const
 {
     (void)objects;
-    return PdfName("DeviceGray");
+    return "DeviceGray"_n;
 }
 
 unsigned PdfColorSpaceDeviceGray::GetColorComponentCount() const
@@ -250,7 +250,7 @@ void PdfColorSpaceFilterDeviceRGB::FetchScanLine(unsigned char* dstScanLine, con
 PdfObject PdfColorSpaceFilterDeviceRGB::GetExportObject(PdfIndirectObjectList& objects) const
 {
     (void)objects;
-    return PdfName("DeviceRGB");
+    return "DeviceRGB"_n;
 }
 
 unsigned PdfColorSpaceFilterDeviceRGB::GetColorComponentCount() const
@@ -298,7 +298,7 @@ void PdfColorSpaceFilterDeviceCMYK::FetchScanLine(unsigned char* dstScanLine, co
 PdfObject PdfColorSpaceFilterDeviceCMYK::GetExportObject(PdfIndirectObjectList& objects) const
 {
     (void)objects;
-    return PdfName("DeviceCMYK");
+    return "DeviceCMYK"_n;
 }
 
 unsigned PdfColorSpaceFilterDeviceCMYK::GetColorComponentCount() const
@@ -376,7 +376,7 @@ PdfObject PdfColorSpaceFilterIndexed::GetExportObject(PdfIndirectObjectList& obj
     lookupObj.GetOrCreateStream().SetData(m_lookup);
 
     PdfArray arr;
-    arr.Add(PdfName("Indexed"));
+    arr.Add("Indexed"_n);
     arr.Add(m_BaseColorSpace->GetExportObject(objects));
     arr.Add(static_cast<int64_t>(m_MapSize - 1));
     arr.Add(lookupObj.GetIndirectReference());
@@ -501,7 +501,7 @@ PdfObject PdfColorSpaceFilterSeparation::GetExportObject(PdfIndirectObjectList& 
     // Build color-spaces for separation
     auto& csTintFunc = objects.CreateDictionaryObject();
     
-    csTintFunc.GetDictionary().AddKey("BitsPerSample", static_cast<int64_t>(8));
+    csTintFunc.GetDictionary().AddKey("BitsPerSample"_n, static_cast<int64_t>(8));
     
     PdfArray decode;
     decode.Add(static_cast<int64_t>(0));
@@ -512,21 +512,21 @@ PdfObject PdfColorSpaceFilterSeparation::GetExportObject(PdfIndirectObjectList& 
     decode.Add(static_cast<int64_t>(1));
     decode.Add(static_cast<int64_t>(0));
     decode.Add(static_cast<int64_t>(1));
-    csTintFunc.GetDictionary().AddKey("Decode", decode);
+    csTintFunc.GetDictionary().AddKey("Decode"_n, decode);
     
     PdfArray domain;
     domain.Add(static_cast<int64_t>(0));
     domain.Add(static_cast<int64_t>(1));
-    csTintFunc.GetDictionary().AddKey("Domain", domain);
+    csTintFunc.GetDictionary().AddKey("Domain"_n, domain);
     
     PdfArray encode;
     encode.Add(static_cast<int64_t>(0));
     encode.Add(static_cast<int64_t>(1));
-    csTintFunc.GetDictionary().AddKey("Encode", encode);
+    csTintFunc.GetDictionary().AddKey("Encode"_n, encode);
     
-    csTintFunc.GetDictionary().AddKey(PdfNames::Filter, PdfName("FlateDecode"));
-    csTintFunc.GetDictionary().AddKey("FunctionType", PdfVariant(static_cast<int64_t>(0)));
-    //csTintFunc->GetDictionary().AddKey( "FunctionType",
+    csTintFunc.GetDictionary().AddKey("Filter"_n, "FlateDecode"_n);
+    csTintFunc.GetDictionary().AddKey("FunctionType"_n, PdfVariant(static_cast<int64_t>(0)));
+    //csTintFunc->GetDictionary().AddKey("FunctionType"_n,
     //                                    PdfVariant( static_cast<int64_t>(EPdfFunctionType::Sampled) ) );
     
     switch (m_AlternateColor.GetColorSpace())
@@ -540,18 +540,18 @@ PdfObject PdfColorSpaceFilterSeparation::GetExportObject(PdfIndirectObjectList& 
             PdfArray range;
             range.Add(static_cast<int64_t>(0));
             range.Add(static_cast<int64_t>(1));
-            csTintFunc.GetDictionary().AddKey("Range", range);
+            csTintFunc.GetDictionary().AddKey("Range"_n, range);
     
             PdfArray size;
             size.Add(static_cast<int64_t>(2));
-            csTintFunc.GetDictionary().AddKey("Size", size);
+            csTintFunc.GetDictionary().AddKey("Size"_n, size);
     
             csTintFunc.GetOrCreateStream().SetData(bufferview(data, 1 * 2));
     
             PdfArray csArr;
-            csArr.Add(PdfName("Separation"));
+            csArr.Add("Separation"_n);
             csArr.Add(PdfName(m_Name));
-            csArr.Add(PdfName("DeviceGray"));
+            csArr.Add("DeviceGray"_n);
             csArr.Add(csTintFunc.GetIndirectReference());
             return csArr;
         }
@@ -572,18 +572,18 @@ PdfObject PdfColorSpaceFilterSeparation::GetExportObject(PdfIndirectObjectList& 
             range.Add(static_cast<int64_t>(1));
             range.Add(static_cast<int64_t>(0));
             range.Add(static_cast<int64_t>(1));
-            csTintFunc.GetDictionary().AddKey("Range", range);
+            csTintFunc.GetDictionary().AddKey("Range"_n, range);
     
             PdfArray size;
             size.Add(static_cast<int64_t>(2));
-            csTintFunc.GetDictionary().AddKey("Size", size);
+            csTintFunc.GetDictionary().AddKey("Size"_n, size);
     
             csTintFunc.GetOrCreateStream().SetData(bufferview(data, 3 * 2));
     
             PdfArray csArr;
-            csArr.Add(PdfName("Separation"));
+            csArr.Add("Separation"_n);
             csArr.Add(PdfName(m_Name));
-            csArr.Add(PdfName("DeviceRGB"));
+            csArr.Add("DeviceRGB"_n);
             csArr.Add(csTintFunc.GetIndirectReference());
             return csArr;
         }
@@ -608,16 +608,16 @@ PdfObject PdfColorSpaceFilterSeparation::GetExportObject(PdfIndirectObjectList& 
             range.Add(static_cast<int64_t>(1));
             range.Add(static_cast<int64_t>(0));
             range.Add(static_cast<int64_t>(1));
-            csTintFunc.GetDictionary().AddKey("Range", range);
+            csTintFunc.GetDictionary().AddKey("Range"_n, range);
     
             PdfArray size;
             size.Add(static_cast<int64_t>(2));
-            csTintFunc.GetDictionary().AddKey("Size", size);
+            csTintFunc.GetDictionary().AddKey("Size"_n, size);
     
             PdfArray csArr;
-            csArr.Add(PdfName("Separation"));
+            csArr.Add("Separation"_n);
             csArr.Add(PdfName(m_Name));
-            csArr.Add(PdfName("DeviceCMYK"));
+            csArr.Add("DeviceCMYK"_n);
             csArr.Add(csTintFunc.GetIndirectReference());
     
             csTintFunc.GetOrCreateStream().SetData(bufferview(data, 4 * 2)); // set stream as last, so that it will work with PdfStreamedDocument
@@ -691,7 +691,7 @@ PdfObject PdfColorSpaceFilterLab::GetExportObject(PdfIndirectObjectList& objects
     arr.Add(m_WhitePoint[0]);
     arr.Add(m_WhitePoint[1]);
     arr.Add(m_WhitePoint[2]);
-    labDict.AddKey("WhitePoint", arr);
+    labDict.AddKey("WhitePoint"_n, arr);
 
     if (m_BlackPoint != array<double, 3>{ })
     {
@@ -699,7 +699,7 @@ PdfObject PdfColorSpaceFilterLab::GetExportObject(PdfIndirectObjectList& objects
         arr.Add(m_BlackPoint[0]);
         arr.Add(m_BlackPoint[1]);
         arr.Add(m_BlackPoint[2]);
-        labDict.AddKey("BlackPoint", arr);
+        labDict.AddKey("BlackPoint"_n, arr);
     }
 
     if (m_Range != array<double, 4>{ -100, 100, -100, 100 })
@@ -709,11 +709,11 @@ PdfObject PdfColorSpaceFilterLab::GetExportObject(PdfIndirectObjectList& objects
         arr.Add(m_Range[1]);
         arr.Add(m_Range[2]);
         arr.Add(m_Range[3]);
-        labDict.AddKey("Range", arr);
+        labDict.AddKey("Range"_n, arr);
     }
 
     PdfArray labArr;
-    labArr.Add(PdfName("Lab"));
+    labArr.Add("Lab"_n);
     labArr.Add(labDict);
     return labArr;
 }

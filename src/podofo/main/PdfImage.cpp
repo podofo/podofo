@@ -225,20 +225,20 @@ void PdfImage::SetICCProfile(InputStream& stream, unsigned colorComponents, PdfC
 
     // Create a colorspace object
     auto& iccObject = this->GetDocument().GetObjects().CreateDictionaryObject();
-    iccObject.GetDictionary().AddKey("Alternate", PdfName(PoDoFo::ToString(alternateColorSpace)));
-    iccObject.GetDictionary().AddKey("N", static_cast<int64_t>(colorComponents));
+    iccObject.GetDictionary().AddKey("Alternate"_n, PdfName(PoDoFo::ToString(alternateColorSpace)));
+    iccObject.GetDictionary().AddKey("N"_n, static_cast<int64_t>(colorComponents));
     iccObject.GetOrCreateStream().SetData(stream);
 
     // Add the colorspace to our image
     PdfArray array;
-    array.Add(PdfName("ICCBased"));
+    array.Add("ICCBased"_n);
     array.Add(iccObject.GetIndirectReference());
-    this->GetDictionary().AddKey("ColorSpace", array);
+    this->GetDictionary().AddKey("ColorSpace"_n, array);
 }
 
 void PdfImage::SetSoftMask(const PdfImage& softmask)
 {
-    GetDictionary().AddKeyIndirect("SMask", softmask.GetObject());
+    GetDictionary().AddKeyIndirect("SMask"_n, softmask.GetObject());
 }
 
 void PdfImage::SetData(const bufferview& buffer, unsigned width, unsigned height, PdfPixelFormat format, int scanLineSize)
@@ -307,10 +307,10 @@ void PdfImage::SetData(InputStream& stream, unsigned width, unsigned height, Pdf
     }
 
     auto& dict = GetDictionary();
-    dict.AddKey("Width", static_cast<int64_t>(width));
-    dict.AddKey("Height", static_cast<int64_t>(height));
-    dict.AddKey("BitsPerComponent", static_cast<int64_t>(8));
-    dict.AddKey("ColorSpace", PdfName(PoDoFo::ToString(colorSpace)));
+    dict.AddKey("Width"_n, static_cast<int64_t>(width));
+    dict.AddKey("Height"_n, static_cast<int64_t>(height));
+    dict.AddKey("BitsPerComponent"_n, static_cast<int64_t>(8));
+    dict.AddKey("ColorSpace"_n, PdfName(PoDoFo::ToString(colorSpace)));
     // Remove possibly existing /Decode array
     dict.RemoveKey("Decode");
 }
@@ -332,9 +332,9 @@ void PdfImage::SetDataRaw(InputStream& stream, const PdfImageInfo& info)
     m_BitsPerComponent = info.BitsPerComponent;
 
     auto& dict = GetDictionary();
-    dict.AddKey("Width", static_cast<int64_t>(info.Width));
-    dict.AddKey("Height", static_cast<int64_t>(info.Height));
-    dict.AddKey("BitsPerComponent", static_cast<int64_t>(info.BitsPerComponent));
+    dict.AddKey("Width"_n, static_cast<int64_t>(info.Width));
+    dict.AddKey("Height"_n, static_cast<int64_t>(info.Height));
+    dict.AddKey("BitsPerComponent"_n, static_cast<int64_t>(info.BitsPerComponent));
     if (info.DecodeArray.size() == 0)
     {
         dict.RemoveKey("Decode");
@@ -345,10 +345,10 @@ void PdfImage::SetDataRaw(InputStream& stream, const PdfImageInfo& info)
         for (unsigned i = 0; i < info.DecodeArray.size(); i++)
             decodeArr.Add(PdfObject(info.DecodeArray[i]));
 
-        dict.AddKey("Decode", decodeArr);
+        dict.AddKey("Decode"_n, decodeArr);
     }
 
-    dict.AddKey("ColorSpace", info.ColorSpace->GetExportObject(GetDocument().GetObjects()));
+    dict.AddKey("ColorSpace"_n, info.ColorSpace->GetExportObject(GetDocument().GetObjects()));
 
     if (info.Filters.has_value())
         GetObject().GetOrCreateStream().SetData(stream, *info.Filters, true);
@@ -1257,12 +1257,12 @@ void PdfImage::SetChromaKeyMask(int64_t r, int64_t g, int64_t b, int64_t thresho
     array.Add(b - threshold);
     array.Add(b + threshold);
 
-    this->GetDictionary().AddKey("Mask", array);
+    this->GetDictionary().AddKey("Mask"_n, array);
 }
 
 void PdfImage::SetInterpolate(bool value)
 {
-    this->GetDictionary().AddKey("Interpolate", value);
+    this->GetDictionary().AddKey("Interpolate"_n, value);
 }
 
 Rect PdfImage::GetRect() const

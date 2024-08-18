@@ -351,7 +351,7 @@ TEST_CASE("TestEncryptBigBuffer")
             stream.Write(testBuff.data(), testBuff.size());
         }
         bufferRef = obj.GetIndirectReference();
-        doc.GetCatalog().GetDictionary().AddKeyIndirect("TestBigBuffer", obj);
+        doc.GetCatalog().GetDictionary().AddKeyIndirect("TestBigBuffer"_n, obj);
 
         doc.SetEncrypted(PDF_USER_PASSWORD, "owner");
         doc.Save(tempFile, PdfSaveOptions::NoFlateCompress);
