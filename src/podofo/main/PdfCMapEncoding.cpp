@@ -35,7 +35,7 @@ static vector<char32_t> handleStringMapping(const PdfString& str);
 static void handleRangeMapping(PdfCharCodeMap& map,
     uint32_t srcCodeLo, const vector<char32_t>& dstCodeLo,
     unsigned char codeSize, unsigned rangeSize);
-static vector<char32_t> handleUtf8String(const string& str);
+static vector<char32_t> handleUtf8String(const string_view& str);
 static void pushMapping(PdfCharCodeMap& map, const PdfCharCode& codeUnit, const std::vector<char32_t>& codePoints);
 static PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits);
 
@@ -422,7 +422,7 @@ vector<char32_t> handleNameMapping(const PdfName& name)
     return handleUtf8String(name.GetString());
 }
 
-vector<char32_t> handleUtf8String(const string& str)
+vector<char32_t> handleUtf8String(const string_view& str)
 {
     vector<char32_t> ret;
     auto it = str.begin();

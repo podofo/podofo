@@ -63,7 +63,7 @@ public:
     /** Create a copy of an existing PdfName object.
      *  \param rhs another PdfName object
      */
-    PdfName(const PdfName& rhs);
+    PdfName(const PdfName& rhs) = default;
 
     static PdfName FromRaw(const bufferview& rawcontent);
 
@@ -89,7 +89,7 @@ public:
     /** \returns the unescaped value of this name object
      *           without the leading slash
      */
-    const std::string& GetString() const;
+    std::string_view GetString() const;
 
     /** \returns true if the name is empty
      */
@@ -97,12 +97,12 @@ public:
 
     /** \returns the raw data of this name object
      */
-    const std::string& GetRawData() const;
+    std::string_view GetRawData() const;
 
     /** Assign another name to this object
      *  \param rhs another PdfName object
      */
-    const PdfName& operator=(const PdfName& rhs);
+    PdfName& operator=(const PdfName& rhs) = default;
 
     /** compare to PdfName objects.
      *  \returns true if both PdfNames have the same value.
@@ -133,13 +133,13 @@ public:
     operator std::string_view() const;
 
 private:
+    // Constructor for read-only string literals
+    PdfName(const char* str, size_t length);
+
     // Delete constructor with nullptr
     PdfName(std::nullptr_t) = delete;
 
-    // Assume utf-8 expanded
-    PdfName(charbuff&& buff, bool utf8Expanded);
-
-    void expandUtf8String() const;
+    void expandUtf8String();
     void initFromUtf8String(const char* str, size_t length);
     void initFromUtf8String(const std::string_view& view);
 
@@ -154,6 +154,7 @@ private:
     };
 private:
     std::shared_ptr<NameData> m_data;
+    std::string_view m_dataView;
 };
 
 /**
@@ -188,9 +189,13 @@ public:
     static const PdfName Limits;
 };
 
-/** Create a PdfName without checking for PdfDocEncoding characters
+/** Create a PdfName from a string literal without checking for PdfDocEncoding characters
+ * \remarks Only ASCII charset is supported, use with caution
  */
-PdfName operator""_n(const char* name, size_t len);
+inline PdfName operator""_n(const char* name, size_t length)
+{
+    return PdfName(name, length);
+}
 
 };
 
@@ -203,7 +208,7 @@ namespace std
     {
         size_t operator()(const PoDoFo::PdfName& name) const noexcept
         {
-            return hash<string_view>()(name.GetRawData());
+            return hash<string_view>()(name);
         }
     };
 }

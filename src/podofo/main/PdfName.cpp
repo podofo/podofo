@@ -19,8 +19,8 @@ using namespace PoDoFo;
 template<typename T>
 void hexchr(const unsigned char ch, T& it);
 
-static void EscapeNameTo(string& dst, const string_view& view);
-static string UnescapeName(const string_view& view);
+static void escapeNameTo(string& dst, const bufferview& view);
+static string unescapeName(const string_view& view);
 
 const PdfName PdfName::Null = PdfName();
 const PdfName PdfNames::Contents = "Contents"_n;
@@ -45,10 +45,7 @@ const PdfName PdfNames::AP = "AP"_n;
 const PdfName PdfNames::Names = "Names"_n;
 const PdfName PdfNames::Limits = "Limits"_n;
 
-PdfName::PdfName()
-    : m_data(new NameData{ { }, nullptr, true })
-{
-}
+PdfName::PdfName() { }
 
 PdfName::PdfName(const string& str)
 {
@@ -63,18 +60,15 @@ PdfName::PdfName(const string_view& view)
     initFromUtf8String(view);
 }
 
-PdfName::PdfName(const PdfName& rhs)
-    : m_data(rhs.m_data)
-{
-}
-
 PdfName::PdfName(charbuff&& buff)
-    : PdfName(std::move(buff), false)
+    : m_data(new NameData{ std::move(buff), nullptr, false }), m_dataView(m_data->Chars)
 {
 }
 
-PdfName::PdfName(charbuff&& buff, bool utf8Expanded)
-    : m_data(new NameData{ std::move(buff), nullptr, utf8Expanded })
+// NOTE: This constructor is reserved for read-only
+// string literals: we just set the data view
+PdfName::PdfName(const char* str, size_t length)
+    : m_dataView(str, length)
 {
 }
 
@@ -90,7 +84,7 @@ void PdfName::initFromUtf8String(const string_view& view)
 {
     if (view.length() == 0)
     {
-        m_data.reset(new NameData{ { }, nullptr, true });
+        // We assume it will be null name
         return;
     }
 
@@ -102,11 +96,13 @@ void PdfName::initFromUtf8String(const string_view& view)
         m_data.reset(new NameData{ charbuff(view), nullptr, true });
     else
         m_data.reset(new NameData{ (charbuff)PoDoFo::ConvertUTF8ToPdfDocEncoding(view), std::make_unique<string>(view), true });
+
+    m_dataView = m_data->Chars;
 }
 
 PdfName PdfName::FromEscaped(const string_view& view)
 {
-    return FromRaw(UnescapeName(view));
+    return FromRaw(unescapeName(view));
 }
 
 PdfName PdfName::FromRaw(const bufferview& rawcontent)
@@ -120,25 +116,26 @@ void PdfName::Write(OutputStream& device, PdfWriteFlags,
     (void)encrypt;
     // Allow empty names, which are legal according to the PDF specification
     device.Write('/');
-    if (m_data->Chars.size() != 0)
+    if (m_dataView.size() != 0)
     {
-        EscapeNameTo(buffer, m_data->Chars);
+        escapeNameTo(buffer, m_dataView);
         device.Write(buffer);
     }
 }
 
 string PdfName::GetEscapedName() const
 {
-    if (m_data->Chars.size() == 0)
+    if (m_dataView.size() == 0)
         return string();
 
     string ret;
-    EscapeNameTo(ret, m_data->Chars);
+    escapeNameTo(ret, m_dataView);
     return ret;
 }
 
-void PdfName::expandUtf8String() const
+void PdfName::expandUtf8String()
 {
+    PODOFO_INVARIANT(m_data != nullptr);
     if (!m_data->IsUtf8Expanded)
     {
         bool isAsciiEqual;
@@ -159,13 +156,13 @@ void PdfName::expandUtf8String() const
  *  \param length Length of input string
  *  \returns Escaped string
  */
-void EscapeNameTo(string& dst, const string_view& view)
+void escapeNameTo(string& dst, const bufferview& view)
 {
     // Scan the input string once to find out how much memory we need
     // to reserve for the encoded result string. We could do this in one
     // pass using a ostringstream instead, but it's a LOT slower.
     size_t outchars = 0;
-    for (size_t i = 0; i < view.length(); i++)
+    for (size_t i = 0; i < view.size(); i++)
     {
         char ch = view[i];
 
@@ -186,7 +183,7 @@ void EscapeNameTo(string& dst, const string_view& view)
     dst.resize(outchars);
     // and generate the encoded string
     string::iterator bufIt(dst.begin());
-    for (size_t i = 0; i < view.length(); i++)
+    for (size_t i = 0; i < view.size(); i++)
     {
         char ch = view[i];
         if (PdfTokenizer::IsRegular(ch)
@@ -211,7 +208,7 @@ void EscapeNameTo(string& dst, const string_view& view)
  *  \param length Length of input string
  *  \returns Unescaped string
  */
-string UnescapeName(const string_view& view)
+string unescapeName(const string_view& view)
 {
     // We know the decoded string can be AT MOST
     // the same length as the encoded one, so:
@@ -241,45 +238,42 @@ string UnescapeName(const string_view& view)
     return ret;
 }
 
-const string& PdfName::GetString() const
+string_view PdfName::GetString() const
 {
-    expandUtf8String();
-    if (m_data->Utf8String == nullptr)
-        return m_data->Chars;
+    if (m_data == nullptr)
+    {
+        // This was name was constructed from a read-only string literal
+        return m_dataView;
+    }
     else
-        return *m_data->Utf8String;
+    {
+        const_cast<PdfName&>(*this).expandUtf8String();
+        if (m_data->Utf8String == nullptr)
+            return m_data->Chars;
+        else
+            return *m_data->Utf8String;
+    }
 }
 
 bool PdfName::IsNull() const
 {
-    return m_data->Chars.empty();
+    PODOFO_INVARIANT(m_dataView.size() != 0 || m_dataView.data() == nullptr);
+    return m_dataView.size() == 0;
 }
 
-const string& PdfName::GetRawData() const
+std::string_view PdfName::GetRawData() const
 {
-    return m_data->Chars;
-}
-
-const PdfName& PdfName::operator=(const PdfName& rhs)
-{
-    m_data = rhs.m_data;
-    return *this;
+    return m_dataView;
 }
 
 bool PdfName::operator==(const PdfName& rhs) const
 {
-    if (this->m_data == rhs.m_data)
-        return true;
-
-    return this->m_data->Chars == rhs.m_data->Chars;
+    return this->m_dataView == rhs.m_dataView;
 }
 
 bool PdfName::operator!=(const PdfName& rhs) const
 {
-    if (this->m_data == rhs.m_data)
-        return false;
-
-    return this->m_data->Chars != rhs.m_data->Chars;
+    return this->m_dataView != rhs.m_dataView;
 }
 
 bool PdfName::operator==(const char* str) const
@@ -294,8 +288,7 @@ bool PdfName::operator==(const string& str) const
 
 bool PdfName::operator==(const string_view& view) const
 {
-    auto& str = GetString();
-    return str == view;
+    return GetString() == view;
 }
 
 bool PdfName::operator!=(const char* str) const
@@ -310,18 +303,17 @@ bool PdfName::operator!=(const string& str) const
 
 bool PdfName::operator!=(const string_view& view) const
 {
-    auto& str = GetString();
-    return str != view;
+    return GetString() != view;
 }
 
 bool PdfName::operator<(const PdfName& rhs) const
 {
-    return this->m_data->Chars < rhs.m_data->Chars;
+    return this->m_dataView < rhs.m_dataView;
 }
 
 PdfName::operator string_view() const
 {
-    return m_data->Chars;
+    return m_dataView;
 }
 
 /**
@@ -342,9 +334,4 @@ void hexchr(const unsigned char ch, T& it)
 {
     *(it++) = "0123456789ABCDEF"[ch / 16];
     *(it++) = "0123456789ABCDEF"[ch % 16];
-}
-
-PdfName PoDoFo::operator""_n(const char* name, size_t len)
-{
-    return PdfName(charbuff(name, len), true);
 }

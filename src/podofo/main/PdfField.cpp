@@ -829,7 +829,7 @@ void PdfField::linkFieldObjectToParent(const shared_ptr<PdfField>& field, PdfFie
         auto& parentDict = parentField.GetDictionary();
         for (auto& pair : fieldDict)
         {
-            string keyName = pair.first.GetString();
+            auto keyName = pair.first.GetString();
             auto found = std::find(parentKeys.begin(), parentKeys.end(), keyName);
             if (found != parentKeys.end())
             {

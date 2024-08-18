@@ -213,7 +213,7 @@ string PdfMetadata::GetTrapped() const
         return "Unknown";
     }
 
-    return trapped->GetString();
+    return (string)trapped->GetString();
 }
 
 nullable<const PdfName&> PdfMetadata::GetTrappedRaw() const
