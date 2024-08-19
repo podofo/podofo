@@ -28,7 +28,10 @@ namespace utls
     };
 
     void SetListNodeContent(xmlDocPtr doc, xmlNodePtr node, XMPListType seqType,
-        const PoDoFo::cspan<std::string>& value, xmlNodePtr& newNode);
+        const std::string_view& value, xmlNodePtr& newNode);
+
+    void SetListNodeContent(xmlDocPtr doc, xmlNodePtr node, XMPListType seqType,
+        const PoDoFo::cspan<std::string_view>& value, xmlNodePtr& newNode);
 }
 
 #endif // PODOFO_PDFA_FUNCTIONS_H

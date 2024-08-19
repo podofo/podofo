@@ -37,9 +37,7 @@ enum class PdfANamespaceKind
 
 static void setXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, const PdfXMPMetadata& metatata);
 static void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
-    XMPMetadataKind property, const string& value);
-static void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
-    XMPMetadataKind property, const cspan<string>& values);
+    XMPMetadataKind property, const string_view& value);
 static void removeXMPProperty(xmlNodePtr description, XMPMetadataKind property);
 static xmlNsPtr findOrCreateNamespace(xmlDocPtr doc, xmlNodePtr description, PdfANamespaceKind nsKind);
 static PdfALevel getPDFALevelFromString(const string_view& level);
@@ -216,13 +214,7 @@ xmlNsPtr findOrCreateNamespace(xmlDocPtr doc, xmlNodePtr description, PdfANamesp
     return xmlNs;
 }
 
-void addXMPProperty(xmlDocPtr doc, xmlNodePtr description, XMPMetadataKind prop, const string& value)
-{
-    addXMPProperty(doc, description, prop, cspan<string>(&value, 1));
-}
-
-void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
-    XMPMetadataKind property, const cspan<string>& values)
+void addXMPProperty(xmlDocPtr doc, xmlNodePtr description, XMPMetadataKind property, const string_view& value)
 {
     xmlNsPtr xmlNs;
     const char* propName;
@@ -286,25 +278,31 @@ void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
         case XMPMetadataKind::Subject:
         {
             xmlNodePtr newNode;
-            utls::SetListNodeContent(doc, element, XMPListType::LangAlt, values, newNode);
+            utls::SetListNodeContent(doc, element, XMPListType::LangAlt, value, newNode);
             break;
         }
         case XMPMetadataKind::Author:
         {
             xmlNodePtr newNode;
-            utls::SetListNodeContent(doc, element, XMPListType::Seq, values, newNode);
+            utls::SetListNodeContent(doc, element, XMPListType::Seq, value, newNode);
             break;
         }
         default:
         {
-            xmlNodeAddContent(element, XMLCHAR values[0].data());
+            xmlNodeAddContent(element, XMLCHAR value.data());
             break;
         }
     }
 }
 
 void utls::SetListNodeContent(xmlDocPtr doc, xmlNodePtr node, XMPListType seqType,
-    const cspan<string>& values, xmlNodePtr& newNode)
+    const string_view& value, xmlNodePtr& newNode)
+{
+    SetListNodeContent(doc, node, seqType, cspan<string_view>(&value, 1), newNode);
+}
+
+void utls::SetListNodeContent(xmlDocPtr doc, xmlNodePtr node, XMPListType seqType,
+    const cspan<string_view>& values, xmlNodePtr& newNode)
 {
     const char* elemName;
     switch (seqType)

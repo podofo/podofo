@@ -316,9 +316,8 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
 // is backward compatible with UCS-2
 vector<char32_t> handleStringMapping(const PdfString& str)
 {
-    auto& rawdata = str.GetRawData();
     string utf8;
-    utls::ReadUtf16BEString(rawdata, utf8);
+    utls::ReadUtf16BEString(str.GetRawData(), utf8);
     return handleUtf8String(utf8);
 }
 
@@ -380,7 +379,7 @@ static uint32_t getCodeFromVariant(const PdfVariant& var, unsigned char& codeSiz
 
     const PdfString& str = var.GetString();
     uint32_t ret = 0;
-    auto& rawstr = str.GetRawData();
+    auto rawstr = str.GetRawData();
     unsigned len = (unsigned)rawstr.length();
     for (unsigned i = 0; i < len; i++)
     {

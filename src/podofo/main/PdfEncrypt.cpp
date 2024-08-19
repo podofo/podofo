@@ -1128,11 +1128,11 @@ unique_ptr<InputStream> PdfEncryptRC4::CreateEncryptionInputStream(InputStream& 
 PdfEncryptRC4::PdfEncryptRC4(PdfString oValue, PdfString uValue, PdfPermissions pValue, PdfRC4Revision revision,
     PdfEncryptionAlgorithm algorithm, unsigned keyLength, bool encryptMetadata)
 {
-    auto& uValueData = uValue.GetRawData();
+    auto uValueData = uValue.GetRawData();
     if (uValueData.size() < 32)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, "/U value is invalid");
 
-    auto& oValueData = oValue.GetRawData();
+    auto oValueData = oValue.GetRawData();
     if (oValueData.size() < 32)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, "/O value is invalid");
 
@@ -1382,11 +1382,11 @@ PdfEncryptAESV2::PdfEncryptAESV2(const string_view& userPassword, const string_v
     
 PdfEncryptAESV2::PdfEncryptAESV2(PdfString oValue, PdfString uValue, PdfPermissions pValue, bool encryptMetadata)
 {
-    auto& oValueData = oValue.GetRawData();
+    auto oValueData = oValue.GetRawData();
     if (oValueData.size() < 32)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, "/O value is invalid");
 
-    auto& uValueData = uValue.GetRawData();
+    auto uValueData = uValue.GetRawData();
     if (uValueData.size() < 32)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, "/U value is invalid");
 
@@ -1876,23 +1876,23 @@ PdfEncryptAESV3::PdfEncryptAESV3(const string_view& userPassword, const string_v
 PdfEncryptAESV3::PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString uValue,
         PdfString ueValue, PdfPermissions pValue, PdfString permsValue, PdfAESV3Revision revision)
 {
-    auto& uValueData = uValue.GetRawData();
+    auto uValueData = uValue.GetRawData();
     if (uValueData.size() < 48)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, "/U value is invalid");
 
-    auto& oValueData = oValue.GetRawData();
+    auto oValueData = oValue.GetRawData();
     if (oValueData.size() < 48)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, "/O value is invalid");
 
-    auto& ueValueData = ueValue.GetRawData();
+    auto ueValueData = ueValue.GetRawData();
     if (ueValueData.size() < 32)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, "/UE value is invalid");
 
-    auto& oeValueData = oeValue.GetRawData();
+    auto oeValueData = oeValue.GetRawData();
     if (oeValueData.size() < 32)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, "/OE value is invalid");
 
-    auto& permsValueData = permsValue.GetRawData();
+    auto permsValueData = permsValue.GetRawData();
     if (permsValueData.size() < 16)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, "/Perms value is invalid");
 

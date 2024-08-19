@@ -20,7 +20,7 @@ static xmlNodePtr findRootXMPMeta(xmlDocPtr doc);
 static void normalizeXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, xmlNodePtr& description);
 static void normalizeQualifiersAndValues(xmlDocPtr doc, xmlNsPtr rdfNs, xmlNodePtr node);
 static void normalizeElement(xmlDocPtr doc, xmlNodePtr elem);
-static void tryFixArrayElement(xmlDocPtr doc, xmlNodePtr& node, const string& nodeContent);
+static void tryFixArrayElement(xmlDocPtr doc, xmlNodePtr& node, const string_view& nodeContent);
 static bool shouldSkipAttribute(xmlAttrPtr attr);
 static xmlNodePtr createRDFElement(xmlNodePtr xmpmeta);
 static void createRDFNamespace(xmlNodePtr rdf);
@@ -247,7 +247,7 @@ void normalizeElement(xmlDocPtr doc, xmlNodePtr elem)
 }
 
 // ISO 16684-2:2014 "6.3.3 Array value data types"
-void tryFixArrayElement(xmlDocPtr doc, xmlNodePtr& node, const string& nodeContent)
+void tryFixArrayElement(xmlDocPtr doc, xmlNodePtr& node, const string_view& nodeContent)
 {
     if (node->ns == nullptr)
         return;
@@ -261,7 +261,7 @@ void tryFixArrayElement(xmlDocPtr doc, xmlNodePtr& node, const string& nodeConte
     xmlNodeSetContent(node, nullptr);
 
     xmlNodePtr newNode;
-    utls::SetListNodeContent(doc, node, found->second, cspan<string>(&nodeContent, 1), newNode);
+    utls::SetListNodeContent(doc, node, found->second, nodeContent, newNode);
     node = newNode;
 }
 

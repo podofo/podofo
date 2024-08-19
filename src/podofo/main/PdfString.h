@@ -61,7 +61,7 @@ public:
     /** Copy an existing PdfString
      *  \param rhs another PdfString to copy
      */
-    PdfString(const PdfString& rhs);
+    PdfString(const PdfString& rhs) = default;
 
     /** Construct a new PdfString from an utf-8 encoded string.
      *
@@ -105,9 +105,9 @@ public:
      *
      *  \returns the string's contents always as UTF-8
      */
-    const std::string& GetString() const;
+    std::string_view GetString() const;
 
-    const std::string& GetRawData() const;
+    std::string_view GetRawData() const;
 
     void Write(OutputStream& stream, PdfWriteFlags writeMode,
         const PdfStatefulEncrypt* encrypt, charbuff& buffer) const override;
@@ -116,7 +116,7 @@ public:
      *  \param rhs another PdfString to copy
      *  \returns this object
      */
-    const PdfString& operator=(const PdfString& rhs);
+    PdfString& operator=(const PdfString& rhs) = default;
 
     /** Comparison operator
      *

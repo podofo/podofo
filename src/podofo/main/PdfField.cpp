@@ -866,7 +866,7 @@ void getFullName(const PdfObject& obj, bool skipEscapePartialName, string& fulln
     const PdfObject* nameObj = dict.GetKey("T");
     if (nameObj != nullptr)
     {
-        string name = nameObj->GetString().GetString();
+        string name = (string)nameObj->GetString().GetString();
         if (!skipEscapePartialName)
         {
             // According to ISO 32000-1:2008, "12.7.3.2 Field Names":

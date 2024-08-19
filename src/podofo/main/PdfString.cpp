@@ -60,11 +60,6 @@ PdfString::PdfString(std::string&& str)
     initFromUtf8String(std::move(str));
 }
 
-PdfString::PdfString(const PdfString& rhs)
-{
-    this->operator=(rhs);
-}
-
 PdfString PdfString::FromRaw(const bufferview& view, bool isHex)
 {
     return PdfString((charbuff)view, isHex);
@@ -179,7 +174,7 @@ PdfStringState PdfString::GetState() const
     return m_data->State;
 }
 
-const string& PdfString::GetString() const
+string_view PdfString::GetString() const
 {
     evaluateString();
     return m_data->Chars;
@@ -188,13 +183,6 @@ const string& PdfString::GetString() const
 bool PdfString::IsEmpty() const
 {
     return m_data->Chars.empty();
-}
-
-const PdfString& PdfString::operator=(const PdfString& rhs)
-{
-    this->m_data = rhs.m_data;
-    this->m_isHex = rhs.m_isHex;
-    return *this;
 }
 
 bool PdfString::operator==(const PdfString& rhs) const
@@ -361,7 +349,7 @@ bool PdfString::canPerformComparison(const PdfString& lhs, const PdfString& rhs)
     return false;
 }
 
-const string& PdfString::GetRawData() const
+string_view PdfString::GetRawData() const
 {
     if (m_data->State != PdfStringState::RawBuffer)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The string buffer has been evaluated");

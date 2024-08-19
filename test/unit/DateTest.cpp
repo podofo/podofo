@@ -66,13 +66,12 @@ TEST_CASE("testCreateDateFromString")
     checkExpected("INVALID", false);
 }
 
-TEST_CASE("testRoundTrip")
+TEST_CASE("TestRoundTrip")
 {
-    auto testRoundTrip = [](const string_view& datestr)
+    auto testRoundTrip = [](const string_view& dateStr1)
     {
-        string dateStr1 = (string)datestr;
         auto date1 = PdfDate::Parse(dateStr1);
-        string dateStr2 = date1.ToString().GetString();
+        string dateStr2 = (string)date1.ToString().GetString();
         auto date2 = PdfDate::Parse(dateStr2);
         REQUIRE(dateStr1 == dateStr2);
         REQUIRE(date1 == date2);

@@ -74,7 +74,7 @@ void Main(const cspan<string_view>& args)
                 if (!objects.GetObject(ocgRef))
                     continue;
 
-                const string& ocgName = objects.MustGetObject(ocgRef).GetDictionary().MustFindKey("Name").GetString().GetString();
+                auto ocgName = objects.MustGetObject(ocgRef).GetDictionary().MustFindKey("Name").GetString().GetString();
 
                 if (!ocToRemove.empty() && find(ocToRemove.begin(), ocToRemove.end(), ocgName) == ocToRemove.end())
                     continue;
