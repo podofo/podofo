@@ -17,8 +17,8 @@ TEST_CASE("TestEmptyContentsStream")
     auto& page1 = doc.GetPages().CreatePage(PdfPageSize::A4);
     REQUIRE(page1.GetDictionary().MustGetKey("Parent").GetReference() == doc.GetPages().GetObject().GetIndirectReference());
     auto& annot1 = page1.GetAnnotations().CreateAnnot<PdfAnnotationPopup>(Rect(300.0, 20.0, 250.0, 50.0));
-    PdfString title("Author: Dominik Seichter");
-    annot1.SetContents(title);
+    string_view title = "Author: Dominik Seichter";
+    annot1.SetContents(PdfString(title));
     annot1.SetOpen(true);
 
     string filename = TestUtils::GetTestOutputFilePath("testEmptyContentsStream.pdf");
@@ -31,7 +31,7 @@ TEST_CASE("TestEmptyContentsStream")
     auto& page2 = doc2.GetPages().GetPageAt(0);
     REQUIRE(page2.GetAnnotations().GetCount() == 1);
     auto& annot2 = page2.GetAnnotations().GetAnnotAt(0);
-    REQUIRE(annot2.GetContents() == title);
+    REQUIRE(*annot2.GetContents() == title);
 
     auto& pageObj = page2.GetObject();
     REQUIRE(!pageObj.GetDictionary().HasKey("Contents"));

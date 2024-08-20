@@ -211,9 +211,7 @@ bool PdfString::operator==(const string& str) const
 
 bool PdfString::operator==(const string_view& view) const
 {
-    if (!isValidText())
-        return false;
-
+    evaluateString();
     return m_data->Chars == view;
 }
 
@@ -243,9 +241,7 @@ bool PdfString::operator!=(const string& str) const
 
 bool PdfString::operator!=(const string_view& view) const
 {
-    if (!isValidText())
-        return true;
-
+    evaluateString();
     return m_data->Chars != view;
 }
 
@@ -343,7 +339,7 @@ bool PdfString::canPerformComparison(const PdfString& lhs, const PdfString& rhs)
     if (lhs.m_data->State == rhs.m_data->State)
         return true;
 
-    if (lhs.isValidText() || rhs.isValidText())
+    if (lhs.isValidText() && rhs.isValidText())
         return true;
 
     return false;
