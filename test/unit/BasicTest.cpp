@@ -163,5 +163,5 @@ TEST_CASE("TestPdfNames")
 {
     // Just include and use "optional/PdfNames.h"
     PdfDictionary dict;
-    dict.AddKey(PdfNames::Length, PdfObject(100LL));
+    dict.AddKey(PdfNames::Length, PdfObject(static_cast<int64_t >(100)));
 }
