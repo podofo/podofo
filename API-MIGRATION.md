@@ -9,7 +9,7 @@
 - `PdfMetadata`:
   * Removed argument `trySyncXMP` from all functions setting values. Manually call new `TrySyncXMPMetadata` instead
   * Removed `EnsureXMPMetadata`, use `SyncXMPMetadata` instead
-- Added `PdfNames` and moved all known `PdfName::Key...` names from there 
+- Added `optional/PdfNames.h` and moved all known `PdfName::Key...` names there
 - `PdfEncrypt`:
   * `GenerateEncryptionKey` renamed to `EnsureEncryptionInitialized` and takes `PdfEncryptContxt` as an argument
   * `Authenticate`, `EncryptTo`, `DecryptTo`, `CreateEncryptionInputStream`, `CreateEncryptionOutputStream` now take `PdfEncryptContxt` as an argument

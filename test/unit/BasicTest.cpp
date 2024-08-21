@@ -7,6 +7,7 @@
  */
 
 #include <PdfTest.h>
+#include <podofo/optional/PdfNames.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -156,4 +157,11 @@ TEST_CASE("TestFileSpecAttachment")
     fs->SetEmbeddedData(charbuff(string("<?xml version=\"1.0\"?><catalog></catalog>")));
     document.AttachFile(*fs);
     document.Save(TestUtils::GetTestOutputFilePath("TestFileSpecAttachment.pdf"));
+}
+
+TEST_CASE("TestPdfNames")
+{
+    // Just include and use "optional/PdfNames.h"
+    PdfDictionary dict;
+    dict.AddKey(PdfNames::Length, PdfObject(100LL));
 }

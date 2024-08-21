@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-#ifndef AUX_CONVERT_H
-#define AUX_CONVERT_H
+#ifndef PDF_CONVERT_H
+#define PDF_CONVERT_H
 
 #include <podofo/main/PdfError.h>
 
@@ -560,4 +560,4 @@ namespace PoDoFo
     }
 }
 
-#endif // AUX_CONVERT_H
+#endif // PDF_CONVERT_H

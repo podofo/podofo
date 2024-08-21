@@ -20,10 +20,18 @@ In this way it's easy to just include `src` when using PoDoFo
 externally of the source tree, simulating the layout of prefixed
 `include` after installation. The content of `podofo` is:
 
+- `podofo.h`: The main include file that pulls in all recommended
+  public API types
 - `main`: source directory with most of the library classes;
 - `auxiliary`: directory with general purpose types/commodities
   that are not specific to handling of the PDF specification.
   Headers here are deployed as part of the public API;
+- `optional`: directory with PDF specific types/commodities
+  that are not generally included by `podofo.h`. They may
+  be used during PoDoFo compilation. Headers here are deployed
+  as part of the public API;
+- `staging`: directory with components with unstable API being
+  developed. They may end up (or not) in the public API
 - `private`: directory with private commodities/data needed to
   compile PoDoFo library, and can be called by tools and tests
   as well by means of a `podofo_private` static library target.

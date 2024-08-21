@@ -33,7 +33,7 @@
 #undef PODOFO_PRIVATE_FRIEND
 #define PODOFO_PRIVATE_FRIEND(identifier) friend identifier
 
-#include <podofo/auxiliary/Convert.h>
+#include <podofo/optional/PdfConvert.h>
 #include <podofo/main/PdfName.h>
 #include "PdfXRefEntry.h"
 

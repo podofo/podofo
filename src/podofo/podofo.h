@@ -24,7 +24,6 @@
 #include "auxiliary/Vector2.h"
 #include "auxiliary/Matrix.h"
 #include "auxiliary/Rect.h"
-#include "auxiliary/Convert.h"
 
 // Main headers
 #include "main/PdfDeclarations.h"

@@ -7,8 +7,7 @@
 - FileStreamDevice: Make it use again C stdio
 - PdfFont/PdfXObject: Remove GetIdentifier()
 - PdfXObjet: Remove SetMatrix and move it to PdfXObjectForm
-- PdfDictionary: Optimize PdfName creation by cheching against a small number of known names (eg. /Width)
-- Move `PdfNames` to optional headers
+- PdfDictionary: Optimize PdfName creation by cheching against a small number of known names (eg. /Length)
 
 ### After 1.0
 - Check/Review doxygen doc
