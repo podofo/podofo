@@ -1,4 +1,9 @@
 ## 0.10.1 -> 1.0.0
+- `PdfString`:
+  * `GetString()` and `GetRawData()` now returns `std::string_view`
+  * `PdfStringState` renamed to `PdfStringCharset`, `PdfString::GetState()`
+    renamed to `PdfString::GetCharset()` and added `PdfString::IsStringEvaluated()`
+- `PdfName`: `GetString()` and `GetRawData()` now returns `std::string_view`
 - `PdfMemDocument`: Renamed `LoadFromDevice()` -> `Load()`
 - `PdfAppearanceState`: Renamed to `PdfAppearanceStream`
 - `PdfMetadata`:

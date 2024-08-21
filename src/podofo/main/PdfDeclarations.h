@@ -101,12 +101,12 @@ enum class PdfALevel : uint8_t
     L4F,
 };
 
-enum class PdfStringState : uint8_t
+enum class PdfStringCharset : uint8_t
 {
-    RawBuffer,          ///< The string is an unvaluated raw buffer
-    Ascii,              ///< The string use characters that are in both Ascii and PdfDocEncoding charsets
-    PdfDocEncoding,     ///< The string uses characters that are in the whole PdfDocEncoding charset
-    Unicode,            ///< The string uses characters that are in the whole Unicode charset
+    Unknown = 0,        ///< Unknown charset
+    Ascii,              ///< UTF-8 string that have characters that are in both Ascii and PdfDocEncoding charsets
+    PdfDocEncoding,     ///< UTF-8 string that have characters that are in the whole PdfDocEncoding charset
+    Unicode,            ///< UTF-8 string that have characters that are in the whole Unicode charset
 };
 
 enum class PdfEncodingMapType : uint8_t

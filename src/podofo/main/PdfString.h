@@ -35,14 +35,14 @@ public:
     PdfString(const char(&str)[N])
         : m_isHex(false)
     {
-        initFromUtf8String(str, N - 1);
+        initFromUtf8String(str, N - 1, true);
     }
 
     template<typename T, typename = std::enable_if_t<std::is_same_v<T, const char*>>>
     PdfString(T str)
         : m_isHex(false)
     {
-        initFromUtf8String(str, std::char_traits<char>::length(str));
+        initFromUtf8String(str, std::char_traits<char>::length(str), false);
     }
 
     /** Construct a new PdfString from a utf-8 string
@@ -91,9 +91,14 @@ public:
      * A PdfString can be an unevaluated raw buffer, or
      * can be a Ascii, PdfDocEncoding or Unicode string
      */
-    PdfStringState GetState() const;
+    PdfStringCharset GetCharset() const;
 
     bool IsEmpty() const;
+
+    /**
+     * True if the raw data buffer has been evaluated to a string
+     */
+    bool IsStringEvaluated() const;
 
     /** The contents of the string as UTF-8 string.
      *
@@ -157,17 +162,28 @@ private:
      *  \param view the string to copy, must not be nullptr
      *
      */
-    void initFromUtf8String(const char* str, size_t length);
-    void initFromUtf8String(std::string&& str);
-    void evaluateString() const;
-    bool isValidText() const;
-    static bool canPerformComparison(const PdfString& lhs, const PdfString& rhs);
+    void initFromUtf8String(const char* str, size_t length, bool literal);
+    void ensureCharsEvaluated() const;
 
 private:
     struct StringData
     {
-        charbuff Chars;
-        PdfStringState State;
+        StringData();
+
+        StringData(const std::string_view& view);
+
+        StringData(charbuff&& buff, bool stringEvaluated);
+
+        ~StringData();
+
+        union
+        {
+            charbuff Chars;
+            std::string_view Utf8View;
+        };
+        const bool CharsAllocated;
+        bool StringEvaluated;
+        PdfStringCharset CharSet;
     };
 
 private:
