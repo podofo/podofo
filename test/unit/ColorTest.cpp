@@ -51,7 +51,7 @@ private:
     const char* m_colorName;
 };
 
-TEST_CASE("testDefaultConstructor")
+TEST_CASE("TestDefaultConstructor")
 {
     PdfColor color;
 
@@ -98,7 +98,7 @@ TEST_CASE("testDefaultConstructor")
         PdfErrorCode::InternalLogic);
 }
 
-TEST_CASE("testGreyConstructor")
+TEST_CASE("TestGreyConstructor")
 {
     const double GRAY_VALUE = 0.123;
     PdfColor color(GRAY_VALUE);
@@ -150,7 +150,7 @@ TEST_CASE("testGreyConstructor")
 
 }
 
-TEST_CASE("testGrayConstructorInvalid")
+TEST_CASE("TestGrayConstructorInvalid")
 {
     {
         const double GRAY_VALUE = 1.01;
@@ -167,7 +167,7 @@ TEST_CASE("testGrayConstructorInvalid")
     }
 }
 
-TEST_CASE("testRGBConstructor")
+TEST_CASE("TestRGBConstructor")
 {
     const double R_VALUE = 0.023;
     const double G_VALUE = 0.345;
@@ -223,7 +223,7 @@ TEST_CASE("testRGBConstructor")
     REQUIRE(COLOR_ARRAY[2] == PdfObject(B_VALUE));
 }
 
-TEST_CASE("testRGBConstructorInvalid")
+TEST_CASE("TestRGBConstructorInvalid")
 {
     {
         const double R_VALUE = 1.023;
@@ -281,7 +281,7 @@ TEST_CASE("testRGBConstructorInvalid")
 
 }
 
-TEST_CASE("testCMYKConstructor")
+TEST_CASE("TestCMYKConstructor")
 {
     const double C_VALUE = 0.1;
     const double M_VALUE = 0.2;
@@ -340,7 +340,7 @@ TEST_CASE("testCMYKConstructor")
     REQUIRE(COLOR_ARRAY[3] == PdfObject(B_VALUE));
 }
 
-TEST_CASE("testCMYKConstructorInvalid")
+TEST_CASE("TestCMYKConstructorInvalid")
 {
     {
         const double C_VALUE = 1.1;
@@ -424,7 +424,7 @@ TEST_CASE("testCMYKConstructorInvalid")
 
 }
 
-TEST_CASE("testCopyConstructor")
+TEST_CASE("TestCopyConstructor")
 {
     {
         const double GRAY_VALUE = 0.123;
@@ -476,7 +476,7 @@ TEST_CASE("testCopyConstructor")
     }
 }
 
-TEST_CASE("testAssignmentOperator")
+TEST_CASE("TestAssignmentOperator")
 {
     {
         const double GRAY_VALUE = 0.123;
@@ -531,7 +531,7 @@ TEST_CASE("testAssignmentOperator")
     }
 }
 
-TEST_CASE("testEqualsOperator")
+TEST_CASE("TestEqualsOperator")
 {
     //Grey test
     { //Positive
@@ -715,7 +715,7 @@ TEST_CASE("testEqualsOperator")
 
 }
 
-TEST_CASE("testHexNames")
+TEST_CASE("TestHexNames")
 {
     {
         PdfColor rgb = PdfColor::CreateFromString("#FF0AEF");
@@ -779,7 +779,7 @@ TEST_CASE("testHexNames")
     REQUIRE(static_cast<int>(cmyk.GetBlack() * 255.0) == 0x01);
 }
 
-TEST_CASE("testNamesGeneral")
+TEST_CASE("TestNamesGeneral")
 {
     PdfColor aliceBlue = PdfColor::CreateFromString("aliceblue");
     REQUIRE(aliceBlue == PdfColor::CreateFromString("#F0F8FF"));
@@ -830,7 +830,7 @@ TEST_CASE("testNamesGeneral")
     }
 }
 
-TEST_CASE("testNamesOneByOne")
+TEST_CASE("TestNamesOneByOne")
 {
     //Copied and adjusted from http://cvsweb.xfree86.org/cvsweb/xc/programs/rgb/rgb.txt?rev=1.2
     const TestColor TABLE_OF_TEST_COLORS[] =
@@ -1515,7 +1515,7 @@ TEST_CASE("testNamesOneByOne")
     }
 }
 
-TEST_CASE("testColorGreyConstructor")
+TEST_CASE("TestColorGreyConstructor")
 {
     const double GRAY_VALUE = 0.123;
     PdfColor color(GRAY_VALUE);
@@ -1528,7 +1528,7 @@ TEST_CASE("testColorGreyConstructor")
     REQUIRE(color.GetGrayScale() == GRAY_VALUE);
 }
 
-TEST_CASE("testColorRGBConstructor")
+TEST_CASE("TestColorRGBConstructor")
 {
     const double R_VALUE = 0.023;
     const double G_VALUE = 0.345;
@@ -1545,7 +1545,7 @@ TEST_CASE("testColorRGBConstructor")
     REQUIRE(color.GetBlue() == B_VALUE);
 }
 
-TEST_CASE("testColorCMYKConstructor")
+TEST_CASE("TestColorCMYKConstructor")
 {
     const double C_VALUE = 0.1;
     const double M_VALUE = 0.2;
@@ -1564,7 +1564,7 @@ TEST_CASE("testColorCMYKConstructor")
     REQUIRE(color.GetBlack() == B_VALUE);
 }
 
-TEST_CASE("testRGBtoCMYKConversions")
+TEST_CASE("TestRGBtoCMYKConversions")
 {
     using TPairOfColors = std::pair<PdfColor, PdfColor>;
     using TMapOfColors = std::map<std::string, TPairOfColors>;
@@ -1592,4 +1592,22 @@ TEST_CASE("testRGBtoCMYKConversions")
         REQUIRE(rgbColor.ConvertToCMYK() == cmykColor);
         REQUIRE(rgbColor == cmykColor.ConvertToRGB());
     }
+}
+
+TEST_CASE("TestSeparationColor")
+{
+    // CHECK-ME: Check if this tests does something meaningful
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage();
+    PdfColor separationColor = PdfColor(0.6, 0, 1, 0);
+    PdfColorSpaceFilterPtr sportColorFilter(new PdfColorSpaceFilterSeparation("spot_1", separationColor));
+    auto spotColorSpace = doc.CreateColorSpace(sportColorFilter);
+
+    PdfPainter painter;
+    painter.SetCanvas(page);
+    painter.GraphicsState.SetFillColorSpace(*spotColorSpace);
+    painter.GraphicsState.SetFillColor(PdfColorRaw{ 0.5 });
+    painter.DrawRectangle(Rect(100, 600, 100, 50), PdfPathDrawMode::Fill);
+    painter.FinishDrawing();
+    doc.Save(TestUtils::GetTestOutputFilePath("TestSeparationColor.pdf"));
 }
