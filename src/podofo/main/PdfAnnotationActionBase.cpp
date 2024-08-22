@@ -65,9 +65,15 @@ nullable<PdfAction&> PdfAnnotationActionBase::getAction()
     {
         auto obj = GetDictionary().FindKey("A");
         if (obj == nullptr)
+        {
             m_Action = { };
+        }
         else
-            m_Action = PdfAction::Create(*obj);
+        {
+            unique_ptr<PdfAction> action;
+            if (PdfAction::TryCreateFromObject(*obj, action))
+                m_Action = std::move(action);
+        }
     }
 
     if (*m_Action == nullptr)

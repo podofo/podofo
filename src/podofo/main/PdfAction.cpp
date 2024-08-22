@@ -46,7 +46,7 @@ PdfAction::PdfAction(PdfDocument& doc, PdfActionType type)
 PdfAction::PdfAction(PdfObject& obj, PdfActionType type)
     : PdfDictionaryElement(obj), m_Type(type) { }
 
-unique_ptr<PdfAction> PdfAction::Create(PdfObject& obj)
+bool PdfAction::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfAction>& action)
 {
     auto type = static_cast<PdfActionType>(utls::TypeNameToIndex(
         obj.GetDictionary().FindKeyAs<PdfName>("S").GetString().data(),
@@ -55,47 +55,68 @@ unique_ptr<PdfAction> PdfAction::Create(PdfObject& obj)
     switch (type)
     {
         case PdfActionType::GoTo:
-            return unique_ptr<PdfAction>(new PdfActionGoTo(obj));
+            action = unique_ptr<PdfAction>(new PdfActionGoTo(obj));
+            return true;
         case PdfActionType::GoToR:
-            return unique_ptr<PdfAction>(new PdfActionGoToR(obj));
+            action = unique_ptr<PdfAction>(new PdfActionGoToR(obj));
+            return true;
         case PdfActionType::GoToE:
-            return unique_ptr<PdfAction>(new PdfActionGoToE(obj));
+            action = unique_ptr<PdfAction>(new PdfActionGoToE(obj));
+            return true;
         case PdfActionType::Launch:
-            return unique_ptr<PdfAction>(new PdfActionLaunch(obj));
+            action = unique_ptr<PdfAction>(new PdfActionLaunch(obj));
+            return true;
         case PdfActionType::Thread:
-            return unique_ptr<PdfAction>(new PdfActionThread(obj));
+            action = unique_ptr<PdfAction>(new PdfActionThread(obj));
+            return true;
         case PdfActionType::URI:
-            return unique_ptr<PdfAction>(new PdfActionURI(obj));
+            action = unique_ptr<PdfAction>(new PdfActionURI(obj));
+            return true;
         case PdfActionType::Sound:
-            return unique_ptr<PdfAction>(new PdfActionSound(obj));
+            action = unique_ptr<PdfAction>(new PdfActionSound(obj));
+            return true;
         case PdfActionType::Movie:
-            return unique_ptr<PdfAction>(new PdfActionMovie(obj));
+            action = unique_ptr<PdfAction>(new PdfActionMovie(obj));
+            return true;
         case PdfActionType::Hide:
-            return unique_ptr<PdfAction>(new PdfActionHide(obj));
+            action = unique_ptr<PdfAction>(new PdfActionHide(obj));
+            return true;
         case PdfActionType::Named:
-            return unique_ptr<PdfAction>(new PdfActionNamed(obj));
+            action = unique_ptr<PdfAction>(new PdfActionNamed(obj));
+            return true;
         case PdfActionType::SubmitForm:
-            return unique_ptr<PdfAction>(new PdfActionSubmitForm(obj));
+            action = unique_ptr<PdfAction>(new PdfActionSubmitForm(obj));
+            return true;
         case PdfActionType::ResetForm:
-            return unique_ptr<PdfAction>(new PdfActionResetForm(obj));
+            action = unique_ptr<PdfAction>(new PdfActionResetForm(obj));
+            return true;
         case PdfActionType::ImportData:
-            return unique_ptr<PdfAction>(new PdfActionImportData(obj));
+            action = unique_ptr<PdfAction>(new PdfActionImportData(obj));
+            return true;
         case PdfActionType::JavaScript:
-            return unique_ptr<PdfAction>(new PdfActionJavaScript(obj));
+            action = unique_ptr<PdfAction>(new PdfActionJavaScript(obj));
+            return true;
         case PdfActionType::SetOCGState:
-            return unique_ptr<PdfAction>(new PdfActionSetOCGState(obj));
+            action = unique_ptr<PdfAction>(new PdfActionSetOCGState(obj));
+            return true;
         case PdfActionType::Rendition:
-            return unique_ptr<PdfAction>(new PdfActionRendition(obj));
+            action = unique_ptr<PdfAction>(new PdfActionRendition(obj));
+            return true;
         case PdfActionType::Trans:
-            return unique_ptr<PdfAction>(new PdfActionTrans(obj));
+            action = unique_ptr<PdfAction>(new PdfActionTrans(obj));
+            return true;
         case PdfActionType::GoTo3DView:
-            return unique_ptr<PdfAction>(new PdfActionGoTo3DView(obj));
+            action = unique_ptr<PdfAction>(new PdfActionGoTo3DView(obj));
+            return true;
         case PdfActionType::RichMediaExecute:
-            return unique_ptr<PdfAction>(new PdfActionRichMediaExecute(obj));
+            action = unique_ptr<PdfAction>(new PdfActionRichMediaExecute(obj));
+            return true;
         case PdfActionType::Unknown:
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported action");
     }
+
+    return false;
 }
 
 unique_ptr<PdfAction> PdfAction::Create(PdfDocument& doc, PdfActionType type)

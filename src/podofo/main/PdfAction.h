@@ -89,9 +89,9 @@ public:
      */
     inline PdfActionType GetType() const { return m_Type; }
 
-private:
-    static std::unique_ptr<PdfAction> Create(PdfObject& obj);
+    static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfAction>& action);
 
+private:
     static std::unique_ptr<PdfAction> Create(PdfDocument& doc, PdfActionType type);
 
     static PdfAction* Create(PdfDocument& doc, const std::type_info& typeInfo);
