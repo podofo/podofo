@@ -465,25 +465,25 @@ void PoDoFo::WriteOperator_CS(PdfStringStream& stream, const string_view& name)
 void PoDoFo::WriteOperator_sc(PdfStringStream& stream, const cspan<double>& components)
 {
     writeColorComponents(stream, components);
-    stream << " sc\n";
+    stream << "sc\n";
 }
 
 void PoDoFo::WriteOperator_SC(PdfStringStream& stream, const cspan<double>& components)
 {
     writeColorComponents(stream, components);
-    stream << " SC\n";
+    stream << "SC\n";
 }
 
 void PoDoFo::WriteOperator_scn(PdfStringStream& stream, const cspan<double>& components)
 {
     writeColorComponents(stream, components);
-    stream << " scn\n";
+    stream << "scn\n";
 }
 
 void PoDoFo::WriteOperator_SCN(PdfStringStream& stream, const cspan<double>& components)
 {
     writeColorComponents(stream, components);
-    stream << " SCN\n";
+    stream << "SCN\n";
 }
 
 void PoDoFo::WriteOperator_scn(PdfStringStream& stream, const cspan<double>& components, const string_view& patternName)
