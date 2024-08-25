@@ -116,6 +116,8 @@ void PdfWriter::Write(OutputStreamDevice& device)
         m_Objects->RemoveObject(m_EncryptObj->GetIndirectReference());
         m_EncryptObj = nullptr;
     }
+
+    device.Flush();
 }
 
 void PdfWriter::WritePdfHeader(OutputStreamDevice& device)
