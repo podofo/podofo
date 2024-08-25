@@ -439,9 +439,12 @@ namespace utls
     std::ofstream open_ofstream(const std::string_view& filename, std::ios_base::openmode mode);
     std::fstream open_fstream(const std::string_view& filename, std::ios_base::openmode mode);
 
-    // NOTE: Never use this function unless you really need a C FILE descriptor,
+    // NOTE: Never use this function unless you really want a C FILE descriptor,
     // as in PdfImage.cpp . For all the other I/O, use an STL stream
     FILE* fopen(const std::string_view& view, const std::string_view& mode);
+
+    ssize_t ftell(FILE* file);
+    ssize_t fseek(FILE* file, ssize_t offset, int origin);
 
     void WriteUInt32BE(PoDoFo::OutputStream& output, uint32_t value);
     void WriteInt32BE(PoDoFo::OutputStream& output, int32_t value);

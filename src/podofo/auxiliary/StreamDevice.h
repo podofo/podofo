@@ -10,6 +10,7 @@
 #include <cstring>
 #include <ostream>
 #include <fstream>
+#include <cstdio>
 #include <vector>
 
 #include "basetypes.h"
@@ -96,7 +97,7 @@ enum class FileMode
     Append,            ///< Open an existing file and seek to the end for writing
 };
 
-class PODOFO_API FileStreamDevice : public StandardStreamDevice
+class PODOFO_API FileStreamDevice : public StreamDevice
 {
 public:
     /** Open for reading the supplied filepath
@@ -112,16 +113,30 @@ public:
     FileStreamDevice(const std::string_view& filepath, FileMode mode,
         DeviceAccess access);
 
+    ~FileStreamDevice();
+
 public:
     const std::string& GetFilepath() const { return m_Filepath; }
 
+    size_t GetLength() const override;
+
+    size_t GetPosition() const override;
+
+    bool CanSeek() const override;
+
+    bool Eof() const override;
+
 protected:
+    void writeBuffer(const char* buffer, size_t size) override;
+    void flush() override;
+    size_t readBuffer(char* buffer, size_t size, bool& eof) override;
+    bool readChar(char& ch) override;
+    bool peek(char& ch) const override;
+    void seek(ssize_t offset, SeekDirection direction) override;
     void close() override;
 
 private:
-    std::fstream* getFileStream(const std::string_view& filename, FileMode mode, DeviceAccess access);
-
-private:
+    FILE* m_file;
     std::string m_Filepath;
 };
 

@@ -845,6 +845,24 @@ FILE* utls::fopen(const string_view& filename, const string_view& mode)
 #endif
 }
 
+ssize_t utls::ftell(FILE* file)
+{
+#if defined(_WIN64)
+    return _ftelli64(file);
+#else
+    return std::ftell(file);
+#endif
+}
+
+ssize_t utls::fseek(FILE* file, ssize_t offset, int origin)
+{
+#if defined(_WIN64)
+    return _fseeki64(file, offset, origin);
+#else
+    return std::fseek(file, offset, origin);
+#endif
+}
+
 ifstream utls::open_ifstream(const string_view& filename, ios_base::openmode mode)
 {
 #ifdef _WIN32

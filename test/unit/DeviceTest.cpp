@@ -11,7 +11,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-TEST_CASE("testDevices")
+TEST_CASE("TestDevices")
 {
     string_view testString = "Hello World Buffer!";
     charbuff buffer1;
@@ -25,10 +25,10 @@ TEST_CASE("testDevices")
         FAIL(utls::Format("Buffer1 size is wrong after 100 attaches: {}", buffer1.size()));
 }
 
-TEST_CASE("testSaveIncremental")
+TEST_CASE("TestSaveIncremental")
 {
     PdfMemDocument doc;
-    auto testPath = TestUtils::GetTestOutputFilePath("testSaveIncremental.pdf");
+    auto testPath = TestUtils::GetTestOutputFilePath("TestSaveIncremental.pdf");
     doc.GetPages().CreatePage(PdfPageSize::A4);
     doc.Save(testPath);
     doc.Load(testPath);

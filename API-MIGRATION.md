@@ -1,4 +1,5 @@
 ## 0.10.1 -> 1.0.0
+- `FileStreamDevice` doesn't inherit `StandardStreamDevice` anymore
 - `PdfString`:
   * `GetString()` and `GetRawData()` now returns `std::string_view`
   * `PdfStringState` renamed to `PdfStringCharset`, `PdfString::GetState()`

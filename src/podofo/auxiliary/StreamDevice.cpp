@@ -14,6 +14,8 @@
 using namespace std;
 using namespace PoDoFo;
 
+namespace
+{
 template <typename TStream>
 size_t getPosition(TStream& stream)
 {
@@ -80,6 +82,10 @@ void seek(TStream& stream, ssize_t pos, SeekDirection direction)
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 }
+
+}
+
+static FILE* createFile(const string_view& filename, FileMode mode, DeviceAccess access);
 
 StreamDevice::StreamDevice(DeviceAccess access)
     : InputStreamDevice(false), OutputStreamDevice(false)
@@ -388,108 +394,163 @@ FileStreamDevice::FileStreamDevice(const string_view& filepath, FileMode mode)
 }
 
 FileStreamDevice::FileStreamDevice(const string_view& filepath, FileMode mode, DeviceAccess access)
-    : StandardStreamDevice(access, *getFileStream(filepath, mode, access), true), m_Filepath(filepath)
+    : StreamDevice(access), m_file(createFile(filepath, mode, access))
 {
+}
+
+FileStreamDevice::~FileStreamDevice()
+{
+    try
+    {
+        close();
+    }
+    catch (...)
+    {
+        // Do nothing, it should not throw
+    }
+}
+
+size_t FileStreamDevice::GetLength() const
+{
+    ssize_t offset;
+    ssize_t previousOffset;
+    previousOffset = utls::ftell(m_file);
+    if (previousOffset == -1)
+        goto Fail;
+
+    if (utls::fseek(m_file, 0, SEEK_END) != 0)
+        goto Fail;
+
+    offset = utls::ftell(m_file);
+    if (offset == -1)
+        goto Fail;
+
+    if (utls::fseek(m_file, previousOffset, SEEK_SET) != 0)
+        goto Fail;
+
+    return offset;
+
+Fail:
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to determine the current file length");
+}
+
+size_t FileStreamDevice::GetPosition() const
+{
+    ssize_t offset = utls::ftell(m_file);
+    if (offset == -1)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to read the current file position");
+
+    return offset;
+}
+
+bool FileStreamDevice::CanSeek() const
+{
+    return true;
+}
+
+bool FileStreamDevice::Eof() const
+{
+    return std::feof(m_file) != 0;
+}
+
+void FileStreamDevice::writeBuffer(const char* buffer, size_t size)
+{
+    if (std::fwrite(buffer, sizeof(char), size, m_file) != size)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to write the given buffer");
+}
+
+void FileStreamDevice::flush()
+{
+    int rc = std::fflush(m_file);
+    if (rc == EOF)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to flush the stream");
+}
+
+size_t FileStreamDevice::readBuffer(char* buffer, size_t size, bool& eof)
+{
+    size_t ret = std::fread(buffer, 1, (size_t)size, m_file);
+    if (std::ferror(m_file) != 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to read the amount of bytes requested");
+
+    if (std::feof(m_file) != 0)
+    {
+        eof = true;
+        return ret;
+    }
+
+    eof = false;
+    return ret;
+}
+
+bool FileStreamDevice::readChar(char& ch)
+{
+    int rc = std::fgetc(m_file);
+    if (std::ferror(m_file) != 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Stream I/O error while reading");
+
+    if (std::feof(m_file) != 0)
+    {
+        ch = '\0';
+        return false;
+    }
+
+    ch = (char)(unsigned char)rc;
+    return true;
+}
+
+bool FileStreamDevice::peek(char& ch) const
+{
+    int rc = std::fgetc(m_file);
+    if (std::ferror(m_file) != 0)
+        goto Fail;
+
+    if (std::feof(m_file) != 0)
+    {
+        ch = '\0';
+        return false;
+    }
+
+    if (std::ungetc(rc, m_file) == EOF)
+        goto Fail;
+
+    ch = (char)(unsigned char)rc;
+    return true;
+
+Fail:
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Stream I/O error while reading");
+}
+
+void FileStreamDevice::seek(ssize_t offset, SeekDirection direction)
+{
+    int origin;
+    switch (direction)
+    {
+        case SeekDirection::Begin:
+            origin = SEEK_SET;
+            break;
+        case SeekDirection::Current:
+            origin = SEEK_CUR;
+            break;
+        case SeekDirection::End:
+            origin = SEEK_END;
+            break;
+        default:
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+
+    if (utls::fseek(m_file, offset, origin) != 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to seek to given position in the stream");
 }
 
 void FileStreamDevice::close()
 {
-    dynamic_cast<fstream&>(GetStream()).close();
-}
+    if (m_file == nullptr)
+        return;
 
-fstream* FileStreamDevice::getFileStream(const string_view& filename, FileMode mode, DeviceAccess access)
-{
-    switch (mode)
-    {
-        case FileMode::CreateNew:
-            if (access == DeviceAccess::Read)
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid combination FileMode::CreateNew and DeviceAccess::Read");
-            break;
-        case FileMode::Create:
-            if (access == DeviceAccess::Read)
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid combination FileMode::Create and DeviceAccess::Read");
-            break;
-        case FileMode::OpenOrCreate:
-            if (access == DeviceAccess::Read)
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid combination FileMode::OpenOrCreate and DeviceAccess::Read");
-            break;
-        case FileMode::Truncate:
-            if (access == DeviceAccess::Read)
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid combination FileMode::Truncate and DeviceAccess::Read");
-            break;
-        case FileMode::Append:
-            if ((access & DeviceAccess::Read) != DeviceAccess{ })
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid combination FileMode::Append and DeviceAccess::Read or DeviceAccess::ReadWrite");
-            break;
-        default:
-            break;
-    }
+    if (std::fclose(m_file) == EOF)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to close stream");
 
-    ios_base::openmode openmode = fstream::binary;
-    switch (access)
-    {
-        case DeviceAccess::Read:
-            openmode |= ios_base::in;
-            break;
-        case DeviceAccess::Write:
-            openmode |= ios_base::out;
-            break;
-        case DeviceAccess::ReadWrite:
-            openmode |= ios_base::in | ios_base::out;
-            break;
-        default:
-            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
-    }
-
-    switch (mode)
-    {
-        case FileMode::CreateNew:
-            if (fs::exists(filename))
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "The file must not exist");
-            break;
-        case FileMode::Create:
-            openmode |= ios_base::trunc;
-            break;
-        case FileMode::Open:
-            if ((access & DeviceAccess::Write) != DeviceAccess{ } && !fs::exists(filename))
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "The file must exist");
-            break;
-        case FileMode::OpenOrCreate:
-            break;
-        case FileMode::Truncate:
-            if (!fs::exists(filename))
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "The file must exist");
-            openmode |= ios_base::trunc;
-            break;
-        case FileMode::Append:
-            // NOTE: ios_base::app and ios_base::ate don't work as intended,
-            // as tellp returns 0. Also opening the file with ios_base::out
-            // will truncate the file anyway, even without ios_base::trunc.
-            // So, we have to create the file read/write and do our seeking
-            openmode |= ios_base::in;
-            break;
-        default:
-            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
-    }
-
-    auto stream = new fstream(utls::open_fstream(filename, openmode));
-    if (mode == FileMode::Append)
-    {
-        // NOTE: Do our manual seeking at the end
-        stream->seekg(0, ios_base::end);
-        stream->seekp(0, ios_base::end);
-
-        // TODO: We should prevent seeking before the initial
-        // position
-    }
-
-    if (stream->fail())
-    {
-        delete stream;
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Error accessing file {}", filename);
-    }
-
-    return stream;
+    m_file = nullptr;
 }
 
 NullStreamDevice::NullStreamDevice()
@@ -656,4 +717,144 @@ bool SpanStreamDevice::peek(char& ch) const
 void SpanStreamDevice::seek(ssize_t offset, SeekDirection direction)
 {
     m_Position = SeekPosition(m_Position, m_Length, offset, direction);
+}
+
+FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access)
+{
+    string cmode;
+    switch (mode)
+    {
+        case FileMode::CreateNew:
+        {
+            if (access == DeviceAccess::Read)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid combination FileMode::CreateNew and DeviceAccess::Read");
+
+            if (fs::exists(filepath))
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "The file {} must not exist", filepath);
+
+            switch (access)
+            {
+                case DeviceAccess::Write:
+                    cmode.append("w");
+                    break;
+                case DeviceAccess::ReadWrite:
+                    cmode.append("w+");
+                    break;
+                default:
+                    PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+            }
+
+            break;
+        }
+        case FileMode::Create:
+        {
+            if (access == DeviceAccess::Read)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid combination FileMode::Create and DeviceAccess::Read");
+
+            switch (access)
+            {
+                case DeviceAccess::Write:
+                    cmode.append("w");
+                    break;
+                case DeviceAccess::ReadWrite:
+                    cmode.append("w+");
+                    break;
+                default:
+                    PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+            }
+
+            break;
+        }
+        case FileMode::Open:
+        {
+            if ((access & DeviceAccess::Write) != DeviceAccess{ } && !fs::exists(filepath))
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "The file {} must exist", filepath);
+
+            switch (access)
+            {
+                case DeviceAccess::Read:
+                    cmode.append("r");
+                    break;
+                case DeviceAccess::Write:
+                    cmode.append("w");
+                    break;
+                case DeviceAccess::ReadWrite:
+                    cmode.append("r+");
+                    break;
+                default:
+                    PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+            }
+
+            break;
+        }
+        case FileMode::OpenOrCreate:
+        {
+            if (access == DeviceAccess::Read)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid combination FileMode::OpenOrCreate and DeviceAccess::Read");
+
+            bool exists = fs::exists(filepath);
+            switch (access)
+            {
+                case DeviceAccess::Write:
+                    cmode.append("w");
+                    break;
+                case DeviceAccess::ReadWrite:
+                    cmode.append(exists ? "r+" : "w+");
+                    break;
+                default:
+                    PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+            }
+
+            break;
+        }
+        case FileMode::Truncate:
+        {
+            if (access == DeviceAccess::Read)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid combination FileMode::Truncate and DeviceAccess::Read");
+
+            if (!fs::exists(filepath))
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "The file {} must exist", filepath);
+
+            switch (access)
+            {
+                case DeviceAccess::Write:
+                    cmode.append("w");
+                    break;
+                case DeviceAccess::ReadWrite:
+                    cmode.append("w+");
+                    break;
+                default:
+                    PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+            }
+            break;
+        }
+        case FileMode::Append:
+            if (access == DeviceAccess::Read)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid combination FileMode::Append and DeviceAccess::Read");
+
+            switch (access)
+            {
+                case DeviceAccess::Write:
+                    cmode.append("a");
+                    break;
+                case DeviceAccess::ReadWrite:
+                    cmode.append("a+");
+                    break;
+                default:
+                    PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+            }
+
+            break;
+        default:
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+#if _WIN32
+    cmode.append("b");
+#endif // _WIN32
+
+    auto stream = utls::fopen(filepath, cmode.data());
+    if (stream == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Error accessing file {}", filepath);
+
+    return stream;
 }
