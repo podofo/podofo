@@ -3,7 +3,6 @@
 - PdfDocument: Review AttachFile, GetAttachment, FreeObjectMemory, AddNamedDestination
 - Review PdfPage::SetICCProfile(), PdfImage::SetICCProfile()
 - PdfErrorCode: Check all values (Add MaxRecursionReached)
-- Evaluate IntputStreamDevice CopyTo() should do seek(0)
 - PdfFont/PdfXObject: Remove GetIdentifier()
 - PdfXObjet: Remove SetMatrix and move it to PdfXObjectForm
 - PdfDictionary: Optimize PdfName creation by cheching against a small number of known names (eg. /Length)

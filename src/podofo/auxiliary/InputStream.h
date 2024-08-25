@@ -52,8 +52,18 @@ public:
      */
     bool Read(char& ch);
 
+    /**
+     * Copy this stream to another
+     * \remarks The copy begins from the current position and
+     *      it's not reset after the operation is completed
+     */
     void CopyTo(OutputStream& stream);
 
+    /**
+     * Copy this stream to another
+     * \remarks The copy begins from the current position and
+     *      it's not reset after the operation is completed
+     */
     void CopyTo(OutputStream& stream, size_t size);
 
 protected:
