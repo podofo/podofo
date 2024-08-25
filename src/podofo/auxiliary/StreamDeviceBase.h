@@ -12,14 +12,14 @@
 
 namespace PoDoFo {
 
-enum class DeviceAccess
+enum class DeviceAccess : uint8_t
 {
     Read = 1,
     Write = 2,
     ReadWrite = Read | Write
 };
 
-enum class SeekDirection
+enum class SeekDirection : uint8_t
 {
     Begin = 0,
     Current,
