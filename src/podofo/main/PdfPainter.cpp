@@ -43,7 +43,7 @@ PdfPainter::~PdfPainter() noexcept(false)
     }
     catch (...)
     {
-        if (!std::uncaught_exceptions())
+        if (std::uncaught_exceptions() == 0)
             throw;
     }
 }
