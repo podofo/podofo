@@ -227,7 +227,8 @@ namespace PoDoFo {
 
     public:
         const std::string& GetName() const { return m_Name; }
-        const PdfColor& GetAlternateColor() const { return m_AlternateColor; }
+        const PdfColorRaw& GetAlternateColor() const;
+        const PdfColorSpaceFilter& GetColorSpace() const;
 
     private:
         std::string m_Name;

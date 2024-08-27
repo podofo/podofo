@@ -637,6 +637,16 @@ unsigned PdfColorSpaceFilterSeparation::GetColorComponentCount() const
     return 1;
 }
 
+const PdfColorRaw& PdfColorSpaceFilterSeparation::GetAlternateColor() const
+{
+    return m_AlternateColor.GetRawColor();
+}
+
+const PdfColorSpaceFilter& PdfColorSpaceFilterSeparation::GetColorSpace() const
+{
+    return *PdfColorSpaceFilterFactory::GetTrivialFilter(m_AlternateColor.GetColorSpace());
+}
+
 PdfColorSpaceFilterLab::PdfColorSpaceFilterLab(const array<double, 3>& whitePoint,
         nullable<const array<double, 3>&> blackPoint,
         nullable<const array<double, 4>&> range) :
