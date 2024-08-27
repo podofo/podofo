@@ -221,7 +221,7 @@ can sign a document with the following code:
 auto inputOutput = std::make_shared<FileStreamDevice>(filepath, FileMode::Open);
 
 PdfMemDocument doc;
-doc.LoadFromDevice(inputOutput);
+doc.Load(inputOutput);
 
 auto& page = doc.GetPages().GetPageAt(0);
 auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
@@ -276,7 +276,7 @@ correct operations to update a document, loaded from file or buffer:
 auto inputOutput = std::make_shared<FileStreamDevice>(filename, FileMode::Open);
 
 PdfMemDocument doc;
-doc.LoadFromDevice(inputOutput);
+doc.Load(inputOutput);
 
 doc.SaveUpdate(*inputOutput);
 ```
@@ -291,7 +291,7 @@ auto inputOutput = std::make_shared<BufferStreamDevice>(outputBuffer);
 input.CopyTo(*inputOutput);
 
 PdfMemDocument doc;
-doc.LoadFromDevice(inputOutput);
+doc.Load(inputOutput);
 
 doc.SaveUpdate(*inputOutput);
 ```
@@ -309,7 +309,7 @@ auto inputOutput = std::make_shared<FileStreamDevice>(filepath, FileMode::Open);
 
 {
     PdfMemDocument doc;
-    doc.LoadFromDevice(inputOutput);
+    doc.Load(inputOutput);
     auto& page = doc.GetPages().GetPageAt(0);
     auto& signature = page.CreateField<PdfSignature>("Signature1", Rect());
 
@@ -319,7 +319,7 @@ auto inputOutput = std::make_shared<FileStreamDevice>(filepath, FileMode::Open);
 
 {
     PdfMemDocument doc;
-    doc.LoadFromDevice(inputOutput);
+    doc.Load(inputOutput);
     auto& page = doc.GetPages().GetPageAt(0);
     auto& signature = page.CreateField<PdfSignature>("Signature2", Rect());
     PdfSignerCms signer(x509certbuffer, pkeybuffer);
