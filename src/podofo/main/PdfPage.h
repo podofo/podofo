@@ -256,18 +256,6 @@ public:
 
     PdfField& CreateField(const std::string_view& name, PdfFieldType fieldType, const Rect& rect, bool rawRect = false);
 
-    /** Set an ICC profile for this page
-     *
-     *  \param csTag a ColorSpace tag
-     *  \param stream an input stream from which the ICC profiles data can be read
-     *  \param colorComponents the number of colorcomponents of the ICC profile (expected is 1, 3 or 4 components)
-     *  \param alternateColorSpace an alternate colorspace to use if the ICC profile cannot be used
-     *
-     *  \see PdfPainter::SetDependICCProfileColor()
-     */
-    void SetICCProfile(const std::string_view& csTag, InputStream& stream, int64_t colorComponents,
-        PdfColorSpaceType alternateColorSpace = PdfColorSpaceType::DeviceRGB);
-
     /**
      * Get an iterator for all fields in the page. All widget annotation fields
      * in the pages will be returned

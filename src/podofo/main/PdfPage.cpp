@@ -393,36 +393,6 @@ unsigned PdfPage::GetPageNumber() const
     return m_Index + 1;
 }
 
-void PdfPage::SetICCProfile(const string_view& csTag, InputStream& stream,
-    int64_t colorComponents, PdfColorSpaceType alternateColorSpace)
-{
-    // Check nColorComponents for a valid value
-    if (colorComponents != 1 &&
-        colorComponents != 3 &&
-        colorComponents != 4)
-    {
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "SetICCProfile nColorComponents must be 1, 3 or 4!");
-    }
-
-    // Create a colorspace object
-    auto& iccObject = this->GetDocument().GetObjects().CreateDictionaryObject();
-    PdfName nameForCS = PoDoFo::ToString(alternateColorSpace);
-    iccObject.GetDictionary().AddKey("Alternate"_n, nameForCS);
-    iccObject.GetDictionary().AddKey("N"_n, colorComponents);
-    iccObject.GetOrCreateStream().SetData(stream);
-
-    // Add the colorspace
-    PdfArray array;
-    array.Add("ICCBased"_n);
-    array.Add(iccObject.GetIndirectReference());
-
-    PdfDictionary iccBasedDictionary;
-    iccBasedDictionary.AddKey(csTag, array);
-
-    // Add the colorspace to resource
-    GetOrCreateResources().GetDictionary().AddKey("ColorSpace"_n, iccBasedDictionary);
-}
-
 PdfPageFieldIterable PdfPage::GetFieldsIterator()
 {
     return PdfPageFieldIterable(*this);

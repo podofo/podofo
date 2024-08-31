@@ -213,29 +213,6 @@ PdfImage::PdfImage(PdfObject& obj)
         m_ColorSpace = PdfColorSpaceFilterFactory::GetUnkownInstance();
 }
 
-void PdfImage::SetICCProfile(InputStream& stream, unsigned colorComponents, PdfColorSpaceType alternateColorSpace)
-{
-    // Check lColorComponents for a valid value
-    if (colorComponents != 1 &&
-        colorComponents != 3 &&
-        colorComponents != 4)
-    {
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "SetImageICCProfile lColorComponents must be 1,3 or 4!");
-    }
-
-    // Create a colorspace object
-    auto& iccObject = this->GetDocument().GetObjects().CreateDictionaryObject();
-    iccObject.GetDictionary().AddKey("Alternate"_n, PdfName(PoDoFo::ToString(alternateColorSpace)));
-    iccObject.GetDictionary().AddKey("N"_n, static_cast<int64_t>(colorComponents));
-    iccObject.GetOrCreateStream().SetData(stream);
-
-    // Add the colorspace to our image
-    PdfArray array;
-    array.Add("ICCBased"_n);
-    array.Add(iccObject.GetIndirectReference());
-    this->GetDictionary().AddKey("ColorSpace"_n, array);
-}
-
 void PdfImage::SetSoftMask(const PdfImage& softmask)
 {
     GetDictionary().AddKeyIndirect("SMask"_n, softmask.GetObject());

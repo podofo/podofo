@@ -732,3 +732,61 @@ unsigned PdfColorSpaceFilterLab::GetColorComponentCount() const
 {
     return 3;
 }
+
+PdfColorSpaceFilterICCBased::PdfColorSpaceFilterICCBased(const PdfColorSpaceFilterPtr& alternateColorSpace,
+    charbuff&& iccprofile)
+{
+}
+
+PdfColorSpaceType PdfColorSpaceFilterICCBased::GetType() const
+{
+    return PdfColorSpaceType::ICCBased;
+}
+
+PdfColorSpacePixelFormat PdfColorSpaceFilterICCBased::GetPixelFormat() const
+{
+    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+}
+
+unsigned PdfColorSpaceFilterICCBased::GetSourceScanLineSize(unsigned width, unsigned bitsPerComponent) const
+{
+    (void)width;
+    (void)bitsPerComponent;
+    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+}
+
+unsigned PdfColorSpaceFilterICCBased::GetScanLineSize(unsigned width, unsigned bitsPerComponent) const
+{
+    (void)width;
+    (void)bitsPerComponent;
+    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+}
+
+void PdfColorSpaceFilterICCBased::FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine, unsigned width, unsigned bitsPerComponent) const
+{
+    (void)dstScanLine;
+    (void)srcScanLine;
+    (void)width;
+    (void)bitsPerComponent;
+    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+}
+
+PdfObject PdfColorSpaceFilterICCBased::GetExportObject(PdfIndirectObjectList& objects) const
+{
+    // Create a colorspace object
+    auto& iccObject = objects.CreateDictionaryObject();
+    iccObject.GetDictionary().AddKey("Alternate"_n, m_AlternateColorSpace->GetExportObject(objects));
+    iccObject.GetDictionary().AddKey("N"_n, static_cast<int64_t>(m_AlternateColorSpace->GetColorComponentCount()));
+    iccObject.GetOrCreateStream().SetData(m_iccprofile);
+
+    // Add the colorspace to our image
+    PdfArray arr;
+    arr.Add("ICCBased"_n);
+    arr.Add(iccObject.GetIndirectReference());
+    return arr;
+}
+
+unsigned PdfColorSpaceFilterICCBased::GetColorComponentCount() const
+{
+    return m_AlternateColorSpace->GetColorComponentCount();
+}

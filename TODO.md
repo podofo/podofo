@@ -1,7 +1,6 @@
 ### 1.0
 
 - PdfDocument: Review AttachFile, GetAttachment, FreeObjectMemory, AddNamedDestination
-- Review PdfPage::SetICCProfile(), PdfImage::SetICCProfile()
 - PdfErrorCode: Check all values (Add MaxRecursionReached)
 - PdfFont/PdfXObject: Remove GetIdentifier()
 - PdfXObjet: Remove SetMatrix and move it to PdfXObjectForm

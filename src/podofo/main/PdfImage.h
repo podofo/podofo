@@ -59,17 +59,6 @@ public:
 
     charbuff GetDecodedCopy(PdfPixelFormat format);
 
-    /** Set an ICC profile for this image.
-     *
-     *  \param stream an input stream from which the ICC profiles data can be read
-     *  \param colorComponents the number of colorcomponents of the ICC profile
-     *  \param alternateColorSpace an alternate colorspace to use if the ICC profile cannot be used
-     *
-     *  \see SetImageColorSpace to set an colorspace instead of an ICC profile for this image
-     */
-    void SetICCProfile(InputStream& stream, unsigned colorComponents,
-        PdfColorSpaceType alternateColorSpace = PdfColorSpaceType::DeviceRGB);
-
     /** Set a softmask for this image.
      *  \param pSoftmask a PdfImage pointer to the image, which is to be set as softmask, must be 8-Bit-Grayscale
      *

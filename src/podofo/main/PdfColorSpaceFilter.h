@@ -36,6 +36,7 @@ namespace PoDoFo {
         friend class PdfColorSpaceFilterIndexed;
         friend class PdfColorSpaceFilterSeparation;
         friend class PdfColorSpaceFilterLab;
+        friend class PdfColorSpaceFilterICCBased;
 
     private:
         PdfColorSpaceFilter();
@@ -263,6 +264,26 @@ namespace PoDoFo {
          *  of /DeviceCMYK color space
          */
         static PdfColorSpaceFilterPtr GetDeviceCMYKInstace();
+    };
+
+    /** Color space as described by ISO 32000-2:2020 "8.6.5.5 ICCBased colour spaces"
+ */
+    class PODOFO_API PdfColorSpaceFilterICCBased final : public PdfColorSpaceFilter
+    {
+    public:
+        PdfColorSpaceFilterICCBased(const PdfColorSpaceFilterPtr& alternateColorSpace, charbuff&& iccprofile);
+    public:
+        PdfColorSpaceType GetType() const override;
+        PdfColorSpacePixelFormat GetPixelFormat() const override;
+        unsigned GetSourceScanLineSize(unsigned width, unsigned bitsPerComponent) const override;
+        unsigned GetScanLineSize(unsigned width, unsigned bitsPerComponent) const override;
+        void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
+            unsigned width, unsigned bitsPerComponent) const override;
+        PdfObject GetExportObject(PdfIndirectObjectList& objects) const override;
+        unsigned GetColorComponentCount() const override;
+    private:
+        PdfColorSpaceFilterPtr m_AlternateColorSpace;
+        charbuff m_iccprofile;
     };
 }
 
