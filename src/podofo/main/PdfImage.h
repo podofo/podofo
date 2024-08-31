@@ -9,7 +9,7 @@
 
 #include "PdfXObject.h"
 
-#include "PdfColorSpaceFilter.h"
+#include "PdfColorSpace.h"
 
 #ifdef PODOFO_HAVE_JPEG_LIB
 struct jpeg_decompress_struct;
@@ -26,7 +26,7 @@ struct PODOFO_API PdfImageInfo final
     unsigned Height = 0;
     nullable<PdfFilterList> Filters;
     unsigned char BitsPerComponent = 0;
-    PdfColorSpaceFilterPtr ColorSpace;
+    PdfColorSpaceInitializer ColorSpace;
     std::vector<double> DecodeArray;
 };
 

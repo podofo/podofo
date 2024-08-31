@@ -126,7 +126,7 @@ TEST_CASE("TestImage4")
         PdfImageInfo info;
         info.Width = 128;
         info.Height = 128;
-        info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
+        info.ColorSpace = PdfColorSpaceType::DeviceGray;
         info.BitsPerComponent = 8;
         alpha->SetDataRaw(alphaInput, info);
         img->SetSoftMask(*alpha);

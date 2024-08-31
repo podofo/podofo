@@ -28,6 +28,51 @@ private:
     PdfColorSpaceFilterPtr m_Filter;
 };
 
+/**
+ * A proxy class that can used to identify a color space choosing
+ * from several input types
+ */
+class PODOFO_API PdfColorSpaceInitializer final
+{
+public:
+    /** A null color space
+     */
+    PdfColorSpaceInitializer();
+
+    /** Identify a color space from a filter
+     */
+    PdfColorSpaceInitializer(const PdfColorSpaceFilterPtr& filter);
+    /** Identify a color space from color space document element
+     */
+    PdfColorSpaceInitializer(const PdfColorSpace& colorSpace);
+    /** Identify a trivial colorspace from its enum type (DeviceGray, DeviceRGB or DeviceCYMC)
+     */
+    PdfColorSpaceInitializer(PdfColorSpaceType colorSpace);
+
+public:
+    PdfObject GetExportObject(PdfIndirectObjectList& objects) const;
+
+    bool IsNull() const;
+
+    PdfColorSpaceFilterPtr Take(const PdfColorSpace*& element);
+
+    PdfColorSpaceInitializer(const PdfColorSpaceInitializer&) = default;
+    PdfColorSpaceInitializer& operator=(const PdfColorSpaceInitializer&) = default;
+
+    void* operator new(std::size_t) = delete;
+    void* operator new[](std::size_t) = delete;
+    void operator delete(void*) = delete;
+    void operator delete[](void*) = delete;
+
+public:
+    const PdfColorSpaceFilter& GetFilter() const { return *m_Filter; }
+    PdfColorSpaceFilterPtr GetFilterPtr() const { return m_Filter; }
+
+private:
+    PdfColorSpaceFilterPtr m_Filter;
+    const PdfColorSpace* m_Element;
+};
+
 }
 
 #endif // PDF_COLOR_SPACE_H

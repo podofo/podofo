@@ -91,10 +91,8 @@ public:
     void SetLineCapStyle(PdfLineCapStyle capStyle);
     void SetLineJoinStyle(PdfLineJoinStyle joinStyle);
     void SetRenderingIntent(const std::string_view& intent);
-    void SetFillColorSpace(PdfColorSpaceType colorSpace);
-    void SetStrokeColorSpace(PdfColorSpaceType colorSpace);
-    void SetFillColorSpace(const PdfColorSpace& colorSpace);
-    void SetStrokeColorSpace(const PdfColorSpace& color);
+    void SetFillColorSpace(PdfColorSpaceInitializer&& colorSpace);
+    void SetStrokeColorSpace(PdfColorSpaceInitializer&& color);
     void SetFillColor(const PdfColor& color);
     void SetStrokeColor(const PdfColor& color);
     void SetFillColor(const PdfColorRaw& color);
@@ -511,10 +509,8 @@ private:
     void SetStrokeColor(const PdfColor& color);
     void SetFillColor(const PdfColorRaw& color, const PdfColorSpaceFilter& colorSpace);
     void SetStrokeColor(const PdfColorRaw& color, const PdfColorSpaceFilter& colorSpace);
-    void SetFillColorSpace(const PdfColorSpace& colorSpace);
-    void SetStrokeColorSpace(const PdfColorSpace& colorSpace);
-    void SetFillColorSpace(PdfColorSpaceType colorSpace);
-    void SetStrokeColorSpace(PdfColorSpaceType colorSpace);
+    void SetFillColorSpace(const PdfColorSpaceFilter&filter, const PdfColorSpace* colorSpace);
+    void SetStrokeColorSpace(const PdfColorSpaceFilter& filter, const PdfColorSpace* colorSpace);
     void SetRenderingIntent(const std::string_view& intent);
     void SetTransformationMatrix(const Matrix& matrix);
     void SetFont(const PdfFont* font, double fontSize);
@@ -539,6 +535,8 @@ private:
     void stroke();
     void fill(bool useEvenOddRule);
     void strokeAndFill(bool useEvenOddRule);
+    void setFillColorSpace(const PdfObject& csObj);
+    void setStrokeColorSpace(const PdfObject& csObj);
 
 private:
     // PdfContentStreamOperators implementation

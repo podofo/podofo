@@ -15,6 +15,7 @@
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
 #include "PdfImage.h"
+#include "PdfDocument.h"
 
 using namespace std;
 using namespace PoDoFo;
@@ -934,14 +935,34 @@ void PdfPainter::SetStrokeColor(const PdfColorRaw& color, const PdfColorSpaceFil
     PoDoFo::WriteOperator_SCN(m_stream, cspan<double>(color.data(), colorSpace.GetColorComponentCount()));
 }
 
-void PdfPainter::SetFillColorSpace(const PdfColorSpace& colorSpace)
+void PdfPainter::SetFillColorSpace(const PdfColorSpaceFilter& filter, const PdfColorSpace* colorSpace)
 {
     checkStream();
-    auto found = m_resNameCache.find(colorSpace.GetObject().GetIndirectReference());
+    if (colorSpace == nullptr)
+    {
+        if (filter.IsTrivial())
+        {
+            PoDoFo::WriteOperator_cs(m_stream, PoDoFo::ToString(filter.GetType()));
+        }
+        else
+        {
+            auto& objects = m_canvas->GetElement().GetDocument().GetObjects();
+            setFillColorSpace(objects.CreateDictionaryObject() = filter.GetExportObject(objects));
+        }
+    }
+    else
+    {
+        setFillColorSpace(colorSpace->GetObject());
+    }
+}
+
+void PdfPainter::setFillColorSpace(const PdfObject& csObj)
+{
+    auto found = m_resNameCache.find(csObj.GetIndirectReference());
     if (found == m_resNameCache.end())
     {
-        auto name = m_canvas->GetOrCreateResources().AddResource(PdfResourceType::ColorSpace, colorSpace.GetObject());
-        m_resNameCache[colorSpace.GetObject().GetIndirectReference()] = name;
+        auto name = m_canvas->GetOrCreateResources().AddResource(PdfResourceType::ColorSpace, csObj);
+        m_resNameCache[csObj.GetIndirectReference()] = name;
         PoDoFo::WriteOperator_cs(m_stream, name);
     }
     else
@@ -950,32 +971,40 @@ void PdfPainter::SetFillColorSpace(const PdfColorSpace& colorSpace)
     }
 }
 
-void PdfPainter::SetStrokeColorSpace(const PdfColorSpace& colorSpace)
+void PdfPainter::SetStrokeColorSpace(const PdfColorSpaceFilter& filter, const PdfColorSpace* colorSpace)
 {
     checkStream();
-    auto found = m_resNameCache.find(colorSpace.GetObject().GetIndirectReference());
+    if (colorSpace == nullptr)
+    {
+        if (filter.IsTrivial())
+        {
+            PoDoFo::WriteOperator_CS(m_stream, PoDoFo::ToString(filter.GetType()));
+        }
+        else
+        {
+            auto& objects = m_canvas->GetElement().GetDocument().GetObjects();
+            setStrokeColorSpace(objects.CreateDictionaryObject() = filter.GetExportObject(objects));
+        }
+    }
+    else
+    {
+        setStrokeColorSpace(colorSpace->GetObject());
+    }
+}
+
+void PdfPainter::setStrokeColorSpace(const PdfObject& csObj)
+{
+    auto found = m_resNameCache.find(csObj.GetIndirectReference());
     if (found == m_resNameCache.end())
     {
-        auto name = m_canvas->GetOrCreateResources().AddResource(PdfResourceType::ColorSpace, colorSpace.GetObject());
-        m_resNameCache[colorSpace.GetObject().GetIndirectReference()] = name;
+        auto name = m_canvas->GetOrCreateResources().AddResource(PdfResourceType::ColorSpace, csObj);
+        m_resNameCache[csObj.GetIndirectReference()] = name;
         PoDoFo::WriteOperator_CS(m_stream, name);
     }
     else
     {
         PoDoFo::WriteOperator_CS(m_stream, found->second);
     }
-}
-
-void PdfPainter::SetFillColorSpace(PdfColorSpaceType colorSpace)
-{
-    checkStream();
-    PoDoFo::WriteOperator_cs(m_stream, PoDoFo::ToString(colorSpace));
-}
-
-void PdfPainter::SetStrokeColorSpace(PdfColorSpaceType colorSpace)
-{
-    checkStream();
-    PoDoFo::WriteOperator_CS(m_stream, PoDoFo::ToString(colorSpace));
 }
 
 void PdfPainter::SetFont(const PdfFont* font, double fontSize)
@@ -1257,42 +1286,24 @@ void PdfGraphicsStateWrapper::SetRenderingIntent(const string_view& intent)
     m_painter->SetRenderingIntent(m_state->RenderingIntent);
 }
 
-void PdfGraphicsStateWrapper::SetFillColorSpace(PdfColorSpaceType colorSpace)
-{
-    auto filter = PdfColorSpaceFilterFactory::GetTrivialFilter(colorSpace);
-    if (m_state->FillColorSpaceFilter == filter)
-        return;
-
-    m_state->FillColorSpaceFilter = filter;
-    m_painter->SetFillColorSpace(colorSpace);
-}
-
-void PdfGraphicsStateWrapper::SetStrokeColorSpace(PdfColorSpaceType colorSpace)
-{
-    auto filter = PdfColorSpaceFilterFactory::GetTrivialFilter(colorSpace);
-    if (m_state->StrokeColorSpaceFilter == filter)
-        return;
-
-    m_state->StrokeColorSpaceFilter = filter;
-    m_painter->SetStrokeColorSpace(colorSpace);
-}
-
-void PdfGraphicsStateWrapper::SetFillColorSpace(const PdfColorSpace& colorSpace)
+void PdfGraphicsStateWrapper::SetFillColorSpace(PdfColorSpaceInitializer&& colorSpace)
 {
     if (m_state->FillColorSpaceFilter.get() == &colorSpace.GetFilter())
         return;
 
-    m_state->FillColorSpaceFilter = colorSpace.GetFilterPtr();
-    m_painter->SetFillColorSpace(colorSpace);
+    const PdfColorSpace* element;
+    m_state->FillColorSpaceFilter = colorSpace.Take(element);
+    m_painter->SetFillColorSpace(*m_state->FillColorSpaceFilter, element);
 }
 
-void PdfGraphicsStateWrapper::SetStrokeColorSpace(const PdfColorSpace& colorSpace)
+void PdfGraphicsStateWrapper::SetStrokeColorSpace(PdfColorSpaceInitializer&& colorSpace)
 {
     if (m_state->StrokeColorSpaceFilter.get() == &colorSpace.GetFilter())
         return;
 
-    m_state->StrokeColorSpaceFilter = colorSpace.GetFilterPtr();
-    m_painter->SetStrokeColorSpace(colorSpace);
+    const PdfColorSpace* element;
+    m_state->StrokeColorSpaceFilter = colorSpace.Take(element);
+    m_painter->SetStrokeColorSpace(*m_state->StrokeColorSpaceFilter, element);
 }
 
 void PdfGraphicsStateWrapper::SetFillColor(const PdfColor& color)

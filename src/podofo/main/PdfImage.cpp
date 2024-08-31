@@ -323,10 +323,10 @@ void PdfImage::SetDataRaw(const bufferview& buffer, const PdfImageInfo& info)
 
 void PdfImage::SetDataRaw(InputStream& stream, const PdfImageInfo& info)
 {
-    if (info.ColorSpace == nullptr)
+    if (info.ColorSpace.IsNull())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Missing color space");
 
-    m_ColorSpace = info.ColorSpace;
+    m_ColorSpace = info.ColorSpace.GetFilterPtr();
     m_Width = info.Width;
     m_Height = info.Height;
     m_BitsPerComponent = info.BitsPerComponent;
@@ -348,7 +348,7 @@ void PdfImage::SetDataRaw(InputStream& stream, const PdfImageInfo& info)
         dict.AddKey("Decode"_n, decodeArr);
     }
 
-    dict.AddKey("ColorSpace"_n, info.ColorSpace->GetExportObject(GetDocument().GetObjects()));
+    dict.AddKey("ColorSpace"_n, info.ColorSpace.GetExportObject(GetDocument().GetObjects()));
 
     if (info.Filters.has_value())
         GetObject().GetOrCreateStream().SetData(stream, *info.Filters, true);
@@ -749,7 +749,8 @@ void PdfImage::loadFromTiffHandle(void* handle, unsigned imageIndex)
             idxObj.GetOrCreateStream().SetData(data);
 
             // Add the colorspace to our image
-            info.ColorSpace.reset(new PdfColorSpaceFilterIndexed(PdfColorSpaceFilterFactory::GetDeviceRGBInstace(), numColors, std::move(data)));
+            info.ColorSpace = PdfColorSpaceInitializer(std::make_shared<PdfColorSpaceFilterIndexed>(
+                PdfColorSpaceFilterFactory::GetDeviceRGBInstace(), numColors, std::move(data)));
             break;
         }
 
@@ -1210,7 +1211,8 @@ void loadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
             data[3 * i + 2] = colors->blue;
         }
 
-        info.ColorSpace.reset(new PdfColorSpaceFilterIndexed(PdfColorSpaceFilterFactory::GetDeviceRGBInstace(), colorCount, std::move(data)));
+        info.ColorSpace = PdfColorSpaceInitializer(std::make_shared<PdfColorSpaceFilterIndexed>(
+            PdfColorSpaceFilterFactory::GetDeviceRGBInstace(), colorCount, std::move(data)));
     }
     else if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
     {
