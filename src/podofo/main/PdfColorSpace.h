@@ -34,6 +34,8 @@ private:
  */
 class PODOFO_API PdfColorSpaceInitializer final
 {
+    PODOFO_STACK_ONLY
+
 public:
     /** A null color space
      */
@@ -58,11 +60,6 @@ public:
 
     PdfColorSpaceInitializer(const PdfColorSpaceInitializer&) = default;
     PdfColorSpaceInitializer& operator=(const PdfColorSpaceInitializer&) = default;
-
-    void* operator new(std::size_t) = delete;
-    void* operator new[](std::size_t) = delete;
-    void operator delete(void*) = delete;
-    void operator delete[](void*) = delete;
 
 public:
     const PdfColorSpaceFilter& GetFilter() const { return *m_Filter; }

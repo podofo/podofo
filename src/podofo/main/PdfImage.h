@@ -22,6 +22,8 @@ class InputStream;
 
 struct PODOFO_API PdfImageInfo final
 {
+    PODOFO_STACK_ONLY
+
     unsigned Width = 0;
     unsigned Height = 0;
     nullable<PdfFilterList> Filters;

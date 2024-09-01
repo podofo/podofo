@@ -5,6 +5,7 @@
 - PdfFont/PdfXObject: Remove GetIdentifier()
 - PdfXObjet: Remove SetMatrix and move it to PdfXObjectForm
 - PdfDictionary: Optimize PdfName creation by cheching against a small number of known names (eg. /Length)
+- Restore PdfShadingPattern, PdfTilingPattern
 
 ### After 1.0
 - Check/Review doxygen doc
