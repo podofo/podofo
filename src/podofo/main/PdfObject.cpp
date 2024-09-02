@@ -298,7 +298,7 @@ PdfObjectStream& PdfObject::GetOrCreateStream()
 
 void PdfObject::RemoveStream()
 {
-    delayedLoad();
+    DelayedLoad();
     // Unconditionally set the stream as already loaded,
     // then just remove it
     m_IsDelayedLoadStreamDone = true;
