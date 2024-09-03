@@ -62,6 +62,19 @@ void PdfXObjectForm::SetRect(const Rect& rect)
     m_Rect = rect;
 }
 
+void PdfXObjectForm::SetMatrix(const Matrix& m)
+{
+    PdfArray arr;
+    arr.Add(m[0]);
+    arr.Add(m[1]);
+    arr.Add(m[2]);
+    arr.Add(m[3]);
+    arr.Add(m[4]);
+    arr.Add(m[5]);
+
+    GetDictionary().AddKey("Matrix"_n, std::move(arr));
+}
+
 PdfResources* PdfXObjectForm::getResources()
 {
     return m_Resources.get();

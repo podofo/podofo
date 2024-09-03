@@ -51,8 +51,6 @@ public:
 
     Matrix GetMatrix() const;
 
-    void SetMatrix(const Matrix& m);
-
     /** Get the identifier used for drawig this object
      *  \returns identifier
      */

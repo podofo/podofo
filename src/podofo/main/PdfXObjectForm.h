@@ -56,6 +56,8 @@ public:
      */
     void SetRect(const Rect& rect);
 
+    void SetMatrix(const Matrix& m);
+
 public:
     inline PdfResources* GetResources() { return m_Resources.get(); }
     inline const PdfResources* GetResources() const { return m_Resources.get(); }

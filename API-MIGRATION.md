@@ -1,4 +1,5 @@
 ## 0.10.1 -> 1.0.0
+- `PdfXObjet:SetMatrix()`: Removed and moved it to `PdfXObjectForm` (specification tells it doesn't belong to other XObject)
 - `PdfPage::SetICCProfile()`, `PdfImage::SetICCProfile()`: Removed. Create a
   `PdfColorSpaceFilterICCBased` and set it through `PdfPainter::SetFillColorSpace`
   or `PdfPainter::SetStrokeColorSpace`
