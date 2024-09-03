@@ -215,7 +215,10 @@ string_view PdfString::GetString() const
 
 bool PdfString::IsEmpty() const
 {
-    return m_data->Chars.empty();
+    if (m_data->CharsAllocated)
+        return m_data->Chars.empty();
+    else
+        return m_data->Utf8View.empty();
 }
 
 bool PdfString::IsStringEvaluated() const
@@ -396,6 +399,7 @@ string_view PdfString::GetRawData() const
     if (m_data->StringEvaluated)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The raw data buffer has been evaluated to a string");
 
+    PODOFO_ASSERT(m_data->CharsAllocated);
     return m_data->Chars;
 }
 

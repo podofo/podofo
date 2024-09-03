@@ -5,9 +5,12 @@
 - PdfFont/PdfXObject: Remove GetIdentifier()
 - PdfXObjet: Remove SetMatrix and move it to PdfXObjectForm
 - PdfDictionary: Optimize PdfName creation by cheching against a small number of known names (eg. /Length)
+- Check PdfResources
+- More optimization for size for PdfName,PdfString (use union of pointer with NameData/StringData and std::string_view)
 - Restore PdfShadingPattern, PdfTilingPattern
 
 ### After 1.0
+- Add an easier way to retrieve attachments?
 - Check/Review doxygen doc
 - If the doc is updated, then should not allow to set an encryption
 - If the doc is updated and has an encryption, it should not allow to remove it
