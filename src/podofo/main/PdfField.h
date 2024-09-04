@@ -253,6 +253,7 @@ protected:
 
 private:
     void SetWidget(PdfAnnotationWidget& widget) { m_Widget = &widget; }
+    void SetAcroForm(PdfAcroForm& acroform) { m_AcroForm = &acroform; }
 
 private:
     // To be called by PdfPage

@@ -232,9 +232,14 @@ void PdfAcroForm::initFields()
         (*m_fieldMap)[obj->GetIndirectReference()] = i;
         // The field may be invalid. In that case we push a placeholder
         if (PdfField::TryCreateFromObject(*obj, field))
+        {
+            field->SetAcroForm(*this);
             m_Fields.push_back(std::move(field));
+        }
         else
+        {
             m_Fields.push_back(nullptr);
+        }
 
         i++;
     }
