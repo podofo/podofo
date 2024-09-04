@@ -89,10 +89,6 @@ void PdfDocument::Init()
     if (namesObj != nullptr)
         m_NameTrees.reset(new PdfNameTrees(*namesObj));
 
-    auto outlinesObj = catalogDict.FindKey("Outlines");
-    if (outlinesObj != nullptr)
-        m_Outlines.reset(new PdfOutlines(*outlinesObj));
-
     auto acroformObj = catalogDict.FindKey("AcroForm");
     if (acroformObj != nullptr)
         m_AcroForm.reset(new PdfAcroForm(*acroformObj));
@@ -326,6 +322,15 @@ void PdfDocument::resetPrivate()
     Init();
 }
 
+void PdfDocument::initOutlines()
+{
+    auto outlinesObj = m_Catalog->GetDictionary().FindKey("Outlines");
+    if (outlinesObj == nullptr)
+        m_Outlines = unique_ptr<PdfOutlines>();
+    else
+        m_Outlines = unique_ptr<PdfOutlines>(new PdfOutlines(*outlinesObj));
+}
+
 PdfInfo& PdfDocument::GetOrCreateInfo()
 {
     if (m_Info == nullptr)
@@ -482,12 +487,13 @@ void PdfDocument::CollectGarbage()
 
 PdfOutlines& PdfDocument::GetOrCreateOutlines()
 {
-    if (m_Outlines != nullptr)
-        return *m_Outlines.get();
+    initOutlines();
+    if (*m_Outlines != nullptr)
+        return **m_Outlines;
 
-    m_Outlines.reset(new PdfOutlines(*this));
-    m_Catalog->GetDictionary().AddKey("Outlines"_n, m_Outlines->GetObject().GetIndirectReference());
-    return *m_Outlines.get();
+    m_Outlines = unique_ptr<PdfOutlines>(new PdfOutlines(*this));
+    m_Catalog->GetDictionary().AddKey("Outlines"_n, (*m_Outlines)->GetObject().GetIndirectReference());
+    return **m_Outlines;
 }
 
 PdfNameTrees& PdfDocument::GetOrCreateNames()
@@ -633,20 +639,34 @@ const PdfNameTrees& PdfDocument::MustGetNames() const
     return *m_NameTrees;
 }
 
+PdfOutlines* PdfDocument::GetOutlines()
+{
+    initOutlines();
+    return (*m_Outlines).get();
+}
+
+const PdfOutlines* PdfDocument::GetOutlines() const
+{
+    const_cast<PdfDocument&>(*this).initOutlines();
+    return (*m_Outlines).get();
+}
+
 PdfOutlines& PdfDocument::MustGetOutlines()
 {
-    if (m_Outlines == nullptr)
+    initOutlines();
+    if (*m_Outlines == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Outlines are not present");
 
-    return *m_Outlines;
+    return **m_Outlines;
 }
 
 const PdfOutlines& PdfDocument::MustGetOutlines() const
 {
-    if (m_Outlines == nullptr)
+    const_cast<PdfDocument&>(*this).initOutlines();
+    if (*m_Outlines == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Outlines are not present");
 
-    return *m_Outlines;
+    return **m_Outlines;
 }
 
 PdfDocumentFieldIterable PdfDocument::GetFieldsIterator()

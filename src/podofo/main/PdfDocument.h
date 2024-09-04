@@ -363,9 +363,9 @@ public:
 
     const PdfNameTrees* GetNames() const { return m_NameTrees.get(); }
 
-    PdfOutlines* GetOutlines() { return m_Outlines.get(); }
+    PdfOutlines* GetOutlines();
 
-    const PdfOutlines* GetOutlines() const { return m_Outlines.get(); }
+    const PdfOutlines* GetOutlines() const;
 
     PdfFontManager& GetFonts() { return m_FontManager; }
 
@@ -435,6 +435,8 @@ private:
 
     void resetPrivate();
 
+    void initOutlines();
+
 private:
     PdfDocument& operator=(const PdfDocument&) = delete;
 
@@ -448,7 +450,7 @@ private:
     std::unique_ptr<PdfInfo> m_Info;
     std::unique_ptr<PdfPageCollection> m_Pages;
     std::unique_ptr<PdfAcroForm> m_AcroForm;
-    std::unique_ptr<PdfOutlines> m_Outlines;
+    nullable<std::unique_ptr<PdfOutlines>> m_Outlines;
     std::unique_ptr<PdfNameTrees> m_NameTrees;
 };
 
