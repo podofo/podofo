@@ -20,7 +20,7 @@ template<typename T>
 void hexchr(const unsigned char ch, T& it);
 
 static void escapeNameTo(string& dst, const bufferview& view);
-static string unescapeName(const string_view& view);
+static charbuff unescapeName(const string_view& view);
 
 const PdfName PdfName::Null = PdfName();
 
@@ -81,7 +81,22 @@ void PdfName::initFromUtf8String(const string_view& view)
 
 PdfName PdfName::FromEscaped(const string_view& view)
 {
-    return FromRaw(unescapeName(view));
+    // Slightly optimize memory usage by checking
+    // against some well known values
+    if (view == "Filter"sv)
+        return "Filter"_n;
+    else if (view == "Length"sv)
+        return "Length"_n;
+    else if (view == "FlateDecode"sv)
+        return "FlateDecode"_n;
+    else if (view == "Type"sv)
+        return "Type"_n;
+    else if (view == "Subtype"sv)
+        return "Subtype"_n;
+    else if (view == "Parent"sv)
+        return "Parent"_n;
+    else
+        return PdfName(unescapeName(view));
 }
 
 PdfName PdfName::FromRaw(const bufferview& rawcontent)
@@ -187,11 +202,11 @@ void escapeNameTo(string& dst, const bufferview& view)
  *  \param length Length of input string
  *  \returns Unescaped string
  */
-string unescapeName(const string_view& view)
+charbuff unescapeName(const string_view& view)
 {
     // We know the decoded string can be AT MOST
     // the same length as the encoded one, so:
-    string ret;
+    charbuff ret;
     ret.reserve(view.length());
     size_t incount = 0;
     const char* curr = view.data();

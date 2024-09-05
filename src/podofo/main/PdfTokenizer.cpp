@@ -655,7 +655,9 @@ void PdfTokenizer::ReadName(InputStreamDevice& device, PdfVariant& variant)
             EnqueueToken(token, tokenType);
     }
     else
+    {
         variant = PdfName::FromEscaped(token);
+    }
 }
 
 void PdfTokenizer::EnqueueToken(const string_view& token, PdfTokenType tokenType)
