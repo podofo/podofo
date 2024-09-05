@@ -15,7 +15,7 @@ static void Test(const string_view& buffer, PdfDataType dataType, string_view ex
 static void TestStream(const string_view& buffer, const char* tokens[]);
 static void TestStreamIsNextToken(const string_view& buffer, const char* tokens[]);
 
-TEST_CASE("testArrays")
+TEST_CASE("TestArrays")
 {
     Test("[]", PdfDataType::Array);
     Test("[ ]", PdfDataType::Array, "[]");
@@ -34,20 +34,20 @@ TEST_CASE("testArrays")
     Test("[ 27.673200 27.673200 566.256000 651.295000 ]", PdfDataType::Array, "[ 27.6732 27.6732 566.256 651.295]");
 }
 
-TEST_CASE("testBool")
+TEST_CASE("TestBool")
 {
     Test("false", PdfDataType::Bool);
     Test("true", PdfDataType::Bool);
 }
 
-TEST_CASE("testHexString")
+TEST_CASE("TestHexString")
 {
     Test("<FFEB0400A0CC>", PdfDataType::String);
     Test("<FFEB0400A0C>", PdfDataType::String, "<FFEB0400A0C0>");
     Test("<>", PdfDataType::String);
 }
 
-TEST_CASE("testName")
+TEST_CASE("TestName")
 {
     Test("/Type", PdfDataType::Name);
     Test("/Length", PdfDataType::Name);
@@ -60,7 +60,7 @@ TEST_CASE("testName")
     Test("/", PdfDataType::Name); // empty names are legal, too!
 }
 
-TEST_CASE("testName2")
+TEST_CASE("TestName2")
 {
     // Some additional tests, which cause errors for Sebastian Loch
     string_view buffer = "/CheckBox#C3#9Cbersetzungshinweis";
@@ -80,12 +80,12 @@ TEST_CASE("testName2")
     INFO(utls::Format("!!! Name2=[{}]\n", name.GetString()));
 }
 
-TEST_CASE("testNull")
+TEST_CASE("TestNull")
 {
     Test("null", PdfDataType::Null);
 }
 
-TEST_CASE("testNumbers")
+TEST_CASE("TestNumbers")
 {
     Test("145", PdfDataType::Number);
     Test("-12", PdfDataType::Number);
@@ -95,14 +95,14 @@ TEST_CASE("testNumbers")
     Test("4.", PdfDataType::Real, "4");
 }
 
-TEST_CASE("testReference")
+TEST_CASE("TestReference")
 {
     Test("2 0 R", PdfDataType::Reference);
     Test("3 0 R", PdfDataType::Reference);
     Test("4 1 R", PdfDataType::Reference);
 }
 
-TEST_CASE("testString")
+TEST_CASE("TestString")
 {
     // testing strings
     Test("(Hallo Welt!)", PdfDataType::String);
@@ -130,7 +130,7 @@ TEST_CASE("testString")
     Test("(Hallo\\fWelt!)", PdfDataType::String, "(Hallo\\fWelt!)");
 }
 
-TEST_CASE("testDictionary")
+TEST_CASE("TestDictionary")
 {
     string_view dictIn =
         "<< /CheckBox#C3#9Cbersetzungshinweis(False)/Checkbox#C3#9Cbersetzungstabelle(False) >>";
@@ -140,7 +140,7 @@ TEST_CASE("testDictionary")
     Test(dictIn, PdfDataType::Dictionary, dictOut);
 }
 
-TEST_CASE("testTokens")
+TEST_CASE("TestTokens")
 {
     const char* pszBuffer = "613 0 obj"
         "<< /Length 141 /Filter [ /ASCII85Decode /FlateDecode ] >>"
@@ -155,7 +155,7 @@ TEST_CASE("testTokens")
     TestStreamIsNextToken(pszBuffer, pszTokens);
 }
 
-TEST_CASE("testComments")
+TEST_CASE("TestComments")
 {
     const char* pszBuffer = "613 0 obj\n"
         "% A comment that should be ignored\n"
@@ -171,7 +171,7 @@ TEST_CASE("testComments")
     TestStreamIsNextToken(pszBuffer, pszTokens);
 }
 
-TEST_CASE("testLocale")
+TEST_CASE("TestLocale")
 {
     // Test with a locale thate uses "," instead of "." for doubles 
     char* old = setlocale(LC_ALL, "de_DE");

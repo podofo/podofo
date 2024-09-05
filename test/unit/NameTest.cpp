@@ -17,7 +17,7 @@ void TestNameEquality(const string_view& name1, const string_view& name2);
 void TestNameWrite(const string_view& view, const string_view& expected);
 void TestFromEscape(const string_view& name1, const string_view& name2);
 
-TEST_CASE("testParseAndWrite")
+TEST_CASE("TestParseAndWrite")
 {
     const char* data = "/#E5#8A#A8#E6#80#81#E8#BF#9E#E6#8E#A5#E7#BA#BF";
     auto device = std::make_shared<SpanStreamDevice>(data);
@@ -56,7 +56,7 @@ TEST_CASE("testParseAndWrite")
     REQUIRE(name2.GetEscapedName() == (string_view)str2.substr(1));
 }
 
-TEST_CASE("testNameEncoding")
+TEST_CASE("TestNameEncoding")
 {
     // Test some names. The first argument is the unencoded representation, the second
     // is the expected encoded result. The result must not only be /a/ correct encoded
@@ -67,7 +67,7 @@ TEST_CASE("testNameEncoding")
     TestEscapedName("Tab\tTest", "Tab#09Test");
 }
 
-TEST_CASE("testEncodedNames")
+TEST_CASE("TestEncodedNames")
 {
     // Test some pre-encoded names. The first argument is the encoded name that'll be
     // read from the PDF; the second is the expected representation.
@@ -78,7 +78,7 @@ TEST_CASE("testEncodedNames")
     TestEncodedName("ANPA#20723-0#20AdPro", "ANPA 723-0 AdPro");
 }
 
-TEST_CASE("testEquality")
+TEST_CASE("TestEquality")
 {
     // Make sure differently encoded names compare equal if their decoded values
     // are equal.
@@ -86,7 +86,7 @@ TEST_CASE("testEquality")
     TestNameEquality("#57#69#74#68#20#53#70#61#63#65#73", "With#20Spaces");
 }
 
-TEST_CASE("testWrite")
+TEST_CASE("TestWrite")
 {
     // Make sure all names are written correctly to an output device!
     TestNameWrite("Length With Spaces", "/Length#20With#20Spaces");
@@ -95,7 +95,7 @@ TEST_CASE("testWrite")
     TestNameWrite("ANPA 723-0 AdPro", "/ANPA#20723-0#20AdPro");
 }
 
-TEST_CASE("testFromEscaped")
+TEST_CASE("TestFromEscaped")
 {
     TestFromEscape("ANPA#20723-0#20AdPro", "ANPA 723-0 AdPro");
     TestFromEscape("Length#20With#20Spaces", "Length With Spaces");

@@ -27,7 +27,7 @@ namespace PoDoFo
 
 METHOD_AS_TEST_CASE(PdfEncodingTest::TestToUnicodeParse, "TestToUnicodeParse")
 
-TEST_CASE("testDifferences")
+TEST_CASE("TestDifferences")
 {
     PdfDifferenceList difference;
 
@@ -117,7 +117,7 @@ TEST_CASE("testDifferences")
     REQUIRE(!difference.TryGetMappedName(100, name, value));
 }
 
-TEST_CASE("testDifferencesObject")
+TEST_CASE("TestDifferencesObject")
 {
     PdfDifferenceList difference;
     difference.AddDifference(1, "B");
@@ -158,7 +158,7 @@ TEST_CASE("testDifferencesObject")
         REQUIRE(expected[i] == data[i]);
 }
 
-TEST_CASE("testDifferencesEncoding")
+TEST_CASE("TestDifferencesEncoding")
 {
     // Create a differences encoding where A and B are exchanged
     PdfDifferenceList difference;
@@ -184,7 +184,7 @@ TEST_CASE("testDifferencesEncoding")
 // FIX-ME: This test passes but it's garbage and very slow
 // Fix it the whole thing by handling properly the Adobe Glyph List
 // in PdfDifferenceEncoding (or better a new separate function)
-TEST_CASE("testUnicodeNames", "[.]")
+TEST_CASE("TestUnicodeNames", "[.]")
 {
     // List of items which are defined twice and cause
     // other ids to be returned than those which where send in
@@ -257,7 +257,7 @@ TEST_CASE("testUnicodeNames", "[.]")
     REQUIRE(codeCount == 65421);
 }
 
-TEST_CASE("testGetCharCode")
+TEST_CASE("TestGetCharCode")
 {
     auto winAnsiEncoding = PdfEncodingFactory::CreateWinAnsiEncoding();
     INFO("WinAnsiEncoding");

@@ -1944,7 +1944,7 @@ void PdfParserTest::TestIsPdfFile()
     }
 }
 
-TEST_CASE("testSaveIncrementalRoundTrip")
+TEST_CASE("TestSaveIncrementalRoundTrip")
 {
     ostringstream oss;
     oss << "%PDF-1.1\n";
@@ -2228,7 +2228,7 @@ void PdfParserTest::TestNestedDictionaries()
 }
 
 // CVE-2021-30471
-TEST_CASE("testNestedNameTree")
+TEST_CASE("TestNestedNameTree")
 {
     // test for valid but deeply nested name tree
     // maxDepth must be less than GetMaxObjectCount otherwise PdfParser::ResizeOffsets
@@ -2318,7 +2318,7 @@ TEST_CASE("testNestedNameTree")
 }
 
 // CVE-2021-30471
-TEST_CASE("testLoopingNameTree")
+TEST_CASE("TestLoopingNameTree")
 {
     string strNoLoop =
         "%PDF-1.0\r\n"
@@ -2420,7 +2420,7 @@ TEST_CASE("testLoopingNameTree")
 }
 
 // CVE-2021-30471
-TEST_CASE("testNestedPageTree")
+TEST_CASE("TestNestedPageTree")
 {
     // test for valid but deeply nested page tree
     // maxDepth must be less than GetMaxObjectCount otherwise PdfParser::ResizeOffsets
@@ -2497,7 +2497,7 @@ TEST_CASE("testNestedPageTree")
 }
 
 // CVE-2021-30471
-TEST_CASE("testLoopingPageTree")
+TEST_CASE("TestLoopingPageTree")
 {
     // test PDF without nested kids
     string strNoLoop =
@@ -2583,7 +2583,7 @@ TEST_CASE("testLoopingPageTree")
 }
 
 // CVE-2020-18971
-TEST_CASE("testNestedOutlines")
+TEST_CASE("TestNestedOutlines")
 {
     // test for valid but deeply nested outlines
     // maxDepth must be less than GetMaxObjectCount otherwise PdfParser::ResizeOffsets
@@ -2658,7 +2658,7 @@ TEST_CASE("testNestedOutlines")
 }
 
 // CVE-2020-18971
-TEST_CASE("testLoopingOutlines")
+TEST_CASE("TestLoopingOutlines")
 {
     // CVE-2020-18971 - PdfOutlineItem /Next refers a preceding sibling
     string strNextLoop =

@@ -37,7 +37,7 @@ static void testInsert(PdfMemDocument& doc);
 static void testDeleteAll(PdfMemDocument& doc);
 static void testGetPagesReverse(PdfMemDocument& doc);
 
-TEST_CASE("testEmptyDoc")
+TEST_CASE("TestEmptyDoc")
 {
     PdfMemDocument doc;
 
@@ -48,7 +48,7 @@ TEST_CASE("testEmptyDoc")
     ASSERT_THROW_WITH_ERROR_CODE(doc.GetPages().GetPageAt(0), PdfErrorCode::PageNotFound);
 }
 
-TEST_CASE("testCyclicTree")
+TEST_CASE("TestCyclicTree")
 {
     {
         PdfMemDocument doc;
@@ -71,7 +71,7 @@ TEST_CASE("testCyclicTree")
     }
 }
 
-TEST_CASE("testEmptyKidsTree")
+TEST_CASE("TestEmptyKidsTree")
 {
     PdfMemDocument doc;
     createEmptyKidsTree(doc);
@@ -83,7 +83,7 @@ TEST_CASE("testEmptyKidsTree")
     }
 }
 
-TEST_CASE("testNestedArrayTree")
+TEST_CASE("TestNestedArrayTree")
 {
     PdfMemDocument doc;
     createNestedArrayTree(doc);
@@ -91,7 +91,7 @@ TEST_CASE("testNestedArrayTree")
         ASSERT_THROW_WITH_ERROR_CODE(doc.GetPages().GetPageAt(i), PdfErrorCode::PageNotFound);
 }
 
-TEST_CASE("testCreateDelete")
+TEST_CASE("TestCreateDelete")
 {
     PdfMemDocument doc;
     PdfPainter painter;
@@ -136,52 +136,52 @@ TEST_CASE("testCreateDelete")
     }
 }
 
-TEST_CASE("testGetPagesCustom")
+TEST_CASE("TestGetPagesCustom")
 {
     auto doc = PdfPageTest::CreateTestTreeCustom();
     testGetPages(doc);
 }
 
-TEST_CASE("testGetPages")
+TEST_CASE("TestGetPages")
 {
     PdfMemDocument doc;
     createTestTree(doc);
     testGetPages(doc);
 }
 
-TEST_CASE("testGetPagesReverseCustom")
+TEST_CASE("TestGetPagesReverseCustom")
 {
     auto doc = PdfPageTest::CreateTestTreeCustom();
     testGetPagesReverse(doc);
 }
 
-TEST_CASE("testGetPagesReverse")
+TEST_CASE("TestGetPagesReverse")
 {
     PdfMemDocument doc;
     createTestTree(doc);
     testGetPagesReverse(doc);
 }
 
-TEST_CASE("testInsertCustom")
+TEST_CASE("TestInsertCustom")
 {
     auto doc = PdfPageTest::CreateTestTreeCustom();
     testInsert(doc);
 }
 
-TEST_CASE("testInsert")
+TEST_CASE("TestInsert")
 {
     PdfMemDocument doc;
     createTestTree(doc);
     testInsert(doc);
 }
 
-TEST_CASE("testDeleteAllCustom")
+TEST_CASE("TestDeleteAllCustom")
 {
     auto doc = PdfPageTest::CreateTestTreeCustom();
     testDeleteAll(doc);
 }
 
-TEST_CASE("testDeleteAll")
+TEST_CASE("TestDeleteAll")
 {
     PdfMemDocument doc;
     createTestTree(doc);
