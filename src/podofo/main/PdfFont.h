@@ -310,12 +310,6 @@ public:
      */
     inline const std::string& GetSubsetPrefix() const { return m_SubsetPrefix; }
 
-    /** Returns the identifier of this font how it is known
-     *  in the pages resource dictionary.
-     *  \returns PdfName containing the identifier (e.g. /Ft13)
-     */
-    inline const PdfName& GetIdentifier() const { return m_Identifier; }
-
     /** Returns a reference to the fonts encoding
      *  \returns a PdfEncoding object.
      */
@@ -438,7 +432,6 @@ protected:
     std::unique_ptr<PdfEncoding> m_Encoding;
     std::shared_ptr<PdfCharCodeMap> m_DynamicCIDMap;
     std::shared_ptr<PdfCharCodeMap> m_DynamicToUnicodeMap;
-    PdfName m_Identifier;
 };
 
 };

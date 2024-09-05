@@ -33,7 +33,7 @@ class PODOFO_API PdfXObject : public PdfDictionaryElement
     friend class PdfXObjectPostScript;
 
 private:
-    PdfXObject(PdfDocument& doc, PdfXObjectType subType, const std::string_view& prefix);
+    PdfXObject(PdfDocument& doc, PdfXObjectType subType);
     PdfXObject(PdfObject& obj, PdfXObjectType subType);
 
 public:
@@ -51,22 +51,15 @@ public:
 
     Matrix GetMatrix() const;
 
-    /** Get the identifier used for drawig this object
-     *  \returns identifier
-     */
-    inline const PdfName& GetIdentifier() const { return m_Identifier; }
-
     inline PdfXObjectType GetType() const { return m_Type; }
 
 private:
     static bool tryCreateFromObject(const PdfObject& obj, PdfXObjectType xobjType, PdfXObject*& xobj);
     static bool tryCreateFromObject(const PdfObject& obj, const std::type_info& typeInfo, PdfXObject*& xobj);
-    void initIdentifiers(const std::string_view& prefix);
     static PdfXObjectType getPdfXObjectType(const PdfObject& obj);
 
 private:
     PdfXObjectType m_Type;
-    PdfName m_Identifier;
 };
 
 template<typename XObjectT>

@@ -50,9 +50,8 @@ private:
      *  This is an overloaded constructor.
      *
      *  \param parent parent document
-     *  \param prefix optional prefix for XObject-name
      */
-    PdfImage(PdfDocument& doc, const std::string_view& prefix);
+    PdfImage(PdfDocument& doc);
 
 public:
     void DecodeTo(charbuff& buff, PdfPixelFormat format, int scanLineSize = -1) const;

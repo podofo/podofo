@@ -513,7 +513,7 @@ private:
     void SetStrokeColorSpace(const PdfColorSpaceFilter& filter, const PdfColorSpace* colorSpace);
     void SetRenderingIntent(const std::string_view& intent);
     void SetTransformationMatrix(const Matrix& matrix);
-    void SetFont(const PdfFont* font, double fontSize);
+    void SetFont(const PdfFont& font, double fontSize);
     void SetFontScale(double value);
     void SetCharSpacing(double value);
     void SetWordSpacing(double value);
@@ -522,7 +522,7 @@ private:
 
 private:
     void writeTextState();
-    void setFont(const PdfFont* font, double fontSize);
+    void setFont(const PdfFont& font, double fontSize);
     void setFontScale(double value);
     void setCharSpacing(double value);
     void setWordSpacing(double value);
@@ -537,6 +537,7 @@ private:
     void strokeAndFill(bool useEvenOddRule);
     void setFillColorSpace(const PdfObject& csObj);
     void setStrokeColorSpace(const PdfObject& csObj);
+    PdfName tryAddResource(const PdfObject& obj, PdfResourceType type);
 
 private:
     // PdfContentStreamOperators implementation
@@ -630,15 +631,6 @@ private:
      *  \param skipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
      */
     std::vector<std::string> getMultiLineTextAsLines(const std::string_view& str, double width, bool skipSpaces);
-
-    /** Register an object in the resource dictionary of this page
-     *  so that it can be used for any following drawing operations.
-     *
-     *  \param type register under this key in the resource dictionary
-     *  \param name identifier of this object, e.g. /Ft0
-     *  \param obj the object you want to register
-     */
-    void addToPageResources(PdfResourceType type, const PdfName& identifier, const PdfObject& obj);
 
     void drawTextAligned(const std::string_view& str, double x, double y, double width,
         PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style);

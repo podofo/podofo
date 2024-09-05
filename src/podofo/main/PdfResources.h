@@ -34,8 +34,10 @@ class PODOFO_API PdfResources final : public PdfDictionaryElement
 {
     friend class PdfPage;
     friend class PdfXObjectForm;
+    friend class PdfAcroForm;
 
 private:
+    PdfResources(PdfDocument& doc);
     PdfResources(PdfObject& obj);
     PdfResources(PdfCanvas& canvas);
 

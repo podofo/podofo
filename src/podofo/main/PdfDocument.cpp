@@ -679,14 +679,14 @@ PdfDocumentConstFieldIterable PdfDocument::GetFieldsIterator() const
     return PdfDocumentConstFieldIterable(const_cast<PdfDocument&>(*this));
 }
 
-unique_ptr<PdfImage> PdfDocument::CreateImage(const string_view& prefix)
+unique_ptr<PdfImage> PdfDocument::CreateImage()
 {
-    return unique_ptr<PdfImage>(new PdfImage(*this, prefix));
+    return unique_ptr<PdfImage>(new PdfImage(*this));
 }
 
-unique_ptr<PdfXObjectForm> PdfDocument::CreateXObjectForm(const Rect& rect, const string_view& prefix)
+unique_ptr<PdfXObjectForm> PdfDocument::CreateXObjectForm(const Rect& rect)
 {
-    return unique_ptr<PdfXObjectForm>(new PdfXObjectForm(*this, rect, prefix));
+    return unique_ptr<PdfXObjectForm>(new PdfXObjectForm(*this, rect));
 }
 
 unique_ptr<PdfDestination> PdfDocument::CreateDestination()

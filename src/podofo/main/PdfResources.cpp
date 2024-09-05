@@ -18,6 +18,10 @@ static PdfArray getProcSet();
 static PdfName getResourceTypeName(PdfResourceType type);
 static string_view getResourceTypePrefix(PdfResourceType type);
 
+PdfResources::PdfResources(PdfDocument& doc) :
+    PdfDictionaryElement(doc, "Resources"_n),
+    m_currResourceIds{ } { }
+
 PdfResources::PdfResources(PdfObject& obj) :
     PdfDictionaryElement(obj),
     m_currResourceIds{ } { }
@@ -226,9 +230,9 @@ string_view getResourceTypePrefix(PdfResourceType type)
         case PdfResourceType::Shading:
             return "Shd"sv;
         case PdfResourceType::XObject:
-            return "XObj"sv;
+            return "XOb"sv;
         case PdfResourceType::Font:
-            return "Fnt"sv;
+            return "Ft"sv;
         case PdfResourceType::Properties:
             return "Prop"sv;
         default:

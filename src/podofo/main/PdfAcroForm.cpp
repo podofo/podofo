@@ -43,19 +43,14 @@ void PdfAcroForm::init(PdfAcroFormDefaulAppearance defaultAppearance)
         auto font = GetDocument().GetFonts().SearchFont("Helvetica", searchParams, createParams);
 
         // Create DR key
-        if (!this->GetDictionary().HasKey("DR"))
-            this->GetDictionary().AddKey("DR"_n, PdfDictionary());
-        auto& resource = this->GetDictionary().MustFindKey("DR");
-
-        if (!resource.GetDictionary().HasKey("Font"))
-            resource.GetDictionary().AddKey("Font"_n, PdfDictionary());
-
-        auto& fontDict = resource.GetDictionary().MustFindKey("Font");
-        fontDict.GetDictionary().AddKey(font->GetIdentifier(), font->GetObject().GetIndirectReference());
+        auto drObj = GetDictionary().FindKey("DR");
+        unique_ptr<PdfResources> resx;
+        if (drObj == nullptr || !PdfResources::TryCreateFromObject(*drObj, resx))
+            resx.reset(new PdfResources(GetDocument()));
 
         // Create DA key
         PdfStringStream ss;
-        ss << "0 0 0 rg 0 g /" << font->GetIdentifier().GetString() << " 0 Tf";
+        ss << "0 0 0 rg 0 g /" << resx->AddResource(PdfResourceType::Font, font->GetObject()).GetString() << " 0 Tf";
         this->GetDictionary().AddKey("DA"_n, PdfString(ss.GetString()));
     }
 }

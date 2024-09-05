@@ -167,11 +167,10 @@ public:
     void CollectGarbage();
 
     /** Construct a new PdfImage object
-     *  \param prefix optional prefix for XObject-name
      */
-    std::unique_ptr<PdfImage> CreateImage(const std::string_view& prefix = { });
+    std::unique_ptr<PdfImage> CreateImage();
 
-    std::unique_ptr<PdfXObjectForm> CreateXObjectForm(const Rect& rect, const std::string_view& prefix = { });
+    std::unique_ptr<PdfXObjectForm> CreateXObjectForm(const Rect& rect);
 
     std::unique_ptr<PdfDestination> CreateDestination();
 

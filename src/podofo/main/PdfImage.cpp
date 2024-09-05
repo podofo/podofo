@@ -58,8 +58,8 @@ static void createPngContext(png_structp& png, png_infop& pnginfo);
 static void fetchPDFScanLineRGB(unsigned char* dstScanLine,
     unsigned width, const unsigned char* srcScanLine, PdfPixelFormat srcPixelFormat);
 
-PdfImage::PdfImage(PdfDocument& doc, const string_view& prefix)
-    : PdfXObject(doc, PdfXObjectType::Image, prefix), m_ColorSpace(PdfColorSpaceFilterFactory::GetUnkownInstance()), m_Width(0), m_Height(0), m_BitsPerComponent(0)
+PdfImage::PdfImage(PdfDocument& doc)
+    : PdfXObject(doc, PdfXObjectType::Image), m_ColorSpace(PdfColorSpaceFilterFactory::GetUnkownInstance()), m_Width(0), m_Height(0), m_BitsPerComponent(0)
 {
 }
 

@@ -670,14 +670,9 @@ void PdfPainter::DrawImage(const PdfImage& obj, double x, double y, double scale
 void PdfPainter::DrawXObject(const PdfXObject& obj, double x, double y, double scaleX, double scaleY)
 {
     checkStream();
-
-    // use OriginalReference() as the XObject might have been written to disk
-    // already and is not in memory anymore in this case.
-    this->addToPageResources(PdfResourceType::XObject, obj.GetIdentifier(), obj.GetObject());
-
     PoDoFo::WriteOperator_q(m_stream);
     PoDoFo::WriteOperator_cm(m_stream, scaleX, 0, 0, scaleY, x, y);
-    PoDoFo::WriteOperator_Do(m_stream, obj.GetIdentifier().GetString());
+    PoDoFo::WriteOperator_Do(m_stream, tryAddResource(obj.GetObject(), PdfResourceType::XObject));
     PoDoFo::WriteOperator_Q(m_stream);
 }
 
@@ -751,17 +746,7 @@ void PdfPainter::restore()
 void PdfPainter::SetExtGState(const PdfExtGState& extGState)
 {
     checkStream();
-    auto found = m_resNameCache.find(extGState.GetObject().GetIndirectReference());
-    if (found == m_resNameCache.end())
-    {
-        auto name = m_canvas->GetOrCreateResources().AddResource(PdfResourceType::ExtGState, extGState.GetObject());
-        m_resNameCache[extGState.GetObject().GetIndirectReference()] = name;
-        PoDoFo::WriteOperator_gs(m_stream, name);
-    }
-    else
-    {
-        PoDoFo::WriteOperator_gs(m_stream, found->second);
-    }
+    PoDoFo::WriteOperator_gs(m_stream, tryAddResource(extGState.GetObject(), PdfResourceType::ExtGState));
 }
 
 // TODO: Validate when marked content can be put
@@ -958,17 +943,7 @@ void PdfPainter::SetFillColorSpace(const PdfColorSpaceFilter& filter, const PdfC
 
 void PdfPainter::setFillColorSpace(const PdfObject& csObj)
 {
-    auto found = m_resNameCache.find(csObj.GetIndirectReference());
-    if (found == m_resNameCache.end())
-    {
-        auto name = m_canvas->GetOrCreateResources().AddResource(PdfResourceType::ColorSpace, csObj);
-        m_resNameCache[csObj.GetIndirectReference()] = name;
-        PoDoFo::WriteOperator_cs(m_stream, name);
-    }
-    else
-    {
-        PoDoFo::WriteOperator_cs(m_stream, found->second);
-    }
+    PoDoFo::WriteOperator_cs(m_stream, tryAddResource(csObj, PdfResourceType::ColorSpace));
 }
 
 void PdfPainter::SetStrokeColorSpace(const PdfColorSpaceFilter& filter, const PdfColorSpace* colorSpace)
@@ -994,41 +969,40 @@ void PdfPainter::SetStrokeColorSpace(const PdfColorSpaceFilter& filter, const Pd
 
 void PdfPainter::setStrokeColorSpace(const PdfObject& csObj)
 {
-    auto found = m_resNameCache.find(csObj.GetIndirectReference());
-    if (found == m_resNameCache.end())
-    {
-        auto name = m_canvas->GetOrCreateResources().AddResource(PdfResourceType::ColorSpace, csObj);
-        m_resNameCache[csObj.GetIndirectReference()] = name;
-        PoDoFo::WriteOperator_CS(m_stream, name);
-    }
-    else
-    {
-        PoDoFo::WriteOperator_CS(m_stream, found->second);
-    }
+    PoDoFo::WriteOperator_CS(m_stream, tryAddResource(csObj, PdfResourceType::ColorSpace));
 }
 
-void PdfPainter::SetFont(const PdfFont* font, double fontSize)
+PdfName PdfPainter::tryAddResource(const PdfObject& obj, PdfResourceType type)
 {
-    if (font == nullptr)
-        return;
+    auto found = m_resNameCache.find(obj.GetIndirectReference());
+    if (found == m_resNameCache.end())
+    {
+        auto name = m_canvas->GetOrCreateResources().AddResource(type, obj);
+        m_resNameCache[obj.GetIndirectReference()] = name;
+        return name;
+    }
 
+    return found->second;
+}
+
+void PdfPainter::SetFont(const PdfFont& font, double fontSize)
+{
     checkStream();
-    this->addToPageResources(PdfResourceType::Font, font->GetIdentifier(), font->GetObject());
     if (m_painterStatus == StatusTextObject)
         setFont(font, fontSize);
 }
 
-void PdfPainter::setFont(const PdfFont* font, double fontSize)
+void PdfPainter::setFont(const PdfFont& font, double fontSize)
 {
     auto& textState = m_StateStack.Current->EmittedTextState;
-    if (textState.Font == font
+    if (textState.Font == &font
         && textState.FontSize == fontSize)
     {
         return;
     }
 
-    PoDoFo::WriteOperator_Tf(m_stream, font->GetIdentifier().GetString(), fontSize);
-    textState.Font = font;
+    PoDoFo::WriteOperator_Tf(m_stream, tryAddResource(font.GetObject(), PdfResourceType::Font), fontSize);
+    textState.Font = &font;
     textState.FontSize = fontSize;
 }
 
@@ -1104,7 +1078,7 @@ void PdfPainter::writeTextState()
 {
     auto& textState = m_StateStack.Current->TextState;
     if (textState.Font != nullptr)
-        setFont(textState.Font, textState.FontSize);
+        setFont(*textState.Font, textState.FontSize);
 
     if (textState.FontScale != 1)
         setFontScale(textState.FontScale);
@@ -1117,14 +1091,6 @@ void PdfPainter::writeTextState()
 
     if (textState.RenderingMode != PdfTextRenderingMode::Fill)
         setTextRenderingMode(textState.RenderingMode);
-}
-
-void PdfPainter::addToPageResources(PdfResourceType type, const PdfName& identifier, const PdfObject& obj)
-{
-    if (m_canvas == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
-    m_canvas->GetOrCreateResources().AddResource(type, identifier, obj);
 }
 
 string PdfPainter::expandTabs(const string_view& str) const
@@ -1372,7 +1338,7 @@ void PdfTextStateWrapper::SetFont(const PdfFont& font, double fontSize)
 
     m_state->Font = &font;
     m_state->FontSize = fontSize;
-    m_painter->SetFont(m_state->Font, m_state->FontSize);
+    m_painter->SetFont(*m_state->Font, m_state->FontSize);
 }
 
 void PdfTextStateWrapper::SetFontScale(double scale)

@@ -136,7 +136,7 @@ TEST_CASE("TestPainter3")
 
     auto expected = R"(q
 BT
-/Ft5 15 Tf
+/Ft0 15 Tf
 100 500 Td
 q
 0.75 w
@@ -216,7 +216,7 @@ TEST_CASE("TestPainter4")
 
     auto expected = R"(q
 BT
-/Ft5 15 Tf
+/Ft0 15 Tf
 100 500 Td
 (Test1) Tj
 [ (_W) -500 (orld) ] TJ
@@ -344,7 +344,7 @@ q
 W
 n
 BT
-/Ft5 15 Tf
+/Ft0 15 Tf
 100 628.75 Td
 (Hello) Tj
 0 -15 Td

@@ -13,8 +13,8 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfXObjectForm::PdfXObjectForm(PdfDocument& doc, const Rect& rect, const string_view& prefix)
-    : PdfXObject(doc, PdfXObjectType::Form, prefix), m_Rect(rect)
+PdfXObjectForm::PdfXObjectForm(PdfDocument& doc, const Rect& rect)
+    : PdfXObject(doc, PdfXObjectType::Form), m_Rect(rect)
 {
     initXObject(rect);
 }

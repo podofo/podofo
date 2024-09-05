@@ -26,10 +26,8 @@ private:
      *
      *  \param doc the parent document of the XObject
      *  \param rect the size of the XObject
-     *  \param prefix optional prefix for XObject-name
      */
-    PdfXObjectForm(PdfDocument& doc, const Rect& rect,
-        const std::string_view& prefix);
+    PdfXObjectForm(PdfDocument& doc, const Rect& rect);
 
 public:
     /** Create a new XObject from a page of another document

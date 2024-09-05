@@ -2,7 +2,6 @@
 
 - PdfDocument: Review AttachFile, GetAttachment, FreeObjectMemory, AddNamedDestination
 - PdfErrorCode: Check all values (Add MaxRecursionReached)
-- PdfFont/PdfXObject: Remove GetIdentifier()
 - PdfDictionary: Optimize PdfName creation by cheching against a small number of known names (eg. /Length)
 - Check PdfResources
 - More optimization for size for PdfName,PdfString (use union of pointer with NameData/StringData and std::string_view)

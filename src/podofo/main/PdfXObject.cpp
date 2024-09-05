@@ -22,17 +22,15 @@ using namespace PoDoFo;
 static string_view toString(PdfXObjectType type);
 static PdfXObjectType fromString(const string_view& str);
 
-PdfXObject::PdfXObject(PdfDocument& doc, PdfXObjectType subType, const string_view& prefix)
+PdfXObject::PdfXObject(PdfDocument& doc, PdfXObjectType subType)
     : PdfDictionaryElement(doc, "XObject"_n), m_Type(subType)
 {
-    initIdentifiers(prefix);
     this->GetDictionary().AddKey("Subtype"_n, PdfName(toString(subType)));
 }
 
 PdfXObject::PdfXObject(PdfObject& obj, PdfXObjectType subType)
     : PdfDictionaryElement(obj), m_Type(subType)
 {
-    initIdentifiers({ });
 }
 
 bool PdfXObject::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfXObject>& xobj)
@@ -139,20 +137,6 @@ bool PdfXObject::tryCreateFromObject(const PdfObject& obj, const type_info& type
         PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
 
     return tryCreateFromObject(obj, xobjType, xobj);
-}
-
-void PdfXObject::initIdentifiers(const string_view& prefix)
-{
-    PdfStringStream out;
-
-    // Implementation note: the identifier is always
-    // Prefix+ObjectNo. Prefix is /XOb for XObject.
-    if (prefix.length() == 0)
-        out << "XOb" << this->GetObject().GetIndirectReference().ObjectNumber();
-    else
-        out << prefix << this->GetObject().GetIndirectReference().ObjectNumber();
-
-    m_Identifier = PdfName(out.GetString());
 }
 
 string_view toString(PdfXObjectType type)

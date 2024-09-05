@@ -58,12 +58,6 @@ PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Metrics must me not null");
 
     this->initBase(encoding);
-
-    // Implementation note: the identifier is always
-    // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    PdfStringStream out;
-    out << "PoDoFoFt" << this->GetObject().GetIndirectReference().ObjectNumber();
-    m_Identifier = PdfName(out.GetString());
 }
 
 PdfFont::~PdfFont() { }
@@ -144,13 +138,6 @@ void PdfFont::initBase(const PdfEncoding& encoding)
     {
         m_Encoding = PdfEncoding::CreateSchim(encoding, *this);
     }
-
-    PdfStringStream out;
-
-    // Implementation note: the identifier is always
-    // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "Ft" << this->GetObject().GetIndirectReference().ObjectNumber();
-    m_Identifier = PdfName(out.GetString());
 
     // By default ensure the font has the /BaseFont name or /FontName
     // or, the name inferred from a font file
