@@ -143,7 +143,7 @@ public:
      *
      *  \returns PdfObject the AcroForm dictionary
      */
-    PdfAcroForm& GetOrCreateAcroForm(PdfAcroFormDefaulAppearance eDefaultAppearance = PdfAcroFormDefaulAppearance::BlackText12pt);
+    PdfAcroForm& GetOrCreateAcroForm(PdfAcroFormDefaulAppearance eDefaultAppearance = PdfAcroFormDefaulAppearance::ArialBlack);
 
     /** Attach a file to the document.
      *  \param fileSpec a file specification

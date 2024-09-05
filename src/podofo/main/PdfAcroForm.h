@@ -15,8 +15,8 @@ class PdfDocument;
 
 enum class PdfAcroFormDefaulAppearance
 {
-    None, ///< Do not add a default appearrance
-    BlackText12pt ///< Add a default appearance with Arial embedded and black text 12pt if no other DA key is present
+    None = 0, ///< Do not add a default appearrance
+    ArialBlack ///< Add a default appearance with Arial embedded and black text if no other DA key is present
 };
 
 class PODOFO_API PdfAcroForm final : public PdfDictionaryElement
@@ -30,7 +30,7 @@ private:
      *  \param defaultAppearance specifies if a default appearance should be added
      */
     PdfAcroForm(PdfDocument & doc,
-                 PdfAcroFormDefaulAppearance defaultAppearance = PdfAcroFormDefaulAppearance::BlackText12pt);
+                 PdfAcroFormDefaulAppearance defaultAppearance = PdfAcroFormDefaulAppearance::ArialBlack);
 
     /** Create a PdfAcroForm dictionary object from an existing PdfObject
      *	\param obj the object to create from

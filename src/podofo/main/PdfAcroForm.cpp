@@ -35,7 +35,7 @@ void PdfAcroForm::init(PdfAcroFormDefaulAppearance defaultAppearance)
     // Add default appearance: black text, 12pt times 
     // -> only if we do not have a DA key yet
 
-    if (defaultAppearance == PdfAcroFormDefaulAppearance::BlackText12pt)
+    if (defaultAppearance == PdfAcroFormDefaulAppearance::ArialBlack)
     {
         PdfFontCreateParams createParams;
         PdfFontSearchParams searchParams;
