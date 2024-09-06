@@ -734,7 +734,8 @@ unsigned PdfColorSpaceFilterLab::GetColorComponentCount() const
 }
 
 PdfColorSpaceFilterICCBased::PdfColorSpaceFilterICCBased(const PdfColorSpaceFilterPtr& alternateColorSpace,
-    charbuff&& iccprofile)
+        charbuff&& iccprofile)
+    : m_AlternateColorSpace(alternateColorSpace), m_iccprofile(std::move(iccprofile))
 {
 }
 
