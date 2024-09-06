@@ -27,7 +27,7 @@ class PdfXRef;
 class PdfWriter
 {
 private:
-    PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer, PdfVersion version);
+    PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer);
 
 public:
     /** Create a new pdf file, from an vector of PdfObjects
@@ -58,7 +58,6 @@ public:
      */
     void SetEncrypt(PdfEncryptSession& encrypt);
 
-
     /** Add required keys to a trailer object
      *  \param trailer add keys to this object
      *  \param size number of objects in the PDF file
@@ -68,6 +67,8 @@ public:
 
 public:
     void SetSaveOptions(PdfSaveOptions saveOptions);
+
+    inline PdfSaveOptions GetSaveOptions() const { return m_SaveOptions; }
 
     /** Get the write mode used for writing the PDF
      *  \returns the write mode
@@ -84,6 +85,10 @@ public:
      *  \returns PdfVersion version of the pdf document
      */
     inline PdfVersion GetPdfVersion() const { return m_Version; }
+
+    void SetPdfALevel(PdfALevel level);
+
+    inline PdfALevel GetPdfALevel() const { return m_PdfALevel; }
 
     /**
      *  \returns whether an XRef stream is used or not
@@ -153,13 +158,15 @@ protected:
      */
     void CreateFileIdentifier(PdfString& identifier, const PdfObject& trailer, PdfString* originalIdentifier = nullptr);
 
-
     const PdfObject& GetTrailer() { return *m_Trailer; }
     PdfEncryptSession* GetEncrypt() { return m_Encrypt; }
     PdfObject* GetEncryptObj() { return m_EncryptObj; }
     const PdfString& GetIdentifier() { return m_identifier; }
     void SetIdentifier(const PdfString& identifier) { m_identifier = identifier; }
     void SetEncryptObj(PdfObject& obj);
+
+private:
+    void initWriteFlags();
 
 protected:
     charbuff m_buffer;
@@ -168,6 +175,7 @@ private:
     PdfIndirectObjectList* m_Objects;
     const PdfObject* m_Trailer;
     PdfVersion m_Version;
+    PdfALevel m_PdfALevel;
 
     bool m_UseXRefStream;
 

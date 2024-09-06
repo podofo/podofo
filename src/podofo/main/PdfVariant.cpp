@@ -207,17 +207,16 @@ void PdfVariant::Write(OutputStream& device, PdfWriteFlags writeMode,
     };
 }
 
-string PdfVariant::ToString() const
+string PdfVariant::ToString(PdfWriteFlags writeFlags) const
 {
     string ret;
-    ToString(ret);
+    ToString(ret, writeFlags);
     return ret;
 }
 
-void PdfVariant::ToString(string& str) const
+void PdfVariant::ToString(string& str, PdfWriteFlags writeFlags) const
 {
     str.clear();
-    PdfWriteFlags writeFlags;
     switch (m_DataType)
     {
         case PdfDataType::Null:
@@ -225,11 +224,8 @@ void PdfVariant::ToString(string& str) const
         case PdfDataType::Number:
         case PdfDataType::Real:
         case PdfDataType::Reference:
-            // By default we want the literals to not be spaced
-            writeFlags = PdfWriteFlags::NoInlineLiteral;
-            break;
-        default:
-            writeFlags = PdfWriteFlags::None;
+            // We enforce the literals to not be spaced
+            writeFlags |= PdfWriteFlags::NoInlineLiteral;
             break;
     }
 

@@ -210,7 +210,8 @@ void PdfMemDocument::Save(OutputStreamDevice& device, PdfSaveOptions opts)
     beforeWrite(opts);
 
     PdfWriter writer(this->GetObjects(), this->GetTrailer().GetObject());
-    writer.SetPdfVersion(this->GetPdfVersion());
+    writer.SetPdfVersion(GetMetadata().GetPdfVersion());
+    writer.SetPdfALevel(GetMetadata().GetPdfALevel());
     writer.SetSaveOptions(opts);
 
     if (m_Encrypt != nullptr)
@@ -238,7 +239,8 @@ void PdfMemDocument::SaveUpdate(OutputStreamDevice& device, PdfSaveOptions opts)
     beforeWrite(opts);
 
     PdfWriter writer(this->GetObjects(), this->GetTrailer().GetObject());
-    writer.SetPdfVersion(this->GetPdfVersion());
+    writer.SetPdfVersion(GetMetadata().GetPdfVersion());
+    writer.SetPdfALevel(GetMetadata().GetPdfALevel());
     writer.SetSaveOptions(opts);
     writer.SetPrevXRefOffset(m_PrevXRefOffset);
     writer.SetUseXRefStream(m_HasXRefStream);

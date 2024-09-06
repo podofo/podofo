@@ -21,6 +21,9 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
     m_Device(&device),
     m_OpenStream(false)
 {
+    SetPdfVersion(version);
+    SetSaveOptions(opts);
+
     // Register as observer for PdfIndirectObjectList
     GetObjects().AttachObserver(*this);
     // Register as stream factory for PdfIndirectObjectList
@@ -39,8 +42,6 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
     }
 
     // Start with writing the header
-    this->SetPdfVersion(version);
-    this->SetSaveOptions(opts);
     this->WritePdfHeader(*m_Device);
 
     // Manually prepare the cross-reference table/stream

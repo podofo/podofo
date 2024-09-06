@@ -187,8 +187,8 @@ public:
      *  which can be written directly to a PDF file on disc.
      *  \param str the object string is returned in this object.
      */
-    std::string ToString() const;
-    void ToString(std::string& str) const;
+    std::string ToString(PdfWriteFlags writeFlags = PdfWriteFlags::None) const;
+    void ToString(std::string& str, PdfWriteFlags writeFlags = PdfWriteFlags::None) const;
 
     /** Get the value if this object is a bool.
      *  \returns the bool value.

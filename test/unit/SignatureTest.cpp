@@ -9,6 +9,8 @@
 using namespace std;
 using namespace PoDoFo;
 
+constexpr string_view TestSignatureRefHash = "F867FF5A7746D5EE3C386975E5E275BA"sv;
+
 TEST_CASE("TestLoadCertificate")
 {
     // Load a PEM certificate should fail
@@ -68,14 +70,14 @@ TEST_CASE("TestSignature1")
         auto stream = std::make_shared<StandardStreamDevice>(ss);
         input.CopyTo(*stream);
         testSignature(stream, pkey1);
-        REQUIRE(ssl::ComputeMD5Str(ss.str()) == "FB93FC8C74529094F909D4C423268865");
+        REQUIRE(ssl::ComputeMD5Str(ss.str()) == TestSignatureRefHash);
     }
 
     {
         utls::ReadTo(buff, inputPath);
         auto stream = std::make_shared<BufferStreamDevice>(buff);
         testSignature(stream, pkey8);
-        REQUIRE(ssl::ComputeMD5Str(buff) == "FB93FC8C74529094F909D4C423268865");
+        REQUIRE(ssl::ComputeMD5Str(buff) == TestSignatureRefHash);
     }
 
     {
@@ -83,7 +85,7 @@ TEST_CASE("TestSignature1")
         auto stream = std::make_shared<FileStreamDevice>(outputPath, FileMode::Open);
         testSignature(stream, pkey8);
         utls::ReadTo(buff, outputPath);
-        REQUIRE(ssl::ComputeMD5Str(buff) == "FB93FC8C74529094F909D4C423268865");
+        REQUIRE(ssl::ComputeMD5Str(buff) == TestSignatureRefHash);
     }
 }
 
@@ -121,7 +123,7 @@ TEST_CASE("TestSignature2")
     PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
 
     utls::ReadTo(buff, outputPath);
-    REQUIRE(ssl::ComputeMD5Str(buff) == "FB93FC8C74529094F909D4C423268865");
+    REQUIRE(ssl::ComputeMD5Str(buff) == TestSignatureRefHash);
 }
 
 // Test sequential signing with external service
@@ -160,7 +162,7 @@ TEST_CASE("TestSignature3")
     ctx.FinishSigning(results);
     
     utls::ReadTo(buff, outputPath);
-    REQUIRE(ssl::ComputeMD5Str(buff) == "FB93FC8C74529094F909D4C423268865");
+    REQUIRE(ssl::ComputeMD5Str(buff) == TestSignatureRefHash);
 }
 
 TEST_CASE("TestSignEncryptedDoc")

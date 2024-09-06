@@ -125,11 +125,7 @@ enum class PdfWriteFlags
     Clean = 1,             ///< Create a PDF that is readable in a text editor, i.e. insert spaces and linebreaks between tokens
     NoInlineLiteral = 2,   ///< Don't write spaces before literal types (numerical, references, null)
     NoFlateCompress = 4,
-
-    // NOTE: The following flags are actually never set but
-    // they are kept for documenting some PDF peculiarities
-    // when writing compact code
-    NoPDFAPreserve = 256,    ///< When writing compact (PdfWriteFlags::Clean is unset) code, preserving PDF/A compliance is not required
+    PdfAPreserve = 8,     ///< Preserve PDFA compliance during writing (NOTE: it does not itself convert the document to PDF/A)
 };
 
 /**

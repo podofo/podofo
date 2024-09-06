@@ -208,11 +208,13 @@ void PdfObject::initObject()
 void PdfObject::Write(OutputStream& stream, PdfWriteFlags writeMode,
     const PdfStatefulEncrypt* encrypt, charbuff& buffer) const
 {
+    DelayedLoadStream();
     write(stream, true, writeMode, encrypt, buffer);
 }
 
 void PdfObject::WriteFinal(OutputStream& stream, PdfWriteFlags writeMode, const PdfStatefulEncrypt* encrypt, charbuff& buffer)
 {
+    DelayedLoadStream();
     write(stream, false, writeMode, encrypt, buffer);
 
     // After writing we can reset the dirty flag
@@ -222,9 +224,6 @@ void PdfObject::WriteFinal(OutputStream& stream, PdfWriteFlags writeMode, const 
 void PdfObject::write(OutputStream& stream, bool skipLengthFix,
     PdfWriteFlags writeMode, const PdfStatefulEncrypt* encrypt, charbuff& buffer) const
 {
-    DelayedLoad();
-    DelayedLoadStream();
-
     if (m_IndirectReference.IsIndirect())
         WriteHeader(stream, writeMode, buffer);
 
@@ -276,16 +275,16 @@ void PdfObject::write(OutputStream& stream, bool skipLengthFix,
 
 void PdfObject::WriteHeader(OutputStream& stream, PdfWriteFlags writeMode, charbuff& buffer) const
 {
-    if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::None
-        && (writeMode & PdfWriteFlags::NoPDFAPreserve) != PdfWriteFlags::None)
+    if ((writeMode & PdfWriteFlags::Clean) != PdfWriteFlags::None
+        || (writeMode & PdfWriteFlags::PdfAPreserve) != PdfWriteFlags::None)
     {
-        utls::FormatTo(buffer, "{} {} obj", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber());
+        // PDF/A compliance requires all objects to be written in a clean way
+        utls::FormatTo(buffer, "{} {} obj\n", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber());
         stream.Write(buffer);
     }
     else
     {
-        // PDF/A compliance requires all objects to be written in a clean way
-        utls::FormatTo(buffer, "{} {} obj\n", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber());
+        utls::FormatTo(buffer, "{} {} obj", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber());
         stream.Write(buffer);
     }
 }
@@ -571,19 +570,32 @@ PdfDataType PdfObject::GetDataType() const
     return m_Variant.GetDataType();
 }
 
-string PdfObject::ToString() const
+string PdfObject::ToString(PdfWriteFlags writeFlags) const
 {
     string ret;
-    ToString(ret);
+    ToString(ret, writeFlags);
     return ret;
 }
 
-void PdfObject::ToString(string& ret) const
+void PdfObject::ToString(string& ret, PdfWriteFlags writeFlags) const
 {
+    DelayedLoadStream();
     ret.clear();
+    switch (m_Variant.GetDataType())
+    {
+        case PdfDataType::Null:
+        case PdfDataType::Bool:
+        case PdfDataType::Number:
+        case PdfDataType::Real:
+        case PdfDataType::Reference:
+            // We enforce the literals to not be spaced
+            writeFlags |= PdfWriteFlags::NoInlineLiteral;
+            break;
+    }
+
     StringStreamDevice device(ret);
     charbuff buffer;
-    write(device, true, PdfWriteFlags::None, nullptr, buffer);
+    write(device, true, writeFlags, nullptr, buffer);
 }
 
 bool PdfObject::GetBool() const

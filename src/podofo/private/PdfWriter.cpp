@@ -21,12 +21,13 @@
 using namespace std;
 using namespace PoDoFo;
 
-static PdfWriteFlags ToWriteFlags(PdfSaveOptions opts);
+static PdfWriteFlags toWriteFlags(PdfSaveOptions opts, PdfALevel pdfaLevel);
 
-PdfWriter::PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer, PdfVersion version) :
+PdfWriter::PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer) :
     m_Objects(objects),
     m_Trailer(&trailer),
-    m_Version(version),
+    m_Version(PdfVersionDefault),
+    m_PdfALevel(PdfALevel::Unknown),
     m_UseXRefStream(false),
     m_Encrypt(nullptr),
     m_EncryptObj(nullptr),
@@ -39,12 +40,12 @@ PdfWriter::PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer, P
 }
 
 PdfWriter::PdfWriter(PdfIndirectObjectList& objects, const PdfObject& trailer)
-    : PdfWriter(&objects, trailer, PdfVersionDefault)
+    : PdfWriter(&objects, trailer)
 {
 }
 
 PdfWriter::PdfWriter(PdfIndirectObjectList& objects)
-    : PdfWriter(&objects, PdfObject(), PdfVersionDefault)
+    : PdfWriter(&objects, PdfObject())
 {
 }
 
@@ -54,15 +55,14 @@ void PdfWriter::SetIncrementalUpdate(bool rewriteXRefTable)
     m_rewriteXRefTable = rewriteXRefTable;
 }
 
-void PdfWriter::SetSaveOptions(PdfSaveOptions opts)
-{
-    m_SaveOptions = opts;
-    m_WriteFlags = ToWriteFlags(opts);
-}
-
 PdfWriter::~PdfWriter()
 {
     m_Objects = nullptr;
+}
+
+void PdfWriter::initWriteFlags()
+{
+    m_WriteFlags = toWriteFlags(m_SaveOptions, m_PdfALevel);
 }
 
 void PdfWriter::Write(OutputStreamDevice& device)
@@ -223,6 +223,18 @@ void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t size, bool onlySize
     }
 }
 
+void PdfWriter::SetSaveOptions(PdfSaveOptions saveOptions)
+{
+    m_SaveOptions = saveOptions;
+    initWriteFlags();
+}
+
+void PdfWriter::SetPdfALevel(PdfALevel level)
+{
+    m_PdfALevel = level;
+    initWriteFlags();
+}
+
 void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& trailer, PdfString* originalIdentifier)
 {
     NullStreamDevice length;
@@ -317,12 +329,12 @@ void PdfWriter::SetEncrypt(PdfEncryptSession& encrypt)
 void PdfWriter::SetUseXRefStream(bool useXRefStream)
 {
     if (useXRefStream && m_Version < PdfVersion::V1_5)
-        this->SetPdfVersion(PdfVersion::V1_5);
+        m_Version = PdfVersion::V1_5;
 
     m_UseXRefStream = useXRefStream;
 }
 
-PdfWriteFlags ToWriteFlags(PdfSaveOptions opts)
+PdfWriteFlags toWriteFlags(PdfSaveOptions opts, PdfALevel pdfaLevel)
 {
     PdfWriteFlags ret = PdfWriteFlags::None;
     if ((opts & PdfSaveOptions::NoFlateCompress) !=
@@ -336,6 +348,9 @@ PdfWriteFlags ToWriteFlags(PdfSaveOptions opts)
     {
         ret |= PdfWriteFlags::Clean;
     }
+
+    if (pdfaLevel != PdfALevel::Unknown)
+        ret |= PdfWriteFlags::PdfAPreserve;
 
     return ret;
 }
