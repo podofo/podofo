@@ -22,7 +22,7 @@ namespace PoDoFo {
  *
  *  \see PdfObject \see PdfVariant
  */
-class PODOFO_API PdfName final : public PdfDataProvider
+class PODOFO_API PdfName final : public PdfDataProvider<PdfName>
 {
     friend PdfName PODOFO_API operator""_n(const char*, size_t);
 
@@ -84,7 +84,7 @@ public:
     std::string GetEscapedName() const;
 
     void Write(OutputStream& stream, PdfWriteFlags writeMode,
-        const PdfStatefulEncrypt* encrypt, charbuff& buffer) const override;
+        const PdfStatefulEncrypt* encrypt, charbuff& buffer) const;
 
     /** \returns the unescaped value of this name object
      *           without the leading slash

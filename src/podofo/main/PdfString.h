@@ -22,7 +22,7 @@ namespace PoDoFo {
  *  it is very fast to copy PdfString objects.
  *
  */
-class PODOFO_API PdfString final : public PdfDataProvider
+class PODOFO_API PdfString final : public PdfDataProvider<PdfString>
 {
 public:
     /** Create an empty string
@@ -115,7 +115,7 @@ public:
     std::string_view GetRawData() const;
 
     void Write(OutputStream& stream, PdfWriteFlags writeMode,
-        const PdfStatefulEncrypt* encrypt, charbuff& buffer) const override;
+        const PdfStatefulEncrypt* encrypt, charbuff& buffer) const;
 
     /** Copy an existing PdfString
      *  \param rhs another PdfString to copy

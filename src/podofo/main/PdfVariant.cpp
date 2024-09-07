@@ -48,13 +48,13 @@ PdfVariant::PdfVariant(double value)
 PdfVariant::PdfVariant(const PdfString& str)
     : PdfVariant(PdfDataType::String)
 {
-    m_Data.Data = new PdfString(str);
+    m_Data.String = new PdfString(str);
 }
 
 PdfVariant::PdfVariant(const PdfName& name)
     : PdfVariant(PdfDataType::Name)
 {
-    m_Data.Data = new PdfName(name);
+    m_Data.Name = new PdfName(name);
 }
 
 PdfVariant::PdfVariant(const PdfReference& ref)
@@ -66,25 +66,25 @@ PdfVariant::PdfVariant(const PdfReference& ref)
 PdfVariant::PdfVariant(const PdfArray& arr)
     : PdfVariant(PdfDataType::Array)
 {
-    m_Data.Data = new PdfArray(arr);
+    m_Data.Container = new PdfArray(arr);
 }
 
 PdfVariant::PdfVariant(PdfArray&& arr) noexcept
     : PdfVariant(PdfDataType::Array)
 {
-    m_Data.Data = new PdfArray(std::move(arr));
+    m_Data.Container = new PdfArray(std::move(arr));
 }
 
 PdfVariant::PdfVariant(const PdfDictionary& dict)
     : PdfVariant(PdfDataType::Dictionary)
 {
-    m_Data.Data = new PdfDictionary(dict);
+    m_Data.Container = new PdfDictionary(dict);
 }
 
 PdfVariant::PdfVariant(PdfDictionary&& dict) noexcept
     : PdfVariant(PdfDataType::Dictionary)
 {
-    m_Data.Data = new PdfDictionary(std::move(dict));
+    m_Data.Container = new PdfDictionary(std::move(dict));
 }
 
 PdfVariant::PdfVariant(const PdfData& data)
@@ -124,8 +124,20 @@ void PdfVariant::clear()
     {
         case PdfDataType::Array:
         case PdfDataType::Dictionary:
+        {
+            delete m_Data.Container;
+            break;
+        }
         case PdfDataType::Name:
+        {
+            delete m_Data.Name;
+            break;
+        }
         case PdfDataType::String:
+        {
+            delete m_Data.String;
+            break;
+        }
         case PdfDataType::RawData:
         {
             delete m_Data.Data;
@@ -181,13 +193,16 @@ void PdfVariant::Write(OutputStream& device, PdfWriteFlags writeMode,
             m_Data.Reference.Write(device, writeMode, buffer);
             break;
         case PdfDataType::String:
+            m_Data.String->Write(device, writeMode, encrypt, buffer);
+            break;
         case PdfDataType::Name:
+            m_Data.Name->Write(device, writeMode, encrypt, buffer);
+            break;
         case PdfDataType::Array:
         case PdfDataType::Dictionary:
+            m_Data.Container->Write(device, writeMode, encrypt, buffer);
+            break;
         case PdfDataType::RawData:
-            if (m_Data.Data == nullptr)
-                PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
             m_Data.Data->Write(device, writeMode, encrypt, buffer);
             break;
         case PdfDataType::Null:
@@ -258,22 +273,22 @@ void PdfVariant::assign(const PdfVariant& rhs)
     {
         case PdfDataType::Array:
         {
-            m_Data.Data = new PdfArray(*static_cast<const PdfArray*>(rhs.m_Data.Data));
+            m_Data.Container = new PdfArray(*static_cast<const PdfArray*>(rhs.m_Data.Container));
             break;
         }
         case PdfDataType::Dictionary:
         {
-            m_Data.Data = new PdfDictionary(*static_cast<const PdfDictionary*>(rhs.m_Data.Data));
+            m_Data.Container = new PdfDictionary(*static_cast<const PdfDictionary*>(rhs.m_Data.Container));
             break;
         }
         case PdfDataType::Name:
         {
-            m_Data.Data = new PdfName(*static_cast<const PdfName*>(rhs.m_Data.Data));
+            m_Data.Name = new PdfName(*static_cast<const PdfName*>(rhs.m_Data.Name));
             break;
         }
         case PdfDataType::String:
         {
-            m_Data.Data = new PdfString(*static_cast<const PdfString*>(rhs.m_Data.Data));
+            m_Data.String = new PdfString(*static_cast<const PdfString*>(rhs.m_Data.String));
             break;
         }
 

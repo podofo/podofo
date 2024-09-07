@@ -8,6 +8,7 @@
 #define PDF_DATATYPE_H
 
 #include "PdfDeclarations.h"
+#include <podofo/auxiliary/StreamDevice.h>
 
 namespace PoDoFo {
 
@@ -19,7 +20,8 @@ class PdfStatefulEncrypt;
  *  \see PdfName \see PdfArray \see PdfReference 
  *  \see PdfVariant \see PdfDictionary \see PdfString
  */
-class PODOFO_API PdfDataProvider
+template <typename T>
+class PdfDataProvider
 {
     friend class PdfDataContainer;
     friend class PdfData;
@@ -27,33 +29,27 @@ class PODOFO_API PdfDataProvider
     friend class PdfName;
 
 private:
-    /** Create a new PdfDataProvider.
-     *  Can only be called by subclasses
-     */
-    PdfDataProvider();
+    PdfDataProvider() { }
 
 public:
-    virtual ~PdfDataProvider();
-
     /** Converts the current object into a string representation
      *  which can be written directly to a PDF file on disc.
      *  \param str the object string is returned in this object.
      */
-    std::string ToString() const;
-    void ToString(std::string& str) const;
+    std::string ToString() const
+    {
+        std::string ret;
+        ToString(ret);
+        return ret;
+    }
 
-    /** Write the complete datatype to a file.
-     *  \param device write the object to this device
-     *  \param writeMode additional options for writing this object
-     *  \param encrypt an encryption object which is used to encrypt this object
-     *                  or nullptr to not encrypt this object
-     */
-    virtual void Write(OutputStream& stream, PdfWriteFlags writeMode,
-        const PdfStatefulEncrypt* encrypt, charbuff& buffer) const = 0;
-
-protected:
-    PdfDataProvider(const PdfDataProvider&) = default;
-    PdfDataProvider& operator=(const PdfDataProvider&) = default;
+    void ToString(std::string& str) const
+    {
+        str.clear();
+        StringStreamDevice device(str);
+        charbuff buffer;
+        static_cast<const T&>(*this).Write(device, PdfWriteFlags::None, nullptr, buffer);
+    }
 };
 
 }

@@ -18,6 +18,8 @@ PdfDataContainer::PdfDataContainer()
 {
 }
 
+PdfDataContainer::~PdfDataContainer() { }
+
 void PdfDataContainer::SetOwner(PdfObject& owner)
 {
     m_Owner = &owner;

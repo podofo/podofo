@@ -16,9 +16,9 @@ namespace PoDoFo {
 
 class PdfArray;
 class PdfData;
-class PdfDataProvider;
 class PdfDictionary;
 class PdfString;
+class PdfDataContainer;
 
 /**
  * A variant data type which supports all data types supported by the PDF standard.
@@ -373,8 +373,11 @@ private:
          */
         int64_t Number;
         double Real;
-        PdfDataProvider* Data;
+        PdfName* Name;
+        PdfString* String;
+        PdfDataContainer* Container;
         PdfReference Reference;
+        PdfData* Data;
         bool Bool;
     };
 
