@@ -31,6 +31,8 @@ public:
 
     PdfString(charbuff&& buff, bool isHex);
 
+    ~PdfString();
+
     template<std::size_t N>
     PdfString(const char(&str)[N])
         : m_isHex(false)
@@ -61,7 +63,7 @@ public:
     /** Copy an existing PdfString
      *  \param rhs another PdfString to copy
      */
-    PdfString(const PdfString& rhs) = default;
+    PdfString(const PdfString& rhs);
 
     /** Construct a new PdfString from an utf-8 encoded string.
      *
@@ -121,7 +123,7 @@ public:
      *  \param rhs another PdfString to copy
      *  \returns this object
      */
-    PdfString& operator=(const PdfString& rhs) = default;
+    PdfString& operator=(const PdfString& rhs);
 
     /** Comparison operator
      *
@@ -168,26 +170,19 @@ private:
 private:
     struct StringData
     {
-        StringData();
-
-        StringData(const std::string_view& view);
-
         StringData(charbuff&& buff, bool stringEvaluated);
 
-        ~StringData();
-
-        union
-        {
-            charbuff Chars;
-            std::string_view Utf8View;
-        };
-        const bool CharsAllocated;
+        charbuff Chars;
         bool StringEvaluated;
-        PdfStringCharset CharSet;
     };
 
 private:
-    std::shared_ptr<StringData> m_data;
+    union
+    {
+        std::string_view m_Utf8View;
+        std::shared_ptr<StringData> m_data;
+    };
+    bool m_dataAllocated;
     bool m_isHex;    // This string is converted to hex during writing it out
 };
 

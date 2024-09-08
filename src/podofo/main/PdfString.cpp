@@ -31,15 +31,23 @@ namespace
 }
 
 static StringEncoding getEncoding(const string_view& view);
+static PdfStringCharset getCharSet(const string_view& view);
 
 PdfString::PdfString()
-    : m_data(new StringData()), m_isHex(false)
+    : m_Utf8View(""), m_dataAllocated(false), m_isHex(false)
 {
 }
 
 PdfString::PdfString(charbuff&& buff, bool isHex)
-    : m_data(new StringData(std::move(buff), false)), m_isHex(isHex)
+    : m_data(new StringData(std::move(buff), false)), m_dataAllocated(true), m_isHex(isHex)
 {
+}
+
+PdfString::~PdfString()
+{
+    // Manually call destructor for union
+    if (m_dataAllocated)
+        m_data.~shared_ptr();
 }
 
 PdfString::PdfString(const string& str)
@@ -47,9 +55,15 @@ PdfString::PdfString(const string& str)
 {
     // Avoid copying an empty string
     if (str.empty())
-        m_data.reset(new StringData());
+    {
+        new(&m_Utf8View)string_view("");
+        m_dataAllocated = false;
+    }
     else
-        m_data.reset(new StringData(charbuff(str), true));
+    {
+        new(&m_data)shared_ptr<StringData>(new StringData((charbuff)str, true));
+        m_dataAllocated = true;
+    }
 }
 
 PdfString::PdfString(const string_view& view)
@@ -60,14 +74,53 @@ PdfString::PdfString(const string_view& view)
 
     // Avoid copying an empty string
     if (view.empty())
-        m_data.reset(new StringData());
+    {
+        new(&m_Utf8View)string_view("");
+        m_dataAllocated = false;
+    }
     else
-        m_data.reset(new StringData(charbuff(view), true));
+    {
+        new(&m_data)shared_ptr<StringData>(new StringData((charbuff)view, true));
+        m_dataAllocated = true;
+    }
 }
 
 PdfString::PdfString(string&& str)
-    : m_data(new StringData(charbuff(std::move(str)), true)), m_isHex(false)
+    : m_data(new StringData(charbuff(std::move(str)), true)), m_dataAllocated(true), m_isHex(false)
 {
+}
+
+PdfString::PdfString(const PdfString& rhs)
+    : m_isHex(rhs.m_isHex)
+{
+    if (rhs.m_dataAllocated)
+    {
+        new(&m_data)shared_ptr<StringData>(rhs.m_data);
+        m_dataAllocated = true;
+    }
+    else
+    {
+        new(&m_Utf8View)string_view(rhs.m_Utf8View);
+        m_dataAllocated = false;
+    }
+}
+
+PdfString& PdfString::operator=(const PdfString& rhs)
+{
+    this->~PdfString();
+    if (rhs.m_dataAllocated)
+    {
+        new(&m_data)shared_ptr<StringData>(rhs.m_data);
+        m_dataAllocated = true;
+    }
+    else
+    {
+        new(&m_Utf8View)string_view(rhs.m_Utf8View);
+        m_dataAllocated = false;
+    }
+
+    m_isHex = rhs.m_isHex;
+    return *this;
 }
 
 PdfString PdfString::FromRaw(const bufferview& view, bool isHex)
@@ -134,25 +187,24 @@ void PdfString::Write(OutputStream& device, PdfWriteFlags writeMode,
     // this case has to be handled!
 
     string_view view;
-    if (m_data->CharsAllocated)
+    bool stringEvalued;
+    if (m_dataAllocated)
+    {
         view = m_data->Chars;
+        stringEvalued = m_data->StringEvaluated;
+    }
     else
-        view = m_data->Utf8View;
+    {
+        view = m_Utf8View;
+        stringEvalued = true;
+    }
 
     u16string string16;
     string pdfDocEncoded;
-    if (m_data->StringEvaluated)
+    if (stringEvalued)
     {
-        if (m_data->CharSet == PdfStringCharset::Unknown)
-        {
-            bool isAsciiEqual;
-            if (PoDoFo::CheckValidUTF8ToPdfDocEcondingChars(view, isAsciiEqual))
-                m_data->CharSet = isAsciiEqual ? PdfStringCharset::Ascii : PdfStringCharset::PdfDocEncoding;
-            else
-                m_data->CharSet = PdfStringCharset::Unicode;
-        }
-
-        switch (m_data->CharSet)
+        auto charset = getCharSet(view);
+        switch (charset)
         {
             case PdfStringCharset::Ascii:
             {
@@ -197,50 +249,82 @@ void PdfString::Write(OutputStream& device, PdfWriteFlags writeMode,
 
 PdfStringCharset PdfString::GetCharset() const
 {
-    return m_data->CharSet;
+    if (m_dataAllocated)
+    {
+        ensureCharsEvaluated();
+        return getCharSet(m_data->Chars);
+    }
+    else
+    {
+        return getCharSet(m_Utf8View);
+    }
 }
 
 string_view PdfString::GetString() const
 {
-    if (m_data->CharsAllocated)
+    if (m_dataAllocated)
     {
         ensureCharsEvaluated();
         return m_data->Chars;
     }
     else
     {
-        return m_data->Utf8View;
+        return m_Utf8View;
     }
 }
 
 bool PdfString::IsEmpty() const
 {
-    if (m_data->CharsAllocated)
+    if (m_dataAllocated)
         return m_data->Chars.empty();
     else
-        return m_data->Utf8View.empty();
+        return m_Utf8View.empty();
 }
 
 bool PdfString::IsStringEvaluated() const
 {
-    return m_data->StringEvaluated;
+    if (m_dataAllocated)
+        return m_data->StringEvaluated;
+    else
+        return true;
 }
 
 bool PdfString::operator==(const PdfString& rhs) const
 {
-    if (this == &rhs)
-        return true;
+    if (this->m_dataAllocated)
+    {
+        if (rhs.m_dataAllocated)
+        {
+            if (this->m_data == rhs.m_data)
+                return true;
 
-    if (this->m_data == rhs.m_data)
-        return true;
+            if (this->m_data->StringEvaluated != this->m_data->StringEvaluated)
+                return false;
 
-    if (this->m_data->StringEvaluated != rhs.m_data->StringEvaluated)
-        return false;
+            return this->m_data->Chars == rhs.m_data->Chars;
+        }
+        else
+        {
+            if (!this->m_data->StringEvaluated)
+                return false;
 
-    if (m_data->CharsAllocated)
-        return this->m_data->Chars == rhs.m_data->Chars;
+            return this->m_data->Chars == rhs.m_Utf8View;
+        }
+    }
     else
-        return this->m_data->Utf8View == rhs.m_data->Utf8View;
+    {
+        if (rhs.m_dataAllocated)
+        {
+            if (!rhs.m_data->StringEvaluated)
+                return false;
+
+            return this->m_Utf8View == rhs.m_data->Chars;
+        }
+        else
+        {
+            return this->m_Utf8View == rhs.m_Utf8View;
+        }
+    }
 }
 
 bool PdfString::operator==(const char* str) const
@@ -255,32 +339,53 @@ bool PdfString::operator==(const string& str) const
 
 bool PdfString::operator==(const string_view& view) const
 {
-    if (m_data->CharsAllocated)
+    if (m_dataAllocated)
     {
         ensureCharsEvaluated();
         return m_data->Chars == view;
     }
     else
     {
-        return m_data->Utf8View == view;
+        return m_Utf8View == view;
     }
 }
 
 bool PdfString::operator!=(const PdfString& rhs) const
 {
-    if (this == &rhs)
-        return false;
+    if (this->m_dataAllocated)
+    {
+        if (rhs.m_dataAllocated)
+        {
+            if (this->m_data != rhs.m_data)
+                return true;
 
-    if (this->m_data == rhs.m_data)
-        return false;
+            if (this->m_data->StringEvaluated != this->m_data->StringEvaluated)
+                return true;
 
-    if (this->m_data->StringEvaluated != rhs.m_data->StringEvaluated)
-        return true;
+            return this->m_data->Chars != rhs.m_data->Chars;
+        }
+        else
+        {
+            if (!this->m_data->StringEvaluated)
+                return true;
 
-    if (m_data->CharsAllocated)
-        return this->m_data->Chars != rhs.m_data->Chars;
+            return this->m_data->Chars != rhs.m_Utf8View;
+        }
+    }
     else
-        return this->m_data->Utf8View != rhs.m_data->Utf8View;
+    {
+        if (rhs.m_dataAllocated)
+        {
+            if (!rhs.m_data->StringEvaluated)
+                return true;
+
+            return this->m_Utf8View != rhs.m_data->Chars;
+        }
+        else
+        {
+            return this->m_Utf8View != rhs.m_Utf8View;
+        }
+    }
 }
 
 bool PdfString::operator!=(const char* str) const
@@ -295,27 +400,27 @@ bool PdfString::operator!=(const string& str) const
 
 bool PdfString::operator!=(const string_view& view) const
 {
-    if (m_data->CharsAllocated)
+    if (m_dataAllocated)
     {
         ensureCharsEvaluated();
         return m_data->Chars != view;
     }
     else
     {
-        return m_data->Utf8View != view;
+        return m_Utf8View != view;
     }
 }
 
 PdfString::operator string_view() const
 {
-    if (m_data->CharsAllocated)
+    if (m_dataAllocated)
     {
         ensureCharsEvaluated();
         return m_data->Chars;
     }
     else
     {
-        return m_data->Utf8View;
+        return m_Utf8View;
     }
 }
 
@@ -326,29 +431,31 @@ void PdfString::initFromUtf8String(const char* str, size_t length, bool literal)
 
     if (literal)
     {
-        m_data.reset(new StringData(string_view(str, length)));
+        new(&m_Utf8View)string_view(str, length);
+        m_dataAllocated = false;
     }
     else
     {
         if (length == 0)
         {
             // Avoid copying an empty string
-            m_data.reset(new StringData());
+            new(&m_Utf8View)string_view("");
+            m_dataAllocated = false;
         }
         else
         {
-            m_data.reset(new StringData(charbuff(str, length), true));
+            new(&m_data)shared_ptr<StringData>(new StringData((charbuff)str, true));
+            m_dataAllocated = true;
         }
     }
 }
 
 void PdfString::ensureCharsEvaluated() const
 {
-    PODOFO_INVARIANT(m_data->CharsAllocated);
+    PODOFO_INVARIANT(m_dataAllocated);
     if (m_data->StringEvaluated)
         return;
 
-    // CHECK-ME: Evaluate levaving the charset indeterminate
     auto encoding = getEncoding(m_data->Chars);
     switch (encoding)
     {
@@ -359,7 +466,6 @@ void PdfString::ensureCharsEvaluated() const
             auto view = string_view(m_data->Chars).substr(2);
             utls::ReadUtf16BEString(view, utf8);
             utf8.swap(m_data->Chars);
-            m_data->CharSet = PdfStringCharset::Unicode;
             break;
         }
         case StringEncoding::utf16le:
@@ -369,14 +475,12 @@ void PdfString::ensureCharsEvaluated() const
             auto view = string_view(m_data->Chars).substr(2);
             utls::ReadUtf16LEString(view, utf8);
             utf8.swap(m_data->Chars);
-            m_data->CharSet = PdfStringCharset::Unicode;
             break;
         }
         case StringEncoding::utf8:
         {
             // Remove BOM
             m_data->Chars.substr(3).swap(m_data->Chars);
-            m_data->CharSet = PdfStringCharset::Unicode;
             break;
         }
         case StringEncoding::PdfDocEncoding:
@@ -384,7 +488,6 @@ void PdfString::ensureCharsEvaluated() const
             bool isAsciiEqual;
             auto utf8 = PoDoFo::ConvertPdfDocEncodingToUTF8(m_data->Chars, isAsciiEqual);
             utf8.swap(m_data->Chars);
-            m_data->CharSet = isAsciiEqual ? PdfStringCharset::Ascii : PdfStringCharset::PdfDocEncoding;
             break;
         }
         default:
@@ -396,10 +499,9 @@ void PdfString::ensureCharsEvaluated() const
 
 string_view PdfString::GetRawData() const
 {
-    if (m_data->StringEvaluated)
+    if (!m_dataAllocated || m_data->StringEvaluated)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The raw data buffer has been evaluated to a string");
 
-    PODOFO_ASSERT(m_data->CharsAllocated);
     return m_data->Chars;
 }
 
@@ -421,20 +523,15 @@ StringEncoding getEncoding(const string_view& view)
     return StringEncoding::PdfDocEncoding;
 }
 
-// Empty string constructor
-PdfString::StringData::StringData()
-    : Utf8View(""), CharsAllocated(false), StringEvaluated(true), CharSet(PdfStringCharset::Ascii) { }
-
-// Constructor for literal strings only
-PdfString::StringData::StringData(const string_view& view)
-    : Utf8View(view), CharsAllocated(false), StringEvaluated(true), CharSet(PdfStringCharset::Unknown) { }
-
-PdfString::StringData::StringData(charbuff&& buff, bool stringEvaluated)
-    : Chars(std::move(buff)), CharsAllocated(true), StringEvaluated(stringEvaluated), CharSet(PdfStringCharset::Unknown) { }
-
-PdfString::StringData::~StringData()
+PdfStringCharset getCharSet(const string_view& view)
 {
-    // Manually call constructor for union
-    if (CharsAllocated)
-        Chars.~charbuff();
+    bool isAsciiEqual;
+    if (PoDoFo::CheckValidUTF8ToPdfDocEcondingChars(view, isAsciiEqual))
+        return isAsciiEqual ? PdfStringCharset::Ascii : PdfStringCharset::PdfDocEncoding;
+    else
+        return PdfStringCharset::Unicode;
 }
+
+// Empty string constructor
+PdfString::StringData::StringData(charbuff&& buff, bool stringEvaluated)
+    : Chars(std::move(buff)), StringEvaluated(stringEvaluated) { }

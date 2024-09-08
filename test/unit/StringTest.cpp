@@ -29,13 +29,12 @@ TEST_CASE("TestPdfDocEncoding")
     // Normal ascii string should be converted to UTF8
     PdfString str(src);
     REQUIRE(str == src);
-    REQUIRE(str.GetCharset() == PdfStringCharset::Unknown);
+    REQUIRE(str.GetCharset() == PdfStringCharset::PdfDocEncoding);
 
     // Serialize the string
     string serialized;
     str.ToString(serialized);
     REQUIRE(serialized == ref);
-    REQUIRE(str.GetCharset() == PdfStringCharset::PdfDocEncoding);
 
     // Deserialize the string (remove the surrounding parenthesis '(' ')' )
     str = PdfString::FromRaw(serialized.substr(1, serialized.length() - 2));
@@ -154,11 +153,10 @@ TEST_CASE("TestInitFromUtf8")
 
     const PdfString str(utf8);
 
-    REQUIRE(str.GetCharset() == PdfStringCharset::Unknown);
+    REQUIRE(str.GetCharset() == PdfStringCharset::Unicode);
     string serialized;
     str.ToString(serialized);
     REQUIRE(serialized == ref);
-    REQUIRE(str.GetCharset() == PdfStringCharset::Unicode);
     REQUIRE(str.GetString().length() == utf8.length());
     REQUIRE(str.GetString() == string(utf8));
 }
