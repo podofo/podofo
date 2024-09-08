@@ -242,6 +242,9 @@ void PdfVariant::ToString(string& str, PdfWriteFlags writeFlags) const
             // We enforce the literals to not be spaced
             writeFlags |= PdfWriteFlags::NoInlineLiteral;
             break;
+        default:
+            // Do nothing
+            break;
     }
 
     charbuff buffer;

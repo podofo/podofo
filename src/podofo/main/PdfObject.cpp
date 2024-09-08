@@ -591,6 +591,9 @@ void PdfObject::ToString(string& ret, PdfWriteFlags writeFlags) const
             // We enforce the literals to not be spaced
             writeFlags |= PdfWriteFlags::NoInlineLiteral;
             break;
+        default:
+            // Do nothing
+            break;
     }
 
     StringStreamDevice device(ret);
