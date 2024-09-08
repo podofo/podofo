@@ -76,7 +76,6 @@ TEST_CASE("TestEscapeBrackets")
     SpanStreamDevice input(utf16HexStr);
     (void)tokenizer.ReadNextVariant(input, varRead);
     REQUIRE(varRead.GetDataType() == PdfDataType::String);
-    auto str = varRead.GetString().GetString();
     REQUIRE(varRead.GetString() == utf16Expected);
 }
 
