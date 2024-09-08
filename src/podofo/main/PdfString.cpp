@@ -444,7 +444,7 @@ void PdfString::initFromUtf8String(const char* str, size_t length, bool literal)
         }
         else
         {
-            new(&m_data)shared_ptr<StringData>(new StringData((charbuff)str, true));
+            new(&m_data)shared_ptr<StringData>(new StringData(charbuff(str, length), true));
             m_dataAllocated = true;
         }
     }
