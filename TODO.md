@@ -3,7 +3,6 @@
 - PdfDocument: Review AttachFile, GetAttachment, FreeObjectMemory, AddNamedDestination
 - PdfErrorCode: Check all values (Add MaxRecursionReached)
 - Check PdfResources
-- More optimization for size for PdfName,PdfString (use union of pointer with NameData/StringData and std::string_view)
 - Restore PdfShadingPattern, PdfTilingPattern
 
 ### After 1.0

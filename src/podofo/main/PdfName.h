@@ -37,6 +37,8 @@ public:
      */
     PdfName();
 
+    ~PdfName();
+
     template<std::size_t N>
     PdfName(const char(&str)[N])
     {
@@ -63,7 +65,7 @@ public:
     /** Create a copy of an existing PdfName object.
      *  \param rhs another PdfName object
      */
-    PdfName(const PdfName& rhs) = default;
+    PdfName(const PdfName& rhs);
 
     static PdfName FromRaw(const bufferview& rawcontent);
 
@@ -102,7 +104,7 @@ public:
     /** Assign another name to this object
      *  \param rhs another PdfName object
      */
-    PdfName& operator=(const PdfName& rhs) = default;
+    PdfName& operator=(const PdfName& rhs);
 
     /** compare to PdfName objects.
      *  \returns true if both PdfNames have the same value.
@@ -153,8 +155,12 @@ private:
         bool IsUtf8Expanded;
     };
 private:
-    std::shared_ptr<NameData> m_data;
-    std::string_view m_dataView;
+    union
+    {
+        std::shared_ptr<NameData> m_data;
+        std::string_view m_Utf8View;       // Holds only global read-only string literal
+    };
+    bool m_dataAllocated;
 };
 
 /** Create a PdfName from a string literal without checking for PdfDocEncoding characters
