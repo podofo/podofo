@@ -27,6 +27,7 @@ class PdfDataProvider
     friend class PdfData;
     friend class PdfString;
     friend class PdfName;
+    friend class PdfReference;
 
 private:
     PdfDataProvider() { }
@@ -36,19 +37,19 @@ public:
      *  which can be written directly to a PDF file on disc.
      *  \param str the object string is returned in this object.
      */
-    std::string ToString() const
+    std::string ToString(PdfWriteFlags flags = PdfWriteFlags::None) const
     {
         std::string ret;
-        ToString(ret);
+        ToString(ret, flags);
         return ret;
     }
 
-    void ToString(std::string& str) const
+    void ToString(std::string& str, PdfWriteFlags flags = PdfWriteFlags::None) const
     {
         str.clear();
         StringStreamDevice device(str);
         charbuff buffer;
-        static_cast<const T&>(*this).Write(device, PdfWriteFlags::None, nullptr, buffer);
+        static_cast<const T&>(*this).Write(device, flags, nullptr, buffer);
     }
 };
 

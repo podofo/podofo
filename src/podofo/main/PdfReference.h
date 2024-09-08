@@ -7,7 +7,7 @@
 #ifndef PDF_REFERENCE_H
 #define PDF_REFERENCE_H
 
-#include "PdfDeclarations.h"
+#include "PdfDataProvider.h"
 
 namespace PoDoFo {
 
@@ -20,7 +20,7 @@ class OutputStream;
  *
  * This class is a indirect reference in a PDF file.
  */
-class PODOFO_API PdfReference final
+class PODOFO_API PdfReference final : public PdfDataProvider<PdfReference>
 {
 public:
     /**
@@ -44,14 +44,6 @@ public:
      */
     PdfReference(const PdfReference& rhs) = default;
 
-    /** Convert the reference to a string.
-     *  \returns a string representation of the object.
-     *
-     *  \see PdfVariant::ToString
-     */
-    std::string ToString() const;
-    void ToString(std::string& str) const;
-
     /**
       * Assign the value of another object to this PdfReference.
       *
@@ -59,7 +51,7 @@ public:
       */
     PdfReference& operator=(const PdfReference& rhs) = default;
 
-    void Write(OutputStream& stream, PdfWriteFlags writeMode, charbuff& buffer) const;
+    void Write(OutputStream& stream, PdfWriteFlags flags, const PdfStatefulEncrypt* encrypt, charbuff& buffer) const;
 
     /**
      * Compare to PdfReference objects.

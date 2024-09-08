@@ -190,7 +190,7 @@ void PdfVariant::Write(OutputStream& device, PdfWriteFlags writeMode,
             break;
         }
         case PdfDataType::Reference:
-            m_Data.Reference.Write(device, writeMode, buffer);
+            m_Data.Reference.Write(device, writeMode, encrypt, buffer);
             break;
         case PdfDataType::String:
             m_Data.String->Write(device, writeMode, encrypt, buffer);
