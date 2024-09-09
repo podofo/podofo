@@ -199,28 +199,16 @@ bool PdfDictionary::RemoveKey(const string_view& key)
 void PdfDictionary::Write(OutputStream& device, PdfWriteFlags writeMode,
     const PdfStatefulEncrypt* encrypt, charbuff& buffer) const
 {
-    return write(device, writeMode, false, encrypt, buffer);
+    bool addDelimiters = (writeMode & PdfWriteFlags::SkipDelimiters) == PdfWriteFlags::None;
+    // It doesn't make sense to propagate SkipDelimiters flag
+    writeMode &= ~PdfWriteFlags::SkipDelimiters;
+    return write(device, writeMode, addDelimiters, encrypt, buffer);
 }
 
-string PdfDictionary::ToString(bool skipDelimiters) const
-{
-    string ret;
-    ToString(ret, skipDelimiters);
-    return ret;
-}
-
-void PdfDictionary::ToString(string& str, bool skipDelimiters) const
-{
-    str.clear();
-    StringStreamDevice device(str);
-    charbuff buffer;
-    write(device, PdfWriteFlags::None, skipDelimiters, { }, buffer);
-}
-
-void PdfDictionary::write(OutputStream& device, PdfWriteFlags writeMode, bool skipDelimiters,
+void PdfDictionary::write(OutputStream& device, PdfWriteFlags writeMode, bool addDelimiters,
     const PdfStatefulEncrypt* encrypt, charbuff& buffer) const
 {
-    if (!skipDelimiters)
+    if (addDelimiters)
     {
         if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
             device.Write("<<\n");
@@ -256,7 +244,7 @@ void PdfDictionary::write(OutputStream& device, PdfWriteFlags writeMode, bool sk
         }
     }
 
-    if (!skipDelimiters)
+    if (addDelimiters)
         device.Write(">>");
 }
 

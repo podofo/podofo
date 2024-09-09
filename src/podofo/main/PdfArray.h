@@ -304,6 +304,8 @@ private:
     iterator insertAt(const iterator& pos, PdfObject&& obj);
     PdfObject& getAt(unsigned idx) const;
     PdfObject* findAt(unsigned idx) const;
+    void write(OutputStream& stream, PdfWriteFlags writeMode, bool addDelimiters,
+        const PdfStatefulEncrypt* encrypt, charbuff& buffer) const;
 
 private:
     PdfArrayList m_Objects;

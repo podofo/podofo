@@ -213,7 +213,7 @@ namespace utls
         void Exit();
     };
 
-    void SerializeEncodedString(PoDoFo::OutputStream& stream, const std::string_view& encoded, bool wantHex);
+    void SerializeEncodedString(PoDoFo::OutputStream& stream, const std::string_view& encoded, bool wantHex, bool skipDelimiters = false);
 
     /**
      * Check if multiplying two numbers will overflow. This is crucial when calculating buffer sizes that are the product of two numbers/

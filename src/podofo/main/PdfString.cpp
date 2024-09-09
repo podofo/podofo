@@ -177,10 +177,9 @@ PdfString PdfString::FromHexData(const string_view& hexView, const PdfStatefulEn
     }
 }
 
-void PdfString::Write(OutputStream& device, PdfWriteFlags writeMode,
+void PdfString::Write(OutputStream& device, PdfWriteFlags writeFlags,
     const PdfStatefulEncrypt* encrypt, charbuff& buffer) const
 {
-    (void)writeMode;
     (void)buffer; // TODO: Just use the supplied buffer instead of the many ones below
 
     // Strings in PDF documents may contain \0 especially if they are encrypted
@@ -244,7 +243,8 @@ void PdfString::Write(OutputStream& device, PdfWriteFlags writeMode,
         view = string_view(tempBuffer.data(), tempBuffer.size());
     }
 
-    utls::SerializeEncodedString(device, view, m_isHex);
+    utls::SerializeEncodedString(device, view, m_isHex,
+        (writeFlags & PdfWriteFlags::SkipDelimiters) != PdfWriteFlags::None);
 }
 
 PdfStringCharset PdfString::GetCharset() const

@@ -125,7 +125,8 @@ enum class PdfWriteFlags
     Clean = 1,             ///< Create a PDF that is readable in a text editor, i.e. insert spaces and linebreaks between tokens
     NoInlineLiteral = 2,   ///< Don't write spaces before literal types (numerical, references, null)
     NoFlateCompress = 4,
-    PdfAPreserve = 8,     ///< Preserve PDFA compliance during writing (NOTE: it does not itself convert the document to PDF/A)
+    PdfAPreserve = 8,      ///< Preserve PDFA compliance during writing (NOTE: it does not itself convert the document to PDF/A)
+    SkipDelimiters = 16,   ///< Skip delimiters in serialization of strings and outer dictionaries/arrays
 };
 
 /**

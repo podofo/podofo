@@ -1078,9 +1078,11 @@ double modulo(double a, double b)
     return std::fmod((std::fmod(a, b)) + b, b);
 }
 
-void utls::SerializeEncodedString(OutputStream& stream, const string_view& encoded, bool wantHex)
+void utls::SerializeEncodedString(OutputStream& stream, const string_view& encoded, bool wantHex, bool skipDelimiters)
 {
-    stream.Write(wantHex ? '<' : '(');
+    if (!skipDelimiters)
+        stream.Write(wantHex ? '<' : '(');
+
     if (encoded.size() > 0)
     {
         const char* cursor = encoded.data();
@@ -1120,7 +1122,8 @@ void utls::SerializeEncodedString(OutputStream& stream, const string_view& encod
         }
     }
 
-    stream.Write(wantHex ? '>' : ')');
+    if (!skipDelimiters)
+        stream.Write(wantHex ? '>' : ')');
 }
 
 // TODO: Substitute this function using Chromium numerics,

@@ -203,31 +203,41 @@ void PdfArray::Clear()
     SetDirty();
 }
 
-void PdfArray::Write(OutputStream& device, PdfWriteFlags writeMode,
+void PdfArray::Write(OutputStream& stream, PdfWriteFlags writeMode,
     const PdfStatefulEncrypt* encrypt, charbuff& buffer) const
 {
+    bool addDelimiters = (writeMode & PdfWriteFlags::SkipDelimiters) == PdfWriteFlags::None;
+    // It doesn't make sense to propagate SkipDelimiters flag
+    writeMode &= ~PdfWriteFlags::SkipDelimiters;
+    return write(stream, writeMode, addDelimiters, encrypt, buffer);
+}
+
+void PdfArray::write(OutputStream& stream, PdfWriteFlags writeMode, bool addDelimiters, const PdfStatefulEncrypt* encrypt, charbuff& buffer) const
+{
+    if (addDelimiters)
+    {
+        if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
+            stream.Write("[ ");
+        else
+            stream.Write('[');
+    }
+
     auto it = m_Objects.begin();
-
-    int count = 1;
-
-    if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
-        device.Write("[ ");
-    else
-        device.Write('[');
-
+    unsigned count = 1;
     while (it != m_Objects.end())
     {
-        it->GetVariant().Write(device, writeMode, encrypt, buffer);
+        it->GetVariant().Write(stream, writeMode, encrypt, buffer);
         if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
         {
-            device.Write((count % 10 == 0) ? '\n' : ' ');
+            stream.Write((count % 10 == 0) ? '\n' : ' ');
         }
 
         it++;
         count++;
     }
 
-    device.Write(']');
+    if (addDelimiters)
+        stream.Write(']');
 }
 
 void PdfArray::resetDirty()
