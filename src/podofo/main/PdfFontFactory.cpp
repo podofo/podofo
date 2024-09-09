@@ -53,7 +53,7 @@ unique_ptr<PdfFont> PdfFont::createFontForType(PdfDocument& doc, const PdfFontMe
                 font = new PdfFontCIDTrueType(doc, metrics, encoding);
             break;
         case PdfFontFileType::Type1:
-        case PdfFontFileType::Type1CCF:
+        case PdfFontFileType::Type1CFF:
             if (preferNonCID && !encoding.HasCIDMapping())
                 font = new PdfFontType1(doc, metrics, encoding);
             else

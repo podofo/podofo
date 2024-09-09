@@ -247,7 +247,7 @@ bool PdfFontMetrics::IsType1Kind() const
     switch (GetFontFileType())
     {
         case PdfFontFileType::Type1:
-        case PdfFontFileType::Type1CCF:
+        case PdfFontFileType::Type1CFF:
         case PdfFontFileType::CIDType1:
             return true;
         default:
