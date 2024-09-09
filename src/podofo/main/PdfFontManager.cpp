@@ -203,7 +203,11 @@ PdfFont& PdfFontManager::GetOrCreateFont(const string_view& fontPath, unsigned f
     if (found != m_cachedPaths.end())
         return *found->second;
 
-    auto& ret = getOrCreateFontHashed(PdfFontMetrics::Create(fontPath, faceIndex), params);
+    auto font = PdfFontMetrics::Create(fontPath, faceIndex);
+    if (font == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Invalid or unsupported font");
+
+    auto& ret = getOrCreateFontHashed(std::move(font), params);
     m_cachedPaths[descriptor] = &ret;
     return ret;
 }
