@@ -103,7 +103,7 @@ PdfEncodingMapConstPtr PdfFontMetrics::getFontType1ImplicitEncoding(FT_Face face
     }
     else
     {
-        // NOTE: Some very strange CCF fonts just supply an unicode map
+        // NOTE: Some very strange CFF fonts just supply an unicode map
         // For these, we just assume code identity with Unicode codepoint
         for (auto& pair : unicodeMap)
             codeMap.PushMapping(PdfCharCode((unsigned)pair.second), (char32_t)pair.second);

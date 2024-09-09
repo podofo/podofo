@@ -337,7 +337,7 @@ protected:
     void EmbedFontFile(PdfObject& descriptor);
     void EmbedFontFileType1(PdfObject& descriptor, const bufferview& data,
         unsigned length1, unsigned length2, unsigned length3);
-    void EmbedFontFileType1CCF(PdfObject& descriptor, const bufferview& data);
+    void EmbedFontFileType1CFF(PdfObject& descriptor, const bufferview& data);
     void EmbedFontFileTrueType(PdfObject& descriptor, const bufferview& data);
     void EmbedFontFileOpenType(PdfObject& descriptor, const bufferview& data);
 
