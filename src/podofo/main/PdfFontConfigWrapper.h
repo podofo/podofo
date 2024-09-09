@@ -16,7 +16,7 @@ namespace PoDoFo {
 enum class PdfFontConfigSearchFlags
 {
     None = 0,
-    MatchPostScriptName = 1,        ///< Match postscript font name. The default is match family name. This search may be more specific
+    MatchPostScriptName = 1,        ///< Match only postscript font name. The default is to match both family and postscript name. This search may be more specific
 };
 
 struct PODOFO_API PdfFontConfigSearchParams final

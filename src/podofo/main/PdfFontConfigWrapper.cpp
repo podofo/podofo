@@ -48,11 +48,13 @@ string PdfFontConfigWrapper::SearchFontPath(const string_view fontPattern,
     if (pattern == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternCreate returned NULL");
 
-    // Build a pattern to search using postscript name, bold and italic
+    // Build a pattern to search using family, postscript name,
+    // bold and italic. NOTE: Family name is only used if
+    // MatchPostScriptName flag is not set
     if ((params.Flags & PdfFontConfigSearchFlags::MatchPostScriptName) == PdfFontConfigSearchFlags::None)
         FcPatternAddString(pattern, FC_FAMILY, (const FcChar8*)fontPattern.data());
-    else
-        FcPatternAddString(pattern, FC_POSTSCRIPT_NAME, (const FcChar8*)fontPattern.data());
+
+    FcPatternAddString(pattern, FC_POSTSCRIPT_NAME, (const FcChar8*)fontPattern.data());
 
     if (params.Style.has_value())
     {
