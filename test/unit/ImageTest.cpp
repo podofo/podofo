@@ -38,7 +38,7 @@ TEST_CASE("TestImage2")
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("Hierarchies1.pdf"));
     // Try to extract jpeg image
-    auto imageObj = doc.GetObjects().GetObject(PdfReference(36, 0));
+    auto imageObj = doc.GetObjects().GetObject(PdfReference(156, 0));
     charbuff buffer;
 
     // Unpacking directly the stream shall throw since it has jpeg content
