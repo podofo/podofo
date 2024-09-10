@@ -21,14 +21,16 @@ namespace PoDoFo
         PdfCMapEncoding(PdfCharCodeMap&& map);
 
     private:
-        PdfCMapEncoding(PdfCharCodeMap&& map, const PdfEncodingLimits& limits);
+        PdfCMapEncoding(PdfCharCodeMap&& map, const PdfEncodingLimits& limits, int wmode);
 
     public:
         bool HasLigaturesSupport() const override;
         const PdfEncodingLimits& GetLimits() const override;
+        int GetWModeRaw() const override;
 
     private:
         PdfEncodingLimits m_Limits;
+        int m_WMode;
     };
 }
 

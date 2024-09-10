@@ -106,6 +106,18 @@ public:
      */
     bool TryGetExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const;
 
+    /** A code that specifies the writing mode for any CIDFont with
+     * which this map is combined (make sense when this is a CMap)
+     * \returns the raw value, -1 if meaningless for this map
+     */
+    virtual int GetWModeRaw() const;
+
+    /** A code that specifies the writing mode for any CIDFont with
+     * which this map is combined (make sense when this is a CMap)
+     * \returns a safe value which is either Horizontal or Vertical
+     */
+    PdfWModeKind GetWMode() const;
+
 public:
     virtual ~PdfEncodingMap();
 

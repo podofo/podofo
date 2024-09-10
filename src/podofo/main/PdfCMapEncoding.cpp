@@ -40,10 +40,10 @@ static void pushMapping(PdfCharCodeMap& map, const PdfCharCode& codeUnit, const 
 static PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits);
 
 PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map)
-    : PdfCMapEncoding(std::move(map), map.GetLimits()) { }
+    : PdfCMapEncoding(std::move(map), map.GetLimits(), 0) { }
 
-PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, const PdfEncodingLimits& limits)
-    : PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap), m_Limits(limits) { }
+PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, const PdfEncodingLimits& limits, int wmode)
+    : PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap), m_Limits(limits), m_WMode(wmode) { }
 
 unique_ptr<PdfEncodingMap> PdfEncodingMapFactory::ParseCMapEncoding(const PdfObject& cmapObj)
 {
@@ -56,8 +56,9 @@ unique_ptr<PdfEncodingMap> PdfEncodingMapFactory::ParseCMapEncoding(const PdfObj
 
 bool PdfEncodingMapFactory::TryParseCMapEncoding(const PdfObject& cmapObj, unique_ptr<PdfEncodingMap>& encoding)
 {
-    auto stream = cmapObj.GetStream();
-    if (stream == nullptr)
+    const PdfDictionary* dict;
+    const PdfObjectStream* stream;
+    if (!cmapObj.TryGetDictionary(dict) || (stream = cmapObj.GetStream()) == nullptr)
     {
         encoding.reset();
         return false;
@@ -105,13 +106,19 @@ bool PdfEncodingMapFactory::TryParseCMapEncoding(const PdfObject& cmapObj, uniqu
         }
     }
 
-    encoding.reset(new PdfCMapEncoding(std::move(map), mapLimits));
+    int64_t wMode = dict->FindKeyAsSafe<int64_t>("WMode", 0);
+    encoding.reset(new PdfCMapEncoding(std::move(map), mapLimits, (int)wMode));
     return true;
 }
 
 const PdfEncodingLimits& PdfCMapEncoding::GetLimits() const
 {
     return m_Limits;
+}
+
+int PdfCMapEncoding::GetWModeRaw() const
+{
+    return m_WMode;
 }
 
 bool PdfCMapEncoding::HasLigaturesSupport() const

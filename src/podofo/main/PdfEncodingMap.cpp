@@ -198,6 +198,16 @@ bool PdfEncodingMap::HasLigaturesSupport() const
     return false;
 }
 
+int PdfEncodingMap::GetWModeRaw() const
+{
+    return -1;
+}
+
+PdfWModeKind PdfEncodingMap::GetWMode() const
+{
+    return GetWModeRaw() == 1 ? PdfWModeKind::Vertical : PdfWModeKind::Horizontal;
+}
+
 // NOTE: Don't clear the result on failure. It is done externally
 bool PdfEncodingMap::tryGetNextCodePoints(string_view::iterator& it, const string_view::iterator& end,
     PdfCharCode& codeUnit, vector<char32_t>& codePoints) const

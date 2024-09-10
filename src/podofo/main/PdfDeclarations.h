@@ -116,6 +116,12 @@ enum class PdfEncodingMapType : uint8_t
     CMap                        ///< A proper CMap encoding or pre-defined CMap names
 };
 
+enum class PdfWModeKind : uint8_t
+{
+    Horizontal = 0,
+    Vertical = 1,
+};
+
 /**
  * Specify additional options for writing the PDF.
  */
