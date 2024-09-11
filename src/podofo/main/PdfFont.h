@@ -84,6 +84,7 @@ public:
      *  \param font the created font object
      */
     static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfFont>& font);
+    static bool TryCreateFromObject(const PdfObject& obj, std::unique_ptr<const PdfFont>& font);
 
 private:
     /** Create a new PdfFont object
