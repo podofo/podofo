@@ -85,7 +85,10 @@ private:
     PdfGraphicsStateWrapper(PdfPainter& painter, PdfGraphicsState& state);
 
 public:
-    void SetCurrentMatrix(const Matrix& matrix);
+    /** Apply the given matrix to the current transformation matrix (CTM)
+     * \remarks Corresponds to the PDF 'cm' operator 
+     */
+    void ConcatenateTransformationMatrix(const Matrix& matrix);
     void SetLineWidth(double lineWidth);
     void SetMiterLevel(double value);
     void SetLineCapStyle(PdfLineCapStyle capStyle);
@@ -100,6 +103,8 @@ public:
     void SetExtGState(const PdfExtGState& extGState);
 
 public:
+    /** Get the current transformation matrix (CTM)
+     */
     const Matrix& GetCurrentMatrix() { return m_state->CTM; }
     double GetLineWidth() const { return m_state->LineWidth; }
     double GetMiterLevel() const { return m_state->MiterLimit; }

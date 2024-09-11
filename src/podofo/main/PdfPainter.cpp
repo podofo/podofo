@@ -1198,13 +1198,10 @@ void PdfPainterTextObject::End()
 PdfGraphicsStateWrapper::PdfGraphicsStateWrapper(PdfPainter& painter, PdfGraphicsState& state)
     : m_painter(&painter), m_state(&state) { }
 
-void PdfGraphicsStateWrapper::SetCurrentMatrix(const Matrix& matrix)
+void PdfGraphicsStateWrapper::ConcatenateTransformationMatrix(const Matrix& matrix)
 {
-    if (m_state->CTM == matrix)
-        return;
-
-    m_state->CTM = matrix;
-    m_painter->SetTransformationMatrix(m_state->CTM);
+    m_state->CTM = matrix * m_state->CTM;
+    m_painter->SetTransformationMatrix(matrix);
 }
 
 void PdfGraphicsStateWrapper::SetLineWidth(double lineWidth)

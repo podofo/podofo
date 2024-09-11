@@ -1,4 +1,5 @@
 ## 0.10.1 -> 1.0.0
+- `PdfGraphicsStateWrapper`: Renamed `SetCurrentMatrix()` -> `ConcatenateTransformationMatrix()`
 - `PdfXObject`, `PdfFont`: Removed `GetIdentifier()`, the identifiers are now generated when inserted to `PdfResource`
 - `PdfXObjet:SetMatrix()`: Removed and moved it to `PdfXObjectForm` (specification tells it doesn't belong to other XObject)
 - `PdfPage::SetICCProfile()`, `PdfImage::SetICCProfile()`: Removed. Create a
