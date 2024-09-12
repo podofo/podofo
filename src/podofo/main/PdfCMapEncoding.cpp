@@ -37,13 +37,40 @@ static void handleRangeMapping(PdfCharCodeMap& map,
     unsigned char codeSize, unsigned rangeSize);
 static vector<char32_t> handleUtf8String(const string_view& str);
 static void pushMapping(PdfCharCodeMap& map, const PdfCharCode& codeUnit, const std::vector<char32_t>& codePoints);
-static PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits);
+static PdfCharCodeMap parseCMapObject(InputStreamDevice& stream, PdfEncodingLimits& limits, PdfCIDSystemInfo& info, int& wMode);
 
-PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map)
-    : PdfCMapEncoding(std::move(map), map.GetLimits(), 0) { }
+PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map) :
+    PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap),
+    m_Limits(GetCharMap().GetLimits()),
+    m_WMode(0) { }
 
-PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, const PdfEncodingLimits& limits, int wmode)
-    : PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap), m_Limits(limits), m_WMode(wmode) { }
+PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, const PdfCIDSystemInfo& info, PdfWModeKind wMode) :
+    PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap),
+    m_Limits(GetCharMap().GetLimits()),
+    m_CIDSystemInfo(info),
+    m_WMode((int)wMode) { }
+
+PdfCMapEncoding PdfCMapEncoding::Parse(const string_view& filepath)
+{
+    FileStreamDevice device(filepath);
+    return Parse(device);
+}
+
+PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, const PdfEncodingLimits& limits,
+        const PdfCIDSystemInfo& info, int wmode) :
+    PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap),
+    m_Limits(limits),
+    m_CIDSystemInfo(info),
+    m_WMode(wmode) { }
+
+PdfCMapEncoding PdfCMapEncoding::Parse(InputStreamDevice& device)
+{
+    PdfEncodingLimits mapLimits;
+    int wMode = 0;
+    PdfCIDSystemInfo info;
+    auto map = parseCMapObject(device, mapLimits, info, wMode);
+    return PdfCMapEncoding(std::move(map), mapLimits, info, wMode);
+}
 
 unique_ptr<PdfEncodingMap> PdfEncodingMapFactory::ParseCMapEncoding(const PdfObject& cmapObj)
 {
@@ -64,17 +91,13 @@ bool PdfEncodingMapFactory::TryParseCMapEncoding(const PdfObject& cmapObj, uniqu
         return false;
     }
 
-    CodeLimits codeLimits;
-    auto map = parseCMapObject(*stream, codeLimits);
-    auto mapLimits = map.GetLimits();
-    // NOTE: In some cases the encoding is degenerate and has no code
-    // entries at all, but the CMap may still encode the code size
-    // in "begincodespacerange"
-    if (codeLimits.MinCodeSize < mapLimits.MinCodeSize)
-        mapLimits.MinCodeSize = codeLimits.MinCodeSize;
-    if (codeLimits.MaxCodeSize > mapLimits.MaxCodeSize)
-        mapLimits.MaxCodeSize = codeLimits.MaxCodeSize;
-
+    charbuff streamBuffer;
+    stream->CopyTo(streamBuffer);
+    SpanStreamDevice device(streamBuffer);
+    PdfEncodingLimits mapLimits;
+    int wMode = 0;
+    PdfCIDSystemInfo info;
+    auto map = parseCMapObject(device, mapLimits, info, wMode);
     if (map.GetSize() != 0
         && mapLimits.MinCodeSize == mapLimits.MaxCodeSize)
     {
@@ -106,8 +129,22 @@ bool PdfEncodingMapFactory::TryParseCMapEncoding(const PdfObject& cmapObj, uniqu
         }
     }
 
-    int64_t wMode = dict->FindKeyAsSafe<int64_t>("WMode", 0);
-    encoding.reset(new PdfCMapEncoding(std::move(map), mapLimits, (int)wMode));
+    wMode = (int)dict->FindKeyAsSafe<int64_t>("WMode", wMode);
+    const PdfDictionary* cidInfoDict;
+    if (dict->TryFindKeyAs("CIDSystemInfo", cidInfoDict))
+    {
+        const PdfString* str;
+        if (cidInfoDict->TryFindKeyAs("Registry", str))
+            info.Registry = *str;
+
+        if (cidInfoDict->TryFindKeyAs("Ordering", str))
+            info.Ordering = *str;
+
+        info.Supplement = (int)cidInfoDict->FindKeyAs<int64_t>("Supplement", 0);
+    }
+
+    encoding.reset(new PdfCMapEncoding(std::move(map), mapLimits, info, wMode));
+
     return true;
 }
 
@@ -132,13 +169,10 @@ bool PdfCMapEncoding::HasLigaturesSupport() const
     return true;
 }
 
-PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits)
+PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfEncodingLimits& mapLimits, PdfCIDSystemInfo& info, int& wMode)
 {
     PdfCharCodeMap ret;
-    charbuff streamBuffer;
-    stream.CopyTo(streamBuffer);
 
-    SpanStreamDevice device(streamBuffer);
     // NOTE: Found a CMap like this
     // /CIDSystemInfo
     // <<
@@ -152,8 +186,11 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
     // doesn't, support << syntax, is a workaround to read these CMap(s)
     // without crashing.
     PdfPostScriptTokenizer tokenizer(PdfPostScriptLanguageLevel::L1);
+    CodeLimits codeLimits;
     deque<unique_ptr<PdfVariant>> tokens;
     const PdfString* str;
+    int64_t num;
+    const PdfName* name;
     auto var = make_unique<PdfVariant>();
     PdfPostScriptTokenType tokenType;
     string_view token;
@@ -174,9 +211,9 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
                             break;
 
                         unsigned char codeSize;
-                        (void)getCodeFromVariant(*var, limits, codeSize);
+                        (void)getCodeFromVariant(*var, codeLimits, codeSize);
                         tokenizer.ReadNextVariant(device, *var);
-                        (void)getCodeFromVariant(*var, limits, codeSize);
+                        (void)getCodeFromVariant(*var, codeLimits, codeSize);
                     }
                 }
                 // NOTE: "bf" in "beginbfrange" stands for Base Font
@@ -190,9 +227,9 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
                             break;
 
                         unsigned char codeSize;
-                        uint32_t srcCodeLo = getCodeFromVariant(*var, limits, codeSize);
+                        uint32_t srcCodeLo = getCodeFromVariant(*var, codeLimits, codeSize);
                         tokenizer.ReadNextVariant(device, *var);
-                        uint32_t srcCodeHi = getCodeFromVariant(*var, limits);
+                        uint32_t srcCodeHi = getCodeFromVariant(*var, codeLimits);
                         unsigned rangeSize = srcCodeHi - srcCodeLo + 1;
                         tokenizer.ReadNextVariant(device, *var);
                         if (var->IsArray())
@@ -236,11 +273,11 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
                             break;
 
                         unsigned char codeSize;
-                        uint32_t srcCode = getCodeFromVariant(*var, limits, codeSize);
+                        uint32_t srcCode = getCodeFromVariant(*var, codeLimits, codeSize);
                         tokenizer.ReadNextVariant(device, *var);
                         if (var->IsNumber())
                         {
-                            char32_t dstCode = (char32_t)getCodeFromVariant(*var, limits);
+                            char32_t dstCode = (char32_t)getCodeFromVariant(*var, codeLimits);
                             mappedCodes.clear();
                             mappedCodes.push_back(dstCode);
                         }
@@ -269,11 +306,11 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
                             break;
 
                         unsigned char codeSize;
-                        uint32_t srcCodeLo = getCodeFromVariant(*var, limits, codeSize);
+                        uint32_t srcCodeLo = getCodeFromVariant(*var, codeLimits, codeSize);
                         tokenizer.ReadNextVariant(device, *var);
-                        uint32_t srcCodeHi = getCodeFromVariant(*var, limits);
+                        uint32_t srcCodeHi = getCodeFromVariant(*var, codeLimits);
                         tokenizer.ReadNextVariant(device, *var);
-                        char32_t dstCIDLo = (char32_t)getCodeFromVariant(*var, limits);
+                        char32_t dstCIDLo = (char32_t)getCodeFromVariant(*var, codeLimits);
 
                         unsigned rangeSize = srcCodeHi - srcCodeLo + 1;
                         for (unsigned i = 0; i < rangeSize; i++)
@@ -296,9 +333,9 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
                     {
                         tokenizer.TryReadNext(device, tokenType, token, *var);
                         unsigned char codeSize;
-                        uint32_t srcCode = getCodeFromVariant(*var, limits, codeSize);
+                        uint32_t srcCode = getCodeFromVariant(*var, codeLimits, codeSize);
                         tokenizer.ReadNextVariant(device, *var);
-                        char32_t dstCode = (char32_t)getCodeFromVariant(*var, limits);
+                        char32_t dstCode = (char32_t)getCodeFromVariant(*var, codeLimits);
                         mappedCodes.clear();
                         mappedCodes.push_back(dstCode);
                         pushMapping(ret, { srcCode, codeSize }, mappedCodes);
@@ -310,14 +347,47 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
             }
             case PdfPostScriptTokenType::Variant:
             {
-                tokens.push_front(std::move(var));
-                var.reset(new PdfVariant());
+                if (var->TryGetName(name))
+                {
+                    tokens.push_front(std::move(var));
+                    var.reset(new PdfVariant());
+
+                    if (tokenizer.TryReadNextVariant(device, *var))
+                    {
+                        if (*name == "Registry" && var->TryGetString(str))
+                            info.Registry = *str;
+                        else if (*name == "Ordering" && var->TryGetString(str))
+                            info.Ordering = *str;
+                        else if (*name == "Supplement" && var->TryGetNumber(num))
+                            info.Supplement = (int)num;
+                        else if (*name == "WMode" && var->TryGetNumber(num))
+                            wMode = (int)num;
+
+                        tokens.push_front(std::move(var));
+                        var.reset(new PdfVariant());
+                    }
+                }
+                else
+                {
+                    tokens.push_front(std::move(var));
+                    var.reset(new PdfVariant());
+                }
+
                 break;
             }
             default:
                 PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
         }
     }
+
+    // NOTE: In some cases the encoding is degenerate and has no code
+    // entries at all, but the CMap may still encode the code size
+    // in "begincodespacerange"
+    mapLimits = ret.GetLimits();
+    if (codeLimits.MinCodeSize < mapLimits.MinCodeSize)
+        mapLimits.MinCodeSize = codeLimits.MinCodeSize;
+    if (codeLimits.MaxCodeSize > mapLimits.MaxCodeSize)
+        mapLimits.MaxCodeSize = codeLimits.MaxCodeSize;
 
     return ret;
 }

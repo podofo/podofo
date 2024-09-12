@@ -9,7 +9,6 @@
 
 #include "PdfDeclarations.h"
 #include "PdfObject.h"
-#include "PdfName.h"
 #include "PdfCharCodeMap.h"
 
 namespace PoDoFo {
