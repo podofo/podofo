@@ -26,14 +26,14 @@ namespace PoDoFo
         /** Construct a PdfCMapEncoding from a map
          */
         PdfCMapEncoding(PdfCharCodeMap&& map);
-        PdfCMapEncoding(PdfCharCodeMap&& map, const PdfCIDSystemInfo& info, PdfWModeKind wMode);
+        PdfCMapEncoding(PdfCharCodeMap&& map, const PdfName& name, const PdfCIDSystemInfo& info, PdfWModeKind wMode);
 
         static PdfCMapEncoding Parse(const std::string_view& filepath);
         static PdfCMapEncoding Parse(InputStreamDevice& device);
 
     private:
-        PdfCMapEncoding(PdfCharCodeMap&& map, const PdfEncodingLimits& limits,
-            const PdfCIDSystemInfo& info, int wmode);
+        PdfCMapEncoding(PdfCharCodeMap&& map, const PdfName& name,
+            const PdfCIDSystemInfo& info, int wmode, const PdfEncodingLimits& limits);
 
     public:
         bool HasLigaturesSupport() const override;
@@ -42,12 +42,14 @@ namespace PoDoFo
         PdfWModeKind GetWMode() const;
 
     public:
+        const PdfName& GetName() const { return m_Name; }
         const PdfCIDSystemInfo& GetCIDSystemInfo() const { return m_CIDSystemInfo; }
 
     private:
-        PdfEncodingLimits m_Limits;
+        PdfName m_Name;
         PdfCIDSystemInfo m_CIDSystemInfo;
         int m_WMode;
+        PdfEncodingLimits m_Limits;
     };
 }
 

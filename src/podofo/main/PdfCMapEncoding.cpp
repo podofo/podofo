@@ -37,18 +37,19 @@ static void handleRangeMapping(PdfCharCodeMap& map,
     unsigned char codeSize, unsigned rangeSize);
 static vector<char32_t> handleUtf8String(const string_view& str);
 static void pushMapping(PdfCharCodeMap& map, const PdfCharCode& codeUnit, const std::vector<char32_t>& codePoints);
-static PdfCharCodeMap parseCMapObject(InputStreamDevice& stream, PdfEncodingLimits& limits, PdfCIDSystemInfo& info, int& wMode);
+static PdfCharCodeMap parseCMapObject(InputStreamDevice& stream, PdfName& name, PdfCIDSystemInfo& info, int& wMode, PdfEncodingLimits& limits);
 
 PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map) :
     PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap),
-    m_Limits(GetCharMap().GetLimits()),
-    m_WMode(0) { }
+    m_WMode(0),
+    m_Limits(GetCharMap().GetLimits()) { }
 
-PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, const PdfCIDSystemInfo& info, PdfWModeKind wMode) :
+PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, const PdfName& name, const PdfCIDSystemInfo& info, PdfWModeKind wMode) :
     PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap),
-    m_Limits(GetCharMap().GetLimits()),
+    m_Name(name),
     m_CIDSystemInfo(info),
-    m_WMode((int)wMode) { }
+    m_WMode((int)wMode),
+    m_Limits(GetCharMap().GetLimits()) { }
 
 PdfCMapEncoding PdfCMapEncoding::Parse(const string_view& filepath)
 {
@@ -56,20 +57,22 @@ PdfCMapEncoding PdfCMapEncoding::Parse(const string_view& filepath)
     return Parse(device);
 }
 
-PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, const PdfEncodingLimits& limits,
-        const PdfCIDSystemInfo& info, int wmode) :
+PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, const PdfName& name,
+        const PdfCIDSystemInfo& info, int wmode, const PdfEncodingLimits& limits) :
     PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap),
-    m_Limits(limits),
+    m_Name(name),
     m_CIDSystemInfo(info),
-    m_WMode(wmode) { }
+    m_WMode(wmode),
+    m_Limits(limits) { }
 
 PdfCMapEncoding PdfCMapEncoding::Parse(InputStreamDevice& device)
 {
     PdfEncodingLimits mapLimits;
     int wMode = 0;
     PdfCIDSystemInfo info;
-    auto map = parseCMapObject(device, mapLimits, info, wMode);
-    return PdfCMapEncoding(std::move(map), mapLimits, info, wMode);
+    PdfName name;
+    auto map = parseCMapObject(device, name, info, wMode, mapLimits);
+    return PdfCMapEncoding(std::move(map), name, info, wMode, mapLimits);
 }
 
 unique_ptr<PdfEncodingMap> PdfEncodingMapFactory::ParseCMapEncoding(const PdfObject& cmapObj)
@@ -95,9 +98,10 @@ bool PdfEncodingMapFactory::TryParseCMapEncoding(const PdfObject& cmapObj, uniqu
     stream->CopyTo(streamBuffer);
     SpanStreamDevice device(streamBuffer);
     PdfEncodingLimits mapLimits;
+    PdfName cmapName;
     int wMode = 0;
     PdfCIDSystemInfo info;
-    auto map = parseCMapObject(device, mapLimits, info, wMode);
+    auto map = parseCMapObject(device, cmapName, info, wMode, mapLimits);
     if (map.GetSize() != 0
         && mapLimits.MinCodeSize == mapLimits.MaxCodeSize)
     {
@@ -129,11 +133,13 @@ bool PdfEncodingMapFactory::TryParseCMapEncoding(const PdfObject& cmapObj, uniqu
         }
     }
 
+    // Properties in the CMap stream dictionary get priority
     wMode = (int)dict->FindKeyAsSafe<int64_t>("WMode", wMode);
+    const PdfString* str;
+    const PdfName* name;
     const PdfDictionary* cidInfoDict;
     if (dict->TryFindKeyAs("CIDSystemInfo", cidInfoDict))
     {
-        const PdfString* str;
         if (cidInfoDict->TryFindKeyAs("Registry", str))
             info.Registry = *str;
 
@@ -142,8 +148,10 @@ bool PdfEncodingMapFactory::TryParseCMapEncoding(const PdfObject& cmapObj, uniqu
 
         info.Supplement = (int)cidInfoDict->FindKeyAs<int64_t>("Supplement", 0);
     }
+    if (dict->TryFindKeyAs("CMapName", name))
+        cmapName = *name;
 
-    encoding.reset(new PdfCMapEncoding(std::move(map), mapLimits, info, wMode));
+    encoding.reset(new PdfCMapEncoding(std::move(map), cmapName, info, wMode, mapLimits));
 
     return true;
 }
@@ -169,7 +177,8 @@ bool PdfCMapEncoding::HasLigaturesSupport() const
     return true;
 }
 
-PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfEncodingLimits& mapLimits, PdfCIDSystemInfo& info, int& wMode)
+PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
+    PdfCIDSystemInfo& info, int& wMode, PdfEncodingLimits& mapLimits)
 {
     PdfCharCodeMap ret;
 
@@ -354,6 +363,8 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfEncodingLimits& map
 
                     if (tokenizer.TryReadNextVariant(device, *var))
                     {
+                        if (*name == "CMapName" && var->TryGetName(name))
+                            cmapName = *name;
                         if (*name == "Registry" && var->TryGetString(str))
                             info.Registry = *str;
                         else if (*name == "Ordering" && var->TryGetString(str))
