@@ -1212,11 +1212,8 @@ PdfGraphicsStateWrapper::PdfGraphicsStateWrapper(PdfPainter& painter, PdfGraphic
 
 void PdfGraphicsStateWrapper::SetCurrentMatrix(const Matrix& matrix)
 {
-    if (m_state->CTM == matrix)
-        return;
-
-    m_state->CTM = matrix;
-    m_painter->SetTransformationMatrix(m_state->CTM);
+    m_state->CTM = matrix * m_state->CTM;
+    m_painter->SetTransformationMatrix(matrix);
 }
 
 void PdfGraphicsStateWrapper::SetLineWidth(double lineWidth)
