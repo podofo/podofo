@@ -574,7 +574,7 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
         "/CMapName /{} def\n"
         "/CMapType 1 def\n"     // As defined in Adobe Technical Notes #5099
         , fontName, cmapName);
-    auto wmode = m_Encoding->GetWMode();
+    auto wmode = m_Encoding->GetWModeSafe();
     if (wmode != PdfWModeKind::Horizontal)
     {
         utls::FormatTo(temp, "/WMode {} def\n", (unsigned)wmode);

@@ -203,7 +203,7 @@ int PdfEncodingMap::GetWModeRaw() const
     return -1;
 }
 
-PdfWModeKind PdfEncodingMap::GetWMode() const
+PdfWModeKind PdfEncodingMap::GetWModeSafe() const
 {
     return GetWModeRaw() == 1 ? PdfWModeKind::Vertical : PdfWModeKind::Horizontal;
 }

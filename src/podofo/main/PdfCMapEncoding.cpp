@@ -121,6 +121,11 @@ int PdfCMapEncoding::GetWModeRaw() const
     return m_WMode;
 }
 
+PdfWModeKind PdfCMapEncoding::GetWMode() const
+{
+    return m_WMode == 1 ? PdfWModeKind::Vertical : PdfWModeKind::Horizontal;
+}
+
 bool PdfCMapEncoding::HasLigaturesSupport() const
 {
     // CMap encodings may have ligatures

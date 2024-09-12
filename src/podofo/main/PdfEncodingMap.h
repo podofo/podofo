@@ -106,18 +106,6 @@ public:
      */
     bool TryGetExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const;
 
-    /** A code that specifies the writing mode for any CIDFont with
-     * which this map is combined (make sense when this is a CMap)
-     * \returns the raw value, -1 if meaningless for this map
-     */
-    virtual int GetWModeRaw() const;
-
-    /** A code that specifies the writing mode for any CIDFont with
-     * which this map is combined (make sense when this is a CMap)
-     * \returns a safe value which is either Horizontal or Vertical
-     */
-    PdfWModeKind GetWMode() const;
-
 public:
     virtual ~PdfEncodingMap();
 
@@ -155,6 +143,12 @@ protected:
      */
     virtual void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const;
 
+    /** A code that specifies the writing mode for any CIDFont with
+     * which this map is combined (make sense when this is a CMap)
+     * \returns the raw value, -1 if meaningless for this map
+     */
+    virtual int GetWModeRaw() const;
+
     static void AppendUTF16CodeTo(OutputStream& stream, char32_t codePoint, std::u16string& u16tmp);
 
     static void AppendUTF16CodeTo(OutputStream& stream, const unicodeview& codePoints, std::u16string& u16tmp);
@@ -187,6 +181,13 @@ private:
 
     bool tryGetNextCodePoints(std::string_view::iterator& it, const std::string_view::iterator& end,
         PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const;
+
+    /** A code that specifies the writing mode for any CIDFont with
+     * which this map is combined (make sense when this is a CMap)
+     * \remarks To be called by PdfEncoding
+     * \returns a safe value which is either Horizontal or Vertical
+     */
+    PdfWModeKind GetWModeSafe() const;
 
 private:
     PdfEncodingMapType m_Type;

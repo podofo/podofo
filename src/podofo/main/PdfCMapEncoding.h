@@ -27,6 +27,7 @@ namespace PoDoFo
         bool HasLigaturesSupport() const override;
         const PdfEncodingLimits& GetLimits() const override;
         int GetWModeRaw() const override;
+        PdfWModeKind GetWMode() const;
 
     private:
         PdfEncodingLimits m_Limits;
