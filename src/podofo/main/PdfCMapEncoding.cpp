@@ -153,7 +153,7 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
     // without crashing.
     PdfPostScriptTokenizer tokenizer(PdfPostScriptLanguageLevel::L1);
     deque<unique_ptr<PdfVariant>> tokens;
-    PdfString str;
+    const PdfString* str;
     auto var = make_unique<PdfVariant>();
     PdfPostScriptTokenType tokenType;
     string_view token;
@@ -201,18 +201,18 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
                             for (unsigned i = 0; i < rangeSize; i++)
                             {
                                 auto& dst = arr[i];
-                                if (dst.TryGetString(str) && str.IsHex()) // pp. 475 PdfReference 1.7
-                                    pushMapping(ret, { srcCodeLo + i, codeSize }, handleStringMapping(dst.GetString()));
+                                if (dst.TryGetString(str) && str->IsHex()) // pp. 475 PdfReference 1.7
+                                    pushMapping(ret, { srcCodeLo + i, codeSize }, handleStringMapping(*str));
                                 else if (dst.IsName()) // Not mentioned in tecnincal document #5014 but seems safe
                                     pushMapping(ret, { srcCodeLo + i, codeSize }, handleNameMapping(dst.GetName()));
                                 else
                                     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "beginbfrange: expected string or name inside array");
                             }
                         }
-                        else if (var->TryGetString(str) && str.IsHex())
+                        else if (var->TryGetString(str) && str->IsHex())
                         {
                             // pp. 474 PdfReference 1.7
-                            auto dstCodeLo = handleStringMapping(var->GetString());
+                            auto dstCodeLo = handleStringMapping(*str);
                             if (dstCodeLo.size() != 0)
                                 handleRangeMapping(ret, srcCodeLo, dstCodeLo, codeSize, rangeSize);
                         }
@@ -244,10 +244,10 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
                             mappedCodes.clear();
                             mappedCodes.push_back(dstCode);
                         }
-                        else if (var->TryGetString(str) && str.IsHex())
+                        else if (var->TryGetString(str) && str->IsHex())
                         {
                             // pp. 474 PdfReference 1.7
-                            mappedCodes = handleStringMapping(var->GetString());
+                            mappedCodes = handleStringMapping(*str);
                         }
                         else if (var->IsName())
                         {
