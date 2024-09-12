@@ -14,7 +14,7 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfCharCodeMap::PdfCharCodeMap()
-    : m_MapDirty(false), m_codePointMapHead(nullptr), m_depth(0) { }
+    : m_MapDirty(false), m_codePointMapHead(nullptr) { }
 
 PdfCharCodeMap::PdfCharCodeMap(PdfCharCodeMap&& map) noexcept
 {
@@ -48,7 +48,6 @@ void PdfCharCodeMap::move(PdfCharCodeMap& map) noexcept
     utls::move(map.m_Limits, m_Limits);
     utls::move(map.m_MapDirty, m_MapDirty);
     utls::move(map.m_codePointMapHead, m_codePointMapHead);
-    utls::move(map.m_depth, m_depth);
 }
 
 void PdfCharCodeMap::PushMapping(const PdfCharCode& codeUnit, const codepointview& codePoints)

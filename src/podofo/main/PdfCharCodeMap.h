@@ -114,7 +114,6 @@ namespace PoDoFo
         CodeUnitMap m_CodeUnitMap;
         bool m_MapDirty;
         CPMapNode* m_codePointMapHead;           // Head of a BST to lookup code points
-        int m_depth;
     };
 }
 
