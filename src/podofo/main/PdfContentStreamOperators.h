@@ -20,7 +20,7 @@ namespace PoDoFo
 // TODO: Add missing operators
 class PODOFO_API PdfContentStreamOperators
 {
-public:
+protected:
     PdfContentStreamOperators();
 public:
     virtual void re_Operator(double x, double y, double width, double height) = 0;
@@ -95,9 +95,9 @@ public:
     virtual void BX_Operator() = 0;
     virtual void EX_Operator() = 0;
     virtual void Extension_Operator(const std::string_view& opName, const cspan<PdfVariant>& operands) = 0;
-private:
-    PdfContentStreamOperators(const PdfContentStreamOperators&) = delete;
-    PdfContentStreamOperators& operator=(const PdfContentStreamOperators&) = delete;
+protected:
+    PdfContentStreamOperators(const PdfContentStreamOperators&) = default;
+    PdfContentStreamOperators& operator=(const PdfContentStreamOperators&) = default;
 };
 
 }

@@ -669,6 +669,10 @@ private:
     void exitTextObject();
 
 private:
+    PdfPainter(const PdfPainter&) = delete;
+    PdfPainter& operator=(const PdfPainter&) = delete;
+
+private:
     PdfPainterFlags m_flags;
     PainterStatus m_painterStatus;
     PdfPainterStateStack m_StateStack;
