@@ -2,7 +2,6 @@
 
 - PdfDocument: Review AttachFile, GetAttachment, FreeObjectMemory, AddNamedDestination
 - PdfErrorCode: Check all values (Add MaxRecursionReached)
-- Check PdfResources
 - Restore PdfShadingPattern, PdfTilingPattern
 
 ### After 1.0

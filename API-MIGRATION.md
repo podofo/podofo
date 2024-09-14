@@ -1,6 +1,9 @@
 ## 0.10.1 -> 1.0.0
+- `PdfResources`: Move all string resource type functions to the `PdfResourceOperations` interface and
+  make all the implementations private. Cast `PdfResources` instances to this `PdfResourceOperations`
+  interface if you want to use the now reserved generic functions
 - `PdfGraphicsStateWrapper`: Renamed `SetCurrentMatrix()` -> `ConcatenateTransformationMatrix()`
-- `PdfXObject`, `PdfFont`: Removed `GetIdentifier()`, the identifiers are now generated when inserted to `PdfResource`
+- `PdfXObject`, `PdfFont`: Removed `GetIdentifier()`, the identifiers are now generated when inserted to `PdfResources`
 - `PdfXObjet:SetMatrix()`: Removed and moved it to `PdfXObjectForm` (specification tells it doesn't belong to other XObject)
 - `PdfPage::SetICCProfile()`, `PdfImage::SetICCProfile()`: Removed. Create a
   `PdfColorSpaceFilterICCBased` and set it through `PdfPainter::SetFillColorSpace`

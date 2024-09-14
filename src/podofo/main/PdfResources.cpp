@@ -174,7 +174,7 @@ bool PdfResources::tryGetDictionary(const string_view& type, PdfDictionary*& dic
     return typeObj->TryGetDictionary(dict);
 }
 
-PdfDictionary& PdfResources::getOrCreateDictionary(const string_view& type)
+PdfDictionary& PdfResources::getOrCreateDictionary(const PdfName& type)
 {
     PdfDictionary* dict;
     if (!tryGetDictionary(type, dict))
@@ -239,3 +239,5 @@ string_view getResourceTypePrefix(PdfResourceType type)
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 }
+
+PdfResourceOperations::PdfResourceOperations() { }
