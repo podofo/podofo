@@ -12,18 +12,6 @@
 
 namespace PoDoFo {
 
-enum class PdfResourceType
-{
-    Unknown = 0,
-    ExtGState,
-    ColorSpace,
-    Pattern,
-    Shading,
-    XObject,
-    Font,
-    Properties
-};
-
 class PdfFont;
 class PdfCanvas;
 
@@ -45,24 +33,19 @@ private:
 public:
     static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfResources>& resources);
 
-public:
-    PdfObject* GetResource(PdfResourceType type, const std::string_view& key);
-    const PdfObject* GetResource(PdfResourceType type, const std::string_view& key) const;
-    PdfDictionaryIndirectIterable GetResourceIterator(PdfResourceType type);
-    PdfDictionaryConstIndirectIterable GetResourceIterator(PdfResourceType type) const;
-    void RemoveResource(PdfResourceType type, const std::string_view& key);
-    void RemoveResources(PdfResourceType type);
-
     const PdfFont* GetFont(const std::string_view& name) const;
 
+    PdfObject* GetResource(PdfResourceType type, const std::string_view& key) override;
+    const PdfObject* GetResource(PdfResourceType type, const std::string_view& key) const override;
+    PdfDictionaryIndirectIterable GetResourceIterator(PdfResourceType type) override;
+    PdfDictionaryConstIndirectIterable GetResourceIterator(PdfResourceType type) const override;
+
 private:
-    /** Add resource by type generating a new unique identifier
-     */
-    PdfName AddResource(PdfResourceType type, const PdfObject& obj);
-
-    void AddResource(PdfResourceType type, const PdfName& key, const PdfObject& obj);
-
-    PdfName AddResource(const PdfName& type, const PdfObject& obj);
+    PdfName AddResource(PdfResourceType type, const PdfObject& obj) override;
+    void AddResource(PdfResourceType type, const PdfName& key, const PdfObject& obj) override;
+    void RemoveResource(PdfResourceType type, const std::string_view& key) override;
+    void RemoveResources(PdfResourceType type) override;
+    PdfName AddResource(const PdfName& type, const PdfObject& obj) override;
     void AddResource(const PdfName& type, const PdfName& key, const PdfObject& obj) override;
     PdfDictionaryIndirectIterable GetResourceIterator(const std::string_view& type) override;
     PdfDictionaryConstIndirectIterable GetResourceIterator(const std::string_view& type) const override;

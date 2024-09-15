@@ -53,6 +53,16 @@ void PdfResources::AddResource(PdfResourceType type, const PdfName& key, const P
     AddResource(getResourceTypeName(type), key, obj);
 }
 
+PdfObject* PdfResources::GetResource(PdfResourceType type, const std::string_view& key)
+{
+    return GetResource(getResourceTypeName(type), key);
+}
+
+const PdfObject* PdfResources::GetResource(PdfResourceType type, const std::string_view& key) const
+{
+    return GetResource(getResourceTypeName(type), key);
+}
+
 PdfDictionaryIndirectIterable PdfResources::GetResourceIterator(PdfResourceType type)
 {
     return GetResourceIterator(getResourceTypeName(type));
@@ -63,7 +73,7 @@ PdfDictionaryConstIndirectIterable PdfResources::GetResourceIterator(PdfResource
     return GetResourceIterator(getResourceTypeName(type));
 }
 
-void PdfResources::RemoveResource(PdfResourceType type, const string_view& key)
+void PdfResources::RemoveResource(PdfResourceType type, const std::string_view& key)
 {
     RemoveResource(getResourceTypeName(type), key);
 }
@@ -71,16 +81,6 @@ void PdfResources::RemoveResource(PdfResourceType type, const string_view& key)
 void PdfResources::RemoveResources(PdfResourceType type)
 {
     RemoveResources(getResourceTypeName(type));
-}
-
-PdfObject* PdfResources::GetResource(PdfResourceType type, const string_view& key)
-{
-    return GetResource(getResourceTypeName(type), key);
-}
-
-const PdfObject* PdfResources::GetResource(PdfResourceType type, const string_view& key) const
-{
-    return GetResource(getResourceTypeName(type), key);
 }
 
 PdfName PdfResources::AddResource(const PdfName& typeName, const PdfObject& obj)
@@ -194,6 +194,8 @@ PdfDictionary& PdfResources::getOrCreateDictionary(const PdfName& type)
     return *dict;
 }
 
+PdfResourceOperations::PdfResourceOperations() { }
+
 PdfArray getProcSet()
 {
     PdfArray procset;
@@ -271,4 +273,3 @@ string_view getResourceTypePrefix(PdfResourceType type)
     }
 }
 
-PdfResourceOperations::PdfResourceOperations() { }

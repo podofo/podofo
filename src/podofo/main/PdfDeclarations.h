@@ -646,6 +646,18 @@ enum class PdfAppearanceType
     Down        ///< Down appearance; the default is PdfAnnotationAppearance::Normal
 };
 
+enum class PdfResourceType
+{
+    Unknown = 0,
+    ExtGState,
+    ColorSpace,
+    Pattern,
+    Shading,
+    XObject,
+    Font,
+    Properties
+};
+
 /**
  * List of PDF stream content operators
  */
