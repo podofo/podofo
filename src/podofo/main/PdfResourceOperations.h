@@ -24,6 +24,7 @@ public:
     // Generic functions to access resources by arbitrary type
     // name. They shouldn't be generally needed, they are provided
     // for custom use
+    virtual PdfName AddResource(const PdfName& type, const PdfObject& obj) = 0;
     virtual void AddResource(const PdfName& type, const PdfName& key, const PdfObject& obj) = 0;
     virtual PdfDictionaryIndirectIterable GetResourceIterator(const std::string_view& type) = 0;
     virtual PdfDictionaryConstIndirectIterable GetResourceIterator(const std::string_view& type) const = 0;

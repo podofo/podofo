@@ -16,6 +16,7 @@ using namespace PoDoFo;
 
 static PdfArray getProcSet();
 static PdfName getResourceTypeName(PdfResourceType type);
+PdfResourceType getResourceType(const string_view name);
 static string_view getResourceTypePrefix(PdfResourceType type);
 
 PdfResources::PdfResources(PdfDocument& doc) :
@@ -44,24 +45,7 @@ bool PdfResources::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfResources>&
 
 PdfName PdfResources::AddResource(PdfResourceType type, const PdfObject& obj)
 {
-    auto& dict = getOrCreateDictionary(getResourceTypeName(type));
-    auto prefix = getResourceTypePrefix(type);
-    unsigned currId = m_currResourceIds[(unsigned)type - 1];
-    string currName;
-    while (true)
-    {
-        currName.clear();
-        currName.append(prefix);
-        currName.append(std::to_string(currId));
-        if (!dict.HasKey(currName))
-            break;
-
-        currId = ++m_currResourceIds[(unsigned)type - 1];
-    }
-
-    PdfName ret(currName);
-    dict.AddKeyIndirectSafe(ret, obj);
-    return ret;
+    return addResource(type, getResourceTypeName(type), obj);
 }
 
 void PdfResources::AddResource(PdfResourceType type, const PdfName& key, const PdfObject& obj)
@@ -97,6 +81,11 @@ PdfObject* PdfResources::GetResource(PdfResourceType type, const string_view& ke
 const PdfObject* PdfResources::GetResource(PdfResourceType type, const string_view& key) const
 {
     return GetResource(getResourceTypeName(type), key);
+}
+
+PdfName PdfResources::AddResource(const PdfName& typeName, const PdfObject& obj)
+{
+    return addResource(getResourceType(typeName), typeName, obj);
 }
 
 void PdfResources::AddResource(const PdfName& type, const PdfName& key, const PdfObject& obj)
@@ -150,6 +139,28 @@ const PdfObject* PdfResources::GetResource(const string_view& type, const string
 const PdfFont* PdfResources::GetFont(const string_view& name) const
 {
     return GetDocument().GetFonts().GetLoadedFont(*this, name);
+}
+
+PdfName PdfResources::addResource(PdfResourceType type, const PdfName& typeName, const PdfObject& obj)
+{
+    auto& dict = getOrCreateDictionary(typeName);
+    auto prefix = getResourceTypePrefix(type);
+    unsigned currId = m_currResourceIds[(unsigned)type];
+    string currName;
+    while (true)
+    {
+        currName.clear();
+        currName.append(prefix);
+        currName.append(std::to_string(currId));
+        if (!dict.HasKey(currName))
+            break;
+
+        currId = ++m_currResourceIds[(unsigned)type];
+    }
+
+    PdfName ret(currName);
+    dict.AddKeyIndirectSafe(ret, obj);
+    return ret;
 }
 
 PdfObject* PdfResources::getResource(const string_view& type, const string_view& key) const
@@ -217,6 +228,26 @@ PdfName getResourceTypeName(PdfResourceType type)
     }
 }
 
+PdfResourceType getResourceType(const string_view name)
+{
+    if (name == "ExtGState")
+        return PdfResourceType::ExtGState;
+    else if (name == "ColorSpace")
+        return PdfResourceType::ColorSpace;
+    else if (name == "Pattern")
+        return PdfResourceType::Pattern;
+    else if (name == "Shading")
+        return PdfResourceType::Shading;
+    else if (name == "XObject")
+        return PdfResourceType::XObject;
+    else if (name == "Font")
+        return PdfResourceType::Font;
+    else if (name == "Properties")
+        return PdfResourceType::Properties;
+    else
+        return PdfResourceType::Unknown;
+}
+
 string_view getResourceTypePrefix(PdfResourceType type)
 {
     switch (type)
@@ -236,7 +267,7 @@ string_view getResourceTypePrefix(PdfResourceType type)
         case PdfResourceType::Properties:
             return "Prop"sv;
         default:
-            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+            return "Res"sv;
     }
 }
 

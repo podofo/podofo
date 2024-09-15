@@ -46,11 +46,6 @@ public:
     static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfResources>& resources);
 
 public:
-    /** Add resource by type generating a new unique identifier
-     */
-    PdfName AddResource(PdfResourceType type, const PdfObject& obj);
-
-    void AddResource(PdfResourceType type, const PdfName& key, const PdfObject& obj);
     PdfObject* GetResource(PdfResourceType type, const std::string_view& key);
     const PdfObject* GetResource(PdfResourceType type, const std::string_view& key) const;
     PdfDictionaryIndirectIterable GetResourceIterator(PdfResourceType type);
@@ -61,6 +56,13 @@ public:
     const PdfFont* GetFont(const std::string_view& name) const;
 
 private:
+    /** Add resource by type generating a new unique identifier
+     */
+    PdfName AddResource(PdfResourceType type, const PdfObject& obj);
+
+    void AddResource(PdfResourceType type, const PdfName& key, const PdfObject& obj);
+
+    PdfName AddResource(const PdfName& type, const PdfObject& obj);
     void AddResource(const PdfName& type, const PdfName& key, const PdfObject& obj) override;
     PdfDictionaryIndirectIterable GetResourceIterator(const std::string_view& type) override;
     PdfDictionaryConstIndirectIterable GetResourceIterator(const std::string_view& type) const override;
@@ -70,6 +72,7 @@ private:
     const PdfObject* GetResource(const std::string_view& type, const std::string_view& key) const override;
 
 private:
+    PdfName addResource(PdfResourceType type, const PdfName& typeName, const PdfObject& obj);
     PdfObject* getResource(const std::string_view& type, const std::string_view& key) const;
     bool tryGetDictionary(const std::string_view& type, PdfDictionary*& dict) const;
     PdfDictionary& getOrCreateDictionary(const PdfName& type);
