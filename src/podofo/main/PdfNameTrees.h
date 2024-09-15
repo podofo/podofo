@@ -75,8 +75,8 @@ public:
      *  \param key name of the key to look for
      *  \returns true if the dictionary has such a key.
      */
-    bool HasValue(PdfKnownNameTree tree, const PdfString& key) const;
-    bool HasValue(const std::string_view& treeName, const PdfString& key) const;
+    bool HasValue(PdfKnownNameTree tree, const std::string_view& key) const;
+    bool HasValue(const std::string_view& treeName, const std::string_view& key) const;
 
     /**
      * Adds all keys and values from a name tree to a dictionary.

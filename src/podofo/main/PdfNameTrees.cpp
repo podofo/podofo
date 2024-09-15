@@ -340,7 +340,7 @@ const PdfObject* PdfNameTrees::GetValue(PdfKnownNameTree tree, const string_view
     return getValue(getNameTreeTypeName(tree), key);
 }
 
-const PdfObject* PdfNameTrees::GetValue(const string_view& treeName, const std::string_view& key) const
+const PdfObject* PdfNameTrees::GetValue(const string_view& treeName, const string_view& key) const
 {
     return getValue(treeName, key);
 }
@@ -350,17 +350,17 @@ PdfObject* PdfNameTrees::GetValue(PdfKnownNameTree tree, const string_view& key)
     return getValue(getNameTreeTypeName(tree), key);
 }
 
-PdfObject* PdfNameTrees::GetValue(const string_view& treeName, const std::string_view& key)
+PdfObject* PdfNameTrees::GetValue(const string_view& treeName, const string_view& key)
 {
     return getValue(treeName, key);
 }
 
-bool PdfNameTrees::HasValue(PdfKnownNameTree tree, const PdfString& key) const
+bool PdfNameTrees::HasValue(PdfKnownNameTree tree, const string_view& key) const
 {
     return getValue(getNameTreeTypeName(tree), key) != nullptr;
 }
 
-bool PdfNameTrees::HasValue(const string_view& treeName, const PdfString& key) const
+bool PdfNameTrees::HasValue(const string_view& treeName, const string_view& key) const
 {
     return getValue(treeName, key) != nullptr;
 }
