@@ -8,6 +8,7 @@
 #define AUX_STREAM_DEVICE_BASE_H
 
 #include "basedefs.h"
+#include <cstdint>
 #include "EnumFlags.h"
 
 namespace PoDoFo {
