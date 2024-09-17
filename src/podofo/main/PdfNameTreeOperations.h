@@ -11,6 +11,9 @@
 
 namespace PoDoFo {
 
+/** A low level interface with operations to handle document name trees stored in the /Names element
+ * \remarks Implemented by PdfNameTrees
+ */
 class PODOFO_API PdfNameTreeOperations
 {
 protected:
