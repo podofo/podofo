@@ -182,7 +182,7 @@ void PdfInfoHelper::OutputOneName(ostream& outStream, PdfNameTrees& names,
     PdfKnownNameTree treeName, const string_view& title)
 {
     outStream << "\t" << title << endl;
-    PdfStringMap dict;
+    PdfStringMap<PdfObject> dict;
     names.ToDictionary(treeName, dict);
 
     string str;

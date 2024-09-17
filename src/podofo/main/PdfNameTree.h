@@ -32,7 +32,7 @@ protected:
 
     PdfElement* GetValue(const std::string_view& key) const;
 
-    void ToDictionary(std::map<PdfString, std::shared_ptr<PdfElement>, PdfStringInequality>& dict, bool skipClear);
+    void ToDictionary(PdfStringMap<std::shared_ptr<PdfElement>>& dict, bool skipClear);
 
     virtual PdfKnownNameTree GetType() const = 0;
 
@@ -40,7 +40,7 @@ private:
     std::unique_ptr<PdfElement> createElement(PdfObject& obj) const;
 
 private:
-    std::unordered_map<PdfString, std::shared_ptr<PdfElement>, PdfStringHashing, PdfStringEquality> m_cache;
+    PdfStringHashMap<std::shared_ptr<PdfElement>> m_cache;
 };
 
 template <typename TElement>
@@ -56,7 +56,7 @@ private:
         : PdfNameTreeBase(obj) { }
 
 public:
-    using Map = std::map<PdfString, std::shared_ptr<TElement>, PdfStringInequality>;
+    using Map = PdfStringMap<std::shared_ptr<TElement>>;
 
 public:
     void AddValue(const PdfString& key, std::shared_ptr<TElement> value)
@@ -76,7 +76,7 @@ public:
 
     void ToDictionary(Map& dict, bool skipClear = false)
     {
-        PdfNameTreeBase::ToDictionary(reinterpret_cast<std::map<PdfString, std::shared_ptr<PdfElement>, PdfStringInequality>&>(dict), skipClear);
+        PdfNameTreeBase::ToDictionary(reinterpret_cast<PdfStringMap<std::shared_ptr<PdfElement>>&>(dict), skipClear);
     }
 
 protected:

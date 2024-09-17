@@ -58,8 +58,8 @@ public:
      * \param dict add all keys and values to this dictionary
      * \param skipClear skip clearing the output dictionary
      */
-    virtual void ToDictionary(PdfKnownNameTree tree, PdfStringMap& dict, bool skipClear = false) const = 0;
-    virtual void ToDictionary(const std::string_view& treeName, PdfStringMap& dict, bool skipClear = false) const = 0;
+    virtual void ToDictionary(PdfKnownNameTree tree, PdfStringMap<PdfObject>& dict, bool skipClear = false) const = 0;
+    virtual void ToDictionary(const std::string_view& treeName, PdfStringMap<PdfObject>& dict, bool skipClear = false) const = 0;
 
 protected:
     PdfNameTreeOperations(const PdfNameTreeOperations&) = default;

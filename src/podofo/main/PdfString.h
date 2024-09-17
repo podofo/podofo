@@ -239,6 +239,12 @@ struct PdfStringEquality
     }
 };
 
+template<typename TValue>
+using PdfStringMap = std::map<PdfString, TValue, PdfStringInequality>;
+
+template<typename TValue>
+using PdfStringHashMap = std::unordered_map<PdfString, TValue, PdfStringHashing, PdfStringEquality>;
+
 }
 
 #endif // PDF_STRING_H

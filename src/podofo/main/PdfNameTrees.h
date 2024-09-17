@@ -97,7 +97,7 @@ public:
     const PdfObject* GetValue(PdfKnownNameTree tree, const std::string_view& key) const override;
     PdfObject* GetValue(PdfKnownNameTree tree, const std::string_view& key) override;
     bool HasKey(PdfKnownNameTree tree, const std::string_view& key) const override;
-    void ToDictionary(PdfKnownNameTree tree, PdfStringMap& dict, bool skipClear = false) const override;
+    void ToDictionary(PdfKnownNameTree tree, PdfStringMap<PdfObject>& dict, bool skipClear = false) const override;
 
 private:
     void AddValue(PdfKnownNameTree tree, const PdfString& key, const PdfObject& value) override;
@@ -105,7 +105,7 @@ private:
     const PdfObject* GetValue(const std::string_view& treeName, const std::string_view& key) const override;
     PdfObject* GetValue(const std::string_view& treeName, const std::string_view& key) override;
     bool HasKey(const std::string_view& treeName, const std::string_view& key) const override;
-    void ToDictionary(const std::string_view& treeName, PdfStringMap& dict, bool skipClear = false) const override;
+    void ToDictionary(const std::string_view& treeName, PdfStringMap<PdfObject>& dict, bool skipClear = false) const override;
 
 private:
     /** Get a PdfNameTrees root node for a certain name.

@@ -67,8 +67,8 @@ private:
     PdfDictionary* m_dict;
 };
 
-using PdfDictionaryIndirectIterable = PdfDictionaryIndirectIterableBase<PdfObject, PdfNameMap::iterator>;
-using PdfDictionaryConstIndirectIterable = PdfDictionaryIndirectIterableBase<const PdfObject, PdfNameMap::const_iterator>;
+using PdfDictionaryIndirectIterable = PdfDictionaryIndirectIterableBase<PdfObject, PdfNameMap<PdfObject>::iterator>;
+using PdfDictionaryConstIndirectIterable = PdfDictionaryIndirectIterableBase<const PdfObject, PdfNameMap<PdfObject>::const_iterator>;
 
 /** The PDF dictionary data type of PoDoFo (inherits from PdfDataContainer,
  * the base class for such representations)
@@ -291,8 +291,8 @@ public:
     PdfDictionaryConstIndirectIterable GetIndirectIterator() const;
 
 public:
-    using iterator = PdfNameMap::iterator;
-    using const_iterator = PdfNameMap::const_iterator;
+    using iterator = PdfNameMap<PdfObject>::iterator;
+    using const_iterator = PdfNameMap<PdfObject>::const_iterator;
 
 public:
     iterator begin();
@@ -317,7 +317,7 @@ private:
         const PdfStatefulEncrypt* encrypt, charbuff& buffer) const;
 
 private:
-    PdfNameMap m_Map;
+    PdfNameMap<PdfObject> m_Map;
 };
 
 template<typename T>

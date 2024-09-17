@@ -371,12 +371,12 @@ bool PdfNameTrees::HasKey(const string_view& treeName, const string_view& key) c
     return getValue(treeName, key) != nullptr;
 }
 
-void PdfNameTrees::ToDictionary(PdfKnownNameTree tree, PdfStringMap& dict, bool skipClear) const
+void PdfNameTrees::ToDictionary(PdfKnownNameTree tree, PdfStringMap<PdfObject>& dict, bool skipClear) const
 {
     ToDictionary(getNameTreeTypeName(tree), dict, skipClear);
 }
 
-void PdfNameTrees::ToDictionary(const string_view& treeName, PdfStringMap& dict, bool skipClear) const
+void PdfNameTrees::ToDictionary(const string_view& treeName, PdfStringMap<PdfObject>& dict, bool skipClear) const
 {
     if (!skipClear)
         dict.clear();
@@ -609,7 +609,7 @@ bool PdfNameTreeBase::HasKey(const string_view& key) const
     return getKeyValue(const_cast<PdfNameTreeBase&>(*this).GetObject(), key, GetDocument().GetObjects()) != nullptr;
 }
 
-void PdfNameTreeBase::ToDictionary(map<PdfString, shared_ptr<PdfElement>, PdfStringInequality>& dict, bool skipClear)
+void PdfNameTreeBase::ToDictionary(PdfStringMap<shared_ptr<PdfElement>>& dict, bool skipClear)
 {
     if (!skipClear)
         dict.clear();

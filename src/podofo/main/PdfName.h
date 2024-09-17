@@ -219,6 +219,12 @@ struct PdfNameEquality
     }
 };
 
+template<typename TValue>
+using PdfNameMap = std::map<PdfName, TValue, PdfNameInequality>;
+
+template<typename TValue>
+using PdfNameHashMap = std::unordered_map<PdfName, TValue, PdfNameHashing, PdfNameEquality>;
+
 };
 
 #endif // PDF_NAME_H
