@@ -186,6 +186,59 @@ private:
     bool m_isHex;    // This string is converted to hex during writing it out
 };
 
+// Comparator to enable heterogeneous lookup in
+// PdfDictionary with both PdfString and string_view
+// See https://stackoverflow.com/a/31924435/213871
+struct PdfStringInequality
+{
+    using is_transparent = std::true_type;
+
+    inline bool operator()(const PdfString& lhs, const PdfString& rhs) const
+    {
+        return lhs.GetString() < rhs.GetString();
+    }
+    inline bool operator()(const PdfString& lhs, const std::string_view& rhs) const
+    {
+        return lhs.GetString() < rhs;
+    }
+    bool operator()(const std::string_view& lhs, const PdfString& rhs) const
+    {
+        return lhs < rhs.GetString();
+    }
+};
+
+struct PdfStringHashing
+{
+    using is_transparent = std::true_type;
+
+    inline std::size_t operator()(const std::string_view& str) const
+    {
+        return std::hash<std::string_view>()(str);
+    }
+    inline std::size_t operator()(const PdfString& str) const
+    {
+        return std::hash<std::string_view>()(str);
+    }
+};
+
+struct PdfStringEquality
+{
+    using is_transparent = std::true_type;
+
+    inline bool operator()(const PdfString& lhs, const PdfString& rhs) const
+    {
+        return lhs.GetString() == rhs.GetString();
+    }
+    inline bool operator()(const PdfString& lhs, const std::string_view& rhs) const
+    {
+        return lhs.GetString() == rhs;
+    }
+    inline bool operator()(const std::string_view& lhs, const PdfString& rhs) const
+    {
+        return lhs == rhs.GetString();
+    }
+};
+
 }
 
 #endif // PDF_STRING_H

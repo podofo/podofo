@@ -1,4 +1,8 @@
 ## 0.10.1 -> 1.0.0
+- `PdfName`: Removed `operator<`, `std::hash` overload. Just use new `PdfNameMap`, `PdfNameHashMap`,
+  or use `PdfNameInequality`, `PdfNameEquality` and `PdfNameHashing` to create your new data structure
+- `PdfNameComparator`: Renamed to `PdfNameInequality`
+- `PdfDictionaryMap`: Renamed to `PdfNameMap`
 - `PdfResources`: Move all string resource type functions to the `PdfResourceOperations` interface and
   make all the implementations private. Cast `PdfResources` instances to this `PdfResourceOperations`
   interface if you want to use the now reserved generic functions

@@ -767,6 +767,11 @@ private:
             return obj.TryGetArray(value);
         }
     };
+
+    using PdfNameMap = std::map<PdfName, PdfObject, PdfNameInequality>;
+    using PdfNameHashMap = std::unordered_map<PdfName, PdfObject, PdfNameHashing, PdfNameEquality>;
+    using PdfStringMap = std::map<PdfString, PdfObject, PdfStringInequality>;
+    using PdfStringHashMap = std::unordered_map<PdfString, PdfObject, PdfStringHashing, PdfStringEquality>;
 };
 
 #endif // PDF_OBJECT_H

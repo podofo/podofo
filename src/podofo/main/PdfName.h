@@ -122,12 +122,6 @@ public:
     bool operator!=(const std::string& str) const;
     bool operator!=(const std::string_view& view) const;
 
-    /** compare two PdfName objects.
-     *  Used for sorting in lists
-     *  \returns true if this object is smaller than rhs
-     */
-    bool operator<(const PdfName& rhs) const;
-
     /** Default cast to raw data string view
      *
      * It's used in PdfDictionary lookup 
@@ -172,20 +166,59 @@ inline PdfName operator""_n(const char* name, size_t length)
     return PdfName(name, length);
 }
 
+// Comparator to enable heterogeneous lookup in
+// PdfDictionary with both PdfName and string_view
+// See https://stackoverflow.com/a/31924435/213871
+struct PdfNameInequality
+{
+    using is_transparent = std::true_type;
+
+    bool operator()(const PdfName& lhs, const PdfName& rhs) const
+    {
+        return lhs.GetRawData() < rhs.GetRawData();
+    }
+    bool operator()(const PdfName& lhs, const std::string_view& rhs) const
+    {
+        return lhs.GetRawData() < rhs;
+    }
+    bool operator()(const std::string_view& lhs, const PdfName& rhs) const
+    {
+        return lhs < rhs.GetRawData();
+    }
 };
 
-namespace std
+struct PdfNameHashing
 {
-    /** Overload hasher for PdfName
-     */
-    template<>
-    struct hash<PoDoFo::PdfName>
+    using is_transparent = std::true_type;
+
+    inline std::size_t operator()(const std::string_view& name) const
     {
-        size_t operator()(const PoDoFo::PdfName& name) const noexcept
-        {
-            return hash<string_view>()(name);
-        }
-    };
-}
+        return std::hash<std::string_view>()(name);
+    }
+    inline std::size_t operator()(const PdfName& name) const
+    {
+        return std::hash<std::string_view>()(name);
+    }
+};
+
+struct PdfNameEquality
+{
+    using is_transparent = std::true_type;
+
+    inline bool operator()(const PdfName& lhs, const PdfName& rhs) const
+    {
+        return lhs.GetRawData() == rhs.GetRawData();
+    }
+    inline bool operator()(const PdfName& lhs, const std::string_view& rhs) const
+    {
+        return lhs.GetRawData() == rhs;
+    }
+    inline bool operator()(const std::string_view& lhs, const PdfName& rhs) const
+    {
+        return lhs == rhs.GetRawData();
+    }
+};
+
+};
 
 #endif // PDF_NAME_H

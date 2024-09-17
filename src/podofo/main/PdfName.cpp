@@ -344,11 +344,6 @@ bool PdfName::operator!=(const string_view& view) const
     return GetString() != view;
 }
 
-bool PdfName::operator<(const PdfName& rhs) const
-{
-    return this->GetRawData() < rhs.GetRawData();
-}
-
 PdfName::operator string_view() const
 {
     if (m_dataAllocated)

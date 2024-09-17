@@ -110,12 +110,12 @@ PdfObject& PdfDictionary::addKey(const PdfName& key, PdfObject&& obj)
     return added.first->second;
 }
 
-pair<PdfDictionaryMap::iterator, bool> PdfDictionary::AddKey(const PdfName& key, PdfObject&& obj, bool noDirtySet)
+pair<PdfNameMap::iterator, bool> PdfDictionary::AddKey(const PdfName& key, PdfObject&& obj, bool noDirtySet)
 {
     // NOTE: Empty PdfNames are legal according to the PDF specification.
     // Don't check for it
 
-    pair<PdfDictionaryMap::iterator, bool> inserted = m_Map.try_emplace(key, std::move(obj));
+    pair<PdfNameMap::iterator, bool> inserted = m_Map.try_emplace(key, std::move(obj));
     if (!inserted.second)
     {
         if (noDirtySet)
@@ -187,7 +187,7 @@ bool PdfDictionary::HasKey(const string_view& key) const
 bool PdfDictionary::RemoveKey(const string_view& key)
 {
     AssertMutable();
-    PdfDictionaryMap::iterator found = m_Map.find(key);
+    PdfNameMap::iterator found = m_Map.find(key);
     if (found == m_Map.end())
         return false;
 

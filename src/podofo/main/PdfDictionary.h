@@ -14,28 +14,6 @@ namespace PoDoFo {
 
 class PdfDictionary;
 
-// Compartor to enable heterogeneous lookup in
-// PdfDictionary with both PdfName and string_view
-// See https://stackoverflow.com/a/31924435/213871
-struct PdfDictionaryComparator final
-{
-    using is_transparent = std::true_type;
-    bool operator()(const PdfName& lhs, const PdfName& rhs) const
-    {
-        return lhs < rhs;
-    }
-    bool operator()(const PdfName& lhs, const std::string_view& rhs) const
-    {
-        return lhs.GetRawData() < rhs;
-    }
-    bool operator()(const std::string_view& lhs, const PdfName& rhs) const
-    {
-        return lhs < rhs.GetRawData();
-    }
-};
-
-using PdfDictionaryMap = std::map<PdfName, PdfObject, PdfDictionaryComparator>;
-
 /**
  * Helper class to iterate through indirect objects
  */
@@ -89,8 +67,8 @@ private:
     PdfDictionary* m_dict;
 };
 
-using PdfDictionaryIndirectIterable = PdfDictionaryIndirectIterableBase<PdfObject, PdfDictionaryMap::iterator>;
-using PdfDictionaryConstIndirectIterable = PdfDictionaryIndirectIterableBase<const PdfObject, PdfDictionaryMap::const_iterator>;
+using PdfDictionaryIndirectIterable = PdfDictionaryIndirectIterableBase<PdfObject, PdfNameMap::iterator>;
+using PdfDictionaryConstIndirectIterable = PdfDictionaryIndirectIterableBase<const PdfObject, PdfNameMap::const_iterator>;
 
 /** The PDF dictionary data type of PoDoFo (inherits from PdfDataContainer,
  * the base class for such representations)
@@ -313,8 +291,8 @@ public:
     PdfDictionaryConstIndirectIterable GetIndirectIterator() const;
 
 public:
-    using iterator = PdfDictionaryMap::iterator;
-    using const_iterator = PdfDictionaryMap::const_iterator;
+    using iterator = PdfNameMap::iterator;
+    using const_iterator = PdfNameMap::const_iterator;
 
 public:
     iterator begin();
@@ -339,7 +317,7 @@ private:
         const PdfStatefulEncrypt* encrypt, charbuff& buffer) const;
 
 private:
-    PdfDictionaryMap m_Map;
+    PdfNameMap m_Map;
 };
 
 template<typename T>
