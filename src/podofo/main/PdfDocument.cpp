@@ -518,30 +518,6 @@ PdfAcroForm& PdfDocument::GetOrCreateAcroForm(PdfAcroFormDefaulAppearance defaul
     return *m_AcroForm.get();
 }
 
-void PdfDocument::AddNamedDestination(const PdfDestination& dest, const PdfString& name)
-{
-    auto& names = GetOrCreateNames();
-    names.AddValue(PdfKnownNameTree::Dests, name, dest.GetObject().GetIndirectReference());
-}
-
-void PdfDocument::AttachFile(const PdfFileSpec& fileSpec)
-{
-    auto& names = GetOrCreateNames();
-    names.AddValue(PdfKnownNameTree::EmbeddedFiles, fileSpec.GetFilename().value(), fileSpec.GetObject().GetIndirectReference());
-}
-    
-PdfFileSpec* PdfDocument::GetAttachment(const PdfString& name)
-{
-    if (m_NameTrees == nullptr)
-        return nullptr;
-
-    auto obj = m_NameTrees->GetValue(PdfKnownNameTree::EmbeddedFiles, name);
-    if (obj == nullptr)
-        return nullptr;
-
-    return new PdfFileSpec(*obj);
-}
-
 void PdfDocument::SetTrailer(unique_ptr<PdfObject> obj)
 {
     if (obj == nullptr)

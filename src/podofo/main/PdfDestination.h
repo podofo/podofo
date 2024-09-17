@@ -53,6 +53,7 @@ class PODOFO_API PdfDestination final : public PdfArrayElement
     friend class PdfDocument;
     friend class PdfAnnotationLink;
     friend class PdfOutlineItem;
+    friend class PdfNameTreeBase;
 
 private:
     /** Create a new PdfDestination from an existing PdfObject (such as loaded from a doc)

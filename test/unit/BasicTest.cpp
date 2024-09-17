@@ -150,13 +150,25 @@ TEST_CASE("TestNormalizeRangeRotations")
 
 TEST_CASE("TestFileSpecAttachment")
 {
-    PdfMemDocument document;
-    document.GetPages().CreatePage();
-    auto fs = document.CreateFileSpec();
+    PdfMemDocument doc;
+    doc.GetPages().CreatePage();
+    shared_ptr<PdfFileSpec> fs = doc.CreateFileSpec();
     fs->SetFilename(PdfString("Test.xml"));
     fs->SetEmbeddedData(charbuff(string("<?xml version=\"1.0\"?><catalog></catalog>")));
-    document.AttachFile(*fs);
-    document.Save(TestUtils::GetTestOutputFilePath("TestFileSpecAttachment.pdf"));
+    auto& names = doc.GetOrCreateNames();
+    auto& embeddedFiles = names.GetOrCreateTree<PdfEmbeddedFiles>();
+    REQUIRE(embeddedFiles.GetValue(*fs->GetFilename()) == nullptr);
+    REQUIRE(!embeddedFiles.HasKey(*fs->GetFilename()));
+    embeddedFiles.AddValue(*fs->GetFilename(), fs);
+    REQUIRE(embeddedFiles.HasKey(*fs->GetFilename()));
+    REQUIRE(embeddedFiles.GetValue(*fs->GetFilename()) == fs.get());
+
+    PdfNameTree<PdfFileSpec>::Map map;
+    embeddedFiles.ToDictionary(map);
+    REQUIRE(map.size() == 1);
+    REQUIRE(map[*fs->GetFilename()] == fs);
+
+    doc.Save(TestUtils::GetTestOutputFilePath("TestFileSpecAttachment.pdf"));
 }
 
 TEST_CASE("TestPdfNames")

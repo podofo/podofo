@@ -15,7 +15,11 @@ namespace PoDoFo {
 class PdfFont;
 class PdfCanvas;
 
-/** A interface that provides a wrapper around /Resources
+/**
+ * A interface that provides a wrapper around /Resources
+ * \remarks Prefer add resources to it through PdfPainter. You can
+ * cast the instance to PdfResourceOperations to access low level
+ * mutable operations
  */
 class PODOFO_API PdfResources final : public PdfDictionaryElement, public PdfResourceOperations
 {

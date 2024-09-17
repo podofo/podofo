@@ -4,33 +4,51 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#ifndef PDF_NAME_TREE_H
-#define PDF_NAME_TREE_H
+#ifndef PDF_NAME_TREES_H
+#define PDF_NAME_TREES_H
 
-#include "PdfElement.h"
+#include "PdfNameTree.h"
+#include "PdfNameTreeOperations.h"
 
 namespace PoDoFo {
 
-class PdfDictionary;
-
-enum class PdfKnownNameTree
-{
-    Unknown = 0,
-    Dests,
-    AP,
-    JavaScript,
-    Pages,
-    Templates,
-    IDS,
-    URLS,
-    EmbeddedFiles,
-    AlternatePresentations,
-    Renditions,
-};
-
-class PODOFO_API PdfNameTrees final : public PdfDictionaryElement
+/**
+ * Interface to access names trees in the document
+ * \remarks Prefer accessing trees through GetNameTree<TNameTree>
+ * or similars. You can cast the instance to PdfNameTreeOperations
+ * to access low level mutable operations
+ */
+class PODOFO_API PdfNameTrees final : public PdfDictionaryElement, public PdfNameTreeOperations
 {
     friend class PdfDocument;
+
+    template <typename TNameTree>
+    struct TreeGetter
+    {
+        static PdfKnownNameTree GetType()
+        {
+            static_assert(always_false<TNameTree>, "Unsupported type");
+            return PdfKnownNameTree::Unknown;
+        }
+    };
+
+    template <>
+    struct TreeGetter<PdfDestinations>
+    {
+        static PdfKnownNameTree GetType()
+        {
+            return PdfKnownNameTree::Dests;
+        }
+    };
+
+    template <>
+    struct TreeGetter<PdfEmbeddedFiles>
+    {
+        static PdfKnownNameTree GetType()
+        {
+            return PdfKnownNameTree::EmbeddedFiles;
+        }
+    };
 
 private:
     /** Create a new PdfNameTrees object
@@ -45,49 +63,49 @@ private:
     PdfNameTrees(PdfObject& obj);
 
 public:
-    /** Insert a key and value in one of the dictionaries of the name tree.
-     *  \param tree name of the tree to search for the key.
-     *  \param key the key to insert. If it exists, it will be overwritten.
-     *  \param value the value to insert.
-     */
-    void AddValue(PdfKnownNameTree tree, const PdfString& key, const PdfObject& value);
-    void AddValue(const PdfName& treeName, const PdfString& key, const PdfObject& value);
+    template <typename TNameTree>
+    TNameTree* GetTree()
+    {
+        return static_cast<TNameTree*>(getNameTree(TreeGetter<TNameTree>::GetType()));
+    }
 
-    /** Get the object referenced by a string key in one of the dictionaries
-     *  of the name tree.
-     *  \param tree name of the tree to search for the key.
-     *  \param key the key to search for
-     *  \returns the value of the key or nullptr if the key was not found.
-     *           if the value is a reference, the object referenced by
-     *           this reference is returned.
-     */
-    const PdfObject* GetValue(PdfKnownNameTree tree, const std::string_view& key) const;
-    const PdfObject* GetValue(const std::string_view& treeName, const std::string_view& key) const;
-    PdfObject* GetValue(PdfKnownNameTree tree, const std::string_view& key);
-    PdfObject* GetValue(const std::string_view& treeName, const std::string_view& key);
+    template <typename TNameTree>
+    const TNameTree* GetTree() const
+    {
+        return static_cast<const TNameTree*>(getNameTree(TreeGetter<TNameTree>::GetType()));
+    }
 
-    /** Tests whether a certain nametree has a value.
-     *
-     *  It is generally faster to use GetValue and check for nullptr
-     *  as return value.
-     *
-     *  \param tree name of the tree to search for the key.
-     *  \param key name of the key to look for
-     *  \returns true if the dictionary has such a key.
-     */
-    bool HasValue(PdfKnownNameTree tree, const std::string_view& key) const;
-    bool HasValue(const std::string_view& treeName, const std::string_view& key) const;
+    template <typename TNameTree>
+    TNameTree& MustGetTree()
+    {
+        return static_cast<TNameTree&>(mustGetNameTree(TreeGetter<TNameTree>::GetType()));
+    }
 
-    /**
-     * Adds all keys and values from a name tree to a dictionary.
-     * Removes all keys that have been previously in the dictionary.
-     *
-     * \param tree the name of the tree to convert into a dictionary
-     * \param dict add all keys and values to this dictionary
-     * \param skipClear skip clearing the output dictionary
-     */
-    void ToDictionary(PdfKnownNameTree tree, PdfDictionary& dict, bool skipClear = false);
-    void ToDictionary(const std::string_view& treeName, PdfDictionary& dict, bool skipClear = false);
+    template <typename TNameTree>
+    const TNameTree& MustGetTree() const
+    {
+        return static_cast<const TNameTree&>(mustGetNameTree(TreeGetter<TNameTree>::GetType()));
+    }
+
+    template <typename TNameTree>
+    TNameTree& GetOrCreateTree()
+    {
+        return static_cast<TNameTree&>(getOrCreateNameTree(TreeGetter<TNameTree>::GetType()));
+    }
+
+public:
+    const PdfObject* GetValue(PdfKnownNameTree tree, const std::string_view& key) const override;
+    PdfObject* GetValue(PdfKnownNameTree tree, const std::string_view& key) override;
+    bool HasKey(PdfKnownNameTree tree, const std::string_view& key) const override;
+    void ToDictionary(PdfKnownNameTree tree, PdfStringMap& dict, bool skipClear = false) const override;
+
+private:
+    void AddValue(PdfKnownNameTree tree, const PdfString& key, const PdfObject& value) override;
+    void AddValue(const PdfName& treeName, const PdfString& key, const PdfObject& value) override;
+    const PdfObject* GetValue(const std::string_view& treeName, const std::string_view& key) const override;
+    PdfObject* GetValue(const std::string_view& treeName, const std::string_view& key) override;
+    bool HasKey(const std::string_view& treeName, const std::string_view& key) const override;
+    void ToDictionary(const std::string_view& treeName, PdfStringMap& dict, bool skipClear = false) const override;
 
 private:
     /** Get a PdfNameTrees root node for a certain name.
@@ -112,21 +130,16 @@ private:
 
     PdfObject* getValue(const std::string_view& name, const std::string_view& key) const;
 
-    /** Recursively walk through the name tree and find the value for key.
-     *  \param obj the name tree
-     *  \param key the key to find a value for
-     *  \return the value for the key or nullptr if it was not found
-     */
-    PdfObject* getKeyValue(PdfObject& obj, const PdfString& key) const;
+    PdfNameTreeBase* getNameTree(PdfKnownNameTree tree) const;
 
-    /**
-     *  Add all keys and values from an object and its children to a dictionary.
-     *  \param obj a pdf name tree node
-     *  \param dict a dictionary
-     */
-    void addToDictionary(PdfObject& obj, PdfDictionary& dict);
+    PdfNameTreeBase& mustGetNameTree(PdfKnownNameTree tree) const;
+
+    PdfNameTreeBase& getOrCreateNameTree(PdfKnownNameTree tree);
+
+private:
+    nullable<std::unique_ptr<PdfNameTreeBase>> m_Trees[(unsigned)PdfKnownNameTree::Renditions];
 };
 
 };
 
-#endif // PDF_NAME_TREE_H
+#endif // PDF_NAME_TREES_H

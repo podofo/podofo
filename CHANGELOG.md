@@ -4,7 +4,7 @@
 - Set `PdfSignature` to have correct `/ByteRange` and `/Contents` after signing with `PoDoFo::SignDocument`
 - Reviewed `PdfFileSpec`, `PdfAction`, `PdfDestination` API and their usage in
 `PdfOutlineItem`, `PdfOutlines`, `PdfAnnotationActionBase`, `PdfAnnotationLink`, `PdfAnnotationFileAttachment`
-- Reviewed `PdfNameTree`
+- Reviewed `PdfNameTree`, renamed to `PdfNameTrees` and added `PdfNameTree` to pick specific trees with typed element
 - Reviewed `PdfExtGState`
 - `PdfDocument`: Added `GetFieldsIterator()`
 - `PdfPage`: Added `GetFieldsIterator()`

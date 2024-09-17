@@ -24,6 +24,7 @@ class PODOFO_API PdfFileSpec final : public PdfDictionaryElement
 {
     friend class PdfDocument;
     friend class PdfAnnotationFileAttachment;
+    friend class PdfNameTreeBase;
 
 private:
     PdfFileSpec(PdfDocument& doc);

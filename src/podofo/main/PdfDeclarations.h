@@ -658,6 +658,21 @@ enum class PdfResourceType
     Properties
 };
 
+enum class PdfKnownNameTree
+{
+    Unknown = 0,
+    Dests,
+    AP,
+    JavaScript,
+    Pages,
+    Templates,
+    IDS,
+    URLS,
+    EmbeddedFiles,
+    AlternatePresentations,
+    Renditions,
+};
+
 /**
  * List of PDF stream content operators
  */

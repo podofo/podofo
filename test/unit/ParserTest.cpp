@@ -2304,7 +2304,7 @@ TEST_CASE("TestNestedNameTree")
         auto names = doc.GetNames();
         if (names != nullptr)
         {
-            PdfDictionary dict;
+            PdfStringMap dict;
             names->ToDictionary(PdfKnownNameTree::Dests, dict);
         }
 
@@ -2342,7 +2342,7 @@ TEST_CASE("TestLoopingNameTree")
         auto names = doc.GetNames();
         if (names != nullptr)
         {
-            PdfDictionary dict;
+            PdfStringMap dict;
             names->ToDictionary(PdfKnownNameTree::Dests, dict);
         }
     }
@@ -2371,7 +2371,7 @@ TEST_CASE("TestLoopingNameTree")
         auto names = doc.GetNames();
         if (names != nullptr)
         {
-            PdfDictionary dict;
+            PdfStringMap dict;
             names->ToDictionary(PdfKnownNameTree::Dests, dict);
         }
 
@@ -2407,7 +2407,7 @@ TEST_CASE("TestLoopingNameTree")
         auto names = doc.GetNames();
         if (names != nullptr)
         {
-            PdfDictionary dict;
+            PdfStringMap dict;
             names->ToDictionary(PdfKnownNameTree::Dests, dict);
         }
 

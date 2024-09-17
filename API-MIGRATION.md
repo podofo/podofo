@@ -1,9 +1,12 @@
 ## 0.10.1 -> 1.0.0
+- `PdfDocument`:
+  * Removed `AttachFile()`, `GetAttachment()`: Use `GetNames().GetNameTree<PdfEmbeddedFiles>()` or similar methods and use that instance
+  * Removed `AddNamedDestination()`: Use `GetNames().GetTree<PdfDestinations>()` or similar methods and use that instance
 - `PdfName`: Removed `operator<`, `std::hash` overload. Just use new `PdfNameMap`, `PdfNameHashMap`,
   or use `PdfNameInequality`, `PdfNameEquality` and `PdfNameHashing` to create your new data structure
 - `PdfNameComparator`: Renamed to `PdfNameInequality`
 - `PdfDictionaryMap`: Renamed to `PdfNameMap`
-- `PdfResources`: Move all string resource type functions to the `PdfResourceOperations` interface and
+- `PdfResources`: Moved all string resource type functions to the `PdfResourceOperations` interface and
   make all the implementations private. Cast `PdfResources` instances to this `PdfResourceOperations`
   interface if you want to use the now reserved generic functions
 - `PdfGraphicsStateWrapper`: Renamed `SetCurrentMatrix()` -> `ConcatenateTransformationMatrix()`
@@ -64,7 +67,11 @@ they are internal implementation details
 - `FreeTypeFacePtr`: Removed, it was just used in the implementation
 - Inverted parameters in `PdfDifferenceEncoding` constructor
 - Moved `PdfCMapEncoding::CreateFromObject` to `PdfEncodingMapFactory::ParseCMapEncoding`
-- Renamed `PdfNameTree` -> `PdfNameTrees`
+- `PdfNameTree`:
+  * Renamed -> `PdfNameTrees`
+  * Moved all string tree type functions to the `PdfNameTreeOperations` and make mutable functions private. Cast to that type if you still want to use them
+  * `ToDictionary` now takes `std::map<PdfString, PdfObject>` as input
+  * `HasValue` -> renamed to `HasKey`
 - Renamed enum `PdfColorSpace` -> `PdfColorSpaceType`, `PdfColorSpace` is now a doc element.
 - `PdfColor` now it's used just to represent GrayScale, RGB, CMYK colors. Now `PdfColorRaw` is used to supply color components for other color spaces
 - `PdfCanvas`: Rename `GetStreamForAppending()` -> `GetOrCreateContentsStream()`

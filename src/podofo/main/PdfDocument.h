@@ -24,9 +24,7 @@
 namespace PoDoFo {
 
 class PdfAction;
-class PdfDestination;
 class PdfExtGState;
-class PdfFileSpec;
 class PdfEncrypt;
 class PdfDocument;
 
@@ -144,25 +142,6 @@ public:
      *  \returns PdfObject the AcroForm dictionary
      */
     PdfAcroForm& GetOrCreateAcroForm(PdfAcroFormDefaulAppearance eDefaultAppearance = PdfAcroFormDefaulAppearance::ArialBlack);
-
-    /** Attach a file to the document.
-     *  \param fileSpec a file specification
-     */
-    void AttachFile(const PdfFileSpec& fileSpec);
-
-    /** Get an attached file's filespec.
-     *  \param name the name of the attachment
-     *  \return the file specification object if the file exists, nullptr otherwise
-     *          The file specification object is not owned by the document and must be deleted by the caller
-     */
-    PdfFileSpec* GetAttachment(const PdfString& name);
-
-    /** Adds a PdfDestination into the global Names tree
-     *  with the specified name, optionally replacing one of the same name.
-     *  \param dest the destination to be assigned
-     *  \param name the name for the destination
-     */
-    void AddNamedDestination(const PdfDestination& dest, const PdfString& name);
 
     void CollectGarbage();
 

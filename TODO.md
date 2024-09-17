@@ -1,10 +1,14 @@
 ### 1.0
 
-- PdfDocument: Review AttachFile, GetAttachment, FreeObjectMemory, AddNamedDestination
+- PdfDocument: FreeObjectMemory
 - PdfErrorCode: Check all values (Add MaxRecursionReached)
+- Optimize PdfVariant size
+- Optimize passing shared_ptr
+- Optimize PdfPage::CreateField<T>(), CreateAnnotation<T>() with partial template specialization based determination of type
 - Restore PdfShadingPattern, PdfTilingPattern
 
 ### After 1.0
+- noexcept nullable<T> methods
 - Add an easier way to retrieve attachments?
 - Check/Review doxygen doc
 - If the doc is updated, then should not allow to set an encryption
