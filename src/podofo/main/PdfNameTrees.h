@@ -22,34 +22,6 @@ class PODOFO_API PdfNameTrees final : public PdfDictionaryElement, public PdfNam
 {
     friend class PdfDocument;
 
-    template <typename TNameTree>
-    struct TreeGetter
-    {
-        static PdfKnownNameTree GetType()
-        {
-            static_assert(always_false<TNameTree>, "Unsupported type");
-            return PdfKnownNameTree::Unknown;
-        }
-    };
-
-    template <>
-    struct TreeGetter<PdfDestinations>
-    {
-        static PdfKnownNameTree GetType()
-        {
-            return PdfKnownNameTree::Dests;
-        }
-    };
-
-    template <>
-    struct TreeGetter<PdfEmbeddedFiles>
-    {
-        static PdfKnownNameTree GetType()
-        {
-            return PdfKnownNameTree::EmbeddedFiles;
-        }
-    };
-
 private:
     /** Create a new PdfNameTrees object
      *  \param parent parent of this action
@@ -66,31 +38,31 @@ public:
     template <typename TNameTree>
     TNameTree* GetTree()
     {
-        return static_cast<TNameTree*>(getNameTree(TreeGetter<TNameTree>::GetType()));
+        return static_cast<TNameTree*>(getNameTree(getType<TNameTree>()));
     }
 
     template <typename TNameTree>
     const TNameTree* GetTree() const
     {
-        return static_cast<const TNameTree*>(getNameTree(TreeGetter<TNameTree>::GetType()));
+        return static_cast<const TNameTree*>(getNameTree(getType<TNameTree>()));
     }
 
     template <typename TNameTree>
     TNameTree& MustGetTree()
     {
-        return static_cast<TNameTree&>(mustGetNameTree(TreeGetter<TNameTree>::GetType()));
+        return static_cast<TNameTree&>(mustGetNameTree(getType<TNameTree>()));
     }
 
     template <typename TNameTree>
     const TNameTree& MustGetTree() const
     {
-        return static_cast<const TNameTree&>(mustGetNameTree(TreeGetter<TNameTree>::GetType()));
+        return static_cast<const TNameTree&>(mustGetNameTree(getType<TNameTree>()));
     }
 
     template <typename TNameTree>
     TNameTree& GetOrCreateTree()
     {
-        return static_cast<TNameTree&>(getOrCreateNameTree(TreeGetter<TNameTree>::GetType()));
+        return static_cast<TNameTree&>(getOrCreateNameTree(getType<TNameTree>()));
     }
 
 public:
@@ -135,6 +107,17 @@ private:
     PdfNameTreeBase& mustGetNameTree(PdfKnownNameTree tree) const;
 
     PdfNameTreeBase& getOrCreateNameTree(PdfKnownNameTree tree);
+
+    template <typename TNameTree>
+    static constexpr PdfKnownNameTree getType()
+    {
+        if (std::is_same_v<TNameTree, PdfEmbeddedFiles>)
+            return PdfKnownNameTree::EmbeddedFiles;
+        else if (std::is_same_v<TNameTree, PdfDestinations>)
+            return PdfKnownNameTree::Dests;
+        else
+            return PdfKnownNameTree::Unknown;
+    }
 
 private:
     nullable<std::unique_ptr<PdfNameTreeBase>> m_Trees[(unsigned)PdfKnownNameTree::Renditions];
