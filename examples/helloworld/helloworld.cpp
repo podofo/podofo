@@ -122,7 +122,7 @@ void HelloWorld(const string_view& filename)
         // The last step is to close the document.
         document.Save(filename);
     }
-    catch (PdfError& e)
+    catch (PdfError&)
     {
         // All PoDoFo methods may throw exceptions
         // make sure that painter.FinishPage() is called

@@ -113,7 +113,7 @@ void HelloWorld(const string_view& filename)
         document.Save(filename);
 
     }
-    catch (PdfError& e)
+    catch (PdfError&)
     {
         // All PoDoFo methods may throw exceptions
         // make sure that painter.FinishPage() is called
