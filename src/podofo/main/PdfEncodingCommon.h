@@ -35,6 +35,8 @@ namespace PoDoFo
 
         bool operator==(const PdfCharCode& rhs) const;
 
+        bool operator!=(const PdfCharCode& rhs) const;
+
     public:
         void AppendTo(std::string& str) const;
         void WriteHexTo(std::string& str, bool wrap = true) const;

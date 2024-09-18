@@ -35,6 +35,11 @@ bool PdfCharCode::operator==(const PdfCharCode& rhs) const
     return CodeSpaceSize == rhs.CodeSpaceSize && Code == rhs.Code;
 }
 
+bool PdfCharCode::operator!=(const PdfCharCode& rhs) const
+{
+    return CodeSpaceSize != rhs.CodeSpaceSize || Code != rhs.Code;
+}
+
 void PdfCharCode::AppendTo(string& str) const
 {
     for (unsigned i = CodeSpaceSize; i >= 1; i--)
