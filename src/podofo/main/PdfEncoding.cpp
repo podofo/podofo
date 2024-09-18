@@ -342,7 +342,7 @@ void PdfEncoding::ExportToFont(PdfFont& font) const
         // Some CMap encodings has a name representation, such as
         // Identity-H/Identity-V. NOTE: Use a fixed representation only
         // if we are not subsetting. In that case we want a CID mapping
-        if (font.IsSubsettingEnabled() || !tryExportObjectTo(fontDict, true))
+        if (font.IsSubsettingEnabled() || !tryExportEncodingTo(fontDict, true))
         {
             // If it doesn't have a name representation, try to export a CID CMap
             auto& cmapObj = fontDict.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
@@ -356,7 +356,7 @@ void PdfEncoding::ExportToFont(PdfFont& font) const
     }
     else
     {
-        if (!tryExportObjectTo(fontDict, false))
+        if (!tryExportEncodingTo(fontDict, false))
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The encoding should supply an export object");
     }
 
@@ -370,7 +370,7 @@ PdfStringScanContext PdfEncoding::StartStringScan(const PdfString& encodedStr)
     return PdfStringScanContext(encodedStr.GetRawData(), *this);
 }
 
-bool PdfEncoding::tryExportObjectTo(PdfDictionary& dictionary, bool wantCIDMapping) const
+bool PdfEncoding::tryExportEncodingTo(PdfDictionary& dictionary, bool wantCIDMapping) const
 {
     if (wantCIDMapping && !HasCIDMapping())
     {

@@ -211,7 +211,7 @@ namespace PoDoFo
         static unsigned GetNextId();
 
     private:
-        bool tryExportObjectTo(PdfDictionary& dictionary, bool wantCidMapping) const;
+        bool tryExportEncodingTo(PdfDictionary& dictionary, bool wantCidMapping) const;
         bool tryConvertEncodedToUtf8(const std::string_view& encoded, std::string& str) const;
         bool tryConvertEncodedToCIDs(const std::string_view& encoded, std::vector<PdfCID>& cids) const;
         void writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const std::string_view& baseFont) const;
