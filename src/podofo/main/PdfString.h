@@ -189,7 +189,7 @@ private:
 // Comparator to enable heterogeneous lookup in
 // PdfDictionary with both PdfString and string_view
 // See https://stackoverflow.com/a/31924435/213871
-struct PdfStringInequality
+struct PODOFO_API PdfStringInequality
 {
     using is_transparent = std::true_type;
 
@@ -207,7 +207,7 @@ struct PdfStringInequality
     }
 };
 
-struct PdfStringHashing
+struct PODOFO_API PdfStringHashing
 {
     using is_transparent = std::true_type;
 
@@ -221,7 +221,7 @@ struct PdfStringHashing
     }
 };
 
-struct PdfStringEquality
+struct PODOFO_API PdfStringEquality
 {
     using is_transparent = std::true_type;
 

@@ -115,61 +115,9 @@ public:
      */
     inline PdfDocument& GetDocument() const { return *m_Document; }
 
-public:
-    // Comparator to enable heterogeneous lookup with
-    // both objects and references
-    // See https://stackoverflow.com/a/31924435/213871
-    struct ObjectListComparator final
-    {
-        using is_transparent = std::true_type;
-        bool operator()(const PdfObject* lhs, const PdfObject* rhs) const
-        {
-            return lhs->GetIndirectReference() < rhs->GetIndirectReference();
-        }
-        bool operator()(const PdfObject* lhs, const PdfReference& rhs) const
-        {
-            return lhs->GetIndirectReference() < rhs;
-        }
-        bool operator()(const PdfReference& lhs, const PdfObject* rhs) const
-        {
-            return lhs < rhs->GetIndirectReference();
-        }
-    };
-
-    using ObjectList = std::set<PdfObject*, ObjectListComparator>;
-
-    // An incomplete set of container typedefs, just enough to handle
-    // the begin() and end() methods we wrap from the internal vector.
-    // TODO: proper wrapper iterator class.
-    using iterator = ObjectList::const_iterator;
-    using reverse_iterator = ObjectList::const_reverse_iterator;
-
-    /** Iterator pointing at the beginning of the vector
-     *  \returns beginning iterator
-     */
-    iterator begin() const;
-
-    /** Iterator pointing at the end of the vector
-     *  \returns ending iterator
-     */
-    iterator end() const;
-
-    reverse_iterator rbegin() const;
-
-    reverse_iterator rend() const;
-
-    size_t size() const;
-
-private:
-    PdfIndirectObjectList(PdfDocument& document);
-    PdfIndirectObjectList(PdfDocument& document, const PdfIndirectObjectList& rhs);
-
-    PdfIndirectObjectList(const PdfIndirectObjectList&) = delete;
-    PdfIndirectObjectList& operator=(const PdfIndirectObjectList&) = delete;
-
 private:
     /** Every observer of PdfIndirectObjectList has to implement this interface.
- */
+     */
     class PODOFO_API Observer
     {
         friend class PdfIndirectObjectList;
@@ -203,6 +151,43 @@ private:
         virtual std::unique_ptr<PdfObjectStreamProvider> CreateStream() = 0;
     };
 
+    using ObjectNumSet = std::set<uint32_t>;
+    using ReferenceSet = std::set<PdfReference>;
+    using ObserverList = std::vector<Observer*>;
+    using ObjectList = std::set<PdfObject*, PdfObjectInequality>;
+
+public:
+
+    // An incomplete set of container typedefs, just enough to handle
+    // the begin() and end() methods we wrap from the internal vector.
+    // TODO: proper wrapper iterator class.
+    using iterator = ObjectList::const_iterator;
+    using reverse_iterator = ObjectList::const_reverse_iterator;
+
+    /** Iterator pointing at the beginning of the vector
+     *  \returns beginning iterator
+     */
+    iterator begin() const;
+
+    /** Iterator pointing at the end of the vector
+     *  \returns ending iterator
+     */
+    iterator end() const;
+
+    reverse_iterator rbegin() const;
+
+    reverse_iterator rend() const;
+
+    size_t size() const;
+
+private:
+    PdfIndirectObjectList(PdfDocument& document);
+    PdfIndirectObjectList(PdfDocument& document, const PdfIndirectObjectList& rhs);
+
+    PdfIndirectObjectList(const PdfIndirectObjectList&) = delete;
+    PdfIndirectObjectList& operator=(const PdfIndirectObjectList&) = delete;
+
+private:
     /** Creates a stream object
      *  This method is a factory for PdfObjectStream objects.
      *
@@ -315,11 +300,6 @@ private:
      *  \param factory a stream factory or nullptr to reset to the default factory
      */
     void SetStreamFactory(StreamFactory* factory);
-
-private:
-    using ObjectNumSet = std::set<uint32_t>;
-    using ReferenceSet = std::set<PdfReference>;
-    using ObserverList = std::vector<Observer*>;
 
 private:
     void pushObject(const ObjectList::const_iterator& hintpos, ObjectList::node_type& node, PdfObject* obj);

@@ -767,6 +767,39 @@ private:
             return obj.TryGetArray(value);
         }
     };
-};
+
+    // Comparator to enable heterogeneous lookup with
+    // both objects and references
+    // See https://stackoverflow.com/a/31924435/213871
+    struct PODOFO_API PdfObjectInequality final
+    {
+        using is_transparent = std::true_type;
+
+        bool operator()(const PdfObject* lhs, const PdfObject* rhs) const
+        {
+            return lhs->GetIndirectReference() < rhs->GetIndirectReference();
+        }
+        bool operator()(const PdfObject* lhs, const PdfReference& rhs) const
+        {
+            return lhs->GetIndirectReference() < rhs;
+        }
+        bool operator()(const PdfReference& lhs, const PdfObject* rhs) const
+        {
+            return lhs < rhs->GetIndirectReference();
+        }
+        bool operator()(const PdfObject& lhs, const PdfObject& rhs) const
+        {
+            return lhs.GetIndirectReference() < rhs.GetIndirectReference();
+        }
+        bool operator()(const PdfObject& lhs, const PdfReference& rhs) const
+        {
+            return lhs.GetIndirectReference() < rhs;
+        }
+        bool operator()(const PdfReference& lhs, const PdfObject& rhs) const
+        {
+            return lhs < rhs.GetIndirectReference();
+        }
+    };
+}
 
 #endif // PDF_OBJECT_H

@@ -38,6 +38,7 @@
     in the public API
   * `RemoveObject()`, `CreateStream()`, `Attach()` `Detach`, `Clear()`,`BeginAppendStream()`,`EndAppendStream()`, `TryIncrementObjectCount()`:
     Removed from the public API: They have always been for inner use and dangerous to call for the user. For object removal we now rely on garbage collection
+  * Renamed `ObjectListComparator` to `PdfObjectInequality` and moved it to PoDoFo namespace
 - `PdfExtGState`:
   * Costructor is now private, create it through `PdfDocument::CreateExtGState()`
   * All methods now accept nullable

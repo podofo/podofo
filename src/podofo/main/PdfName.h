@@ -169,7 +169,7 @@ inline PdfName operator""_n(const char* name, size_t length)
 // Comparator to enable heterogeneous lookup in
 // PdfDictionary with both PdfName and string_view
 // See https://stackoverflow.com/a/31924435/213871
-struct PdfNameInequality
+struct PODOFO_API PdfNameInequality
 {
     using is_transparent = std::true_type;
 
@@ -187,7 +187,7 @@ struct PdfNameInequality
     }
 };
 
-struct PdfNameHashing
+struct PODOFO_API PdfNameHashing
 {
     using is_transparent = std::true_type;
 
@@ -201,7 +201,7 @@ struct PdfNameHashing
     }
 };
 
-struct PdfNameEquality
+struct PODOFO_API PdfNameEquality
 {
     using is_transparent = std::true_type;
 
