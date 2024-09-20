@@ -694,7 +694,7 @@ PdfCharCode PdfFont::AddCharCodeSafe(unsigned gid, const unicodeview& codePoints
 
     // Encode the code point with FSS-UTF encoding so
     // it will be variable code size safe
-    code = PdfCharCode(utls::FSSUTFEncode(m_DynamicToUnicodeMap->GetSize()));
+    code = PdfCharCode(utls::FSSUTFEncode((unsigned)m_DynamicToUnicodeMap->GetMappings().size()));
     // NOTE: We assume in this context cid == gid identity
     m_DynamicCIDMap->PushMapping(code, gid);
     m_DynamicToUnicodeMap->PushMapping(code, codePoints);

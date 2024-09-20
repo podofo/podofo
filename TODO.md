@@ -8,6 +8,8 @@
 - Restore PdfShadingPattern, PdfTilingPattern
 
 ### After 1.0
+- According to 5014.CIDFont_Spec page 71-72-73 begincidchar, begincidrange,
+  beginbfchar, beginbfrange have a limit of 100 entries. Fix it where relevant
 - noexcept nullable<T> methods
 - Add an easier way to retrieve attachments?
 - Check/Review doxygen doc

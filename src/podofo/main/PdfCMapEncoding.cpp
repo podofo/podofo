@@ -32,11 +32,10 @@ static uint32_t getCodeFromVariant(const PdfVariant& var, CodeLimits& limits);
 static uint32_t getCodeFromVariant(const PdfVariant& var, CodeLimits& limits, unsigned char& codeSize);
 static vector<char32_t> handleNameMapping(const PdfName& name);
 static vector<char32_t> handleStringMapping(const PdfString& str);
-static void handleRangeMapping(PdfCharCodeMap& map,
-    uint32_t srcCodeLo, const vector<char32_t>& dstCodeLo,
-    unsigned char codeSize, unsigned rangeSize);
+static void pushRangeMapping(PdfCharCodeMap& map, uint32_t srcCodeLo, unsigned rangeSize,
+    const cspan<char32_t>& dstCodeLo, unsigned char codeSize);
 static vector<char32_t> handleUtf8String(const string_view& str);
-static void pushMapping(PdfCharCodeMap& map, const PdfCharCode& codeUnit, const std::vector<char32_t>& codePoints);
+static void pushMapping(PdfCharCodeMap& map, uint32_t srcCode, unsigned char codeSize, const std::vector<char32_t>& codePoints);
 static PdfCharCodeMap parseCMapObject(InputStreamDevice& stream, PdfName& name, PdfCIDSystemInfo& info, int& wMode, PdfEncodingLimits& limits);
 
 PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map) :
@@ -102,35 +101,11 @@ bool PdfEncodingMapFactory::TryParseCMapEncoding(const PdfObject& cmapObj, uniqu
     int wMode = 0;
     PdfCIDSystemInfo info;
     auto map = parseCMapObject(device, cmapName, info, wMode, mapLimits);
-    if (map.GetSize() != 0
-        && mapLimits.MinCodeSize == mapLimits.MaxCodeSize)
+    if (!map.IsEmpty() != 0 && mapLimits.MinCodeSize == mapLimits.MaxCodeSize && map.IsTrivialIdentity())
     {
-        // Try to determine if the encoding is actually
-        // an identity encoding
-        auto it = map.begin();
-        auto end = map.end();
-        unsigned prev = it->first.Code - 1;
-        bool identity = true;
-        do
-        {
-            if (it->second.size() > 1
-                || it->first.Code != it->second[0]
-                || it->first.Code > (prev + 1))
-            {
-                identity = false;
-                break;
-            }
-
-            prev = it->first.Code;
-            it++;
-        } while (it != end);
-
-        if (identity)
-        {
-            encoding.reset(new PdfIdentityEncoding(
-                PdfEncodingMapType::CMap, mapLimits, PdfIdentityOrientation::Unkwnown));
-            return true;
-        }
+        encoding.reset(new PdfIdentityEncoding(
+            PdfEncodingMapType::CMap, mapLimits, PdfIdentityOrientation::Unkwnown));
+        return true;
     }
 
     // Properties in the CMap stream dictionary get priority
@@ -239,8 +214,14 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
                         uint32_t srcCodeLo = getCodeFromVariant(*var, codeLimits, codeSize);
                         tokenizer.ReadNextVariant(device, *var);
                         uint32_t srcCodeHi = getCodeFromVariant(*var, codeLimits);
-                        unsigned rangeSize = srcCodeHi - srcCodeLo + 1;
                         tokenizer.ReadNextVariant(device, *var);
+                        if (srcCodeHi < srcCodeLo)
+                        {
+                            PoDoFo::LogMessage(PdfLogSeverity::Warning, "begincidrange: Found range with srcCodeHi {} < srcCodeLo {}", srcCodeHi, srcCodeLo);
+                            continue;
+                        }
+
+                        unsigned rangeSize = srcCodeHi - srcCodeLo + 1;
                         if (var->IsArray())
                         {
                             PdfArray& arr = var->GetArray();
@@ -248,27 +229,35 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
                             {
                                 auto& dst = arr[i];
                                 if (dst.TryGetString(str) && str->IsHex()) // pp. 475 PdfReference 1.7
-                                    pushMapping(ret, { srcCodeLo + i, codeSize }, handleStringMapping(*str));
+                                {
+                                    pushMapping(ret, srcCodeLo + i, codeSize, handleStringMapping(*str));
+                                }
                                 else if (dst.IsName()) // Not mentioned in tecnincal document #5014 but seems safe
-                                    pushMapping(ret, { srcCodeLo + i, codeSize }, handleNameMapping(dst.GetName()));
+                                {
+                                    pushMapping(ret, srcCodeLo + i, codeSize, handleNameMapping(dst.GetName()));
+                                }
                                 else
-                                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "beginbfrange: expected string or name inside array");
+                                {
+                                    PoDoFo::LogMessage(PdfLogSeverity::Warning, "beginbfrange: expected string or name inside array");
+                                    break;
+                                }
                             }
                         }
                         else if (var->TryGetString(str) && str->IsHex())
                         {
                             // pp. 474 PdfReference 1.7
                             auto dstCodeLo = handleStringMapping(*str);
-                            if (dstCodeLo.size() != 0)
-                                handleRangeMapping(ret, srcCodeLo, dstCodeLo, codeSize, rangeSize);
+                            pushRangeMapping(ret, srcCodeLo, rangeSize, dstCodeLo, codeSize);
                         }
                         else if (var->IsName())
                         {
                             // As found in tecnincal document #5014
-                            handleRangeMapping(ret, srcCodeLo, handleNameMapping(var->GetName()), codeSize, rangeSize);
+                            pushRangeMapping(ret, srcCodeLo, rangeSize, handleNameMapping(var->GetName()), codeSize);
                         }
                         else
-                            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "beginbfrange: expected array, string or array");
+                        {
+                            PoDoFo::LogMessage(PdfLogSeverity::Warning, "beginbfrange: expected array, string or array");
+                        }
                     }
                 }
                 // NOTE: "bf" in "beginbfchar" stands for Base Font
@@ -301,9 +290,12 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
                             mappedCodes = handleNameMapping(var->GetName());
                         }
                         else
-                            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "beginbfchar: expected number or name");
+                        {
+                            PoDoFo::LogMessage(PdfLogSeverity::Warning, "beginbfchar: expected number or name");
+                            continue;
+                        }
 
-                        pushMapping(ret, { srcCode, codeSize }, mappedCodes);
+                        pushMapping(ret, srcCode, codeSize, mappedCodes);
                     }
                 }
                 else if (token == "begincidrange")
@@ -320,15 +312,13 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
                         uint32_t srcCodeHi = getCodeFromVariant(*var, codeLimits);
                         tokenizer.ReadNextVariant(device, *var);
                         char32_t dstCIDLo = (char32_t)getCodeFromVariant(*var, codeLimits);
-
-                        unsigned rangeSize = srcCodeHi - srcCodeLo + 1;
-                        for (unsigned i = 0; i < rangeSize; i++)
+                        if (srcCodeHi < srcCodeLo)
                         {
-                            char32_t newbackchar = dstCIDLo + i;
-                            mappedCodes.clear();
-                            mappedCodes.push_back(newbackchar);
-                            pushMapping(ret, { srcCodeLo + i, codeSize }, mappedCodes);
+                            PoDoFo::LogMessage(PdfLogSeverity::Warning, "begincidrange: Found range with srcCodeHi {} < srcCodeLo {}", srcCodeHi, srcCodeLo);
+                            continue;
                         }
+                        unsigned rangeSize = srcCodeHi - srcCodeLo + 1;
+                        pushRangeMapping(ret, srcCodeLo, rangeSize, { &dstCIDLo, 1 }, codeSize);
                     }
                 }
                 else if (token == "begincidchar")
@@ -347,7 +337,7 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
                         char32_t dstCode = (char32_t)getCodeFromVariant(*var, codeLimits);
                         mappedCodes.clear();
                         mappedCodes.push_back(dstCode);
-                        pushMapping(ret, { srcCode, codeSize }, mappedCodes);
+                        pushMapping(ret, srcCode, codeSize, mappedCodes);
                     }
                 }
 
@@ -414,37 +404,6 @@ vector<char32_t> handleStringMapping(const PdfString& str)
     return handleUtf8String(utf8);
 }
 
-// Handle a range in begingbfrage "srcCodeLo srcCodeHi dstCodeLo" clause
-void handleRangeMapping(PdfCharCodeMap& map,
-    uint32_t srcCodeLo, const vector<char32_t>& dstCodeLo,
-    unsigned char codeSize, unsigned rangeSize)
-{
-    auto it = dstCodeLo.begin();
-    auto end = dstCodeLo.end();
-    PODOFO_INVARIANT(it != end);
-    char32_t back = dstCodeLo.back();
-    vector<char32_t> newdstbase;
-    // Compute a destination string that has all code points except the last one
-    if (dstCodeLo.size() != 1)
-    {
-        do
-        {
-            newdstbase.push_back(*it);
-            it++;
-        } while (it != end);
-    }
-
-    // Compute new destination string with last character/code point incremented by one
-    vector<char32_t> newdst;
-    for (unsigned i = 0; i < rangeSize; i++)
-    {
-        newdst = newdstbase;
-        char32_t newbackchar = back + i;
-        newdst.push_back(newbackchar);
-        pushMapping(map, { srcCodeLo + i, codeSize }, newdst);
-    }
-}
-
 // codeSize is the number of the octets in the string or the minimum number
 // of bytes to represent the number, example <cd> -> 1, <00cd> -> 2
 static uint32_t getCodeFromVariant(const PdfVariant& var, unsigned char& codeSize)
@@ -484,12 +443,16 @@ static uint32_t getCodeFromVariant(const PdfVariant& var, unsigned char& codeSiz
     return ret;
 }
 
-void pushMapping(PdfCharCodeMap& map, const PdfCharCode& codeUnit, const vector<char32_t>& codePoints)
+void pushMapping(PdfCharCodeMap& map, uint32_t srcCode, unsigned char codeSize, const vector<char32_t>& codePoints)
 {
-    if (codePoints.size() == 0)
-        return;
+    map.PushMapping({ srcCode, codeSize }, codePoints);
+}
 
-    map.PushMapping(codeUnit, codePoints);
+// Handle a range in begingbfrage "srcCodeLo srcCodeHi dstCodeLo" clause
+void pushRangeMapping(PdfCharCodeMap& map, uint32_t srcCodeLo, unsigned rangeSize,
+    const cspan<char32_t>& dstCodeLo, unsigned char codeSize)
+{
+    map.PushRange({ srcCodeLo, codeSize }, rangeSize, dstCodeLo);
 }
 
 uint32_t getCodeFromVariant(const PdfVariant& var, CodeLimits& limits, unsigned char& codeSize)

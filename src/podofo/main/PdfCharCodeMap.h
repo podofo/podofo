@@ -20,6 +20,39 @@ namespace PoDoFo
     using codepoint = char32_t;
     using codepointview = cspan<codepoint>;
 
+    // Map code units -> code point(s)
+    // pp. 474-475 of PdfReference 1.7 "The value of dstString can be a string of up to 512 bytes"
+    using CodeUnitMap = std::unordered_map<PdfCharCode, std::vector<codepoint>>;
+
+    struct PODOFO_API CodeUnitRange final
+    {
+        PdfCharCode SrcCodeLo;
+        unsigned Size = 0;
+        std::vector<codepoint> DstCodeLo;
+
+        PdfCharCode GetSrcCodeHi() const;
+    };
+
+    struct PODOFO_API CodeUnitRangeInequality
+    {
+        using is_transparent = std::true_type;
+
+        bool operator()(const CodeUnitRange& lhs, const PdfCharCode& rhs) const
+        {
+            return lhs.SrcCodeLo < rhs;
+        }
+        bool operator()(const PdfCharCode& lhs, const CodeUnitRange& rhs) const
+        {
+            return lhs < rhs.SrcCodeLo;
+        }
+        bool operator()(const CodeUnitRange& lhs, const CodeUnitRange& rhs) const
+        {
+            return lhs.SrcCodeLo < rhs.SrcCodeLo;
+        }
+    };
+
+    using CodeUnitRanges = std::set<CodeUnitRange, CodeUnitRangeInequality>;
+
     /**
      * A bidirectional map from character code units to unspecified code points
      *
@@ -40,12 +73,25 @@ namespace PoDoFo
 
         /** Method to push a mapping.
          * Given string can be a ligature, es "ffi"
+         * \remarks The mapping is ignored if codePoints is empty
          */
         void PushMapping(const PdfCharCode& codeUnit, const codepointview& codePoints);
 
         /** Convenience method to push a single code point mapping
          */
         void PushMapping(const PdfCharCode& codeUnit, codepoint codePoint);
+
+        /** Push a range mapping in the form "srcCodeLo srcCodeHi dstCodeLo".
+         * See 5014.CIDFont_Spec, 7.2 Operator summary for begincidrange specifications
+         * \remarks The range is ignored if srcCodeHi < srcCodeLo
+         */
+        void PushRange(const PdfCharCode& srcCodeLo, unsigned size, codepoint dstCodeLo);
+
+        /** Push a range mapping in the form "srcCodeLo srcCodeHi dstCodeLo".
+         * See 5014.CIDFont_Spec, 7.2 Operator summary for beginbfrange specifications
+         * \remarks The range is ignored if srcCodeHi < srcCodeLo or dstCodeLo is empty
+         */
+        void PushRange(const PdfCharCode& srcCodeLo, unsigned size, const codepointview& dstCodeLo);
 
         /** Returns false when no mapped identifiers are not found in the map
          */
@@ -69,22 +115,39 @@ namespace PoDoFo
 
         PdfCharCodeMap& operator=(PdfCharCodeMap&& map) noexcept;
 
-        unsigned GetSize() const;
-
         const PdfEncodingLimits& GetLimits() const;
+
+        bool IsEmpty() const;
+
+        /** Determines if the map is a trivial identity
+         */
+        bool IsTrivialIdentity() const;
+
+        /** Get a list or code range size defined in this map
+         */
+        std::vector<unsigned char> GetCodeRangeSizes() const;
+
+    public:
+        /** Provides direct mappings
+         */
+        const CodeUnitMap& GetMappings() const { return m_Mappings; }
+
+        /** Provides range mappings
+         */
+        const CodeUnitRanges& GetRanges() const { return m_Ranges; }
 
     private:
         void move(PdfCharCodeMap& map) noexcept;
         void pushMapping(const PdfCharCode& codeUnit, std::vector<codepoint>&& codePoints);
 
         // Map code point(s) -> code units
-        struct CPMapNode
+        struct CodePointMapNode
         {
             codepoint CodePoint;
             PdfCharCode CodeUnit;
-            CPMapNode* Ligatures;
-            CPMapNode* Left;
-            CPMapNode* Right;
+            CodePointMapNode* Ligatures;
+            CodePointMapNode* Left;
+            CodePointMapNode* Right;
         };
 
     private:
@@ -92,28 +155,21 @@ namespace PoDoFo
         PdfCharCodeMap& operator=(const PdfCharCodeMap&) = delete;
 
     private:
-        void reviseCPMap();
-        static bool tryFindNextCharacterId(const CPMapNode* node, std::string_view::iterator &it,
+        void updateLimits(const PdfCharCode& codeUnit);
+        void reviseCodePointMap();
+        bool tryFixNextRanges(const CodeUnitRanges::iterator& it, unsigned prevRangeCodeUpper);
+        static bool tryFindNextCharacterId(const CodePointMapNode* node, std::string_view::iterator &it,
             const std::string_view::iterator& end, PdfCharCode& cid);
-        static const CPMapNode* findNode(const CPMapNode* node, codepoint codePoint);
-        static void deleteNode(CPMapNode* node);
-        static CPMapNode* findOrAddNode(CPMapNode*& node, codepoint codePoint);
-
-    public:
-        // Map code units -> code point(s)
-        // pp. 474-475 of PdfReference 1.7 "The value of dstString can be a string of up to 512 bytes"
-        using CodeUnitMap = std::map<PdfCharCode, std::vector<codepoint>>;
-        using iterator = CodeUnitMap::const_iterator;
-
-    public:
-        iterator begin() const;
-        iterator end() const;
+        static const CodePointMapNode* findNode(const CodePointMapNode* node, codepoint codePoint);
+        static void deleteNode(CodePointMapNode* node);
+        static CodePointMapNode* findOrAddNode(CodePointMapNode*& node, codepoint codePoint);
 
     private:
         PdfEncodingLimits m_Limits;
-        CodeUnitMap m_CodeUnitMap;
+        CodeUnitMap m_Mappings;
+        CodeUnitRanges m_Ranges;
         bool m_MapDirty;
-        CPMapNode* m_codePointMapHead;           // Head of a BST to lookup code points
+        CodePointMapNode* m_codePointMapHead;           // Head of a BST to lookup code points
     };
 }
 

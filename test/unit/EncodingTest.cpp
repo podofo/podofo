@@ -274,6 +274,40 @@ TEST_CASE("TestGetCharCode")
     outofRangeHelper(differenceEncoding);
 }
 
+TEST_CASE("CMapIdentityTest")
+{
+    constexpr string_view OneByteIdentity = R"(
+/CIDInit /ProcSet findresource begin
+12 dict begin
+begincmap
+/CIDSystemInfo 3 dict dup begin
+/Registry (Adobe) def
+/Ordering (Identity) def
+/Supplement 0 def
+end def
+/CMapName /OneByteIdentityH def
+/CMapVersion 1.000 def
+/CMapType 1 def
+/UIDOffset 0 def
+/XUID [1 10 25404 9999] def
+/WMode 0 def
+1 begincodespacerange
+<00> <FF>
+endcodespacerange
+1 begincidrange
+<00> <FF> 0
+endcidrange
+endcmap
+CMapName currentdict /CMap defineresource pop
+end
+end
+)";
+
+    SpanStreamDevice device(OneByteIdentity);
+    auto map = PdfCMapEncoding::Parse(device);
+    REQUIRE(map.GetCharMap().IsTrivialIdentity());
+}
+
 void PdfEncodingTest::TestToUnicodeParse()
 {
     string_view toUnicode =
