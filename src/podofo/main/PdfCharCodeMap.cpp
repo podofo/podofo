@@ -98,8 +98,7 @@ bool PdfCharCodeMap::IsTrivialIdentity() const
             }
 
             rangeUpper = it->SrcCodeLo.Code + it->Size;
-        }
-        while (++it != m_Ranges.end());
+        } while (++it != m_Ranges.end());
 
         // If there are no discontinuities then it's an identity
         return true;
@@ -162,16 +161,16 @@ void PdfCharCodeMap::PushRange(const PdfCharCode& srcCodeLo, unsigned rangeSize,
         return;
     }
 
-    auto inserted = m_Ranges.emplace(CodeUnitRange{ srcCodeLo, rangeSize, vector<codepoint>(dstCodeLo.begin(), dstCodeLo.end())});
+    auto inserted = m_Ranges.emplace(CodeUnitRange{ srcCodeLo, rangeSize, vector<codepoint>(dstCodeLo.begin(), dstCodeLo.end()) });
     // Try fix invalid ranges: the inserted range
     // always overrides previous ones
     bool invalidRanges = false;
     if (inserted.second)
     {
         auto it = inserted.first;
-        // Previous range overlaps new one
-        if (--it != m_Ranges.end() && (it->SrcCodeLo.Code + it->Size) > srcCodeLo.Code)
+        if (it != m_Ranges.begin() && ((--it)->SrcCodeLo.Code + it->Size) > srcCodeLo.Code)
         {
+            // Previous range overlaps new one
             invalidRanges = true;
             unsigned newSize = srcCodeLo.Code - it->SrcCodeLo.Code;
             auto node = m_Ranges.extract(it);
@@ -188,17 +187,16 @@ void PdfCharCodeMap::PushRange(const PdfCharCode& srcCodeLo, unsigned rangeSize,
     }
     else
     {
-        // If the current range with same srcCodeLo
-        // has a size lesser than the one being
-        // inserted update it
         auto it = inserted.first;
         if (it->Size < rangeSize)
         {
+            // If the current range with same srcCodeLo has a
+            // size lesser than the one being inserted update it
             invalidRanges = true;
             auto node = m_Ranges.extract(it);
             node.value().Size = rangeSize;
             m_Ranges.insert(inserted.first, std::move(node));
-            invalidRanges |= tryFixNextRanges(inserted.first, srcCodeLo.Code + rangeSize);
+            (void)tryFixNextRanges(inserted.first, srcCodeLo.Code + rangeSize);
         }
     }
 
