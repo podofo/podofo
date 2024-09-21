@@ -1186,7 +1186,9 @@ PdfEncryptRC4::PdfEncryptRC4(const string_view& userPassword, const string_view&
                     case PdfKeyLength::L120:
                     case PdfKeyLength::L128:
                         break;
+#ifdef PODOFO_HAVE_LIBIDN
                     case PdfKeyLength::L256:
+#endif // PODOFO_HAVE_LIBIDN
                     default:
                         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict,
                             "Invalid encryption key length for RC4V2. Only a multiple of 8 from 40bit to 128bit is supported");;
@@ -1937,14 +1939,14 @@ unique_ptr<OutputStream> PdfEncryptAESV3::CreateEncryptionOutputStream(OutputStr
     (void)objref;
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "CreateEncryptionOutputStream does not yet support AESV3");
 }
-    
-#endif // PODOFO_HAVE_LIBIDN
 
 void PdfEncryptAESV3::generateInitialVector(unsigned char iv[])
 {
     for (unsigned i = 0; i < AES_IV_LENGTH; i++)
         iv[i] = rand() % 255;
 }
+
+#endif // PODOFO_HAVE_LIBIDN
 
 void PdfEncrypt::EncryptTo(charbuff& out, const bufferview& view, PdfEncryptContext& context, const PdfReference& objref) const
 {

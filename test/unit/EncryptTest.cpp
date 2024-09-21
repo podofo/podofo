@@ -110,7 +110,9 @@ TEST_CASE("TestEncryptDecryptPDFs")
         PdfEncryptionAlgorithm::RC4V2,
         PdfEncryptionAlgorithm::RC4V2,
         PdfEncryptionAlgorithm::AESV2,
+#ifdef PODOFO_HAVE_LIBIDN
         PdfEncryptionAlgorithm::AESV3R6,
+#endif // PODOFO_HAVE_LIBIDN
     };
 
     PdfKeyLength keyLengths[] = {
@@ -120,7 +122,9 @@ TEST_CASE("TestEncryptDecryptPDFs")
         PdfKeyLength::L96,
         PdfKeyLength::L128,
         PdfKeyLength::L128,
+#ifdef PODOFO_HAVE_LIBIDN
         PdfKeyLength::L256,
+#endif // PODOFO_HAVE_LIBIDN
     };
 
     charbuff pdfBuffer;
