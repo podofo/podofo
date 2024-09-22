@@ -141,7 +141,7 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
             if (baseFont == nullptr
                 || !PdfFont::IsStandard14Font(baseFont->GetName().GetString(), stdFontType))
             {
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "No known /BaseFont found");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "No known /BaseFont found");
             }
 
             PdfFontMetricsConstPtr metrics = PdfFontMetricsStandard14::Create(stdFontType, obj);

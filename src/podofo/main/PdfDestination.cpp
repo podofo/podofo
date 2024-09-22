@@ -91,7 +91,7 @@ bool PdfDestination::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfDestinati
     {
         auto names = doc.GetNames();
         if (names == nullptr)
-            PODOFO_RAISE_ERROR(PdfErrorCode::NoObject);
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
         value = names->GetValue(PdfKnownNameTree::Dests, obj.GetString());
     }

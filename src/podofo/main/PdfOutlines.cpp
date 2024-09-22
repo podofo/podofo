@@ -101,7 +101,7 @@ void PdfOutlineItem::insertChildInternal(PdfOutlineItem* item, bool checkParent)
         }
 
         if (root == rootOfThis) // later nullptr if check skipped for performance
-            PODOFO_RAISE_ERROR(PdfErrorCode::OutlineItemAlreadyPresent);
+            PODOFO_RAISE_ERROR(PdfErrorCode::ItemAlreadyPresent);
     }
 
     if (m_Last != nullptr)

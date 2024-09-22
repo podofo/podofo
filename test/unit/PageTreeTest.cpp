@@ -45,7 +45,7 @@ TEST_CASE("TestEmptyDoc")
     REQUIRE(doc.GetPages().GetCount() == 0);
 
     // Retrieving any page from an empty document must be NULL
-    ASSERT_THROW_WITH_ERROR_CODE(doc.GetPages().GetPageAt(0), PdfErrorCode::PageNotFound);
+    ASSERT_THROW_WITH_ERROR_CODE(doc.GetPages().GetPageAt(0), PdfErrorCode::ValueOutOfRange);
 }
 
 TEST_CASE("TestCyclicTree")
@@ -67,7 +67,7 @@ TEST_CASE("TestCyclicTree")
         createCyclicTree(doc, true);
         // pass 1:
         // cyclic tree must throw exception to prevent infinite recursion
-        ASSERT_THROW_WITH_ERROR_CODE(doc.GetPages().GetPageAt(0), PdfErrorCode::PageNotFound);
+        ASSERT_THROW_WITH_ERROR_CODE(doc.GetPages().GetPageAt(0), PdfErrorCode::ValueOutOfRange);
     }
 }
 
@@ -88,7 +88,7 @@ TEST_CASE("TestNestedArrayTree")
     PdfMemDocument doc;
     createNestedArrayTree(doc);
     for (unsigned i = 0, count = doc.GetPages().GetCount(); i < count; i++)
-        ASSERT_THROW_WITH_ERROR_CODE(doc.GetPages().GetPageAt(i), PdfErrorCode::PageNotFound);
+        ASSERT_THROW_WITH_ERROR_CODE(doc.GetPages().GetPageAt(i), PdfErrorCode::ValueOutOfRange);
 }
 
 TEST_CASE("TestCreateDelete")

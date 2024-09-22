@@ -67,7 +67,7 @@ bool PdfNameTreeNode::AddValue(const PdfString& key, const PdfObject& value)
         {
             childObj = GetDocument().GetObjects().GetObject((*it).GetReference());
             if (childObj == nullptr)
-                PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+                PODOFO_RAISE_ERROR(PdfErrorCode::ObjectNotFound);
 
             limits = checkLimits(*childObj, key);
             if ((limits == PdfNameLimits::Before) ||
@@ -84,7 +84,7 @@ bool PdfNameTreeNode::AddValue(const PdfString& key, const PdfObject& value)
             // not added, so add to last child
             childObj = GetDocument().GetObjects().GetObject(kids.back().GetReference());
             if (childObj == nullptr)
-                PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+                PODOFO_RAISE_ERROR(PdfErrorCode::ObjectNotFound);
 
             limits = PdfNameLimits::After;
         }

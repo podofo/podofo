@@ -91,14 +91,14 @@ void ssl::ComputeHashToSign(CMS_SignerInfo* si, BIO* chain, bool doWrapDigest, c
     return;
 
 Error:
-    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error while computing the MessageDigest");
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error while computing the MessageDigest");
 }
 
 void ssl::WrapDigestPKCS1(const bufferview& hash, PdfHashingAlgorithm hashing, charbuff& output)
 {
     unique_ptr<X509_ALGOR, decltype(&X509_ALGOR_free)> x509Algor(X509_ALGOR_new(), X509_ALGOR_free);
     if (x509Algor == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error X509_ALGOR_new");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error X509_ALGOR_new");
 
     X509_ALGOR_set_md(x509Algor.get(), ssl::GetEVP_MD(hashing));
     encode_pkcs1(x509Algor.get(), (const unsigned char*)hash.data(), (unsigned)hash.size(), output);
@@ -117,7 +117,7 @@ int cms_DigestAlgorithm_find_ctx(EVP_MD_CTX* mctx, BIO* chain, X509_ALGOR* mdalg
         EVP_MD_CTX* mtmp;
         chain = BIO_find_type(chain, BIO_TYPE_MD);
         if (chain == nullptr)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "CMS_NO_MATCHING_DIGEST");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "CMS_NO_MATCHING_DIGEST");
 
         BIO_get_md_ctx(chain, &mtmp);
         if (EVP_MD_CTX_type(mtmp) == nid
@@ -167,7 +167,7 @@ void compute_hash_to_sign(CMS_SignerInfo* si, unsigned char hash[], unsigned& ha
 Error:
     OPENSSL_free(buf);
     EVP_MD_CTX_reset(mctx);
-    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error while computing the MessageDigest");
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error while computing the MessageDigest");
 }
 
 /* Ripped/adapted from crypto/rsa/rsa_sign.c

@@ -51,7 +51,7 @@ const PdfObject& PdfArray::MustFindAt(unsigned idx) const
 {
     auto obj = findAt(idx);
     if (obj == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::NoObject);
+        PODOFO_RAISE_ERROR(PdfErrorCode::ObjectNotFound);
 
     return *obj;
 }
@@ -60,7 +60,7 @@ PdfObject& PdfArray::MustFindAt(unsigned idx)
 {
     auto obj = findAt(idx);
     if (obj == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::NoObject);
+        PODOFO_RAISE_ERROR(PdfErrorCode::ObjectNotFound);
 
     return *obj;
 }

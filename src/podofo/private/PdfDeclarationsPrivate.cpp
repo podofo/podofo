@@ -734,7 +734,7 @@ size_t utls::FileSize(const string_view& filename)
 
     return (size_t)(streamoff)(stream.tellg() - fbegin);
 Error:
-    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to read file size");
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to read file size");
 }
 
 void utls::CopyTo(ostream& dst, istream& src)
@@ -809,7 +809,7 @@ size_t utls::ReadBuffer(istream& stream, char* buffer, size_t size, bool& eof)
         (void)stream.peek();
 
         if (stream.fail())
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Stream I/O error while reading");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Stream I/O error while reading");
 
         eof = stream.eof();
 
@@ -833,7 +833,7 @@ bool utls::ReadChar(istream& stream, char& ch)
         (void)stream.rdstate();
         (void)stream.peek();
         if (stream.fail())
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Stream I/O error while reading");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Stream I/O error while reading");
 
         if (read == 1)
             return true;
@@ -1385,7 +1385,7 @@ void utls::RecursionGuard::Enter()
         // /Kids entries that loop back to self or parent
         // deeply nested Dictionary or Array objects (possible with lots of [[[[[[[[]]]]]]]] brackets)
         // mutually recursive loops involving several objects are possible
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef, "Stack overflow");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::MaxRecursionReached, "Stack overflow");
     }
 }
 

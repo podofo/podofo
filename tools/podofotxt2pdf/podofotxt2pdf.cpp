@@ -88,14 +88,14 @@ void init(const string_view& inputPath, const string_view& outputPath, const str
     if (fseek(file, 0x00, SEEK_END) == -1)
     {
         fclose(file);
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to seek to the end of the file");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to seek to the end of the file");
     }
 
     size = ftell(file);
     if (size == -1)
     {
         fclose(file);
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to read size of the file");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to read size of the file");
     }
 
     buffer = static_cast<char*>(malloc(sizeof(char) * (size + 1)));

@@ -1,4 +1,15 @@
 ## 0.10.1 -> 1.0.0
+- `PdfErrorCode`:
+  * Renamed `FreeType` -> `FreeTypeError`
+  * Renamed `OpenSSL` -> `OpenSSLError`
+  * Renamed `InvalidDeviceOperation` -> `IOError`
+  * Renamed `NoPdfFile` -> `InvalidPDF`
+  * Renamed `NoObject` -> `ObjectNotFound`
+  * Renamed `NoTrailer` -> `InvalidTrailer`
+  * Renamed `NoEOFToken` -> `InvalidEOFToken`
+  * Renamed `XmpMetadata` -> `XmpMetadataError`
+  * Renamed Flate -> FlateError
+  * Removed unused `NoXRef`, `Date`, `ActionAlreadyPresent`, `MissingEndStream`, `InvalidTrailerSize`, `SignatureError`, `NotCompiled`, `InvalidTrailerSize`, `DestinationAlreadyPresent`, `OutlineItemAlreadyPresent`, `NotLoadedForUpdate`, `CannotEncryptedForUpdate`
 - `PdfDocument`:
   * Removed `AttachFile()`, `GetAttachment()`: Use `GetNames().GetNameTree<PdfEmbeddedFiles>()` or similar methods and use that instance
   * Removed `AddNamedDestination()`: Use `GetNames().GetTree<PdfDestinations>()` or similar methods and use that instance

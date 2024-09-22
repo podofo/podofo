@@ -2683,7 +2683,7 @@ char32_t PdfDifferenceEncoding::NameToCodePoint(const string_view& name)
         // force base16 IF it's 4 characters line
         unsigned val;
         if (!utls::TryParse(code, val, code.length() == 4 ? 16 : 10))
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, "Could not read number");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidNumber, "Could not read number");
 
         return (char32_t)val;
     }

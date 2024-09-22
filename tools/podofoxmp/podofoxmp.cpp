@@ -86,14 +86,14 @@ void Main(const cspan<string_view>& args)
             if (fseek(fp, 0, SEEK_END) == -1)
             {
                 fclose(fp);
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to seek to the end of the file");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to seek to the end of the file");
             }
 
             long rc = ftell(fp);
             if (rc == -1)
             {
                 fclose(fp);
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to read size of the file");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to read size of the file");
             }
 
             size_t xmpLen = (size_t)rc;
@@ -109,7 +109,7 @@ void Main(const cspan<string_view>& args)
                 delete[] xmpBuf;
                 fclose(fp);
 
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to seek to the beginning of the file");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to seek to the beginning of the file");
             }
 
             if (fread(xmpBuf, 1, xmpLen, fp) != xmpLen)
@@ -117,7 +117,7 @@ void Main(const cspan<string_view>& args)
                 delete[] xmpBuf;
                 fclose(fp);
 
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to read whole file into the memory");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to read whole file into the memory");
             }
 
             auto metadata = doc->GetCatalog().GetMetadataObject();

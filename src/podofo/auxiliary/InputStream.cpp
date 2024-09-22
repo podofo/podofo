@@ -42,7 +42,7 @@ char InputStream::ReadChar()
     checkRead();
     char ch;
     if (!readChar(ch))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Reached EOF while reading from the stream");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Reached EOF while reading from the stream");
 
     return ch;
 }

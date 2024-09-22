@@ -195,7 +195,7 @@ int64_t PdfTokenizer::ReadNextNumber(InputStreamDevice& device)
 {
     int64_t ret;
     if (!TryReadNextNumber(device, ret))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, "Could not read number");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidNumber, "Could not read number");
 
     return ret;
 }
@@ -296,7 +296,7 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevi
                 {
                     // Don't consume the token
                     this->EnqueueToken(token, tokenType);
-                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, token);
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidNumber, token);
                 }
 
                 variant = PdfVariant(val);
@@ -309,7 +309,7 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevi
                 {
                     // Don't consume the token
                     this->EnqueueToken(token, tokenType);
-                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, token);
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidNumber, token);
                 }
 
                 variant = PdfVariant(num);

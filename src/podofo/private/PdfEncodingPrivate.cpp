@@ -318,7 +318,7 @@ string PoDoFo::ConvertUTF8ToPdfDocEncoding(const string_view& view)
 {
     string ret;
     if (!TryConvertUTF8ToPdfDocEncoding(view, ret))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unsupported chars in converting utf-8 string to PdfDocEncoding");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncoding, "Unsupported chars in converting utf-8 string to PdfDocEncoding");
 
     return ret;
 }

@@ -560,7 +560,7 @@ PdfColorSpaceType ColorChanger::GetColorSpaceForName(const PdfName& name, PdfCan
                 auto cs = colorSpaces->GetDictionary().FindKey(name);
                 if (!cs)
                 {
-                    PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+                    PODOFO_RAISE_ERROR(PdfErrorCode::ObjectNotFound);
                 }
                 else if (cs->IsName())
                 {

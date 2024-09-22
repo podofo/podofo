@@ -25,26 +25,24 @@ namespace PoDoFo {
 enum class PdfErrorCode
 {
     Unknown = 0,              ///< Unknown error
-    InvalidHandle,            ///< Null pointer was passed, but null pointer is not allowed.
+    InvalidHandle,            ///< Unexpected null pointer or invalid state
     FileNotFound,             ///< A file was not found or cannot be opened.
-    InvalidDeviceOperation,	  ///< Tried to do something unsupported to an I/O device like seek a non-seekable input device
+    IOError,	              ///< Tried to do something unsupported to an I/O device like seek a non-seekable input device
     UnexpectedEOF,            ///< End of file was reached but data was expected.
     OutOfMemory,              ///< Not enough memory to complete an operation.
     ValueOutOfRange,          ///< The specified memory is out of the allowed range.
     InternalLogic,            ///< An internal sanity check or assertion failed.
     InvalidEnumValue,         ///< An invalid enum value was specified.
+    MaxRecursionReached,      ///< Reached maximum recursion depth
+    ObjectNotFound,           ///< An object was requested but was not found
     BrokenFile,               ///< The file content is broken.
 
-    PageNotFound,             ///< The requested page could not be found in the PDF.
-
-    NoPdfFile,                ///< The file is no PDF file.
-    NoXRef,                   ///< The PDF file has no or an invalid XRef table.
-    NoTrailer,                ///< The PDF file has no or an invalid trailer.
-    NoNumber,                 ///< A number was expected in the PDF file, but the read string is no number.
-    NoObject,                 ///< A object was expected and none was found.
-    NoEOFToken,               ///< The PDF file has no or an invalid EOF marker.
-
-    InvalidTrailerSize,       ///< The trailer size is invalid.
+    InvalidPDF,               ///< The file is no PDF file.
+    InvalidTrailer,           ///< The PDF file has no or an invalid trailer.
+    InvalidNumber,            ///< A number was expected in the PDF file, but the read string is no number.
+    InvalidEncoding,          ///< Invalid encoding information
+    InvalidObject,            ///< Invalid object or none none was found.
+    InvalidEOFToken,          ///< The PDF file has no or an invalid EOF marker.
     InvalidDataType,          ///< The passed datatype is invalid or was not recognized
     InvalidXRef,              ///< The XRef table is invalid
     InvalidXRefStream,        ///< A XRef stream is invalid
@@ -63,31 +61,22 @@ enum class PdfErrorCode
 
     UnsupportedFilter,        ///< The requested filter is not yet implemented.
     UnsupportedFontFormat,    ///< This font format is not supported by PoDoFo.
-    ActionAlreadyPresent,     ///< An Action was already present when trying to add a Destination
     WrongDestinationType,     ///< The requested field is not available for the given destination type
 
-    MissingEndStream,         ///< The required token endstream was not found.
-    Date,                     ///< Date/time error
-    Flate,                    ///< Error in zlib
-    FreeType,                 ///< Error in FreeType
-    SignatureError,           ///< Error in signature
+    FlateError,               ///< Error in zlib
+    FreeTypeError,            ///< Error in FreeType
 
+    UnsupportedPixelFormat,   ///< This pixel format is not supported by PoDoFo.
     UnsupportedImageFormat,   ///< This image format is not supported by PoDoFo.
     CannotConvertColor,       ///< This color format cannot be converted.
 
     NotImplemented,           ///< This feature is currently not implemented.
 
-    DestinationAlreadyPresent,///< A destination was already present when trying to add an Action
+    ItemAlreadyPresent,       ///< An item to be inserted is already in this container
     ChangeOnImmutable,        ///< Changing values on immutable objects is not allowed.
 
-    NotCompiled,              ///< This feature was disabled at compile time.
-
-    OutlineItemAlreadyPresent,///< An outline item to be inserted was already in that outlines tree.
-    NotLoadedForUpdate,       ///< The document had not been loaded for update.
-    CannotEncryptedForUpdate, ///< Cannot load encrypted documents for update.
-
-    XmpMetadata,              ///< Error while creating or reading XMP metadata
-    OpenSSL,                  ///< OpenSSL error
+    XmpMetadataError,         ///< Error while creating or reading XMP metadata
+    OpenSSLError,             ///< OpenSSL error
 };
 
 class PODOFO_API PdfErrorInfo final

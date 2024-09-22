@@ -471,7 +471,7 @@ static PdfObject* find_existing_signature_field(PdfAcroForm& acroForm, const Pdf
 
                         if (!ft)
                         {
-                            PODOFO_RAISE_ERROR(PdfErrorCode::NoObject);
+                            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidObject);
                         }
 
                         const PdfName fieldType = ft->GetName();
@@ -823,7 +823,7 @@ void Main(const cspan<string_view>& args)
     document.Load(inputfile);
 
     if (!document.GetPages().GetCount())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::PageNotFound, "The document has no page. Only documents with at least one page can be signed");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "The document has no page. Only documents with at least one page can be signed");
 
     auto& acroForm = document.GetOrCreateAcroForm();
     if (!acroForm.GetDictionary().HasKey("SigFlags") ||
@@ -879,7 +879,7 @@ void Main(const cspan<string_view>& args)
             err += name.GetString();
             err += "' doesn't have a page reference";
 
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::PageNotFound, err.c_str());
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, err.c_str());
         }
 
         auto& page = document.GetPages().GetPage(existingSigField->GetDictionary().GetKey("P")->GetReference());

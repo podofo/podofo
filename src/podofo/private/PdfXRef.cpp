@@ -217,7 +217,7 @@ void PdfXRef::mergeBlocks()
 
     // Stop in case we have no blocks at all
     if (it == m_blocks.end())
-        PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRef);
 
     while (itNext != m_blocks.end())
     {

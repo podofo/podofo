@@ -154,7 +154,7 @@ void PdfParserObject::Parse(PdfTokenizer& tokenizer)
             }
             else
             {
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoObject, token);
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidObject, token);
             }
         }
     }
@@ -277,7 +277,7 @@ PdfReference PdfParserObject::readReference(PdfTokenizer& tokenizer)
     string_view token;
     if (!tokenizer.TryReadNextToken(*m_device, token) || token != "obj")
     {
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "Error while reading object {} {} R: Next token is not 'obj'",
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidObject, "Error while reading object {} {} R: Next token is not 'obj'",
             reference.ObjectNumber(), reference.GenerationNumber());
     }
 

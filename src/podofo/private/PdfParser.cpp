@@ -71,7 +71,7 @@ void PdfParser::Parse(InputStreamDevice& device, bool loadOnDemand)
     try
     {
         if (!IsPdfFile(device))
-            PODOFO_RAISE_ERROR(PdfErrorCode::NoPdfFile);
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidPDF);
 
         ReadDocumentStructure(device);
         ReadObjects(device);
@@ -217,7 +217,7 @@ void PdfParser::readNextTrailer(InputStreamDevice& device, bool skipFollowPrevio
     utls::RecursionGuard guard;
     string_view token;
     if (!m_tokenizer.TryReadNextToken(device, token) || token != "trailer")
-        PODOFO_RAISE_ERROR(PdfErrorCode::NoTrailer);
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidTrailer);
 
     // Ignore the encryption in the trailer as the trailer may not be encrypted
     auto trailer = new PdfParserObject(m_Objects->GetDocument(), device, -1);
@@ -290,11 +290,11 @@ void PdfParser::findXRef(InputStreamDevice& device, size_t& xRefOffset)
         {
             findTokenBackward(device, "startref", PDF_XREF_BUF, m_lastEOFOffset);
             if (!m_tokenizer.TryReadNextToken(device, token) || token != "startref")
-                PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
+                PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRef);
         }
         else
         {
-            PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRef);
         }
     }
 
@@ -344,14 +344,14 @@ void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset, bool 
 
     string_view token;
     if (!m_tokenizer.TryReadNextToken(device, token))
-        PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRef);
 
     if (token != "xref")
     {
         // Found linearized 1.3-pdf's with trailer-info in xref-stream
         if (m_PdfVersion < PdfVersion::V1_3)
         {
-            PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRef);
         }
         else
         {
@@ -365,12 +365,12 @@ void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset, bool 
     for (unsigned xrefSectionCount = 0; ; xrefSectionCount++)
     {
         if (xrefSectionCount == MAX_XREF_SESSION_COUNT)
-            PODOFO_RAISE_ERROR(PdfErrorCode::NoEOFToken);
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEOFToken);
 
         try
         {
             if (!m_tokenizer.TryPeekNextToken(device, token))
-                PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
+                PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRef);
 
             if (token == "trailer")
                 break;
@@ -386,7 +386,7 @@ void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset, bool 
         }
         catch (PdfError& e)
         {
-            if (e == PdfErrorCode::NoNumber || e == PdfErrorCode::InvalidXRef || e == PdfErrorCode::UnexpectedEOF)
+            if (e == PdfErrorCode::InvalidNumber || e == PdfErrorCode::InvalidXRef || e == PdfErrorCode::UnexpectedEOF)
             {
                 break;
             }
@@ -516,7 +516,7 @@ void PdfParser::ReadXRefSubsection(InputStreamDevice& device, int64_t& firstObje
     if (index != (unsigned)objectCount)
     {
         PoDoFo::LogMessage(PdfLogSeverity::Warning, "Count of readobject is {}. Expected {}", index, objectCount);
-        PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRef);
     }
 }
 
@@ -570,7 +570,7 @@ void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset,
             {
                 // Be forgiving, the error happens when an entry in XRef
                 // stream points to a wrong place (offset) in the PDF file.
-                if (e != PdfErrorCode::NoNumber)
+                if (e != PdfErrorCode::InvalidNumber)
                 {
                     PODOFO_PUSH_FRAME(e);
                     throw;
@@ -583,7 +583,7 @@ void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset,
 void PdfParser::ReadObjects(InputStreamDevice& device)
 {
     if (m_Trailer == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::NoTrailer);
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidTrailer);
 
     // Check for encryption and make sure that the encryption object
     // is loaded before all other objects
@@ -810,7 +810,7 @@ void PdfParser::readCompressedObjectFromStream(uint32_t objNo, const cspan<int64
         }
         else
         {
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "Loading of object {} 0 R failed!", objNo);
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidObject, "Loading of object {} 0 R failed!", objNo);
         }
     }
 
@@ -899,7 +899,7 @@ void PdfParser::checkEOFMarker(InputStreamDevice& device)
         // For strict mode EOF marker must be at the very end of the file
         device.Read(buff, EOFTokenLen);
         if (std::strncmp(buff, EOFToken, EOFTokenLen) != 0)
-            PODOFO_RAISE_ERROR(PdfErrorCode::NoEOFToken);
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEOFToken);
     }
     else
     {
@@ -927,14 +927,14 @@ void PdfParser::checkEOFMarker(InputStreamDevice& device)
         if (found)
             m_lastEOFOffset = device.GetPosition() - EOFTokenLen;
         else
-            PODOFO_RAISE_ERROR(PdfErrorCode::NoEOFToken);
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEOFToken);
     }
 }
 
 const PdfObject& PdfParser::GetTrailer() const
 {
     if (m_Trailer == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::NoObject);
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     return *m_Trailer;
 }

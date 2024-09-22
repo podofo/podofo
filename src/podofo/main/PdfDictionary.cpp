@@ -286,7 +286,7 @@ const PdfObject& PdfDictionary::MustFindKey(const string_view& key) const
 {
     auto obj = findKey(key);
     if (obj == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "No object with key /{} found", key);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ObjectNotFound, "No object with key /{} found", key);
 
     return *obj;
 }
@@ -295,7 +295,7 @@ PdfObject& PdfDictionary::MustFindKey(const string_view& key)
 {
     auto obj = findKey(key);
     if (obj == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "No object with key /{} found", key);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ObjectNotFound, "No object with key /{} found", key);
 
     return *obj;
 }
@@ -314,7 +314,7 @@ const PdfObject& PdfDictionary::MustFindKeyParent(const string_view& key) const
 {
     auto obj = findKeyParent(key);
     if (obj == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "No object with key /{} found", key);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ObjectNotFound, "No object with key /{} found", key);
 
     return *obj;
 }
@@ -323,7 +323,7 @@ PdfObject& PdfDictionary::MustFindKeyParent(const string_view& key)
 {
     auto obj = findKeyParent(key);
     if (obj == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "No object with key /{} found", key);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ObjectNotFound, "No object with key /{} found", key);
 
     return *obj;
 }
@@ -348,7 +348,7 @@ const PdfObject& PdfDictionary::MustGetKey(const string_view& key) const
 {
     auto obj = getKey(key);
     if (obj == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::NoObject);
+        PODOFO_RAISE_ERROR(PdfErrorCode::ObjectNotFound);
 
     return *obj;
 }
@@ -357,7 +357,7 @@ PdfObject& PdfDictionary::MustGetKey(const string_view& key)
 {
     auto obj = getKey(key);
     if (obj == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::NoObject);
+        PODOFO_RAISE_ERROR(PdfErrorCode::ObjectNotFound);
 
     return *obj;
 }

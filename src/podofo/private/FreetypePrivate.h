@@ -14,7 +14,7 @@
 #include <podofo/main/PdfDeclarations.h>
 
 #define CHECK_FT_RC(rc, func) if (rc != 0)\
-    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::FreeType, "Function " #func " failed")
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::FreeTypeError, "Function " #func " failed")
 
 namespace FT
 {

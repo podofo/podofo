@@ -68,8 +68,8 @@ string_view PdfError::ErrorName(PdfErrorCode code)
             return "PdfErrorCode::InvalidHandle"sv;
         case PdfErrorCode::FileNotFound:
             return "PdfErrorCode::FileNotFound"sv;
-        case PdfErrorCode::InvalidDeviceOperation:
-            return "PdfErrorCode::InvalidDeviceOperation"sv;
+        case PdfErrorCode::IOError:
+            return "PdfErrorCode::IOError"sv;
         case PdfErrorCode::UnexpectedEOF:
             return "PdfErrorCode::UnexpectedEOF"sv;
         case PdfErrorCode::OutOfMemory:
@@ -80,28 +80,28 @@ string_view PdfError::ErrorName(PdfErrorCode code)
             return "PdfErrorCode::InternalLogic"sv;
         case PdfErrorCode::InvalidEnumValue:
             return "PdfErrorCode::InvalidEnumValue"sv;
+        case PdfErrorCode::ObjectNotFound:
+            return "PdfErrorCode::ObjectNotFound"sv;
+        case PdfErrorCode::MaxRecursionReached:
+            return "PdfErrorCode::MaxRecursionReached"sv;
         case PdfErrorCode::BrokenFile:
             return "PdfErrorCode::BrokenFile"sv;
-        case PdfErrorCode::PageNotFound:
-            return "PdfErrorCode::PageNotFound"sv;
-        case PdfErrorCode::NoPdfFile:
-            return "PdfErrorCode::NoPdfFile"sv;
-        case PdfErrorCode::NoXRef:
-            return "PdfErrorCode::NoXRef"sv;
-        case PdfErrorCode::NoTrailer:
-            return "PdfErrorCode::NoTrailer"sv;
-        case PdfErrorCode::NoNumber:
-            return "PdfErrorCode::NoNumber"sv;
-        case PdfErrorCode::NoObject:
-            return "PdfErrorCode::NoObject"sv;
-        case PdfErrorCode::NoEOFToken:
-            return "PdfErrorCode::NoEOFToken"sv;
-        case PdfErrorCode::InvalidTrailerSize:
-            return "PdfErrorCode::InvalidTrailerSize"sv;
-        case PdfErrorCode::InvalidDataType:
-            return "PdfErrorCode::InvalidDataType"sv;
+        case PdfErrorCode::InvalidPDF:
+            return "PdfErrorCode::InvalidPDF"sv;
         case PdfErrorCode::InvalidXRef:
             return "PdfErrorCode::InvalidXRef"sv;
+        case PdfErrorCode::InvalidTrailer:
+            return "PdfErrorCode::InvalidTrailer"sv;
+        case PdfErrorCode::InvalidNumber:
+            return "PdfErrorCode::InvalidNumber"sv;
+        case PdfErrorCode::InvalidEncoding:
+            return "PdfErrorCode::InvalidEncoding"sv;
+        case PdfErrorCode::InvalidObject:
+            return "PdfErrorCode::InvalidObject"sv;
+        case PdfErrorCode::InvalidEOFToken:
+            return "PdfErrorCode::InvalidEOFToken"sv;
+        case PdfErrorCode::InvalidDataType:
+            return "PdfErrorCode::InvalidDataType"sv;
         case PdfErrorCode::InvalidXRefStream:
             return "PdfErrorCode::InvalidXRefStream"sv;
         case PdfErrorCode::InvalidXRefType:
@@ -120,9 +120,9 @@ string_view PdfError::ErrorName(PdfErrorCode code)
             return "PdfErrorCode::InvalidKey"sv;
         case PdfErrorCode::InvalidName:
             return "PdfErrorCode::InvalidName"sv;
-        case PdfErrorCode::InvalidEncryptionDict:              ///< The encryption dictionary is invalid or misses a required key
+        case PdfErrorCode::InvalidEncryptionDict:
             return "PdfErrorCode::InvalidEncryptionDict"sv;
-        case PdfErrorCode::InvalidPassword:                    ///< The password used to open the PDF file was invalid
+        case PdfErrorCode::InvalidPassword:
             return "PdfErrorCode::InvalidPassword"sv;
         case PdfErrorCode::InvalidFontData:
             return "PdfErrorCode::InvalidFontData"sv;
@@ -130,42 +130,28 @@ string_view PdfError::ErrorName(PdfErrorCode code)
             return "PdfErrorCode::InvalidContentStream"sv;
         case PdfErrorCode::UnsupportedFilter:
             return "PdfErrorCode::UnsupportedFilter"sv;
-        case PdfErrorCode::UnsupportedFontFormat:               ///< This font format is not supported by PoDoFo.
+        case PdfErrorCode::UnsupportedFontFormat:
             return "PdfErrorCode::UnsupportedFontFormat"sv;
-        case PdfErrorCode::ActionAlreadyPresent:
-            return "PdfErrorCode::ActionAlreadyPresent"sv;
         case PdfErrorCode::WrongDestinationType:
             return "PdfErrorCode::WrongDestinationType"sv;
-        case PdfErrorCode::MissingEndStream:
-            return "PdfErrorCode::MissingEndStream"sv;
-        case PdfErrorCode::Date:
-            return "PdfErrorCode::Date"sv;
-        case PdfErrorCode::Flate:
-            return "PdfErrorCode::Flate"sv;
-        case PdfErrorCode::FreeType:
-            return "PdfErrorCode::FreeType"sv;
-        case PdfErrorCode::SignatureError:
-            return "PdfErrorCode::SignatureError"sv;
-        case PdfErrorCode::UnsupportedImageFormat:              ///< This image format is not supported by PoDoFo.
+        case PdfErrorCode::FlateError:
+            return "PdfErrorCode::FlateError"sv;
+        case PdfErrorCode::FreeTypeError:
+            return "PdfErrorCode::FreeTypeError"sv;
+        case PdfErrorCode::UnsupportedPixelFormat:
+            return "PdfErrorCode::UnsupportedPixelFormat"sv;
+        case PdfErrorCode::UnsupportedImageFormat:
             return "PdfErrorCode::UnsupportedImageFormat"sv;
-        case PdfErrorCode::CannotConvertColor:                  ///< This color format cannot be converted.
+        case PdfErrorCode::CannotConvertColor:
             return "PdfErrorCode::CannotConvertColor"sv;
         case PdfErrorCode::NotImplemented:
             return "PdfErrorCode::NotImplemented"sv;
-        case PdfErrorCode::NotCompiled:
-            return "PdfErrorCode::NotCompiled"sv;
-        case PdfErrorCode::DestinationAlreadyPresent:
-            return "PdfErrorCode::DestinationAlreadyPresent"sv;
         case PdfErrorCode::ChangeOnImmutable:
             return "PdfErrorCode::ChangeOnImmutable"sv;
-        case PdfErrorCode::OutlineItemAlreadyPresent:
-            return "PdfErrorCode::OutlineItemAlreadyPresent"sv;
-        case PdfErrorCode::NotLoadedForUpdate:
-            return "PdfErrorCode::NotLoadedForUpdate"sv;
-        case PdfErrorCode::CannotEncryptedForUpdate:
-            return "PdfErrorCode::CannotEncryptedForUpdate"sv;
-        case PdfErrorCode::OpenSSL:
-            return "PdfErrorCode::OpenSSL"sv;
+        case PdfErrorCode::ItemAlreadyPresent:
+            return "PdfErrorCode::ItemAlreadyPresent"sv;
+        case PdfErrorCode::OpenSSLError:
+            return "PdfErrorCode::OpenSSLError"sv;
         case PdfErrorCode::Unknown:
             return "PdfErrorCode::Unknown"sv;
         default:
@@ -180,10 +166,10 @@ string_view PdfError::ErrorMessage(PdfErrorCode code)
     switch (code)
     {
         case PdfErrorCode::InvalidHandle:
-            return "An invalid handle was passed or returned, but initialized data was expected."sv;
+            return "Unexpected null pointer or invalid state."sv;
         case PdfErrorCode::FileNotFound:
             return "The specified file was not found."sv;
-        case PdfErrorCode::InvalidDeviceOperation:
+        case PdfErrorCode::IOError:
             return "Tried to do something unsupported to an I/O device like seek a non-seekable input device"sv;
         case PdfErrorCode::UnexpectedEOF:
             return "End of file was reached unxexpectedly."sv;
@@ -195,25 +181,27 @@ string_view PdfError::ErrorMessage(PdfErrorCode code)
             return "An internal error occurred."sv;
         case PdfErrorCode::InvalidEnumValue:
             return "An invalid enum value was specified."sv;
+        case PdfErrorCode::ObjectNotFound:
+            return "An object was requested but was not found."sv;
+        case PdfErrorCode::MaxRecursionReached:
+            return "Reached maximum recursion depth."sv;
         case PdfErrorCode::BrokenFile:
             return "The file content is broken."sv;
-        case PdfErrorCode::PageNotFound:
-            return "The requested page could not be found in the PDF."sv;
-        case PdfErrorCode::NoPdfFile:
+        case PdfErrorCode::InvalidPDF:
             return "This is not a PDF file."sv;
-        case PdfErrorCode::NoXRef:
-            return "No XRef table was found in the PDF file."sv;
-        case PdfErrorCode::NoTrailer:
-            return "No trailer was found in the PDF file."sv;
-        case PdfErrorCode::NoNumber:
-            return "A number was expected but not found."sv;
-        case PdfErrorCode::NoObject:
-            return "A object was expected but not found."sv;
-        case PdfErrorCode::NoEOFToken:
-            return "No EOF Marker was found in the PDF file."sv;
-        case PdfErrorCode::InvalidTrailerSize:
-        case PdfErrorCode::InvalidDataType:
         case PdfErrorCode::InvalidXRef:
+            return "No XRef table was found in the PDF file."sv;
+        case PdfErrorCode::InvalidTrailer:
+            return "No trailer was found in the PDF file."sv;
+        case PdfErrorCode::InvalidNumber:
+            return "A number was expected but not found."sv;
+        case PdfErrorCode::InvalidObject:
+            return "A object was expected but not found."sv;
+        case PdfErrorCode::InvalidEncoding:
+            return "Invalid encoding information."sv;
+        case PdfErrorCode::InvalidEOFToken:
+            return "No EOF Marker was found in the PDF file."sv;
+        case PdfErrorCode::InvalidDataType:
         case PdfErrorCode::InvalidXRefStream:
         case PdfErrorCode::InvalidXRefType:
         case PdfErrorCode::InvalidPredictor:
@@ -236,20 +224,14 @@ string_view PdfError::ErrorMessage(PdfErrorCode code)
             break;
         case PdfErrorCode::UnsupportedFontFormat:
             return "This font format is not supported by PoDoFo."sv;
-        case PdfErrorCode::DestinationAlreadyPresent:
-        case PdfErrorCode::ActionAlreadyPresent:
-            return "Outlines can have either destinations or actions."sv;
         case PdfErrorCode::WrongDestinationType:
             return "The requested field is not available for the given destination type"sv;
-        case PdfErrorCode::MissingEndStream:
-        case PdfErrorCode::Date:
-            break;
-        case PdfErrorCode::Flate:
+        case PdfErrorCode::FlateError:
             return "ZLib returned an error."sv;
-        case PdfErrorCode::FreeType:
+        case PdfErrorCode::FreeTypeError:
             return "FreeType returned an error."sv;
-        case PdfErrorCode::SignatureError:
-            return "The signature contains an error."sv;
+        case PdfErrorCode::UnsupportedPixelFormat:
+            return "This pixel format is not supported by PoDoFo."sv;
         case PdfErrorCode::UnsupportedImageFormat:
             return "This image format is not supported by PoDoFo."sv;
         case PdfErrorCode::CannotConvertColor:
@@ -258,17 +240,11 @@ string_view PdfError::ErrorMessage(PdfErrorCode code)
             return "Changing values on immutable objects is not allowed."sv;
         case PdfErrorCode::NotImplemented:
             return "This feature is currently not implemented."sv;
-        case PdfErrorCode::NotCompiled:
-            return "This feature was disabled during compile time."sv;
-        case PdfErrorCode::OutlineItemAlreadyPresent:
-            return "Given OutlineItem already present in destination tree."sv;
-        case PdfErrorCode::NotLoadedForUpdate:
-            return "The document had not been loaded for update."sv;
-        case PdfErrorCode::CannotEncryptedForUpdate:
-            return "Cannot load encrypted documents for update."sv;
-        case PdfErrorCode::XmpMetadata:
+        case PdfErrorCode::ItemAlreadyPresent:
+            return "An item to be inserted is already in this container."sv;
+        case PdfErrorCode::XmpMetadataError:
             return "Error while reading or writing XMP metadata"sv;
-        case PdfErrorCode::OpenSSL:
+        case PdfErrorCode::OpenSSLError:
             return "OpenSSL error"sv;
         case PdfErrorCode::Unknown:
             return "Error code unknown."sv;

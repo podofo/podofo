@@ -54,7 +54,7 @@ Rect PdfAnnotation::GetRectRaw() const
 {
     const PdfArray* arr;
     if (!GetDictionary().TryFindKeyAs("Rect", arr))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Missing /Rect element");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ObjectNotFound, "Missing /Rect element");
 
     return Rect::FromArray(*arr);
 }

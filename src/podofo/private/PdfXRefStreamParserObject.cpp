@@ -42,22 +42,22 @@ void PdfXRefStreamParserObject::delayedLoad()
     auto& dict = m_Variant.GetDictionary();
     auto keyObj = dict.FindKey("Type");
     if (keyObj == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRef);
 
     if (!keyObj->IsName() || keyObj->GetName() != "XRef")
-        PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRef);
 
     if (!dict.HasKey("Size")
         || !dict.HasKey("W"))
     {
-        PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRef);
     }
 
     if (dict.HasKey("Prev"))
         m_NextOffset = static_cast<ssize_t>(dict.FindKeyAs<double>("Prev", 0));
 
     if (!this->HasStreamToParse())
-        PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRef);
 }
 
 void PdfXRefStreamParserObject::ReadXRefTable()

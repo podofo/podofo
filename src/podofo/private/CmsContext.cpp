@@ -65,7 +65,7 @@ void CmsContext::AppendData(const bufferview& data)
     // Append data to the internal CMS buffer and elaborate
     // See also CMS_final implementation for reference
     if (!SMIME_crlf_copy(mem, m_databio, CMS_FLAGS))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "SMIME_crlf_copy");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "SMIME_crlf_copy");
 
     (void)BIO_flush(m_databio);
     BIO_free(mem);
@@ -104,7 +104,7 @@ void CmsContext::ComputeSignature(const bufferview& signedHash, charbuff& signat
 
     auto buf = (unsigned char*)OPENSSL_malloc(signedHash.size());
     if (buf == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "Error while setting encrypted hash");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error while setting encrypted hash");
 
     std::memcpy(buf, signedHash.data(), signedHash.size());
     auto signatuerAsn1 = CMS_SignerInfo_get0_signature(m_signer);
@@ -147,7 +147,7 @@ void CmsContext::loadX509Certificate(const bufferview& cert)
     {
         string err("Certificate loading failed. Internal OpenSSL error:\n");
         ssl::GetOpenSSLError(err);
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, err);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, err);
     }
 }
 
@@ -223,7 +223,7 @@ void CmsContext::reset()
     m_signer = CMS_add1_signer(m_cms, m_cert, fakePrivKey, sign_md,
         m_parameters.SkipWriteMIMECapabilities ? CMS_NOSMIMECAP : 0);
     if (m_signer == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL, "CMS_add1_signer");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "CMS_add1_signer");
 
     if (m_parameters.AddSigningCertificateV2)
         ssl::AddSigningCertificateV2(m_signer, m_certHash, m_parameters.Hashing);
@@ -301,7 +301,7 @@ void addAttribute(CMS_SignerInfo* si, int(*addAttributeFun)(CMS_SignerInfo*, con
         asn1type = d2i_ASN1_TYPE(nullptr, &data, (long)attr.size());
         if (asn1type == nullptr)
         {
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL,
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError,
                 "Unable to parse an ASN.1 object");
         }
 
@@ -316,7 +316,7 @@ void addAttribute(CMS_SignerInfo* si, int(*addAttributeFun)(CMS_SignerInfo*, con
 
     if (rc < 0)
     {
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSL,
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError,
             "Unable to insert an attribute to the signer");
     }
 }

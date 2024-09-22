@@ -117,7 +117,7 @@ PdfObject& PdfIndirectObjectList::MustGetObject(const PdfReference& ref) const
 {
     auto obj = GetObject(ref);
     if (obj == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::NoObject);
+        PODOFO_RAISE_ERROR(PdfErrorCode::ObjectNotFound);
 
     return *obj;
 }

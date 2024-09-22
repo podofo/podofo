@@ -543,7 +543,7 @@ PdfColor PdfColor::CreateFromString(const string_view& name)
     {
         double grayVal = 0.0;
         if (!utls::TryParse(name.substr(1), grayVal))
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, "Could not read number");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidNumber, "Could not read number");
 
         return PdfColor(grayVal);
     }
@@ -719,7 +719,7 @@ PdfColor PdfNamedColor::createFromRGBString(const string_view& name)
     {
         unsigned nameConverted;
         if (!utls::TryParse(name.substr(1), nameConverted, 16))
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, "Could not read number");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidNumber, "Could not read number");
 
         const unsigned R = (nameConverted & 0x00FF0000) >> 16;
         const unsigned G = (nameConverted & 0x0000FF00) >> 8;

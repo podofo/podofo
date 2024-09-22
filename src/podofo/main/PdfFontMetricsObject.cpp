@@ -140,7 +140,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     else if (subType == "CIDFontType0" || subType == "CIDFontType2")
     {
         if (descriptor == nullptr)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "Missing descriptor for CID ont");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Missing descriptor for CID ont");
 
         if ((obj = descriptor->GetDictionary().FindKey("FontName")) != nullptr)
             m_FontNameRaw = obj->GetName().GetString();

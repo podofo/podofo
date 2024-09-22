@@ -100,7 +100,7 @@ size_t StreamDevice::SeekPosition(size_t curpos, size_t devlen, ssize_t offset, 
         case SeekDirection::Begin:
         {
             if (offset < 0)
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid negative seek");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Invalid negative seek");
             else if ((size_t)offset > devlen)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Invalid seek out of bounds");
 
@@ -129,7 +129,7 @@ size_t StreamDevice::SeekPosition(size_t curpos, size_t devlen, ssize_t offset, 
         case SeekDirection::End:
         {
             if (offset > 0)
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid positive seek");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Invalid positive seek");
             else if ((size_t)-offset > devlen)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Invalid seek out of bounds");
 
@@ -146,24 +146,24 @@ StandardStreamDevice::StandardStreamDevice(ostream& stream)
     : StandardStreamDevice(DeviceAccess::Write, &stream, nullptr, &stream, false)
 {
     if (stream.fail())
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidDeviceOperation);
+        PODOFO_RAISE_ERROR(PdfErrorCode::IOError);
 }
 
 StandardStreamDevice::StandardStreamDevice(istream& stream)
     : StandardStreamDevice(DeviceAccess::Read, &stream, &stream, nullptr, false)
 {
     if (stream.fail())
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidDeviceOperation);
+        PODOFO_RAISE_ERROR(PdfErrorCode::IOError);
 }
 
 StandardStreamDevice::StandardStreamDevice(iostream& stream)
     : StandardStreamDevice(DeviceAccess::ReadWrite, &stream, &stream, &stream, false)
 {
     if (stream.fail())
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidDeviceOperation);
+        PODOFO_RAISE_ERROR(PdfErrorCode::IOError);
 
     if (stream.tellp() != stream.tellg())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation,
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError,
             "Unsupported mismatch between read and read position in stream");
 }
 
@@ -211,7 +211,7 @@ size_t StandardStreamDevice::GetLength() const
     }
 
     if (m_Stream->fail())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to retrieve length for this stream");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to retrieve length for this stream");
 
     return ret;
 }
@@ -239,7 +239,7 @@ size_t StandardStreamDevice::GetPosition() const
     }
 
     if (m_Stream->fail())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to get current position in the stream");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to get current position in the stream");
 
     return ret;
 }
@@ -263,7 +263,7 @@ void StandardStreamDevice::writeBuffer(const char* buffer, size_t size)
             PODOFO_INVARIANT(m_ostream != nullptr);
             m_ostream->write(buffer, size);
             if (m_ostream->fail())
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to write the given buffer");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to write the given buffer");
             break;
         }
         case DeviceAccess::ReadWrite:
@@ -288,7 +288,7 @@ void StandardStreamDevice::writeBuffer(const char* buffer, size_t size)
             break;
 
         Fail:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to write the given buffer");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to write the given buffer");
             break;
         }
         default:
@@ -301,7 +301,7 @@ void StandardStreamDevice::flush()
     PODOFO_INVARIANT(m_ostream != nullptr);
     m_ostream->flush();
     if (m_ostream->fail())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to flush the stream");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to flush the stream");
 }
 
 size_t StandardStreamDevice::readBuffer(char* buffer, size_t size, bool& eof)
@@ -340,7 +340,7 @@ bool StandardStreamDevice::peek(char& ch) const
 
     read = m_istream->peek();
     if (m_istream->fail())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to peek current character");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to peek current character");
 
     if (read == char_traits<char>::eof())
         goto Eof;
@@ -380,7 +380,7 @@ void StandardStreamDevice::seek(ssize_t offset, SeekDirection direction)
     return;
 
 Fail:
-    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to seek to given position in the stream");
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to seek to given position in the stream");
 }
 
 FileStreamDevice::FileStreamDevice(const string_view& filepath)
@@ -431,14 +431,14 @@ size_t FileStreamDevice::GetLength() const
     return offset;
 
 Fail:
-    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to determine the current file length");
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to determine the current file length");
 }
 
 size_t FileStreamDevice::GetPosition() const
 {
     ssize_t offset = utls::ftell(m_file);
     if (offset == -1)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to read the current file position");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to read the current file position");
 
     return offset;
 }
@@ -456,21 +456,21 @@ bool FileStreamDevice::Eof() const
 void FileStreamDevice::writeBuffer(const char* buffer, size_t size)
 {
     if (std::fwrite(buffer, sizeof(char), size, m_file) != size)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to write the given buffer");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to write the given buffer");
 }
 
 void FileStreamDevice::flush()
 {
     int rc = std::fflush(m_file);
     if (rc == EOF)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to flush the stream");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to flush the stream");
 }
 
 size_t FileStreamDevice::readBuffer(char* buffer, size_t size, bool& eof)
 {
     size_t ret = std::fread(buffer, 1, (size_t)size, m_file);
     if (std::ferror(m_file) != 0)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to read the amount of bytes requested");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to read the amount of bytes requested");
 
     if (std::feof(m_file) != 0)
     {
@@ -486,7 +486,7 @@ bool FileStreamDevice::readChar(char& ch)
 {
     int rc = std::fgetc(m_file);
     if (std::ferror(m_file) != 0)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Stream I/O error while reading");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Stream I/O error while reading");
 
     if (std::feof(m_file) != 0)
     {
@@ -517,7 +517,7 @@ bool FileStreamDevice::peek(char& ch) const
     return true;
 
 Fail:
-    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Stream I/O error while reading");
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Stream I/O error while reading");
 }
 
 void FileStreamDevice::seek(ssize_t offset, SeekDirection direction)
@@ -539,7 +539,7 @@ void FileStreamDevice::seek(ssize_t offset, SeekDirection direction)
     }
 
     if (utls::fseek(m_file, offset, origin) != 0)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to seek to given position in the stream");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to seek to given position in the stream");
 }
 
 void FileStreamDevice::close()
@@ -548,7 +548,7 @@ void FileStreamDevice::close()
         return;
 
     if (std::fclose(m_file) == EOF)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to close stream");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to close stream");
 
     m_file = nullptr;
 }
@@ -727,10 +727,10 @@ FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access
         case FileMode::CreateNew:
         {
             if (access == DeviceAccess::Read)
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid combination FileMode::CreateNew and DeviceAccess::Read");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Invalid combination FileMode::CreateNew and DeviceAccess::Read");
 
             if (fs::exists(filepath))
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "The file {} must not exist", filepath);
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "The file {} must not exist", filepath);
 
             switch (access)
             {
@@ -749,7 +749,7 @@ FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access
         case FileMode::Create:
         {
             if (access == DeviceAccess::Read)
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid combination FileMode::Create and DeviceAccess::Read");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Invalid combination FileMode::Create and DeviceAccess::Read");
 
             switch (access)
             {
@@ -768,7 +768,7 @@ FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access
         case FileMode::Open:
         {
             if ((access & DeviceAccess::Write) != DeviceAccess{ } && !fs::exists(filepath))
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "The file {} must exist", filepath);
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "The file {} must exist", filepath);
 
             switch (access)
             {
@@ -790,7 +790,7 @@ FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access
         case FileMode::OpenOrCreate:
         {
             if (access == DeviceAccess::Read)
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid combination FileMode::OpenOrCreate and DeviceAccess::Read");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Invalid combination FileMode::OpenOrCreate and DeviceAccess::Read");
 
             bool exists = fs::exists(filepath);
             switch (access)
@@ -810,10 +810,10 @@ FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access
         case FileMode::Truncate:
         {
             if (access == DeviceAccess::Read)
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid combination FileMode::Truncate and DeviceAccess::Read");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Invalid combination FileMode::Truncate and DeviceAccess::Read");
 
             if (!fs::exists(filepath))
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "The file {} must exist", filepath);
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "The file {} must exist", filepath);
 
             switch (access)
             {
@@ -830,7 +830,7 @@ FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access
         }
         case FileMode::Append:
             if (access == DeviceAccess::Read)
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid combination FileMode::Append and DeviceAccess::Read");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Invalid combination FileMode::Append and DeviceAccess::Read");
 
             switch (access)
             {
@@ -854,7 +854,7 @@ FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access
 
     auto stream = utls::fopen(filepath, cmode.data());
     if (stream == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Error accessing file {}", filepath);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Error accessing file {}", filepath);
 
     return stream;
 }

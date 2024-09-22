@@ -54,7 +54,7 @@ FT_Library FT::GetLibrary()
         {
             // Initialize all the fonts stuff
             if (FT_Init_FreeType(&Library))
-                PODOFO_RAISE_ERROR(PdfErrorCode::FreeType);
+                PODOFO_RAISE_ERROR(PdfErrorCode::FreeTypeError);
         }
 
         ~Init()

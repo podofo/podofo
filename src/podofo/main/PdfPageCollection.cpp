@@ -60,7 +60,7 @@ PdfPage& PdfPageCollection::GetPageAt(unsigned index)
 {
     const_cast<PdfPageCollection&>(*this).initPages();
     if (index >= m_Pages.size())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::PageNotFound, "Page with index {} not found", index);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Page with index {} not found", index);
 
     return *m_Pages[index];
 }
@@ -69,7 +69,7 @@ const PdfPage& PdfPageCollection::GetPageAt(unsigned index) const
 {
     const_cast<PdfPageCollection&>(*this).initPages();
     if (index >= m_Pages.size())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::PageNotFound, "Page with index {} not found", index);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Page with index {} not found", index);
 
     return *m_Pages[index];
 }
@@ -113,7 +113,7 @@ PdfPage& PdfPageCollection::getPage(const PdfReference& ref) const
             return page;
     }
 
-    PODOFO_RAISE_ERROR(PdfErrorCode::PageNotFound);
+    PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 }
 
 PdfPageCollection::iterator PdfPageCollection::begin()

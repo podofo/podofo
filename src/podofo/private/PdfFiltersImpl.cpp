@@ -475,7 +475,7 @@ void PdfFlateFilter::BeginEncodeImpl()
     m_stream.opaque = Z_NULL;
 
     if (deflateInit(&m_stream, Z_DEFAULT_COMPRESSION))
-        PODOFO_RAISE_ERROR(PdfErrorCode::Flate);
+        PODOFO_RAISE_ERROR(PdfErrorCode::FlateError);
 }
 
 void PdfFlateFilter::EncodeBlockImpl(const char* buffer, size_t len)
@@ -498,7 +498,7 @@ void PdfFlateFilter::EncodeBlockInternal(const char* buffer, size_t len, int nMo
         if (deflate(&m_stream, nMode) == Z_STREAM_ERROR)
         {
             FailEncodeDecode();
-            PODOFO_RAISE_ERROR(PdfErrorCode::Flate);
+            PODOFO_RAISE_ERROR(PdfErrorCode::FlateError);
         }
 
         nWrittenData = BUFFER_SIZE - m_stream.avail_out;
@@ -535,7 +535,7 @@ void PdfFlateFilter::BeginDecodeImpl(const PdfDictionary* decodeParms)
         m_Predictor.reset(new PdfPredictorDecoder(*decodeParms));
 
     if (inflateInit(&m_stream) != Z_OK)
-        PODOFO_RAISE_ERROR(PdfErrorCode::Flate);
+        PODOFO_RAISE_ERROR(PdfErrorCode::FlateError);
 }
 
 void PdfFlateFilter::DecodeBlockImpl(const char* buffer, size_t len)
@@ -561,7 +561,7 @@ void PdfFlateFilter::DecodeBlockImpl(const char* buffer, size_t len)
                 (void)inflateEnd(&m_stream);
 
                 FailEncodeDecode();
-                PODOFO_RAISE_ERROR(PdfErrorCode::Flate);
+                PODOFO_RAISE_ERROR(PdfErrorCode::FlateError);
             }
             default:
                 break;

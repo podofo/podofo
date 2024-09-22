@@ -20,7 +20,7 @@ StreamDeviceBase::StreamDeviceBase()
 void StreamDeviceBase::Seek(size_t offset)
 {
     if (!CanSeek())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Tried to seek an unseekable input device");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Tried to seek an unseekable input device");
 
     seek((ssize_t)offset, SeekDirection::Begin);
 }
@@ -28,7 +28,7 @@ void StreamDeviceBase::Seek(size_t offset)
 void StreamDeviceBase::Seek(ssize_t offset, SeekDirection direction)
 {
     if (!CanSeek())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Tried to seek an unseekable input device");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Tried to seek an unseekable input device");
 
     seek(offset, direction);
 }

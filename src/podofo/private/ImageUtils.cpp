@@ -366,7 +366,7 @@ void fetchScanLineRGB(unsigned char* dstScanLine, PdfPixelFormat format,
             break;
         }
         default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "Unsupported pixel format");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedPixelFormat, "Unsupported pixel format");
     }
 }
 
@@ -443,7 +443,7 @@ void fetchScanLineRGB(unsigned char* dstScanLine, PdfPixelFormat format,
             break;
         }
         default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "Unsupported pixel format");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedPixelFormat, "Unsupported pixel format");
     }
 }
 
@@ -497,7 +497,7 @@ void fetchScanLineGrayScale(unsigned char* dstScanLine, PdfPixelFormat format,
             break;
         }
         default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "Unsupported pixel format");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedPixelFormat, "Unsupported pixel format");
     }
 }
 
@@ -553,7 +553,7 @@ void fetchScanLineGrayScale(unsigned char* dstScanLine, PdfPixelFormat format,
             break;
         }
         default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "Unsupported pixel format");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedPixelFormat, "Unsupported pixel format");
     }
 }
 
@@ -607,7 +607,7 @@ void fetchScanLineBW(unsigned char* dstScanLine, PdfPixelFormat format,
             break;
         }
         default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "Unsupported pixel format");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedPixelFormat, "Unsupported pixel format");
     }
 }
 
@@ -664,7 +664,7 @@ void fetchScanLineBW(unsigned char* dstScanLine, PdfPixelFormat format,
             break;
         }
         default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "Unsupported pixel format");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedPixelFormat, "Unsupported pixel format");
     }
 }
 

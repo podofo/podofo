@@ -72,7 +72,7 @@ PdfString PdChoiceField::GetItem(unsigned index) const
 {
     auto opt = GetDictionary().FindKey("Opt");
     if (opt == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+        PODOFO_RAISE_ERROR(PdfErrorCode::ObjectNotFound);
 
     auto& optArray = opt->GetArray();
     if (index >= optArray.GetSize())

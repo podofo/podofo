@@ -192,7 +192,7 @@ void PdfParserTest::TestReadXRefContents()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::NoTrailer);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidTrailer);
     }
     catch (exception&)
     {
@@ -230,7 +230,7 @@ void PdfParserTest::TestReadXRefContents()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::NoTrailer);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidTrailer);
     }
     catch (exception&)
     {
@@ -621,7 +621,7 @@ void PdfParserTest::testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE((error.GetCode() == PdfErrorCode::InvalidXRef || error.GetCode() == PdfErrorCode::NoXRef));
+        REQUIRE((error.GetCode() == PdfErrorCode::InvalidXRef || error.GetCode() == PdfErrorCode::InvalidXRef));
     }
     catch (exception&)
     {
@@ -2113,7 +2113,7 @@ void PdfParserTest::TestNestedArrays()
     catch (PdfError& error)
     {
         // this must match the error value thrown by PdfRecursionGuard
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::MaxRecursionReached);
     }
 }
 
@@ -2223,7 +2223,7 @@ void PdfParserTest::TestNestedDictionaries()
     catch (PdfError& error)
     {
         // this must match the error value thrown by PdfRecursionGuard
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::MaxRecursionReached);
     }
 }
 
@@ -2313,7 +2313,7 @@ TEST_CASE("TestNestedNameTree")
     catch (PdfError& error)
     {
         // this must match the error value thrown by PdfRecursionGuard
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::MaxRecursionReached);
     }
 }
 
@@ -2380,7 +2380,7 @@ TEST_CASE("TestLoopingNameTree")
     catch (PdfError& error)
     {
         // this must match the error value thrown by PdfRecursionGuard
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::MaxRecursionReached);
     }
 
     // CVE-2021-30471 /Dests points at pages tree which has a /Kids entry loooping back to ancestor (document root)
@@ -2492,7 +2492,7 @@ TEST_CASE("TestNestedPageTree")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::MaxRecursionReached);
     }
 }
 
@@ -2653,7 +2653,7 @@ TEST_CASE("TestNestedOutlines")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::MaxRecursionReached);
     }
 }
 
@@ -2693,7 +2693,7 @@ TEST_CASE("TestLoopingOutlines")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::MaxRecursionReached);
     }
 
     // https://sourceforge.net/p/podofo/tickets/25/
@@ -2723,7 +2723,7 @@ TEST_CASE("TestLoopingOutlines")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::MaxRecursionReached);
     }
 }
 

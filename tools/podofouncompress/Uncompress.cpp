@@ -58,7 +58,7 @@ void UnCompress::UncompressObjects()
                 }
                 catch (PdfError& e)
                 {
-                    if (e.GetCode() == PdfErrorCode::Flate)
+                    if (e.GetCode() == PdfErrorCode::FlateError)
                     {
                         // Ignore ZLib errors
                         fprintf(stderr, "WARNING: ZLib error ignored for this object.\n");

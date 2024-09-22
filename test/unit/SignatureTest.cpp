@@ -26,7 +26,7 @@ TEST_CASE("TestLoadCertificate")
     }
     catch (PdfError& err)
     {
-        REQUIRE(err.GetCode() == PdfErrorCode::OpenSSL);
+        REQUIRE(err.GetCode() == PdfErrorCode::OpenSSLError);
         return;
     }
 

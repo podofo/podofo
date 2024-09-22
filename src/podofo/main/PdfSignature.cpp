@@ -265,7 +265,7 @@ void PdfSignature::EnsureValueObject()
 
     m_ValueObj = &this->GetDocument().GetObjects().CreateDictionaryObject("Sig"_n);
     if (m_ValueObj == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+        PODOFO_RAISE_ERROR(PdfErrorCode::ObjectNotFound);
 
     GetDictionary().AddKey("V"_n, m_ValueObj->GetIndirectReference());
 }

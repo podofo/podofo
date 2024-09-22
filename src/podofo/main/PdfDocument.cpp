@@ -529,7 +529,7 @@ void PdfDocument::SetTrailer(unique_ptr<PdfObject> obj)
 
     auto catalog = m_TrailerObj->GetDictionary().FindKey("Root");
     if (catalog == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "Catalog object not found!");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ObjectNotFound, "Catalog object not found!");
 
     m_Catalog.reset(new PdfCatalog(*catalog));
 

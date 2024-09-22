@@ -280,7 +280,7 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
 
             if (infoObj == nullptr)
             {
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Error while retrieving info dictionary: {} {} R",
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ObjectNotFound, "Error while retrieving info dictionary: {} {} R",
                     ref.ObjectNumber(), ref.GenerationNumber());
             }
             else
@@ -299,7 +299,7 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
         }
         else
         {
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Invalid");
         }
     }
 

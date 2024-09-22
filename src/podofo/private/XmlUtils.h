@@ -19,9 +19,9 @@
 {\
     const xmlError* error_ = xmlGetLastError();\
     if (error_ == nullptr)\
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::XmpMetadata, msg);\
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::XmpMetadataError, msg);\
     else\
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::XmpMetadata, "{}, internal error: {}", msg, error_->message);\
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::XmpMetadataError, "{}, internal error: {}", msg, error_->message);\
 }
 
 namespace utls
