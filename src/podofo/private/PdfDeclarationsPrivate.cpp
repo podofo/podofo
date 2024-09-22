@@ -418,6 +418,15 @@ const locale& utls::GetInvariantLocale()
     return s_cachedLocale;
 }
 
+string_view utls::GetEnvironmentVariable(const string_view& name)
+{
+    auto env = std::getenv(name.data());
+    if (env == nullptr)
+        return string_view();
+    else
+        return { env };
+}
+
 bool utls::IsValidUtf8String(const string_view& str)
 {
     return utf8::is_valid(str);

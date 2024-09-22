@@ -223,6 +223,8 @@ namespace utls
 
     const std::locale& GetInvariantLocale();
 
+    std::string_view GetEnvironmentVariable(const std::string_view& name);
+
     bool IsValidUtf8String(const std::string_view& str);
 
     bool IsStringDelimiter(char32_t ch);
