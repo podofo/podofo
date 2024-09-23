@@ -298,7 +298,7 @@ void PdfParserTest::TestReadXRefContents()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefType);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefStream);
     }
     catch (exception&)
     {
@@ -375,7 +375,7 @@ void PdfParserTest::TestReadXRefContents()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefType);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefStream);
     }
     catch (exception&)
     {
@@ -451,7 +451,7 @@ void PdfParserTest::TestReadXRefContents()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefType);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefStream);
     }
     catch (exception&)
     {

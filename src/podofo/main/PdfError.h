@@ -46,12 +46,9 @@ enum class PdfErrorCode
     InvalidDataType,          ///< The passed datatype is invalid or was not recognized
     InvalidXRef,              ///< The XRef table is invalid
     InvalidXRefStream,        ///< A XRef stream is invalid
-    InvalidXRefType,          ///< The XRef type is invalid or was not found
     InvalidPredictor,         ///< Invalid or unimplemented predictor
     InvalidStrokeStyle,       ///< Invalid stroke style during drawing
-    InvalidHexString,         ///< Invalid hex string
     InvalidStream,            ///< The stream is invalid
-    InvalidStreamLength,      ///< The stream length is invalid
     InvalidKey,               ///< The specified key is invalid
     InvalidName,              ///< The specified Name is not valid in this context
     InvalidEncryptionDict,    ///< The encryption dictionary is invalid or misses a required key

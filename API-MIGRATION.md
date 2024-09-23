@@ -9,7 +9,10 @@
   * Renamed `NoEOFToken` -> `InvalidEOFToken`
   * Renamed `XmpMetadata` -> `XmpMetadataError`
   * Renamed Flate -> FlateError
-  * Removed unused `NoXRef`, `Date`, `ActionAlreadyPresent`, `MissingEndStream`, `InvalidTrailerSize`, `SignatureError`, `NotCompiled`, `InvalidTrailerSize`, `DestinationAlreadyPresent`, `OutlineItemAlreadyPresent`, `NotLoadedForUpdate`, `CannotEncryptedForUpdate`
+  * Removed unused `NoXRef`, `Date`, `ActionAlreadyPresent`, `MissingEndStream`, `InvalidTrailerSize`,
+    `SignatureError`, `NotCompiled`, `InvalidTrailerSize`, `DestinationAlreadyPresent`,
+    `OutlineItemAlreadyPresent`, `NotLoadedForUpdate`, `CannotEncryptedForUpdate`,
+    `InvalidHexString`, `InvalidStreamLength`, `InvalidXRefType`
 - `PdfDocument`:
   * Removed `AttachFile()`, `GetAttachment()`: Use `GetNames().GetNameTree<PdfEmbeddedFiles>()` or similar methods and use that instance
   * Removed `AddNamedDestination()`: Use `GetNames().GetTree<PdfDestinations>()` or similar methods and use that instance

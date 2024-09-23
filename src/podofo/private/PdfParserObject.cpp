@@ -177,7 +177,7 @@ void PdfParserObject::parseStream()
 
     auto& lengthObj = this->m_Variant.GetDictionaryUnsafe().MustFindKey("Length");
     if (!lengthObj.TryGetNumber(size))
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidStreamLength);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidStream, "Invlid stream length");
 
     m_device->Seek(m_StreamOffset);
 

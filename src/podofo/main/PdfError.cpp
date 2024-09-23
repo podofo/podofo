@@ -104,17 +104,11 @@ string_view PdfError::ErrorName(PdfErrorCode code)
             return "PdfErrorCode::InvalidDataType"sv;
         case PdfErrorCode::InvalidXRefStream:
             return "PdfErrorCode::InvalidXRefStream"sv;
-        case PdfErrorCode::InvalidXRefType:
-            return "PdfErrorCode::InvalidXRefType"sv;
         case PdfErrorCode::InvalidPredictor:
             return "PdfErrorCode::InvalidPredictor"sv;
         case PdfErrorCode::InvalidStrokeStyle:
             return "PdfErrorCode::InvalidStrokeStyle"sv;
-        case PdfErrorCode::InvalidHexString:
-            return "PdfErrorCode::InvalidHexString"sv;
         case PdfErrorCode::InvalidStream:
-            return "PdfErrorCode::InvalidStream"sv;
-        case PdfErrorCode::InvalidStreamLength:
             return "PdfErrorCode::InvalidStream"sv;
         case PdfErrorCode::InvalidKey:
             return "PdfErrorCode::InvalidKey"sv;
@@ -203,12 +197,9 @@ string_view PdfError::ErrorMessage(PdfErrorCode code)
             return "No EOF Marker was found in the PDF file."sv;
         case PdfErrorCode::InvalidDataType:
         case PdfErrorCode::InvalidXRefStream:
-        case PdfErrorCode::InvalidXRefType:
         case PdfErrorCode::InvalidPredictor:
         case PdfErrorCode::InvalidStrokeStyle:
-        case PdfErrorCode::InvalidHexString:
         case PdfErrorCode::InvalidStream:
-        case PdfErrorCode::InvalidStreamLength:
         case PdfErrorCode::InvalidKey:
         case PdfErrorCode::InvalidName:
             break;

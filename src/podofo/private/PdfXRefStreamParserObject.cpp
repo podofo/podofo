@@ -227,7 +227,7 @@ void PdfXRefStreamParserObject::readXRefStreamEntry(PdfXRefEntry& entry, char* b
             entry.Type = PdfXRefEntryType::Compressed;
             break;
         default:
-            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRefType);
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRefStream);
     }
 }
 
