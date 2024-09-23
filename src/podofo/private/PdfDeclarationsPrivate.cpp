@@ -1333,37 +1333,33 @@ void utls::ReadInt16BE(InputStream& input, int16_t& value)
 void utls::ReadUInt32BE(const char* buf, uint32_t& value)
 {
     value =
-          (uint32_t)(buf[0] & 0xFF) << 0
-        | (uint32_t)(buf[1] & 0xFF) << 8
-        | (uint32_t)(buf[2] & 0xFF) << 16
-        | (uint32_t)(buf[3] & 0xFF) << 24;
-    value = AS_BIG_ENDIAN(value);
+          (uint32_t)((uint8_t)buf[3] << 0)
+        | (uint32_t)((uint8_t)buf[2] << 8)
+        | (uint32_t)((uint8_t)buf[1] << 16)
+        | (uint32_t)((uint8_t)buf[0] << 24);
 }
 
 void utls::ReadInt32BE(const char* buf, int32_t& value)
 {
     value =
-          (int32_t)(buf[0] & 0xFF) << 0
-        | (int32_t)(buf[1] & 0xFF) << 8
-        | (int32_t)(buf[2] & 0xFF) << 16
-        | (int32_t)(buf[3] & 0xFF) << 24;
-    value = AS_BIG_ENDIAN(value);
+          (int32_t)((uint8_t)buf[3] << 0)
+        | (int32_t)((uint8_t)buf[2] << 8)
+        | (int32_t)((uint8_t)buf[1] << 16)
+        | (int32_t)((int8_t)buf[0]  << 24);
 }
 
 void utls::ReadUInt16BE(const char* buf, uint16_t& value)
 {
     value =
-          (uint16_t)(buf[0] & 0xFF) << 0
-        | (uint16_t)(buf[1] & 0xFF) << 8;
-    value = AS_BIG_ENDIAN(value);
+          (uint16_t)((uint8_t)buf[1] << 0)
+        | (uint16_t)((uint8_t)buf[0] << 8);
 }
 
 void utls::ReadInt16BE(const char* buf, int16_t& value)
 {
     value =
-          (int16_t)(buf[0] & 0xFF) << 0
-        | (int16_t)(buf[1] & 0xFF) << 8;
-    value = AS_BIG_ENDIAN(value);
+          (int16_t)((uint8_t)buf[1] << 0)
+        | (int16_t)((int8_t)buf[0]  << 8);
 }
 
 void utls::RecursionGuard::Enter()
