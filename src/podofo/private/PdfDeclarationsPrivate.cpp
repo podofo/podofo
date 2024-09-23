@@ -1281,33 +1281,25 @@ void utls::WriteInt16BE(OutputStream& output, int16_t value)
 void utls::WriteUInt32BE(char* buf, uint32_t value)
 {
     value = AS_BIG_ENDIAN(value);
-    buf[0] = static_cast<char>((value >> 0 ) & 0xFF);
-    buf[1] = static_cast<char>((value >> 8 ) & 0xFF);
-    buf[2] = static_cast<char>((value >> 16) & 0xFF);
-    buf[3] = static_cast<char>((value >> 24) & 0xFF);
+    std::memcpy(buf, &value, sizeof(value));
 }
 
 void utls::WriteInt32BE(char* buf, int32_t value)
 {
     value = AS_BIG_ENDIAN(value);
-    buf[0] = static_cast<char>((value >> 0 ) & 0xFF);
-    buf[1] = static_cast<char>((value >> 8 ) & 0xFF);
-    buf[2] = static_cast<char>((value >> 16) & 0xFF);
-    buf[3] = static_cast<char>((value >> 24) & 0xFF);
+    std::memcpy(buf, &value, sizeof(value));
 }
 
 void utls::WriteUInt16BE(char* buf, uint16_t value)
 {
     value = AS_BIG_ENDIAN(value);
-    buf[0] = static_cast<char>((value >> 0) & 0xFF);
-    buf[1] = static_cast<char>((value >> 8) & 0xFF);
+    std::memcpy(buf, &value, sizeof(value));
 }
 
 void utls::WriteInt16BE(char* buf, int16_t value)
 {
     value = AS_BIG_ENDIAN(value);
-    buf[0] = static_cast<char>((value >> 0) & 0xFF);
-    buf[1] = static_cast<char>((value >> 8) & 0xFF);
+    std::memcpy(buf, &value, sizeof(value));
 }
 
 void utls::ReadUInt32BE(InputStream& input, uint32_t& value)
