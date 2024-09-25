@@ -43,6 +43,7 @@
 #include "main/PdfDictionary.h"
 #include "main/PdfEncoding.h"
 #include "main/PdfCMapEncoding.h"
+#include "main/PdfPredefinedToUnicodeCMap.h"
 #include "main/PdfEncodingFactory.h"
 #include "main/PdfEncodingMapFactory.h"
 #include "main/PdfDifferenceEncoding.h"

@@ -23,9 +23,6 @@ namespace
         PdfFontBuiltinType1Encoding(PdfCharCodeMap && map)
             : PdfEncodingMapBase(std::move(map), PdfEncodingMapType::Simple) { }
 
-    public:
-        bool IsBuiltinEncoding() const override { return true; }
-
     protected:
         void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override
         {

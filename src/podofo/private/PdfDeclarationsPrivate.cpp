@@ -1264,6 +1264,13 @@ void utls::WriteInt32BE(OutputStream& output, int32_t value)
     output.Write(buf, 4);
 }
 
+void utls::WriteUInt24BE(OutputStream& output, PoDoFo::uint24_t value)
+{
+    char buf[3];
+    WriteUInt24BE(buf, value);
+    output.Write(buf, 3);
+}
+
 void utls::WriteUInt16BE(OutputStream& output, uint16_t value)
 {
     char buf[2];
@@ -1285,6 +1292,12 @@ void utls::WriteUInt32BE(char* buf, uint32_t value)
 }
 
 void utls::WriteInt32BE(char* buf, int32_t value)
+{
+    value = AS_BIG_ENDIAN(value);
+    std::memcpy(buf, &value, sizeof(value));
+}
+
+void utls::WriteUInt24BE(char* buf, uint24_t value)
 {
     value = AS_BIG_ENDIAN(value);
     std::memcpy(buf, &value, sizeof(value));
@@ -1314,6 +1327,13 @@ void utls::ReadInt32BE(InputStream& input, int32_t& value)
     char buf[4];
     input.Read(buf, 4);
     ReadInt32BE(buf, value);
+}
+
+void utls::ReadUInt24BE(InputStream& input, uint24_t& value)
+{
+    char buf[3];
+    input.Read(buf, 3);
+    ReadUInt24BE(buf, value);
 }
 
 void utls::ReadUInt16BE(InputStream& input, uint16_t& value)
@@ -1346,6 +1366,15 @@ void utls::ReadInt32BE(const char* buf, int32_t& value)
         | (int32_t)((uint8_t)buf[2] << 8)
         | (int32_t)((uint8_t)buf[1] << 16)
         | (int32_t)((int8_t)buf[0]  << 24);
+}
+
+void utls::ReadUInt24BE(const char* buf, uint24_t& value)
+{
+    uint32_t intValue =
+          (int32_t)((uint8_t)buf[3] << 0)
+        | (int32_t)((uint8_t)buf[2] << 8)
+        | (int32_t)((uint8_t)buf[1] << 16);
+    value = AS_BIG_ENDIAN((uint24_t)intValue);
 }
 
 void utls::ReadUInt16BE(const char* buf, uint16_t& value)
@@ -1437,4 +1466,29 @@ char getEscapedCharacter(char ch)
         default:
             return '\0';
     }
+}
+
+uint24_t::uint24_t()
+    : value{ } { }
+
+uint24_t::uint24_t(unsigned value)
+{
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    this->value[0] = (value >> 0 ) & 0xFF;
+    this->value[1] = (value >> 8 ) & 0xFF;
+    this->value[2] = (value >> 16) & 0xFF;
+#else // PODOFO_IS_LITTLE_ENDIAN
+    this->value[0] = (value >> 16) & 0xFF;
+    this->value[1] = (value >> 8 ) & 0xFF;
+    this->value[2] = (value >> 0 ) & 0xFF;
+#endif // PODOFO_IS_LITTLE_ENDIAN
+}
+
+uint24_t::operator unsigned() const
+{
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    return (unsigned)(this->value[0] | this->value[1] << 8 | this->value[2] << 16);
+#else // PODOFO_IS_LITTLE_ENDIAN
+    return (unsigned)(this->value[2] | this->value[1] << 8 | this->value[0] << 16);
+#endif // PODOFO_IS_LITTLE_ENDIAN
 }

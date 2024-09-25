@@ -12,7 +12,8 @@
 
 namespace PoDoFo
 {
-    /** A convenient typedef for an unspecified codepoint
+    /**
+     * A convenient typedef for an unspecified codepoint
      * The underlying type is convenientely char32_t so
      * it's a 32 bit fixed sized type that is also compatible
      * with unicode code points
@@ -64,6 +65,8 @@ namespace PoDoFo
      */
     class PODOFO_API PdfCharCodeMap final
     {
+        PODOFO_PRIVATE_FRIEND(class PdfCMapEncodingFactory);
+
     public:
         PdfCharCodeMap();
 
@@ -71,6 +74,10 @@ namespace PoDoFo
 
         ~PdfCharCodeMap();
 
+    private:
+        PdfCharCodeMap(CodeUnitMap&& mapping, CodeUnitRanges&& ranges, const PdfEncodingLimits& limits);
+
+    public:
         /** Method to push a mapping.
          * Given string can be a ligature, es "ffi"
          * \remarks The mapping is ignored if codePoints is empty
@@ -115,7 +122,7 @@ namespace PoDoFo
 
         PdfCharCodeMap& operator=(PdfCharCodeMap&& map) noexcept;
 
-        const PdfEncodingLimits& GetLimits() const;
+        const PdfEncodingLimits& GetLimits() const { return m_Limits; }
 
         bool IsEmpty() const;
 

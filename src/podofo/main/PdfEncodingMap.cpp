@@ -174,7 +174,7 @@ bool PdfEncodingMap::TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) con
     // NOTE: Here we assume the map will actually
     // contains cids, and not unicode codepoints
     vector<char32_t> cids;
-    bool success = tryGetCodePoints(codeUnit, cids);
+    bool success = tryGetCodePoints(codeUnit, nullptr, cids);
     if (!success || cids.size() != 1)
     {
         // Return false on missing lookup or malformed multiple code points found
@@ -188,12 +188,18 @@ bool PdfEncodingMap::TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) con
 bool PdfEncodingMap::TryGetCodePoints(const PdfCharCode& codeUnit, vector<char32_t>& codePoints) const
 {
     codePoints.clear();
-    return tryGetCodePoints(codeUnit, codePoints);
+    return tryGetCodePoints(codeUnit, nullptr, codePoints);
 }
 
-bool PdfEncodingMap::IsBuiltinEncoding() const
+bool PdfEncodingMap::TryGetCodePoints(const PdfCID& cid, vector<char32_t>& codePoints) const
 {
-    return false;
+    codePoints.clear();
+    return tryGetCodePoints(cid.Unit, &cid.Id, codePoints);
+}
+
+PdfPredefinedEncodingType PdfEncodingMap::GetPredefinedEncodingType() const
+{
+    return PdfPredefinedEncodingType::Indeterminate;
 }
 
 bool PdfEncodingMap::HasLigaturesSupport() const
@@ -237,7 +243,7 @@ bool PdfEncodingMap::tryGetNextCodePoints(string_view::iterator& it, const strin
         code |= (uint8_t)*curr;
         curr++;
         codeUnit = { code, i };
-        if (i < limits.MinCodeSize || !tryGetCodePoints(codeUnit, codePoints))
+        if (i < limits.MinCodeSize || !tryGetCodePoints(codeUnit, nullptr, codePoints))
         {
             i++;
             continue;
@@ -435,8 +441,9 @@ bool PdfEncodingMapBase::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUni
     return m_charMap->TryGetCharCode(codePoint, codeUnit);
 }
 
-bool PdfEncodingMapBase::tryGetCodePoints(const PdfCharCode& code, vector<char32_t>& codePoints) const
+bool PdfEncodingMapBase::tryGetCodePoints(const PdfCharCode& code, const unsigned* cidId, vector<char32_t>& codePoints) const
 {
+    (void)cidId;
     return m_charMap->TryGetCodePoints(code, codePoints);
 }
 
@@ -547,10 +554,11 @@ bool PdfNullEncodingMap::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUni
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The null encoding must be bound to a PdfFont");
 }
 
-bool PdfNullEncodingMap::tryGetCodePoints(const PdfCharCode& codeUnit, vector<char32_t>& codePoints) const
+bool PdfNullEncodingMap::tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, vector<char32_t>& codePoints) const
 {
     (void)codeUnit;
     (void)codePoints;
+    (void)cidId;
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The null encoding must be bound to a PdfFont");
 }
 
@@ -624,8 +632,9 @@ bool PdfBuiltInEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUni
     return true;
 }
 
-bool PdfBuiltInEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, vector<char32_t>& codePoints) const
+bool PdfBuiltInEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, vector<char32_t>& codePoints) const
 {
+    (void)cidId;
     if (codeUnit.Code >= 256)
         return false;
 

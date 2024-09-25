@@ -111,9 +111,17 @@ enum class PdfStringCharset : uint8_t
 
 enum class PdfEncodingMapType : uint8_t
 {
-    Indeterminate,              ///< Indeterminate map type, such as identity encodings
-    Simple,                     ///< A legacy encoding, such as built-in or difference
+    Indeterminate = 0,          ///< Indeterminate map type, such as non standard identity encodings
+    Simple,                     ///< A legacy encoding, such as predefined, Type1 font built-in, or difference
     CMap                        ///< A proper CMap encoding or pre-defined CMap names
+};
+
+enum class PdfPredefinedEncodingType : uint8_t
+{
+    Indeterminate = 0,          ///< Indeterminate predefined map type
+    LegacyPredefined,           ///< A legacy predefined encoding, such as "WinAnsiEncoding", "MacRomanEncoding" or "MacExpertEncoding"
+    PredefinedCMap,             ///< A predefined CMap, see ISO 32000-2:2020 "9.7.5.2 Predefined CMaps"
+    IdentityCMap,               ///< A predefined identity CMap that is either "Identity-H" or "Identity-V"
 };
 
 enum class PdfWModeKind : uint8_t

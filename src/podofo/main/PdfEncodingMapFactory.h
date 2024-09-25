@@ -8,6 +8,7 @@
 #define PDF_ENCODING_MAP_FACTORY_H
 
 #include "PdfEncodingMap.h"
+#include "PdfCMapEncoding.h"
 
 namespace PoDoFo {
 
@@ -72,6 +73,11 @@ public:
     /** Return the encoding map for the given standard font type or nullptr for unknown
      */
     static PdfEncodingMapConstPtr GetStandard14FontEncodingMap(PdfStandard14FontType stdFont);
+
+    /** Get a predefined CMap
+     * \returns The found map or nullptr if absent 
+     */
+    static PdfCMapEncodingConstPtr GetPredefinedCMap(const std::string_view& cmapName);
 
 private:
     PdfEncodingMapFactory() = delete;

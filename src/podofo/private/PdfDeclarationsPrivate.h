@@ -186,6 +186,19 @@ namespace PoDoFo
     PdfXRefEntryType XRefEntryTypeFromChar(char c);
 
     void AddToCallStack(PdfError& err, std::string filepath, unsigned line, std::string information);
+
+    /** Helper type to serialize 3 byte integers
+     */
+    struct uint24_t final
+    {
+        uint24_t();
+
+        explicit uint24_t(unsigned value);
+
+        operator unsigned() const;
+    private:
+        uint8_t value[3];
+    };
 }
 
 /**
@@ -450,18 +463,22 @@ namespace utls
 
     void WriteUInt32BE(PoDoFo::OutputStream& output, uint32_t value);
     void WriteInt32BE(PoDoFo::OutputStream& output, int32_t value);
+    void WriteUInt24BE(PoDoFo::OutputStream& output, PoDoFo::uint24_t value);
     void WriteUInt16BE(PoDoFo::OutputStream& output, uint16_t value);
     void WriteInt16BE(PoDoFo::OutputStream& output, int16_t value);
     void WriteUInt32BE(char* buf, uint32_t value);
+    void WriteUInt24BE(char* buf, PoDoFo::uint24_t value);
     void WriteInt32BE(char* buf, int32_t value);
     void WriteUInt16BE(char* buf, uint16_t value);
     void WriteInt16BE(char* buf, int16_t value);
     void ReadUInt32BE(PoDoFo::InputStream& input, uint32_t& value);
     void ReadInt32BE(PoDoFo::InputStream& input, int32_t& value);
+    void ReadUInt24BE(PoDoFo::InputStream& input, PoDoFo::uint24_t& value);
     void ReadUInt16BE(PoDoFo::InputStream& input, uint16_t& value);
     void ReadInt16BE(PoDoFo::InputStream& input, int16_t& value);
     void ReadUInt32BE(const char* buf, uint32_t& value);
     void ReadInt32BE(const char* buf, int32_t& value);
+    void ReadUInt24BE(const char* buf, PoDoFo::uint24_t& value);
     void ReadUInt16BE(const char* buf, uint16_t& value);
     void ReadInt16BE(const char* buf, int16_t& value);
 
@@ -532,6 +549,18 @@ namespace utls
         return (int64_t)__builtin_bswap64((uint64_t)n);
     }
 #endif
+
+    inline PoDoFo::uint24_t ByteSwap(PoDoFo::uint24_t n)
+    {
+        PoDoFo::uint24_t ret;
+        // NOTE: The following is safe as uint24_t is internally a uint8_t array
+        auto in = (const uint8_t*)&n;
+        auto out = (uint8_t*)&ret;
+        out[0] = in[2];
+        out[1] = in[1];
+        out[2] = in[0];
+        return ret;
+    }
 #pragma endregion // Byte Swap
 
     // Normalize a page rotation to [0, 90, 180, 270]

@@ -51,8 +51,9 @@ bool PdfIdentityEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUn
     return true;
 }
 
-bool PdfIdentityEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, vector<char32_t>& codePoints) const
+bool PdfIdentityEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, vector<char32_t>& codePoints) const
 {
+    (void)cidId;
     codePoints.push_back((char32_t)codeUnit.Code);
     return true;
 }
@@ -116,6 +117,18 @@ void PdfIdentityEncoding::AppendToUnicodeEntries(OutputStream& stream, charbuff&
 const PdfEncodingLimits& PdfIdentityEncoding::GetLimits() const
 {
     return m_Limits;
+}
+
+PdfPredefinedEncodingType PdfIdentityEncoding::GetPredefinedEncodingType() const
+{
+    switch (m_orientation)
+    {
+        case PdfIdentityOrientation::Horizontal:
+        case PdfIdentityOrientation::Vertical:
+            return PdfPredefinedEncodingType::IdentityCMap;
+        default:
+            return PdfPredefinedEncodingType::Indeterminate;
+    }
 }
 
 PdfEncodingLimits getLimits(unsigned char codeSpaceSize)

@@ -20,6 +20,11 @@ PdfPredefinedEncoding::PdfPredefinedEncoding(const PdfName& name)
 {
 }
 
+PdfPredefinedEncodingType PdfPredefinedEncoding::GetPredefinedEncodingType() const
+{
+    return PdfPredefinedEncodingType::LegacyPredefined;
+}
+
 void PdfPredefinedEncoding::getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
 {
     (void)objects;

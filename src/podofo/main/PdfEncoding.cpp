@@ -722,7 +722,7 @@ bool PdfStringScanContext::TryScan(PdfCID& cid, string& utf8str, vector<codepoin
         success = false;
     }
 
-    if (m_toUnicode->TryGetCodePoints(cid.Unit, codepoints))
+    if (m_toUnicode->TryGetCodePoints(cid, codepoints))
     {
         for (size_t i = 0; i < codepoints.size(); i++)
         {

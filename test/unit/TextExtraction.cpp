@@ -45,3 +45,28 @@ TEST_CASE("TextExtraction2")
     ASSERT_EQUAL(entries[0].X, 31.199999999999999);
     ASSERT_EQUAL(entries[0].Y, 801.60000000000002);
 }
+
+TEST_CASE("TextExtraction3")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TextExtractionPredefinedCmap.pdf"));
+    auto& page = doc.GetPages().GetPageAt(0);
+    vector<PdfTextEntry> entries;
+    page.ExtractTextTo(entries);
+
+    REQUIRE(entries[0].Text == "全省环岛天然气管网尚未成型，东部部分建设滞后，管网缺乏统一规划，管道管径、设计压力参差不齐，省内支干");
+    ASSERT_EQUAL(entries[0].X, 44.59);
+    ASSERT_EQUAL(entries[0].Y, 406.7);
+    REQUIRE(entries[1].Text == "线及支线长度不足、密度过小，难以实现省内资源的调度配置。城市天然气管网密度太小，应急储备设施的储备能力");
+    ASSERT_EQUAL(entries[1].X, 42.52);
+    ASSERT_EQUAL(entries[1].Y, 394.2);
+    REQUIRE(entries[2].Text == "不足，供气的安全可靠性较差。天然气管网公平接入机制尚未建立和用气序列不合理，使得天然气供应安全难以得到");
+    ASSERT_EQUAL(entries[2].X, 42.52);
+    ASSERT_EQUAL(entries[2].Y, 381.7);
+    REQUIRE(entries[3].Text == "有效保障。");
+    ASSERT_EQUAL(entries[3].X, 42.52);
+    ASSERT_EQUAL(entries[3].Y, 369.2);
+    REQUIRE(entries[4].Text == "3.重点耗能行业能耗占比较大，产值占比较低");
+    ASSERT_EQUAL(entries[4].X, 44.59);
+    ASSERT_EQUAL(entries[4].Y, 344.2);
+}

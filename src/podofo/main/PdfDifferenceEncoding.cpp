@@ -2614,8 +2614,9 @@ bool PdfDifferenceEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& code
     return true;
 }
 
-bool PdfDifferenceEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, vector<char32_t>& codePoints) const
+bool PdfDifferenceEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, vector<char32_t>& codePoints) const
 {
+    (void)cidId;
     if (codeUnit.Code >= 256)
         return false;
 

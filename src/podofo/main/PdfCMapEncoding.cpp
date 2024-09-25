@@ -42,6 +42,7 @@ static PdfCharCodeMap parseCMapObject(InputStreamDevice& stream, PdfName& name, 
 PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map) :
     PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap),
     m_WMode(0),
+    m_isPredefined(false),
     m_Limits(GetCharMap().GetLimits()) { }
 
 PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, const PdfName& name, const PdfCIDSystemInfo& info, PdfWModeKind wMode) :
@@ -49,6 +50,7 @@ PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, const PdfName& name, cons
     m_Name(name),
     m_CIDSystemInfo(info),
     m_WMode((int)wMode),
+    m_isPredefined(false),
     m_Limits(GetCharMap().GetLimits()) { }
 
 PdfCMapEncoding PdfCMapEncoding::Parse(const string_view& filepath)
@@ -57,12 +59,13 @@ PdfCMapEncoding PdfCMapEncoding::Parse(const string_view& filepath)
     return Parse(device);
 }
 
-PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, const PdfName& name,
+PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, bool isPredefined, const PdfName& name,
         const PdfCIDSystemInfo& info, int wmode, const PdfEncodingLimits& limits) :
     PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap),
     m_Name(name),
     m_CIDSystemInfo(info),
     m_WMode(wmode),
+    m_isPredefined(isPredefined),
     m_Limits(limits) { }
 
 PdfCMapEncoding PdfCMapEncoding::Parse(InputStreamDevice& device)
@@ -72,7 +75,7 @@ PdfCMapEncoding PdfCMapEncoding::Parse(InputStreamDevice& device)
     PdfCIDSystemInfo info;
     PdfName name;
     auto map = parseCMapObject(device, name, info, wMode, mapLimits);
-    return PdfCMapEncoding(std::move(map), name, info, wMode, mapLimits);
+    return PdfCMapEncoding(std::move(map), false, name, info, wMode, mapLimits);
 }
 
 unique_ptr<PdfEncodingMap> PdfEncodingMapFactory::ParseCMapEncoding(const PdfObject& cmapObj)
@@ -127,7 +130,7 @@ bool PdfEncodingMapFactory::TryParseCMapEncoding(const PdfObject& cmapObj, uniqu
     if (dict->TryFindKeyAs("CMapName", name))
         cmapName = *name;
 
-    encoding.reset(new PdfCMapEncoding(std::move(map), cmapName, info, wMode, mapLimits));
+    encoding.reset(new PdfCMapEncoding(std::move(map), false, cmapName, info, wMode, mapLimits));
 
     return true;
 }
@@ -145,6 +148,11 @@ int PdfCMapEncoding::GetWModeRaw() const
 PdfWModeKind PdfCMapEncoding::GetWMode() const
 {
     return m_WMode == 1 ? PdfWModeKind::Vertical : PdfWModeKind::Horizontal;
+}
+
+PdfPredefinedEncodingType PdfCMapEncoding::GetPredefinedEncodingType() const
+{
+    return m_isPredefined ? PdfPredefinedEncodingType::PredefinedCMap : PdfPredefinedEncodingType::Indeterminate;
 }
 
 bool PdfCMapEncoding::HasLigaturesSupport() const

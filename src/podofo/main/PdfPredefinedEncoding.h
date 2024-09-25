@@ -32,6 +32,8 @@ namespace PoDoFo
     private:
         PdfPredefinedEncoding(const PdfName& name);
 
+        PdfPredefinedEncodingType GetPredefinedEncodingType() const override;
+
     protected:
         void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override;
     };
