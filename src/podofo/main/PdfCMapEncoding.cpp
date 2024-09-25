@@ -28,6 +28,7 @@ struct CodeLimits
 
 static void readNextVariantSequence(PdfPostScriptTokenizer& tokenizer, InputStreamDevice& device,
     PdfVariant& variant, const string_view& endSequenceKeyword, bool& endOfSequence);
+static uint32_t getCodeFromVariant(const PdfVariant& var);
 static uint32_t getCodeFromVariant(const PdfVariant& var, CodeLimits& limits);
 static uint32_t getCodeFromVariant(const PdfVariant& var, CodeLimits& limits, unsigned char& codeSize);
 static vector<char32_t> handleNameMapping(const PdfName& name);
@@ -275,7 +276,7 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
                         tokenizer.ReadNextVariant(device, *var);
                         if (var->IsNumber())
                         {
-                            char32_t dstCode = (char32_t)getCodeFromVariant(*var, codeLimits);
+                            char32_t dstCode = (char32_t)getCodeFromVariant(*var);
                             mappedCodes.clear();
                             mappedCodes.push_back(dstCode);
                         }
@@ -311,7 +312,7 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
                         tokenizer.ReadNextVariant(device, *var);
                         uint32_t srcCodeHi = getCodeFromVariant(*var, codeLimits);
                         tokenizer.ReadNextVariant(device, *var);
-                        char32_t dstCIDLo = (char32_t)getCodeFromVariant(*var, codeLimits);
+                        char32_t dstCIDLo = (char32_t)getCodeFromVariant(*var);
                         if (srcCodeHi < srcCodeLo)
                         {
                             PoDoFo::LogMessage(PdfLogSeverity::Warning, "begincidrange: Found range with srcCodeHi {} < srcCodeLo {}", srcCodeHi, srcCodeLo);
@@ -334,7 +335,7 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
                         unsigned char codeSize;
                         uint32_t srcCode = getCodeFromVariant(*var, codeLimits, codeSize);
                         tokenizer.ReadNextVariant(device, *var);
-                        char32_t dstCode = (char32_t)getCodeFromVariant(*var, codeLimits);
+                        char32_t dstCode = (char32_t)getCodeFromVariant(*var);
                         mappedCodes.clear();
                         mappedCodes.push_back(dstCode);
                         pushMapping(ret, srcCode, codeSize, mappedCodes);
@@ -470,6 +471,12 @@ uint32_t getCodeFromVariant(const PdfVariant& var, CodeLimits& limits)
 {
     unsigned char codeSize;
     return getCodeFromVariant(var, limits, codeSize);
+}
+
+uint32_t getCodeFromVariant(const PdfVariant& var)
+{
+    unsigned char codeSize;
+    return getCodeFromVariant(var, codeSize);
 }
 
 vector<char32_t> handleNameMapping(const PdfName& name)
