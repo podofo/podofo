@@ -222,6 +222,15 @@ PdfFont& PdfFontManager::GetOrCreateFont(const PdfFontMetricsConstPtr& metrics, 
     return getOrCreateFontHashed(metrics, params);
 }
 
+PdfFont* PdfFontManager::GetCachedFont(const PdfReference& ref)
+{
+    auto found = m_fonts.find(ref);
+    if (found == m_fonts.end())
+        return nullptr;
+
+    return found->second.Font.get();
+}
+
 PdfFont& PdfFontManager::GetOrCreateFontFromBuffer(const bufferview& buffer, unsigned faceIndex, const PdfFontCreateParams& params)
 {
     return getOrCreateFontHashed(PdfFontMetrics::CreateFromBuffer(buffer, faceIndex), params);

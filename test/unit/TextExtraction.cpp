@@ -69,4 +69,9 @@ TEST_CASE("TextExtraction3")
     REQUIRE(entries[4].Text == "3.重点耗能行业能耗占比较大，产值占比较低");
     ASSERT_EQUAL(entries[4].X, 44.59);
     ASSERT_EQUAL(entries[4].Y, 344.2);
+
+    auto font = doc.GetFonts().GetCachedFont(PdfReference(7, 0));
+    REQUIRE(font != nullptr);
+    auto str = PdfString::FromHexData("00205168770173af5c9b592971366c147ba17f515c1a672a6210578bff0c4e1c90e890e852065efa8bbe6ede540eff0c7ba17f517f3a4e4f7edf4e0089c45212ff0c7ba190537ba15f8430018bbe8ba1538b529b53c25dee4e0d9f50ff0c77015185652f5e72");
+    REQUIRE(font->GetEncoding().ConvertToUtf8(str) == " 全省环岛天然气管网尚未成型，东部部分建设滞后，管网缺乏统一规划，管道管径、设计压力参差不齐，省内支干");
 }
