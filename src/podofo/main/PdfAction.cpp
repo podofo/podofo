@@ -113,10 +113,9 @@ bool PdfAction::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfAction>& actio
             return true;
         case PdfActionType::Unknown:
         default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported action");
+            action.reset();
+            return false;
     }
-
-    return false;
 }
 
 unique_ptr<PdfAction> PdfAction::Create(PdfDocument& doc, PdfActionType type)
