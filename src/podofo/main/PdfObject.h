@@ -338,6 +338,15 @@ public:
      */
     PdfObjectStream& MustGetStream();
 
+    /** Tries to free all memory allocated by the given
+     * PdfObject (variables and streams) and reads
+     * it from disk again if it is requested another time.
+     *
+     * This will only work if the object is lazily loaded,
+     * Otherwise any call to this method will be ignored
+     */
+    virtual bool TryUnload();
+
     /** Check if this object has a PdfObjectStream object
      *  appended.
      *
@@ -422,6 +431,8 @@ public:
      * see this, it's an internal state flag only.
      */
     inline bool IsDelayedLoadDone() const { return m_IsDelayedLoadDone; }
+
+    inline bool IsDelayedLoadStreamDone() const { return m_IsDelayedLoadStreamDone; }
 
     const PdfObjectStream* GetStream() const;
     PdfObjectStream* GetStream();
@@ -510,6 +521,11 @@ protected:
      *  this method early in your ctor and be sure to override delayedLoad().
      */
     void EnableDelayedLoading();
+
+    /** Set the object as irreversibly revised. This is mostly used
+     * in PdfParserObject to stop it from trying to reclaim memory
+     */
+    virtual void SetRevised();
 
 private:
     // To be called privately by various classes

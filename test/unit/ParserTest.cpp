@@ -2761,6 +2761,35 @@ TEST_CASE("TestManyTrailer")
     FAIL("Should fail with stack overflow");
 }
 
+TEST_CASE("TestReclaimObjectMemory")
+{
+    PdfObject obj;
+    REQUIRE(!obj.TryUnload());
+
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TestImage2.pdf"));
+
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto& resources = page.MustGetResources();
+    auto imageObj = resources.GetResource(PdfResourceType::XObject, "X0");
+    REQUIRE(!imageObj->IsDelayedLoadStreamDone());
+
+    unique_ptr<PdfImage> image;
+    REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(*imageObj, image));
+
+    charbuff buffer;
+    image->DecodeTo(buffer, PdfPixelFormat::BGRA);
+
+    REQUIRE(imageObj->IsDelayedLoadStreamDone());
+    REQUIRE(imageObj->TryUnload());
+    REQUIRE(!imageObj->IsDelayedLoadDone());
+    REQUIRE(!imageObj->IsDelayedLoadStreamDone());
+
+    imageObj->MustGetStream().Clear();
+    REQUIRE(!imageObj->TryUnload());
+}
+
+
 string generateXRefEntries(size_t count)
 {
     string strXRefEntries;

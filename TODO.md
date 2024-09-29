@@ -1,6 +1,5 @@
 ### 1.0
 
-- PdfDocument: FreeObjectMemory
 - Optimize PdfVariant size
 - Optimize passing shared_ptr
 - Optimize PdfPage::CreateField<T>(), CreateAnnotation<T>() with partial template specialization based determination of type

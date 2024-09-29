@@ -49,22 +49,7 @@ protected:
         InputStreamDevice& device, ssize_t offset);
 
 public:
-    /** Tries to free all memory allocated by this
-     *  PdfObject (variables and streams) and reads
-     *  it from disk again if it is requested another time.
-     *
-     *  This will only work if load on demand is used.
-     *  If the object is dirty if will not be free'd.
-     *
-     *  \param force if true the object will be free'd
-     *                even if IsDirty() returns true.
-     *                So you will loose any changes made
-     *                to this object.
-     *
-     *  \see IsLoadOnDemand
-     *  \see IsDirty
-     */
-    void FreeObjectMemory(bool force = false);
+    bool TryUnload();
 
     void Parse();
 
@@ -96,6 +81,8 @@ protected:
     void delayedLoadStream() override;
     bool removeStream() override;
 
+    void SetRevised() override;
+
 private:
     PdfParserObject(const PdfParserObject&) = delete;
     PdfParserObject& operator=(const PdfParserObject&) = delete;
@@ -119,6 +106,7 @@ private:
     size_t m_StreamOffset;
     bool m_IsTrailer;
     bool m_HasStream;
+    bool m_IsRevised;         ///< True if the object was irreversibly modified since first read
 };
 
 };

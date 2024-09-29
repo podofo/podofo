@@ -304,26 +304,6 @@ void PdfMemDocument::SetEncrypt(unique_ptr<PdfEncrypt>&& encrypt)
         m_Encrypt.reset(new PdfEncryptSession(std::move(encrypt)));
 }
 
-void PdfMemDocument::FreeObjectMemory(const PdfReference& ref, bool force)
-{
-    FreeObjectMemory(this->GetObjects().GetObject(ref), force);
-}
-
-void PdfMemDocument::FreeObjectMemory(PdfObject* obj, bool force)
-{
-    if (obj == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
-    PdfParserObject* parserObject = dynamic_cast<PdfParserObject*>(obj);
-    if (parserObject == nullptr)
-    {
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle,
-            "FreeObjectMemory works only on classes of type PdfParserObject");
-    }
-
-    parserObject->FreeObjectMemory(force);
-}
-
 const PdfEncrypt* PdfMemDocument::GetEncrypt() const
 {
     if (m_Encrypt == nullptr)

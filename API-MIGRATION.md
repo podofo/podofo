@@ -35,7 +35,9 @@
   * `PdfStringState` renamed to `PdfStringCharset`, `PdfString::GetState()`
     renamed to `PdfString::GetCharset()` and added `PdfString::IsStringEvaluated()`
 - `PdfName`: `GetString()` and `GetRawData()` now returns `std::string_view`
-- `PdfMemDocument`: Renamed `LoadFromDevice()` -> `Load()`
+- `PdfMemDocument`:
+  * Renamed `LoadFromDevice()` -> `Load()`
+  * FreeObjectMemory: Removed, use PdfObject TryUnload() instead
 - `PdfAppearanceState`: Renamed to `PdfAppearanceStream`
 - `PdfMetadata`:
   * Removed argument `trySyncXMP` from all functions setting values. Manually call new `TrySyncXMPMetadata` instead

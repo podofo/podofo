@@ -41,7 +41,8 @@ PdfParserObject::PdfParserObject(PdfDocument* doc, const PdfReference& indirectR
     m_Offset(offset < 0 ? device.GetPosition() : offset),
     m_StreamOffset(0),
     m_IsTrailer(false),
-    m_HasStream(false)
+    m_HasStream(false),
+    m_IsRevised(false)
 {
     // Parsed objects by definition are initially not dirty
     resetDirty();
@@ -103,6 +104,11 @@ bool PdfParserObject::removeStream()
     m_HasStream = false;
     m_StreamOffset = 0;
     return hasStream;
+}
+
+void PdfParserObject::SetRevised()
+{
+    m_IsRevised = true;
 }
 
 PdfReference PdfParserObject::ReadReference(PdfTokenizer& tokenizer)
@@ -284,15 +290,14 @@ PdfReference PdfParserObject::readReference(PdfTokenizer& tokenizer)
     return reference;
 }
 
-void PdfParserObject::FreeObjectMemory(bool force)
+bool PdfParserObject::TryUnload()
 {
-    if (!this->IsDirty() || force)
-    {
-        if (IsDelayedLoadDone())
-            m_Variant = PdfVariant();
+    if (!IsDelayedLoadDone() || m_IsRevised || m_device == nullptr)
+        return false;
 
-        FreeStream();
-        EnableDelayedLoading();
-        EnableDelayedLoadingStream();
-    }
+    m_Variant = PdfVariant();
+    FreeStream();
+    EnableDelayedLoading();
+    EnableDelayedLoadingStream();
+    return true;
 }

@@ -176,45 +176,6 @@ public:
      */
     void SetEncrypt(std::unique_ptr<PdfEncrypt>&& encrypt);
 
-    /** Tries to free all memory allocated by the given
-     *  PdfObject (variables and streams) and reads
-     *  it from disk again if it is requested another time.
-     *
-     *  This will only work if load on demand is used. Other-
-     *  wise any call to this method will be ignored. Load on
-     *  demand is currently always enabled when using PdfMemDocument.
-     *  If the object is dirty if will not be free'd.
-     *
-     *  \param ref free all memory allocated by the object
-     *              with this reference.
-     *  \param force if true the object will be free'd
-     *                even if IsDirty() returns true.
-     *                So you will loose any changes made
-     *                to this object.
-     *
-     *  This is an overloaded member for your convenience.
-     */
-    void FreeObjectMemory(const PdfReference& ref, bool force = false);
-
-    /** Tries to free all memory allocated by the given
-     *  PdfObject (variables and streams) and reads
-     *  it from disk again if it is requested another time.
-     *
-     *  This will only work if load on demand is used. Other-
-     *  wise any call to this method will be ignored. Load on
-     *  demand is currently always enabled when using PdfMemDocument.
-     *  If the object is dirty if will not be free'd.
-     *
-     *  \param obj free object from memory
-     *  \param force if true the object will be free'd
-     *                even if IsDirty() returns true.
-     *                So you will loose any changes made
-     *                to this object.
-     *
-     *  \see IsDirty
-     */
-    void FreeObjectMemory(PdfObject* obj, bool force = false);
-
     const PdfEncrypt* GetEncrypt() const override;
 
 protected:

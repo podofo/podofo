@@ -330,6 +330,12 @@ bool PdfObject::IsIndirect() const
     return m_IndirectReference.IsIndirect();
 }
 
+bool PdfObject::TryUnload()
+{
+    // Do nothing on base PdfObject class
+    return false;
+}
+
 bool PdfObject::HasStream() const
 {
     DelayedLoad();
@@ -424,6 +430,11 @@ void PdfObject::EnableDelayedLoading()
 void PdfObject::EnableDelayedLoadingStream()
 {
     m_IsDelayedLoadStreamDone = false;
+}
+
+void PdfObject::SetRevised()
+{
+    // Do nothing on base PdfObject class
 }
 
 void PdfObject::delayedLoadStream()
@@ -537,6 +548,7 @@ void PdfObject::SetDirty()
 void PdfObject::setDirty()
 {
     m_IsDirty = true;
+    SetRevised();
 }
 
 void PdfObject::resetDirty()
