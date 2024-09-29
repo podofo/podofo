@@ -406,7 +406,7 @@ void PdfObject::copyStreamFrom(const PdfObject& obj)
     if (obj.m_Stream != nullptr)
     {
         auto& stream = getOrCreateStream();
-        stream = *obj.m_Stream;
+        stream.CopyFrom(*obj.m_Stream);
     }
 }
 

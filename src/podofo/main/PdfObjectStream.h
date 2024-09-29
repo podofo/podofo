@@ -60,7 +60,7 @@ private:
     PdfObjectOutputStream(PdfObjectStream& stream);
 private:
     PdfObjectOutputStream(PdfObjectStream& stream, nullable<PdfFilterList> filters,
-        bool raw, bool append);
+        bool raw, bool append, bool skipSetDirty);
 protected:
     void writeBuffer(const char* buffer, size_t size) override;
     void flush() override;

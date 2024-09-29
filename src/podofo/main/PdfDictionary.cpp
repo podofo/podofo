@@ -110,7 +110,7 @@ PdfObject& PdfDictionary::addKey(const PdfName& key, PdfObject&& obj)
     return added.first->second;
 }
 
-pair<PdfDictionary::iterator, bool> PdfDictionary::AddKey(const PdfName& key, PdfObject&& obj, bool noDirtySet)
+pair<PdfDictionary::iterator, bool> PdfDictionary::AddKey(const PdfName& key, PdfObject&& obj, bool skipDirtySet)
 {
     // NOTE: Empty PdfNames are legal according to the PDF specification.
     // Don't check for it
@@ -118,7 +118,7 @@ pair<PdfDictionary::iterator, bool> PdfDictionary::AddKey(const PdfName& key, Pd
     pair<iterator, bool> inserted = m_Map.try_emplace(key, std::move(obj));
     if (!inserted.second)
     {
-        if (noDirtySet)
+        if (skipDirtySet)
             inserted.first->second.Assign(obj);
         else
             inserted.first->second = obj;
@@ -187,13 +187,20 @@ bool PdfDictionary::HasKey(const string_view& key) const
 bool PdfDictionary::RemoveKey(const string_view& key)
 {
     AssertMutable();
+    return RemoveKey(key, false);
+}
+
+bool PdfDictionary::RemoveKey(const string_view& key, bool skipDirtySet)
+{
     iterator found = m_Map.find(key);
     if (found == m_Map.end())
         return false;
 
     m_Map.erase(found);
-    SetDirty();
-    return true;
+    if (!skipDirtySet)
+        SetDirty();
+
+    return false;
 }
 
 void PdfDictionary::Write(OutputStream& device, PdfWriteFlags writeMode,

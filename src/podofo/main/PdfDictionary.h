@@ -83,6 +83,8 @@ class PODOFO_API PdfDictionary final : public PdfDataContainer
     friend class PdfObject;
     friend class PdfTokenizer;
     friend class PdfSignature;
+    friend class PdfObjectStream;
+    friend class PdfObjectOutputStream;
 
 public:
     /** Create a new, empty dictionary
@@ -306,7 +308,8 @@ protected:
     void setChildrenParent() override;
 
 private:
-    std::pair<iterator, bool> AddKey(const PdfName& key, PdfObject&& obj, bool noDirtySet);
+    std::pair<iterator, bool> AddKey(const PdfName& key, PdfObject&& obj, bool skipDirtySet);
+    bool RemoveKey(const std::string_view& key, bool skipDirtySet);
 
 private:
     PdfObject& addKey(const PdfName& key, PdfObject&& obj);

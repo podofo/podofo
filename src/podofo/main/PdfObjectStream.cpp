@@ -135,9 +135,9 @@ void PdfObjectStream::Unwrap()
         auto& mediaDecodeParms = inputStream.GetMediaDecodeParms();
         if (mediaFilters.size() == 1)
         {
-            dict.AddKey("Filter"_n, PdfName(PoDoFo::FilterToName(mediaFilters[0])));
+            dict.AddKey("Filter"_n, PdfName(PoDoFo::FilterToName(mediaFilters[0])), true);
             if (mediaDecodeParms[0] != nullptr)
-                dict.AddKeyIndirectSafe("DecodeParms"_n, *mediaDecodeParms[0]);
+                dict.AddKey("DecodeParms"_n, PdfObject(*mediaDecodeParms[0]), true);
         }
         else if (mediaFilters.size() > 1)
         {
@@ -145,7 +145,7 @@ void PdfObjectStream::Unwrap()
             for (unsigned i = 0; i < mediaFilters.size(); i++)
                 filters.Add(PdfName(PoDoFo::FilterToName(mediaFilters[i])));
 
-            dict.AddKey("Filter"_n, filters);
+            dict.AddKey("Filter"_n, std::move(filters), true);
 
             if (mediaDecodeParms.size() != 0)
             {
@@ -172,12 +172,13 @@ void PdfObjectStream::Unwrap()
                     }
                 }
 
-                dict.AddKey("DecodeParms"_n, decodeParms);
+                dict.AddKey("DecodeParms"_n, std::move(decodeParms), true);
             }
         }
     }
 
     MoveFrom(objectStream);
+    GetParent().SetDirty();
 }
 
 void PdfObjectStream::Clear()
@@ -185,17 +186,21 @@ void PdfObjectStream::Clear()
     ensureClosed();
     m_Provider->Clear();
     m_Filters.clear();
+    GetParent().SetDirty();
 }
 
 PdfObjectStream& PdfObjectStream::operator=(const PdfObjectStream& rhs)
 {
     CopyFrom(rhs);
+    GetParent().SetDirty();
     return (*this);
 }
 
 PdfObjectStream& PdfObjectStream::operator=(PdfObjectStream&& rhs) noexcept
 {
     MoveFrom(rhs);
+    GetParent().SetDirty();
+    rhs.GetParent().SetDirty();
     return (*this);
 }
 
@@ -225,23 +230,23 @@ void PdfObjectStream::MoveFrom(PdfObjectStream& rhs)
     auto filter = rhsDict.FindKey("Filter");
     if (filter == nullptr)
     {
-        lhsDict.RemoveKey("Filter");
+        lhsDict.RemoveKey("Filter", true);
     }
     else
     {
-        lhsDict.AddKey("Filter"_n, *filter);
-        rhsDict.RemoveKey("Filter");
+        lhsDict.AddKey("Filter"_n, PdfObject(*filter), true);
+        rhsDict.RemoveKey("Filter", true);
     }
 
     auto decodeParms = rhsDict.FindKey("DecodeParms");
     if (decodeParms == nullptr)
     {
-        lhsDict.RemoveKey("DecodeParms");
+        lhsDict.RemoveKey("DecodeParms", true);
     }
     else
     {
-        lhsDict.AddKey("DecodeParms"_n, *decodeParms);
-        rhsDict.RemoveKey("DecodeParms");
+        lhsDict.AddKey("DecodeParms"_n, PdfObject(*decodeParms));
+        rhsDict.RemoveKey("DecodeParms", true);
     }
 }
 
@@ -263,15 +268,15 @@ void PdfObjectStream::CopyFrom(const PdfObjectStream& rhs)
     auto& rhsDict = rhs.m_Parent->GetDictionaryUnsafe();
     auto filter = rhsDict.FindKey("Filter");
     if (filter == nullptr)
-        lhsDict.RemoveKey("Filter");
+        lhsDict.RemoveKey("Filter", true);
     else
-        lhsDict.AddKey("Filter"_n, *filter);
+        lhsDict.AddKey("Filter"_n, PdfObject(*filter), true);
 
     auto decodeParms = rhsDict.FindKey("DecodeParms");
     if (decodeParms == nullptr)
-        lhsDict.RemoveKey("DecodeParms");
+        lhsDict.RemoveKey("DecodeParms", true);
     else
-        lhsDict.AddKey("DecodeParms"_n, *decodeParms);
+        lhsDict.AddKey("DecodeParms"_n, PdfObject(*decodeParms), true);
 }
 
 void PdfObjectStream::SetData(const bufferview& buffer, bool raw)
@@ -454,17 +459,19 @@ PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectOutputStream&& rhs) noexce
 PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
         PdfFilterList&& filters, bool raw, bool append)
     : PdfObjectOutputStream(stream, nullable<PdfFilterList>(std::move(filters)),
-        raw, append)
+        raw, append, false)
 {
 }
 
+// This constructor is used to initialize data so we
+// skip SetDirty() on the parent
 PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream)
-    : PdfObjectOutputStream(stream, nullptr, false, false)
+    : PdfObjectOutputStream(stream, nullptr, false, false, true)
 {
 }
 
 PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
-        nullable<PdfFilterList> filters_, bool raw, bool append)
+        nullable<PdfFilterList> filters_, bool raw, bool append, bool skipSetDirty)
     : m_stream(&stream)
 {
     charbuff buffer;
@@ -479,7 +486,7 @@ PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
         if (filters.size() == 0)
         {
             m_output = stream.m_Provider->GetOutputStream(stream.GetParent());
-            m_stream->GetParent().GetDictionaryUnsafe().RemoveKey("Filter");
+            m_stream->GetParent().GetDictionaryUnsafe().RemoveKey("Filter", true);
             m_stream->m_Filters.clear();
         }
         else
@@ -499,7 +506,7 @@ PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
             if (filters.size() == 1)
             {
                 m_stream->GetParent().GetDictionaryUnsafe().AddKey("Filter"_n,
-                    PdfName(PoDoFo::FilterToName(filters.front())));
+                    PdfName(PoDoFo::FilterToName(filters.front())), true);
             }
             else // filters.size() > 1
             {
@@ -507,7 +514,7 @@ PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
                 for (auto filterType : filters)
                     arrFilters.Add(PdfName(PoDoFo::FilterToName(filterType)));
 
-                m_stream->GetParent().GetDictionaryUnsafe().AddKey("Filter"_n, arrFilters);
+                m_stream->GetParent().GetDictionaryUnsafe().AddKey("Filter"_n, std::move(arrFilters), true);
             }
 
             m_stream->m_Filters = std::move(filters);
@@ -527,6 +534,12 @@ PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
 
     if (buffer.size() != 0)
         WriteBuffer(*m_output, buffer.data(), buffer.size());
+
+    if (!skipSetDirty)
+    {
+        // Unconditionally set the object as dirty on the stream creation
+        stream.GetParent().SetDirty();
+    }
 }
 
 void PdfObjectOutputStream::writeBuffer(const char* buffer, size_t size)
