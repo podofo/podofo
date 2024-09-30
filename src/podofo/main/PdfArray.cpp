@@ -344,6 +344,21 @@ void PdfArray::Reserve(unsigned n)
     m_Objects.reserve(n);
 }
 
+void PdfArray::SwapAt(unsigned atIndex, unsigned toIndex)
+{
+    AssertMutable();
+    if (atIndex >= m_Objects.size() || toIndex >= m_Objects.size())
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "atIndex or toIndex is out of bounds");
+
+    if (atIndex == toIndex)
+        return;
+
+    PdfObject temp = m_Objects[toIndex];
+    m_Objects[toIndex].Assign(m_Objects[atIndex]);
+    m_Objects[atIndex].Assign(temp);
+    SetDirty();
+}
+
 PdfObject& PdfArray::operator[](size_type idx)
 {
     return getAt((unsigned)idx);

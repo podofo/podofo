@@ -207,6 +207,8 @@ private:
      */
     void InsertPagesAt(unsigned atIndex, cspan<PdfPage*> pages);
 
+    bool TryMovePageAt(unsigned atIndex, unsigned toIndex);
+
 private:
     void insertPageAt(unsigned atIndex, PdfPage& page);
     void insertPagesAt(unsigned atIndex, cspan<PdfPage*> pages);

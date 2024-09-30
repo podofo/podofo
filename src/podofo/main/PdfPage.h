@@ -249,7 +249,7 @@ public:
 
     /** Move the page at the given index
      */
-    void MoveAt(unsigned index);
+    bool MoveAt(unsigned index);
 
     template <typename TField>
     TField& CreateField(const std::string_view& name, const Rect& rect, bool rawRect = false);
