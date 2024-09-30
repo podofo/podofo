@@ -249,8 +249,11 @@ void PdfFontMetricsFreetype::initType1Lengths(const bufferview& view)
                 m_Length1++;
                 continue;
             default:
-                break;
+                // Non whitespace, goto break the enclosing loop
+                goto Exit;
         }
+    Exit:
+        break;
     }
 
     found = sview.rfind("cleartomark");
