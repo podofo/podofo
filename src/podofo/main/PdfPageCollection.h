@@ -147,6 +147,8 @@ private:
      */
     void InsertPagesAt(unsigned atIndex, cspan<PdfPage*> pages);
 
+    bool TryMovePageAt(unsigned atIndex, unsigned toIndex);
+
 private:
     PdfPage& getPage(const PdfReference& ref) const;
 

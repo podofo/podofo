@@ -188,6 +188,8 @@ public:
 
     void Reserve(unsigned n);
 
+    void SwapAt(unsigned atIndex, unsigned toIndex);
+
 public:
     /**
      *  \returns the size of the array

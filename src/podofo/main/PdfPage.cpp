@@ -290,22 +290,13 @@ void PdfPage::SetRotationRaw(int rotation)
     this->GetDictionary().AddKey("Rotate", PdfVariant(static_cast<int64_t>(rotation)));
 }
 
-void PdfPage::MoveAt(unsigned index)
+bool PdfPage::MoveAt(unsigned index)
 {
-    // TODO: CHECK-ME FOR CORRECT WORKING
-    auto& doc = GetDocument();
-    auto& pages = doc.GetPages();
-    unsigned fromIndex = m_Index;
-    pages.InsertDocumentPageAt(index, doc, m_Index);
-    if (index < fromIndex)
-    {
-        // If we inserted the page before the old 
-        // position we have to increment the from position
-        fromIndex++;
-    }
+    if (index == m_Index)
+        return false;
 
-    pages.RemovePageAt(fromIndex);
-    m_Index = fromIndex;
+    auto& pages = GetDocument().GetPages();
+    return pages.TryMovePageAt(m_Index, index);
 }
 
 PdfField& PdfPage::CreateField(const string_view& name, PdfFieldType fieldType, const Rect& rect, bool rawRect)

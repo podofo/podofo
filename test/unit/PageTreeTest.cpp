@@ -188,6 +188,23 @@ TEST_CASE("testDeleteAll")
     testDeleteAll(doc);
 }
 
+TEST_CASE("TestMovePage")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TechDocs", "pdf_implementation.pdf"));
+
+    auto& page = doc.GetPages().GetPageAt(7);
+
+    REQUIRE(page.GetIndex() == 7);
+    REQUIRE(!page.MoveAt(11));
+    REQUIRE(page.MoveAt(2));
+    REQUIRE(page.GetIndex() == 2);
+    REQUIRE(doc.GetPages().GetPageAt(7).GetIndex() == 7);
+
+    string filename = TestUtils::GetTestOutputFilePath("TestMovePage.pdf");
+    doc.Save(filename);
+}
+
 void testGetPages(PdfMemDocument& doc)
 {
     for (unsigned i = 0; i < TEST_NUM_PAGES; i++)

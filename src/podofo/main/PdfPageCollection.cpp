@@ -129,6 +129,20 @@ void PdfPageCollection::InsertPagesAt(unsigned atIndex, cspan<PdfPage*> pages)
     GetDictionary().AddKey(PdfName::KeyCount, static_cast<int64_t>(m_Pages.size()));
 }
 
+bool PdfPageCollection::TryMovePageAt(unsigned atIndex, unsigned toIndex)
+{
+    PODOFO_ASSERT(atIndex < m_Pages.size() && atIndex != toIndex);
+    if (toIndex >= m_Pages.size())
+        return false;
+
+    FlattenStructure();
+    std::iter_swap(m_Pages.begin() + atIndex, m_Pages.begin() + toIndex);
+    m_kidsArray->SwapAt(atIndex, toIndex);
+    m_Pages[atIndex]->SetIndex(atIndex);
+    m_Pages[toIndex]->SetIndex(toIndex);
+    return true;
+}
+
 PdfPage& PdfPageCollection::CreatePage(const Rect& size)
 {
     auto page = new PdfPage(GetDocument(), size);
