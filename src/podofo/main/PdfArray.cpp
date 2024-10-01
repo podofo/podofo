@@ -354,8 +354,8 @@ void PdfArray::SwapAt(unsigned atIndex, unsigned toIndex)
         return;
 
     PdfObject temp = m_Objects[toIndex];
-    m_Objects[toIndex].Assign(m_Objects[atIndex]);
-    m_Objects[atIndex].Assign(temp);
+    m_Objects[toIndex].Assign(std::move(m_Objects[atIndex]));
+    m_Objects[atIndex].Assign(std::move(temp));
     SetDirty();
 }
 

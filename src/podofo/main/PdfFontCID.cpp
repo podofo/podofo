@@ -28,7 +28,7 @@ public:
         const PdfFontMetrics& metrics);
 private:
     void update(unsigned cid, unsigned width);
-    PdfArray finish();
+    void finish();
     void reset(unsigned cid, unsigned width);
     void emitSameWidth();
     void emitArrayWidths();
@@ -69,7 +69,7 @@ void PdfFontCID::initImported()
 
     // The DecendantFonts, should be an indirect object:
     arr.Add(m_descendantFont->GetIndirectReference());
-    this->GetDictionary().AddKey("DescendantFonts"_n, arr);
+    this->GetDictionary().AddKey("DescendantFonts"_n, std::move(arr));
 
     // Setting the /DescendantFonts
     PdfFontType fontType = GetType();
@@ -118,7 +118,7 @@ void PdfFontCID::createWidths(PdfDictionary& fontDict, const CIDToGIDMap& cidToG
     if (arr.size() == 0)
         return;
 
-    fontDict.AddKey("W"_n, arr);
+    fontDict.AddKey("W"_n, std::move(arr));
     double defaultWidth;
     if ((defaultWidth = GetMetrics().GetDefaultWidthRaw()) >= 0)
     {
@@ -194,18 +194,17 @@ void WidthExporter::update(unsigned cid, unsigned width)
     reset(cid, width);
 }
 
-PdfArray WidthExporter::finish()
+void WidthExporter::finish()
 {
     // if there is a single glyph remaining, emit it as array
     if (!m_widths.IsEmpty() || m_rangeCount == 1)
     {
         m_widths.Add(PdfObject(static_cast<int64_t>(m_width)));
         emitArrayWidths();
-        return m_output;
+        return;
     }
-    emitSameWidth();
 
-    return m_output;
+    emitSameWidth();
 }
 
 PdfArray WidthExporter::GetPdfWidths(const CIDToGIDMap& cidToGidMap,
@@ -219,7 +218,8 @@ PdfArray WidthExporter::GetPdfWidths(const CIDToGIDMap& cidToGidMap,
     for (auto& pair : cidToGidMap)
         exporter.update(pair.first, getPdfWidth(pair.second, metrics, matrix));
 
-    return exporter.finish();
+    exporter.finish();
+    return std::move(exporter.m_output);
 }
 
 void WidthExporter::reset(unsigned cid, unsigned width)
@@ -239,8 +239,7 @@ void WidthExporter::emitSameWidth()
 void WidthExporter::emitArrayWidths()
 {
     m_output.Add(static_cast<int64_t>(m_start));
-    m_output.Add(m_widths);
-    m_widths.Clear();
+    m_output.Add(std::move(m_widths));
 }
 
 // Return thousands of PDF units

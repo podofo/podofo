@@ -164,7 +164,7 @@ void PdfXRefStreamParserObject::getIndices(vector<int64_t>& indices, int64_t siz
         if (!indexObj->TryGetArray(arr))
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRefStream, "Invalid XRef Stream /Index");
 
-        for (auto index : *arr)
+        for (auto& index : *arr)
             indices.push_back(index.GetNumber());
     }
 

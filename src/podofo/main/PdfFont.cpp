@@ -446,9 +446,6 @@ void PdfFont::FillDescriptor(PdfDictionary& dict) const
     dict.AddKey("Flags"_n, static_cast<int64_t>(m_Metrics->GetFlags()));
     dict.AddKey("ItalicAngle"_n, static_cast<int64_t>(std::round(m_Metrics->GetItalicAngle())));
 
-    PdfArray bbox;
-    GetBoundingBox(bbox);
-
     auto& matrix = m_Metrics->GetMatrix();
     if (GetType() == PdfFontType::Type3)
     {
@@ -460,8 +457,11 @@ void PdfFont::FillDescriptor(PdfDictionary& dict) const
         if ((weight = m_Metrics->GetWeightRaw()) > 0)
             dict.AddKey("FontWeight"_n, static_cast<int64_t>(weight));
 
+        PdfArray bbox;
+        GetBoundingBox(bbox);
+
         // The following entries are all optional in /Type3 fonts
-        dict.AddKey("FontBBox"_n, bbox);
+        dict.AddKey("FontBBox"_n, std::move(bbox));
         dict.AddKey("Ascent"_n, static_cast<int64_t>(std::round(m_Metrics->GetAscent() / matrix[3])));
         dict.AddKey("Descent"_n, static_cast<int64_t>(std::round(m_Metrics->GetDescent() / matrix[3])));
         dict.AddKey("CapHeight"_n, static_cast<int64_t>(std::round(m_Metrics->GetCapHeight() / matrix[3])));

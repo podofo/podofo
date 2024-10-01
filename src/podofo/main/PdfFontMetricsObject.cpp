@@ -200,29 +200,30 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         {
             // "W" array format is described in Pdf 32000:2008 "9.7.4.3
             // Glyph Metrics in CIDFonts"
-            PdfArray widthsArr = widths->GetArray();
+            auto& widthsArr = widths->GetArray();
             unsigned pos = 0;
             while (pos < widthsArr.GetSize())
             {
                 unsigned start = (unsigned)widthsArr[pos++].GetNumberLenient();
-                PdfObject* second = &widthsArr[pos];
+                auto second = &widthsArr[pos];
                 if (second->IsReference())
                 {
                     // second do not have an associated owner; use the one in pw
                     second = &widths->GetDocument()->GetObjects().MustGetObject(second->GetReference());
                     PODOFO_ASSERT(!second->IsNull());
                 }
-                if (second->IsArray())
+
+                const PdfArray* arr;
+                if (second->TryGetArray(arr))
                 {
-                    PdfArray arr = second->GetArray();
                     pos++;
-                    unsigned length = start + arr.GetSize();
+                    unsigned length = start + arr->GetSize();
                     PODOFO_ASSERT(length >= start);
                     if (length > m_Widths.size())
                         m_Widths.resize(length, m_DefaultWidth);
 
-                    for (unsigned i = 0; i < arr.GetSize(); i++)
-                        m_Widths[start + i] = arr[i].GetReal() * m_Matrix[0];
+                    for (unsigned i = 0; i < arr->GetSize(); i++)
+                        m_Widths[start + i] = (*arr)[i].GetReal() * m_Matrix[0];
                 }
                 else
                 {

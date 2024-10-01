@@ -119,9 +119,9 @@ pair<PdfDictionary::iterator, bool> PdfDictionary::AddKey(const PdfName& key, Pd
     if (!inserted.second)
     {
         if (skipDirtySet)
-            inserted.first->second.Assign(obj);
+            inserted.first->second.Assign(std::move(obj));
         else
-            inserted.first->second = obj;
+            inserted.first->second = std::move(obj);
     }
 
     inserted.first->second.SetParent(*this);

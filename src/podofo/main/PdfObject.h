@@ -549,6 +549,7 @@ private:
 
     // Assign function that doesn't set dirty
     void Assign(const PdfObject& rhs);
+    void Assign(PdfObject&& rhs);
 
     void SetParent(PdfDataContainer& parent);
 

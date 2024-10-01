@@ -457,10 +457,14 @@ bool PdfObject::HasStreamToParse() const
 
 void PdfObject::Assign(const PdfObject& rhs)
 {
-    if (&rhs == this)
-        return;
-
+    PODOFO_ASSERT(&rhs != this);
     assign(rhs);
+}
+
+void PdfObject::Assign(PdfObject&& rhs)
+{
+    PODOFO_ASSERT(&rhs != this);
+    moveFrom(std::move(rhs));
 }
 
 void PdfObject::SetParent(PdfDataContainer& parent)
