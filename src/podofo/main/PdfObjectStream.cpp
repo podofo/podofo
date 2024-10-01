@@ -245,7 +245,7 @@ void PdfObjectStream::MoveFrom(PdfObjectStream& rhs)
     }
     else
     {
-        lhsDict.AddKey("DecodeParms"_n, PdfObject(*decodeParms));
+        lhsDict.AddKey("DecodeParms"_n, PdfObject(*decodeParms), true);
         rhsDict.RemoveKey("DecodeParms", true);
     }
 }
