@@ -234,7 +234,7 @@ void PdfObjectStream::MoveFrom(PdfObjectStream& rhs)
     }
     else
     {
-        lhsDict.AddKey("Filter"_n, PdfObject(*filter), true);
+        lhsDict.AddKey("Filter"_n, std::move(*filter), true);
         rhsDict.RemoveKey("Filter", true);
     }
 
@@ -245,7 +245,7 @@ void PdfObjectStream::MoveFrom(PdfObjectStream& rhs)
     }
     else
     {
-        lhsDict.AddKey("DecodeParms"_n, PdfObject(*decodeParms), true);
+        lhsDict.AddKey("DecodeParms"_n, std::move(*decodeParms), true);
         rhsDict.RemoveKey("DecodeParms", true);
     }
 }
