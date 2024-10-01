@@ -560,7 +560,7 @@ private:
 
     void assign(const PdfObject& rhs);
 
-    void moveFrom(PdfObject& rhs);
+    void moveFrom(PdfObject&& rhs);
 
     void ResetDirty();
 

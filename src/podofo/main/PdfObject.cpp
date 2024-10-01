@@ -111,12 +111,11 @@ PdfObject::PdfObject(const PdfObject& rhs)
 // NOTE: Don't move parent document/container. Copied objects must be
 // always detached. Ownership will be set automatically elsewhere.
 // Also don't move reference
-PdfObject::PdfObject(PdfObject&& rhs) noexcept :
-    m_Variant(std::move(rhs.m_Variant)), m_IsDirty(false), m_IsImmutable(false)
+PdfObject::PdfObject(PdfObject&& rhs) noexcept
+    : m_Document(nullptr), m_Parent(nullptr), m_IsDirty(false), m_IsImmutable(false)
 {
-    initObject();
-    SetVariantOwner();
-    moveStreamFrom(rhs);
+    moveFrom(std::move(rhs));
+    rhs.SetDirty();
 }
 
 // NOTE: Dirty objects are those who are supposed to be serialized
@@ -399,8 +398,9 @@ PdfObject& PdfObject::operator=(const PdfObject& rhs)
 
 PdfObject& PdfObject::operator=(PdfObject&& rhs) noexcept
 {
-    moveFrom(rhs);
+    moveFrom(std::move(rhs));
     SetDirty();
+    rhs.SetDirty();
     return *this;
 }
 
@@ -490,7 +490,7 @@ void PdfObject::assign(const PdfObject& rhs)
 
 // NOTE: Don't move parent document/container and indirect reference.
 // Objects being assigned always keep current ownership
-void PdfObject::moveFrom(PdfObject& rhs)
+void PdfObject::moveFrom(PdfObject&& rhs)
 {
     rhs.DelayedLoad();
     m_Variant = std::move(rhs.m_Variant);
