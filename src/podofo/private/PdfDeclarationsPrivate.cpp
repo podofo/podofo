@@ -38,12 +38,15 @@ extern PODOFO_IMPORT unsigned s_MaxRecursionDepth;
 extern PODOFO_IMPORT LogMessageCallback s_LogMessageCallback;
 
 static char getEscapedCharacter(char ch);
-static void removeTrailingZeroes(string& str);
+static void removeTrailingZeroes(string& str, size_t len);
 static bool isStringDelimter(char32_t ch);
 static string extractFontHints(const std::string_view& fontName,
     bool trimSubsetPrefix, bool& isItalic, bool& isBold);
 static bool trimSuffix(string& name, const string_view& suffix);
 static double modulo(double a, double b);
+
+// Picked as the minimum size for small string optimizations withing GCC, MSVC, Clang
+constexpr unsigned FloatFormatDefaultSize = 15;
 
 struct VersionIdentity
 {
@@ -71,7 +74,6 @@ void formatTo(string& str, TInt value)
     auto res = std::to_chars(arr.data(), arr.data() + arr.size(), value);
     str.append(arr.data(), res.ptr - arr.data());
 }
-
 
 void PoDoFo::LogMessage(PdfLogSeverity logSeverity, const string_view& msg)
 {
@@ -993,14 +995,26 @@ void utls::FormatTo(string& str, unsigned long long value)
 
 void utls::FormatTo(string& str, float value, unsigned short precision)
 {
-    utls::FormatTo(str, "{:.{}f}", value, precision);
-    removeTrailingZeroes(str);
+    // The default size should be large enough to format all
+    // numbers with fixed notation. See https://stackoverflow.com/a/52045523/213871
+    str.resize(FloatFormatDefaultSize);
+    auto result = std::to_chars(str.data(), str.data() + FloatFormatDefaultSize, value, chars_format::fixed, precision);
+    removeTrailingZeroes(str, result.ptr - str.data());
 }
 
 void utls::FormatTo(string& str, double value, unsigned short precision)
 {
-    utls::FormatTo(str, "{:.{}f}", value, precision);
-    removeTrailingZeroes(str);
+    str.resize(FloatFormatDefaultSize);
+    auto result = std::to_chars(str.data(), str.data() + FloatFormatDefaultSize, value, chars_format::fixed, precision);
+    if (result.ec == errc::value_too_large)
+    {
+        // See https://stackoverflow.com/a/52045523/213871
+        // 24 recommended - 5 (unnecessary) exponent = 19
+        constexpr unsigned DoubleFormatDefaultSize = 19;
+        str.resize(DoubleFormatDefaultSize);
+        result = std::to_chars(str.data(), str.data() + DoubleFormatDefaultSize, value, chars_format::fixed, precision);
+    }
+    removeTrailingZeroes(str, result.ptr - str.data());
 }
 
 // NOTE: This is clearly limited, since it's supporting only ASCII
@@ -1421,11 +1435,10 @@ utls::RecursionGuard::~RecursionGuard()
     Exit();
 }
 
-void removeTrailingZeroes(string& str)
+void removeTrailingZeroes(string& str, size_t len)
 {
     // Remove trailing zeroes
     const char* cursor = str.data();
-    size_t len = str.size();
     while (cursor[len - 1] == '0')
         len--;
 
