@@ -71,14 +71,11 @@ void PdfMemDocument::initFromParser(PdfParser& parser)
     m_InitialVersion = m_Version;
     m_HasXRefStream = parser.HasXRefStream();
     m_PrevXRefOffset = parser.GetXRefOffset();
-
-    auto trailer = std::make_unique<PdfObject>(parser.GetTrailer());
-    this->SetTrailer(std::move(trailer)); // Set immediately as trailer
-                                // so that trailer has an owner
+    this->SetTrailer(parser.TakeTrailer());
 
     if (PdfCommon::IsLoggingSeverityEnabled(PdfLogSeverity::Debug))
     {
-        auto debug = GetTrailer().GetObject().GetVariant().ToString();
+        auto debug = GetTrailer().GetObject().ToString();
         debug.push_back('\n');
         PoDoFo::LogMessage(PdfLogSeverity::Debug, debug);
     }

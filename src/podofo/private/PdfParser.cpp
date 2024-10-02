@@ -939,6 +939,19 @@ const PdfObject& PdfParser::GetTrailer() const
     return *m_Trailer;
 }
 
+unique_ptr<PdfObject> PdfParser::TakeTrailer()
+{
+    if (m_Trailer == nullptr)
+        return nullptr;
+
+    // We create a new object using move semantics. This may loose XRef
+    // stream information stored in PdfXRefStreamParserObject, but we
+    // don't want to preserve it
+    auto ret = unique_ptr<PdfObject>(new PdfObject(std::move(*m_Trailer)));
+    m_Trailer = nullptr;
+    return ret;
+}
+
 bool PdfParser::TryGetPreviousRevisionOffset(InputStreamDevice& input, size_t currOffset, size_t& eofOffset)
 {
     eofOffset = numeric_limits<size_t>::max();

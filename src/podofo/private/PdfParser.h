@@ -58,6 +58,8 @@ public:
 
     const PdfObject& GetTrailer() const;
 
+    std::unique_ptr<PdfObject> TakeTrailer();
+
     /**
      * Try retrieve the previous revision offset of the document before signing
      * \param currOffset the current offset where to start the search
