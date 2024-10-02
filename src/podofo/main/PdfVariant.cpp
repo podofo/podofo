@@ -19,7 +19,7 @@ using namespace std;
 
 constexpr unsigned short DefaultPrecision = 6;
 
-PdfVariant PdfVariant::Null;
+const PdfVariant PdfVariant::Null;
 
 PdfVariant::PdfVariant(PdfDataType type)
     : m_Data{ }, m_DataType(type) { }

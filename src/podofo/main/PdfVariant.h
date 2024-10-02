@@ -35,6 +35,7 @@ class PODOFO_API PdfVariant final
     friend class PdfObject;
     friend class PdfArray;
     friend class PdfDictionary;
+    friend class PdfTokenizer;
     PODOFO_PRIVATE_FRIEND(class PdfParserObject);
 
 private:
@@ -42,7 +43,7 @@ private:
 
 public:
 
-    static PdfVariant Null;
+    static const PdfVariant Null;
 
     /** Construct an empty variant type
      *  IsNull() will return true.

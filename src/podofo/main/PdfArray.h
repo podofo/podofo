@@ -80,6 +80,8 @@ using PdfArrayConstIndirectIterable = PdfArrayIndirectIterableBase<const PdfObje
 class PODOFO_API PdfArray final : public PdfDataContainer
 {
     friend class PdfObject;
+    friend class PdfTokenizer;
+
 public:
     using size_type = size_t;
     using value_type = PdfObject;
@@ -300,6 +302,10 @@ public:
 protected:
     void resetDirty() override;
     void setChildrenParent() override;
+
+private:
+    // Append a new "null" object to the back
+    PdfObject& EmplaceBackNoDirtySet();
 
 private:
     PdfObject& add(PdfObject&& obj);

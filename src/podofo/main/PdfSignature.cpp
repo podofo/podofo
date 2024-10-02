@@ -254,8 +254,8 @@ PdfObject* PdfSignature::getValueObject() const
 
 void PdfSignature::SetContentsByteRangeNoDirtySet(const bufferview& contents, PdfArray&& byteRange)
 {
-    m_ValueObj->GetDictionary().AddKey("ByteRange"_n, PdfObject(std::move(byteRange)), true);
-    m_ValueObj->GetDictionary().AddKey("Contents"_n, PdfString::FromRaw(contents, true), true);
+    m_ValueObj->GetDictionary().AddKeyNoDirtySet("ByteRange"_n, PdfVariant(std::move(byteRange)));
+    m_ValueObj->GetDictionary().AddKeyNoDirtySet("Contents"_n, PdfVariant(PdfString::FromRaw(contents, true)));
 }
 
 void PdfSignature::EnsureValueObject()

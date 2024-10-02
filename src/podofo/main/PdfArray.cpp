@@ -24,6 +24,7 @@ PdfArray::PdfArray(PdfArray&& rhs) noexcept
     : m_Objects(std::move(rhs.m_Objects))
 {
     setChildrenParent();
+    rhs.SetDirty();
 }
 
 void PdfArray::RemoveAt(unsigned idx)
@@ -78,6 +79,7 @@ PdfArray& PdfArray::operator=(PdfArray&& rhs) noexcept
     AssertMutable();
     m_Objects = std::move(rhs.m_Objects);
     setChildrenParent();
+    rhs.SetDirty();
     return *this;
 }
 
@@ -103,6 +105,7 @@ PdfObject& PdfArray::Add(PdfObject&& obj)
 {
     AssertMutable();
     auto& ret = add(std::move(obj));
+    obj.SetDirty();
     SetDirty();
     return ret;
 }
@@ -147,8 +150,8 @@ PdfObject& PdfArray::SetAt(unsigned idx, PdfObject&& obj)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Index is out of bounds");
 
     auto& ret = m_Objects[idx];
+    // NOTE: Assignment will implicitly make this container dirty
     ret = std::move(obj);
-    // NOTE: No dirty set! The container itself is not modified
     return ret;
 }
 
@@ -254,6 +257,13 @@ void PdfArray::setChildrenParent()
         obj.SetParent(*this);
 }
 
+PdfObject& PdfArray::EmplaceBackNoDirtySet()
+{
+    auto& ret = m_Objects.emplace_back(nullptr);
+    ret.SetParent(*this);
+    return ret;
+}
+
 PdfObject& PdfArray::add(PdfObject&& obj)
 {
     return *insertAt(m_Objects.end(), std::move(obj));
@@ -303,6 +313,7 @@ PdfArray::iterator PdfArray::insert(const iterator& pos, PdfObject&& obj)
 {
     AssertMutable();
     auto it = insertAt(pos, std::move(obj));
+    obj.SetDirty();
     SetDirty();
     return it;
 }
@@ -354,8 +365,8 @@ void PdfArray::SwapAt(unsigned atIndex, unsigned toIndex)
         return;
 
     PdfObject temp = m_Objects[toIndex];
-    m_Objects[toIndex].Assign(std::move(m_Objects[atIndex]));
-    m_Objects[atIndex].Assign(std::move(temp));
+    m_Objects[toIndex].AssignNoDirtySet(std::move(m_Objects[atIndex]));
+    m_Objects[atIndex].AssignNoDirtySet(std::move(temp));
     SetDirty();
 }
 

@@ -308,8 +308,12 @@ protected:
     void setChildrenParent() override;
 
 private:
-    std::pair<iterator, bool> AddKey(const PdfName& key, PdfObject&& obj, bool skipDirtySet);
-    bool RemoveKey(const std::string_view& key, bool skipDirtySet);
+    // NOTE: It also doesn't dirty set the moved "obj"
+    void AddKeyNoDirtySet(const PdfName& key, PdfObject&& obj);
+    void AddKeyNoDirtySet(const PdfName& key, PdfVariant&& var);
+    void RemoveKeyNoDirtySet(const std::string_view& key);
+    // Append a new "null" object with the given key
+    PdfObject& EmplaceNoDirtySet(const PdfName& key);
 
 private:
     PdfObject& addKey(const PdfName& key, PdfObject&& obj);

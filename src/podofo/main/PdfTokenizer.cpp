@@ -415,13 +415,12 @@ bool PdfTokenizer::tryReadDataType(InputStreamDevice& device, PdfLiteralDataType
 void PdfTokenizer::ReadDictionary(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt)
 {
     PdfVariant val;
-    PdfName key;
     PdfTokenType tokenType;
     string_view token;
     unique_ptr<charbuff> contentsHexBuffer;
 
     variant = PdfDictionary();
-    PdfDictionary& dict = variant.GetDictionary();
+    auto& dict = variant.GetDictionaryUnsafe();
 
     while (true)
     {
@@ -434,14 +433,15 @@ void PdfTokenizer::ReadDictionary(InputStreamDevice& device, PdfVariant& variant
 
         this->ReadNextVariant(device, token, tokenType, val, encrypt);
         // Convert the read variant to a name; throws InvalidDataType if not a name.
-        key = val.GetName();
+        auto& key = val.GetName();
 
-        // Try to get the next variant
         gotToken = this->TryReadNextToken(device, token, tokenType);
         if (!gotToken)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant");
 
-        PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, val);
+        // Try to get the next variant
+        auto& emplaced = dict.EmplaceNoDirtySet(key);
+        PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, emplaced.GetVariantUnsafe());
         if (key == "Contents" && dataType == PdfLiteralDataType::HexString)
         {
             // 'Contents' key in signature dictionaries is an unencrypted Hex string:
@@ -451,11 +451,10 @@ void PdfTokenizer::ReadDictionary(InputStreamDevice& device, PdfVariant& variant
             continue;
         }
 
-        if (!tryReadDataType(device, dataType, val, encrypt))
+        if (!tryReadDataType(device, dataType, emplaced.GetVariantUnsafe(), encrypt))
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Could not read variant");
 
-        // Add the key without triggering SetDirty
-        dict.AddKey(key, std::move(val), true);
+        emplaced.SetParent(dict);
     }
 
     if (contentsHexBuffer.get() != nullptr)
@@ -479,9 +478,8 @@ void PdfTokenizer::ReadArray(InputStreamDevice& device, PdfVariant& variant, con
 {
     string_view token;
     PdfTokenType tokenType;
-    PdfVariant var;
     variant = PdfArray();
-    PdfArray& arr = variant.GetArray();
+    auto& arr = variant.GetArrayUnsafe();
 
     while (true)
     {
@@ -492,8 +490,9 @@ void PdfTokenizer::ReadArray(InputStreamDevice& device, PdfVariant& variant, con
         if (tokenType == PdfTokenType::SquareBracketRight)
             break;
 
-        this->ReadNextVariant(device, token, tokenType, var, encrypt);
-        arr.Add(std::move(var));
+        auto& newobj = arr.EmplaceBackNoDirtySet();
+        this->ReadNextVariant(device, token, tokenType, newobj.GetVariantUnsafe(), encrypt);
+        newobj.SetParent(arr);
     }
 }
 

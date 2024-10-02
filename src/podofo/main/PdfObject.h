@@ -42,6 +42,7 @@ class PODOFO_API PdfObject
     friend class PdfDataContainer;
     friend class PdfDictionaryElement;
     friend class PdfArrayElement;
+    friend class PdfTokenizer;
     PODOFO_PRIVATE_FRIEND(class PdfStreamedObjectStream);
     PODOFO_PRIVATE_FRIEND(class PdfObjectStreamParser);
     PODOFO_PRIVATE_FRIEND(class PdfParser);
@@ -52,13 +53,17 @@ class PODOFO_API PdfObject
     PODOFO_PRIVATE_FRIEND(class PdfXRefStream);
 
 public:
-    static PdfObject Null;
+    static const PdfObject Null;
 
 public:
 
     /** Create a PDF object with an empty PdfDictionary.
      */
     PdfObject();
+
+    /** Create a "null" PDF object
+     */
+    PdfObject(std::nullptr_t);
 
     virtual ~PdfObject();
 
@@ -438,9 +443,6 @@ public:
     PdfObjectStream* GetStream();
 
 private:
-    // Delete constructor with nullptr
-    PdfObject(std::nullptr_t) = delete;
-
     PdfObject(PdfVariant&& var, const PdfReference& indirectReference, bool isDirty);
 
 protected:
@@ -529,6 +531,7 @@ protected:
 
 private:
     // To be called privately by various classes
+    PdfVariant& GetVariantUnsafe() { return m_Variant; }
     PdfReference GetReferenceUnsafe() const { return m_Variant.GetReferenceUnsafe(); }
     const PdfDictionary& GetDictionaryUnsafe() const { return m_Variant.GetDictionaryUnsafe(); }
     const PdfArray& GetArrayUnsafe() const { return m_Variant.GetArrayUnsafe(); }
@@ -547,9 +550,10 @@ private:
     // To be called by PdfDataContainer
     bool IsImmutable() const { return m_IsImmutable; }
 
-    // Assign function that doesn't set dirty
-    void Assign(const PdfObject& rhs);
-    void Assign(PdfObject&& rhs);
+    // NOTE: It also doesn't dirty set the moved "obj"
+    void AssignNoDirtySet(PdfObject&& rhs);
+    void AssignNoDirtySet(PdfVariant&& rhs);
+    void AssignNoDirtySet(const PdfObject& rhs);
 
     void SetParent(PdfDataContainer& parent);
 

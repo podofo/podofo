@@ -25,6 +25,7 @@ PdfDictionary::PdfDictionary(PdfDictionary&& rhs) noexcept
     : m_Map(std::move(rhs.m_Map))
 {
     setChildrenParent();
+    rhs.SetDirty();
 }
 
 PdfDictionary& PdfDictionary::operator=(const PdfDictionary& rhs)
@@ -40,6 +41,7 @@ PdfDictionary& PdfDictionary::operator=(PdfDictionary&& rhs) noexcept
     AssertMutable();
     m_Map = std::move(rhs.m_Map);
     setChildrenParent();
+    rhs.SetDirty();
     return *this;
 }
 
@@ -80,7 +82,10 @@ PdfObject& PdfDictionary::AddKey(const PdfName& key, const PdfObject& obj)
 PdfObject& PdfDictionary::AddKey(const PdfName& key, PdfObject&& obj)
 {
     AssertMutable();
-    return addKey(key, std::move(obj));
+    auto& ret = addKey(key, std::move(obj));
+    // NOTE: Manually make obj dirty, as "addKey" doesn't do it
+    obj.SetDirty();
+    return ret;
 }
 
 void PdfDictionary::AddKeyIndirect(const PdfName& key, const PdfObject& obj)
@@ -101,37 +106,66 @@ PdfObject& PdfDictionary::AddKeyIndirectSafe(const PdfName& key, const PdfObject
         return addKey(key, PdfObject(obj));
 }
 
+// Add key with the "obj" value.
+// NOTE: It doesn't set dirty moved "obj:
 PdfObject& PdfDictionary::addKey(const PdfName& key, PdfObject&& obj)
 {
-    auto added = AddKey(key, std::move(obj), false);
-    if (added.second)
-        SetDirty();
-
-    return added.first->second;
-}
-
-pair<PdfDictionary::iterator, bool> PdfDictionary::AddKey(const PdfName& key, PdfObject&& obj, bool skipDirtySet)
-{
-    // NOTE: Empty PdfNames are legal according to the PDF specification.
-    // Don't check for it
-
+    // NOTE: Empty PdfNames are legal. Don't check for it
     pair<iterator, bool> inserted = m_Map.try_emplace(key, std::move(obj));
-    if (!inserted.second)
+    if (inserted.second)
     {
-        if (skipDirtySet)
-            inserted.first->second.Assign(std::move(obj));
-        else
-            inserted.first->second = std::move(obj);
+        SetDirty();
+    }
+    else
+    {
+        // Manually setting dirty on the assigned object will
+        // implicity make this container dirty, but won't make
+        // dirty the moved "obj"
+        inserted.first->second.AssignNoDirtySet(std::move(obj));
+        inserted.first->second.SetDirty();
     }
 
     inserted.first->second.SetParent(*this);
-    return inserted;
+    return inserted.first->second;
+}
+
+void PdfDictionary::AddKeyNoDirtySet(const PdfName& key, PdfVariant&& var)
+{
+    // NOTE: Empty PdfNames are legal. Don't check for it
+    pair<iterator, bool> inserted = m_Map.try_emplace(key, std::move(var));
+    if (!inserted.second)
+        inserted.first->second.AssignNoDirtySet(std::move(var));
+
+    inserted.first->second.SetParent(*this);
+}
+
+void PdfDictionary::AddKeyNoDirtySet(const PdfName& key, PdfObject&& obj)
+{
+    // NOTE: Empty PdfNames are legal. Don't check for it
+    pair<iterator, bool> inserted = m_Map.try_emplace(key, std::move(obj));
+    if (!inserted.second)
+        inserted.first->second.AssignNoDirtySet(std::move(obj));
+
+    inserted.first->second.SetParent(*this);
+}
+
+void PdfDictionary::RemoveKeyNoDirtySet(const string_view& key)
+{
+    auto found = m_Map.find(key);
+    if (found == m_Map.end())
+        return;
+
+    m_Map.erase(found);
+}
+
+PdfObject& PdfDictionary::EmplaceNoDirtySet(const PdfName& key)
+{
+    return m_Map.emplace(key, nullptr).first->second;
 }
 
 PdfObject* PdfDictionary::getKey(const string_view& key) const
 {
-    // NOTE: Empty PdfNames are legal according to the PDF,
-    // specification don't check for it
+    // NOTE: Empty PdfNames are legal. Don't check for it
     auto it = m_Map.find(key);
     if (it == m_Map.end())
         return nullptr;
@@ -179,28 +213,21 @@ PdfObject* PdfDictionary::findKeyParent(const string_view& key) const
 
 bool PdfDictionary::HasKey(const string_view& key) const
 {
-    // NOTE: Empty PdfNames are legal according to the PDF,
-    // specification don't check for it
+    // NOTE: Empty PdfNames are legal. Don't check for it
     return m_Map.find(key) != m_Map.end();
 }
 
 bool PdfDictionary::RemoveKey(const string_view& key)
 {
     AssertMutable();
-    return RemoveKey(key, false);
-}
-
-bool PdfDictionary::RemoveKey(const string_view& key, bool skipDirtySet)
-{
     iterator found = m_Map.find(key);
     if (found == m_Map.end())
         return false;
 
     m_Map.erase(found);
-    if (!skipDirtySet)
-        SetDirty();
+    SetDirty();
 
-    return false;
+    return true;
 }
 
 void PdfDictionary::Write(OutputStream& device, PdfWriteFlags writeMode,

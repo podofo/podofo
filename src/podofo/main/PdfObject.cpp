@@ -19,10 +19,20 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfObject PdfObject::Null = PdfObject(PdfVariant());
+const PdfObject PdfObject::Null = PdfObject(nullptr);
 
 PdfObject::PdfObject()
-    : PdfObject(PdfDictionary(), PdfReference(), false) { }
+    : m_Variant(PdfDictionary()), m_IsDirty(false), m_IsImmutable(false)
+{
+    initObject();
+    m_Variant.GetDictionaryUnsafe().SetOwner(*this);
+}
+
+PdfObject::PdfObject(nullptr_t)
+    : m_IsDirty(false), m_IsImmutable(false)
+{
+    initObject();
+}
 
 PdfObject::~PdfObject() { }
 
@@ -258,7 +268,7 @@ void PdfObject::write(OutputStream& stream, bool skipLengthFix,
 
             // Add the key without triggering SetDirty
             const_cast<PdfObject&>(*this).m_Variant.GetDictionaryUnsafe()
-                .AddKey("Length"_n, static_cast<int64_t>(length), true);
+                .AddKeyNoDirtySet("Length"_n, PdfVariant(static_cast<int64_t>(length)));
         }
     }
 
@@ -455,16 +465,25 @@ bool PdfObject::HasStreamToParse() const
     return false;
 }
 
-void PdfObject::Assign(const PdfObject& rhs)
+void PdfObject::AssignNoDirtySet(const PdfObject& rhs)
 {
     PODOFO_ASSERT(&rhs != this);
     assign(rhs);
 }
 
-void PdfObject::Assign(PdfObject&& rhs)
+void PdfObject::AssignNoDirtySet(PdfObject&& rhs)
 {
     PODOFO_ASSERT(&rhs != this);
     moveFrom(std::move(rhs));
+}
+
+void PdfObject::AssignNoDirtySet(PdfVariant&& rhs)
+{
+    m_Variant = std::move(rhs);
+    m_IsDelayedLoadDone = true;
+    SetVariantOwner();
+    m_Stream = nullptr;
+    m_IsDelayedLoadStreamDone = true;
 }
 
 void PdfObject::SetParent(PdfDataContainer& parent)
