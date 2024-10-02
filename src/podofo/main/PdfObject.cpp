@@ -430,6 +430,8 @@ void PdfObject::moveStreamFrom(PdfObject& obj)
 {
     obj.DelayedLoadStream();
     m_Stream = std::move(obj.m_Stream);
+    if (m_Stream != nullptr)
+        m_Stream->SetParent(*this);
 }
 
 void PdfObject::EnableDelayedLoading()

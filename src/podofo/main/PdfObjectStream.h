@@ -210,6 +210,10 @@ public:
 
     const PdfObjectStreamProvider& GetProvider() const { return *m_Provider; }
 
+    const PdfObject& GetParent() const { return *m_Parent; }
+
+    PdfObject& GetParent() { return *m_Parent; }
+
 private:
     /** Write the stream to an output device
      *  \param device write to this outputdevice.
@@ -217,7 +221,7 @@ private:
      */
     void Write(OutputStream& stream, const PdfStatefulEncrypt* encrypt);
 
-    PdfObject& GetParent() { return *m_Parent; }
+    void SetParent(PdfObject& parent) { m_Parent = &parent; }
 
     void InitData(InputStream& stream, size_t len, PdfFilterList&& filterList);
 
