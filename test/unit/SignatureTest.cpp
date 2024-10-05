@@ -126,7 +126,7 @@ TEST_CASE("TestSignature2")
     REQUIRE(ssl::ComputeMD5Str(buff) == TestSignatureRefHash);
 }
 
-// Test sequential signing with external service
+// Test deferred signing with external service
 TEST_CASE("TestSignature3")
 {
     charbuff buff;
@@ -241,7 +241,7 @@ TEST_CASE("TestPdfSignerCms")
     charbuff buff;
     {
         PdfSignerCms signer(cert);
-        signer.ComputeSignatureSequential({ }, buff, true);
+        signer.ComputeSignatureDeferred({ }, buff, true);
 
         try
         {
@@ -249,7 +249,7 @@ TEST_CASE("TestPdfSignerCms")
         }
         catch (PdfError& error)
         {
-            // If a sequential signing is started we can't switch to event based
+            // If a deferred signing is started we can't switch to event based
             REQUIRE(error.GetCode() == PdfErrorCode::InternalLogic);
         }
     }
@@ -279,11 +279,11 @@ TEST_CASE("TestPdfSignerCms")
 
         try
         {
-            signer.ComputeSignatureSequential({ }, buff, true);
+            signer.ComputeSignatureDeferred({ }, buff, true);
         }
         catch (PdfError& error)
         {
-            // If a event based signing is started we can't switch to sequential
+            // If a event based signing is started we can't switch to deferred
             REQUIRE(error.GetCode() == PdfErrorCode::InternalLogic);
         }
     }

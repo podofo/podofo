@@ -76,14 +76,14 @@ void PdfSignerCms::ComputeSignature(charbuff& contents, bool dryrun)
 
 void PdfSignerCms::FetchIntermediateResult(charbuff& result)
 {
-    ensureSequentialSigning();
+    ensureDeferredSigning();
     ensureContextInitialized();
     m_cmsContext->ComputeHashToSign(result);
 }
 
-void PdfSignerCms::ComputeSignatureSequential(const bufferview& processedResult, charbuff& contents, bool dryrun)
+void PdfSignerCms::ComputeSignatureDeferred(const bufferview& processedResult, charbuff& contents, bool dryrun)
 {
-    ensureSequentialSigning();
+    ensureDeferredSigning();
     ensureContextInitialized();
 
     if (dryrun)
@@ -110,8 +110,8 @@ void PdfSignerCms::Reset()
     // Reset the reserved size
     m_reservedSize = 0;
 
-    // Reset also sequential signing if it was started
-    m_sequentialSigning = nullptr;
+    // Reset also deferred signing if it was started
+    m_deferredSigning = nullptr;
 }
 
 string PdfSignerCms::GetSignatureFilter() const
@@ -167,10 +167,10 @@ void PdfSignerCms::ReserveAttributeSize(unsigned attrSize)
 
 void PdfSignerCms::ensureEventBasedSigning()
 {
-    if (m_sequentialSigning.has_value())
+    if (m_deferredSigning.has_value())
     {
-        if (*m_sequentialSigning)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The signer is enabled for sequential signing");
+        if (*m_deferredSigning)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The signer is enabled for deferred signing");
     }
     else
     {
@@ -180,20 +180,20 @@ void PdfSignerCms::ensureEventBasedSigning()
                 "The signer can't perform event based signing without a signing service or a private pkey");
         }
 
-        m_sequentialSigning = false;
+        m_deferredSigning = false;
     }
 }
 
-void PdfSignerCms::ensureSequentialSigning()
+void PdfSignerCms::ensureDeferredSigning()
 {
-    if (m_sequentialSigning.has_value())
+    if (m_deferredSigning.has_value())
     {
-        if (!*m_sequentialSigning)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The signer is not enabled for sequential signing");
+        if (!*m_deferredSigning)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The signer is not enabled for deferred signing");
     }
     else
     {
-        m_sequentialSigning = true;
+        m_deferredSigning = true;
     }
 }
 

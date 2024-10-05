@@ -46,7 +46,7 @@ namespace PoDoFo
 
         /**
          * Retrieve the intermediate result of a signature computation,
-         * most probably a hash to sign. Called on sequential (aka "async")
+         * most probably a hash to sign. Called on deferred (aka "async")
          * signature computation
          * \param buffer the buffer that will hold the intermediate result
          * \remarks by default it throws with PdfErrorCode::NotImplemented
@@ -54,7 +54,7 @@ namespace PoDoFo
         virtual void FetchIntermediateResult(charbuff& result);
 
         /**
-         * Called when computing the signature in sequential (aka "async") mode
+         * Called when computing the signature in deferred (aka "async") mode
          * \param processedResult the processed intermediate result, for example a signed hash
          * \param buffer the buffer that will hold the signature /Contents
          * \param dryrun if true the buffer is not required to
@@ -63,7 +63,7 @@ namespace PoDoFo
          * \remarks by default it throws with PdfErrorCode::NotImplemented
          * \remarks it must support working without prior calls to AppendData() and/or FetchIntermediateResult() 
          */
-        virtual void ComputeSignatureSequential(const bufferview& processedResult, charbuff& contents, bool dryrun);
+        virtual void ComputeSignatureDeferred(const bufferview& processedResult, charbuff& contents, bool dryrun);
 
         /**
          * Determines if the buffer should not be cleared amid

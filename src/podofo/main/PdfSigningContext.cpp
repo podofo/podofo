@@ -65,7 +65,7 @@ void PdfSigningContext::StartSigning(PdfMemDocument& doc, const shared_ptr<Strea
 void PdfSigningContext::FinishSigning(const PdfSigningResults& processedResults)
 {
     if (m_doc == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "A sequential signing has not been started");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "A deferred signing has not been started");
 
     charbuff tmpbuff;
     computeSignatures(m_contexts, *m_doc, *m_device, &processedResults, tmpbuff);
@@ -120,12 +120,12 @@ PdfSignerId PdfSigningContext::addSigner(const PdfSignature& signature, PdfSigne
 void PdfSigningContext::ensureNotStarted() const
 {
     if (m_doc != nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "A sequential signing has already been started");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "A deferred signing has already been started");
 }
 
 // Prepare signature contexts, running dry-run signature computation
 unordered_map<PdfSignerId, PdfSigningContext::SignatureCtx> PdfSigningContext::prepareSignatureContexts(
-    PdfDocument& doc, bool sequentialSigning)
+    PdfDocument& doc, bool deferredSigning)
 {
     unordered_map<PdfSignerId, SignatureCtx> ret;
     for (auto& pair : m_signers)
@@ -136,8 +136,8 @@ unordered_map<PdfSignerId, PdfSigningContext::SignatureCtx> PdfSigningContext::p
         {
             auto& ctx = ret[PdfSignerId(pair.first, i)];
             auto& signer = attrs.Signers[i];
-            if (sequentialSigning)
-                signer->ComputeSignatureSequential({ }, ctx.Contents, true);
+            if (deferredSigning)
+                signer->ComputeSignatureDeferred({ }, ctx.Contents, true);
             else
                 signer->ComputeSignature(ctx.Contents, true);
             ctx.BeaconSize = ctx.Contents.size();
@@ -227,7 +227,7 @@ void PdfSigningContext::computeSignatures(unordered_map<PdfSignerId, SignatureCt
             if (processedResults == nullptr)
                 signer->ComputeSignature(ctx.Contents, false);
             else
-                signer->ComputeSignatureSequential(processedResults->Intermediate.at(signerId), ctx.Contents, false);
+                signer->ComputeSignatureDeferred(processedResults->Intermediate.at(signerId), ctx.Contents, false);
 
             if (ctx.Contents.size() > ctx.BeaconSize)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Actual signature size bigger than beacon size");

@@ -54,7 +54,7 @@ namespace std
 namespace PoDoFo
 {
     /**
-     * Interchange signing procedure results. Used when starting and finishing a sequential (aka "async") signing
+     * Interchange signing procedure results. Used when starting and finishing a deferred (aka "async") signing
      */
     struct PODOFO_API PdfSigningResults final
     {
@@ -63,7 +63,7 @@ namespace PoDoFo
 
     /**
      * A context that can be used to customize the signing process.
-     * It also enables the sequential (aka "async") signing, which is a mean to separately process
+     * It also enables the deferred (aka "async") signing, which is a mean to separately process
      * the intermediate results of signing (normally a hash to sign) that doesn't
      * require a streamlined event based processing. It can be issued by starting
      * the process with StartSigning() and finishing it with FinishSigning()
@@ -83,13 +83,13 @@ namespace PoDoFo
          */
         void Sign(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions options = PdfSaveOptions::None);
 
-        /** Start a sequential (aka "async") signing procedure
+        /** Start a deferred (aka "async") signing procedure
          * \param results instance where intermediate results will be stored
          */
         void StartSigning(PdfMemDocument& doc, const std::shared_ptr<StreamDevice>& device, PdfSigningResults& results,
             PdfSaveOptions saveOptions = PdfSaveOptions::None);
 
-        /** Finish a sequential(aka "async") signing procedure
+        /** Finish a deferred (aka "async") signing procedure
          * \param processedResults results that will be used to finalize the signatures
          */
         void FinishSigning(const PdfSigningResults& processedResults);
@@ -118,7 +118,7 @@ namespace PoDoFo
         PdfSignerId addSigner(const PdfSignature& signature, PdfSigner* signer,
             const std::shared_ptr<PdfSigner>& storage);
         void ensureNotStarted() const;
-        std::unordered_map<PdfSignerId, SignatureCtx> prepareSignatureContexts(PdfDocument& doc, bool sequentialSigning);
+        std::unordered_map<PdfSignerId, SignatureCtx> prepareSignatureContexts(PdfDocument& doc, bool deferredSigning);
         void saveDocForSigning(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions saveOptions);
         void appendDataForSigning(std::unordered_map<PdfSignerId, SignatureCtx>& contexts, StreamDevice& device,
             std::unordered_map<PdfSignerId, charbuff>* intermediateResults, charbuff& tmpbuff);
@@ -132,7 +132,7 @@ namespace PoDoFo
 
     private:
         std::unordered_map<PdfReference, SignatureAttrs> m_signers;
-        // Used during sequential signing
+        // Used during deferred signing
         PdfMemDocument* m_doc;
         std::shared_ptr<StreamDevice> m_device;
         std::unordered_map<PdfSignerId, SignatureCtx> m_contexts;

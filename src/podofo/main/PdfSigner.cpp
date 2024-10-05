@@ -23,7 +23,7 @@ void PdfSigner::FetchIntermediateResult(charbuff& result)
     PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
-void PdfSigner::ComputeSignatureSequential(const bufferview& processedResult, charbuff& buffer, bool dryrun)
+void PdfSigner::ComputeSignatureDeferred(const bufferview& processedResult, charbuff& buffer, bool dryrun)
 {
     (void)processedResult;
     (void)buffer;
