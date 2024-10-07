@@ -51,10 +51,10 @@ bool PdfIdentityEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUn
     return true;
 }
 
-bool PdfIdentityEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, vector<char32_t>& codePoints) const
+bool PdfIdentityEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, CodePointSpan& codePoints) const
 {
     (void)cidId;
-    codePoints.push_back((char32_t)codeUnit.Code);
+    codePoints = CodePointSpan((codepoint)codeUnit.Code);
     return true;
 }
 

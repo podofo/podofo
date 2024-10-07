@@ -21,7 +21,7 @@ const PdfEncodingLimits& PdfPredefinedToUnicodeCMap::GetLimits() const
     return m_CIDEncoding->GetLimits();
 }
 
-bool PdfPredefinedToUnicodeCMap::tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, vector<char32_t>& codePoints) const
+bool PdfPredefinedToUnicodeCMap::tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, CodePointSpan& codePoints) const
 {
     // ISO 32000-2:2020 "9.10.2 Mapping character codes to Unicode values"
     // "e. Map the CID obtained in step (a) according to the CMap obtained in step (d), producing a
@@ -31,7 +31,7 @@ bool PdfPredefinedToUnicodeCMap::tryGetCodePoints(const PdfCharCode& codeUnit, c
         if (!m_CIDEncoding->GetCharMap().TryGetCodePoints(codeUnit, codePoints))
             return false;
 
-        return m_ToUnicode->GetCharMap().TryGetCodePoints(PdfCharCode(codePoints[0], 2), codePoints);
+        return m_ToUnicode->GetCharMap().TryGetCodePoints(PdfCharCode(*codePoints, 2), codePoints);
     }
     else
     {

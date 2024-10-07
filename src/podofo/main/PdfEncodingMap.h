@@ -68,13 +68,13 @@ public:
     /** Try decode next code points from encoded string range
      */
     bool TryGetNextCodePoints(std::string_view::iterator& it,
-        const std::string_view::iterator& end, std::vector<char32_t>& codePoints) const;
+        const std::string_view::iterator& end, CodePointSpan& codePoints) const;
 
     /** Try get code points from char code unit
      *
      * \remarks it will iterate available code sizes
      */
-    bool TryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const;
+    bool TryGetCodePoints(const PdfCharCode& codeUnit, CodePointSpan& codePoints) const;
 
     virtual const PdfEncodingLimits& GetLimits() const = 0;
 
@@ -136,7 +136,7 @@ protected:
      *
      * \param cidId CID identifier that if available some encodings can benefit to fetch code points faster
      */
-    virtual bool tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, std::vector<char32_t>& codePoints) const = 0;
+    virtual bool tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, CodePointSpan& codePoints) const = 0;
 
     /** Get an export object that will be used during font init
      *
@@ -176,7 +176,7 @@ private:
      *
      * To be called by PdfStringScanContext
      */
-    bool TryGetCodePoints(const PdfCID& cid, std::vector<char32_t>& codePoints) const;
+    bool TryGetCodePoints(const PdfCID& cid, CodePointSpan& codePoints) const;
 
     /** Try get CID identifier code from code unit
      * \param id the identifier of the CID. The identifier is
@@ -187,7 +187,7 @@ private:
     bool TryGetCIDId(const PdfCharCode& codeUnit, unsigned& id) const;
 
     bool tryGetNextCodePoints(std::string_view::iterator& it, const std::string_view::iterator& end,
-        PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const;
+        PdfCharCode& codeUnit, CodePointSpan& codePoints) const;
 
     /** A code that specifies the writing mode for any CIDFont with
      * which this map is combined (make sense when this is a CMap)
@@ -218,7 +218,7 @@ protected:
 
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
 
-    bool tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, std::vector<char32_t>& codePoints) const override;
+    bool tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, CodePointSpan& codePoints) const override;
 
     void AppendCodeSpaceRange(OutputStream& stream, charbuff& temp) const override;
 
@@ -287,7 +287,7 @@ public:
 
 protected:
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
-    bool tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, std::vector<char32_t>& codePoints) const override;
+    bool tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, CodePointSpan& codePoints) const override;
 
     /** Gets a table of 256 short values which are the
      *  big endian Unicode code points that are assigned
@@ -331,7 +331,7 @@ public:
 protected:
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
 
-    bool tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, std::vector<char32_t>& codePoints) const override;
+    bool tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, CodePointSpan& codePoints) const override;
 
     void AppendToUnicodeEntries(OutputStream& stream, charbuff& temp) const override;
 

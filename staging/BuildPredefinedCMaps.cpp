@@ -193,23 +193,23 @@ unsigned readCode(InputStream& stream, unsigned char codeSize)
     }
 }
 
-void readMapping(InputStream& stream, CodeUnitMap& mappings)
+void readMapping(InputStream& stream, CodeUnitMap& mappings, vector<codepoint>& temp)
 {
     unsigned char codeSize = (unsigned char)stream.ReadChar();
     unsigned code = readCode(stream, codeSize);
     unsigned char copdePointsSize = (unsigned char)stream.ReadChar();
-    vector<codepoint> codepoints;
+    temp.resize(copdePointsSize);
     uint32_t cp;
     for (unsigned char i = 0; i < copdePointsSize; i++)
     {
         utls::ReadUInt32BE(stream, cp);
-        codepoints.push_back(cp);
+        temp[i] = cp;
     }
 
-    mappings[PdfCharCode(code, codeSize)] = std::move(codepoints);
+    mappings[PdfCharCode(code, codeSize)] = CodePointSpan(temp);
 }
 
-void readRange(InputStream& stream, CodeUnitRanges& ranges)
+void readRange(InputStream& stream, CodeUnitRanges& ranges, vector<codepoint>& temp)
 {
     unsigned char codeSize = (unsigned char)stream.ReadChar();
     unsigned code = readCode(stream, codeSize);
@@ -218,15 +218,15 @@ void readRange(InputStream& stream, CodeUnitRanges& ranges)
     utls::ReadUInt16BE(stream, rangeSize);
 
     unsigned char copdePointsSize = (unsigned char)stream.ReadChar();
-    vector<codepoint> codepoints;
+    temp.resize(copdePointsSize);
     uint32_t cp;
     for (unsigned char i = 0; i < copdePointsSize; i++)
     {
         utls::ReadUInt32BE(stream, cp);
-        codepoints.push_back(cp);
+        temp[i] = cp;
     }
 
-    ranges.insert(CodeUnitRange{ PdfCharCode(code, codeSize), rangeSize, std::move(codepoints) });
+    ranges.insert(CodeUnitRange{ PdfCharCode(code, codeSize), rangeSize, CodePointSpan(temp) });
 }
 
 void buildMappings(const string_view& compressed, CodeUnitMap& mappings, CodeUnitRanges& ranges)
@@ -239,12 +239,13 @@ void buildMappings(const string_view& compressed, CodeUnitMap& mappings, CodeUni
     uint16_t size;
     utls::ReadUInt16BE(stream, size);
     mappings.reserve(size);
+    vector<codepoint> temp;
     for (unsigned i = 0; i < size; i++)
-        readMapping(stream, mappings);
+        readMapping(stream, mappings, temp);
 
     utls::ReadUInt16BE(stream, size);
     for (unsigned i = 0; i < size; i++)
-        readRange(stream, ranges);
+        readRange(stream, ranges, temp);
 }
 )");
 

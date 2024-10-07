@@ -318,7 +318,7 @@ bool PdfFont::TryScanEncodedString(const PdfString& encodedStr, const PdfTextSta
         return true;
 
     auto context = m_Encoding->StartStringScan(encodedStr);
-    vector<codepoint> codepoints;
+    CodePointSpan codepoints;
     PdfCID cid;
     bool success = true;
     unsigned prevOffset = 0;

@@ -28,7 +28,7 @@ namespace PoDoFo
         const PdfEncodingLimits& GetLimits() const override;
 
     protected:
-        bool tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, std::vector<char32_t>& codePoints) const override;
+        bool tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, CodePointSpan& codePoints) const override;
         bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
         bool tryGetCharCodeSpan(const unicodeview& ligature, PdfCharCode& codeUnit) const override;
 

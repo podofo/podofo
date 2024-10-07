@@ -2614,7 +2614,7 @@ bool PdfDifferenceEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& code
     return true;
 }
 
-bool PdfDifferenceEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, vector<char32_t>& codePoints) const
+bool PdfDifferenceEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, CodePointSpan& codePoints) const
 {
     (void)cidId;
     if (codeUnit.Code >= 256)
@@ -2624,7 +2624,7 @@ bool PdfDifferenceEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, const 
     char32_t codePoint;
     if (m_differences.TryGetMappedName((unsigned char)codeUnit.Code, name, codePoint))
     {
-        codePoints.push_back(codePoint);
+        codePoints = CodePointSpan(codePoint);
         return true;
     }
     else
@@ -2639,18 +2639,17 @@ void PdfDifferenceEncoding::buildReverseMap()
         return;
 
     auto& limits = m_baseEncoding->GetLimits();
-    vector<char32_t> codePoints;
     const PdfName* name;
-
+    CodePointSpan codePoints;
+    char32_t copdePoint;
     for (unsigned code = limits.FirstChar.Code, last = limits.LastChar.Code; code <= last; code++)
     {
         // Iterate all the codes of the encoding. NOTE: It's safe to assume
         // the base encoding is a one byte encoding
-        codePoints.resize(1);
-        if (m_differences.TryGetMappedName((unsigned char)code, name, codePoints[0]))
+        if (m_differences.TryGetMappedName((unsigned char)code, name, copdePoint))
         {
             // If there's a difference, use that instead
-            m_reverseMap[codePoints[0]] = (unsigned char)code;
+            m_reverseMap[copdePoint] = (unsigned char)code;
             continue;
         }
 
@@ -2662,7 +2661,7 @@ void PdfDifferenceEncoding::buildReverseMap()
         }
 
         // NOTE: It's safe to assume the base encoding maps to single code point
-        m_reverseMap[codePoints[0]] = (unsigned char)code;
+        m_reverseMap[*codePoints] = (unsigned char)code;
     }
 
     m_reverseMapBuilt = true;

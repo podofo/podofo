@@ -21,15 +21,57 @@ namespace PoDoFo
     using codepoint = char32_t;
     using codepointview = cspan<codepoint>;
 
+    /**
+     * A memory owning immutable block of code points, optimized for small
+     * segments as up to 3 elements can stay in the stack
+     */
+    class CodePointSpan final
+    {
+    public:
+        CodePointSpan();
+        ~CodePointSpan();
+        CodePointSpan(codepoint codepoint);
+        CodePointSpan(const codepointview& view);
+        CodePointSpan(const codepointview& view, codepoint codepoint);
+        CodePointSpan(const CodePointSpan&);
+        void CopyTo(std::vector<codepoint>& codePoints) const;
+        codepointview view() const;
+        unsigned GetSize() const;
+        CodePointSpan& operator=(const CodePointSpan&);
+        operator codepointview() const;
+
+        /**
+         * Return the first element in the block
+         * \remarks if the size is 0 it will always return U'\0'
+         */
+        codepoint operator*() const;
+
+    private:
+        union
+        {
+            struct
+            {
+                uint32_t Size;
+                std::array<codepoint, 3> Data;
+            } m_Block;
+
+            struct
+            {
+                uint32_t Size;
+                std::unique_ptr<codepoint[]> Data;
+            } m_Array;
+        };
+    };
+
     // Map code units -> code point(s)
     // pp. 474-475 of PdfReference 1.7 "The value of dstString can be a string of up to 512 bytes"
-    using CodeUnitMap = std::unordered_map<PdfCharCode, std::vector<codepoint>>;
+    using CodeUnitMap = std::unordered_map<PdfCharCode, CodePointSpan>;
 
     struct PODOFO_API CodeUnitRange final
     {
         PdfCharCode SrcCodeLo;
         unsigned Size = 0;
-        std::vector<codepoint> DstCodeLo;
+        CodePointSpan DstCodeLo;
 
         PdfCharCode GetSrcCodeHi() const;
     };
@@ -102,7 +144,7 @@ namespace PoDoFo
 
         /** Returns false when no mapped identifiers are not found in the map
          */
-        bool TryGetCodePoints(const PdfCharCode& codeUnit, std::vector<codepoint>& codePoints) const;
+        bool TryGetCodePoints(const PdfCharCode& codeUnit, CodePointSpan& codePoints) const;
 
         /** Try get char code from utf8 encoded range
          * \remarks It assumes it != and it will consumes the iterator
@@ -145,7 +187,7 @@ namespace PoDoFo
 
     private:
         void move(PdfCharCodeMap& map) noexcept;
-        void pushMapping(const PdfCharCode& codeUnit, std::vector<codepoint>&& codePoints);
+        void pushMapping(const PdfCharCode& codeUnit, const codepointview& codePoints);
 
         // Map code point(s) -> code units
         struct CodePointMapNode

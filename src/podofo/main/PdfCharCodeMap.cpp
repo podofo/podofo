@@ -13,8 +13,9 @@
 using namespace std;
 using namespace PoDoFo;
 
-static void appendRangesTo(vector<pair<PdfCharCode, vector<codepoint>>>& mapppings, const CodeUnitMap& mappings, const CodeUnitRanges ranges);
+static void appendRangesTo(vector<pair<PdfCharCode, CodePointSpan>>& mapppings, const CodeUnitMap& mappings, const CodeUnitRanges ranges);
 static void fetchCodePoints(vector<codepoint>& codePoints, const PdfCharCode& code, const CodeUnitRange& range);
+static void fetchCodePoints(CodePointSpan& codePoints, const PdfCharCode& code, const CodeUnitRange& range);
 static void pushCodeRangeSize(vector<unsigned char>& codeRangeSizes, unsigned char codeRangeSize);
 
 PdfCharCodeMap::PdfCharCodeMap()
@@ -69,8 +70,8 @@ bool PdfCharCodeMap::IsTrivialIdentity() const
         unsigned prev = it->first.Code - 1;
         do
         {
-            if (it->second.size() > 1
-                || it->first.Code != it->second[0]
+            if (it->second.GetSize() > 1
+                || it->first.Code != *it->second
                 || it->first.Code > (prev + 1))
             {
                 return false;
@@ -134,14 +135,13 @@ void PdfCharCodeMap::PushMapping(const PdfCharCode& codeUnit, const codepointvie
     if (codePoints.size() == 0)
         return;
 
-    vector<codepoint> copy(codePoints.begin(), codePoints.end());
-    pushMapping(codeUnit, std::move(copy));
+    pushMapping(codeUnit, codePoints);
 }
 
 void PdfCharCodeMap::PushMapping(const PdfCharCode& codeUnit, codepoint codePoint)
 {
-    vector<codepoint> codePoints = { codePoint };
-    pushMapping(codeUnit, std::move(codePoints));
+    codepointview codePoints = { &codePoint, 1 };
+    pushMapping(codeUnit, codePoints);
 }
 
 void PdfCharCodeMap::PushRange(const PdfCharCode& srcCodeLo, unsigned size, codepoint dstCodeLo)
@@ -161,7 +161,7 @@ void PdfCharCodeMap::PushRange(const PdfCharCode& srcCodeLo, unsigned rangeSize,
         return;
     }
 
-    auto inserted = m_Ranges.emplace(CodeUnitRange{ srcCodeLo, rangeSize, vector<codepoint>(dstCodeLo.begin(), dstCodeLo.end()) });
+    auto inserted = m_Ranges.emplace(CodeUnitRange{ srcCodeLo, rangeSize, CodePointSpan(dstCodeLo) });
     // Try fix invalid ranges: the inserted range
     // always overrides previous ones
     bool invalidRanges = false;
@@ -213,7 +213,7 @@ void PdfCharCodeMap::PushRange(const PdfCharCode& srcCodeLo, unsigned rangeSize,
     m_MapDirty = true;
 }
 
-bool PdfCharCodeMap::TryGetCodePoints(const PdfCharCode& codeUnit, vector<codepoint>& codePoints) const
+bool PdfCharCodeMap::TryGetCodePoints(const PdfCharCode& codeUnit, CodePointSpan& codePoints) const
 {
     // Try to find direct mapppings first
     auto found = m_Mappings.find(codeUnit);
@@ -229,7 +229,7 @@ bool PdfCharCodeMap::TryGetCodePoints(const PdfCharCode& codeUnit, vector<codepo
     auto foundRange = m_Ranges.upper_bound(codeUnit);
     if (foundRange == m_Ranges.begin() || codeUnit.Code >= ((--foundRange)->SrcCodeLo.Code + foundRange->Size))
     {
-        codePoints.clear();
+        codePoints = { };
         return false;
     }
 
@@ -296,12 +296,12 @@ bool PdfCharCodeMap::TryGetCharCode(codepoint codePoint, PdfCharCode& code) cons
     return true;
 }
 
-void PdfCharCodeMap::pushMapping(const PdfCharCode& codeUnit, vector<codepoint>&& codePoints)
+void PdfCharCodeMap::pushMapping(const PdfCharCode& codeUnit, const codepointview& codePoints)
 {
     if (codeUnit.CodeSpaceSize == 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Code unit must be valid");
 
-    m_Mappings[codeUnit] = std::move(codePoints);
+    m_Mappings[codeUnit] = CodePointSpan(codePoints);
 
     // Update limits
     updateLimits(codeUnit);
@@ -383,7 +383,7 @@ void PdfCharCodeMap::reviseCodePointMap()
         m_codePointMapHead = nullptr;
     }
 
-    vector<pair<PdfCharCode, vector<codepoint>>> mappings;
+    vector<pair<PdfCharCode, CodePointSpan>> mappings;
     mappings.reserve(m_Mappings.size());
     std::copy(m_Mappings.begin(), m_Mappings.end(), std::back_inserter(mappings));
     appendRangesTo(mappings, m_Mappings, m_Ranges);
@@ -399,8 +399,9 @@ void PdfCharCodeMap::reviseCodePointMap()
     {
         CodePointMapNode** curr = &m_codePointMapHead;      // Node root being searched
         CodePointMapNode* found;                            // Last found node
-        auto it = pair.second.begin();
-        auto end = pair.second.end();
+        auto codepoints = pair.second.view();
+        auto it = codepoints.begin();
+        auto end = codepoints.end();
         PODOFO_INVARIANT(it != end);
         while (true)
         {
@@ -497,7 +498,7 @@ void PdfCharCodeMap::deleteNode(CodePointMapNode* node)
 
 // Append mappings coming from ranges, excluding the ones
 // that are already directly mapped
-void appendRangesTo(vector<pair<PdfCharCode, vector<codepoint>>>& allMapppings,
+void appendRangesTo(vector<pair<PdfCharCode, CodePointSpan>>& allMapppings,
     const CodeUnitMap& mappings, const CodeUnitRanges ranges)
 {
     PdfCharCode code;
@@ -512,7 +513,7 @@ void appendRangesTo(vector<pair<PdfCharCode, vector<codepoint>>>& allMapppings,
                 continue;
 
             fetchCodePoints(codePoints, code, range);
-            allMapppings.push_back({ code, std::move(codePoints) });
+            allMapppings.push_back({ code, CodePointSpan(codePoints) });
         }
     }
 }
@@ -520,13 +521,29 @@ void appendRangesTo(vector<pair<PdfCharCode, vector<codepoint>>>& allMapppings,
 // Fetch codepoints from range for the given code
 void fetchCodePoints(vector<codepoint>& codePoints, const PdfCharCode& code, const CodeUnitRange& range)
 {
-    codePoints = range.DstCodeLo;
+    range.DstCodeLo.CopyTo(codePoints);
     unsigned codeDiff = code.Code - range.SrcCodeLo.Code;
     if (codeDiff > 0)
     {
-        PODOFO_INVARIANT(foundRange->DstCodeLo.size() != 0);
-        auto back = codePoints[codePoints.size() - 1];
-        codePoints[codePoints.size() - 1] = (codepoint)((unsigned)back + codeDiff);
+        PODOFO_INVARIANT(codePoints.size() != 0);
+        auto newcode = (codepoint)((unsigned)codePoints.back() + codeDiff);
+        codePoints[codePoints.size() - 1] = newcode;
+    }
+}
+
+void fetchCodePoints(CodePointSpan& codePoints, const PdfCharCode& code, const CodeUnitRange& range)
+{
+    unsigned codeDiff = code.Code - range.SrcCodeLo.Code;
+    if (codeDiff > 0)
+    {
+        auto dstCodeLo = range.DstCodeLo.view();
+        PODOFO_INVARIANT(dstCodeLo.size() != 0);
+        auto newcode = (codepoint)((unsigned)dstCodeLo.back() + codeDiff);
+        codePoints = CodePointSpan(dstCodeLo.subspan(0, dstCodeLo.size() - 1), newcode);
+    }
+    else
+    {
+        codePoints = range.DstCodeLo;
     }
 }
 
@@ -542,4 +559,119 @@ void pushCodeRangeSize(vector<unsigned char>& codeRangeSizes, unsigned char code
 PdfCharCode CodeUnitRange::GetSrcCodeHi() const
 {
     return PdfCharCode(SrcCodeLo.Code + Size - 1, SrcCodeLo.CodeSpaceSize);
+}
+
+CodePointSpan::CodePointSpan()
+    : m_Block{ 0, { U'\0', U'\0', U'\0' } }
+{
+}
+
+CodePointSpan::~CodePointSpan()
+{
+    unsigned size = *(const uint32_t*)this;
+    if (size > std::size(m_Block.Data))
+        m_Array.Data.~unique_ptr();
+}
+
+CodePointSpan::CodePointSpan(codepoint cp)
+    : m_Block{ 1, { cp, U'\0', U'\0' } }
+{
+}
+
+CodePointSpan::CodePointSpan(const codepointview& view)
+{
+    if (view.size() > std::size(m_Block.Data))
+    {
+        auto data = new codepoint[view.size()];
+        std::memcpy(data, view.data(), view.size() * sizeof(char32_t));
+        new(&m_Array.Data)unique_ptr<codepoint[]>(data);
+        m_Array.Size = (unsigned)view.size();
+    }
+    else
+    {
+        new(&m_Block.Data)array<codepoint, 3>{ };
+        std::memcpy(m_Block.Data.data(), view.data(), view.size() * sizeof(char32_t));
+        m_Block.Size = (unsigned)view.size();
+    }
+}
+
+CodePointSpan::CodePointSpan(const codepointview& view, codepoint cp)
+{
+    if (view.size() > std::size(m_Block.Data))
+    {
+        auto data = new codepoint[view.size() + 1];
+        std::memcpy(data, view.data(), view.size() * sizeof(char32_t));
+        data[view.size()] = cp;
+        new(&m_Array.Data)unique_ptr<codepoint[]>(data);
+        m_Array.Size = (unsigned)(view.size() + 1);
+    }
+    else
+    {
+        new(&m_Block.Data)array<codepoint, 3>{ };
+        std::memcpy(m_Block.Data.data(), view.data(), view.size() * sizeof(char32_t));
+        m_Block.Data[view.size()] = cp;
+        m_Block.Size = (unsigned)view.size() + 1;
+    }
+}
+
+CodePointSpan::CodePointSpan(const CodePointSpan& rhs)
+    : CodePointSpan(rhs.view()) { }
+
+void CodePointSpan::CopyTo(vector<codepoint>& codePoints) const
+{
+    auto span = view();
+    codePoints.resize(span.size());
+    std::memcpy(codePoints.data(), span.data(), span.size() * sizeof(char32_t));
+}
+
+unsigned CodePointSpan::GetSize() const
+{
+    return *(const uint32_t*)this;
+}
+
+CodePointSpan& CodePointSpan::operator=(const CodePointSpan& rhs)
+{
+    this->~CodePointSpan();
+    auto view = rhs.view();
+    if (view.size() > std::size(m_Block.Data))
+    {
+        auto data = new codepoint[view.size()];
+        std::memcpy(data, view.data(), view.size() * sizeof(char32_t));
+        new(&m_Array.Data)unique_ptr<codepoint[]>(data);
+        m_Array.Size = (unsigned)view.size();
+    }
+    else
+    {
+        new(&m_Block.Data)array<codepoint, 3>{ };
+        std::memcpy(m_Block.Data.data(), view.data(), view.size() * sizeof(char32_t));
+        m_Block.Size = (unsigned)view.size();
+    }
+    return *this;
+}
+
+codepointview CodePointSpan::view() const
+{
+    unsigned size = *(const uint32_t*)this;
+    if (size > std::size(m_Block.Data))
+        return codepointview(m_Array.Data.get(), size);
+    else
+        return codepointview(m_Block.Data.data(), size);
+}
+
+CodePointSpan::operator codepointview() const
+{
+    unsigned size = *(const uint32_t*)this;
+    if (size > std::size(m_Block.Data))
+        return codepointview(m_Array.Data.get(), size);
+    else
+        return codepointview(m_Block.Data.data(), size);
+}
+
+codepoint CodePointSpan::operator*() const
+{
+    unsigned size = *(const uint32_t*)this;
+    if (size > std::size(m_Block.Data))
+        return m_Array.Data[0];
+    else
+        return m_Block.Data[0];
 }

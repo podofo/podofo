@@ -33,7 +33,7 @@ namespace PoDoFo
         /** Advance string reading
          * \return true if success
          */
-        bool TryScan(PdfCID& cid, std::string& utf8str, std::vector<codepoint>& codepoints);
+        bool TryScan(PdfCID& cid, std::string& utf8str, CodePointSpan& codepoints);
 
     private:
         std::string_view::iterator m_it;

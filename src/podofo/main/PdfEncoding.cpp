@@ -207,23 +207,23 @@ bool PdfEncoding::tryConvertEncodedToUtf8(const string_view& encoded, string& st
     bool success = true;
     auto it = encoded.begin();
     auto end = encoded.end();
-    vector<char32_t> codePoints;
+    CodePointSpan codePoints;
     while (it != end)
     {
         if (!map.TryGetNextCodePoints(it, end, codePoints))
         {
             success = false;
-            codePoints.clear();
-            codePoints.push_back((char32_t)fetchFallbackCharCode(it, end, limits).Code);
+            codePoints = CodePointSpan((char32_t)fetchFallbackCharCode(it, end, limits).Code);
         }
 
-        for (size_t i = 0; i < codePoints.size(); i++)
+        auto view = codePoints.view();
+        for (size_t i = 0; i < view.size(); i++)
         {
-            char32_t codePoint = codePoints[i];
+            char32_t codePoint = view[i];
             if (codePoint != U'\0' && utf8::internal::is_code_point_valid(codePoint))
             {
                 // Validate codepoints to insert
-                utf8::unchecked::append((uint32_t)codePoints[i], std::back_inserter(str));
+                utf8::unchecked::append((uint32_t)view[i], std::back_inserter(str));
             }
         }
     }
@@ -439,27 +439,27 @@ bool PdfEncoding::IsDynamicEncoding() const
 char32_t PdfEncoding::GetCodePoint(const PdfCharCode& codeUnit) const
 {
     auto& map = GetToUnicodeMapSafe();
-    vector<char32_t> codePoints;
+    CodePointSpan codePoints;
     if (!map.TryGetCodePoints(codeUnit, codePoints)
-        || codePoints.size() != 1)
+        || codePoints.GetSize() != 1)
     {
         return U'\0';
     }
 
-    return codePoints[0];
+    return *codePoints;
 }
 
 char32_t PdfEncoding::GetCodePoint(unsigned charCode) const
 {
     auto& map = GetToUnicodeMapSafe();
     auto& limits = map.GetLimits();
-    vector<char32_t> codePoints;
+    CodePointSpan codePoints;
     for (unsigned char i = limits.MinCodeSize; i <= limits.MaxCodeSize; i++)
     {
         if (map.TryGetCodePoints({ charCode, i }, codePoints)
-            && codePoints.size() == 1)
+            && codePoints.GetSize() == 1)
         {
-            return codePoints[0];
+            return *codePoints;
         }
     }
 
@@ -712,7 +712,7 @@ bool PdfStringScanContext::IsEndOfString() const
     return m_it == m_end;
 }
 
-bool PdfStringScanContext::TryScan(PdfCID& cid, string& utf8str, vector<codepoint>& codepoints)
+bool PdfStringScanContext::TryScan(PdfCID& cid, string& utf8str, CodePointSpan& codepoints)
 {
     bool success = true;
     if (!m_encoding->TryGetNextCID(m_it, m_end, cid))
@@ -724,13 +724,14 @@ bool PdfStringScanContext::TryScan(PdfCID& cid, string& utf8str, vector<codepoin
 
     if (m_toUnicode->TryGetCodePoints(cid, codepoints))
     {
-        for (size_t i = 0; i < codepoints.size(); i++)
+        auto view = codepoints.view();
+        for (size_t i = 0; i < view.size(); i++)
         {
-            char32_t codePoint = codepoints[i];
+            char32_t codePoint = view[i];
             if (codePoint != U'\0' && utf8::internal::is_code_point_valid(codePoint))
             {
                 // Validate codepoints to insert
-                utf8::unchecked::append((uint32_t)codepoints[i], std::back_inserter(utf8str));
+                utf8::unchecked::append((uint32_t)view[i], std::back_inserter(utf8str));
             }
         }
     }
