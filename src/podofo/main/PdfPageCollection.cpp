@@ -155,17 +155,28 @@ void PdfPageCollection::InsertPagesAt(unsigned atIndex, cspan<PdfPage*> pages)
     insertPagesAt(atIndex, pages);
 }
 
-bool PdfPageCollection::TryMovePageAt(unsigned atIndex, unsigned toIndex)
+bool PdfPageCollection::TryMovePageTo(unsigned atIndex, unsigned toIndex)
 {
     PODOFO_ASSERT(atIndex < m_Pages.size() && atIndex != toIndex);
     if (toIndex >= m_Pages.size())
         return false;
     
     FlattenStructure();
-    std::iter_swap(m_Pages.begin() + atIndex, m_Pages.begin() + toIndex);
-    m_kidsArray->SwapAt(atIndex, toIndex);
+
+    if (atIndex > toIndex)
+        std::swap(atIndex, toIndex);
+
+    m_kidsArray->MoveTo(atIndex, toIndex);
+
+    auto temp = m_Pages[toIndex];
+    for (unsigned i = toIndex; i > atIndex; i--)
+    {
+        m_Pages[i] = m_Pages[i - 1];
+        m_Pages[i]->SetIndex(i);
+    }
+
+    m_Pages[atIndex] = temp;
     m_Pages[atIndex]->SetIndex(atIndex);
-    m_Pages[toIndex]->SetIndex(toIndex);
     return true;
 }
 

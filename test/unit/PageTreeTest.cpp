@@ -193,16 +193,46 @@ TEST_CASE("TestMovePage")
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("TechDocs", "pdf_implementation.pdf"));
 
-    auto& page = doc.GetPages().GetPageAt(7);
+    vector<PdfReference> refs = {
+        PdfReference(15, 0),
+        PdfReference(82, 0),
+        PdfReference(88, 0),
+        PdfReference(83, 0),
+        PdfReference(84, 0),
+        PdfReference(85, 0),
+        PdfReference(86, 0),
+        PdfReference(87, 0),
+        PdfReference(89, 0),
+        PdfReference(90, 0),
+        PdfReference(91, 0),
+    };
 
-    REQUIRE(page.GetIndex() == 7);
-    REQUIRE(!page.MoveAt(11));
-    REQUIRE(page.MoveAt(2));
-    REQUIRE(page.GetIndex() == 2);
-    REQUIRE(doc.GetPages().GetPageAt(7).GetIndex() == 7);
+    {
+        auto& pages = doc.GetPages();
+
+        {
+            auto& page = pages.GetPageAt(7);
+            REQUIRE(page.GetIndex() == 7);
+            REQUIRE(!page.MoveAt(11));
+            REQUIRE(page.MoveAt(2));
+        }
+
+        for (unsigned i = 0; i < pages.GetCount(); i++)
+        {
+            auto& page = pages.GetPageAt(i);
+            REQUIRE(page.GetIndex() == i);
+            REQUIRE(page.GetObject().GetIndirectReference() == refs[i]);
+        }
+    }
 
     string filename = TestUtils::GetTestOutputFilePath("TestMovePage.pdf");
     doc.Save(filename);
+
+    // Re-load the file to check again the references
+    doc.Load(filename);
+    auto& pages = doc.GetPages();
+    for (unsigned i = 0; i < pages.GetCount(); i++)
+        REQUIRE(pages.GetPageAt(i).GetObject().GetIndirectReference() == refs[i]);
 }
 
 void testGetPages(PdfMemDocument& doc)
