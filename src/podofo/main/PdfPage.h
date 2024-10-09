@@ -247,9 +247,9 @@ public:
      */
     void SetRotation(int rotation);
 
-    /** Move the page at the given index
+    /** Move the page to the given index
      */
-    bool MoveAt(unsigned index);
+    bool MoveTo(unsigned index);
 
     template <typename TField>
     TField& CreateField(const std::string_view& name, const Rect& rect, bool rawRect = false);

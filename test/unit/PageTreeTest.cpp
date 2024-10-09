@@ -213,8 +213,8 @@ TEST_CASE("TestMovePage")
         {
             auto& page = pages.GetPageAt(7);
             REQUIRE(page.GetIndex() == 7);
-            REQUIRE(!page.MoveAt(11));
-            REQUIRE(page.MoveAt(2));
+            REQUIRE(!page.MoveTo(11));
+            REQUIRE(page.MoveTo(2));
         }
 
         for (unsigned i = 0; i < pages.GetCount(); i++)

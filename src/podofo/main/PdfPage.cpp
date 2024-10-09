@@ -298,7 +298,7 @@ void PdfPage::SetRotation(int rotation)
     m_Rotation = rotation;
 }
 
-bool PdfPage::MoveAt(unsigned index)
+bool PdfPage::MoveTo(unsigned index)
 {
     if (index == m_Index)
         return false;

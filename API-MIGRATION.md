@@ -29,6 +29,7 @@
 - `PdfPage::SetICCProfile()`, `PdfImage::SetICCProfile()`: Removed. Create a
   `PdfColorSpaceFilterICCBased` and set it through `PdfPainter::SetFillColorSpace`
   or `PdfPainter::SetStrokeColorSpace`
+- `PdfPage`: Renamed `MoveAt()` -> `MoveTo()`
 - `FileStreamDevice` doesn't inherit `StandardStreamDevice` anymore
 - `PdfString`:
   * `GetString()` and `GetRawData()` now returns `std::string_view`
