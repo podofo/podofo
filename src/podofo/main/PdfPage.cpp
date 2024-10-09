@@ -290,7 +290,12 @@ void PdfPage::SetRotationRaw(int rotation)
     this->GetDictionary().AddKey("Rotate", PdfVariant(static_cast<int64_t>(rotation)));
 }
 
-bool PdfPage::MoveAt(unsigned index)
+void PdfPage::MoveAt(unsigned index)
+{
+    (void)MoveTo(index);
+}
+
+bool PdfPage::MoveTo(unsigned index)
 {
     if (index == m_Index)
         return false;
