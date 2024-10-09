@@ -329,6 +329,25 @@ void PdfArray::SwapAt(unsigned atIndex, unsigned toIndex)
     SetDirty();
 }
 
+void PdfArray::MoveTo(unsigned atIndex, unsigned toIndex)
+{
+    if (atIndex >= m_Objects.size() || toIndex >= m_Objects.size())
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "atIndex or toIndex is out of bounds");
+
+    if (atIndex == toIndex)
+        return;
+
+    if (atIndex > toIndex)
+        std::swap(atIndex, toIndex);
+
+    PdfObject temp(m_Objects[toIndex]);
+    for (unsigned i = toIndex; i > atIndex; i--)
+        m_Objects[i].Assign(std::move(m_Objects[i - 1]));
+
+    m_Objects[atIndex].Assign(std::move(temp));
+    SetDirty();
+}
+
 PdfObject& PdfArray::operator[](size_type idx)
 {
     return getAt((unsigned)idx);

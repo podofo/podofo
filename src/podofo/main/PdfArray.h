@@ -190,6 +190,8 @@ public:
 
     void SwapAt(unsigned atIndex, unsigned toIndex);
 
+    void MoveTo(unsigned atIndex, unsigned toIndex);
+
 public:
     /**
      *  \returns the size of the array
