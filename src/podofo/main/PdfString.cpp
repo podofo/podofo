@@ -105,6 +105,11 @@ PdfString::PdfString(const PdfString& rhs)
     }
 }
 
+PdfString::PdfString(PdfString&& rhs) noexcept
+{
+    moveFrom(std::move(rhs));
+}
+
 PdfString& PdfString::operator=(const PdfString& rhs)
 {
     this->~PdfString();
@@ -120,6 +125,13 @@ PdfString& PdfString::operator=(const PdfString& rhs)
     }
 
     m_isHex = rhs.m_isHex;
+    return *this;
+}
+
+PdfString& PdfString::operator=(PdfString&& rhs) noexcept
+{
+    this->~PdfString();
+    moveFrom(std::move(rhs));
     return *this;
 }
 
@@ -495,6 +507,21 @@ void PdfString::ensureCharsEvaluated() const
     }
 
     m_data->StringEvaluated = true;
+}
+
+void PdfString::moveFrom(PdfString&& rhs)
+{
+    if (rhs.m_dataAllocated)
+        new(&m_data)shared_ptr<StringData>(std::move(rhs.m_data));
+    else
+        new(&m_Utf8View)string_view(rhs.m_Utf8View);
+
+    m_dataAllocated = rhs.m_dataAllocated;
+    m_isHex = rhs.m_isHex;
+
+    new(&rhs.m_Utf8View)string_view("");
+    rhs.m_dataAllocated = false;
+    rhs.m_isHex = false;
 }
 
 string_view PdfString::GetRawData() const

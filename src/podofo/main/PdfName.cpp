@@ -72,6 +72,10 @@ PdfName::PdfName(const PdfName& rhs)
     }
 }
 
+PdfName::PdfName(PdfName&& rhs) noexcept
+{
+    moveFrom(std::move(rhs));
+}
 
 PdfName& PdfName::operator=(const PdfName& rhs)
 {
@@ -86,6 +90,13 @@ PdfName& PdfName::operator=(const PdfName& rhs)
         new(&m_data)string_view(rhs.m_Utf8View);
         m_dataAllocated = false;
     }
+    return *this;
+}
+
+PdfName& PdfName::operator=(PdfName&& rhs) noexcept
+{
+    this->~PdfName();
+    moveFrom(std::move(rhs));
     return *this;
 }
 
@@ -117,6 +128,19 @@ void PdfName::initFromUtf8String(const string_view& view)
         new(&m_data)shared_ptr<NameData>(new NameData{ (charbuff)PoDoFo::ConvertUTF8ToPdfDocEncoding(view), std::make_unique<string>(view), true });
 
     m_dataAllocated = true;
+}
+
+void PdfName::moveFrom(PdfName&& rhs)
+{
+    if (rhs.m_dataAllocated)
+        new(&m_data)shared_ptr<NameData>(std::move(rhs.m_data));
+    else
+        new(&m_Utf8View)string_view(rhs.m_Utf8View);
+
+    m_dataAllocated = rhs.m_dataAllocated;
+
+    new(&rhs.m_Utf8View)string_view("");
+    rhs.m_dataAllocated = false;
 }
 
 PdfName PdfName::FromEscaped(const string_view& view)

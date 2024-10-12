@@ -65,6 +65,8 @@ public:
      */
     PdfString(const PdfString& rhs);
 
+    PdfString(PdfString&& rhs) noexcept;
+
     /** Construct a new PdfString from an utf-8 encoded string.
      *
      *  \param view a buffer
@@ -124,6 +126,7 @@ public:
      *  \returns this object
      */
     PdfString& operator=(const PdfString& rhs);
+    PdfString& operator=(PdfString&& rhs) noexcept;
 
     /** Comparison operator
      *
@@ -166,6 +169,7 @@ private:
      */
     void initFromUtf8String(const char* str, size_t length, bool literal);
     void ensureCharsEvaluated() const;
+    void moveFrom(PdfString&& rhs);
 
 private:
     struct StringData

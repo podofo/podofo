@@ -66,6 +66,7 @@ public:
      *  \param rhs another PdfName object
      */
     PdfName(const PdfName& rhs);
+    PdfName(PdfName&& rhs) noexcept;
 
     static PdfName FromRaw(const bufferview& rawcontent);
 
@@ -105,6 +106,7 @@ public:
      *  \param rhs another PdfName object
      */
     PdfName& operator=(const PdfName& rhs);
+    PdfName& operator=(PdfName&& rhs) noexcept;
 
     /** compare to PdfName objects.
      *  \returns true if both PdfNames have the same value.
@@ -138,6 +140,7 @@ private:
     void expandUtf8String();
     void initFromUtf8String(const char* str, size_t length);
     void initFromUtf8String(const std::string_view& view);
+    void moveFrom(PdfName&& rhs);
 
 private:
     struct NameData

@@ -177,3 +177,27 @@ TEST_CASE("TestPdfNames")
     PdfDictionary dict;
     dict.AddKey(PdfNames::Length, PdfObject(static_cast<int64_t >(100)));
 }
+
+TEST_CASE("TestMoveSemantics")
+{
+    string_view refs1 = "S1";
+    string_view refs2 = "S2";
+    PdfString s1 = refs1;
+    REQUIRE(s1 == refs1);
+    PdfString s2 = refs2;
+    REQUIRE(s2 == refs2);
+    s2 = std::move(s1);
+    REQUIRE(s2 == refs1);
+    REQUIRE(s1 == "");
+
+    string_view refn1 = "N1";
+    string_view refn2 = "N2";
+    PdfName n1 = refn1;
+    REQUIRE(n1 == refn1);
+    PdfName n2 = refn2;
+    REQUIRE(n2 == refn2);
+    n2 = std::move(n1);
+    REQUIRE(n2 == refn1);
+    REQUIRE(n1 == "");
+}
+
