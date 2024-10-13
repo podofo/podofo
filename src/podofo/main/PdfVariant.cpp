@@ -840,30 +840,18 @@ void PdfVariant::SetBool(bool value)
 
 void PdfVariant::SetNumber(int64_t value)
 {
-    if (!(m_DataType == PdfDataType::Number
-        || m_DataType == PdfDataType::Real))
-    {
+    if (m_DataType != PdfDataType::Number)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidDataType);
-    }
 
-    if (m_DataType == PdfDataType::Real)
-        m_Data.Real = static_cast<double>(value);
-    else
-        m_Data.Number = value;
+    m_Data.Number = value;
 }
 
 void PdfVariant::SetReal(double value)
 {
-    if (!(m_DataType == PdfDataType::Real
-        || m_DataType == PdfDataType::Number))
-    {
+    if (m_DataType != PdfDataType::Real)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidDataType);
-    }
 
-    if (m_DataType == PdfDataType::Number)
-        m_Data.Number = static_cast<int64_t>(std::round(value));
-    else
-        m_Data.Real = value;
+    m_Data.Real = value;
 }
 
 void PdfVariant::SetName(const PdfName& name)
