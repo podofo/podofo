@@ -420,7 +420,7 @@ bool PdfVariant::operator==(const PdfVariant& rhs) const
         case PdfDataType::RawData:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Equality not yet implemented for RawData");
         case PdfDataType::Null:
-            return m_DataType == PdfDataType::Null;
+            return rhs.GetDataType() == PdfDataType::Null;
         case PdfDataType::Unknown:
             return false;
         default:
@@ -503,7 +503,7 @@ bool PdfVariant::operator!=(const PdfVariant& rhs) const
         case PdfDataType::RawData:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Disequality not yet implemented for RawData");
         case PdfDataType::Null:
-            return m_DataType != PdfDataType::Null;
+            return rhs.GetDataType() != PdfDataType::Null;
         case PdfDataType::Unknown:
             return true;
         default:
