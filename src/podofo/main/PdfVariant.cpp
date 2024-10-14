@@ -90,7 +90,15 @@ PdfVariant::~PdfVariant()
             break;
         }
         case PdfDataType::Name:
+        {
+            m_Name.~PdfName();
+            break;
+        }
         case PdfDataType::String:
+        {
+            m_String.~PdfString();
+            break;
+        }
         case PdfDataType::Reference:
         case PdfDataType::Bool:
         case PdfDataType::Null:
