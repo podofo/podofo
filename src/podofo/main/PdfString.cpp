@@ -34,12 +34,12 @@ static StringEncoding getEncoding(const string_view& view);
 static PdfStringCharset getCharSet(const string_view& view);
 
 PdfString::PdfString()
-    : m_Utf8View(""), m_dataAllocated(false), m_isHex(false)
+    : PdfDataMember(PdfDataType::String), m_dataAllocated(false), m_isHex(false), m_Utf8View("")
 {
 }
 
 PdfString::PdfString(charbuff&& buff, bool isHex)
-    : m_data(new StringData(std::move(buff), false)), m_dataAllocated(true), m_isHex(isHex)
+    : PdfDataMember(PdfDataType::String), m_dataAllocated(true), m_isHex(isHex), m_data(new StringData(std::move(buff), false))
 {
 }
 
@@ -51,7 +51,7 @@ PdfString::~PdfString()
 }
 
 PdfString::PdfString(const string& str)
-    : m_isHex(false)
+    : PdfDataMember(PdfDataType::String), m_isHex(false)
 {
     // Avoid copying an empty string
     if (str.empty())
@@ -67,7 +67,7 @@ PdfString::PdfString(const string& str)
 }
 
 PdfString::PdfString(const string_view& view)
-    : m_isHex(false)
+    : PdfDataMember(PdfDataType::String), m_isHex(false)
 {
     if (view.data() == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "String is null");
@@ -86,12 +86,12 @@ PdfString::PdfString(const string_view& view)
 }
 
 PdfString::PdfString(string&& str)
-    : m_data(new StringData(charbuff(std::move(str)), true)), m_dataAllocated(true), m_isHex(false)
+    : PdfDataMember(PdfDataType::String), m_dataAllocated(true), m_isHex(false), m_data(new StringData(charbuff(std::move(str)), true))
 {
 }
 
 PdfString::PdfString(const PdfString& rhs)
-    : m_isHex(rhs.m_isHex)
+    : PdfDataMember(PdfDataType::String), m_isHex(rhs.m_isHex)
 {
     if (rhs.m_dataAllocated)
     {
@@ -106,6 +106,7 @@ PdfString::PdfString(const PdfString& rhs)
 }
 
 PdfString::PdfString(PdfString&& rhs) noexcept
+    : PdfDataMember(PdfDataType::String)
 {
     moveFrom(std::move(rhs));
 }

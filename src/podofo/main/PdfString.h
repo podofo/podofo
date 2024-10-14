@@ -7,9 +7,7 @@
 #ifndef PDF_STRING_H
 #define PDF_STRING_H
 
-#include "PdfDeclarations.h"
-
-#include "PdfDataProvider.h"
+#include "PdfBaseDataTypes.h"
 
 namespace PoDoFo {
 
@@ -22,7 +20,7 @@ namespace PoDoFo {
  *  it is very fast to copy PdfString objects.
  *
  */
-class PODOFO_API PdfString final : public PdfDataProvider<PdfString>
+class PODOFO_API PdfString final : private PdfDataMember, public PdfDataProvider<PdfString>
 {
 public:
     /** Create an empty string
@@ -35,14 +33,14 @@ public:
 
     template<std::size_t N>
     PdfString(const char(&str)[N])
-        : m_isHex(false)
+        : PdfDataMember(PdfDataType::String), m_isHex(false)
     {
         initFromUtf8String(str, N - 1, true);
     }
 
     template<typename T, typename = std::enable_if_t<std::is_same_v<T, const char*>>>
     PdfString(T str)
-        : m_isHex(false)
+        : PdfDataMember(PdfDataType::String), m_isHex(false)
     {
         initFromUtf8String(str, std::char_traits<char>::length(str), false);
     }
@@ -181,13 +179,13 @@ private:
     };
 
 private:
+    bool m_dataAllocated;
+    bool m_isHex;    // This string is converted to hex during writing it out
     union
     {
         std::string_view m_Utf8View;
         std::shared_ptr<StringData> m_data;
     };
-    bool m_dataAllocated;
-    bool m_isHex;    // This string is converted to hex during writing it out
 };
 
 // Comparator to enable heterogeneous lookup in

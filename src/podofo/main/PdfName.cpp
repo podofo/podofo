@@ -25,7 +25,7 @@ static charbuff unescapeName(const string_view& view);
 const PdfName PdfName::Null = PdfName();
 
 PdfName::PdfName()
-    : m_Utf8View(), m_dataAllocated(false) { }
+    : PdfDataMember(PdfDataType::Name), m_dataAllocated(false), m_Utf8View() { }
 
 PdfName::~PdfName()
 {
@@ -34,11 +34,13 @@ PdfName::~PdfName()
 }
 
 PdfName::PdfName(const string& str)
+    : PdfDataMember(PdfDataType::Name)
 {
     initFromUtf8String(str);
 }
 
 PdfName::PdfName(const string_view& view)
+    : PdfDataMember(PdfDataType::Name)
 {
     if (view.data() == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidName, "Name is null");
@@ -47,18 +49,19 @@ PdfName::PdfName(const string_view& view)
 }
 
 PdfName::PdfName(charbuff&& buff)
-    : m_data(new NameData{ std::move(buff), nullptr, false }), m_dataAllocated(true)
+    : PdfDataMember(PdfDataType::Name), m_dataAllocated(true), m_data(new NameData{ std::move(buff), nullptr, false })
 {
 }
 
 // NOTE: This constructor is reserved for read-only
 // string literals: we just set the data view
 PdfName::PdfName(const char* str, size_t length)
-    : m_Utf8View(str, length), m_dataAllocated(false)
+    : PdfDataMember(PdfDataType::Name), m_dataAllocated(false), m_Utf8View(str, length)
 {
 }
 
 PdfName::PdfName(const PdfName& rhs)
+    : PdfDataMember(PdfDataType::Name)
 {
     if (rhs.m_dataAllocated)
     {
@@ -73,6 +76,7 @@ PdfName::PdfName(const PdfName& rhs)
 }
 
 PdfName::PdfName(PdfName&& rhs) noexcept
+    : PdfDataMember(PdfDataType::Name)
 {
     moveFrom(std::move(rhs));
 }

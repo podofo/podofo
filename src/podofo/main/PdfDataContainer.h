@@ -7,7 +7,7 @@
 #ifndef PDF_CONTAINER_DATATYPE_H
 #define PDF_CONTAINER_DATATYPE_H
 
-#include "PdfDataProvider.h"
+#include "PdfBaseDataTypes.h"
 #include "PdfObject.h"
 
 namespace PoDoFo {

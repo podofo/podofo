@@ -7,9 +7,7 @@
 #ifndef PDF_NAME_H
 #define PDF_NAME_H
 
-#include "PdfDeclarations.h"
-
-#include "PdfDataProvider.h"
+#include "PdfBaseDataTypes.h"
 
 namespace PoDoFo {
 
@@ -22,7 +20,7 @@ namespace PoDoFo {
  *
  *  \see PdfObject \see PdfVariant
  */
-class PODOFO_API PdfName final : public PdfDataProvider<PdfName>
+class PODOFO_API PdfName final : private PdfDataMember, public PdfDataProvider<PdfName>
 {
     friend PdfName PODOFO_API operator""_n(const char*, size_t);
 
@@ -41,12 +39,14 @@ public:
 
     template<std::size_t N>
     PdfName(const char(&str)[N])
+        : PdfDataMember(PdfDataType::Name)
     {
         initFromUtf8String(str, N - 1);
     }
 
     template<typename T, typename = std::enable_if_t<std::is_same_v<T, const char*>>>
     PdfName(T str)
+        : PdfDataMember(PdfDataType::Name)
     {
         initFromUtf8String(str, std::char_traits<char>::length(str));
     }
@@ -152,12 +152,12 @@ private:
         bool IsUtf8Expanded;
     };
 private:
+    bool m_dataAllocated;
     union
     {
         std::shared_ptr<NameData> m_data;
         std::string_view m_Utf8View;       // Holds only global read-only string literal
     };
-    bool m_dataAllocated;
 };
 
 /** Create a PdfName from a string literal without checking for PdfDocEncoding characters

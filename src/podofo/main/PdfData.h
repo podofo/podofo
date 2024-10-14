@@ -9,7 +9,7 @@
 
 #include "PdfDeclarations.h"
 
-#include "PdfDataProvider.h"
+#include "PdfBaseDataTypes.h"
 
 namespace PoDoFo {
 

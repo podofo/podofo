@@ -854,7 +854,7 @@ void PdfObject::SetImmutable()
     m_IsImmutable = true;
 }
 
-const char* PdfObject::GetDataTypeString() const
+string_view PdfObject::GetDataTypeString() const
 {
     DelayedLoad();
     return m_Variant.GetDataTypeString();

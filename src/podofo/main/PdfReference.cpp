@@ -13,12 +13,12 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfReference::PdfReference()
-    : m_ObjectNo(0), m_GenerationNo(0)
+    : PdfDataMember(PdfDataType::Reference), m_GenerationNo(0), m_ObjectNo(0)
 {
 }
 
 PdfReference::PdfReference(const uint32_t objectNo, const uint16_t generationNo)
-    : m_ObjectNo(objectNo), m_GenerationNo(generationNo)
+    : PdfDataMember(PdfDataType::Reference), m_GenerationNo(generationNo), m_ObjectNo(objectNo)
 {
 }
 

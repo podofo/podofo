@@ -140,7 +140,7 @@ public:
     /** \returns a human readable string representation of GetDataType()
      *  The returned string must not be free'd.
      */
-    const char* GetDataTypeString() const;
+    std::string_view GetDataTypeString() const;
 
     /** \returns true if this variant is a bool
      */
@@ -591,11 +591,11 @@ private:
     PdfReference m_IndirectReference;
     PdfDocument* m_Document;
     PdfDataContainer* m_Parent;
+    std::unique_ptr<PdfObjectStream> m_Stream;
     bool m_IsDirty; // Indicates if this object was modified after construction
     bool m_IsImmutable;
     mutable bool m_IsDelayedLoadDone;
     mutable bool m_IsDelayedLoadStreamDone;
-    std::unique_ptr<PdfObjectStream> m_Stream;
     // Tracks whether deferred loading is still pending (in which case it'll be
     // false). If true, deferred loading is not required or has been completed.
 };

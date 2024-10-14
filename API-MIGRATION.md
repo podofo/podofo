@@ -1,4 +1,5 @@
 ## 0.10.1 -> 1.0.0
+- `PdfVariant`/`PdfObect`: `GetDataTypeString()` now returns `string_view` instead of `const char*`
 - `PdfErrorCode`:
   * Renamed `FreeType` -> `FreeTypeError`
   * Renamed `OpenSSL` -> `OpenSSLError`

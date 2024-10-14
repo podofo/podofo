@@ -38,7 +38,6 @@
 #include "main/PdfContentStreamReader.h"
 #include "main/PdfPostScriptTokenizer.h"
 #include "main/PdfData.h"
-#include "main/PdfDataProvider.h"
 #include "main/PdfDate.h"
 #include "main/PdfDictionary.h"
 #include "main/PdfEncoding.h"

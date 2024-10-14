@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#ifndef PDF_DATATYPE_H
-#define PDF_DATATYPE_H
+#ifndef PDF_BASE_DATA_TYPES_H
+#define PDF_BASE_DATA_TYPES_H
 
 #include "PdfDeclarations.h"
 #include <podofo/auxiliary/StreamDevice.h>
@@ -15,7 +15,22 @@ namespace PoDoFo {
 class OutputStream;
 class PdfStatefulEncrypt;
 
-/** An interface for data provider classes that are stored in a PdfVariant
+/** A class to inherit for classes that are stored as union members in a PdfVariant
+ */
+class PODOFO_API PdfDataMember
+{
+    friend class PdfString;
+    friend class PdfName;
+    friend class PdfReference;
+public:
+    PdfDataMember(PdfDataType type);
+public:
+    inline PdfDataType GetDataType() const { return m_DataType; }
+private:
+    PdfDataType m_DataType;
+};
+
+/** An helper class to inherit to provide common serialization methods
  *  
  *  \see PdfName \see PdfArray \see PdfReference 
  *  \see PdfVariant \see PdfDictionary \see PdfString
@@ -55,4 +70,4 @@ public:
 
 }
 
-#endif // PDF_DATATYPE_H
+#endif // PDF_BASE_DATA_TYPES_H
