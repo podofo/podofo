@@ -113,15 +113,6 @@ PdfAnnotationCollection::const_iterator PdfAnnotationCollection::end() const
     return m_Annots.end();
 }
 
-PdfAnnotation& PdfAnnotationCollection::createAnnotation(const type_info& typeInfo, const Rect& rect, bool rawRect)
-{
-    Rect actualRect = rect;
-    if (!rawRect)
-        actualRect = PoDoFo::TransformRectPage(actualRect, *m_Page, false);
-
-    return addAnnotation(PdfAnnotation::Create(*m_Page, typeInfo, actualRect));
-}
-
 PdfAnnotation& PdfAnnotationCollection::addAnnotation(unique_ptr<PdfAnnotation>&& annot)
 {
     initAnnotations();

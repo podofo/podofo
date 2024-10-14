@@ -314,13 +314,6 @@ PdfField& PdfPage::CreateField(const string_view& name, PdfFieldType fieldType, 
     return PdfField::Create(name, annotation, fieldType);
 }
 
-PdfField& PdfPage::createField(const string_view& name, const type_info& typeInfo, const Rect& rect, bool rawRect)
-{
-    auto& annotation = static_cast<PdfAnnotationWidget&>(GetAnnotations()
-        .CreateAnnot(PdfAnnotationType::Widget, rect, rawRect));
-    return PdfField::Create(name, annotation, typeInfo);
-}
-
 void PdfPage::FlattenStructure()
 {
     if (m_parents.size() == 0)

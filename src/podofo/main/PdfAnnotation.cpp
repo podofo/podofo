@@ -79,11 +79,6 @@ void PdfAnnotation::SetRect(const Rect& rect)
     GetDictionary().AddKey("Rect"_n, arr);
 }
 
-unique_ptr<PdfAnnotation> PdfAnnotation::Create(PdfPage& page, const type_info& typeInfo, const Rect& rect)
-{
-    return Create(page, getAnnotationType(typeInfo), rect);
-}
-
 PdfPage& PdfAnnotation::MustGetPage()
 {
     if (m_Page == nullptr)
@@ -397,11 +392,6 @@ bool PdfAnnotation::TryCreateFromObject(const PdfObject& obj, unique_ptr<const P
     return true;
 }
 
-bool PdfAnnotation::tryCreateFromObject(const PdfObject& obj, const type_info& typeInfo, PdfAnnotation*& xobj)
-{
-    return tryCreateFromObject(obj, getAnnotationType(typeInfo), xobj);
-}
-
 bool PdfAnnotation::tryCreateFromObject(const PdfObject& obj, PdfAnnotationType targetType, PdfAnnotation*& xobj)
 {
     auto type = getAnnotationType(obj);
@@ -503,70 +493,6 @@ bool PdfAnnotation::tryCreateFromObject(const PdfObject& obj, PdfAnnotationType 
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
-}
-
-PdfAnnotationType PdfAnnotation::getAnnotationType(const type_info& typeInfo)
-{
-    if (typeInfo == typeid(PdfAnnotationText))
-        return PdfAnnotationType::Text;
-    else if (typeInfo == typeid(PdfAnnotationLink))
-        return PdfAnnotationType::Link;
-    else if (typeInfo == typeid(PdfAnnotationFreeText))
-        return PdfAnnotationType::FreeText;
-    else if (typeInfo == typeid(PdfAnnotationLine))
-        return PdfAnnotationType::Line;
-    else if (typeInfo == typeid(PdfAnnotationSquare))
-        return PdfAnnotationType::Square;
-    else if (typeInfo == typeid(PdfAnnotationCircle))
-        return PdfAnnotationType::Circle;
-    else if (typeInfo == typeid(PdfAnnotationPolygon))
-        return PdfAnnotationType::Polygon;
-    else if (typeInfo == typeid(PdfAnnotationPolyLine))
-        return PdfAnnotationType::PolyLine;
-    else if (typeInfo == typeid(PdfAnnotationHighlight))
-        return PdfAnnotationType::Highlight;
-    else if (typeInfo == typeid(PdfAnnotationUnderline))
-        return PdfAnnotationType::Underline;
-    else if (typeInfo == typeid(PdfAnnotationSquiggly))
-        return PdfAnnotationType::Squiggly;
-    else if (typeInfo == typeid(PdfAnnotationStrikeOut))
-        return PdfAnnotationType::StrikeOut;
-    else if (typeInfo == typeid(PdfAnnotationStamp))
-        return PdfAnnotationType::Stamp;
-    else if (typeInfo == typeid(PdfAnnotationCaret))
-        return PdfAnnotationType::Caret;
-    else if (typeInfo == typeid(PdfAnnotationInk))
-        return PdfAnnotationType::Ink;
-    else if (typeInfo == typeid(PdfAnnotationPopup))
-        return PdfAnnotationType::Popup;
-    else if (typeInfo == typeid(PdfAnnotationFileAttachment))
-        return PdfAnnotationType::FileAttachement;
-    else if (typeInfo == typeid(PdfAnnotationSound))
-        return PdfAnnotationType::Sound;
-    else if (typeInfo == typeid(PdfAnnotationMovie))
-        return PdfAnnotationType::Movie;
-    else if (typeInfo == typeid(PdfAnnotationWidget))
-        return PdfAnnotationType::Widget;
-    else if (typeInfo == typeid(PdfAnnotationScreen))
-        return PdfAnnotationType::Screen;
-    else if (typeInfo == typeid(PdfAnnotationPrinterMark))
-        return PdfAnnotationType::PrinterMark;
-    else if (typeInfo == typeid(PdfAnnotationTrapNet))
-        return PdfAnnotationType::TrapNet;
-    else if (typeInfo == typeid(PdfAnnotationWatermark))
-        return PdfAnnotationType::Watermark;
-    else if (typeInfo == typeid(PdfAnnotationModel3D))
-        return PdfAnnotationType::Model3D;
-    else if (typeInfo == typeid(PdfAnnotationRichMedia))
-        return PdfAnnotationType::RichMedia;
-    else if (typeInfo == typeid(PdfAnnotationWebMedia))
-        return PdfAnnotationType::WebMedia;
-    else if (typeInfo == typeid(PdfAnnotationRedact))
-        return PdfAnnotationType::Redact;
-    else if (typeInfo == typeid(PdfAnnotationProjection))
-        return PdfAnnotationType::Projection;
-    else
-        PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
 }
 
 PdfAnnotationType PdfAnnotation::getAnnotationType(const PdfObject& obj)

@@ -161,8 +161,6 @@ private:
      */
     void init(PdfAcroFormDefaulAppearance defaultAppearance);
 
-    PdfField& createField(const std::string_view& name, const std::type_info& typeInfo);
-
     PdfArray* getFieldArray() const;
 
     void initFields();
@@ -184,7 +182,7 @@ private:
 template<typename TField>
 TField& PdfAcroForm::CreateField(const std::string_view& name)
 {
-    return static_cast<TField&>(createField(name, typeid(TField)));
+    return static_cast<TField&>(CreateField(name, PdfField::GetFieldType<TField>()));
 }
 
 };

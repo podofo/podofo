@@ -20,6 +20,13 @@ namespace PoDoFo {
 class PdfPage;
 class PdfAcroForm;
 class PdfAnnotationWidget;
+class PdfPushButton;
+class PdfCheckBox;
+class PdfRadioButton;
+class PdfTextBox;
+class PdfComboBox;
+class PdfListBox;
+class PdfSignature;
 
 class PODOFO_API PdfField : public PdfDictionaryElement
 {
@@ -252,6 +259,27 @@ protected:
     TField* GetParentTyped(PdfFieldType type) const;
 
 private:
+    template <typename TField>
+    static constexpr PdfFieldType GetFieldType()
+    {
+        if (std::is_same_v<TField, PdfPushButton>)
+            return PdfFieldType::PushButton;
+        else if (std::is_same_v<TField, PdfCheckBox>)
+            return PdfFieldType::CheckBox;
+        else if (std::is_same_v<TField, PdfRadioButton>)
+            return PdfFieldType::RadioButton;
+        else if (std::is_same_v<TField, PdfTextBox>)
+            return PdfFieldType::TextBox;
+        else if (std::is_same_v<TField, PdfComboBox>)
+            return PdfFieldType::ComboBox;
+        else if (std::is_same_v<TField, PdfListBox>)
+            return PdfFieldType::ListBox;
+        else if (std::is_same_v<TField, PdfSignature>)
+            return PdfFieldType::Signature;
+        else
+            return PdfFieldType::Unknown;
+    }
+
     void SetWidget(PdfAnnotationWidget& widget) { m_Widget = &widget; }
     void SetAcroForm(PdfAcroForm& acroform) { m_AcroForm = &acroform; }
 
@@ -259,14 +287,10 @@ private:
     // To be called by PdfPage
     static PdfField& Create(const std::string_view& name,
         PdfAnnotationWidget& widget, PdfFieldType fieldType);
-    static PdfField& Create(const std::string_view& name,
-        PdfAnnotationWidget& widget, const std::type_info& typeInfo);
 
     // To be called by PdfAcroForm
     static std::unique_ptr<PdfField> Create(const std::string_view& name,
         PdfAcroForm& acroform, PdfFieldType fieldType);
-    static std::unique_ptr<PdfField> Create(const std::string_view& name,
-        PdfAcroForm& acroform, const std::type_info& typeInfo);
     static std::unique_ptr<PdfField> Create(PdfObject& obj, PdfAcroForm& acroform,
         PdfFieldType fieldType);
 
@@ -298,7 +322,6 @@ private:
         std::unique_ptr<PdfField>& field);
     std::unique_ptr<PdfField> createChildField(PdfPage* page, const Rect& rect);
     static PdfFieldType getFieldType(const PdfObject& obj);
-    static PdfFieldType getFieldType(const std::type_info& typeInfo);
     std::shared_ptr<PdfField> GetPtr();
     PdfField* getParentTyped(PdfFieldType type) const;
 

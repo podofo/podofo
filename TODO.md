@@ -1,7 +1,6 @@
 ### 1.0
 
 - Optimize passing shared_ptr
-- Optimize PdfPage::CreateField<T>(), CreateAnnotation<T>() with partial template specialization based determination of type
 - Settle https://github.com/podofo/podofo/issues/165
 - PdfPage: Add a method to retrieve rotation in radians
 - Optimize PdfTokenizer populating variant (could access variant members directly)

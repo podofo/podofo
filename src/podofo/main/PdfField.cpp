@@ -158,12 +158,6 @@ unique_ptr<PdfField> PdfField::createChildField(PdfPage* page, const Rect& rect)
 }
 
 PdfField& PdfField::Create(const string_view& name,
-    PdfAnnotationWidget& widget, const type_info& typeInfo)
-{
-    return Create(name, widget, getFieldType(typeInfo));
-}
-
-PdfField& PdfField::Create(const string_view& name,
     PdfAnnotationWidget& widget, PdfFieldType type)
 {
     CHECK_FIELD_NAME(name);
@@ -220,12 +214,6 @@ PdfField& PdfField::Create(const string_view& name,
 
     widget.SetField(newField);
     return *newField;
-}
-
-unique_ptr<PdfField> PdfField::Create(const string_view& name,
-    PdfAcroForm& acroform, const type_info& typeInfo)
-{
-    return Create(name, acroform, getFieldType(typeInfo));
 }
 
 unique_ptr<PdfField> PdfField::Create(const string_view& name,
@@ -330,26 +318,6 @@ unique_ptr<PdfField> PdfField::createField(PdfAnnotationWidget& widget,
         (void)widget.GetDocument().GetOrCreateAcroForm().CreateField(ret->GetObject(), ret->GetType());
 
     return ret;
-}
-
-PdfFieldType PdfField::getFieldType(const type_info& typeInfo)
-{
-    if (typeInfo == typeid(PdfPushButton))
-        return PdfFieldType::PushButton;
-    else if (typeInfo == typeid(PdfCheckBox))
-        return PdfFieldType::CheckBox;
-    else if (typeInfo == typeid(PdfRadioButton))
-        return PdfFieldType::RadioButton;
-    else if (typeInfo == typeid(PdfTextBox))
-        return PdfFieldType::TextBox;
-    else if (typeInfo == typeid(PdfComboBox))
-        return PdfFieldType::ComboBox;
-    else if (typeInfo == typeid(PdfListBox))
-        return PdfFieldType::ListBox;
-    else if (typeInfo == typeid(PdfSignature))
-        return PdfFieldType::Signature;
-    else
-        PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
 }
 
 shared_ptr<PdfField> PdfField::GetPtr()

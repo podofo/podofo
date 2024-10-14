@@ -291,8 +291,6 @@ private:
 
     PdfObjectStream& ResetContentsStream() override;
 
-    PdfField& createField(const std::string_view& name, const std::type_info& typeInfo, const Rect& rect, bool rawRect);
-
     PdfResources* getResources() override;
 
     PdfObject* getContentsObject() override;
@@ -342,7 +340,7 @@ private:
 template<typename TField>
 TField& PdfPage::CreateField(const std::string_view& name, const Rect & rect, bool rawRect)
 {
-    return static_cast<TField&>(createField(name, typeid(TField), rect, rawRect));
+    return static_cast<TField&>(CreateField(name, PdfField::GetFieldType<TField>(), rect, rawRect));
 }
 
 template<typename TField>

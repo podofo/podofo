@@ -60,11 +60,6 @@ PdfField& PdfAcroForm::CreateField(const string_view& name, PdfFieldType fieldTy
     return AddField(PdfField::Create(name, *this, fieldType));
 }
 
-PdfField& PdfAcroForm::createField(const string_view& name, const type_info& typeInfo)
-{
-    return AddField(PdfField::Create(name, *this, typeInfo));
-}
-
 PdfField& PdfAcroForm::GetFieldAt(unsigned index)
 {
     return getField(index);
