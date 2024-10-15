@@ -15,8 +15,35 @@ namespace PoDoFo {
 
 class PdfPage;
 class PdfXObjectForm;
+class PdfAnnotationText;
 class PdfAnnotationLink;
+class PdfAnnotationFreeText;
+class PdfAnnotationLine;
+class PdfAnnotationSquare;
+class PdfAnnotationCircle;
+class PdfAnnotationPolygon;
+class PdfAnnotationPolyLine;
+class PdfAnnotationHighlight;
+class PdfAnnotationUnderline;
+class PdfAnnotationSquiggly;
+class PdfAnnotationStrikeOut;
+class PdfAnnotationStamp;
+class PdfAnnotationCaret;
+class PdfAnnotationInk;
+class PdfAnnotationPopup;
+class PdfAnnotationFileAttachment;
+class PdfAnnotationSound;
+class PdfAnnotationMovie;
 class PdfAnnotationWidget;
+class PdfAnnotationScreen;
+class PdfAnnotationPrinterMark;
+class PdfAnnotationTrapNet;
+class PdfAnnotationWatermark;
+class PdfAnnotationModel3D;
+class PdfAnnotationRichMedia;
+class PdfAnnotationWebMedia;
+class PdfAnnotationRedact;
+class PdfAnnotationProjection;
 
 /** A qualified appearance stream, with type and state name
  */
