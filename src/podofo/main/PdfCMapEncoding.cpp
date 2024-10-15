@@ -41,16 +41,16 @@ static PdfCharCodeMap parseCMapObject(InputStreamDevice& stream, PdfName& name, 
 
 PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map) :
     PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap),
-    m_WMode(0),
     m_isPredefined(false),
+    m_WMode(0),
     m_Limits(GetCharMap().GetLimits()) { }
 
 PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, const PdfName& name, const PdfCIDSystemInfo& info, PdfWModeKind wMode) :
     PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap),
+    m_isPredefined(false),
     m_Name(name),
     m_CIDSystemInfo(info),
     m_WMode((int)wMode),
-    m_isPredefined(false),
     m_Limits(GetCharMap().GetLimits()) { }
 
 PdfCMapEncoding PdfCMapEncoding::Parse(const string_view& filepath)
@@ -62,10 +62,10 @@ PdfCMapEncoding PdfCMapEncoding::Parse(const string_view& filepath)
 PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, bool isPredefined, const PdfName& name,
         const PdfCIDSystemInfo& info, int wmode, const PdfEncodingLimits& limits) :
     PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap),
+    m_isPredefined(isPredefined),
     m_Name(name),
     m_CIDSystemInfo(info),
     m_WMode(wmode),
-    m_isPredefined(isPredefined),
     m_Limits(limits) { }
 
 PdfCMapEncoding PdfCMapEncoding::Parse(InputStreamDevice& device)

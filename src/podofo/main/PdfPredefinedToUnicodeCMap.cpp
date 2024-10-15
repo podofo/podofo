@@ -11,7 +11,7 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfPredefinedToUnicodeCMap::PdfPredefinedToUnicodeCMap(PdfCMapEncodingConstPtr&& toUnicode, PdfCMapEncodingConstPtr&& cidEncoding)
-    : PdfEncodingMap(PdfEncodingMapType::CMap), m_CIDEncoding(std::move(cidEncoding)), m_ToUnicode(std::move(toUnicode))
+    : PdfEncodingMap(PdfEncodingMapType::CMap), m_ToUnicode(std::move(toUnicode)), m_CIDEncoding(std::move(cidEncoding))
 {
     PODOFO_ASSERT(m_ToUnicode != nullptr && m_CIDEncoding != nullptr);
 }
