@@ -299,11 +299,6 @@ void PdfDocument::deletePages(unsigned atIndex, unsigned pageCount)
         this->GetPages().RemovePageAt(atIndex);
 }
 
-PdfAction* PdfDocument::createAction(const type_info& typeInfo)
-{
-    return PdfAction::Create(*this, typeInfo);
-}
-
 void PdfDocument::resetPrivate()
 {
     m_TrailerObj.reset(new PdfObject()); // The trailer is NO part of the vector of objects
@@ -341,6 +336,11 @@ PdfInfo& PdfDocument::GetOrCreateInfo()
     }
 
     return *m_Info;
+}
+
+void PdfDocument::createAction(PdfActionType type, unique_ptr<PdfAction>& action)
+{
+    action = PdfAction::Create(*this, type);
 }
 
 Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page, bool useTrimBox)

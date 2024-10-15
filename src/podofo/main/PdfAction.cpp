@@ -166,50 +166,6 @@ unique_ptr<PdfAction> PdfAction::Create(PdfDocument& doc, PdfActionType type)
     }
 }
 
-PdfAction* PdfAction::Create(PdfDocument& doc, const type_info& typeInfo)
-{
-    if (typeInfo == typeid(PdfActionGoTo))
-        return new PdfActionGoTo(doc);
-    else if (typeInfo == typeid(PdfActionGoToR))
-        return new PdfActionGoToR(doc);
-    else if (typeInfo == typeid(PdfActionGoToE))
-        return new PdfActionGoToE(doc);
-    else if (typeInfo == typeid(PdfActionLaunch))
-        return new PdfActionLaunch(doc);
-    else if (typeInfo == typeid(PdfActionThread))
-        return new PdfActionThread(doc);
-    else if (typeInfo == typeid(PdfActionURI))
-        return new PdfActionURI(doc);
-    else if (typeInfo == typeid(PdfActionSound))
-        return new PdfActionSound(doc);
-    else if (typeInfo == typeid(PdfActionMovie))
-        return new PdfActionMovie(doc);
-    else if (typeInfo == typeid(PdfActionHide))
-        return new PdfActionHide(doc);
-    else if (typeInfo == typeid(PdfActionNamed))
-        return new PdfActionNamed(doc);
-    else if (typeInfo == typeid(PdfActionSubmitForm))
-        return new PdfActionSubmitForm(doc);
-    else if (typeInfo == typeid(PdfActionResetForm))
-        return new PdfActionResetForm(doc);
-    else if (typeInfo == typeid(PdfActionImportData))
-        return new PdfActionImportData(doc);
-    else if (typeInfo == typeid(PdfActionJavaScript))
-        return new PdfActionJavaScript(doc);
-    else if (typeInfo == typeid(PdfActionSetOCGState))
-        return new PdfActionSetOCGState(doc);
-    else if (typeInfo == typeid(PdfActionRendition))
-        return new PdfActionRendition(doc);
-    else if (typeInfo == typeid(PdfActionTrans))
-        return new PdfActionTrans(doc);
-    else if (typeInfo == typeid(PdfActionGoTo3DView))
-        return new PdfActionGoTo3DView(doc);
-    else if (typeInfo == typeid(PdfActionRichMediaExecute))
-        return new PdfActionRichMediaExecute(doc);
-    else
-        PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
-}
-
 unique_ptr<PdfAction> PdfAction::Create(const PdfAction& action)
 {
     switch (action.GetType())

@@ -217,69 +217,7 @@ public:
 
 private:
     template <typename TAnnot>
-    static constexpr PdfAnnotationType GetAnnotationType()
-    {
-        if (std::is_same_v<TAnnot, PdfAnnotationText>)
-            return PdfAnnotationType::Text;
-        else if (std::is_same_v<TAnnot, PdfAnnotationLink>)
-            return PdfAnnotationType::Link;
-        else if (std::is_same_v<TAnnot, PdfAnnotationFreeText>)
-            return PdfAnnotationType::FreeText;
-        else if (std::is_same_v<TAnnot, PdfAnnotationLine>)
-            return PdfAnnotationType::Line;
-        else if (std::is_same_v<TAnnot, PdfAnnotationSquare>)
-            return PdfAnnotationType::Square;
-        else if (std::is_same_v<TAnnot, PdfAnnotationCircle>)
-            return PdfAnnotationType::Circle;
-        else if (std::is_same_v<TAnnot, PdfAnnotationPolygon>)
-            return PdfAnnotationType::Polygon;
-        else if (std::is_same_v<TAnnot, PdfAnnotationPolyLine>)
-            return PdfAnnotationType::PolyLine;
-        else if (std::is_same_v<TAnnot, PdfAnnotationHighlight>)
-            return PdfAnnotationType::Highlight;
-        else if (std::is_same_v<TAnnot, PdfAnnotationUnderline>)
-            return PdfAnnotationType::Underline;
-        else if (std::is_same_v<TAnnot, PdfAnnotationSquiggly>)
-            return PdfAnnotationType::Squiggly;
-        else if (std::is_same_v<TAnnot, PdfAnnotationStrikeOut>)
-            return PdfAnnotationType::StrikeOut;
-        else if (std::is_same_v<TAnnot, PdfAnnotationStamp>)
-            return PdfAnnotationType::Stamp;
-        else if (std::is_same_v<TAnnot, PdfAnnotationCaret>)
-            return PdfAnnotationType::Caret;
-        else if (std::is_same_v<TAnnot, PdfAnnotationInk>)
-            return PdfAnnotationType::Ink;
-        else if (std::is_same_v<TAnnot, PdfAnnotationPopup>)
-            return PdfAnnotationType::Popup;
-        else if (std::is_same_v<TAnnot, PdfAnnotationFileAttachment>)
-            return PdfAnnotationType::FileAttachement;
-        else if (std::is_same_v<TAnnot, PdfAnnotationSound>)
-            return PdfAnnotationType::Sound;
-        else if (std::is_same_v<TAnnot, PdfAnnotationMovie>)
-            return PdfAnnotationType::Movie;
-        else if (std::is_same_v<TAnnot, PdfAnnotationWidget>)
-            return PdfAnnotationType::Widget;
-        else if (std::is_same_v<TAnnot, PdfAnnotationScreen>)
-            return PdfAnnotationType::Screen;
-        else if (std::is_same_v<TAnnot, PdfAnnotationPrinterMark>)
-            return PdfAnnotationType::PrinterMark;
-        else if (std::is_same_v<TAnnot, PdfAnnotationTrapNet>)
-            return PdfAnnotationType::TrapNet;
-        else if (std::is_same_v<TAnnot, PdfAnnotationWatermark>)
-            return PdfAnnotationType::Watermark;
-        else if (std::is_same_v<TAnnot, PdfAnnotationModel3D>)
-            return PdfAnnotationType::Model3D;
-        else if (std::is_same_v<TAnnot, PdfAnnotationRichMedia>)
-            return PdfAnnotationType::RichMedia;
-        else if (std::is_same_v<TAnnot, PdfAnnotationWebMedia>)
-            return PdfAnnotationType::WebMedia;
-        else if (std::is_same_v<TAnnot, PdfAnnotationRedact>)
-            return PdfAnnotationType::Redact;
-        else if (std::is_same_v<TAnnot, PdfAnnotationProjection>)
-            return PdfAnnotationType::Projection;
-        else
-            return PdfAnnotationType::Unknown;
-    }
+    static constexpr PdfAnnotationType GetAnnotationType();
 
     static std::unique_ptr<PdfAnnotation> Create(PdfPage& page, PdfAnnotationType annotType, const Rect& rect);
 
@@ -316,6 +254,71 @@ bool PdfAnnotation::TryCreateFromObject(const PdfObject& obj, std::unique_ptr<co
 
     xobj.reset((const TAnnotation*)xobj_);
     return true;
+}
+
+template<typename TAnnot>
+constexpr PdfAnnotationType PdfAnnotation::GetAnnotationType()
+{
+    if (std::is_same_v<TAnnot, PdfAnnotationText>)
+        return PdfAnnotationType::Text;
+    else if (std::is_same_v<TAnnot, PdfAnnotationLink>)
+        return PdfAnnotationType::Link;
+    else if (std::is_same_v<TAnnot, PdfAnnotationFreeText>)
+        return PdfAnnotationType::FreeText;
+    else if (std::is_same_v<TAnnot, PdfAnnotationLine>)
+        return PdfAnnotationType::Line;
+    else if (std::is_same_v<TAnnot, PdfAnnotationSquare>)
+        return PdfAnnotationType::Square;
+    else if (std::is_same_v<TAnnot, PdfAnnotationCircle>)
+        return PdfAnnotationType::Circle;
+    else if (std::is_same_v<TAnnot, PdfAnnotationPolygon>)
+        return PdfAnnotationType::Polygon;
+    else if (std::is_same_v<TAnnot, PdfAnnotationPolyLine>)
+        return PdfAnnotationType::PolyLine;
+    else if (std::is_same_v<TAnnot, PdfAnnotationHighlight>)
+        return PdfAnnotationType::Highlight;
+    else if (std::is_same_v<TAnnot, PdfAnnotationUnderline>)
+        return PdfAnnotationType::Underline;
+    else if (std::is_same_v<TAnnot, PdfAnnotationSquiggly>)
+        return PdfAnnotationType::Squiggly;
+    else if (std::is_same_v<TAnnot, PdfAnnotationStrikeOut>)
+        return PdfAnnotationType::StrikeOut;
+    else if (std::is_same_v<TAnnot, PdfAnnotationStamp>)
+        return PdfAnnotationType::Stamp;
+    else if (std::is_same_v<TAnnot, PdfAnnotationCaret>)
+        return PdfAnnotationType::Caret;
+    else if (std::is_same_v<TAnnot, PdfAnnotationInk>)
+        return PdfAnnotationType::Ink;
+    else if (std::is_same_v<TAnnot, PdfAnnotationPopup>)
+        return PdfAnnotationType::Popup;
+    else if (std::is_same_v<TAnnot, PdfAnnotationFileAttachment>)
+        return PdfAnnotationType::FileAttachement;
+    else if (std::is_same_v<TAnnot, PdfAnnotationSound>)
+        return PdfAnnotationType::Sound;
+    else if (std::is_same_v<TAnnot, PdfAnnotationMovie>)
+        return PdfAnnotationType::Movie;
+    else if (std::is_same_v<TAnnot, PdfAnnotationWidget>)
+        return PdfAnnotationType::Widget;
+    else if (std::is_same_v<TAnnot, PdfAnnotationScreen>)
+        return PdfAnnotationType::Screen;
+    else if (std::is_same_v<TAnnot, PdfAnnotationPrinterMark>)
+        return PdfAnnotationType::PrinterMark;
+    else if (std::is_same_v<TAnnot, PdfAnnotationTrapNet>)
+        return PdfAnnotationType::TrapNet;
+    else if (std::is_same_v<TAnnot, PdfAnnotationWatermark>)
+        return PdfAnnotationType::Watermark;
+    else if (std::is_same_v<TAnnot, PdfAnnotationModel3D>)
+        return PdfAnnotationType::Model3D;
+    else if (std::is_same_v<TAnnot, PdfAnnotationRichMedia>)
+        return PdfAnnotationType::RichMedia;
+    else if (std::is_same_v<TAnnot, PdfAnnotationWebMedia>)
+        return PdfAnnotationType::WebMedia;
+    else if (std::is_same_v<TAnnot, PdfAnnotationRedact>)
+        return PdfAnnotationType::Redact;
+    else if (std::is_same_v<TAnnot, PdfAnnotationProjection>)
+        return PdfAnnotationType::Projection;
+    else
+        return PdfAnnotationType::Unknown;
 }
 
 };

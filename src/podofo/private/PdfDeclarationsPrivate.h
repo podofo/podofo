@@ -17,6 +17,7 @@
 #include <cinttypes>
 #include <climits>
 
+#include <typeinfo>
 #include <stdexcept>
 #include <limits>
 #include <algorithm>

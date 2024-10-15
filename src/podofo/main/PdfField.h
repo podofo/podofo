@@ -260,25 +260,7 @@ protected:
 
 private:
     template <typename TField>
-    static constexpr PdfFieldType GetFieldType()
-    {
-        if (std::is_same_v<TField, PdfPushButton>)
-            return PdfFieldType::PushButton;
-        else if (std::is_same_v<TField, PdfCheckBox>)
-            return PdfFieldType::CheckBox;
-        else if (std::is_same_v<TField, PdfRadioButton>)
-            return PdfFieldType::RadioButton;
-        else if (std::is_same_v<TField, PdfTextBox>)
-            return PdfFieldType::TextBox;
-        else if (std::is_same_v<TField, PdfComboBox>)
-            return PdfFieldType::ComboBox;
-        else if (std::is_same_v<TField, PdfListBox>)
-            return PdfFieldType::ListBox;
-        else if (std::is_same_v<TField, PdfSignature>)
-            return PdfFieldType::Signature;
-        else
-            return PdfFieldType::Unknown;
-    }
+    static constexpr PdfFieldType GetFieldType();
 
     void SetWidget(PdfAnnotationWidget& widget) { m_Widget = &widget; }
     void SetAcroForm(PdfAcroForm& acroform) { m_AcroForm = &acroform; }
@@ -337,6 +319,27 @@ template<typename TField>
 TField* PdfField::GetParentTyped(PdfFieldType type) const
 {
     return static_cast<TField*>(getParentTyped(type));
+}
+
+template<typename TField>
+constexpr PdfFieldType PdfField::GetFieldType()
+{
+    if (std::is_same_v<TField, PdfPushButton>)
+        return PdfFieldType::PushButton;
+    else if (std::is_same_v<TField, PdfCheckBox>)
+        return PdfFieldType::CheckBox;
+    else if (std::is_same_v<TField, PdfRadioButton>)
+        return PdfFieldType::RadioButton;
+    else if (std::is_same_v<TField, PdfTextBox>)
+        return PdfFieldType::TextBox;
+    else if (std::is_same_v<TField, PdfComboBox>)
+        return PdfFieldType::ComboBox;
+    else if (std::is_same_v<TField, PdfListBox>)
+        return PdfFieldType::ListBox;
+    else if (std::is_same_v<TField, PdfSignature>)
+        return PdfFieldType::Signature;
+    else
+        return PdfFieldType::Unknown;
 }
 
 };

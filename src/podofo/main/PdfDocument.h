@@ -396,6 +396,8 @@ private:
 
     PdfInfo& GetOrCreateInfo();
 
+    void createAction(PdfActionType type, std::unique_ptr<PdfAction>& action);
+
 private:
     void append(const PdfDocument& doc, bool appendAll);
     /** Recursively changes every PdfReference in the PdfObject and in any child
@@ -408,8 +410,6 @@ private:
     void fixObjectReferences(PdfObject& obj, int difference);
 
     void deletePages(unsigned atIndex, unsigned pageCount);
-
-    PdfAction* createAction(const std::type_info& typeInfo);
 
     void resetPrivate();
 
@@ -435,7 +435,9 @@ private:
 template<typename TAction>
 std::unique_ptr<TAction> PdfDocument::CreateAction()
 {
-    return std::unique_ptr<TAction>(static_cast<TAction*>(createAction(typeid(TAction))));
+    std::unique_ptr<TAction> ret;
+    createAction(PdfAction::GetActionType<TAction>(), reinterpret_cast<std::unique_ptr<PdfAction>&>(ret));
+    return ret;
 }
 
 template<typename TField>

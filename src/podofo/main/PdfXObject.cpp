@@ -124,21 +124,6 @@ Matrix PdfXObject::GetMatrix() const
     return Matrix::FromArray(arr);
 }
 
-bool PdfXObject::tryCreateFromObject(const PdfObject& obj, const type_info& typeInfo, PdfXObject*& xobj)
-{
-    PdfXObjectType xobjType;
-    if (typeInfo == typeid(PdfXObjectForm))
-        xobjType = PdfXObjectType::Form;
-    else if (typeInfo == typeid(PdfImage))
-        xobjType = PdfXObjectType::Image;
-    else if (typeInfo == typeid(PdfXObjectPostScript))
-        xobjType = PdfXObjectType::PostScript;
-    else
-        PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
-
-    return tryCreateFromObject(obj, xobjType, xobj);
-}
-
 string_view toString(PdfXObjectType type)
 {
     switch (type)

@@ -94,9 +94,10 @@ public:
 private:
     static std::unique_ptr<PdfAction> Create(PdfDocument& doc, PdfActionType type);
 
-    static PdfAction* Create(PdfDocument& doc, const std::type_info& typeInfo);
-
     static std::unique_ptr<PdfAction> Create(const PdfAction& action);
+
+    template <typename TAction>
+    static constexpr PdfActionType GetActionType();
 
     /** Adds this action to an dictionary.
      *  This method handles the all the complexities of making sure it's added correctly
@@ -352,6 +353,51 @@ class PODOFO_API PdfActionRichMediaExecute final : public PdfAction
     PdfActionRichMediaExecute(const PdfActionRichMediaExecute&) = default;
 public:
 };
+
+template<typename TAction>
+constexpr PdfActionType PdfAction::GetActionType()
+{
+    if (std::is_same_v<TAction, PdfActionGoTo>)
+        return PdfActionType::GoTo;
+    else if (std::is_same_v<TAction, PdfActionGoToR>)
+        return PdfActionType::GoToR;
+    else if (std::is_same_v<TAction, PdfActionGoToE>)
+        return PdfActionType::GoToE;
+    else if (std::is_same_v<TAction, PdfActionLaunch>)
+        return PdfActionType::Launch;
+    else if (std::is_same_v<TAction, PdfActionThread>)
+        return PdfActionType::Thread;
+    else if (std::is_same_v<TAction, PdfActionURI>)
+        return PdfActionType::URI;
+    else if (std::is_same_v<TAction, PdfActionSound>)
+        return PdfActionType::Sound;
+    else if (std::is_same_v<TAction, PdfActionMovie>)
+        return PdfActionType::Movie;
+    else if (std::is_same_v<TAction, PdfActionHide>)
+        return PdfActionType::Hide;
+    else if (std::is_same_v<TAction, PdfActionNamed>)
+        return PdfActionType::Named;
+    else if (std::is_same_v<TAction, PdfActionSubmitForm>)
+        return PdfActionType::SubmitForm;
+    else if (std::is_same_v<TAction, PdfActionResetForm>)
+        return PdfActionType::ResetForm;
+    else if (std::is_same_v<TAction, PdfActionImportData>)
+        return PdfActionType::ImportData;
+    else if (std::is_same_v<TAction, PdfActionJavaScript>)
+        return PdfActionType::JavaScript;
+    else if (std::is_same_v<TAction, PdfActionSetOCGState>)
+        return PdfActionType::SetOCGState;
+    else if (std::is_same_v<TAction, PdfActionRendition>)
+        return PdfActionType::Rendition;
+    else if (std::is_same_v<TAction, PdfActionTrans>)
+        return PdfActionType::Trans;
+    else if (std::is_same_v<TAction, PdfActionGoTo3DView>)
+        return PdfActionType::GoTo3DView;
+    else if (std::is_same_v<TAction, PdfActionRichMediaExecute>)
+        return PdfActionType::RichMediaExecute;
+    else
+        return PdfActionType::Unknown;
+}
 
 };
 

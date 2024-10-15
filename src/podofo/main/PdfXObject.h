@@ -55,8 +55,9 @@ public:
 
 private:
     static bool tryCreateFromObject(const PdfObject& obj, PdfXObjectType xobjType, PdfXObject*& xobj);
-    static bool tryCreateFromObject(const PdfObject& obj, const std::type_info& typeInfo, PdfXObject*& xobj);
     static PdfXObjectType getPdfXObjectType(const PdfObject& obj);
+    template <typename TXObject>
+    static constexpr PdfXObjectType GetXObjectType();
 
 private:
     PdfXObjectType m_Type;
@@ -66,7 +67,7 @@ template<typename XObjectT>
 inline bool PdfXObject::TryCreateFromObject(PdfObject& obj, std::unique_ptr<XObjectT>& xobj)
 {
     PdfXObject* xobj_;
-    if (!tryCreateFromObject(obj, typeid(XObjectT), xobj_))
+    if (!tryCreateFromObject(obj, GetXObjectType<XObjectT>(), xobj_))
         return false;
 
     xobj.reset((XObjectT*)xobj_);
@@ -77,11 +78,24 @@ template<typename XObjectT>
 inline bool PdfXObject::TryCreateFromObject(const PdfObject& obj, std::unique_ptr<const XObjectT>& xobj)
 {
     PdfXObject* xobj_;
-    if (!tryCreateFromObject(obj, typeid(XObjectT), xobj_))
+    if (!tryCreateFromObject(obj, GetXObjectType<XObjectT>(), xobj_))
         return false;
 
     xobj.reset((const XObjectT*)xobj_);
     return true;
+}
+
+template<typename TXObject>
+constexpr PdfXObjectType PdfXObject::GetXObjectType()
+{
+    if (std::is_same_v<TXObject, PdfXObjectForm>)
+        return PdfXObjectType::Form;
+    else if (std::is_same_v<TXObject, PdfImage>)
+        return PdfXObjectType::Image;
+    else if (std::is_same_v<TXObject, PdfXObjectPostScript>)
+        return PdfXObjectType::PostScript;
+    else
+        return PdfXObjectType::Unknown;
 }
 
 };
