@@ -1385,9 +1385,9 @@ void utls::ReadInt32BE(const char* buf, int32_t& value)
 void utls::ReadUInt24BE(const char* buf, uint24_t& value)
 {
     uint32_t intValue =
-          (int32_t)((uint8_t)buf[3] << 0)
-        | (int32_t)((uint8_t)buf[2] << 8)
-        | (int32_t)((uint8_t)buf[1] << 16);
+          (int32_t)((uint8_t)buf[2] << 0)
+        | (int32_t)((uint8_t)buf[1] << 8)
+        | (int32_t)((uint8_t)buf[0] << 16);
     value = AS_BIG_ENDIAN((uint24_t)intValue);
 }
 
