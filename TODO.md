@@ -4,13 +4,13 @@
 - Settle https://github.com/podofo/podofo/issues/165
 - PdfPage: Add a method to retrieve rotation in radians
 - Optimize PdfTokenizer populating variant (could access variant members directly)
+- Settle TryGetSubstituteFont
 - Restore PdfShadingPattern, PdfTilingPattern
 
 ### After 1.0
 - According to 5014.CIDFont_Spec page 71-72-73 begincidchar, begincidrange,
   beginbfchar, beginbfrange have a limit of 100 entries. Fix it where relevant
 - noexcept nullable<T> methods
-- Add an easier way to retrieve attachments?
 - Check/Review doxygen doc
 - If the doc is updated, then should not allow to set an encryption
 - If the doc is updated and has an encryption, it should not allow to remove it

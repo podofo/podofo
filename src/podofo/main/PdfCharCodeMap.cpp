@@ -38,7 +38,7 @@ PdfCharCodeMap& PdfCharCodeMap::operator=(PdfCharCodeMap&& map) noexcept
 }
 
 PdfCharCodeMap::PdfCharCodeMap(CodeUnitMap&& mappings, CodeUnitRanges&& ranges, const PdfEncodingLimits& limits)
-    : m_Mappings(std::move(mappings)), m_Ranges(std::move(ranges)), m_Limits(limits), m_MapDirty(true), m_codePointMapHead(nullptr)
+    : m_Limits(limits), m_Mappings(std::move(mappings)), m_Ranges(std::move(ranges)), m_MapDirty(true), m_codePointMapHead(nullptr)
 {
 }
 
