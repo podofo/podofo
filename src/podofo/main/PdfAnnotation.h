@@ -300,7 +300,7 @@ template<typename TAnnotation>
 bool PdfAnnotation::TryCreateFromObject(PdfObject& obj, std::unique_ptr<TAnnotation>& xobj)
 {
     PdfAnnotation* xobj_;
-    if (!tryCreateFromObject(obj, typeid(TAnnotation), xobj_))
+    if (!tryCreateFromObject(obj, GetAnnotationType<TAnnotation>(), xobj_))
         return false;
 
     xobj.reset((TAnnotation*)xobj_);
@@ -311,7 +311,7 @@ template<typename TAnnotation>
 bool PdfAnnotation::TryCreateFromObject(const PdfObject& obj, std::unique_ptr<const TAnnotation>& xobj)
 {
     PdfAnnotation* xobj_;
-    if (!tryCreateFromObject(obj, typeid(TAnnotation), xobj_))
+    if (!tryCreateFromObject(obj, GetAnnotationType<TAnnotation>(), xobj_))
         return false;
 
     xobj.reset((const TAnnotation*)xobj_);
