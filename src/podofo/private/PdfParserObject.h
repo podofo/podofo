@@ -49,7 +49,7 @@ protected:
         InputStreamDevice& device, ssize_t offset);
 
 public:
-    bool TryUnload();
+    bool TryUnload() override;
 
     void Parse();
 
