@@ -366,8 +366,6 @@ void PdfPainter::DrawText(const string_view& str, double x, double y,
 
 void PdfPainter::drawText(const string_view& str, double x, double y, bool isUnderline, bool isStrikeThrough)
 {
-    PoDoFo::WriteOperator_Td(m_stream, x, y);
-
     auto& textState = m_StateStack.Current->TextState;
     auto& font = *textState.Font;
     auto expStr = this->expandTabs(str);
@@ -398,6 +396,8 @@ void PdfPainter::drawText(const string_view& str, double x, double y, bool isUnd
 
         this->restore();
     }
+
+    PoDoFo::WriteOperator_Td(m_stream, x, y);
 
     PoDoFo::WriteOperator_Tj(m_stream, font.GetEncoding().ConvertToEncoded(str),
         !font.GetEncoding().IsSimpleEncoding());
