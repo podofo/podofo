@@ -125,6 +125,17 @@ private:
     PdfTextStateWrapper(PdfPainter& painter, PdfTextState& state);
 
 public:
+    /** Split text into individual lines, using the current font state and width.
+     *
+     *  \param str the text which should be split
+     *  \param width width of the text area
+     *  \param skipTrailingSpaces whether trailing whitespaces should be skipped, so that next line doesn't start with whitespace
+     */
+    std::vector<std::string> SplitTextAsLines(const std::string_view& str, double width, bool skipTrailingSpaces = false) const
+    {
+        return m_state->SplitTextAsLines(str, width, skipTrailingSpaces);
+    }
+
     void SetFont(const PdfFont& font, double fontSize);
 
     /** Set the current horizontal scaling (operator Tz)
@@ -644,13 +655,16 @@ private:
     };
 
 private:
-    /** Gets the text divided into individual lines, using the current font and clipping rectangle.
+    /** Get the text divided into individual lines, using the current font state and width.
      *
-     *  \param str the text which should be drawn
+     *  \param str the text which should be split
      *  \param width width of the text area
-     *  \param skipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
+     *  \param skipTrailingSpaces whether trailing whitespaces should be skipped, so that next line doesn't start with whitespace
      */
-    std::vector<std::string> getMultiLineTextAsLines(const std::string_view& str, double width, bool skipSpaces);
+    std::vector<std::string> getMultiLineTextAsLines(const std::string_view& str, double width, bool skipTrailingSpaces)
+    {
+        return m_StateStack.Current->TextState.SplitTextAsLines(str, width, skipTrailingSpaces);
+    }
 
     /** Register an object in the resource dictionary of this page
      *  so that it can be used for any following drawing operations.
