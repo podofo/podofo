@@ -499,6 +499,14 @@ public:
      */
     inline PdfObjectStream* GetStream() const { return m_objStream; }
 
+    /** Gets the text divided into individual lines, using the current font and clipping rectangle.
+     *
+     *  \param str the text which should be drawn
+     *  \param width width of the text area
+     *  \param skipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
+     */
+    std::vector<std::string> getMultiLineTextAsLines(const std::string_view& str, double width, bool skipSpaces);
+
 private:
     // To be called by PdfPainterTextObject
     void BeginText();
@@ -631,14 +639,6 @@ private:
     };
 
 private:
-    /** Gets the text divided into individual lines, using the current font and clipping rectangle.
-     *
-     *  \param str the text which should be drawn
-     *  \param width width of the text area
-     *  \param skipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
-     */
-    std::vector<std::string> getMultiLineTextAsLines(const std::string_view& str, double width, bool skipSpaces);
-
     void drawTextAligned(const std::string_view& str, double x, double y, double width,
         PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style);
 
