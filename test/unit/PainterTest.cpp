@@ -137,7 +137,6 @@ TEST_CASE("TestPainter3")
     auto expected = R"(q
 BT
 /Ft0 15 Tf
-100 500 Td
 q
 0.75 w
 100 498.5 m
@@ -148,6 +147,7 @@ S
 172.075 503.93 l
 S
 Q
+100 500 Td
 <0001020203040503060207> Tj
 ET
 Q
@@ -223,7 +223,6 @@ BT
 
 ET
 BT
-100 600 Td
 q
 0.75 w
 0.75 w
@@ -231,6 +230,7 @@ q
 137.515 604.35 l
 S
 Q
+100 600 Td
 (Test2) Tj
 ET
 20 20 m
