@@ -20,9 +20,9 @@ namespace PoDoFo
          *
          *  \param str the text which should be split
          *  \param width width of the text area
-         *  \param skipTrailingSpaces whether trailing whitespaces should be skipped, so that next line doesn't start with whitespace
+         *  \param keepTrailingSpaces whether trailing whitespaces should be kept. The default is false, so lines can't start or end with whitespace
          */
-        std::vector<std::string> SplitTextAsLines(const std::string_view& str, double width, bool skipTrailingSpaces = false) const;
+        std::vector<std::string> SplitTextAsLines(const std::string_view& str, double width, bool keepTrailingSpaces = false) const;
 
         const PdfFont* Font = nullptr;
         double FontSize = -1;
