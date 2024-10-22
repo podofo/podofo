@@ -94,11 +94,23 @@ public:
     void SetLineCapStyle(PdfLineCapStyle capStyle);
     void SetLineJoinStyle(PdfLineJoinStyle joinStyle);
     void SetRenderingIntent(const std::string_view& intent);
+    /** Set the color for PDF "nonstroking" operations
+     */
     void SetFillColorSpace(PdfColorSpaceInitializer&& colorSpace);
+    /** Set the color for PDF "stroking" operations
+     */
     void SetStrokeColorSpace(PdfColorSpaceInitializer&& color);
+    /** Set the color for PDF "nonstroking" operations 
+     */
     void SetFillColor(const PdfColor& color);
+    /** Set the color for PDF "stroking" operations
+     */
     void SetStrokeColor(const PdfColor& color);
+    /** Set the color for PDF "nonstroking" operations
+     */
     void SetFillColor(const PdfColorRaw& color);
+    /** Set the color for PDF "stroking" operations
+     */
     void SetStrokeColor(const PdfColorRaw& color);
     void SetExtGState(const PdfExtGState& extGState);
 
