@@ -324,44 +324,16 @@ void PdfPainter::DrawText(const string_view& str, double x, double y,
 
     PoDoFo::WriteOperator_BT(m_stream);
     writeTextState();
-    drawText(str, x, y,
-        (style & PdfDrawTextStyle::Underline) != PdfDrawTextStyle::Regular,
-        (style & PdfDrawTextStyle::StrikeThrough) != PdfDrawTextStyle::Regular);
+    drawText(str, x, y);
     PoDoFo::WriteOperator_ET(m_stream);
+    decorateText(str, x, y, style);
 }
 
-void PdfPainter::drawText(const string_view& str, double x, double y, bool isUnderline, bool isStrikeThrough)
+void PdfPainter::drawText(const string_view& str, double x, double y)
 {
     auto& textState = m_StateStack.Current->TextState;
     auto& font = *textState.Font;
     auto expStr = this->expandTabs(str);
-
-    if (isUnderline || isStrikeThrough)
-    {
-        this->save();
-
-        // Draw underline
-        this->setLineWidth(font.GetUnderlineThickness(textState));
-        if (isUnderline)
-        {
-            this->DrawLine(x,
-                y + font.GetUnderlinePosition(textState),
-                x + font.GetStringLength(expStr, textState),
-                y + font.GetUnderlinePosition(textState));
-        }
-
-        // Draw strikethrough
-        this->setLineWidth(font.GetStrikeThroughThickness(textState));
-        if (isStrikeThrough)
-        {
-            this->DrawLine(x,
-                y + font.GetStrikeThroughPosition(textState),
-                x + font.GetStringLength(expStr, textState),
-                y + font.GetStrikeThroughPosition(textState));
-        }
-
-        this->restore();
-    }
 
     PoDoFo::WriteOperator_Td(m_stream, x, y);
 
@@ -402,8 +374,9 @@ void PdfPainter::DrawTextAligned(const string_view& str, double x, double y, dou
 
     PoDoFo::WriteOperator_BT(m_stream);
     writeTextState();
-    drawTextAligned(str, x, y, width, hAlignment, style);
+    drawTextAligned(str, x, y, width, hAlignment);
     PoDoFo::WriteOperator_ET(m_stream);
+    decorateText(str, x, y, style);
 }
 
 void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, double width, double height,
@@ -441,8 +414,28 @@ void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, d
     y -= font.GetAscent(textState) + lineGap / 2;
     for (auto& line : lines)
     {
-        if (line.length() != 0)
-            this->drawTextAligned(line, x, y, width, hAlignment, style);
+        if (line.length() != 0) {
+            drawTextAligned(line, x, y, width, hAlignment);
+
+            // TODO: For full spec compliance this needs to be outside of BT/ET
+            decorateText(line, x, y, style);
+
+            // Approach one:
+            // Simple and dirty
+            /*
+            if (style != PdfDrawTextStyle::Regular)
+            {
+                PoDoFo::WriteOperator_ET(m_stream);
+                decorateText(line, x, y, style);
+                PoDoFo::WriteOperator_BT(m_stream);
+            }
+            */
+
+            // Approach two:
+            // Go through the lines twice in case there is underline / strikethrough
+            // This would keep the text lines together in one text object, which probably is semantically better
+
+        }
 
         x = 0;
         switch (hAlignment)
@@ -463,8 +456,46 @@ void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, d
     this->restore();
 }
 
+void PdfPainter::decorateText(const std::string_view& str, double x, double y, PdfDrawTextStyle style)
+{
+    bool isUnderline = (style & PdfDrawTextStyle::Underline) != PdfDrawTextStyle::Regular;
+    bool isStrikeThrough = (style & PdfDrawTextStyle::StrikeThrough) != PdfDrawTextStyle::Regular;
+
+    if (!isUnderline && !isStrikeThrough)
+        return;
+
+    auto expStr = this->expandTabs(str);
+    auto& textState = m_StateStack.Current->TextState;
+    auto& font = *textState.Font;
+
+    this->save();
+
+    // Draw underline
+    this->setLineWidth(font.GetUnderlineThickness(textState));
+    if (isUnderline)
+    {
+        this->DrawLine(x,
+            y + font.GetUnderlinePosition(textState),
+            x + font.GetStringLength(expStr, textState),
+            y + font.GetUnderlinePosition(textState));
+    }
+
+    // Draw strikethrough
+    this->setLineWidth(font.GetStrikeThroughThickness(textState));
+    if (isStrikeThrough)
+    {
+        this->DrawLine(x,
+            y + font.GetStrikeThroughPosition(textState),
+            x + font.GetStringLength(expStr, textState),
+            y + font.GetStrikeThroughPosition(textState));
+    }
+
+    this->restore();
+
+}
+
 void PdfPainter::drawTextAligned(const string_view& str, double x, double y, double width,
-    PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style)
+    PdfHorizontalAlignment hAlignment)
 {
     auto& textState = m_StateStack.Current->TextState;
     switch (hAlignment)
@@ -480,9 +511,7 @@ void PdfPainter::drawTextAligned(const string_view& str, double x, double y, dou
             break;
     }
 
-    this->drawText(str, x, y,
-        (style & PdfDrawTextStyle::Underline) != PdfDrawTextStyle::Regular,
-        (style & PdfDrawTextStyle::StrikeThrough) != PdfDrawTextStyle::Regular);
+    drawText(str, x, y);
 }
 
 void PdfPainter::DrawImage(const PdfImage& obj, double x, double y, double scaleX, double scaleY)

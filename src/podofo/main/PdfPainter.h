@@ -86,7 +86,7 @@ private:
 
 public:
     /** Apply the given matrix to the current transformation matrix (CTM)
-     * \remarks Corresponds to the PDF 'cm' operator 
+     * \remarks Corresponds to the PDF 'cm' operator
      */
     void ConcatenateTransformationMatrix(const Matrix& matrix);
     void SetLineWidth(double lineWidth);
@@ -100,7 +100,7 @@ public:
     /** Set the color for PDF "stroking" operations
      */
     void SetStrokeColorSpace(PdfColorSpaceInitializer&& color);
-    /** Set the color for PDF "nonstroking" operations 
+    /** Set the color for PDF "nonstroking" operations
      */
     void SetFillColor(const PdfColor& color);
     /** Set the color for PDF "stroking" operations
@@ -666,13 +666,15 @@ private:
     }
 
     void drawTextAligned(const std::string_view& str, double x, double y, double width,
-        PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style);
+        PdfHorizontalAlignment hAlignment);
 
-    void drawText(const std::string_view& str, double x, double y, bool isUnderline, bool isStrikeThrough);
+    void drawText(const std::string_view& str, double x, double y);
 
     void drawMultiLineText(const std::string_view& str, double x, double y, double width, double height,
         PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool clip, bool skipSpaces,
         PdfDrawTextStyle style);
+
+    void decorateText(const std::string_view& str, double x, double y, PdfDrawTextStyle style);
 
     void setLineWidth(double width);
 
