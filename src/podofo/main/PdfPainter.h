@@ -558,6 +558,7 @@ private:
     void setFillColorSpace(const PdfObject& csObj);
     void setStrokeColorSpace(const PdfObject& csObj);
     PdfName tryAddResource(const PdfObject& obj, PdfResourceType type);
+    void drawLines(const std::vector<std::array<double, 4>>& lines);
 
 private:
     // PdfContentStreamOperators implementation
@@ -645,9 +646,10 @@ private:
 
 private:
     void drawTextAligned(const std::string_view& str, double x, double y, double width,
-        PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style);
+        PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style, std::vector<std::array<double, 4>>& linesToDraw);
 
-    void drawText(const std::string_view& str, double x, double y, bool isUnderline, bool isStrikeThrough);
+    void drawText(const std::string_view& str, double x, double y,
+        bool isUnderline, bool isStrikeThrough, std::vector<std::array<double, 4>>& linesToDraw);
 
     void drawMultiLineText(const std::string_view& str, double x, double y, double width, double height,
         PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool skipClip, bool preserveTrailingSpaces,

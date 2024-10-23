@@ -195,14 +195,14 @@ void PdfPainter::EMC_Operator()
 void PdfPainter::q_Operator()
 {
     checkStream();
-    checkStatus(StatusDefault | StatusTextObject);
+    checkStatus(StatusDefault);
     PoDoFo::WriteOperator_q(m_stream);
 }
 
 void PdfPainter::Q_Operator()
 {
     checkStream();
-    checkStatus(StatusDefault | StatusTextObject);
+    checkStatus(StatusDefault);
     PoDoFo::WriteOperator_Q(m_stream);
 }
 

@@ -322,15 +322,20 @@ void PdfPainter::DrawText(const string_view& str, double x, double y,
     checkStatus(StatusDefault);
     checkFont();
 
+    vector<array<double, 4>> linesToDraw;
+    save();
     PoDoFo::WriteOperator_BT(m_stream);
     writeTextState();
     drawText(str, x, y,
         (style & PdfDrawTextStyle::Underline) != PdfDrawTextStyle::Regular,
-        (style & PdfDrawTextStyle::StrikeThrough) != PdfDrawTextStyle::Regular);
+        (style & PdfDrawTextStyle::StrikeThrough) != PdfDrawTextStyle::Regular, linesToDraw);
     PoDoFo::WriteOperator_ET(m_stream);
+    drawLines(linesToDraw);
+    restore();
 }
 
-void PdfPainter::drawText(const string_view& str, double x, double y, bool isUnderline, bool isStrikeThrough)
+void PdfPainter::drawText(const string_view& str, double x, double y,
+    bool isUnderline, bool isStrikeThrough, vector<array<double, 4>>& linesToDraw)
 {
     auto& textState = m_StateStack.Current->TextState;
     auto& font = *textState.Font;
@@ -338,29 +343,26 @@ void PdfPainter::drawText(const string_view& str, double x, double y, bool isUnd
 
     if (isUnderline || isStrikeThrough)
     {
-        this->save();
-
         // Draw underline
         this->setLineWidth(font.GetUnderlineThickness(textState));
         if (isUnderline)
         {
-            this->DrawLine(x,
+            linesToDraw.push_back({ x,
                 y + font.GetUnderlinePosition(textState),
                 x + font.GetStringLength(expStr, textState),
-                y + font.GetUnderlinePosition(textState));
+                y + font.GetUnderlinePosition(textState)
+            });
         }
 
         // Draw strikethrough
-        this->setLineWidth(font.GetStrikeThroughThickness(textState));
         if (isStrikeThrough)
         {
-            this->DrawLine(x,
+            linesToDraw.push_back({ x,
                 y + font.GetStrikeThroughPosition(textState),
                 x + font.GetStringLength(expStr, textState),
-                y + font.GetStrikeThroughPosition(textState));
+                y + font.GetStrikeThroughPosition(textState)
+            });
         }
-
-        this->restore();
     }
 
     PoDoFo::WriteOperator_Td(m_stream, x, y);
@@ -400,10 +402,14 @@ void PdfPainter::DrawTextAligned(const string_view& str, double x, double y, dou
     checkStatus(StatusDefault | StatusTextObject);
     checkFont();
 
+    save();
     PoDoFo::WriteOperator_BT(m_stream);
     writeTextState();
-    drawTextAligned(str, x, y, width, hAlignment, style);
+    vector<array<double, 4>> linesToDraw;
+    drawTextAligned(str, x, y, width, hAlignment, style, linesToDraw);
     PoDoFo::WriteOperator_ET(m_stream);
+    drawLines(linesToDraw);
+    restore();
 }
 
 void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, double width, double height,
@@ -439,10 +445,11 @@ void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, d
     }
 
     y -= font.GetAscent(textState) + lineGap / 2;
+    vector<array<double, 4>> linesToDraw;
     for (auto& line : lines)
     {
         if (line.length() != 0)
-            this->drawTextAligned(line, x, y, width, hAlignment, style);
+            this->drawTextAligned(line, x, y, width, hAlignment, style, linesToDraw);
 
         x = 0;
         switch (hAlignment)
@@ -460,11 +467,12 @@ void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, d
         y = -font.GetLineSpacing(textState);
     }
     PoDoFo::WriteOperator_ET(m_stream);
+    drawLines(linesToDraw);
     this->restore();
 }
 
 void PdfPainter::drawTextAligned(const string_view& str, double x, double y, double width,
-    PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style)
+    PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style, vector<array<double, 4>>& linesToDraw)
 {
     auto& textState = m_StateStack.Current->TextState;
     switch (hAlignment)
@@ -482,7 +490,8 @@ void PdfPainter::drawTextAligned(const string_view& str, double x, double y, dou
 
     this->drawText(str, x, y,
         (style & PdfDrawTextStyle::Underline) != PdfDrawTextStyle::Regular,
-        (style & PdfDrawTextStyle::StrikeThrough) != PdfDrawTextStyle::Regular);
+        (style & PdfDrawTextStyle::StrikeThrough) != PdfDrawTextStyle::Regular,
+        linesToDraw);
 }
 
 void PdfPainter::DrawImage(const PdfImage& obj, double x, double y, double scaleX, double scaleY)
@@ -808,6 +817,12 @@ PdfName PdfPainter::tryAddResource(const PdfObject& obj, PdfResourceType type)
     }
 
     return found->second;
+}
+
+void PdfPainter::drawLines(const vector<array<double, 4>>& lines)
+{
+    for (auto& line : lines)
+        this->DrawLine(line[0], line[1], line[2], line[3]);
 }
 
 void PdfPainter::SetFont(const PdfFont& font, double fontSize)
