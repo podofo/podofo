@@ -14,7 +14,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-vector<string> PdfTextState::SplitTextAsLines(const string_view& str, double width, bool keepTrailingSpaces) const
+vector<string> PdfTextState::SplitTextAsLines(const string_view& str, double width, bool preserveTrailingSpaces) const
 {
     if (width <= 0) // nonsense arguments
         return {};
@@ -58,7 +58,7 @@ vector<string> PdfTextState::SplitTextAsLines(const string_view& str, double wid
                 else
                 {
                     lines.push_back((string)str.substr(lineBegin - str.begin(), prevIt - lineBegin));
-                    if (!keepTrailingSpaces)
+                    if (!preserveTrailingSpaces)
                     {
                         // Skip all spaces at the end of the line
                         while (it != end)
@@ -92,7 +92,7 @@ vector<string> PdfTextState::SplitTextAsLines(const string_view& str, double wid
             else if ((curWidthOfLine + font.GetCharLength(ch, *this)) > width)
             {
                 lines.push_back((string)str.substr(lineBegin - str.begin(), prevIt - lineBegin));
-                if (!keepTrailingSpaces)
+                if (!preserveTrailingSpaces)
                 {
                     // Skip all spaces at the end of the line
                     while (it != end)

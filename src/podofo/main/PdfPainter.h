@@ -59,8 +59,8 @@ struct PODOFO_API PdfDrawTextMultiLineParams final
     PdfDrawTextStyle Style = PdfDrawTextStyle::Regular;                         ///< style of the draw text operation
     PdfHorizontalAlignment HorizontalAlignment = PdfHorizontalAlignment::Left;  ///< alignment of the individual text lines in the given bounding box
     PdfVerticalAlignment VerticalAlignment = PdfVerticalAlignment::Top;         ///< vertical alignment of the text in the given bounding box
-    bool Clip = true;                                                           ///< set the clipping rectangle to the given rect, otherwise no clipping is performed
-    bool SkipSpaces = true;                                                     ///< whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
+    bool SkipClip = false;                                                      ///< Where a clipping rectangle, skip clipping text 
+    bool PreserveTrailingSpaces = false;                                        ///< Whether to the preserve trailing whitespaces
 };
 
 struct PODOFO_API PdfPainterState final
@@ -147,17 +147,6 @@ private:
     PdfTextStateWrapper(PdfPainter& painter, PdfTextState& state);
 
 public:
-    /** Split text into individual lines, using the current font state and width.
-     *
-     *  \param str the text which should be split
-     *  \param width width of the text area
-     *  \param skipTrailingSpaces whether trailing whitespaces should be skipped, so that next line doesn't start with whitespace
-     */
-    std::vector<std::string> SplitTextAsLines(const std::string_view& str, double width, bool skipTrailingSpaces = false) const
-    {
-        return m_state->SplitTextAsLines(str, width, skipTrailingSpaces);
-    }
-
     void SetFont(const PdfFont& font, double fontSize);
 
     /** Set the current horizontal scaling (operator Tz)
@@ -179,39 +168,40 @@ public:
     void SetRenderingMode(PdfTextRenderingMode mode);
 
 public:
-    inline const PdfFont* GetFont() const { return m_state->Font; }
+    inline const PdfFont* GetFont() const { return m_State->Font; }
 
     /** Retrieve the current font size (operator Tf, controlling Tfs)
      *  \returns the current font size
      */
-    inline double GetFontSize() const { return m_state->FontSize; }
+    inline double GetFontSize() const { return m_State->FontSize; }
 
     /** Retrieve the current horizontal scaling (operator Tz)
      *  \returns the current font scaling in [0,1]
      */
-    inline double GetFontScale() const { return m_state->FontScale; }
+    inline double GetFontScale() const { return m_State->FontScale; }
 
     /** Retrieve the character spacing (operator Tc)
      *  \returns the current font character spacing
      */
-    inline double GetCharSpacing() const { return m_state->CharSpacing; }
+    inline double GetCharSpacing() const { return m_State->CharSpacing; }
 
     /** Retrieve the current word spacing (operator Tw)
      *  \returns the current font word spacing in PDF units
      */
-    inline double GetWordSpacing() const { return m_state->WordSpacing; }
+    inline double GetWordSpacing() const { return m_State->WordSpacing; }
 
-    inline PdfTextRenderingMode GetRenderingMode() const { return m_state->RenderingMode; }
+    inline PdfTextRenderingMode GetRenderingMode() const { return m_State->RenderingMode; }
 
 public:
-    operator const PdfTextState&() const { return *m_state; }
+    const PdfTextState& GetState() const { return *m_State; }
+    operator const PdfTextState&() const { return *m_State; }
 
 private:
-    void SetState(PdfTextState& state) { m_state = &state; }
+    void SetState(PdfTextState& state) { m_State = &state; }
 
 private:
     PdfPainter* m_painter;
-    PdfTextState* m_state;
+    PdfTextState* m_State;
 };
 
 /**
@@ -654,24 +644,13 @@ private:
     };
 
 private:
-    /** Get the text divided into individual lines, using the current font state and width.
-     *
-     *  \param str the text which should be split
-     *  \param width width of the text area
-     *  \param skipTrailingSpaces whether trailing whitespaces should be skipped, so that next line doesn't start with whitespace
-     */
-    std::vector<std::string> getMultiLineTextAsLines(const std::string_view& str, double width, bool skipTrailingSpaces)
-    {
-        return m_StateStack.Current->TextState.SplitTextAsLines(str, width, skipTrailingSpaces);
-    }
-
     void drawTextAligned(const std::string_view& str, double x, double y, double width,
         PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style);
 
     void drawText(const std::string_view& str, double x, double y, bool isUnderline, bool isStrikeThrough);
 
     void drawMultiLineText(const std::string_view& str, double x, double y, double width, double height,
-        PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool clip, bool skipSpaces,
+        PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool skipClip, bool preserveTrailingSpaces,
         PdfDrawTextStyle style);
 
     void setLineWidth(double width);

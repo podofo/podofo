@@ -387,7 +387,7 @@ void PdfPainter::DrawTextMultiLine(const string_view& str, double x, double y, d
 
     drawMultiLineText(str, x, y, width, height,
         params.HorizontalAlignment, params.VerticalAlignment,
-        params.Clip, params.SkipSpaces, params.Style);
+        params.SkipClip, params.PreserveTrailingSpaces, params.Style);
 }
 
 void PdfPainter::DrawTextAligned(const string_view& str, double x, double y, double width,
@@ -407,21 +407,21 @@ void PdfPainter::DrawTextAligned(const string_view& str, double x, double y, dou
 }
 
 void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, double width, double height,
-    PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool clip, bool skipSpaces,
+    PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool skipClip, bool preserveTrailingSpaces,
     PdfDrawTextStyle style)
 {
     auto& textState = m_StateStack.Current->TextState;
     auto& font = *textState.Font;
 
     this->save();
-    if (clip)
+    if (!skipClip)
         this->SetClipRect(x, y, width, height);
 
     auto expanded = this->expandTabs(str);
 
     PoDoFo::WriteOperator_BT(m_stream);
     writeTextState();
-    vector<string> lines = getMultiLineTextAsLines(expanded, width, skipSpaces);
+    vector<string> lines = m_StateStack.Current->TextState.SplitTextAsLines(str, width, preserveTrailingSpaces);
     double lineGap = font.GetLineSpacing(textState) - font.GetAscent(textState) + font.GetDescent(textState);
     // Do vertical alignment
     switch (vAlignment)
@@ -1151,52 +1151,52 @@ void PdfGraphicsStateWrapper::SetExtGState(const PdfExtGState& extGState)
 }
 
 PdfTextStateWrapper::PdfTextStateWrapper(PdfPainter& painter, PdfTextState& state)
-    : m_painter(&painter), m_state(&state) { }
+    : m_painter(&painter), m_State(&state) { }
 
 void PdfTextStateWrapper::SetFont(const PdfFont& font, double fontSize)
 {
-    if (m_state->Font == &font && m_state->FontSize == fontSize)
+    if (m_State->Font == &font && m_State->FontSize == fontSize)
         return;
 
-    m_state->Font = &font;
-    m_state->FontSize = fontSize;
-    m_painter->SetFont(*m_state->Font, m_state->FontSize);
+    m_State->Font = &font;
+    m_State->FontSize = fontSize;
+    m_painter->SetFont(*m_State->Font, m_State->FontSize);
 }
 
 void PdfTextStateWrapper::SetFontScale(double scale)
 {
-    if (m_state->FontScale == scale)
+    if (m_State->FontScale == scale)
         return;
 
-    m_state->FontScale = scale;
-    m_painter->SetFontScale(m_state->FontScale);
+    m_State->FontScale = scale;
+    m_painter->SetFontScale(m_State->FontScale);
 }
 
 void PdfTextStateWrapper::SetCharSpacing(double charSpacing)
 {
-    if (m_state->CharSpacing == charSpacing)
+    if (m_State->CharSpacing == charSpacing)
         return;
 
-    m_state->CharSpacing = charSpacing;
-    m_painter->SetCharSpacing(m_state->CharSpacing);
+    m_State->CharSpacing = charSpacing;
+    m_painter->SetCharSpacing(m_State->CharSpacing);
 }
 
 void PdfTextStateWrapper::SetWordSpacing(double wordSpacing)
 {
-    if (m_state->WordSpacing == wordSpacing)
+    if (m_State->WordSpacing == wordSpacing)
         return;
 
-    m_state->WordSpacing = wordSpacing;
-    m_painter->SetWordSpacing(m_state->WordSpacing);
+    m_State->WordSpacing = wordSpacing;
+    m_painter->SetWordSpacing(m_State->WordSpacing);
 }
 
 void PdfTextStateWrapper::SetRenderingMode(PdfTextRenderingMode mode)
 {
-    if (m_state->RenderingMode == mode)
+    if (m_State->RenderingMode == mode)
         return;
 
-    m_state->RenderingMode = mode;
-    m_painter->SetTextRenderingMode(m_state->RenderingMode);
+    m_State->RenderingMode = mode;
+    m_painter->SetTextRenderingMode(m_State->RenderingMode);
 }
 
 void PdfPainter::drawRectangle(double x, double y, double width, double height, PdfPathDrawMode mode, double roundX, double roundY)
