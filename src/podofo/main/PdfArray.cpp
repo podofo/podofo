@@ -337,14 +337,19 @@ void PdfArray::MoveTo(unsigned atIndex, unsigned toIndex)
     if (atIndex == toIndex)
         return;
 
+    PdfObject temp(m_Objects[atIndex]);
     if (atIndex > toIndex)
-        std::swap(atIndex, toIndex);
+    {
+        for (unsigned i = atIndex; i > toIndex; i--)
+            m_Objects[i].Assign(std::move(m_Objects[i - 1]));
+    }
+    else
+    {
+        for (unsigned i = atIndex; i < toIndex; i++)
+            m_Objects[i].Assign(std::move(m_Objects[i + 1]));
+    }
 
-    PdfObject temp(m_Objects[toIndex]);
-    for (unsigned i = toIndex; i > atIndex; i--)
-        m_Objects[i].Assign(std::move(m_Objects[i - 1]));
-
-    m_Objects[atIndex].Assign(std::move(temp));
+    m_Objects[toIndex].Assign(std::move(temp));
     SetDirty();
 }
 
