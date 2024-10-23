@@ -163,20 +163,29 @@ bool PdfPageCollection::TryMovePageTo(unsigned atIndex, unsigned toIndex)
     
     FlattenStructure();
 
-    if (atIndex > toIndex)
-        std::swap(atIndex, toIndex);
-
     m_kidsArray->MoveTo(atIndex, toIndex);
 
-    auto temp = m_Pages[toIndex];
-    for (unsigned i = toIndex; i > atIndex; i--)
+    auto temp = m_Pages[atIndex];
+    if (atIndex > toIndex)
     {
-        m_Pages[i] = m_Pages[i - 1];
-        m_Pages[i]->SetIndex(i);
+        for (unsigned i = atIndex; i > toIndex; i--)
+        {
+            m_Pages[i] = m_Pages[i - 1];
+            m_Pages[i]->SetIndex(i);
+        }
+    }
+    else
+    {
+        for (unsigned i = atIndex; i < toIndex; i++)
+        {
+            m_Pages[i] = m_Pages[i + 1];
+            m_Pages[i]->SetIndex(i);
+        }
     }
 
-    m_Pages[atIndex] = temp;
-    m_Pages[atIndex]->SetIndex(atIndex);
+    m_Pages[toIndex] = temp;
+    m_Pages[toIndex]->SetIndex(toIndex);
+
     return true;
 }
 
