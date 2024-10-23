@@ -126,21 +126,20 @@ TEST_CASE("TestPainter3")
     doc.Save(TestUtils::GetTestOutputFilePath("TestPainter3.pdf"));
 
     auto expected = R"(q
+q
 BT
 /Ft5 15 Tf
-q
 0.75 w
+100 500 Td
+<0001020203040503060207> Tj
+ET
 100 498.5 m
 172.075 498.5 l
 S
-0.75 w
 100 503.93 m
 172.075 503.93 l
 S
 Q
-100 500 Td
-<0001020203040503060207> Tj
-ET
 Q
 )"sv;
 
@@ -213,17 +212,16 @@ BT
 [ (_W) -500 (orld) ] TJ
 
 ET
-BT
 q
+BT
 0.75 w
-0.75 w
+100 600 Td
+(Test2) Tj
+ET
 100 604.35 m
 137.515 604.35 l
 S
 Q
-100 600 Td
-(Test2) Tj
-ET
 20 20 m
 100 20 l
 127.614237 20 150 42.385763 150 70 c

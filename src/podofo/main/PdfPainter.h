@@ -558,6 +558,7 @@ private:
     void stroke();
     void fill(bool useEvenOddRule);
     void strokeAndFill(bool useEvenOddRule);
+    void drawLines(const std::vector<std::array<double, 4>>& lines);
 
 private:
     // PdfContentStreamOperators implementation
@@ -662,9 +663,10 @@ private:
     void addToPageResources(const PdfName& type, const PdfName& identifier, const PdfObject& obj);
 
     void drawTextAligned(const std::string_view& str, double x, double y, double width,
-        PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style);
+        PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style, std::vector<std::array<double, 4>>& linesToDraw);
 
-    void drawText(const std::string_view& str, double x, double y, bool isUnderline, bool isStrikeThrough);
+    void drawText(const std::string_view& str, double x, double y,
+        bool isUnderline, bool isStrikeThrough, std::vector<std::array<double, 4>>& linesToDraw);
 
     void drawMultiLineText(const std::string_view& str, double x, double y, double width, double height,
         PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool clip, bool skipSpaces,
