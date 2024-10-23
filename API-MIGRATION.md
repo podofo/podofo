@@ -193,4 +193,6 @@ The following is an incomplete list of 0.9.8 -> 0.10.0 API modifications. Feel f
 - `PdfFont::SetFontSize()` removed. See functions in `PdfFont` that accepts `PdfTextState`. `PdfFont::SetBold()`, `PdfFont::SetItalic()` removed as they were no sense. Font style now is read-only and can be read from `PdfFontMetrics::GetFontStyle()`
 - `PdfTable`: Removed as providing formatting features that are too high level for the scope of PoDoFo
 - `PdfDocument::Clear()`: Removed, reintroduced in >0.10 as `PdfDocument::Reset()`
+- `PdfDocument::InsertExistingPageAt`: Moved and renamed to `PdfPageCollection::InsertDocumentPageAt`
+- `PdfDocument::Append`: Moved, renamed and improved to `PdfPageCollection::AppendDocumentPages`
 - `PdfPage::GetField()`, `PdfPage::GetFieldCount()`: Removed, [iterate annotations](https://github.com/podofo/podofo/issues/158#issuecomment-2081646748) instead for now.
