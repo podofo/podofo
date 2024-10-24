@@ -63,9 +63,11 @@ vector<string> PdfTextState::SplitTextAsLines(const string_view& str, double wid
                         // Skip all spaces at the end of the line
                         while (it != end)
                         {
-                            ch = (char32_t)utf8::next(it, end);
+                            auto nextIt = it;
+                            ch = (char32_t)utf8::next(nextIt, end);
                             if (!utls::IsSpaceLikeChar(ch))
                                 break;
+                            it = nextIt;
                         }
 
                         startOfCurrentWord = it;
@@ -97,9 +99,11 @@ vector<string> PdfTextState::SplitTextAsLines(const string_view& str, double wid
                     // Skip all spaces at the end of the line
                     while (it != end)
                     {
-                        ch = (char32_t)utf8::next(it, end);
+                        auto nextIt = it;
+                        ch = (char32_t)utf8::next(nextIt, end);
                         if (!utls::IsSpaceLikeChar(ch))
                             break;
+                        it = nextIt;
                     }
 
                     startOfCurrentWord = it;
