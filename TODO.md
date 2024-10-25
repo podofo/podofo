@@ -3,7 +3,6 @@
 - Optimize passing shared_ptr
 - Settle https://github.com/podofo/podofo/issues/165
 - PdfPage: Add a method to retrieve rotation in radians
-- Optimize PdfTokenizer populating variant (could access variant members directly)
 - Settle TryGetSubstituteFont
 - Restore PdfShadingPattern, PdfTilingPattern
 

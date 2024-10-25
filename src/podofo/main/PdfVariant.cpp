@@ -358,6 +358,12 @@ void PdfVariant::moveFrom(PdfVariant&& rhs)
     new(&rhs.m_Null)NullMember();
 }
 
+void PdfVariant::Reset()
+{
+    this->~PdfVariant();
+    new(&m_Null)NullMember();
+}
+
 string_view PdfVariant::GetDataTypeString() const
 {
     switch (GetDataType())

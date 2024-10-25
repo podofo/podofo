@@ -253,22 +253,24 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevi
     {
         case PdfTokenType::Literal:
         {
+            variant.~PdfVariant();
+
             // check for the two special datatypes
             // null and boolean.
             // check for numbers
             if (token == "null")
             {
-                variant = PdfVariant();
+                new(&variant.m_Null)PdfVariant::NullMember();
                 return PdfLiteralDataType::Null;
             }
             else if (token == "true")
             {
-                variant = PdfVariant(true);
+                new(&variant.m_Bool)PdfVariant::PrimitiveMember(true);
                 return PdfLiteralDataType::Bool;
             }
             else if (token == "false")
             {
-                variant = PdfVariant(false);
+                new(&variant.m_Bool)PdfVariant::PrimitiveMember(false);
                 return PdfLiteralDataType::Bool;
             }
 
@@ -299,22 +301,24 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevi
                     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidNumber, token);
                 }
 
-                variant = PdfVariant(val);
+                new(&variant.m_Real)PdfVariant::PrimitiveMember(val);
                 return PdfLiteralDataType::Real;
             }
             else if (dataType == PdfLiteralDataType::Number)
             {
-                int64_t num;
-                if (!utls::TryParse(token, num))
+                int64_t num1;
+                if (!utls::TryParse(token, num1))
                 {
                     // Don't consume the token
                     this->EnqueueToken(token, tokenType);
                     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidNumber, token);
                 }
 
-                variant = PdfVariant(num);
                 if (!m_options.ReadReferences)
+                {
+                    new(&variant.m_Number)PdfVariant::PrimitiveMember(num1);
                     return PdfLiteralDataType::Number;
+                }
 
                 // read another two tokens to see if it is a reference
                 // we cannot be sure that there is another token
@@ -326,18 +330,23 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevi
                 if (!gotToken)
                 {
                     // No next token, so it can't be a reference
-                    return PdfLiteralDataType::Number;
-                }
-                if (secondTokenType != PdfTokenType::Literal)
-                {
-                    this->EnqueueToken(nextToken, secondTokenType);
+                    new(&variant.m_Number)PdfVariant::PrimitiveMember(num1);
                     return PdfLiteralDataType::Number;
                 }
 
-                if (!utls::TryParse(nextToken, num))
+                if (secondTokenType != PdfTokenType::Literal)
+                {
+                    this->EnqueueToken(nextToken, secondTokenType);
+                    new(&variant.m_Number)PdfVariant::PrimitiveMember(num1);
+                    return PdfLiteralDataType::Number;
+                }
+
+                int64_t num2;
+                if (!utls::TryParse(nextToken, num2))
                 {
                     // Don't consume the token
                     this->EnqueueToken(nextToken, secondTokenType);
+                    new(&variant.m_Number)PdfVariant::PrimitiveMember(num1);
                     return PdfLiteralDataType::Number;
                 }
 
@@ -347,33 +356,45 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevi
                 if (!gotToken)
                 {
                     // No third token, so it can't be a reference
+                    new(&variant.m_Number)PdfVariant::PrimitiveMember(num1);
                     return PdfLiteralDataType::Number;
                 }
                 if (thirdTokenType == PdfTokenType::Literal &&
                     nextToken.length() == 1 && nextToken[0] == 'R')
                 {
-                    variant = PdfReference(static_cast<uint32_t>(variant.GetNumber()), static_cast<uint16_t>(num));
+                    new(&variant.m_Reference)PdfReference(static_cast<uint32_t>(num1), static_cast<uint16_t>(num2));
                     return PdfLiteralDataType::Reference;
                 }
                 else
                 {
                     this->EnqueueToken(tmp, secondTokenType);
                     this->EnqueueToken(nextToken, thirdTokenType);
+                    new(&variant.m_Number)PdfVariant::PrimitiveMember(num1);
                     return PdfLiteralDataType::Number;
                 }
             }
             else
+            {
+                new(&variant.m_Null)PdfVariant::NullMember();
                 return PdfLiteralDataType::Unknown;
+            }
         }
+        // Following types just reset the variant to "null",
+        // they will be properly initialized later
         case PdfTokenType::DoubleAngleBracketsLeft:
+            variant.Reset();
             return PdfLiteralDataType::Dictionary;
         case PdfTokenType::SquareBracketLeft:
+            variant.Reset();
             return PdfLiteralDataType::Array;
         case PdfTokenType::ParenthesisLeft:
+            variant.Reset();
             return PdfLiteralDataType::String;
         case PdfTokenType::AngleBracketLeft:
+            variant.Reset();
             return PdfLiteralDataType::HexString;
         case PdfTokenType::Slash:
+            variant.Reset();
             return PdfLiteralDataType::Name;
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported token at this context");
@@ -414,12 +435,14 @@ bool PdfTokenizer::tryReadDataType(InputStreamDevice& device, PdfLiteralDataType
 
 void PdfTokenizer::ReadDictionary(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt)
 {
-    PdfVariant val;
+    PODOFO_ASSERT(variant.GetDataType() == PdfDataType::Null);
+
+    PdfVariant nameVar;
     PdfTokenType tokenType;
     string_view token;
     unique_ptr<charbuff> contentsHexBuffer;
 
-    variant = PdfDictionary();
+    new(&variant.m_Dictionary)PdfVariant::PrimitiveMember(new PdfDictionary());
     auto& dict = variant.GetDictionaryUnsafe();
 
     while (true)
@@ -431,9 +454,9 @@ void PdfTokenizer::ReadDictionary(InputStreamDevice& device, PdfVariant& variant
         if (tokenType == PdfTokenType::DoubleAngleBracketsRight)
             break;
 
-        this->ReadNextVariant(device, token, tokenType, val, encrypt);
+        this->ReadNextVariant(device, token, tokenType, nameVar, encrypt);
         // Convert the read variant to a name; throws InvalidDataType if not a name.
-        auto& key = val.GetName();
+        auto& key = nameVar.GetName();
 
         gotToken = this->TryReadNextToken(device, token, tokenType);
         if (!gotToken)
@@ -459,7 +482,7 @@ void PdfTokenizer::ReadDictionary(InputStreamDevice& device, PdfVariant& variant
 
     if (contentsHexBuffer.get() != nullptr)
     {
-        PdfObject* type = dict.GetKey("Type");
+        auto type = dict.GetKey("Type");
         // "Contents" is unencrypted in /Type/Sig and /Type/DocTimeStamp dictionaries 
         // https://issues.apache.org/jira/browse/PDFBOX-3173
         bool contentsUnencrypted = type != nullptr && type->GetDataType() == PdfDataType::Name &&
@@ -469,16 +492,18 @@ void PdfTokenizer::ReadDictionary(InputStreamDevice& device, PdfVariant& variant
         if (!contentsUnencrypted)
             actualEncrypt = encrypt;
 
-        val = PdfString::FromHexData({ contentsHexBuffer->size() ? contentsHexBuffer->data() : "", contentsHexBuffer->size() }, actualEncrypt);
-        dict.AddKey("Contents"_n, std::move(val));
+        new(&dict.EmplaceNoDirtySet("Contents"_n).GetVariantUnsafe().m_String)PdfString(
+            PdfString::FromHexData({ contentsHexBuffer->size() ? contentsHexBuffer->data() : "", contentsHexBuffer->size() }, actualEncrypt));
     }
 }
 
 void PdfTokenizer::ReadArray(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt)
 {
+    PODOFO_ASSERT(variant.GetDataType() == PdfDataType::Null);
+
     string_view token;
     PdfTokenType tokenType;
-    variant = PdfArray();
+    new(&variant.m_Array)PdfVariant::PrimitiveMember(new PdfArray());
     auto& arr = variant.GetArrayUnsafe();
 
     while (true)
@@ -498,6 +523,8 @@ void PdfTokenizer::ReadArray(InputStreamDevice& device, PdfVariant& variant, con
 
 void PdfTokenizer::ReadString(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt)
 {
+    PODOFO_ASSERT(variant.GetDataType() == PdfDataType::Null);
+
     char ch;
     bool escape = false;
     bool octEscape = false;
@@ -603,29 +630,32 @@ void PdfTokenizer::ReadString(InputStreamDevice& device, PdfVariant& variant, co
         {
             charbuff decrypted;
             encrypt->DecryptTo(decrypted, { m_charBuffer.data(), m_charBuffer.size() });
-            variant = PdfString(std::move(decrypted), false);
+            new(&variant.m_String)PdfString(std::move(decrypted), false);
         }
         else
         {
-            variant = PdfString::FromRaw({ m_charBuffer.data(), m_charBuffer.size() }, false);
+            new(&variant.m_String)PdfString(charbuff(m_charBuffer.data(), m_charBuffer.size()), false);
         }
     }
     else
     {
         // NOTE: The string is empty but ensure it will be
         // initialized as a raw buffer first
-        variant = PdfString::FromRaw({ }, false);
+        new(&variant.m_String)PdfString(charbuff(), false);
     }
 }
 
 void PdfTokenizer::ReadHexString(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt)
 {
+    PODOFO_ASSERT(variant.GetDataType() == PdfDataType::Null);
     readHexString(device, m_charBuffer);
-    variant = PdfString::FromHexData({ m_charBuffer.size() ? m_charBuffer.data() : "", m_charBuffer.size() }, encrypt);
+    new(&variant.m_String)PdfString(PdfString::FromHexData({ m_charBuffer.size() ? m_charBuffer.data() : "", m_charBuffer.size() }, encrypt));
 }
 
 void PdfTokenizer::ReadName(InputStreamDevice& device, PdfVariant& variant)
 {
+    PODOFO_ASSERT(variant.GetDataType() == PdfDataType::Null);
+
     // Do special checking for empty names
     // as tryReadNextToken will ignore white spaces
     // and we have to take care for stuff like:
@@ -636,7 +666,7 @@ void PdfTokenizer::ReadName(InputStreamDevice& device, PdfVariant& variant)
     {
         // We have an empty PdfName
         // NOTE: Delimiters are handled correctly by tryReadNextToken
-        variant = PdfName();
+        new(&variant.m_Name)PdfName();
         return;
     }
 
@@ -647,7 +677,7 @@ void PdfTokenizer::ReadName(InputStreamDevice& device, PdfVariant& variant)
     {
         // We got an empty name which is legal according to the PDF specification
         // Some weird PDFs even use them.
-        variant = PdfName();
+        new(&variant.m_Name)PdfName();
 
         // Enqueue the token again
         if (gotToken)
@@ -655,7 +685,7 @@ void PdfTokenizer::ReadName(InputStreamDevice& device, PdfVariant& variant)
     }
     else
     {
-        variant = PdfName::FromEscaped(token);
+        new(&variant.m_Name)PdfName(PdfName::FromEscaped(token));
     }
 }
 
