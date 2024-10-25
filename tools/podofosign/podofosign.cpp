@@ -385,7 +385,7 @@ static void draw_annotation(PdfDocument& document,
                 }
 
                 painter.TextState.SetFont(*font, font_size);
-                painter.GraphicsState.SetStrokeColor(font_color);
+                painter.GraphicsState.SetStrokingColor(font_color);
             }
 
             left = convert_to_pdf_units(annot_units, left);

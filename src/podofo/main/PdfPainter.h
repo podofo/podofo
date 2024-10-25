@@ -94,24 +94,24 @@ public:
     void SetLineCapStyle(PdfLineCapStyle capStyle);
     void SetLineJoinStyle(PdfLineJoinStyle joinStyle);
     void SetRenderingIntent(const std::string_view& intent);
-    /** Set the color for PDF "nonstroking" operations
+    /** Set the color for PDF "nonstroking" operations (including "fill")
      */
-    void SetFillColorSpace(PdfColorSpaceInitializer&& colorSpace);
+    void SetNonStrokingColorSpace(PdfColorSpaceInitializer&& colorSpace);
     /** Set the color for PDF "stroking" operations
      */
-    void SetStrokeColorSpace(PdfColorSpaceInitializer&& color);
-    /** Set the color for PDF "nonstroking" operations 
+    void SetStrokingColorSpace(PdfColorSpaceInitializer&& color);
+    /** Set the color for PDF "nonstroking" operations (including "fill")
      */
-    void SetFillColor(const PdfColor& color);
+    void SetNonStrokingColor(const PdfColor& color);
     /** Set the color for PDF "stroking" operations
      */
-    void SetStrokeColor(const PdfColor& color);
-    /** Set the color for PDF "nonstroking" operations
+    void SetStrokingColor(const PdfColor& color);
+    /** Set the color for PDF "nonstroking" operations (including "fill")
      */
-    void SetFillColor(const PdfColorRaw& color);
+    void SetNonStrokingColor(const PdfColorRaw& color);
     /** Set the color for PDF "stroking" operations
      */
-    void SetStrokeColor(const PdfColorRaw& color);
+    void SetStrokingColor(const PdfColorRaw& color);
     void SetExtGState(const PdfExtGState& extGState);
 
 public:
@@ -123,10 +123,10 @@ public:
     PdfLineCapStyle GetLineCapStyle() const { return m_state->LineCapStyle; }
     PdfLineJoinStyle GetLineJoinStyle() const { return m_state->LineJoinStyle; }
     const std::string& GetRenderingIntent() const { return m_state->RenderingIntent; }
-    const PdfColorRaw& GetFillColor() const { return m_state->FillColor; }
-    const PdfColorRaw& GetStrokeColor() const { return m_state->StrokeColor; }
-    PdfColorSpaceFilterPtr GetFillColorSpace() const { return m_state->FillColorSpaceFilter; }
-    PdfColorSpaceFilterPtr GetStrokeColorSpace() const { return m_state->StrokeColorSpaceFilter; }
+    const PdfColorRaw& GetNonStrokingColor() const { return m_state->NonStrokingColor; }
+    const PdfColorRaw& GetStrokingColor() const { return m_state->StrokingColor; }
+    PdfColorSpaceFilterPtr GetNonStrokingColorSpace() const { return m_state->NonStrokingColorSpaceFilter; }
+    PdfColorSpaceFilterPtr GetStrokingColorSpace() const { return m_state->StrokingColorSpaceFilter; }
 
 public:
     operator const PdfGraphicsState&() const { return *m_state; }
@@ -525,12 +525,12 @@ private:
     void SetMiterLimit(double miterLimit);
     void SetLineCapStyle(PdfLineCapStyle style);
     void SetLineJoinStyle(PdfLineJoinStyle style);
-    void SetFillColor(const PdfColor& color);
-    void SetStrokeColor(const PdfColor& color);
-    void SetFillColor(const PdfColorRaw& color, const PdfColorSpaceFilter& colorSpace);
-    void SetStrokeColor(const PdfColorRaw& color, const PdfColorSpaceFilter& colorSpace);
-    void SetFillColorSpace(const PdfColorSpaceFilter&filter, const PdfColorSpace* colorSpace);
-    void SetStrokeColorSpace(const PdfColorSpaceFilter& filter, const PdfColorSpace* colorSpace);
+    void SetNonStrokingColor(const PdfColor& color);
+    void SetStrokingColor(const PdfColor& color);
+    void SetNonStrokingColor(const PdfColorRaw& color, const PdfColorSpaceFilter& colorSpace);
+    void SetStrokingColor(const PdfColorRaw& color, const PdfColorSpaceFilter& colorSpace);
+    void SetNonStrokingColorSpace(const PdfColorSpaceFilter&filter, const PdfColorSpace* colorSpace);
+    void SetStrokingColorSpace(const PdfColorSpaceFilter& filter, const PdfColorSpace* colorSpace);
     void SetRenderingIntent(const std::string_view& intent);
     void SetTransformationMatrix(const Matrix& matrix);
     void SetFont(const PdfFont& font, double fontSize);
@@ -555,8 +555,8 @@ private:
     void stroke();
     void fill(bool useEvenOddRule);
     void strokeAndFill(bool useEvenOddRule);
-    void setFillColorSpace(const PdfObject& csObj);
-    void setStrokeColorSpace(const PdfObject& csObj);
+    void setNonStrokingColorSpace(const PdfObject& csObj);
+    void setStrokingColorSpace(const PdfObject& csObj);
     PdfName tryAddResource(const PdfObject& obj, PdfResourceType type);
     void drawLines(const std::vector<std::array<double, 4>>& lines);
 

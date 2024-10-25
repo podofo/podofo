@@ -27,12 +27,17 @@
 - `PdfResources`: Moved all string resource type functions to the `PdfResourceOperations` interface and
   make all the implementations private. Cast `PdfResources` instances to this `PdfResourceOperations`
   interface if you want to use the now reserved generic functions
-- `PdfGraphicsStateWrapper`: Renamed `SetCurrentMatrix()` -> `ConcatenateTransformationMatrix()`
 - `PdfXObject`, `PdfFont`: Removed `GetIdentifier()`, the identifiers are now generated when inserted to `PdfResources`
 - `PdfXObjet:SetMatrix()`: Removed and moved it to `PdfXObjectForm` (specification tells it doesn't belong to other XObject)
 - `PdfPage::SetICCProfile()`, `PdfImage::SetICCProfile()`: Removed. Create a
-  `PdfColorSpaceFilterICCBased` and set it through `PdfPainter::SetFillColorSpace`
-  or `PdfPainter::SetStrokeColorSpace`
+  `PdfColorSpaceFilterICCBased` and set it through `PdfGraphicsStateWrapper::SetNonStrokingColorSpace`
+  or `PdfGraphicsStateWrapper::SetStrokingColorSpace`
+- `PdfGraphicsStateWrapper`:
+  * Renamed `SetFillColor()` -> `SetNonStrokingColor()`
+  * Renamed `SetFillColorSpace()` -> `SetNonStrokingColorSpace()`
+  * Renamed `SetStrokeColor()` -> `SetStrokingColor()`
+  * Renamed `SetStrokeColorSpace()` -> `SetStrokingColorSpace()`
+  * Renamed `SetCurrentMatrix()` -> `ConcatenateTransformationMatrix()`
 - `PdfPage`: Renamed `MoveAt()` -> `MoveTo()`
 - `FileStreamDevice` doesn't inherit `StandardStreamDevice` anymore
 - `PdfString`:

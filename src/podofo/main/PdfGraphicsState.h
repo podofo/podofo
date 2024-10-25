@@ -22,10 +22,10 @@ namespace PoDoFo
         PdfLineCapStyle LineCapStyle = PdfLineCapStyle::Square;
         PdfLineJoinStyle LineJoinStyle = PdfLineJoinStyle::Miter;
         std::string RenderingIntent;
-        PdfColorRaw FillColor;
-        PdfColorRaw StrokeColor;
-        PdfColorSpaceFilterPtr FillColorSpaceFilter = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
-        PdfColorSpaceFilterPtr StrokeColorSpaceFilter = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
+        PdfColorRaw NonStrokingColor;
+        PdfColorRaw StrokingColor;
+        PdfColorSpaceFilterPtr NonStrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
+        PdfColorSpaceFilterPtr StrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
         std::shared_ptr<PdfExtGState> ExtGState;
     };
 }

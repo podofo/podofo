@@ -408,7 +408,7 @@ TEST_CASE("TestAppend")
 
     PdfPainter painter;
     painter.SetCanvas(page);
-    painter.GraphicsState.SetFillColor(PdfColor(1.0, 1.0, 1.0));
+    painter.GraphicsState.SetNonStrokingColor(PdfColor(1.0, 1.0, 1.0));
     painter.FinishDrawing();
 
     auto out = getContents(page);
@@ -473,8 +473,8 @@ TEST_CASE("BigDynamicCMAPTest")
             PdfPainter painter;
             painter.SetCanvas(*xObject);
 
-            painter.GraphicsState.SetFillColor(PdfColor(0, 0, 0));
-            painter.GraphicsState.SetStrokeColor(PdfColor(0, 0, 0));
+            painter.GraphicsState.SetNonStrokingColor(PdfColor(0, 0, 0));
+            painter.GraphicsState.SetStrokingColor(PdfColor(0, 0, 0));
 
             painter.TextState.SetFont(font, 12);
 

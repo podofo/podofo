@@ -205,8 +205,8 @@ const char* GetBase14FontName(unsigned i)
 void DrawRedFrame(PdfPainter& painter, double x, double y, double width, double height)
 {
     // draw red box
-    painter.GraphicsState.SetFillColor(PdfColor(1.0f, 0.0f, 0.0f));
-    painter.GraphicsState.SetStrokeColor(PdfColor(1.0f, 0.0f, 0.0f));
+    painter.GraphicsState.SetNonStrokingColor(PdfColor(1.0f, 0.0f, 0.0f));
+    painter.GraphicsState.SetStrokingColor(PdfColor(1.0f, 0.0f, 0.0f));
     painter.DrawLine(x, y, x + width, y);
     if (height > 0.0f)
     {
@@ -215,8 +215,8 @@ void DrawRedFrame(PdfPainter& painter, double x, double y, double width, double 
         painter.DrawLine(x, y + height, x + width, y + height);
     }
     // restore to black
-    painter.GraphicsState.SetFillColor(PdfColor(0.0f, 0.0f, 0.0f));
-    painter.GraphicsState.SetStrokeColor(PdfColor(0.0f, 0.0f, 0.0f));
+    painter.GraphicsState.SetNonStrokingColor(PdfColor(0.0f, 0.0f, 0.0f));
+    painter.GraphicsState.SetStrokingColor(PdfColor(0.0f, 0.0f, 0.0f));
 }
 
 void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document)

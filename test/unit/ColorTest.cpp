@@ -1605,8 +1605,8 @@ TEST_CASE("TestSeparationColor")
 
     PdfPainter painter;
     painter.SetCanvas(page);
-    painter.GraphicsState.SetFillColorSpace(*spotColorSpace);
-    painter.GraphicsState.SetFillColor(PdfColorRaw{ 0.5 });
+    painter.GraphicsState.SetNonStrokingColorSpace(*spotColorSpace);
+    painter.GraphicsState.SetNonStrokingColor(PdfColorRaw{ 0.5 });
     painter.DrawRectangle(Rect(100, 600, 100, 50), PdfPathDrawMode::Fill);
     painter.FinishDrawing();
     doc.Save(TestUtils::GetTestOutputFilePath("TestSeparationColor.pdf"));
