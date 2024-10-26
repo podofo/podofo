@@ -205,7 +205,7 @@ PdfObject PdfColorSpaceDeviceGray::GetExportObject(PdfIndirectObjectList& object
     return "DeviceGray"_n;
 }
 
-unsigned PdfColorSpaceDeviceGray::GetColorComponentCount() const
+unsigned char PdfColorSpaceDeviceGray::GetColorComponentCount() const
 {
     return 1;
 }
@@ -253,7 +253,7 @@ PdfObject PdfColorSpaceFilterDeviceRGB::GetExportObject(PdfIndirectObjectList& o
     return "DeviceRGB"_n;
 }
 
-unsigned PdfColorSpaceFilterDeviceRGB::GetColorComponentCount() const
+unsigned char PdfColorSpaceFilterDeviceRGB::GetColorComponentCount() const
 {
     return 3;
 }
@@ -301,7 +301,7 @@ PdfObject PdfColorSpaceFilterDeviceCMYK::GetExportObject(PdfIndirectObjectList& 
     return "DeviceCMYK"_n;
 }
 
-unsigned PdfColorSpaceFilterDeviceCMYK::GetColorComponentCount() const
+unsigned char PdfColorSpaceFilterDeviceCMYK::GetColorComponentCount() const
 {
     return 4;
 }
@@ -383,7 +383,7 @@ PdfObject PdfColorSpaceFilterIndexed::GetExportObject(PdfIndirectObjectList& obj
     return arr;
 }
 
-unsigned PdfColorSpaceFilterIndexed::GetColorComponentCount() const
+unsigned char PdfColorSpaceFilterIndexed::GetColorComponentCount() const
 {
     return 1;
 }
@@ -429,7 +429,7 @@ PdfObject PdfColorSpaceFilterUnkown::GetExportObject(PdfIndirectObjectList& obje
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Operation unsupported in unknown type color space");
 }
 
-unsigned PdfColorSpaceFilterUnkown::GetColorComponentCount() const
+unsigned char PdfColorSpaceFilterUnkown::GetColorComponentCount() const
 {
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Operation unsupported in unknown type color space");
 }
@@ -632,7 +632,7 @@ PdfObject PdfColorSpaceFilterSeparation::GetExportObject(PdfIndirectObjectList& 
     }
 }
 
-unsigned PdfColorSpaceFilterSeparation::GetColorComponentCount() const
+unsigned char PdfColorSpaceFilterSeparation::GetColorComponentCount() const
 {
     return 1;
 }
@@ -728,7 +728,7 @@ PdfObject PdfColorSpaceFilterLab::GetExportObject(PdfIndirectObjectList& objects
     return labArr;
 }
 
-unsigned PdfColorSpaceFilterLab::GetColorComponentCount() const
+unsigned char PdfColorSpaceFilterLab::GetColorComponentCount() const
 {
     return 3;
 }
@@ -787,7 +787,7 @@ PdfObject PdfColorSpaceFilterICCBased::GetExportObject(PdfIndirectObjectList& ob
     return arr;
 }
 
-unsigned PdfColorSpaceFilterICCBased::GetColorComponentCount() const
+unsigned char PdfColorSpaceFilterICCBased::GetColorComponentCount() const
 {
     return m_AlternateColorSpace->GetColorComponentCount();
 }

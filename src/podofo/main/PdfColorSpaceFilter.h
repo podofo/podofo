@@ -69,7 +69,7 @@ namespace PoDoFo {
         virtual PdfObject GetExportObject(PdfIndirectObjectList& objectsj) const = 0;
         /** Get the number of the color components for this color space
          */
-        virtual unsigned GetColorComponentCount() const = 0;
+        virtual unsigned char GetColorComponentCount() const = 0;
     };
 
     /** Convenience alias for a constant PdfColorSpaceFilter shared ptr
@@ -91,7 +91,7 @@ namespace PoDoFo {
         void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
             unsigned width, unsigned bitsPerComponent) const override;
         PdfObject GetExportObject(PdfIndirectObjectList& objects) const override;
-        unsigned GetColorComponentCount() const override;
+        unsigned char GetColorComponentCount() const override;
     };
 
     class PODOFO_API PdfColorSpaceDeviceGray final : public PdfColorSpaceFilter
@@ -109,7 +109,7 @@ namespace PoDoFo {
         void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
             unsigned width, unsigned bitsPerComponent) const override;
         PdfObject GetExportObject(PdfIndirectObjectList& objects) const override;
-        unsigned GetColorComponentCount() const override;
+        unsigned char GetColorComponentCount() const override;
     };
 
     class PODOFO_API PdfColorSpaceFilterDeviceRGB final : public PdfColorSpaceFilter
@@ -127,7 +127,7 @@ namespace PoDoFo {
         void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
             unsigned width, unsigned bitsPerComponent) const override;
         PdfObject GetExportObject(PdfIndirectObjectList& objects) const override;
-        unsigned GetColorComponentCount() const override;
+        unsigned char GetColorComponentCount() const override;
     };
 
     class PODOFO_API PdfColorSpaceFilterDeviceCMYK final : public PdfColorSpaceFilter
@@ -145,7 +145,7 @@ namespace PoDoFo {
         void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
             unsigned width, unsigned bitsPerComponent) const override;
         PdfObject GetExportObject(PdfIndirectObjectList& objects) const override;
-        unsigned GetColorComponentCount() const override;
+        unsigned char GetColorComponentCount() const override;
     };
 
     /** Color space as described by ISO 32000-2:2020 "8.6.6.3 Indexed colour spaces"
@@ -162,7 +162,7 @@ namespace PoDoFo {
         void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
             unsigned width, unsigned bitsPerComponent) const override;
         PdfObject GetExportObject(PdfIndirectObjectList& objects) const override;
-        unsigned GetColorComponentCount() const override;
+        unsigned char GetColorComponentCount() const override;
     private:
         PdfColorSpaceFilterPtr m_BaseColorSpace;
         unsigned m_MapSize;
@@ -184,7 +184,7 @@ namespace PoDoFo {
         void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
             unsigned width, unsigned bitsPerComponent) const override;
         PdfObject GetExportObject(PdfIndirectObjectList& objects) const override;
-        unsigned GetColorComponentCount() const override;
+        unsigned char GetColorComponentCount() const override;
     private:
         std::array<double, 3> m_WhitePoint;
         std::array<double, 3> m_BlackPoint;
@@ -224,7 +224,7 @@ namespace PoDoFo {
         void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
             unsigned width, unsigned bitsPerComponent) const override;
         PdfObject GetExportObject(PdfIndirectObjectList& objects) const override;
-        unsigned GetColorComponentCount() const override;
+        unsigned char GetColorComponentCount() const override;
 
     public:
         const std::string& GetName() const { return m_Name; }
@@ -280,7 +280,7 @@ namespace PoDoFo {
         void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
             unsigned width, unsigned bitsPerComponent) const override;
         PdfObject GetExportObject(PdfIndirectObjectList& objects) const override;
-        unsigned GetColorComponentCount() const override;
+        unsigned char GetColorComponentCount() const override;
     private:
         PdfColorSpaceFilterPtr m_AlternateColorSpace;
         charbuff m_iccprofile;

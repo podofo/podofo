@@ -241,7 +241,7 @@ public:
     static PdfColor CreateFromString(const std::string_view& name);
 
 public:
-    unsigned GetComponentCount() const { return m_ComponentCount; }
+    unsigned char GetComponentCount() const { return m_ComponentCount; }
 
     const PdfColorRaw& GetRawColor() const { return m_RawColor; }
 
@@ -277,7 +277,7 @@ private:
 private:
     bool m_IsTransparent;
     PdfColorSpaceType m_ColorSpace;
-    unsigned m_ComponentCount;
+    unsigned char m_ComponentCount;
     PdfColorRaw m_RawColor;
 };
 
