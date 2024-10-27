@@ -12,7 +12,7 @@
 
 namespace PoDoFo
 {
-    struct PODOFO_API PdfXMPMetadata
+    struct PODOFO_API PdfXMPMetadata final
     {
         PdfXMPMetadata();
         nullable<PdfString> Title;

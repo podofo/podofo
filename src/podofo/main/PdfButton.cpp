@@ -30,18 +30,18 @@ PdfButton::PdfButton(PdfObject& obj, PdfAcroForm* acroform, PdfFieldType fieldTy
 
 bool PdfButton::IsPushButton() const
 {
-    return this->GetFieldFlag(static_cast<int>(ePdfButton_PushButton), false);
+    return this->GetFieldFlag(static_cast<int>(PdfButton_PushButton), false);
 }
 
 bool PdfButton::IsCheckBox() const
 {
-    return (!this->GetFieldFlag(static_cast<int>(ePdfButton_Radio), false) &&
-        !this->GetFieldFlag(static_cast<int>(ePdfButton_PushButton), false));
+    return (!this->GetFieldFlag(static_cast<int>(PdfButton_Radio), false) &&
+        !this->GetFieldFlag(static_cast<int>(PdfButton_PushButton), false));
 }
 
 bool PdfButton::IsRadioButton() const
 {
-    return this->GetFieldFlag(static_cast<int>(ePdfButton_Radio), false);
+    return this->GetFieldFlag(static_cast<int>(PdfButton_Radio), false);
 }
 
 void PdfButton::SetCaption(nullable<const PdfString&> text)

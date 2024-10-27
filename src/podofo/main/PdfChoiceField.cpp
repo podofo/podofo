@@ -174,45 +174,45 @@ int PdChoiceField::GetSelectedIndex() const
 
 bool PdChoiceField::IsComboBox() const
 {
-    return this->GetFieldFlag(static_cast<int>(ePdfListField_Combo), false);
+    return this->GetFieldFlag(static_cast<int>(PdfListField_Combo), false);
 }
 
-void PdChoiceField::SetSpellcheckingEnabled(bool spellCheck)
+void PdChoiceField::SetSpellCheckingEnabled(bool spellCheck)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfListField_NoSpellcheck), !spellCheck);
+    this->SetFieldFlag(static_cast<int>(PdfListField_NoSpellcheck), !spellCheck);
 }
 
-bool PdChoiceField::IsSpellcheckingEnabled() const
+bool PdChoiceField::IsSpellCheckingEnabled() const
 {
-    return this->GetFieldFlag(static_cast<int>(ePdfListField_NoSpellcheck), true);
+    return this->GetFieldFlag(static_cast<int>(PdfListField_NoSpellcheck), true);
 }
 
 void PdChoiceField::SetSorted(bool sorted)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfListField_Sort), sorted);
+    this->SetFieldFlag(static_cast<int>(PdfListField_Sort), sorted);
 }
 
 bool PdChoiceField::IsSorted() const
 {
-    return this->GetFieldFlag(static_cast<int>(ePdfListField_Sort), false);
+    return this->GetFieldFlag(static_cast<int>(PdfListField_Sort), false);
 }
 
 void PdChoiceField::SetMultiSelect(bool multi)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfListField_MultiSelect), multi);
+    this->SetFieldFlag(static_cast<int>(PdfListField_MultiSelect), multi);
 }
 
 bool PdChoiceField::IsMultiSelect() const
 {
-    return this->GetFieldFlag(static_cast<int>(ePdfListField_MultiSelect), false);
+    return this->GetFieldFlag(static_cast<int>(PdfListField_MultiSelect), false);
 }
 
 void PdChoiceField::SetCommitOnSelectionChange(bool commit)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfListField_CommitOnSelChange), commit);
+    this->SetFieldFlag(static_cast<int>(PdfListField_CommitOnSelChange), commit);
 }
 
 bool PdChoiceField::IsCommitOnSelectionChange() const
 {
-    return this->GetFieldFlag(static_cast<int>(ePdfListField_CommitOnSelChange), false);
+    return this->GetFieldFlag(static_cast<int>(PdfListField_CommitOnSelChange), false);
 }

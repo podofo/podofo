@@ -34,6 +34,8 @@ private:
  */
 class PODOFO_API PdfColorSpaceInitializer final
 {
+    friend class PdfGraphicsStateWrapper;
+
     PODOFO_STACK_ONLY
 
 public:
@@ -56,14 +58,15 @@ public:
 
     bool IsNull() const;
 
-    PdfColorSpaceFilterPtr Take(const PdfColorSpace*& element);
-
     PdfColorSpaceInitializer(const PdfColorSpaceInitializer&) = default;
     PdfColorSpaceInitializer& operator=(const PdfColorSpaceInitializer&) = default;
 
 public:
     const PdfColorSpaceFilter& GetFilter() const { return *m_Filter; }
     PdfColorSpaceFilterPtr GetFilterPtr() const { return m_Filter; }
+
+private:
+    PdfColorSpaceFilterPtr Take(const PdfColorSpace*& element);
 
 private:
     PdfColorSpaceFilterPtr m_Filter;

@@ -115,12 +115,12 @@ namespace PoDoFo
          *
          *  Text fields are spellchecked by default
          */
-        void SetSpellcheckingEnabled(bool spellcheck);
+        void SetSpellCheckingEnabled(bool spellcheck);
 
         /**
          *  \returns true if spellchecking is enabled for this text field
          */
-        bool IsSpellcheckingEnabled() const;
+        bool IsSpellCheckingEnabled() const;
 
         /**
          *  Enable/disable scrollbars for this text field

@@ -112,12 +112,12 @@ bool PdfTextBox::IsFileField() const
     return this->GetFieldFlag(static_cast<int>(PdfTextBox_FileSelect), false);
 }
 
-void PdfTextBox::SetSpellcheckingEnabled(bool spellcheck)
+void PdfTextBox::SetSpellCheckingEnabled(bool spellcheck)
 {
     this->SetFieldFlag(static_cast<int>(PdfTextBox_NoSpellcheck), !spellcheck);
 }
 
-bool PdfTextBox::IsSpellcheckingEnabled() const
+bool PdfTextBox::IsSpellCheckingEnabled() const
 {
     return this->GetFieldFlag(static_cast<int>(PdfTextBox_NoSpellcheck), true);
 }

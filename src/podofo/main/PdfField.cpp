@@ -396,9 +396,9 @@ PdfFieldType PdfField::getFieldType(const PdfObject& obj)
         int64_t flags;
         PdfField::GetFieldFlags(obj, flags);
 
-        if ((flags & PdfButton::ePdfButton_PushButton) == PdfButton::ePdfButton_PushButton)
+        if ((flags & PdfButton::PdfButton_PushButton) == PdfButton::PdfButton_PushButton)
             ret = PdfFieldType::PushButton;
-        else if ((flags & PdfButton::ePdfButton_Radio) == PdfButton::ePdfButton_Radio)
+        else if ((flags & PdfButton::PdfButton_Radio) == PdfButton::PdfButton_Radio)
             ret = PdfFieldType::RadioButton;
         else
             ret = PdfFieldType::CheckBox;
@@ -412,7 +412,7 @@ PdfFieldType PdfField::getFieldType(const PdfObject& obj)
         int64_t flags;
         PdfField::GetFieldFlags(obj, flags);
 
-        if ((flags & PdChoiceField::ePdfListField_Combo) == PdChoiceField::ePdfListField_Combo)
+        if ((flags & PdChoiceField::PdfListField_Combo) == PdChoiceField::PdfListField_Combo)
             ret = PdfFieldType::ComboBox;
         else
             ret = PdfFieldType::ListBox;
@@ -435,11 +435,11 @@ void PdfField::init()
             break;
         case PdfFieldType::PushButton:
             dict.AddKey("FT"_n, "Btn"_n);
-            dict.AddKey("Ff"_n, (int64_t)PdfButton::ePdfButton_PushButton);
+            dict.AddKey("Ff"_n, (int64_t)PdfButton::PdfButton_PushButton);
             break;
         case PdfFieldType::RadioButton:
             dict.AddKey("FT"_n, "Btn"_n);
-            dict.AddKey("Ff"_n, (int64_t)(PdfButton::ePdfButton_Radio | PdfButton::ePdfButton_NoToggleOff));
+            dict.AddKey("Ff"_n, (int64_t)(PdfButton::PdfButton_Radio | PdfButton::PdfButton_NoToggleOff));
             break;
         case PdfFieldType::TextBox:
             dict.AddKey("FT"_n, "Tx"_n);
@@ -449,7 +449,7 @@ void PdfField::init()
             break;
         case PdfFieldType::ComboBox:
             dict.AddKey("FT"_n, "Ch"_n);
-            dict.AddKey("Ff"_n, (int64_t)PdChoiceField::ePdfListField_Combo);
+            dict.AddKey("Ff"_n, (int64_t)PdChoiceField::PdfListField_Combo);
             break;
         case PdfFieldType::Signature:
             dict.AddKey("FT"_n, "Sig"_n);

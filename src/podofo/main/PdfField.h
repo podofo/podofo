@@ -42,16 +42,16 @@ class PODOFO_API PdfField : public PdfDictionaryElement
 protected:
     enum
     {
-        ePdfButton_NoToggleOff = 0x0004000,
-        ePdfButton_Radio = 0x0008000,
-        ePdfButton_PushButton = 0x0010000,
-        ePdfButton_RadioInUnison = 0x2000000,
-        ePdfListField_Combo = 0x0020000,
-        ePdfListField_Edit = 0x0040000,
-        ePdfListField_Sort = 0x0080000,
-        ePdfListField_MultiSelect = 0x0200000,
-        ePdfListField_NoSpellcheck = 0x0400000,
-        ePdfListField_CommitOnSelChange = 0x4000000
+        PdfButton_NoToggleOff = 0x0004000,
+        PdfButton_Radio = 0x0008000,
+        PdfButton_PushButton = 0x0010000,
+        PdfButton_RadioInUnison = 0x2000000,
+        PdfListField_Combo = 0x0020000,
+        PdfListField_Edit = 0x0040000,
+        PdfListField_Sort = 0x0080000,
+        PdfListField_MultiSelect = 0x0200000,
+        PdfListField_NoSpellcheck = 0x0400000,
+        PdfListField_CommitOnSelChange = 0x4000000
     };
 
 private:

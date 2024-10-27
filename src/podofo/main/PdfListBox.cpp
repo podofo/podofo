@@ -13,13 +13,13 @@ using namespace PoDoFo;
 PdfListBox::PdfListBox(PdfAcroForm& acroform, const shared_ptr<PdfField>& parent)
     : PdChoiceField(acroform, PdfFieldType::ListBox, parent)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfListField_Combo), false);
+    this->SetFieldFlag(static_cast<int>(PdfListField_Combo), false);
 }
 
 PdfListBox::PdfListBox(PdfAnnotationWidget& widget, const shared_ptr<PdfField>& parent)
     : PdChoiceField(widget, PdfFieldType::ListBox, parent)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfListField_Combo), false);
+    this->SetFieldFlag(static_cast<int>(PdfListField_Combo), false);
 }
 
 PdfListBox::PdfListBox(PdfObject& obj, PdfAcroForm* acroform)

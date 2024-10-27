@@ -1,4 +1,5 @@
 ## 0.10.1 -> 1.0.0
+- `PdfTextBox`/`PdChoiceField`: Fixed `Spellchecking` casing to `SpellChecking`
 - `PdfDrawTextMultiLineParams`:
   * Inverted semantics of `Clip` and renamed to `SkipClip`
   * Inverted semantics of `SkipSpaces` and renamed to `PreserveTrailingSpaces`

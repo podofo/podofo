@@ -17,7 +17,7 @@ class PdfFontMetrics;
 /** A helper class for PdfDifferenceEncoding that
  *  can be used to create a differences array.
  */
-class PODOFO_API PdfDifferenceList
+class PODOFO_API PdfDifferenceList final
 {
     struct Difference
     {

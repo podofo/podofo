@@ -32,7 +32,7 @@ PdfPushButton::PdfPushButton(PdfObject& obj, PdfAcroForm* acroform)
 void PdfPushButton::init()
 {
     // make a push button
-    this->SetFieldFlag(static_cast<int>(ePdfButton_PushButton), true);
+    this->SetFieldFlag(static_cast<int>(PdfButton_PushButton), true);
 }
 
 void PdfPushButton::SetRolloverCaption(nullable<const PdfString&> text)

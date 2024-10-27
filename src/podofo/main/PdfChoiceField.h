@@ -95,12 +95,12 @@ namespace PoDoFo
          *
          *  combobox are spellchecked by default
          */
-        void SetSpellcheckingEnabled(bool spellCheck);
+        void SetSpellCheckingEnabled(bool spellCheck);
 
         /**
          *  \returns true if spellchecking is enabled for this combobox
          */
-        bool IsSpellcheckingEnabled() const;
+        bool IsSpellCheckingEnabled() const;
 
         /**
          * Enable or disable sorting of items.
