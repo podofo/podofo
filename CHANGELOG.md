@@ -1,7 +1,13 @@
-# Version 0.10.4
-- Fixed seek() in case of iostream/fstream used with StandardStreamDevice
+## Version 0.10.4
+- Fixes #161, #162, #167, #183, merges #157
+- `StandardStreamDevice`: Fixed `seek()` in case of `iostream`/`fstream`
+- `PdfWriter`: Fixed computing the doc identifier with a wrong buffer
+- `PdfPainter`: Fix `SetCurrentMatrix()` to really update CTM
+- Fixed compilation in mingw < 12
+- `PdfCIDToGIDMap`: Fixed map reading
+- `PdfPainter`: Fixed offset on multiline text if text is not left aligned
 
-# Version 0.10.3
+## Version 0.10.3
 - Fixed big performance regression introduced in 0.10, see #108
 - Fixed data loss with encrypted documents, see #99
 - Fixed compilation with VS2022 >= 17.8
