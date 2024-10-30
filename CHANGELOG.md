@@ -18,6 +18,15 @@
 - `PdfString`: Added `std::string&&` constructor
 - `FileStreamDevice` now uses again C stdio for better performance
 
+## Version 0.10.4
+- Fixes #161, #162, #167, #183, merges #157
+- `StandardStreamDevice`: Fixed `seek()` in case of `iostream`/`fstream`
+- `PdfWriter`: Fixed computing the doc identifier with a wrong buffer
+- `PdfPainter`: Fix `SetCurrentMatrix()` to really update CTM
+- Fixed compilation in mingw < 12
+- `PdfCIDToGIDMap`: Fixed map reading
+- `PdfPainter`: Fixed offset on multiline text if text is not left aligned
+
 ## Version 0.10.3
 - Fixed big performance regression introduced in 0.10, see #108
 - Fixed data loss with encrypted documents, see #99
