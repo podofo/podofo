@@ -231,6 +231,10 @@ void PdfParserObject::parseStream()
     }
 
 ReadStream:
+    // NOTE: Retrieve the first list before seeking, otherwise
+    // the following operation may also adjust the position
+    auto filters = PdfFilterFactory::CreateFilterList(*this);
+
     m_device->Seek(streamOffset);	// reset it before reading!
 
     // Set stream raw data without marking the object dirty
@@ -242,14 +246,14 @@ ReadStream:
         || *type != "Metadata"))
     {
         auto input = m_Encrypt->GetEncrypt().CreateEncryptionInputStream(*m_device, static_cast<size_t>(size), m_Encrypt->GetContext(), GetIndirectReference());
-        getOrCreateStream().InitData(*input, static_cast<ssize_t>(size), PdfFilterFactory::CreateFilterList(*this));
+        getOrCreateStream().InitData(*input, static_cast<ssize_t>(size), std::move(filters));
         // Release the encrypt object after loading the stream.
         // It's not needed for serialization here
         m_Encrypt = nullptr;
     }
     else
     {
-        getOrCreateStream().InitData(*m_device, static_cast<ssize_t>(size), PdfFilterFactory::CreateFilterList(*this));
+        getOrCreateStream().InitData(*m_device, static_cast<ssize_t>(size), std::move(filters));
     }
 }
 
