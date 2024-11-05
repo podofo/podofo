@@ -237,44 +237,41 @@ unique_ptr<InputStream> PdfFilterFactory::CreateDecodeStream(const shared_ptr<In
     return std::make_unique<PdfBufferedDecodeStream>(stream, filters, decodeParms);
 }
 
-PdfFilterList PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj)
+PdfFilterList PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj_)
 {
     PdfFilterList filters;
-    const PdfObject* filterKeyObj = nullptr;
-    if (filtersObj.IsDictionary()
-        && (filterKeyObj = filtersObj.GetDictionary().FindKey("Filter")) == nullptr
-        && filtersObj.IsArray())
+    const PdfDictionary* dict;
+    const PdfName* name;
+    const PdfArray* arr;
+    auto filtersObj = &filtersObj_;
+    if (filtersObj->TryGetDictionary(dict))
     {
-        filterKeyObj = &filtersObj;
-    }
-    else if (filtersObj.IsName())
-    {
-        filterKeyObj = &filtersObj;
-    }
-
-    if (filterKeyObj == nullptr)
-    {
-        // Object had no /Filter key . Return a null filter list.
-        return filters;
-    }
-
-    if (filterKeyObj->IsName())
-    {
-        addFilterTo(filters, filterKeyObj->GetName().GetString());
-    }
-    else if (filterKeyObj->IsArray())
-    {
-        for (auto filter : filterKeyObj->GetArray().GetIndirectIterator())
+        filtersObj = dict->FindKey("Filter");
+        if (filtersObj == nullptr)
         {
-            if (!filter->IsName())
+            // Invalid /Filter key/object. Return a null filter list.
+            return filters;
+        }
+    }
+
+    if (filtersObj->TryGetName(name))
+    {
+        addFilterTo(filters, name->GetString());
+    }
+    else if (filtersObj->TryGetArray(arr))
+    {
+        for (auto filter : arr->GetIndirectIterator())
+        {
+            if (!filter->TryGetName(name))
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Filter array contained unexpected non-name type");
 
-            addFilterTo(filters, filter->GetName().GetString());
+            addFilterTo(filters, name->GetString());
         }
     }
     else
     {
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Unexpected filter container type");
+        // Invalid /Filter key/object. Return a null filter list.
+        return filters;
     }
 
     return filters;
