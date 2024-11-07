@@ -201,3 +201,36 @@ TEST_CASE("TestMoveSemantics")
     REQUIRE(n1 == "");
 }
 
+TEST_CASE("TestAssignObjects")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("Hierarchies1.pdf"));
+
+    {
+        auto& trailer = doc.GetTrailer();
+
+        auto& annotsObj = doc.GetObjects().MustGetObject(PdfReference(100, 0));
+        REQUIRE(!annotsObj.IsDirty());
+        annotsObj.GetArray()[15] = PdfObject(nullptr);
+        REQUIRE(annotsObj.IsDirty());
+
+        auto& pageObj = doc.GetObjects().MustGetObject(PdfReference(39, 0));
+        REQUIRE(!pageObj.IsDirty());
+        auto& resx = pageObj.GetDictionary().MustGetKey("Contents");
+        resx = PdfObject(nullptr);
+        REQUIRE(pageObj.IsDirty());
+    }
+
+    auto outputFilePath = TestUtils::GetTestOutputFilePath("TestAssignObjects.pdf");
+    doc.Save(outputFilePath);
+
+    doc.Load(outputFilePath);
+    {
+        auto& annotsObj = doc.GetObjects().MustGetObject(PdfReference(100, 0));
+        REQUIRE(annotsObj.GetArray()[15].IsNull());
+
+        auto& pageObj = doc.GetObjects().MustGetObject(PdfReference(39, 0));
+        auto& resx = pageObj.GetDictionary().MustGetKey("Contents");
+        REQUIRE(resx.IsNull());
+    }
+}
