@@ -176,8 +176,10 @@ else()
     message("Libidn not found. AES-256 Encryption support will be disabled")
 endif()
 
-#find_package(LCMS2 REQUIRED)
-#message("Found little-cms2 headers in ${LCMS2_INCLUDE_DIR}, library at ${LCMS2_LIBRARIES}")
+if (PODOFO_WANT_LCMS2)
+find_package(LCMS2 REQUIRED)
+message("Found little-cms2 headers in ${LCMS2_INCLUDE_DIR}, library at ${LCMS2_LIBRARIES}")
+endif()
 
 find_package(JPEG)
 
@@ -254,11 +256,11 @@ if(LIBIDN_FOUND)
     list(APPEND PODOFO_HEADERS_DEPENDS ${LIBIDN_INCLUDE_DIR})
 endif()
 
-#if(LCMS2_FOUND)
-#    # little-cms2 doesn't provide targets.
-#    list(APPEND PODOFO_LIB_DEPENDS ${LCMS2_LIBRARIES})
-#    list(APPEND PODOFO_HEADERS_DEPENDS ${LCMS2_INCLUDE_DIR})
-#endif()
+if(LCMS2_FOUND)
+    # little-cms2 doesn't provide targets.
+    list(APPEND PODOFO_LIB_DEPENDS ${LCMS2_LIBRARIES})
+    list(APPEND PODOFO_HEADERS_DEPENDS ${LCMS2_INCLUDE_DIR})
+endif()
 
 # Create the config file. It'll be appended to as the subdirs run though
 # then dependency information will be written to it at the end of the
