@@ -344,7 +344,7 @@ PdfColor::PdfColor(double cyan, double magenta, double yellow, double black) :
 }
 
 PdfColor::PdfColor(bool isTransparent, PdfColorSpaceType colorSpace,
-    unsigned componentCount, const PdfColorRaw& data) :
+    unsigned char componentCount, const PdfColorRaw& data) :
     m_IsTransparent(isTransparent),
     m_ColorSpace(colorSpace),
     m_ComponentCount(componentCount),

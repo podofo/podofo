@@ -270,7 +270,7 @@ public:
     bool operator!=(const PdfColor& rhs) const;
 
 private:
-    PdfColor(bool isTransparent, PdfColorSpaceType colorSpace, unsigned componentCount, const PdfColorRaw& data);
+    PdfColor(bool isTransparent, PdfColorSpaceType colorSpace, unsigned char componentCount, const PdfColorRaw& data);
 
     static bool tryCreateFromArray(const PdfArray& arr, PdfColor& color);
 
