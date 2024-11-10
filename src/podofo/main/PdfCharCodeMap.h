@@ -25,7 +25,7 @@ namespace PoDoFo
      * A memory owning immutable block of code points, optimized for small
      * segments as up to 3 elements can stay in the stack
      */
-    class CodePointSpan final
+    class PODOFO_API CodePointSpan final
     {
     public:
         CodePointSpan();
