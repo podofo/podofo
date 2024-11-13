@@ -223,12 +223,12 @@ PdfFont& PdfFontManager::GetOrCreateFontFromBuffer(const bufferview& buffer, con
 
 PdfFont& PdfFontManager::GetOrCreateFontFromBuffer(const bufferview& buffer, unsigned faceIndex, const PdfFontCreateParams& params)
 {
-    auto face = getFontFaceFromBuffer(buffer, faceIndex);
+    auto data = std::make_shared<const charbuff>(buffer);
+    auto face = getFontFaceFromBuffer(*data, faceIndex);
     if (face == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Could not parse a valid font from the buffer");
 
-    shared_ptr<PdfFontMetrics> metrics(new PdfFontMetricsFreetype(face,
-        std::make_shared<const charbuff>(buffer)));
+    shared_ptr<PdfFontMetrics> metrics(new PdfFontMetricsFreetype(face, data));
     return getOrCreateFontHashed(metrics, params);
 }
 
