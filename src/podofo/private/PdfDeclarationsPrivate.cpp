@@ -753,20 +753,20 @@ void utls::CopyTo(ostream& dst, istream& src)
     } while (!eof);
 }
 
-void utls::ReadTo(charbuff& str, const string_view& filepath)
+void utls::ReadTo(charbuff& str, const string_view& filepath, size_t maxReadSize)
 {
     ifstream istream = utls::open_ifstream(filepath, ios_base::binary);
-    ReadTo(str, istream);
+    ReadTo(str, istream, maxReadSize);
 }
 
-void utls::ReadTo(charbuff& str, istream& stream)
+void utls::ReadTo(charbuff& str, istream& stream, size_t maxReadSize)
 {
     stream.seekg(0, ios::end);
     auto tellg = stream.tellg();
     if (tellg == -1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidStream, "Error reading from stream");
 
-    str.resize((size_t)tellg);
+    str.resize(std::min((size_t)tellg, maxReadSize));
     stream.seekg(0, ios::beg);
     stream.read(str.data(), str.size());
     if (stream.fail())

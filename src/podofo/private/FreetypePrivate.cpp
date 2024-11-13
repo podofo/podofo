@@ -43,6 +43,8 @@ namespace
 static PdfFontFileType determineTrueTypeFormat(FT_Face face);
 static unsigned determineFaceSize(FT_Face face, vector<TableInfo>& tables, unsigned& tableDirSize);
 static FT_Face createFaceFromBuffer(const bufferview& view, unsigned faceIndex);
+static bool isTTCFont(FT_Face face);
+static bool isTTCFont(const bufferview& face);
 static bool tryExtractDataFromTTC(FT_Face face, charbuff& buffer);
 static void getDataFromFace(FT_Face face, charbuff& buffer);
 
@@ -73,16 +75,23 @@ FT_Library FT::GetLibrary()
 FT_Face FT::CreateFaceFromBuffer(const bufferview& view, unsigned faceIndex,
     charbuff& buffer)
 {
-    // Extract data and re-create the face
-    unique_ptr<struct FT_FaceRec_, decltype(&FT_Done_Face)> face(createFaceFromBuffer(view, faceIndex), FT_Done_Face);
-    if (tryExtractDataFromTTC(face.get(), buffer))
+    if (isTTCFont(view))
     {
+        auto face = createFaceFromBuffer(view, faceIndex);
+        unique_ptr<struct FT_FaceRec_, decltype(&FT_Done_Face)> face_(face, FT_Done_Face);
+
+        // Try to extract data from the TTC font, or just copy
+        // existing view to buffer if it fails
+        if (!tryExtractDataFromTTC(face, buffer))
+            buffer = view;
+
+        // Unconditionally re-create the face from the copied buffer
         return createFaceFromBuffer(buffer, 0);
     }
     else
     {
         buffer = view;
-        return face.release();
+        return createFaceFromBuffer(buffer, 0);
     }
 }
 
@@ -95,29 +104,32 @@ FT_Face FT::CreateFaceFromBuffer(const bufferview& view)
 FT_Face FT::CreateFaceFromFile(const string_view& filepath, unsigned faceIndex,
     charbuff& buffer)
 {
-    FT_Error rc;
-    FT_Face face_;
-    rc = FT_New_Face(FT::GetLibrary(), filepath.data(), faceIndex, &face_);
-    if (rc != 0)
-        return nullptr;
+    utls::ReadTo(buffer, filepath, sizeof(TTAG_ttcf));
+    if (isTTCFont(buffer))
+    {
+        FT_Error rc;
+        FT_Face face;
+        rc = FT_New_Face(FT::GetLibrary(), filepath.data(), faceIndex, &face);
+        if (rc != 0)
+            return nullptr;
 
-    // Extract data and re-create the face
-    unique_ptr<struct FT_FaceRec_, decltype(&FT_Done_Face)> face(face_, FT_Done_Face);
-    if (tryExtractDataFromTTC(face.get(), buffer))
-    {
-        return createFaceFromBuffer(buffer, 0);
+        unique_ptr<struct FT_FaceRec_, decltype(&FT_Done_Face)> face_(face, FT_Done_Face);
+
+        // Try to extract data from the TTC font and re-create the face
+        if (tryExtractDataFromTTC(face, buffer))
+            return createFaceFromBuffer(buffer, 0);
     }
-    else
-    {
-        utls::ReadTo(buffer, filepath);
-        return face.release();
-    }
+
+    // Unconditionally copy the font file and create
+    // the face from the copied buffer
+    utls::ReadTo(buffer, filepath);
+    return createFaceFromBuffer(buffer, 0);
 }
 
 charbuff FT::GetDataFromFace(FT_Face face)
 {
     charbuff buffer;
-    if (!tryExtractDataFromTTC(face, buffer))
+    if (!isTTCFont(face) || !tryExtractDataFromTTC(face, buffer))
         getDataFromFace(face, buffer);
 
     return buffer;
@@ -173,8 +185,7 @@ FT_Face createFaceFromBuffer(const bufferview& view, unsigned faceIndex)
     return face;
 }
 
-// Try to handle TTC font collections
-bool tryExtractDataFromTTC(FT_Face face, charbuff& buffer)
+bool isTTCFont(FT_Face face)
 {
     FT_Error rc;
     FT_ULong size;
@@ -182,8 +193,30 @@ bool tryExtractDataFromTTC(FT_Face face, charbuff& buffer)
     uint32_t tag;
     size = sizeof(uint32_t);
     rc = FT_Load_Sfnt_Table(face, 0, 0, (FT_Byte*)&tag, &size);
-    if (rc != 0 || FROM_BIG_ENDIAN(tag) != TTAG_ttcf)
+    if (rc == 0 && FROM_BIG_ENDIAN(tag) == TTAG_ttcf)
+        return true;
+
+    return false;
+}
+
+bool isTTCFont(const bufferview& face)
+{
+    uint32_t tag;
+    if (face.size() < sizeof(tag))
         return false;
+
+    std::memcpy(&tag, face.data(), sizeof(tag));
+    if (FROM_BIG_ENDIAN(tag) == TTAG_ttcf)
+        return true;
+
+    return false;
+}
+
+// Try to handle TTC font collections
+bool tryExtractDataFromTTC(FT_Face face, charbuff& buffer)
+{
+    FT_Error rc;
+    FT_ULong size;
 
     // First read the TTC font header and then determine the face offset
     TTCF_Header header;

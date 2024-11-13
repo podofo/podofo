@@ -55,6 +55,14 @@ TEST_CASE("TestCreateFontExtract")
     auto fontRef = &doc.GetFonts().GetOrCreateFont(fontPath1);
     auto& font = doc.GetFonts().GetOrCreateFont(fontPath2);
 
+    PdfFont* fontFromBuffer;
+
+    {
+        charbuff fontbuffer;
+        utls::ReadTo(fontbuffer, TestUtils::GetTestInputFilePath("Fonts", "LiberationSans-Regular.ttf"));
+        fontFromBuffer = &doc.GetFonts().GetOrCreateFontFromBuffer(fontbuffer);
+    }
+
     // The matched fonts should be the same one
     REQUIRE(&font == fontRef);
 
@@ -64,6 +72,9 @@ TEST_CASE("TestCreateFontExtract")
 
         painter.TextState.SetFont(font, 30.0);
         painter.DrawText("ěščř", 100, 600);
+
+        painter.TextState.SetFont(*fontFromBuffer, 30.0);
+        painter.DrawText("ěščř buffer", 100, 500);
         painter.FinishDrawing();
     }
 
@@ -95,6 +106,10 @@ TEST_CASE("TestCreateFontExtract")
     REQUIRE(entries[0].Text == "ěščř");
     REQUIRE(entries[0].X == 100);
     REQUIRE(entries[0].Y == 600);
+
+    REQUIRE(entries[1].Text == "ěščř buffer");
+    REQUIRE(entries[1].X == 100);
+    REQUIRE(entries[1].Y == 500);
 }
 
 void testSingleFont(FcPattern* font)

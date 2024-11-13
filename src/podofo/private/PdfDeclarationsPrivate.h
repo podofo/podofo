@@ -435,8 +435,8 @@ namespace utls
     size_t FileSize(const std::string_view& filename);
 
     void CopyTo(std::ostream& dst, std::istream& src);
-    void ReadTo(PoDoFo::charbuff& str, const std::string_view& filepath);
-    void ReadTo(PoDoFo::charbuff& str, std::istream& stream);
+    void ReadTo(PoDoFo::charbuff& str, const std::string_view& filepath, size_t maxReadSize = std::numeric_limits<size_t>::max());
+    void ReadTo(PoDoFo::charbuff& str, std::istream& stream, size_t maxReadSize = std::numeric_limits<size_t>::max());
     void WriteTo(const std::string_view& filepath, const PoDoFo::bufferview& view);
     void WriteTo(std::ostream& stream, const PoDoFo::bufferview& view);
 
