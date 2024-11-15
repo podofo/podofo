@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include <utf8cpp/utf8.h>
-#include <podofo/auxiliary/span.hpp>
 #include <podofo/main/PdfError.h>
 
 using namespace std;

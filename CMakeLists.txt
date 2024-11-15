@@ -280,6 +280,21 @@ file(APPEND
     "set(PODOFO_INCLUDES ${PROJECT_SOURCE_DIR}/src)\n"
 )
 
+function(add_source subdir subdir_path dstsources dstheaders)
+    file(GLOB_RECURSE source_files "${subdir_path}/[^.]*")
+    # Set visual studio source group
+    source_group(${subdir} FILES ${source_files})
+    # Add subdir to source files
+    list(APPEND ${dstsources} ${source_files})
+    set(${dstsources} ${${dstsources}} PARENT_SCOPE)
+
+    set(headers_files ${source_files})
+    list(FILTER headers_files EXCLUDE REGEX "\.cpp$")
+    list(APPEND ${dstheaders} ${headers_files})
+    set(${dstheaders} ${${dstheaders}} PARENT_SCOPE)
+endfunction()
+
+add_subdirectory(3rdparty)
 add_subdirectory(src/podofo)
 include_directories(${PODOFO_INCLUDE_DIRS})
 

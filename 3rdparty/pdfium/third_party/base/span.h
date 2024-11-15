@@ -1,6 +1,6 @@
 #pragma once
 
-#include <podofo/auxiliary/span.hpp>
+#include <span.hpp>
 
 namespace pdfium
 {
