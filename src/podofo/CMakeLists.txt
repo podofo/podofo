@@ -70,7 +70,7 @@ if(PODOFO_BUILD_STATIC)
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "podofo"
     )
-    install(TARGETS podofo_static podofo_private
+    install(TARGETS podofo_static podofo_private podofo_3rdparty
         EXPORT podofo-config
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
