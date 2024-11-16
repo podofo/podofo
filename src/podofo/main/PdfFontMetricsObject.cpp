@@ -176,7 +176,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
                 if (subType == "CIDFontType0")
                 {
                     if (fontFileSubtype == "CIDFontType0C")
-                        m_FontFileType = PdfFontFileType::CIDType1;
+                        m_FontFileType = PdfFontFileType::OpenTypeCFF;
                     else if (fontFileSubtype == "OpenType")
                         m_FontFileType = PdfFontFileType::OpenType;
                 }
