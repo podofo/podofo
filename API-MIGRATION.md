@@ -1,4 +1,5 @@
 ## 0.10.1 -> 1.0.0
+- Removed `PdfFontFileType::CIDType1`. Just use `PdfFontFileType::Type1` instead
 - Renamed `PdfFontCIDType` -> `PdfFontCIDCFF`
 - Renamed `PdfFontType::CIDType1` -> `PdfFontType::CIDCFF`
 - Renamed `PdfFontFileType::Type1CFF` -> `PdfFontFileType::OpenTypeCFF`

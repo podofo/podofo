@@ -247,7 +247,6 @@ bool PdfFontMetrics::IsType1Kind() const
     switch (GetFontFileType())
     {
         case PdfFontFileType::Type1:
-        case PdfFontFileType::CIDType1:
             return true;
         case PdfFontFileType::OpenTypeCFF:
             // TODO: Technical Note #5176 "The Compact Font Format Specification"

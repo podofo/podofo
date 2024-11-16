@@ -139,13 +139,28 @@ bool FT::TryGetFontFileFormat(FT_Face face, PdfFontFileType& format)
 {
     string_view formatstr = FT_Get_Font_Format(face);
     if (formatstr == "TrueType")
+    {
         format = determineTrueTypeFormat(face);
+    }
     else if (formatstr == "Type 1")
+    {
         format = PdfFontFileType::Type1;
+    }
     else if (formatstr == "CID Type 1")
-        format = PdfFontFileType::CIDType1;
+    {
+        // CID Type 1 fonts are a special PostScript font that are described
+        // in "Adobe Technical Note #5014, Adobe CMap and CIDFont Files
+        // Specification". The CIDFont format described there does not
+        // seems to be directly supported by PDF, and in ISO 32000-2:2020
+        // comments in this way "As mentioned earlier, PDF does not support
+        // the entire CID - keyed font architecture, which is independent
+        // of PDF; CID - keyed fonts may be used in other environments".
+        format = PdfFontFileType::Type1;
+    }
     else if (formatstr == "CFF")
+    {
         format = PdfFontFileType::OpenTypeCFF;
+    }
     else
     {
         format = PdfFontFileType::Unknown;

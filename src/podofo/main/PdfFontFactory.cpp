@@ -62,9 +62,6 @@ unique_ptr<PdfFont> PdfFont::createFontForType(PdfDocument& doc, const PdfFontMe
         case PdfFontFileType::Type3:
             font = new PdfFontType3(doc, metrics, encoding);
             break;
-        case PdfFontFileType::CIDType1:
-            font = new PdfFontCIDCFF(doc, metrics, encoding);
-            break;
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Unsupported font at this context");
     }

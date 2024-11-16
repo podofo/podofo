@@ -505,7 +505,6 @@ void PdfFont::EmbedFontFile(PdfObject& descriptor)
     switch (m_Metrics->GetFontFileType())
     {
         case PdfFontFileType::Type1:
-        case PdfFontFileType::CIDType1:
             EmbedFontFileType1(descriptor, fontdata, m_Metrics->GetFontFileLength1(), m_Metrics->GetFontFileLength2(), m_Metrics->GetFontFileLength3());
             break;
         case PdfFontFileType::OpenTypeCFF:
