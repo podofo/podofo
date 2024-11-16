@@ -11,9 +11,9 @@
 
 namespace PoDoFo {
 
-/** A PdfFont that represents a CID-keyed font that has a Typ1 font backend
+/** A PdfFont that represents a CID-keyed font that has a CFF font backend (aka "CIDFontType0")
  */
-class PODOFO_API PdfFontCIDType1 final : public PdfFontCID
+class PODOFO_API PdfFontCIDCFF final : public PdfFontCID
 {
     friend class PdfFont;
 
@@ -26,7 +26,7 @@ private:
      *         deleted along with the font.
      *  \param encoding the encoding of this font
      */
-    PdfFontCIDType1(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+    PdfFontCIDCFF(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);
 
 public:

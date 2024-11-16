@@ -1,4 +1,7 @@
 ## 0.10.1 -> 1.0.0
+- Renamed `PdfFontCIDType` -> `PdfFontCIDCFF`
+- Renamed `PdfFontType::CIDType1` -> `PdfFontType::CIDCFF`
+- Renamed `PdfFontFileType::Type1CFF` -> `PdfFontFileType::OpenTypeCFF`
 - `PdfTextBox`/`PdChoiceField`: Fixed `Spellchecking` casing to `SpellChecking`
 - `PdfDrawTextMultiLineParams`:
   * Inverted semantics of `Clip` and renamed to `SkipClip`

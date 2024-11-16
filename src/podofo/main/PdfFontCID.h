@@ -17,7 +17,7 @@ class PODOFO_API PdfFontCID : public PdfFont
 {
     friend class PdfFont;
     friend class PdfFontCIDTrueType;
-    friend class PdfFontCIDType1;
+    friend class PdfFontCIDCFF;
 
 private:
     PdfFontCID(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,

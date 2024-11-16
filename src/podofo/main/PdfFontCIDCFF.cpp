@@ -5,26 +5,26 @@
  */
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
-#include "PdfFontCIDType1.h"
+#include "PdfFontCIDCFF.h"
 
 using namespace std;
 using namespace PoDoFo;
 
-PdfFontCIDType1::PdfFontCIDType1(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+PdfFontCIDCFF::PdfFontCIDCFF(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding) : PdfFontCID(doc, metrics, encoding) { }
 
-bool PdfFontCIDType1::SupportsSubsetting() const
+bool PdfFontCIDCFF::SupportsSubsetting() const
 {
     // Not yet supported
     return false;
 }
 
-PdfFontType PdfFontCIDType1::GetType() const
+PdfFontType PdfFontCIDCFF::GetType() const
 {
-    return PdfFontType::CIDType1;
+    return PdfFontType::CIDCFF;
 }
 
-void PdfFontCIDType1::embedFontSubset()
+void PdfFontCIDCFF::embedFontSubset()
 {
     PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }

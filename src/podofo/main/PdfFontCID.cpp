@@ -76,7 +76,7 @@ void PdfFontCID::initImported()
     PdfName subtype;
     switch (fontType)
     {
-        case PdfFontType::CIDType1:
+        case PdfFontType::CIDCFF:
             subtype = "CIDFontType0"_n;
             break;
         case PdfFontType::CIDTrueType:

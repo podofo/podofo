@@ -247,8 +247,15 @@ bool PdfFontMetrics::IsType1Kind() const
     switch (GetFontFileType())
     {
         case PdfFontFileType::Type1:
-        case PdfFontFileType::Type1CFF:
         case PdfFontFileType::CIDType1:
+            return true;
+        case PdfFontFileType::OpenTypeCFF:
+            // TODO: Technical Note #5176 "The Compact Font Format Specification"
+            // says: "The Top DICT begins with the SyntheticBase and ROS operators
+            // for synthetic and CIDFonts, respectively. Regular Type 1 fonts begin
+            // with some other operator. (This permits the determination of the
+            // kind of font without parsing the entire Top DICT)". For now, we just
+            // assume OpenTypeCFF contains Type1 information unconditionally
             return true;
         default:
             return false;

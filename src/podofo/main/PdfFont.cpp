@@ -508,8 +508,8 @@ void PdfFont::EmbedFontFile(PdfObject& descriptor)
         case PdfFontFileType::CIDType1:
             EmbedFontFileType1(descriptor, fontdata, m_Metrics->GetFontFileLength1(), m_Metrics->GetFontFileLength2(), m_Metrics->GetFontFileLength3());
             break;
-        case PdfFontFileType::Type1CFF:
-            EmbedFontFileType1CFF(descriptor, fontdata);
+        case PdfFontFileType::OpenTypeCFF:
+            EmbedFontFileOpenTypeCFF(descriptor, fontdata);
             break;
         case PdfFontFileType::TrueType:
             EmbedFontFileTrueType(descriptor, fontdata);
@@ -532,7 +532,7 @@ void PdfFont::EmbedFontFileType1(PdfObject& descriptor, const bufferview& data, 
     }, data);
 }
 
-void PdfFont::EmbedFontFileType1CFF(PdfObject& descriptor, const bufferview& data)
+void PdfFont::EmbedFontFileOpenTypeCFF(PdfObject& descriptor, const bufferview& data)
 {
     embedFontFileData(descriptor, "FontFile3"_n, [&](PdfDictionary& dict)
     {
@@ -924,7 +924,7 @@ bool PdfFont::IsCIDKeyed() const
     switch (GetType())
     {
         case PdfFontType::CIDTrueType:
-        case PdfFontType::CIDType1:
+        case PdfFontType::CIDCFF:
             return true;
         default:
             return false;

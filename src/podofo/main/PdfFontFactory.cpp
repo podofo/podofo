@@ -13,7 +13,7 @@
 #include "PdfFont.h"
 #include "PdfFontObject.h"
 #include "PdfFontCIDTrueType.h"
-#include "PdfFontCIDType1.h"
+#include "PdfFontCIDCFF.h"
 #include "PdfFontMetrics.h"
 #include "PdfFontMetricsStandard14.h"
 #include "PdfFontMetricsObject.h"
@@ -53,17 +53,17 @@ unique_ptr<PdfFont> PdfFont::createFontForType(PdfDocument& doc, const PdfFontMe
                 font = new PdfFontCIDTrueType(doc, metrics, encoding);
             break;
         case PdfFontFileType::Type1:
-        case PdfFontFileType::Type1CFF:
+        case PdfFontFileType::OpenTypeCFF:
             if (preferNonCID && !encoding.HasCIDMapping())
                 font = new PdfFontType1(doc, metrics, encoding);
             else
-                font = new PdfFontCIDType1(doc, metrics, encoding);
+                font = new PdfFontCIDCFF(doc, metrics, encoding);
             break;
         case PdfFontFileType::Type3:
             font = new PdfFontType3(doc, metrics, encoding);
             break;
         case PdfFontFileType::CIDType1:
-            font = new PdfFontCIDType1(doc, metrics, encoding);
+            font = new PdfFontCIDCFF(doc, metrics, encoding);
             break;
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Unsupported font at this context");
@@ -210,7 +210,7 @@ unique_ptr<PdfFont> PdfFont::CreateStandard14(PdfDocument& doc, PdfStandard14Fon
     if (preferNonCid && !createParams.Encoding.HasCIDMapping())
         font.reset(new PdfFontType1(doc, metrics, createParams.Encoding));
     else
-        font.reset(new PdfFontCIDType1(doc, metrics, createParams.Encoding));
+        font.reset(new PdfFontCIDCFF(doc, metrics, createParams.Encoding));
 
     if (font != nullptr)
         font->InitImported(embeddingEnabled, subsettingEnabled);

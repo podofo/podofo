@@ -240,7 +240,7 @@ double PdfFontMetricsStandard14::GetItalicAngle() const
 
 PdfFontFileType PdfFontMetricsStandard14::GetFontFileType() const
 {
-    return PdfFontFileType::Type1CFF;
+    return PdfFontFileType::OpenTypeCFF;
 }
 
 bool PdfFontMetricsStandard14::IsStandard14FontMetrics(PdfStandard14FontType& std14Font) const

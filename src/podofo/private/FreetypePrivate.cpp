@@ -145,7 +145,7 @@ bool FT::TryGetFontFileFormat(FT_Face face, PdfFontFileType& format)
     else if (formatstr == "CID Type 1")
         format = PdfFontFileType::CIDType1;
     else if (formatstr == "CFF")
-        format = PdfFontFileType::Type1CFF;
+        format = PdfFontFileType::OpenTypeCFF;
     else
     {
         format = PdfFontFileType::Unknown;

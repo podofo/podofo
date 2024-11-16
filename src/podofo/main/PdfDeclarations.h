@@ -259,7 +259,7 @@ enum class PdfFontType : uint8_t
     Type1,
     Type3,
     TrueType,
-    CIDType1,    ///< This is a "CIDFontType0"
+    CIDCFF,    ///< This is a "CIDFontType0"
     CIDTrueType, ///< This is a "CIDFontType2"
 };
 
@@ -268,8 +268,8 @@ enum class PdfFontFileType : uint8_t
     // Table 126 – Embedded font organization for various font types
     Unknown = 0,
     Type1,
-    Type1CFF,    ///< Compact Font Representation for /Type1 fonts
     CIDType1,    ///< This is a Type1 font that can be used only in CID Fonts
+    OpenTypeCFF, ///< Compact Font Representation fonts
     Type3,
     TrueType,
     OpenType     ///< OpenType font. This is /Subtype "OpenType" for /FontFile3
