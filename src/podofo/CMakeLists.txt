@@ -47,7 +47,7 @@ foreach(subdir main auxiliary optional staging)
 endforeach()
 
 # Set to install further public 3rdparty headers
-install(FILES "${PROJECT_SOURCE_DIR}/3rdparty/span.hpp" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/podofo/auxiliary")
+install(FILES "${PROJECT_SOURCE_DIR}/3rdparty/span.hpp" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/podofo/3rdparty")
 
 if(NOT PODOFO_HAVE_FONTCONFIG)
     # Remove FontConfig source if not needed

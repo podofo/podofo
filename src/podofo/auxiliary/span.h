@@ -2,7 +2,7 @@
 #define AUX_SPAN_H
 #pragma once
 
-#include "span.hpp"
+#include <podofo/3rdparty/span.hpp>
 
 namespace PoDoFo
 {
