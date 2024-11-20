@@ -52,7 +52,6 @@ bool PdfColorSpaceFilterFactory::TryCreateFromObject(const PdfObject& obj, PdfCo
                 charbuff lookup;
                 int64_t maxIndex;
                 PdfColorSpaceFilterPtr baseColorSpace;
-                unsigned short componentCount;
                 if (arr->GetSize() < 4)
                     goto InvalidIndexed; // Invalid array entry count
 
@@ -66,17 +65,8 @@ bool PdfColorSpaceFilterFactory::TryCreateFromObject(const PdfObject& obj, PdfCo
                 if (stream == nullptr)
                     goto InvalidIndexed;
 
-                switch (baseColorSpace->GetPixelFormat())
-                {
-                    case PdfColorSpacePixelFormat::RGB:
-                        componentCount = 3;
-                        break;
-                    default:
-                        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Unsupported base color space in /Indexed color space");
-                }
-
                 lookup = stream->GetCopy();
-                if (lookup.size() < componentCount * ((unsigned)maxIndex + 1))
+                if (lookup.size() < baseColorSpace->GetColorComponentCount() * ((unsigned)maxIndex + 1))
                     goto InvalidIndexed;        // Table has invalid lookup map size
 
                 colorSpace.reset(new PdfColorSpaceFilterIndexed(baseColorSpace, (unsigned)maxIndex + 1, std::move(lookup)));
