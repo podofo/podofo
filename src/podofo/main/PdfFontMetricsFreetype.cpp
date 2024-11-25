@@ -11,6 +11,8 @@
 #include FT_TRUETYPE_TABLES_H
 #include FT_TYPE1_TABLES_H
 
+#include <podofo/private/FontUtils.h>
+
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfVariant.h"
@@ -42,11 +44,23 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Face face, const datahandle& d
 unique_ptr<const PdfFontMetricsFreetype> PdfFontMetricsFreetype::CreateSubstituteMetrics(
     const PdfFontMetrics& metrics)
 {
-    auto face = metrics.GetFaceHandle();
-    // Reference the face before creating a new PdfFontMetricsFreetype instance
-    FT_Reference_Face(face);
-    return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(face,
-        metrics.GetFontFileDataHandle(), &metrics));
+    if (metrics.GetFontFileType() == PdfFontFileType::Type1)
+    {
+        // Convert the Type1 font to CFF
+        charbuff cffDest;
+        utls::ConvertFontType1ToCFF(metrics.GetOrLoadFontFileData(), cffDest);
+        unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> face(FT::CreateFaceFromBuffer(cffDest), FT_Done_Face);
+        return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(
+            face.release(), datahandle(std::move(cffDest)), &metrics));
+    }
+    else
+    {
+        // Reference the face before creating a new PdfFontMetricsFreetype instance
+        auto face = metrics.GetFaceHandle();
+        FT_Reference_Face(face);
+        return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(face,
+            metrics.GetFontFileDataHandle(), &metrics));
+    }
 }
 
 PdfFontMetricsFreetype::~PdfFontMetricsFreetype()

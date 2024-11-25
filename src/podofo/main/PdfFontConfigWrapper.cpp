@@ -54,8 +54,6 @@ string PdfFontConfigWrapper::SearchFontPath(const string_view fontPattern,
     if ((params.Flags & PdfFontConfigSearchFlags::MatchPostScriptName) == PdfFontConfigSearchFlags::None)
         FcPatternAddString(pattern, FC_FAMILY, (const FcChar8*)fontPattern.data());
 
-    FcPatternAddString(pattern, FC_POSTSCRIPT_NAME, (const FcChar8*)fontPattern.data());
-
     if (params.Style.has_value())
     {
         bool isItalic = (*params.Style & PdfFontStyle::Italic) == PdfFontStyle::Italic;
@@ -64,6 +62,8 @@ string PdfFontConfigWrapper::SearchFontPath(const string_view fontPattern,
         FcPatternAddInteger(pattern, FC_WEIGHT, (isBold ? FC_WEIGHT_BOLD : FC_WEIGHT_MEDIUM));
         FcPatternAddInteger(pattern, FC_SLANT, (isItalic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN));
     }
+
+    FcPatternAddString(pattern, FC_POSTSCRIPT_NAME, (const FcChar8*)fontPattern.data());
 
     // Follow fc-match procedure which proved to be more reliable
     // https://github.com/freedesktop/fontconfig/blob/e291fda7d42e5d64379555097a066d9c2c4efce3/fc-match/fc-match.c#L188

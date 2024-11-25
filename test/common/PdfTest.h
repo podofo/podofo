@@ -114,6 +114,8 @@ namespace PoDoFo
             PdfPixelFormat srcPixelFormat, unsigned width, unsigned height);
         static void SaveFramePPM(OutputStream& stream, const void* data,
             PdfPixelFormat srcPixelFormat, unsigned width, unsigned height);
+
+        static bool IsBufferEqual(const bufferview& buffer, const std::string_view& filename);
     };
 
     template<typename ...Ts>

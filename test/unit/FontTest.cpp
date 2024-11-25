@@ -9,6 +9,7 @@
 #include <PdfTest.h>
 
 #include <podofo/private/FreetypePrivate.h>
+#include <podofo/private/FontUtils.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -20,6 +21,29 @@ using namespace PoDoFo;
 static bool getFontInfo(FcPattern* font, string& fontFamily, string& fontPath,
     PdfFontStyle& style);
 static void testSingleFont(FcPattern* font);
+
+TEST_CASE("TestConversionPBF2CFF")
+{
+    {
+        charbuff font1;
+        utls::ReadTo(font1, TestUtils::GetTestInputFilePath("FontsType1", "Lato-Regular.pfb"));
+
+        charbuff cff;
+        utls::ConvertFontType1ToCFF(font1, cff);
+
+        TestUtils::IsBufferEqual(cff, TestUtils::GetTestInputFilePath("FontsType1", "ConvCFF", "Lato-Regular.cff"));
+    }
+
+    {
+        charbuff font1;
+        utls::ReadTo(font1, TestUtils::GetTestInputFilePath("FontsType1", "lmb10.pfb"));
+
+        charbuff cff;
+        utls::ConvertFontType1ToCFF(font1, cff);
+
+        TestUtils::IsBufferEqual(cff, TestUtils::GetTestInputFilePath("FontsType1", "ConvCFF", "lmb10.cff"));
+    }
+}
 
 TEST_CASE("TestFonts")
 {

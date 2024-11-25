@@ -118,6 +118,13 @@ void TestUtils::SaveFramePPM(OutputStream& stream, const void* data,
     stream.Flush();
 }
 
+bool TestUtils::IsBufferEqual(const bufferview& buffer, const string_view& filename)
+{
+    charbuff tmp;
+    utls::ReadTo(tmp, filename);
+    return buffer == tmp;
+}
+
 void readTestInputFile(const string_view& filepath, string& str)
 {
 #ifdef _WIN32
