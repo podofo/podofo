@@ -101,7 +101,8 @@ protected:
     const PdfCIDToGIDMapConstPtr& getCIDToGIDMap() const override;
 
 private:
-    static std::unique_ptr<const PdfFontMetricsFreetype> CreateSubstituteMetrics(const PdfFontMetrics& metrics);
+    static std::unique_ptr<const PdfFontMetricsFreetype> CreateSubstituteMetrics(
+        const PdfFontMetrics& metrics, PdfALevel pdfACompliance);
 
     PdfFontMetricsFreetype(FT_Face face, const datahandle& data, const PdfFontMetrics* refMetrics = nullptr);
 

@@ -95,6 +95,16 @@ FT_Face FT::CreateFaceFromBuffer(const bufferview& view, unsigned faceIndex,
     }
 }
 
+FT_Face FT::ExtractCFFFont(FT_Face face, charbuff& buffer)
+{
+    FT_ULong size = 0;
+    FT_Error rc = FT_Load_Sfnt_Table(face, TTAG_CFF, 0, nullptr, &size);
+    CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
+    buffer.resize(size);
+    rc = FT_Load_Sfnt_Table(face, TTAG_CFF, 0, (FT_Byte*)buffer.data(), &size);
+    return createFaceFromBuffer(buffer, 0);
+}
+
 // No check for TTC fonts
 FT_Face FT::CreateFaceFromBuffer(const bufferview& view)
 {

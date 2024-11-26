@@ -74,7 +74,7 @@ bool PdfFont::TryCreateSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& su
     PdfFontMetricsConstPtr newMetrics;
     if (metrics.HasFontFileData())
     {
-        newMetrics = PdfFontMetricsFreetype::CreateSubstituteMetrics(metrics);
+        newMetrics = PdfFontMetricsFreetype::CreateSubstituteMetrics(metrics, GetDocument().GetMetadata().GetPdfALevel());
     }
     else
     {
