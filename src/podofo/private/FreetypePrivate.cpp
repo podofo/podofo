@@ -314,14 +314,16 @@ PdfFontFileType determineFormatCFF(FT_Face face)
     }
     else
     {
-        // TODO: Technical Note #5176 "The Compact Font Format Specification"
-        // says: "The Top DICT begins with the SyntheticBase and ROS operators
+        // NOTE: Technical Note #5176 "The Compact Font Format Specification"
+        // says "The Top DICT begins with the SyntheticBase and ROS operators
         // for synthetic and CIDFonts, respectively. Regular Type 1 fonts begin
         // with some other operator. (This permits the determination of the
-        // kind of font without parsing the entire Top DICT)". For now, we just
-        // assume CFF fonts contains Type1 information unconditionally. We could
-        // later add a "CFFCIDFont"
-        return PdfFontFileType::Type1CFF;
+        // kind of font without parsing the entire Top DICT)". We assume FreeType
+        // is able to make this distinction using the FT_IS_CID_KEYED macro
+        if (FT_IS_CID_KEYED(face))
+            return PdfFontFileType::CIDKeyedCFF;
+        else
+            return PdfFontFileType::Type1CFF;
     }
 }
 

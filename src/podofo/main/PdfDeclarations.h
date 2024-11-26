@@ -259,8 +259,8 @@ enum class PdfFontType : uint8_t
     Type1,
     Type3,
     TrueType,
-    CIDCFF,    ///< This is a "CIDFontType0"
-    CIDTrueType, ///< This is a "CIDFontType2"
+    CIDCFF,      ///< This is a "/CIDFontType0" font
+    CIDTrueType, ///< This is a "/CIDFontType2" font
 };
 
 enum class PdfFontFileType : uint8_t
@@ -269,9 +269,10 @@ enum class PdfFontFileType : uint8_t
     Unknown = 0,
     Type1,
     Type1CFF,       ///< Compact Font representation for a Type1 font, as described by Adobe Technical Note #5176 "The Compact Font Format Specification"
+    CIDKeyedCFF,    ///< A Compact Font representation of a CID keyed font, as described by Adobe Technical Note #5176 "The Compact Font Format Specification"
     Type3,
     TrueType,       ///< A TrueType/OpenType font that has a "glyf" table
-    OpenTypeCFF     ///< OpenType font with a CFF/CFF2 table
+    OpenTypeCFF     ///< OpenType font with a "CFF"/"CFF2" table, as described in ISO/IEC 14496-22
 };
 
 /** Font style flags used during searches
