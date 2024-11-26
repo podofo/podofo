@@ -11,7 +11,7 @@ if(NOT PODOFO_HAVE_JPEG_LIB)
     )
 endif()
 
-if (PODOFO_BUILD_SHARED AND NOT MSVC)
+if (NOT MSVC)
     # Fixes "relocation against hidden symbol can not
     # be used when making a shared object"
     add_compile_options(-fPIC)
