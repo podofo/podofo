@@ -1,4 +1,5 @@
 ## 0.10.1 -> 1.0.0
+- `PdfFont`: Renamed `TryGetSubstituteFont` -> `TryCreateSubstituteFont`
 - `PdfFontFileType`:
   * Removed `CIDType1`. Just use `Type1` instead
   * Renamed `OpenType` -> `OpenTypeCFF`
