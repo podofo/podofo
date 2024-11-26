@@ -268,10 +268,10 @@ enum class PdfFontFileType : uint8_t
     // Table 126 – Embedded font organization for various font types
     Unknown = 0,
     Type1,
-    OpenTypeCFF, ///< Compact Font Representation fonts
+    Type1CFF,       ///< Compact Font representation for a Type1 font, as described by Adobe Technical Note #5176 "The Compact Font Format Specification"
     Type3,
-    TrueType,
-    OpenType     ///< OpenType font. This is /Subtype "OpenType" for /FontFile3
+    TrueType,       ///< A TrueType/OpenType font that has a "glyf" table
+    OpenTypeCFF     ///< OpenType font with a CFF/CFF2 table
 };
 
 /** Font style flags used during searches

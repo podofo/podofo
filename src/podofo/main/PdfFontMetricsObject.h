@@ -145,7 +145,7 @@ private:
     double m_DefaultWidth;
 
     const PdfObject* m_FontFileObject;
-    PdfFontFileType m_FontFileType;
+    nullable<PdfFontFileType> m_FontFileType;
 
     unsigned m_Length1;
     unsigned m_Length2;

@@ -247,14 +247,7 @@ bool PdfFontMetrics::IsType1Kind() const
     switch (GetFontFileType())
     {
         case PdfFontFileType::Type1:
-            return true;
-        case PdfFontFileType::OpenTypeCFF:
-            // TODO: Technical Note #5176 "The Compact Font Format Specification"
-            // says: "The Top DICT begins with the SyntheticBase and ROS operators
-            // for synthetic and CIDFonts, respectively. Regular Type 1 fonts begin
-            // with some other operator. (This permits the determination of the
-            // kind of font without parsing the entire Top DICT)". For now, we just
-            // assume OpenTypeCFF contains Type1 information unconditionally
+        case PdfFontFileType::Type1CFF:
             return true;
         default:
             return false;
@@ -263,14 +256,7 @@ bool PdfFontMetrics::IsType1Kind() const
 
 bool PdfFontMetrics::IsTrueTypeKind() const
 {
-    switch (GetFontFileType())
-    {
-        case PdfFontFileType::TrueType:
-        case PdfFontFileType::OpenType:
-            return true;
-        default:
-            return false;
-    }
+    return GetFontFileType() == PdfFontFileType::TrueType;
 }
 
 bool PdfFontMetrics::IsPdfSymbolic() const
@@ -405,7 +391,7 @@ FT_Face getFontFaceFromFile(const string_view& filepath, unsigned faceIndex, uni
         return nullptr;
     }
 
-    if (!FT::IsPdfSupported(face))
+    if (!FT::IsPdfImportSupported(face))
         return nullptr;
 
     data.reset(new charbuff(std::move(buffer)));
@@ -422,7 +408,7 @@ FT_Face getFontFaceFromBuffer(const bufferview& view, unsigned faceIndex, unique
         return nullptr;
     }
 
-    if (!FT::IsPdfSupported(face))
+    if (!FT::IsPdfImportSupported(face))
         return nullptr;
 
     data.reset(new charbuff(std::move(buffer)));

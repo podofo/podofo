@@ -40,7 +40,7 @@ namespace
     };
 }
 
-static PdfFontFileType determineTrueTypeFormat(FT_Face face);
+static PdfFontFileType determineFormatCFF(FT_Face face);
 static unsigned determineFaceSize(FT_Face face, vector<TableInfo>& tables, unsigned& tableDirSize);
 static FT_Face createFaceFromBuffer(const bufferview& view, unsigned faceIndex);
 static bool isTTCFont(FT_Face face);
@@ -140,7 +140,7 @@ bool FT::TryGetFontFileFormat(FT_Face face, PdfFontFileType& format)
     string_view formatstr = FT_Get_Font_Format(face);
     if (formatstr == "TrueType")
     {
-        format = determineTrueTypeFormat(face);
+        format = PdfFontFileType::TrueType;
     }
     else if (formatstr == "Type 1")
     {
@@ -159,7 +159,7 @@ bool FT::TryGetFontFileFormat(FT_Face face, PdfFontFileType& format)
     }
     else if (formatstr == "CFF")
     {
-        format = PdfFontFileType::OpenTypeCFF;
+        format = determineFormatCFF(face);
     }
     else
     {
@@ -170,14 +170,11 @@ bool FT::TryGetFontFileFormat(FT_Face face, PdfFontFileType& format)
     return true;
 }
 
-bool FT::IsPdfSupported(FT_Face face)
+bool FT::IsPdfImportSupported(FT_Face face)
 {
     PdfFontFileType format;
-    if (!FT::TryGetFontFileFormat(face, format) ||
-        !(format == PdfFontFileType::TrueType || format == PdfFontFileType::OpenType))
-    {
+    if (!FT::TryGetFontFileFormat(face, format) || format != PdfFontFileType::TrueType)
         return false;
-    }
 
     return true;
 }
@@ -295,79 +292,27 @@ void getDataFromFace(FT_Face face, charbuff& buffer)
     CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
 }
 
-// Determines if the font is legacy TrueType or OpenType
-PdfFontFileType determineTrueTypeFormat(FT_Face face)
+// Determines if the font is a CCF table with an OTF container or not
+PdfFontFileType determineFormatCFF(FT_Face face)
 {
     FT_Error rc;
     FT_ULong size;
-    FT_ULong tag;
     rc = FT_Sfnt_Table_Info(face, 0, nullptr, &size);
-    CHECK_FT_RC(rc, FT_Sfnt_Table_Info);
-    for (FT_ULong i = 0, count = size; i < count; i++)
+    if (rc == 0)
     {
-        rc = FT_Sfnt_Table_Info(face, i, &tag, &size);
-        CHECK_FT_RC(rc, FT_Sfnt_Table_Info);
-        switch (tag)
-        {
-            // Legacy TrueType tables
-            // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6.html
-            case TTAG_acnt:
-            case TTAG_ankr:
-            case TTAG_avar:
-            case TTAG_bdat:
-            case TTAG_bhed:
-            case TTAG_bloc:
-            case TTAG_bsln:
-            case TTAG_cmap:
-            case TTAG_cvar:
-            case TTAG_cvt:
-            case TTAG_EBSC:
-            case TTAG_fdsc:
-            case TTAG_feat:
-            case TTAG_fmtx:
-            case TTAG_fond:
-            case TTAG_fpgm:
-            case TTAG_fvar:
-            case TTAG_gasp:
-            case TTAG_gcid:
-            case TTAG_glyf:
-            case TTAG_gvar:
-            case TTAG_hdmx:
-            case TTAG_head:
-            case TTAG_hhea:
-            case TTAG_hmtx:
-            case TTAG_just:
-            case TTAG_kern:
-            case TTAG_kerx:
-            case TTAG_lcar:
-            case TTAG_loca:
-            case TTAG_ltag:
-            case TTAG_maxp:
-            case TTAG_meta:
-            case TTAG_mort:
-            case TTAG_morx:
-            case TTAG_name:
-            case TTAG_opbd:
-            case TTAG_OS2:
-            case TTAG_post:
-            case TTAG_prep:
-            case TTAG_prop:
-            case TTAG_sbix:
-            case TTAG_trak:
-            case TTAG_vhea:
-            case TTAG_vmtx:
-            case TTAG_xref:
-            case TTAG_Zapf:
-                // Continue on legacy tables
-                break;
-            default:
-                // Return OpenType on all other tables
-                return PdfFontFileType::OpenType;
-        }
+        return PdfFontFileType::OpenTypeCFF;
     }
-
-    // Default legay TrueType
-    return PdfFontFileType::TrueType;
+    else
+    {
+        // TODO: Technical Note #5176 "The Compact Font Format Specification"
+        // says: "The Top DICT begins with the SyntheticBase and ROS operators
+        // for synthetic and CIDFonts, respectively. Regular Type 1 fonts begin
+        // with some other operator. (This permits the determination of the
+        // kind of font without parsing the entire Top DICT)". For now, we just
+        // assume CFF fonts contains Type1 information unconditionally. We could
+        // later add a "CFFCIDFont"
+        return PdfFontFileType::Type1CFF;
+    }
 }
 
 unsigned determineFaceSize(FT_Face face, vector<TableInfo>& tables, unsigned& tableDirSize)

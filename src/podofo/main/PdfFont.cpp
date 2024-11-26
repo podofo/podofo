@@ -507,13 +507,13 @@ void PdfFont::EmbedFontFile(PdfObject& descriptor)
         case PdfFontFileType::Type1:
             EmbedFontFileType1(descriptor, fontdata, m_Metrics->GetFontFileLength1(), m_Metrics->GetFontFileLength2(), m_Metrics->GetFontFileLength3());
             break;
-        case PdfFontFileType::OpenTypeCFF:
-            EmbedFontFileOpenTypeCFF(descriptor, fontdata);
+        case PdfFontFileType::Type1CFF:
+            EmbedFontFileCFF(descriptor, fontdata);
             break;
         case PdfFontFileType::TrueType:
             EmbedFontFileTrueType(descriptor, fontdata);
             break;
-        case PdfFontFileType::OpenType:
+        case PdfFontFileType::OpenTypeCFF:
             EmbedFontFileOpenType(descriptor, fontdata);
             break;
         default:
@@ -531,7 +531,7 @@ void PdfFont::EmbedFontFileType1(PdfObject& descriptor, const bufferview& data, 
     }, data);
 }
 
-void PdfFont::EmbedFontFileOpenTypeCFF(PdfObject& descriptor, const bufferview& data)
+void PdfFont::EmbedFontFileCFF(PdfObject& descriptor, const bufferview& data)
 {
     embedFontFileData(descriptor, "FontFile3"_n, [&](PdfDictionary& dict)
     {

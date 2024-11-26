@@ -56,14 +56,8 @@ FontTrueTypeSubset::FontTrueTypeSubset(InputStreamDevice& device) :
 void FontTrueTypeSubset::BuildFont(std::string& output, const PdfFontMetrics& metrics,
     const GIDList& gidList)
 {
-    switch (metrics.GetFontFileType())
-    {
-        case PdfFontFileType::TrueType:
-        case PdfFontFileType::OpenType:
-            break;
-        default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "The font to be subsetted is not a TrueType font");
-    }
+    if (metrics.GetFontFileType() != PdfFontFileType::TrueType)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "The font to be subsetted is not a TrueType font");
 
     SpanStreamDevice input(metrics.GetOrLoadFontFileData());
     FontTrueTypeSubset subset(input);

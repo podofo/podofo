@@ -689,7 +689,7 @@ FT_Face getFontFaceFromBuffer(const bufferview& view)
         return nullptr;
     }
 
-    if (!FT::IsPdfSupported(face))
+    if (!FT::IsPdfImportSupported(face))
         return nullptr;
 
     return face;

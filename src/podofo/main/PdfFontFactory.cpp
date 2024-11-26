@@ -46,7 +46,6 @@ unique_ptr<PdfFont> PdfFont::createFontForType(PdfDocument& doc, const PdfFontMe
     switch (type)
     {
         case PdfFontFileType::TrueType:
-        case PdfFontFileType::OpenType:
             if (preferNonCID && !encoding.HasCIDMapping())
                 font = new PdfFontTrueType(doc, metrics, encoding);
             else
@@ -55,6 +54,7 @@ unique_ptr<PdfFont> PdfFont::createFontForType(PdfDocument& doc, const PdfFontMe
         case PdfFontFileType::Type1:
             font = new PdfFontType1(doc, metrics, encoding);
             break;
+        case PdfFontFileType::Type1CFF:
         case PdfFontFileType::OpenTypeCFF:
             font = new PdfFontCIDCFF(doc, metrics, encoding);
             break;
