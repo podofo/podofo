@@ -35,61 +35,39 @@ PdfXObject::PdfXObject(PdfObject& obj, PdfXObjectType subType)
 
 bool PdfXObject::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfXObject>& xobj)
 {
-    PdfXObject* xobj_;
-    if (!tryCreateFromObject(obj, PdfXObjectType::Unknown, xobj_))
-    {
-        xobj.reset();
-        return false;
-    }
-
-    xobj.reset(xobj_);
-    return true;
+    PdfXObjectType detectedType;
+    xobj.reset(createFromObject(obj, PdfXObjectType::Unknown, detectedType));
+    return xobj != nullptr;
 }
 
 bool PdfXObject::TryCreateFromObject(const PdfObject& obj, unique_ptr<const PdfXObject>& xobj)
 {
-    PdfXObject* xobj_;
-    if (!tryCreateFromObject(obj, PdfXObjectType::Unknown, xobj_))
-    {
-        xobj.reset();
-        return false;
-    }
-
-    xobj.reset(xobj_);
-    return true;
+    PdfXObjectType detectedType;
+    xobj.reset(createFromObject(obj, PdfXObjectType::Unknown, detectedType));
+    return xobj != nullptr;
 }
 
-bool PdfXObject::tryCreateFromObject(const PdfObject& obj, PdfXObjectType xobjType, PdfXObject*& xobj)
+unique_ptr<PdfXObject> PdfXObject::CreateFromObject(const PdfObject& obj, PdfXObjectType reqType, PdfXObjectType& detectedType)
 {
-    auto type = getPdfXObjectType(obj);
-    if (xobjType != PdfXObjectType::Unknown && type != xobjType)
-    {
-        xobj = nullptr;
-        return false;
-    }
+    return unique_ptr<PdfXObject>(createFromObject(obj, reqType, detectedType));
+}
 
-    switch (type)
+PdfXObject* PdfXObject::createFromObject(const PdfObject& obj, PdfXObjectType reqType, PdfXObjectType& detectedType)
+{
+    detectedType = getPdfXObjectType(obj);
+    if (detectedType == PdfXObjectType::Unknown || (reqType != PdfXObjectType::Unknown && detectedType != reqType))
+        return nullptr;
+
+    switch (detectedType)
     {
         case PdfXObjectType::Form:
-        {
-            xobj = new PdfXObjectForm(const_cast<PdfObject&>(obj));
-            return true;
-        }
+            return new PdfXObjectForm(const_cast<PdfObject&>(obj));
         case PdfXObjectType::PostScript:
-        {
-            xobj = new PdfXObjectPostScript(const_cast<PdfObject&>(obj));
-            return true;
-        }
+            return new PdfXObjectPostScript(const_cast<PdfObject&>(obj));
         case PdfXObjectType::Image:
-        {
-            xobj = new PdfImage(const_cast<PdfObject&>(obj));
-            return true;
-        }
+            return new PdfImage(const_cast<PdfObject&>(obj));
         default:
-        {
-            xobj = nullptr;
-            return false;
-        }
+            PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
     }
 }
 
@@ -97,15 +75,14 @@ PdfXObjectType PdfXObject::getPdfXObjectType(const PdfObject& obj)
 {
     // Table 93 of ISO 32000-2:2020(E), the /Type key is optional,
     // so we don't check for it. If present it should be "XObject"
-    auto& dict = obj.GetDictionary();
+    const PdfDictionary* dict;
     const PdfName* name;
-    auto subTypeObj = dict.FindKey("Subtype");
-    if (subTypeObj == nullptr || !subTypeObj->TryGetName(name))
+    if (!obj.TryGetDictionary(dict) || !dict->TryFindKeyAs("Subtype", name))
     {
         // NOTE: There are some forms missing both /Type and /Subtype
         // We are a bit lenient here and consider it to be form if
         // it has a "/BBox" and it's not a tiling pattern stream
-        if (obj.HasStream() && dict.HasKey("BBox") && !dict.HasKey("PatternType"))
+        if (obj.HasStream() && dict->HasKey("BBox") && !dict->HasKey("PatternType"))
             return PdfXObjectType::Form;
 
         return PdfXObjectType::Unknown;

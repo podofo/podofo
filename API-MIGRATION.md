@@ -1,4 +1,8 @@
 ## 0.10.1 -> 1.0.0
+- `PdfContentType`:
+  * Renamed `EndXObjectForm` -> `EndFormXObject`
+  * `DoXObject` is issued for Form XObject only if `PdfContentReaderFlags::SkipFollowFormXObjects` is passed, otherwise `BeginXObjectForm` is issued 
+- `PdfContentReaderFlags`: Renamed `DontFollowXObjectForms` -> `SkipFollowFormXObjects`
 - `PdfFont`: Renamed `TryGetSubstituteFont` -> `TryCreateSubstituteFont`
 - `PdfFontFileType`:
   * Removed `CIDType1`. Just use `Type1` instead

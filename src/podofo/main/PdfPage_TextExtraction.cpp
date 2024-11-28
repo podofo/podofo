@@ -192,7 +192,9 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
     ExtractionContext context(entries, *this, pattern, params.Flags, params.ClipRect);
 
     // Look FIGURE 4.1 Graphics objects
-    PdfContentStreamReader reader(*this);
+    PdfContentReaderArgs args;
+    args.Flags = PdfContentReaderFlags::SkipHandleNonFormXObjects; // Images are not needed for text extraction
+    PdfContentStreamReader reader(*this, args);
     PdfContent content;
     vector<double> lengths;
     vector<unsigned> positions;
@@ -203,8 +205,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
         {
             case PdfContentType::Operator:
             {
-                if ((content.Warnings & PdfContentWarnings::InvalidOperator)
-                    != PdfContentWarnings::None)
+                if (content.Warnings != PdfContentWarnings::None)
                 {
                     // Ignore invalid operators
                     continue;
@@ -397,24 +398,26 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                 // Ignore image data token
                 break;
             }
-            case PdfContentType::DoXObject:
+            case PdfContentType::BeginFormXObject:
             {
-                if (content.XObject->GetType() == PdfXObjectType::Form)
-                {
-                    context.XObjectStateIndices.push_back({
-                        (const PdfXObjectForm*)content.XObject.get(),
-                        context.States.GetSize()
+                context.XObjectStateIndices.push_back({
+                    (const PdfXObjectForm*)content.XObject.get(),
+                    context.States.GetSize()
                     });
-                    context.States.Push();
-                }
+                context.States.Push();
 
                 break;
             }
-            case PdfContentType::EndXObjectForm:
+            case PdfContentType::EndFormXObject:
             {
                 PODOFO_ASSERT(context.XObjectStateIndices.size() != 0);
                 context.States.Pop(context.States.GetSize() - context.XObjectStateIndices.back().TextStateIndex);
                 context.XObjectStateIndices.pop_back();
+                break;
+            }
+            case PdfContentType::DoXObject:
+            {
+                // Ignore handling of non Form XObjects
                 break;
             }
             default:

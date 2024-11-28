@@ -31,6 +31,7 @@ class PODOFO_API PdfXObject : public PdfDictionaryElement
     friend class PdfXObjectForm;
     friend class PdfImage;
     friend class PdfXObjectPostScript;
+    friend class PdfContentStreamReader;
 
 private:
     PdfXObject(PdfDocument& doc, PdfXObjectType subType);
@@ -54,7 +55,10 @@ public:
     inline PdfXObjectType GetType() const { return m_Type; }
 
 private:
-    static bool tryCreateFromObject(const PdfObject& obj, PdfXObjectType xobjType, PdfXObject*& xobj);
+    // To be called from PdfContentStreamReader
+    static std::unique_ptr<PdfXObject> CreateFromObject(const PdfObject& obj, PdfXObjectType reqType, PdfXObjectType& detectedType);
+
+    static PdfXObject* createFromObject(const PdfObject& obj, PdfXObjectType reqType, PdfXObjectType& detectedType);
     static PdfXObjectType getPdfXObjectType(const PdfObject& obj);
     template <typename TXObject>
     static constexpr PdfXObjectType GetXObjectType();
@@ -66,23 +70,17 @@ private:
 template<typename XObjectT>
 inline bool PdfXObject::TryCreateFromObject(PdfObject& obj, std::unique_ptr<XObjectT>& xobj)
 {
-    PdfXObject* xobj_;
-    if (!tryCreateFromObject(obj, GetXObjectType<XObjectT>(), xobj_))
-        return false;
-
-    xobj.reset((XObjectT*)xobj_);
-    return true;
+    PdfXObjectType detectedType;
+    xobj.reset((XObjectT*)createFromObject(obj, GetXObjectType<XObjectT>(), detectedType));
+    return xobj != nullptr;
 }
 
 template<typename XObjectT>
 inline bool PdfXObject::TryCreateFromObject(const PdfObject& obj, std::unique_ptr<const XObjectT>& xobj)
 {
-    PdfXObject* xobj_;
-    if (!tryCreateFromObject(obj, GetXObjectType<XObjectT>(), xobj_))
-        return false;
-
-    xobj.reset((const XObjectT*)xobj_);
-    return true;
+    PdfXObjectType detectedType;
+    xobj.reset((const XObjectT*)createFromObject(obj, GetXObjectType<XObjectT>(), detectedType));
+    return xobj != nullptr;
 }
 
 template<typename TXObject>
