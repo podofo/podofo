@@ -76,7 +76,7 @@ string PdfFontConfigWrapper::SearchFontPath(const string_view fontPattern,
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternCreate returned NULL");
 
             if (!FcPatternAddString(pattern.get(), FC_POSTSCRIPT_NAME, (const FcChar8*)fontPattern.data()))
-                PODOFO_RAISE_ERROR(PdfErrorCode::OutOfMemory, "FcPatternAddString");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternAddString");
 
             if (params.Style.has_value())
             {
@@ -84,7 +84,7 @@ string PdfFontConfigWrapper::SearchFontPath(const string_view fontPattern,
                 {
                     // Ensure the font will be at least not italic/oblique
                     if (!FcPatternAddInteger(pattern.get(), FC_SLANT, FC_SLANT_ROMAN))
-                        PODOFO_RAISE_ERROR(PdfErrorCode::OutOfMemory, "FcPatternAddInteger");
+                        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternAddInteger");
                 }
                 else
                 {
@@ -92,10 +92,10 @@ string PdfFontConfigWrapper::SearchFontPath(const string_view fontPattern,
                     bool isBold = (*params.Style & PdfFontStyle::Bold) == PdfFontStyle::Bold;
 
                     if (isBold && !FcPatternAddInteger(pattern.get(), FC_WEIGHT, FC_WEIGHT_BOLD))
-                        PODOFO_RAISE_ERROR(PdfErrorCode::OutOfMemory, "FcPatternAddInteger");
+                        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternAddInteger");
 
                     if (isItalic && !FcPatternAddInteger(pattern.get(), FC_SLANT, FC_SLANT_ITALIC))
-                        PODOFO_RAISE_ERROR(PdfErrorCode::OutOfMemory, "FcPatternAddInteger");
+                        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternAddInteger");
                 }
 
 
@@ -123,7 +123,7 @@ string PdfFontConfigWrapper::SearchFontPath(const string_view fontPattern,
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternCreate returned NULL");
 
             if (!FcPatternAddString(pattern.get(), FC_FAMILY, (const FcChar8*)fontPattern.data()))
-                PODOFO_RAISE_ERROR(PdfErrorCode::OutOfMemory, "FcPatternAddString");
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternAddString");
 
             if (params.Style.has_value())
             {
@@ -134,10 +134,10 @@ string PdfFontConfigWrapper::SearchFontPath(const string_view fontPattern,
                 bool isBold = (*params.Style & PdfFontStyle::Bold) == PdfFontStyle::Bold;
 
                 if (isBold && !FcPatternAddInteger(pattern.get(), FC_WEIGHT, FC_WEIGHT_BOLD))
-                    PODOFO_RAISE_ERROR(PdfErrorCode::OutOfMemory, "FcPatternAddInteger");
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternAddInteger");
 
                 if (isItalic && !FcPatternAddInteger(pattern.get(), FC_SLANT, FC_SLANT_ITALIC))
-                    PODOFO_RAISE_ERROR(PdfErrorCode::OutOfMemory, "FcPatternAddInteger");
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternAddInteger");
             }
 
             // Perform recommended normalization, as documented in

@@ -50,12 +50,19 @@ TEST_CASE("TestFontConfigMatch")
         metrics = PdfFontManager::SearchFontMetrics("LiberationSans", parmas);
         REQUIRE(metrics->GetFontName() == "LiberationSans");
 
+        metrics = PdfFontManager::SearchFontMetrics("Liberation Sans", parmas);
+        REQUIRE(metrics->GetFontName() == "LiberationSans");
+
         metrics = PdfFontManager::SearchFontMetrics("LiberationMono", parmas);
         REQUIRE(metrics->GetFontName() == "LiberationMono");
 
         parmas.Style = PdfFontStyle::Italic;
         metrics = PdfFontManager::SearchFontMetrics("LiberationSans", parmas);
         REQUIRE(metrics->GetFontName() == "LiberationSans-Italic");
+
+        parmas.Style = PdfFontStyle::Bold;
+        metrics = PdfFontManager::SearchFontMetrics("Noto Sans", parmas);
+        REQUIRE(metrics->GetFontName() == "NotoSans-Bold");
     }
 }
 
