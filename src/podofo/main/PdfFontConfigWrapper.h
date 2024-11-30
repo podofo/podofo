@@ -16,7 +16,7 @@ namespace PoDoFo {
 enum class PdfFontConfigSearchFlags
 {
     None = 0,
-    MatchPostScriptName = 1,        ///< Match only postscript font name. The default is to match both family and postscript name. This search may be more specific
+    SkipMatchPostScriptName = 1,        ///< Skip matching postscript font name
 };
 
 struct PODOFO_API PdfFontConfigSearchParams final
@@ -40,6 +40,11 @@ struct PODOFO_API PdfFontConfigSearchParams final
 class PODOFO_API PdfFontConfigWrapper final
 {
 public:
+    /**
+     * Create a new FontConfigWrapper from a XML config string
+     */
+    PdfFontConfigWrapper(const std::string_view& configStr);
+
     /**
      * Create a new FontConfigWrapper and initialize the fontconfig library.
      */

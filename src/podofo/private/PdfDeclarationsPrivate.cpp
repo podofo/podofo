@@ -1033,6 +1033,16 @@ string utls::Trim(const string_view& str, char ch)
     return ret;
 }
 
+void utls::Replace(string& str, const string_view& from, const string_view& to)
+{
+    size_t start_pos = str.find(from);
+    if (start_pos == string_view::npos)
+        return;
+
+    str.replace(start_pos, from.length(), to);
+    return;
+}
+
 void utls::ByteSwap(u16string& str)
 {
     for (unsigned i = 0; i < str.length(); i++)

@@ -91,7 +91,7 @@ bool PdfFont::TryCreateSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& su
             params.Style = metrics.GetStyle();
             // NOTE: We prefer matching the postscript name as
             // we need to better fit the font being replaced
-            params.MatchBehavior = PdfFontMatchBehaviorFlags::MatchPostScriptName;
+            params.MatchBehavior = PdfFontMatchBehaviorFlags::SkipMatchPostScriptName;
             newMetrics = PdfFontManager::SearchFontMetrics(metrics.GetBaseFontNameSafe(), params);
             if (newMetrics == nullptr)
             {

@@ -22,6 +22,43 @@ static bool getFontInfo(FcPattern* font, string& fontFamily, string& fontPath,
     PdfFontStyle& style);
 static void testSingleFont(FcPattern* font);
 
+TEST_CASE("TestFontConfigMatch")
+{
+    // Create a simple platform invariant FC config
+    string fontconf =
+        R"(<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+    <dir>FONT_DIR</dir>
+    <dir prefix="xdg">fonts</dir>
+    <cachedir>FONT_CACHE_DIR</cachedir>
+    <cachedir prefix="xdg">fontconfig</cachedir>
+</fontconfig>
+)";
+
+    utls::Replace(fontconf, "FONT_DIR", TestUtils::GetTestInputFilePath("Fonts"));
+    utls::Replace(fontconf, "FONT_CACHE_DIR", TestUtils::GetTestOutputFilePath("TestFontConfig"));
+
+    PdfFontManager::SetFontConfigWrapper(std::make_shared<PdfFontConfigWrapper>(fontconf));
+
+    {
+        PdfFontSearchParams parmas;
+
+        auto metrics = PdfFontManager::SearchFontMetrics("NotoSans-Regular", parmas);
+        REQUIRE(metrics->GetFontName() == "NotoSans-Regular");
+
+        metrics = PdfFontManager::SearchFontMetrics("LiberationSans", parmas);
+        REQUIRE(metrics->GetFontName() == "LiberationSans");
+
+        metrics = PdfFontManager::SearchFontMetrics("LiberationMono", parmas);
+        REQUIRE(metrics->GetFontName() == "LiberationMono");
+
+        parmas.Style = PdfFontStyle::Italic;
+        metrics = PdfFontManager::SearchFontMetrics("LiberationSans", parmas);
+        REQUIRE(metrics->GetFontName() == "LiberationSans-Italic");
+    }
+}
+
 TEST_CASE("TestConversionPBF2CFF")
 {
     {

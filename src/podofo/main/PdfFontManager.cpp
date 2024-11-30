@@ -368,9 +368,9 @@ unique_ptr<const PdfFontMetrics> PdfFontManager::getFontMetrics(const string_vie
 #ifdef PODOFO_HAVE_FONTCONFIG
     PdfFontConfigSearchParams fcParams;
     fcParams.Style = params.Style;
-    fcParams.Flags = (params.MatchBehavior & PdfFontMatchBehaviorFlags::MatchPostScriptName) == PdfFontMatchBehaviorFlags::None
+    fcParams.Flags = (params.MatchBehavior & PdfFontMatchBehaviorFlags::SkipMatchPostScriptName) == PdfFontMatchBehaviorFlags::None
         ? PdfFontConfigSearchFlags::None
-        : PdfFontConfigSearchFlags::MatchPostScriptName;
+        : PdfFontConfigSearchFlags::SkipMatchPostScriptName;
 
     auto& fc = GetFontConfigWrapper();
     path = fc.SearchFontPath(fontName, fcParams, faceIndex);
@@ -502,20 +502,10 @@ void PdfFontManager::SetFontConfigWrapper(const shared_ptr<PdfFontConfigWrapper>
 
 PdfFontConfigWrapper& PdfFontManager::GetFontConfigWrapper()
 {
-    auto ret = ensureInitializedFontConfig();
-    return *ret;
-}
+    if (m_fontConfig == nullptr)
+        m_fontConfig.reset(new PdfFontConfigWrapper());
 
-shared_ptr<PdfFontConfigWrapper> PdfFontManager::ensureInitializedFontConfig()
-{
-    auto ret = m_fontConfig;
-    if (ret == nullptr)
-    {
-        ret.reset(new PdfFontConfigWrapper());
-        m_fontConfig = ret;
-    }
-
-    return ret;
+    return *m_fontConfig;
 }
 
 #endif // PODOFO_HAVE_FONTCONFIG

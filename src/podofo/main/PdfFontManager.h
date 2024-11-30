@@ -197,10 +197,6 @@ private:
     using FontMap = std::unordered_map<PdfReference, Storage>;
 
 private:
-#ifdef PODOFO_HAVE_FONTCONFIG
-    static std::shared_ptr<PdfFontConfigWrapper> ensureInitializedFontConfig();
-#endif // PODOFO_HAVE_FONTCONFIG
-
     static std::unique_ptr<const PdfFontMetrics> getFontMetrics(const std::string_view& fontName,
         const PdfFontSearchParams& params);
     PdfFont* getImportedFont(const std::string_view& patternName,

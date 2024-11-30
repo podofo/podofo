@@ -279,9 +279,11 @@ enum class PdfFontFileType : uint8_t
  */
 enum class PdfFontStyle : uint8_t
 {
-    Regular = 0,
+    None = 0,
     Italic = 1,
     Bold = 2,
+    // Alias to represent a font with regular style
+    Regular = None,
 };
 
 /** When accessing a glyph, there may be a difference in
@@ -316,8 +318,8 @@ enum class PdfFontCreateFlags
 enum class PdfFontMatchBehaviorFlags
 {
     None,
-    NormalizePattern = 1,     ///< Normalize search pattern, removing subset prefixes like "ABCDEF+" and extract flags from it (like ",Bold", "-Italic")
-    MatchPostScriptName = 2,  ///< Match postscript font name. The default is match family name. This search may be more specific
+    NormalizePattern = 1,         ///< Normalize search pattern, removing subset prefixes like "ABCDEF+" and extract flags from it (like ",Bold", "-Italic")
+    SkipMatchPostScriptName = 2,  ///< Skip matching postscript font name
 };
 
 /**

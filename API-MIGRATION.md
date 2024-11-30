@@ -1,4 +1,6 @@
 ## 0.10.1 -> 1.0.0
+- `PdfFontMatchBehaviorFlags`: `MatchPostScriptName` inverted logic and renamed to `SkipMatchPostScriptName`
+- `PdfFontConfigSearchFlags`: `MatchPostScriptName` inverted logic and renamed to `SkipMatchPostScriptName`
 - `PdfContentType`:
   * Renamed `EndXObjectForm` -> `EndFormXObject`
   * `DoXObject` is issued for Form XObject only if `PdfContentReaderFlags::SkipFollowFormXObjects` is passed, otherwise `BeginXObjectForm` is issued 

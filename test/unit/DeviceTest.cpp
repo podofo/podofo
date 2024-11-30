@@ -42,7 +42,7 @@ TEST_CASE("TestStreamedDocument")
     PdfStreamedDocument document(testPath);
     auto& page = document.GetPages().CreatePage(PdfPageSize::A4);
     // NOTE: use a TTC version of the LiberationSans format to test TTC extraction
-    auto& font = document.GetFonts().GetOrCreateFont(TestUtils::GetTestInputFilePath("Fonts", "LiberationSans.ttc"), 2);
+    auto& font = document.GetFonts().GetOrCreateFont(TestUtils::GetTestInputFilePath("FontsTTC", "LiberationSans.ttc"), 2);
     PdfPainter painter;
     painter.SetCanvas(page);
     painter.TextState.SetFont(font, 18);

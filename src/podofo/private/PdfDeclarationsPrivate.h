@@ -344,6 +344,8 @@ namespace utls
 
     std::string Trim(const std::string_view& str, char ch);
 
+    void Replace(std::string& str, const std::string_view& from, const std::string_view& to);
+
     // https://stackoverflow.com/a/38140932/213871
     inline void hash_combine(std::size_t& seed)
     {
