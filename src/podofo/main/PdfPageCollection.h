@@ -157,6 +157,9 @@ private:
     unsigned traversePageTreeNode(PdfObject& obj, unsigned count,
         std::vector<PdfObject*>& parents, std::unordered_set<PdfObject*>& visitedNodes);
 
+    PdfPageCollection(PdfPageCollection&) = delete;
+    PdfPageCollection& operator=(PdfPageCollection&) = delete;
+
 private:
     bool m_initialized;
     std::vector<PdfPage*> m_Pages;
