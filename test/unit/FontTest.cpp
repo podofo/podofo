@@ -63,6 +63,10 @@ TEST_CASE("TestFontConfigMatch")
         parmas.Style = PdfFontStyle::Bold;
         metrics = PdfFontManager::SearchFontMetrics("Noto Sans", parmas);
         REQUIRE(metrics->GetFontName() == "NotoSans-Bold");
+
+        parmas.MatchBehavior |= PdfFontMatchBehaviorFlags::SkipMatchPostScriptName;
+        metrics = PdfFontManager::SearchFontMetrics("LiberationSans", parmas);
+        REQUIRE(metrics->GetFontName() == "LiberationSans-Bold");
     }
 }
 
@@ -110,6 +114,42 @@ TEST_CASE("TestFonts")
         testSingleFont(fontSet->fonts[i]);
 
     FcFontSetDestroy(fontSet);
+}
+
+TEST_CASE("TestEmbedFont")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TestEmbedFont.pdf"));
+
+    unique_ptr<PdfFont> font;
+    (void)PdfFont::TryCreateFromObject(doc.GetObjects().MustGetObject(PdfReference(6, 0)), font);
+
+    // The font is not embedded in this document
+    REQUIRE(font->GetMetrics().GetOrLoadFontFileData().size() == 0);
+
+    // Create a substitute font from a font without a "/FontFile2" entry
+    PdfFont* substituteFont;
+    REQUIRE(font->TryCreateSubstituteFont(substituteFont));
+    // Add all used  GIDs for this font. The following is hardcoded:
+    // this should require scanning of the entire document page contents
+    substituteFont->AddSubsetGIDs(PdfString::FromRaw("TEST"));
+
+    {
+        // Substitute existing font in the resources of the oage
+        auto& page = doc.GetPages().GetPageAt(0);
+        static_cast<PdfResourceOperations&>(page.MustGetResources()).AddResource(PdfResourceType::Font, "Ft0", substituteFont->GetObject());
+    }
+
+    doc.Save(TestUtils::GetTestOutputFilePath("TestEmbedFont.pdf"));
+
+    // Reload the file and verify the font has now font file data
+    doc.Load(TestUtils::GetTestOutputFilePath("TestEmbedFont.pdf"));
+    {
+        auto& page = doc.GetPages().GetPageAt(0);
+        auto fontObj = page.MustGetResources().GetResource(PdfResourceType::Font, "Ft0");
+        (void)PdfFont::TryCreateFromObject(*fontObj, font);
+        REQUIRE(font->GetMetrics().GetOrLoadFontFileData().size() != 0);
+    }
 }
 
 TEST_CASE("TestCreateFontExtract")
