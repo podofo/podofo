@@ -87,40 +87,27 @@ const PdfObject* PdfFontMetrics::GetFontFileObject() const
     return nullptr;
 }
 
-string_view PdfFontMetrics::GetFontNameSafe(bool familyFirst) const
+string_view PdfFontMetrics::GeFontFamilyNameSafe() const
 {
-    if (familyFirst)
-    {
-        auto baseFontName = GetFontFamilyName();
-        if (!baseFontName.empty())
-            return baseFontName;
-
-        return GetFontName();
-    }
-    else
-    {
-        auto fontName = GetFontName();
-        if (!fontName.empty())
-            return fontName;
-
-        return GetFontFamilyName();
-    }
+    const_cast<PdfFontMetrics&>(*this).initFamilyFontNameSafe();
+    return m_FamilyFontNameSafe;
 }
 
-string_view PdfFontMetrics::GetBaseFontNameSafe() const
+string_view PdfFontMetrics::GetPostScriptNameApprox() const
 {
-    const_cast<PdfFontMetrics&>(*this).initBaseFontNameSafe();
-    return *m_BaseFontNameSafe;
+    return GetFontName();
 }
 
-void PdfFontMetrics::initBaseFontNameSafe()
+void PdfFontMetrics::initFamilyFontNameSafe()
 {
-    if (m_BaseFontNameSafe != nullptr)
+    if (m_FamilyFontNameSafe.length() != 0)
         return;
 
-    m_BaseFontNameSafe.reset(new string(GetBaseFontName()));
-    if (m_BaseFontNameSafe->length() == 0)
-        *m_BaseFontNameSafe = PoDoFo::NormalizeFontName(GetFontFamilyName());;
+    m_FamilyFontNameSafe = GetFontFamilyName();
+    if (m_FamilyFontNameSafe.length() == 0)
+        m_FamilyFontNameSafe = GetBaseFontName();
+
+    PODOFO_ASSERT(m_FamilyFontNameSafe.length() != 0);
 }
 
 string_view PdfFontMetrics::GetFontNameRaw() const
@@ -324,7 +311,7 @@ bool PdfFontMetrics::TryGetImplicitEncoding(PdfEncodingMapConstPtr& encoding) co
     }
 
     // As a last chance, try check if the font name is actually a Standard14
-    if (PdfFont::IsStandard14Font(GetFontNameSafe(), std14Font))
+    if (PdfFont::IsStandard14Font(GetFontName(), std14Font))
     {
         encoding = PdfEncodingMapFactory::GetStandard14FontEncodingMap(std14Font);
         return true;

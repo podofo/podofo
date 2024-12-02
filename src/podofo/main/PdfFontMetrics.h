@@ -138,28 +138,6 @@ public:
      */
     virtual unsigned GetFontFileLength3() const = 0;
 
-    /** Get a string with either the actual /BaseFont, /FontName or
-     * /FontFamily name, depending on exsistences of such entries
-     */
-    std::string_view GetFontNameSafe(bool familyFirst = false) const;
-
-    /** Get a semantical base name for the font that can be used to
-     * compose the final name, eg. from "AAAAAA+Arial,Bold" to "Arial"
-     *
-     * The string is constructed either from the actual /BaseFont,
-     * /FontName or /FontFamily name, depending on exsistences of
-     * such entries
-     * \remarks It doesn't correspond to /BaseFont name entry in the font
-     */
-    std::string_view GetBaseFontNameSafe() const;
-
-    /** Get a semantical base name for the font that can be used to
-     * compose the final name, eg. from "AAAAAA+Arial,Bold" to "Arial"
-     *
-     * \remarks It doesn't correspond to /BaseFont name entry in the font
-     */
-    virtual std::string_view GetBaseFontName() const = 0;
-
     /** Get the actual /FontName, eg. "AAAAAA+Arial,Bold", if available
      *
      *  By default returns empty string
@@ -175,6 +153,20 @@ public:
     /** Get the actual /FontFamily, eg. "Times", if available
      */
     virtual std::string_view GetFontFamilyName() const = 0;
+
+    /** Get a family font name, either from /FontFamily or constructed
+     * from available /BaseFont, /FontName (eg. "AAAAAA+Arial,Bold" becomes "Arial")
+     *
+     * \remarks It doesn't correspond to /BaseFont name entry in the font
+     */
+    std::string_view GeFontFamilyNameSafe() const;
+
+    /**
+     * Get a an approximate PostScript name, from available /BaseFont, /FontName
+     * (eg. "AAAAAA+Arial-Bold" becomes "Arial-Bold")
+     * By default returns GetFontName()
+     */
+    virtual std::string_view GetPostScriptNameApprox() const;
 
     virtual PdfFontStretch GetFontStretch() const = 0;
 
@@ -317,6 +309,13 @@ public:
     unsigned GetFaceIndex() const { return m_FaceIndex; }
 
 protected:
+    /** Get a semantical base name for the font that can be used to
+     * compose the final name, eg. from "AAAAAA+Arial,Bold" to "Arial"
+     *
+     * \remarks It doesn't correspond to /BaseFont name entry in the font
+     */
+    virtual std::string_view GetBaseFontName() const = 0;
+
     virtual const PdfCIDToGIDMapConstPtr& getCIDToGIDMap() const;
     virtual bool getIsBoldHint() const = 0;
     virtual bool getIsItalicHint() const = 0;
@@ -324,7 +323,7 @@ protected:
     virtual FT_Face GetFaceHandle() const = 0;
 
 private:
-    void initBaseFontNameSafe();
+    void initFamilyFontNameSafe();
     static PdfEncodingMapConstPtr getFontType1ImplicitEncoding(FT_Face face);
 
 private:
@@ -334,7 +333,7 @@ private:
 private:
     std::string m_FilePath;
     nullable<PdfFontStyle> m_Style;
-    std::unique_ptr<std::string> m_BaseFontNameSafe;
+    std::string m_FamilyFontNameSafe;
     unsigned m_FaceIndex;
 };
 

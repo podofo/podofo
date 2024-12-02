@@ -1,4 +1,8 @@
 ## 0.10.1 -> 1.0.0
+- `PdfFontMetrics`:
+  * `GetFontNameSafe()` removed: Just use `GetFontName` instead
+  * `GetBaseFontName()`: make it protected, `GeFamilyFontNameSafe()` it's the closest substitute
+  * `GetBaseFontNameSafe()`: removed, `GeFamilyFontNameSafe()` it's the closest substitute 
 - `PdfFontMatchBehaviorFlags`: `MatchPostScriptName` inverted logic and renamed to `SkipMatchPostScriptName`
 - `PdfFontConfigSearchFlags`: `MatchPostScriptName` inverted logic and renamed to `SkipMatchPostScriptName`
 - `PdfContentType`:

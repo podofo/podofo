@@ -13,7 +13,7 @@ FORWARD_DECLARE_FCONFIG();
 
 namespace PoDoFo {
 
-enum class PdfFontConfigSearchFlags
+enum class PdfFontConfigSearchFlags : uint8_t
 {
     None = 0,
     SkipMatchPostScriptName = 1,        ///< Skip matching postscript font name
@@ -23,6 +23,8 @@ struct PODOFO_API PdfFontConfigSearchParams final
 {
     nullable<PdfFontStyle> Style;
     PdfFontConfigSearchFlags Flags = PdfFontConfigSearchFlags::None;
+    ///< A font family name specific pattern, to be alternatively used when postscript name match failed
+    std::string FontFamilyPattern;
 };
 
 /**

@@ -233,7 +233,7 @@ enum class PdfFontDescriptorFlags : uint32_t
     ForceBold   = 1 << 18, ///< Determine whether bold glyphs shall be painted with extra pixels even
 };
 
-enum class PdfFontStretch
+enum class PdfFontStretch : uint8_t
 {
     Unknown = 0,
     UltraCondensed,
@@ -298,7 +298,7 @@ enum class PdfGlyphAccess : uint8_t
 
 /** Flags to control font creation.
  */
-enum class PdfFontAutoSelectBehavior
+enum class PdfFontAutoSelectBehavior : uint8_t
 {
     None = 0,                   ///< No auto selection
     Standard14 = 1,             ///< Automatically select a Standard14 font if the fontname matches one of them
@@ -315,7 +315,7 @@ enum class PdfFontCreateFlags
     PreferNonCID = 4,         ///< Prefer non CID, simple fonts (/Type1, /TrueType)
 };
 
-enum class PdfFontMatchBehaviorFlags
+enum class PdfFontMatchBehaviorFlags : uint8_t
 {
     None,
     NormalizePattern = 1,         ///< Normalize search pattern, removing subset prefixes like "ABCDEF+" and extract flags from it (like ",Bold", "-Italic")

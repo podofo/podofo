@@ -122,8 +122,16 @@ string PdfFontConfigWrapper::SearchFontPath(const string_view fontPattern,
             if (pattern == nullptr)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternCreate returned NULL");
 
-            if (!FcPatternAddString(pattern.get(), FC_FAMILY, (const FcChar8*)fontPattern.data()))
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternAddString");
+            if (params.FontFamilyPattern.length() == 0)
+            {
+                if (!FcPatternAddString(pattern.get(), FC_FAMILY, (const FcChar8*)fontPattern.data()))
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternAddString");
+            }
+            else
+            {
+                if (!FcPatternAddString(pattern.get(), FC_FAMILY, (const FcChar8*)params.FontFamilyPattern.data()))
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternAddString");
+            }
 
             if (params.Style.has_value())
             {

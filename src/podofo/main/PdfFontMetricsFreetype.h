@@ -49,8 +49,6 @@ public:
 
     std::string_view GetFontName() const override;
 
-    std::string_view GetBaseFontName() const override;
-
     std::string_view GetFontFamilyName() const override;
 
     PdfFontStretch GetFontStretch() const override;
@@ -94,6 +92,8 @@ public:
     FT_Face GetFaceHandle() const override;
 
 protected:
+    std::string_view GetBaseFontName() const override;
+
     bool getIsBoldHint() const override;
 
     bool getIsItalicHint() const override;

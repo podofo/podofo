@@ -30,6 +30,18 @@
 using namespace std;
 using namespace PoDoFo;
 
+namespace
+{
+    struct AdaptedFontSearch
+    {
+        string Pattern;
+        PdfFontSearchParams Params;
+    };
+}
+
+static bool tryAdaptSearchParams(const std::string_view& patternName, const PdfFontSearchParams& params,
+    unique_ptr<AdaptedFontSearch>& adaptedParams);
+
 #if defined(_WIN32) && defined(PODOFO_HAVE_WIN32GDI)
 
 static unique_ptr<charbuff> getFontData(const LOGFONTW& inFont);
@@ -74,7 +86,7 @@ string PdfFontManager::GenerateSubsetPrefix()
 PdfFont* PdfFontManager::AddImported(unique_ptr<PdfFont>&& font)
 {
     // Explicitly cache the font with its name and font style
-    Descriptor descriptor(font->GetMetrics().GetFontNameSafe(),
+    Descriptor descriptor(font->GetMetrics().GetFontName(),
         PdfStandard14FontType::Unknown,
         font->GetEncoding(),
         true,
@@ -240,7 +252,7 @@ PdfFont& PdfFontManager::getOrCreateFontHashed(const PdfFontMetricsConstPtr& met
 {
     // TODO: Create a map indexed only on the hash of the font data
     // and search on that. Then remove the following
-    Descriptor descriptor(metrics->GetFontNameSafe(),
+    Descriptor descriptor(metrics->GetFontName(),
         PdfStandard14FontType::Unknown,
         params.Encoding,
         true,
@@ -253,34 +265,12 @@ PdfFont& PdfFontManager::getOrCreateFontHashed(const PdfFontMetricsConstPtr& met
     return *addImported(fonts, std::move(newfont));
 }
 
-void PdfFontManager::adaptSearchParams(string& fontName, PdfFontSearchParams& searchParams)
-{
-    if ((searchParams.MatchBehavior & PdfFontMatchBehaviorFlags::NormalizePattern)
-        == PdfFontMatchBehaviorFlags::None)
-    {
-        return;
-    }
-
-    bool italic;
-    bool bold;
-    fontName = PoDoFo::ExtractFontHints(fontName, italic, bold);
-    PdfFontStyle style = PdfFontStyle::Regular;
-    if (italic)
-        style |= PdfFontStyle::Italic;
-    if (bold)
-        style |= PdfFontStyle::Bold;
-
-    // Alter search style only if italic/bold was extracted from the name
-    if (style != PdfFontStyle::Regular)
-        searchParams.Style = style;
-}
-
 // NOTE: baseFontName is already normalized and cleaned from known suffixes
-PdfFont* PdfFontManager::getImportedFont(const string_view& patternName,
+PdfFont* PdfFontManager::getImportedFont(const string_view& pattern,
     const PdfFontSearchParams& searchParams, const PdfFontCreateParams& createParams)
 {
     auto& fonts = m_cachedQueries[Descriptor(
-        patternName,
+        pattern,
         PdfStandard14FontType::Unknown,
         createParams.Encoding,
         searchParams.Style != nullptr,
@@ -293,10 +283,13 @@ PdfFont* PdfFontManager::getImportedFont(const string_view& patternName,
             searchParams.FontSelector(fonts);
     }
 
-    PdfFontSearchParams newParams = searchParams;
-    string newPattern = (string)patternName;
-    adaptSearchParams(newPattern, newParams);
-    auto metrics = getFontMetrics(newPattern, newParams);
+    unique_ptr<AdaptedFontSearch> adaptedSearch;
+    unique_ptr<const PdfFontMetrics> metrics;
+    if (tryAdaptSearchParams(pattern, searchParams, adaptedSearch))
+        metrics = getFontMetrics(adaptedSearch->Pattern, adaptedSearch->Params);
+    else
+        metrics = getFontMetrics(pattern, searchParams);
+
     if (metrics == nullptr)
         return nullptr;
 
@@ -305,21 +298,22 @@ PdfFont* PdfFontManager::getImportedFont(const string_view& patternName,
     return ret;
 }
 
-PdfFontMetricsConstPtr PdfFontManager::SearchFontMetrics(const string_view& patternName, const PdfFontSearchParams& params)
+PdfFontMetricsConstPtr PdfFontManager::SearchFontMetrics(const string_view& fontPattern, const PdfFontSearchParams& params)
 {
     // Early intercept Standard14 fonts
     PdfStandard14FontType stdFont;
     if (params.AutoSelect != PdfFontAutoSelectBehavior::None
-        && PdfFont::IsStandard14Font(patternName,
+        && PdfFont::IsStandard14Font(fontPattern,
             params.AutoSelect == PdfFontAutoSelectBehavior::Standard14Alt, stdFont))
     {
         return PdfFontMetricsStandard14::GetInstance(stdFont);
     }
 
-    PdfFontSearchParams newParams = params;
-    string newPattern = (string)patternName;
-    adaptSearchParams(newPattern, newParams);
-    return getFontMetrics(newPattern, newParams);
+    unique_ptr<AdaptedFontSearch> adaptedSearch;
+    if (tryAdaptSearchParams(fontPattern, params, adaptedSearch))
+        return getFontMetrics(adaptedSearch->Pattern, adaptedSearch->Params);
+    else
+        return getFontMetrics(fontPattern, params);
 }
 
 void PdfFontManager::AddFontDirectory(const string_view& path)
@@ -367,6 +361,7 @@ unique_ptr<const PdfFontMetrics> PdfFontManager::getFontMetrics(const string_vie
     unsigned faceIndex = 0;
 #ifdef PODOFO_HAVE_FONTCONFIG
     PdfFontConfigSearchParams fcParams;
+    fcParams.FontFamilyPattern = params.FontFamilyPattern;
     fcParams.Style = params.Style;
     fcParams.Flags = (params.MatchBehavior & PdfFontMatchBehaviorFlags::SkipMatchPostScriptName) == PdfFontMatchBehaviorFlags::None
         ? PdfFontConfigSearchFlags::None
@@ -686,3 +681,30 @@ FT_Face getFontFaceFromBuffer(const bufferview& view)
 }
 
 #endif // defined(_WIN32) && defined(PODOFO_HAVE_WIN32GDI)
+
+bool tryAdaptSearchParams(const string_view& fontName, const PdfFontSearchParams& params,
+    unique_ptr<AdaptedFontSearch>& adaptedParams)
+{
+    if ((params.MatchBehavior & PdfFontMatchBehaviorFlags::NormalizePattern)
+        == PdfFontMatchBehaviorFlags::None)
+    {
+        return false;
+    }
+
+    adaptedParams.reset(new AdaptedFontSearch{ (string)fontName, params });
+
+    bool italic;
+    bool bold;
+    adaptedParams->Pattern = PoDoFo::ExtractFontHints(fontName, italic, bold);
+    PdfFontStyle style = PdfFontStyle::Regular;
+    if (italic)
+        style |= PdfFontStyle::Italic;
+    if (bold)
+        style |= PdfFontStyle::Bold;
+
+    // Alter search style only if italic/bold was extracted from the name
+    if (style != PdfFontStyle::Regular)
+        adaptedParams->Params.Style = style;
+
+    return true;
+}

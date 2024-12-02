@@ -3,7 +3,7 @@
 - Optimize passing shared_ptr
 - Settle https://github.com/podofo/podofo/issues/165
 - PdfPage: Add a method to retrieve rotation in radians
-- Settle TryGetSubstituteFont
+- Settle TryCreateSubstituteFont
 - Restore PdfShadingPattern, PdfTilingPattern
 - Check PdfExtension API
 - Check performances of PdfContentStreamReader
@@ -32,7 +32,7 @@
 - Add a PdfRect-like class PdfCorners that avoid coordinates normalization
   by default
 - PdfToggleButton: Add proper IsChecked/ExportValue handling
-- Add version of PdfFont::TryGetSubstituteFont for rendering
+- Add version of PdfFont::TryCreateSubstituteFont for rendering
   (metrics/widths of loaded font override metrics found on /FontFile)
 - Add a fallback to search font on the system for text extraction purposes,
   see #123
@@ -45,6 +45,7 @@
 - PdfMemDocument: Evaluate release the device after all objects have been loaded (eg. after a full Save())
 - PdfParserObject: Evaluate release the device after loading
 - Review all page import functions to check correct working/improve the code
+  (PdfPageCollection::AppendDocumentPages(), PdfPageCollection::InsertDocumentPageAt())
 - PdfElement: Optimize, keep dictionary/array pointer. Evaluate Add shared_ptr PdfElement::GetObjectPtr() 
 - Check what do with tools/restore manuals
 - Fix/complete handling of text extraction in rotated pages (??? Done?)
@@ -57,8 +58,6 @@
   "Digital Signature Appearances" document specification
 - PdfParser: Handle invalid startxref by rebuilding the index,
   similarly to what pdf.js does
-- Review PdfPageCollection::AppendDocumentPages(),
-  PdfPageCollection::InsertDocumentPageAt() code
 - Add text shaping with Harfbuzz https://github.com/harfbuzz/harfbuzz
 - Add fail safe sign/update mechanism, meaning the stream gets trimmed
   to initial length if there's a crash. Not so easy, especially since

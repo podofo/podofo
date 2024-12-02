@@ -21,6 +21,7 @@ using namespace std;
 static PdfFontStretch stretchFromString(const string_view& str);
 
 PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObject* descriptor) :
+    m_SubsetPrefixEndIndex(0),
     m_DefaultWidth(0),
     m_FontFileObject(nullptr),
     m_Length1(0),
@@ -295,7 +296,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         m_MaxWidth = dict.FindKeyAs<double>("MaxWidth", -1) * m_Matrix[0];
     }
 
-    // According to ISO 32000-1:2008, /FontName "shall be the
+    // According to ISO 32000-2:2020, /FontName "shall be the
     // same as the value of /BaseFont in the font or CIDFont
     // dictionary that refers to this font descriptor".
     // We prioritize /BaseFont, over /FontName
@@ -345,13 +346,19 @@ string_view PdfFontMetricsObject::GetFontNameRaw() const
 
 string_view PdfFontMetricsObject::GetBaseFontName() const
 {
-    const_cast<PdfFontMetricsObject&>(*this).extractFontHints();
+    const_cast<PdfFontMetricsObject&>(*this).processFontName();
     return m_FontBaseName;
 }
 
 string_view PdfFontMetricsObject::GetFontFamilyName() const
 {
     return m_FontFamilyName;
+}
+
+string_view PdfFontMetricsObject::GetPostScriptNameApprox() const
+{
+    const_cast<PdfFontMetricsObject&>(*this).processFontName();
+    return string_view(m_FontName).substr(m_SubsetPrefixEndIndex);
 }
 
 PdfFontStretch PdfFontMetricsObject::GetFontStretch() const
@@ -518,13 +525,13 @@ bool PdfFontMetricsObject::IsObjectLoaded() const
 
 bool PdfFontMetricsObject::getIsBoldHint() const
 {
-    const_cast<PdfFontMetricsObject&>(*this).extractFontHints();
+    const_cast<PdfFontMetricsObject&>(*this).processFontName();
     return m_IsBoldHint;
 }
 
 bool PdfFontMetricsObject::getIsItalicHint() const
 {
-    const_cast<PdfFontMetricsObject&>(*this).extractFontHints();
+    const_cast<PdfFontMetricsObject&>(*this).processFontName();
     return m_IsItalicHint;
 }
 
@@ -562,13 +569,14 @@ unsigned PdfFontMetricsObject::GetFontFileLength3() const
     return m_Length3;
 }
 
-void PdfFontMetricsObject::extractFontHints()
+void PdfFontMetricsObject::processFontName()
 {
     if (m_FontBaseName.length() != 0)
         return;
 
     PODOFO_ASSERT(m_FontName.length() != 0);
-    m_FontBaseName = PoDoFo::ExtractFontHints(m_FontName, m_IsItalicHint, m_IsBoldHint);
+    m_SubsetPrefixEndIndex = PoDoFo::GetSubsetPrefixEndIndex(m_FontName);
+    m_FontBaseName = PoDoFo::ExtractFontHints(string_view(m_FontName).substr(m_SubsetPrefixEndIndex), m_IsItalicHint, m_IsBoldHint);
 }
 
 vector<double> PdfFontMetricsObject::getBBox(const PdfObject& obj)

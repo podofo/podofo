@@ -40,8 +40,7 @@ extern PODOFO_IMPORT LogMessageCallback s_LogMessageCallback;
 static char getEscapedCharacter(char ch);
 static void removeTrailingZeroes(string& str, size_t len);
 static bool isStringDelimter(char32_t ch);
-static string extractFontHints(const std::string_view& fontName,
-    bool trimSubsetPrefix, bool& isItalic, bool& isBold);
+static void extractFontHints(string& fontName, bool& isItalic, bool& isBold);
 static bool trimSuffix(string& name, const string_view& suffix);
 static double modulo(double a, double b);
 
@@ -295,16 +294,29 @@ vector<string> PoDoFo::ToPdfKeywordsList(const string_view& str)
     return ret;
 }
 
-string PoDoFo::NormalizeFontName(const string_view& fontName)
+string PoDoFo::ExtractBaseFontName(const string_view& fontName, bool skipTrimSubset)
 {
     bool isItalic;
     bool isBold;
-    return extractFontHints(fontName, false, isItalic, isBold);
+    if (skipTrimSubset)
+    {
+        string name(fontName);
+        extractFontHints(name, isItalic, isBold);
+        return name;
+    }
+    else
+    {
+        string name(fontName.substr(PoDoFo::GetSubsetPrefixEndIndex(fontName)));
+        extractFontHints(name, isItalic, isBold);
+        return name;
+    }
 }
 
 string PoDoFo::ExtractFontHints(const string_view& fontName, bool& isItalic, bool& isBold)
 {
-    return extractFontHints(fontName, true, isItalic, isBold);
+    string name(fontName);
+    extractFontHints(name, isItalic, isBold);
+    return name;
 }
 
 char PoDoFo::XRefEntryTypeToChar(PdfXRefEntryType type)
@@ -340,26 +352,28 @@ void PoDoFo::AddToCallStack(PdfError& err, string filepath, unsigned line, strin
     err.AddToCallStack(std::move(filepath), line, std::move(information));
 }
 
+unsigned char PoDoFo::GetSubsetPrefixEndIndex(const string_view& fontName)
+{
+    // NOTE: For some reasons, "^[A-Z]{6}\+" doesn't work
+    regex regex = std::regex("^[A-Z][A-Z][A-Z][A-Z][A-Z][A-Z]\\+", regex_constants::ECMAScript);
+    smatch matches;
+    string name(fontName);
+    if (std::regex_search(name, matches, regex))
+    {
+        // 5.5.3 Font Subsets: Remove EOODIA+ like prefixes
+        return 7;
+    }
+
+    return 0;
+}
+
 // NOTE: This function is condsidered to be slow. Avoid calling it frequently
 // https://github.com/podofo/podofo/issues/30
-string extractFontHints(const string_view& fontName, bool trimSubsetPrefix, bool& isItalic, bool& isBold)
+void extractFontHints(string& name, bool& isItalic, bool& isBold)
 {
     // TABLE H.3 Names of standard fonts
-    string name = (string)fontName;
     isItalic = false;
     isBold = false;
-
-    if (trimSubsetPrefix)
-    {
-        // NOTE: For some reasons, "^[A-Z]{6}\+" doesn't work
-        regex regex = std::regex("^[A-Z][A-Z][A-Z][A-Z][A-Z][A-Z]\\+", regex_constants::ECMAScript);
-        smatch matches;
-        if (std::regex_search(name, matches, regex))
-        {
-            // 5.5.3 Font Subsets: Remove EOODIA+ like prefixes
-            name.erase(matches[0].first - name.begin(), 7);
-        }
-    }
 
     if (trimSuffix(name, "BoldItalic"))
     {
@@ -395,7 +409,6 @@ string extractFontHints(const string_view& fontName, bool trimSubsetPrefix, bool
 
     // 5.5.2 TrueType Fonts: If the name contains any spaces, the spaces are removed
     name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
-    return name;
 }
 
 string PoDoFo::ToPdfKeywordsString(const cspan<string>& keywords)

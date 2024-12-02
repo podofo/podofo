@@ -56,9 +56,9 @@ public:
 
     std::string_view GetFontNameRaw() const override;
 
-    std::string_view GetBaseFontName() const override;
-
     std::string_view GetFontFamilyName() const override;
+
+    std::string_view GetPostScriptNameApprox() const override;
 
     PdfFontStretch GetFontStretch() const override;
 
@@ -103,6 +103,8 @@ public:
     bool IsObjectLoaded() const override;
 
 protected:
+    std::string_view GetBaseFontName() const override;
+
     bool getIsBoldHint() const override;
 
     bool getIsItalicHint() const override;
@@ -112,7 +114,7 @@ protected:
     const PdfCIDToGIDMapConstPtr& getCIDToGIDMap() const override;
 
 private:
-    void extractFontHints();
+    void processFontName();
 
     std::vector<double> getBBox(const PdfObject& obj);
 
@@ -129,6 +131,7 @@ private:
     std::string m_FontNameRaw;
     std::string m_FontBaseName;
     std::string m_FontFamilyName;
+    unsigned char m_SubsetPrefixEndIndex;
     PdfFontStretch m_FontStretch;
     int m_Weight;
     PdfFontDescriptorFlags m_Flags;

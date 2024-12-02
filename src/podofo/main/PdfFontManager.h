@@ -30,6 +30,8 @@ struct PODOFO_API PdfFontSearchParams final
     nullable<PdfFontStyle> Style;
     PdfFontAutoSelectBehavior AutoSelect = PdfFontAutoSelectBehavior::None;
     PdfFontMatchBehaviorFlags MatchBehavior = PdfFontMatchBehaviorFlags::None;
+    ///< A font family name specific pattern, to be alternatively used when postscript name match failed
+    std::string FontFamilyPattern;
 
     ///< A function to select the font in case multiple fonts with same characteristics found. Default return first
     std::function<PdfFont* (const std::vector<PdfFont*>)> FontSelector;
@@ -199,10 +201,8 @@ private:
 private:
     static std::unique_ptr<const PdfFontMetrics> getFontMetrics(const std::string_view& fontName,
         const PdfFontSearchParams& params);
-    PdfFont* getImportedFont(const std::string_view& patternName,
+    PdfFont* getImportedFont(const std::string_view& pattern,
         const PdfFontSearchParams& searchParams, const PdfFontCreateParams& createParams);
-    static void adaptSearchParams(std::string& patternName,
-        PdfFontSearchParams& searchParams);
     PdfFont* addImported(std::vector<PdfFont*>& fonts, std::unique_ptr<PdfFont>&& font);
     PdfFont& getOrCreateFontHashed(const PdfFontMetricsConstPtr& metrics, const PdfFontCreateParams& params);
 

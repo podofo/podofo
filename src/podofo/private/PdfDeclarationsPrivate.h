@@ -154,13 +154,18 @@ namespace PoDoFo
 
     /** Normalize base font name, removing known bold/italic/subset prefixes/suffixes
      */
-    std::string NormalizeFontName(const std::string_view& fontName);
+    std::string ExtractBaseFontName(const std::string_view& fontName, bool skipTrimSubset = false);
 
     /** Extract base font name, removing known bold/italic/subset prefixes/suffixes
      * \returns normalized font name
      */
     std::string ExtractFontHints(const std::string_view& fontName,
         bool& isItalic, bool& isBold);
+
+    /**
+     * Get the end index of a subset prefix (eg. "AAAAAA+")
+     */
+    unsigned char GetSubsetPrefixEndIndex(const std::string_view& fontName);
 
     std::vector<std::string> ToPdfKeywordsList(const std::string_view& str);
     std::string ToPdfKeywordsString(const cspan<std::string>&keywords);

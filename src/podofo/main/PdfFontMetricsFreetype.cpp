@@ -122,6 +122,17 @@ void PdfFontMetricsFreetype::init(const PdfFontMetrics* refMetrics)
     // Set some default values, in case the font has no direct values
     if (refMetrics == nullptr)
     {
+        if (m_FontName.empty())
+        {
+            // Determine a fallback for the font name
+            if (m_FontFamilyName.empty())
+                m_FontName = "FreeTypeFont";
+            else
+                m_FontName = m_FontFamilyName;
+        }
+
+        m_FontBaseName = PoDoFo::ExtractBaseFontName(m_FontName, true);
+
         // Get maximal width and height
         double width = (m_Face->bbox.xMax - m_Face->bbox.xMin) / (double)m_Face->units_per_EM;
         double height = (m_Face->bbox.yMax - m_Face->bbox.yMin) / (double)m_Face->units_per_EM;
@@ -148,12 +159,14 @@ void PdfFontMetricsFreetype::init(const PdfFontMetrics* refMetrics)
     }
     else
     {
-        m_CIDToGIDMap = refMetrics->GetCIDToGIDMap();
-
         if (m_FontName.empty())
             m_FontName = refMetrics->GetFontName();
         if (m_FontFamilyName.empty())
             m_FontFamilyName = refMetrics->GetFontFamilyName();
+
+        m_FontBaseName = PoDoFo::ExtractBaseFontName(m_FontName);
+
+        m_CIDToGIDMap = refMetrics->GetCIDToGIDMap();
 
         m_FontStretch = refMetrics->GetFontStretch();
         m_Weight = refMetrics->GetWeightRaw();
@@ -191,17 +204,6 @@ void PdfFontMetricsFreetype::init(const PdfFontMetrics* refMetrics)
         if (psTable->isFixedPitch != 0)
             m_Flags |= PdfFontDescriptorFlags::FixedPitch;
     }
-
-    if (m_FontName.empty())
-    {
-        // Determine a fallback for the font name
-        if (m_FontFamilyName.empty())
-            m_FontName = "FreeTypeFont";
-        else
-            m_FontName = m_FontFamilyName;
-    }
-
-    m_FontBaseName = PoDoFo::NormalizeFontName(m_FontName);
 
     // FontInfo Table is available only in type1 fonts
     PS_FontInfoRec type1Info;
