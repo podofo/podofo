@@ -631,6 +631,8 @@ unsigned CodePointSpan::GetSize() const
 
 CodePointSpan& CodePointSpan::operator=(const CodePointSpan& rhs)
 {
+    if (this == &rhs)
+        return *this;
     this->~CodePointSpan();
     auto view = rhs.view();
     if (view.size() > std::size(m_Block.Data))
