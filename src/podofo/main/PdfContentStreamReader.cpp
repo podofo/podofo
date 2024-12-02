@@ -329,6 +329,7 @@ bool PdfContentStreamReader::tryHandleXObject(PdfContent& content)
     const PdfResources* resources;
     const PdfObject* xobjraw = nullptr;
     PdfXObjectType detectedType;
+    bool followFormXObjecs = (m_args.Flags & PdfContentReaderFlags::SkipFollowFormXObjects) == PdfContentReaderFlags::None;
     bool handleXObjects = (m_args.Flags & PdfContentReaderFlags::SkipHandleNonFormXObjects) == PdfContentReaderFlags::None;
     if (content.Stack.GetSize() != 1
         || !content.Stack[0].TryGetName(content.Name)
@@ -347,7 +348,7 @@ bool PdfContentStreamReader::tryHandleXObject(PdfContent& content)
     }
     else
     {
-        PODOFO_ASSERT((m_args.Flags & PdfContentReaderFlags::SkipFollowFormXObjects) == PdfContentReaderFlags::None);
+        PODOFO_ASSERT(followFormXObjecs);
 
         // Limit handling to Form XObjects only
         content.XObject = PdfXObject::CreateFromObject(*xobjraw, PdfXObjectType::Form, detectedType);
@@ -367,7 +368,7 @@ bool PdfContentStreamReader::tryHandleXObject(PdfContent& content)
         }
     }
 
-    if (content.XObject->GetType() == PdfXObjectType::Form)
+    if (followFormXObjecs && content.XObject->GetType() == PdfXObjectType::Form)
     {
         // Select the Form XObject for next input source
         content.Type = PdfContentType::BeginFormXObject;
