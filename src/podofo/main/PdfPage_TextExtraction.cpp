@@ -683,9 +683,9 @@ bool decodeString(const PdfString &str, TextState &state, string &decoded,
             // CHECK-ME: Maybe intrepret them as PdfDocEncoding?
             decoded = str.GetString();
             lengths.resize(decoded.length());
-            positions.reserve(decoded.length());
+            positions.resize(decoded.length());
             for (unsigned i = 0; i < decoded.length(); i++)
-                positions.push_back(i);
+                positions[i] = i;
 
             return true;
         }
