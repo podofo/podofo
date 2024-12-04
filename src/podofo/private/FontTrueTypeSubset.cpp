@@ -357,9 +357,11 @@ void FontTrueTypeSubset::WriteHmtxTable(OutputStream& output)
 
     unsigned hmtxTableOffset = GetTableOffset(TTAG_hmtx);
     unsigned leftSideBearingsOffset = hmtxTableOffset + m_HMetricsCount * sizeof(LongHorMetrics);
-    vector<int16_t> leftSideBearings;
-    for (unsigned gid : m_orderedGIDs)
+    uint16_t advanceWidth;
+    int16_t leftSideBearing;
+    for (unsigned i = 0; i < m_orderedGIDs.size(); i++)
     {
+        unsigned gid = m_orderedGIDs[i];
         if (gid < m_HMetricsCount)
         {
             // The full horizontal metrics exists, just copy it
@@ -367,17 +369,22 @@ void FontTrueTypeSubset::WriteHmtxTable(OutputStream& output)
         }
         else
         {
-            // The full horizontal metrics doesn't exists, just copy the left side bearibgs
+            // The full horizontal metrics doesn't exists, just copy the left side bearings
+            // at the end of the metrics and last know advance width. From the specification:
+            // "As an optimization, the number of records can be less than the number
+            // of glyphs, in which case the advance width value of the last record applies
+            // to all remaining glyph IDs"
             m_device->Seek(leftSideBearingsOffset + sizeof(int16_t) * (gid - m_HMetricsCount));
-            int16_t leftSideBearing;
+
             utls::ReadInt16BE(*m_device, leftSideBearing);
-            leftSideBearings.push_back(leftSideBearing);
+
+            m_device->Seek(hmtxTableOffset + (m_HMetricsCount - 1) * sizeof(LongHorMetrics));
+            utls::ReadUInt16BE(*m_device, advanceWidth);
+
+            utls::WriteUInt16BE(output, advanceWidth);
+            utls::WriteInt16BE(output, leftSideBearing);
         }
     }
-
-    // Write left side bearings
-    for (unsigned i = 0; i < leftSideBearings.size(); i++)
-        utls::WriteInt16BE(output, leftSideBearings[i]);
 }
 
 // "The 'loca' table stores the offsets to the locations
@@ -392,8 +399,9 @@ void FontTrueTypeSubset::WriteLocaTable(OutputStream& output)
     uint32_t glyphAddress = 0;
     if (m_isLongLoca)
     {
-        for (unsigned gid : m_orderedGIDs)
+        for (unsigned i = 0; i < m_orderedGIDs.size(); i++)
         {
+            unsigned gid = m_orderedGIDs[i];
             auto& glyphData = m_glyphDatas[gid];
             utls::WriteUInt32BE(output, glyphAddress);
             glyphAddress += glyphData.GlyphLength;
@@ -404,8 +412,9 @@ void FontTrueTypeSubset::WriteLocaTable(OutputStream& output)
     }
     else
     {
-        for (unsigned gid : m_orderedGIDs)
+        for (unsigned i = 0; i < m_orderedGIDs.size(); i++)
         {
+            unsigned gid = m_orderedGIDs[i];
             auto& glyphData = m_glyphDatas[gid];
             utls::WriteUInt16BE(output, static_cast<uint16_t>(glyphAddress >> 1));
             glyphAddress += glyphData.GlyphLength;
