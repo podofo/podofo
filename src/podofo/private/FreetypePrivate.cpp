@@ -165,7 +165,9 @@ bool FT::TryGetFontFileFormat(FT_Face face, PdfFontFileType& format)
         // comments in this way "As mentioned earlier, PDF does not support
         // the entire CID - keyed font architecture, which is independent
         // of PDF; CID - keyed fonts may be used in other environments".
-        format = PdfFontFileType::Type1;
+        // See also https://github.com/pdf-association/pdf-issues/issues/497
+        format = PdfFontFileType::Unknown;
+        return false;
     }
     else if (formatstr == "CFF")
     {
