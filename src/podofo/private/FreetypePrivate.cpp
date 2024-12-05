@@ -182,10 +182,10 @@ bool FT::TryGetFontFileFormat(FT_Face face, PdfFontFileType& format)
     return true;
 }
 
-bool FT::IsPdfImportSupported(FT_Face face)
+bool FT::IsPdfSupported(FT_Face face)
 {
     PdfFontFileType format;
-    if (!FT::TryGetFontFileFormat(face, format) || format != PdfFontFileType::TrueType)
+    if (!FT::TryGetFontFileFormat(face, format))
         return false;
 
     return true;

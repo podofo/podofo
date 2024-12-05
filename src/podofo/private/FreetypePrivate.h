@@ -29,7 +29,7 @@ namespace FT
     FT_Face CreateFaceFromBuffer(const PoDoFo::bufferview& view);
     PoDoFo::charbuff GetDataFromFace(FT_Face face);
     bool TryGetFontFileFormat(FT_Face face, PoDoFo::PdfFontFileType& format);
-    bool IsPdfImportSupported(FT_Face face);
+    bool IsPdfSupported(FT_Face face);
 }
 
 // Other legacy TrueType tables defined in Apple documentation

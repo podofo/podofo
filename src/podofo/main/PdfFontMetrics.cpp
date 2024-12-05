@@ -378,7 +378,7 @@ FT_Face getFontFaceFromFile(const string_view& filepath, unsigned faceIndex, uni
         return nullptr;
     }
 
-    if (!FT::IsPdfImportSupported(face))
+    if (!FT::IsPdfSupported(face))
         return nullptr;
 
     data.reset(new charbuff(std::move(buffer)));
@@ -395,7 +395,7 @@ FT_Face getFontFaceFromBuffer(const bufferview& view, unsigned faceIndex, unique
         return nullptr;
     }
 
-    if (!FT::IsPdfImportSupported(face))
+    if (!FT::IsPdfSupported(face))
         return nullptr;
 
     data.reset(new charbuff(std::move(buffer)));
