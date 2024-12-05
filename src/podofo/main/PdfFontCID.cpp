@@ -214,9 +214,17 @@ PdfArray WidthExporter::GetPdfWidths(const CIDToGIDMap& cidToGidMap,
         return PdfArray();
 
     auto& matrix = metrics.GetMatrix();
+
+    // Always initialize the exporter with GID 0
     WidthExporter exporter(0, getPdfWidth(0, metrics, matrix));
     for (auto& pair : cidToGidMap)
+    {
+        // If the GID 0 is present in the map, just skip it
+        if (pair.first == 0)
+            continue;
+
         exporter.update(pair.first, getPdfWidth(pair.second, metrics, matrix));
+    }
 
     exporter.finish();
     return std::move(exporter.m_output);
