@@ -9,7 +9,9 @@
   * Renamed `EndXObjectForm` -> `EndFormXObject`
   * `DoXObject` is issued for Form XObject only if `PdfContentReaderFlags::SkipFollowFormXObjects` is passed, otherwise `BeginXObjectForm` is issued 
 - `PdfContentReaderFlags`: Renamed `DontFollowXObjectForms` -> `SkipFollowFormXObjects`
-- `PdfFont`: Renamed `TryGetSubstituteFont` -> `TryCreateSubstituteFont`
+- `PdfFont`:
+  * Renamed `TryGetSubstituteFont` -> `TryCreateSubstituteFont`
+  * Renamed `GetUsedGIDs` -> `GetSubstituteGIDMap` and make it private (it's more implementation detail for `TryCreateSubstituteFont`)
 - `PdfFontFileType`:
   * Removed `CIDType1`. Just use `Type1` instead
   * Renamed `OpenType` -> `OpenTypeCFF`

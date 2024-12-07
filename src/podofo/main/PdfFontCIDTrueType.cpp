@@ -26,9 +26,7 @@ PdfFontType PdfFontCIDTrueType::GetType() const
 
 void PdfFontCIDTrueType::embedFontSubset()
 {
-    auto& usedGIDs = GetUsedGIDs();
-    // Prepare a CID to GID for the subsetting
-    CIDToGIDMap cidToGidMap = getCIDToGIDMapSubset(usedGIDs);
+    auto cidToGidMap = getCIDToGIDMap();
     createWidths(GetDescendantFont().GetDictionary(), cidToGidMap);
     m_Encoding->ExportToFont(*this);
 
@@ -50,7 +48,7 @@ void PdfFontCIDTrueType::embedFontSubset()
         // Newer compliances remove this requirement, but if present
         // it has even sillier requirements
         string cidSetData;
-        for (auto& pair : usedGIDs)
+        for (auto& pair : cidToGidMap)
         {
             // ISO 32000-1:2008: Table 124 – Additional font descriptor entries for CIDFonts
             // CIDSet "The stream’s data shall be organized as a table of bits
@@ -60,7 +58,7 @@ void PdfFontCIDTrueType::embedFontSubset()
             // to CID 0, the next bit to CID 1, and so on"
 
             static const char bits[] = { '\x80', '\x40', '\x20', '\x10', '\x08', '\x04', '\x02', '\x01' };
-            unsigned cid = pair.second.Id;
+            unsigned cid = pair.first;
             unsigned dataIndex = cid >> 3;
             if (cidSetData.size() < dataIndex + 1)
                 cidSetData.resize(dataIndex + 1);

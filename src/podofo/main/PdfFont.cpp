@@ -161,6 +161,8 @@ void PdfFont::InitImported(bool wantEmbed, bool wantSubset)
     m_SubsettingEnabled = wantEmbed && wantSubset && SupportsSubsetting();
     if (m_SubsettingEnabled)
     {
+        m_SubstGIDMap.reset(new GIDMap());
+
         // If it exist a glyph for the space character,
         // add it for subsetting. NOTE: Search the GID
         // in the font program
@@ -204,15 +206,6 @@ void PdfFont::InitImported(bool wantEmbed, bool wantSubset)
 
     m_Name = fontName;
     initImported();
-
-    if (m_EmbeddingEnabled && !m_SubsettingEnabled
-        && !m_Encoding->IsDynamicEncoding())
-    {
-        // Perform embedded immediately if subsetting is
-        // not enabled and there's no dynamic encoding
-        embedFont();
-        m_IsEmbedded = true;
-    }
 }
 
 void PdfFont::EmbedFont()
@@ -663,9 +656,16 @@ double PdfFont::GetDescent(const PdfTextState& state) const
 PdfCID PdfFont::AddSubsetGIDSafe(unsigned gid, const unicodeview& codePoints)
 {
     PODOFO_ASSERT(m_SubsettingEnabled && !m_IsEmbedded);
-    auto found = m_SubsetGIDs.find(gid);
-    if (found != m_SubsetGIDs.end())
-        return found->second;
+    if (m_SubstGIDMap == nullptr)
+    {
+        m_SubstGIDMap.reset(new GIDMap());
+    }
+    else
+    {
+        auto found = m_SubstGIDMap->find(gid);
+        if (found != m_SubstGIDMap->end())
+            return found->second;
+    }
 
     PdfCID ret;
     if (!tryAddSubsetGID(gid, codePoints, ret))
@@ -697,6 +697,11 @@ PdfCharCode PdfFont::AddCharCodeSafe(unsigned gid, const unicodeview& codePoints
     m_DynamicCIDMap->PushMapping(code, gid);
     m_DynamicToUnicodeMap->PushMapping(code, codePoints);
     return code;
+}
+
+bool PdfFont::NeedsCIDMapWriting() const
+{
+    return m_SubstGIDMap != nullptr;
 }
 
 bool PdfFont::tryConvertToGIDs(const std::string_view& utf8Str, PdfGlyphAccess access, std::vector<unsigned>& gids) const
@@ -780,7 +785,7 @@ bool PdfFont::tryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCI
         // We start numberings CIDs from 1 since CID 0
         // is reserved for fallbacks. Encode it with FSS-UTF
         // encoding so it will be variable code size safe
-        auto inserted = m_SubsetGIDs.try_emplace(gid, PdfCID((unsigned)m_SubsetGIDs.size() + 1, PdfCharCode(utls::FSSUTFEncode((unsigned)m_SubsetGIDs.size() + 1))));
+        auto inserted = m_SubstGIDMap->try_emplace(gid, PdfCID((unsigned)m_SubstGIDMap->size() + 1, PdfCharCode(utls::FSSUTFEncode((unsigned)m_SubstGIDMap->size() + 1))));
         cid = inserted.first->second;
         if (!inserted.second)
             return false;
@@ -800,7 +805,7 @@ bool PdfFont::tryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCI
 
         // We start numberings CIDs from 1 since CID 0
         // is reserved for fallbacks
-        auto inserted = m_SubsetGIDs.try_emplace(gid, PdfCID((unsigned)m_SubsetGIDs.size() + 1, codeUnit));
+        auto inserted = m_SubstGIDMap->try_emplace(gid, PdfCID((unsigned)m_SubstGIDMap->size() + 1, codeUnit));
         cid = inserted.first->second;
         return inserted.second;
     }
@@ -814,9 +819,6 @@ void PdfFont::AddSubsetGIDs(const PdfString& encodedStr)
     if (m_Encoding->IsDynamicEncoding())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Can't add used GIDs from an encoded string to a font with a dynamic encoding");
 
-    if (!m_SubsettingEnabled)
-        return;
-
     if (m_IsEmbedded)
     {
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic,
@@ -826,12 +828,34 @@ void PdfFont::AddSubsetGIDs(const PdfString& encodedStr)
     vector<PdfCID> cids;
     unsigned gid;
     (void)GetEncoding().TryConvertToCIDs(encodedStr, cids);
-    for (auto& cid : cids)
+    if (m_SubstGIDMap == nullptr)
+        m_SubstGIDMap.reset(new GIDMap());
+
+    for (unsigned i = 0; i < cids.size(); i++)
     {
+        auto& cid = cids[i];
         if (TryMapCIDToGID(cid.Id, PdfGlyphAccess::FontProgram, gid))
         {
-            (void)m_SubsetGIDs.try_emplace(gid,
-                PdfCID((unsigned)m_SubsetGIDs.size() + 1, cid.Unit));
+            if (m_SubsettingEnabled)
+            {
+                // Ignore trying to replace existing mapping
+                (void)m_SubstGIDMap->try_emplace(gid,
+                    PdfCID((unsigned)m_SubstGIDMap->size() + 1, cid.Unit));
+            }
+            else
+            {
+                if (gid >= m_Metrics->GetGlyphCount())
+                {
+                    // Assume the font will always contain at least one glyph
+                    // and add a mapping to CID 0 for the char code
+                    (void)m_SubstGIDMap->try_emplace(0, PdfCID(0, cid.Unit));
+                }
+                else
+                {
+                    // Reinsert the cid with actual fetched gid
+                    (void)m_SubstGIDMap->try_emplace(gid, PdfCID(gid, cid.Unit));
+                }
+            }
         }
     }
 }

@@ -142,6 +142,20 @@ void HelloWorld(const string_view& filename)
 
 int main(int argc, char* argv[])
 {
+    PdfMemDocument doc;
+    doc.Load(R"(D:\Test-un.pdf)");
+
+    unique_ptr<PdfFont> font;
+    PdfFont::TryCreateFromObject(doc.GetObjects().MustGetObject(PdfReference(16, 0)), font);
+
+    auto metrics = PdfFontMetrics::CreateFromBuffer(font->GetMetrics().GetOrLoadFontFileData());
+
+    cout << metrics->GetGlyphCount() << endl;
+    double width;
+    bool found = font->GetMetrics().TryGetGlyphWidth(0, width);
+    found = metrics->TryGetGlyphWidth(0, width);
+
+    return 0;
     // Check if a filename was passed as commandline argument.
     // If more than 1 argument or no argument is passed,
     // a help message is displayed and the example application

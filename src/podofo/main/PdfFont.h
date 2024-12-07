@@ -21,7 +21,7 @@ namespace PoDoFo {
 
 class PdfCharCodeMap;
 
-using UsedGIDsMap = std::map<unsigned, PdfCID>;
+using GIDMap = std::map<unsigned, PdfCID>;
 
 struct PODOFO_API PdfFontCreateParams final
 {
@@ -330,8 +330,6 @@ public:
      */
     inline const std::string& GetName() const { return m_Name; }
 
-    const UsedGIDsMap& GetUsedGIDs() const { return m_SubsetGIDs; }
-
     PdfObject& GetDescendantFontObject();
 
 protected:
@@ -341,6 +339,10 @@ protected:
     void EmbedFontFileCFF(PdfObject& descriptor, const bufferview& data);
     void EmbedFontFileTrueType(PdfObject& descriptor, const bufferview& data);
     void EmbedFontFileOpenType(PdfObject& descriptor, const bufferview& data);
+
+    /** Get a substitute GID to CID map, that can be used to create CID mappings or font subsets
+     */
+    const GIDMap* GetSubstituteGIDMap() const { return m_SubstGIDMap.get(); }
 
     virtual bool tryMapCIDToGID(unsigned cid, unsigned& gid) const;
 
@@ -401,6 +403,10 @@ private:
      */
     bool TryMapCIDToGID(unsigned cid, PdfGlyphAccess access, unsigned& gid) const;
 
+    /** Needs /Encoding CID map writing
+     */
+    bool NeedsCIDMapWriting() const;
+
 private:
     bool tryConvertToGIDs(const std::string_view& utf8Str, PdfGlyphAccess access, std::vector<unsigned>& gids) const;
     bool tryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCID& cid);
@@ -423,7 +429,7 @@ private:
     bool m_EmbeddingEnabled;
     bool m_IsEmbedded;
     bool m_SubsettingEnabled;
-    UsedGIDsMap m_SubsetGIDs;
+    std::unique_ptr<GIDMap> m_SubstGIDMap;
     PdfCIDToGIDMapConstPtr m_cidToGidMap;
     double m_WordSpacingLengthRaw;
     double m_SpaceCharLengthRaw;

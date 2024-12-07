@@ -101,7 +101,7 @@ void PdfFontCID::initImported()
 void PdfFontCID::embedFont()
 {
     PODOFO_ASSERT(m_descriptor != nullptr);
-    createWidths(m_descendantFont->GetDictionary(), getIdentityCIDToGIDMap());
+    createWidths(m_descendantFont->GetDictionary(), getCIDToGIDMap());
     m_Encoding->ExportToFont(*this);
     EmbedFontFile(*m_descriptor);
 }
@@ -128,28 +128,29 @@ void PdfFontCID::createWidths(PdfDictionary& fontDict, const CIDToGIDMap& cidToG
     }
 }
 
-CIDToGIDMap PdfFontCID::getIdentityCIDToGIDMap()
+CIDToGIDMap PdfFontCID::getCIDToGIDMap()
 {
-    PODOFO_ASSERT(!IsSubsettingEnabled());
+    auto substGIDMap = GetSubstituteGIDMap();
     CIDToGIDMap ret;
-    unsigned gidCount = GetMetrics().GetGlyphCount();
-    for (unsigned gid = 0; gid < gidCount; gid++)
-        ret.insert(std::make_pair(gid, gid));
-
-    return ret;
-}
-
-CIDToGIDMap PdfFontCID::getCIDToGIDMapSubset(const UsedGIDsMap& usedGIDs)
-{
-    CIDToGIDMap ret;
-    for (auto& pair : usedGIDs)
+    if (substGIDMap == nullptr)
     {
-        unsigned gid = pair.first;
-        unsigned cid = pair.second.Id;
-        ret.insert(std::make_pair(cid, gid));
-    }
+        PODOFO_ASSERT(!IsSubsettingEnabled());
 
+        unsigned gidCount = GetMetrics().GetGlyphCount();
+        for (unsigned gid = 0; gid < gidCount; gid++)
+            ret.insert(std::make_pair(gid, gid));
+    }
+    else
+    {
+        for (auto& pair : *substGIDMap)
+        {
+            unsigned gid = pair.first;
+            unsigned cid = pair.second.Id;
+            ret.insert(std::make_pair(cid, gid));
+        }
+    }
     return ret;
+
 }
 
 WidthExporter::WidthExporter(unsigned cid, unsigned width)

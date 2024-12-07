@@ -342,7 +342,7 @@ void PdfEncoding::ExportToFont(PdfFont& font) const
         // Some CMap encodings has a name representation, such as
         // Identity-H/Identity-V. NOTE: Use a fixed representation only
         // if we are not subsetting. In that case we want a CID mapping
-        if (font.IsSubsettingEnabled() || !tryExportEncodingTo(fontDict, true))
+        if (font.NeedsCIDMapWriting() || !tryExportEncodingTo(fontDict, true))
         {
             // If it doesn't have a name representation, try to export a CID CMap
             auto& cmapObj = fontDict.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
@@ -582,11 +582,11 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
     }
     output.Write(temp);
 
-    if (font.IsSubsettingEnabled())
+    auto substGIDMap = font.GetSubstituteGIDMap();
+    if (substGIDMap != nullptr)
     {
-        auto& usedGids = font.GetUsedGIDs();
         unordered_set<unsigned char> usedCodeSpaceSizes;
-        for (auto& pair : usedGids)
+        for (auto& pair : *substGIDMap)
         {
             auto& codeUnit = pair.second.Unit;
             auto codeSpaceSize = codeUnit.CodeSpaceSize;
@@ -632,13 +632,12 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
         m_Encoding->AppendCodeSpaceRange(output, temp);
     }
 
-    if (font.IsSubsettingEnabled())
+    if (substGIDMap != nullptr)
     {
-        auto& usedGids = font.GetUsedGIDs();
-        output.Write(std::to_string(usedGids.size()));
+        output.Write(std::to_string(substGIDMap->size()));
         output.Write(" begincidchar\n");
         string code;
-        for (auto& pair : usedGids)
+        for (auto& pair : *substGIDMap)
         {
             auto& cid = pair.second;
             cid.Unit.WriteHexTo(code);
