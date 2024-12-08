@@ -68,7 +68,7 @@ FT_Library FT::GetLibrary()
         FT_Library Library;     // Handle to the freetype library
     };
 
-    static Init init;
+    thread_local Init init;
     return init.Library;
 }
 
