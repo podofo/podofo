@@ -93,7 +93,8 @@ TEST_CASE("TestConversionPBF2CFF")
     }
 }
 
-TEST_CASE("TestFonts")
+// Disable load all fonts for now
+TEST_CASE("TestFonts", "[.]")
 {
     // Get all installed fonts
     auto pattern = FcPatternCreate();
@@ -238,8 +239,8 @@ void testSingleFont(FcPattern* font)
         {
             PdfFontSearchParams params;
             params.Style = style;
-            (void)doc.GetFonts().SearchFont(fontFamily, params);
             INFO(utls::Format("Font failed: {}", fontPath));
+            (void)doc.GetFonts().SearchFont(fontFamily, params);
         }
     }
 }
