@@ -266,15 +266,12 @@ public:
 public:
     unsigned GetIndex() const { return m_Index; }
     PdfContents& GetOrCreateContents();
-    PdfResources& GetOrCreateResources() override;
     inline const PdfContents* GetContents() const { return m_Contents.get(); }
     inline PdfContents* GetContents() { return m_Contents.get(); }
     const PdfContents& MustGetContents() const;
     PdfContents& MustGetContents();
-    inline const PdfResources* GetResources() const { return m_Resources.get(); }
-    inline PdfResources* GetResources() { return m_Resources.get(); }
-    const PdfResources& MustGetResources() const;
-    PdfResources& MustGetResources();
+    const PdfResources& GetResources() const;
+    PdfResources& GetResources();
     inline PdfAnnotationCollection& GetAnnotations() { return m_Annotations; }
     inline const PdfAnnotationCollection& GetAnnotations() const { return m_Annotations; }
 
@@ -283,13 +280,13 @@ private:
     void FlattenStructure();
     void SetIndex(unsigned index) { m_Index = index; }
 
-    void EnsureResourcesCreated() override;
-
     void CopyContentsTo(OutputStream& stream) const override;
 
     PdfObjectStream& GetOrCreateContentsStream(PdfStreamAppendFlags flags) override;
 
     PdfObjectStream& ResetContentsStream() override;
+
+    PdfResources& GetOrCreateResources() override;
 
     PdfResources* getResources() override;
 
@@ -310,7 +307,6 @@ private:
     void initNewPage(const Rect& size);
 
     void ensureContentsCreated();
-    void ensureResourcesCreated();
 
     /** Get the bounds of a specified page box in PDF units.
      * This function is internal, since there are wrappers for all standard boxes

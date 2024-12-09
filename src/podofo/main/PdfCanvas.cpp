@@ -61,3 +61,8 @@ const PdfDictionaryElement& PdfCanvas::GetElement() const
 {
     return const_cast<PdfCanvas&>(*this).getElement();
 }
+
+void PdfCanvas::EnsureResourcesCreated()
+{
+    (void)GetOrCreateResources();
+}

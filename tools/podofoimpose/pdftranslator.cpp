@@ -578,7 +578,7 @@ void PdfTranslator::impose()
 
         string bufStr = buffer.str();
         newpage->GetOrCreateContents().CreateStreamForAppending().SetData(bufStr);
-        newpage->GetResources()->GetDictionary().AddKey(PdfName("XObject"), xdict);
+        newpage->GetResources().GetDictionary().AddKey(PdfName("XObject"), xdict);
         git++;
     }
 

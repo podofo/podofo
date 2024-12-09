@@ -18,7 +18,7 @@ using namespace PoDoFo;
 PdfPage::PdfPage(PdfDocument& parent, const Rect& size) :
     PdfDictionaryElement(parent, "Page"_n),
     m_Index(numeric_limits<unsigned>::max()),
-    m_Contents(nullptr),
+    m_Resources(new PdfResources(*this)), // A resource dictionary is actually required for pages
     m_Annotations(*this),
     m_Rotation(-1)
 {
@@ -34,7 +34,6 @@ PdfPage::PdfPage(PdfObject& obj, vector<PdfObject*>&& parents) :
     PdfDictionaryElement(obj),
     m_Index(numeric_limits<unsigned>::max()),
     m_parents(std::move(parents)),
-    m_Contents(nullptr),
     m_Annotations(*this),
     m_Rotation(-1)
 {
@@ -95,14 +94,6 @@ void PdfPage::ensureContentsCreated()
     m_Contents.reset(new PdfContents(*this));
     GetDictionary().AddKey("Contents"_n,
         m_Contents->GetObject().GetIndirectReference());
-}
-
-void PdfPage::ensureResourcesCreated()
-{
-    if (m_Resources != nullptr)
-        return;
-
-    m_Resources.reset(new PdfResources(*this));
 }
 
 PdfObjectStream& PdfPage::GetOrCreateContentsStream(PdfStreamAppendFlags flags)
@@ -334,11 +325,6 @@ void PdfPage::FlattenStructure()
     m_parents.clear();
 }
 
-void PdfPage::EnsureResourcesCreated()
-{
-    ensureResourcesCreated();
-}
-
 void PdfPage::CopyContentsTo(OutputStream& stream) const
 {
     if (m_Contents == nullptr)
@@ -440,8 +426,7 @@ PdfObject* PdfPage::findInheritableAttribute(const string_view& name, bool& isSh
 
 PdfResources& PdfPage::GetOrCreateResources()
 {
-    ensureResourcesCreated();
-    return *m_Resources;
+    return GetResources();
 }
 
 const PdfContents& PdfPage::MustGetContents() const
@@ -460,19 +445,17 @@ PdfContents& PdfPage::MustGetContents()
     return *m_Contents;
 }
 
-const PdfResources& PdfPage::MustGetResources() const
+const PdfResources& PdfPage::GetResources() const
 {
-    if (m_Resources == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
-    return *m_Resources;
+    return const_cast<PdfPage&>(*this).GetResources();
 }
 
-PdfResources& PdfPage::MustGetResources()
+PdfResources& PdfPage::GetResources()
 {
-    if (m_Resources == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+    if (m_Resources != nullptr)
+        return *m_Resources;
 
+    m_Resources.reset(new PdfResources(*this));
     return *m_Resources;
 }
 

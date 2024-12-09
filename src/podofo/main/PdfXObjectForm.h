@@ -38,10 +38,6 @@ public:
      */
     void FillFromPage(const PdfPage& page, bool useTrimBox = false);
 
-    /** Ensure resources initialized on this XObject
-     */
-    void EnsureResourcesCreated() override;
-
 public:
     PdfResources& GetOrCreateResources() override;
 

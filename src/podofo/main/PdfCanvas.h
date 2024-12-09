@@ -73,7 +73,7 @@ public:
 
     /** Ensure resources initialized on this canvas
      */
-    virtual void EnsureResourcesCreated() = 0;
+    void EnsureResourcesCreated();
 
     /** Get the current canvas size in PDF Units
      *  \returns a Rect containing the page size available for drawing

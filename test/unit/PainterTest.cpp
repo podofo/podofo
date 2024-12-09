@@ -16,7 +16,10 @@ namespace
     class FakeCanvas : public PdfCanvas
     {
     public:
-        FakeCanvas() { }
+        FakeCanvas()
+            : m_Resources(m_doc.GetPages().CreatePage().GetResources())
+        {
+        }
 
     public:
         PdfObjectStream& GetOrCreateContentsStream(PdfStreamAppendFlags flags) override
@@ -32,7 +35,8 @@ namespace
 
         PdfResources& GetOrCreateResources() override
         {
-            PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
+            // NOTE: Return a dummy resource
+            return m_Resources;
         }
 
         /** Get the current canvas size in PDF Units
@@ -58,11 +62,6 @@ namespace
             return false;
         }
 
-        void EnsureResourcesCreated() override
-        {
-            // Do nothing
-        }
-
     protected:
         PdfObject* getContentsObject() override
         {
@@ -79,6 +78,8 @@ namespace
 
     private:
         PdfObject m_resourceObj;
+        PdfMemDocument m_doc;
+        PdfResources& m_Resources;
     };
 }
 

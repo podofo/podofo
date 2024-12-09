@@ -39,15 +39,6 @@ void PdfXObjectForm::FillFromPage(const PdfPage& page, bool useTrimBox)
     initAfterPageInsertion(page);
 }
 
-void PdfXObjectForm::EnsureResourcesCreated()
-{
-    if (m_Resources == nullptr)
-        m_Resources.reset(new PdfResources(*this));
-
-    // A Form XObject must have a stream
-    GetObject().ForceCreateStream();
-}
-
 bool PdfXObjectForm::HasRotation(double& teta) const
 {
     teta = 0;
@@ -124,7 +115,11 @@ PdfObject* PdfXObjectForm::getContentsObject()
 
 PdfResources& PdfXObjectForm::GetOrCreateResources()
 {
-    EnsureResourcesCreated();
+    if (m_Resources == nullptr)
+        m_Resources.reset(new PdfResources(*this));
+
+    // A Form XObject must have a stream
+    GetObject().ForceCreateStream();
     return *m_Resources;
 }
 

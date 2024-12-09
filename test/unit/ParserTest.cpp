@@ -109,7 +109,7 @@ TEST_CASE("TestRemoveStream")
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("TestImage1.pdf"));
     auto& page = doc.GetPages().GetPageAt(0);
-    auto& resources = page.MustGetResources();
+    auto& resources = page.GetResources();
     auto& imageObj = *resources.GetResource(PdfResourceType::XObject, "XOb5");
     REQUIRE(imageObj.HasStream());
     REQUIRE(!imageObj.IsDirty());
@@ -2770,7 +2770,7 @@ TEST_CASE("TestReclaimObjectMemory")
     doc.Load(TestUtils::GetTestInputFilePath("TestImage2.pdf"));
 
     auto& page = doc.GetPages().GetPageAt(0);
-    auto& resources = page.MustGetResources();
+    auto& resources = page.GetResources();
     auto imageObj = resources.GetResource(PdfResourceType::XObject, "X0");
     REQUIRE(!imageObj->IsDelayedLoadStreamDone());
 

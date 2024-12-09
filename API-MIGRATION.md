@@ -48,16 +48,20 @@
   interface if you want to use the now reserved generic functions
 - `PdfXObject`, `PdfFont`: Removed `GetIdentifier()`, the identifiers are now generated when inserted to `PdfResources`
 - `PdfXObjet:SetMatrix()`: Removed and moved it to `PdfXObjectForm` (specification tells it doesn't belong to other XObject)
-- `PdfPage::SetICCProfile()`, `PdfImage::SetICCProfile()`: Removed. Create a
-  `PdfColorSpaceFilterICCBased` and set it through `PdfGraphicsStateWrapper::SetNonStrokingColorSpace`
-  or `PdfGraphicsStateWrapper::SetStrokingColorSpace`
 - `PdfGraphicsStateWrapper`:
   * Renamed `SetFillColor()` -> `SetNonStrokingColor()`
   * Renamed `SetFillColorSpace()` -> `SetNonStrokingColorSpace()`
   * Renamed `SetStrokeColor()` -> `SetStrokingColor()`
   * Renamed `SetStrokeColorSpace()` -> `SetStrokingColorSpace()`
   * Renamed `SetCurrentMatrix()` -> `ConcatenateTransformationMatrix()`
-- `PdfPage`: Renamed `MoveAt()` -> `MoveTo()`
+- `PdfPage`:
+  * Renamed `MoveAt()` -> `MoveTo()`
+  * Removed `SetPageWidth()`, `SetPageHeight()`. Use `SetRect()`, `SetMediaBox()`, `SetCropBox()`, etc. instead
+  * Removed `SetICCProfile()`, `SetICCProfile()`: create a
+  `PdfColorSpaceFilterICCBased` and set it through `PdfGraphicsStateWrapper::SetNonStrokingColorSpace`
+  * `GetResources()`: Now it returns a reference instead (reflecting in the specification resources is required for pages)
+  * `MustGetResources()`: Removed, use the reference returning `GetResources()` instead
+  or `PdfGraphicsStateWrapper::SetStrokingColorSpace`
 - `FileStreamDevice` doesn't inherit `StandardStreamDevice` anymore
 - `PdfString`:
   * `GetString()` and `GetRawData()` now returns `std::string_view`
@@ -127,7 +131,6 @@ they are internal implementation details
 and use move semantics on the stream
 - `PdfContents`: Rename `GetStreamForAppending()` -> `CreateStreamForAppending()`
 - `PdfParserObject::HasStreamToParse()` Make it protected virtual in `PdfObject` (it's unreliable to access it publicly)
-- Removed `PdfPage::SetPageWidth()`, `PdfPage::SetPageHeight()`. Use `SetRect()`, `SetMediaBox()`, `SetCropBox()`, etc. instead
 - Removed `PdfFontMetricsFreetype::FromBuffer()`
 - Make `PdfFontMetricsFreetype::FromMetrics()` private (it's really an internal method)
 - Removed `PdfFontTrueTypeSubset`: it's an implementation detail and not to be exposed in the public API

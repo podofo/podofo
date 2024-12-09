@@ -16,7 +16,7 @@ TEST_CASE("TestImage1")
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("TestImage1.pdf"));
     auto& page = doc.GetPages().GetPageAt(0);
-    auto& resources = page.MustGetResources();
+    auto& resources = page.GetResources();
     auto imageObj = resources.GetResource(PdfResourceType::XObject, "XOb5");
     unique_ptr<PdfImage> image;
     REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(*imageObj, image));
@@ -68,7 +68,7 @@ TEST_CASE("TestImage2")
 static void testReferenceImage(const PdfDocument& doc)
 {
     auto& page = doc.GetPages().GetPageAt(0);
-    auto resources = page.MustGetResources().GetResourceIterator(PdfResourceType::XObject);
+    auto resources = page.GetResources().GetResourceIterator(PdfResourceType::XObject);
     for (auto& res : resources)
     {
         unique_ptr<const PdfImage> image;
@@ -191,7 +191,7 @@ TEST_CASE("TestImage6")
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("TestImage2.pdf"));
     auto& page = doc.GetPages().GetPageAt(0);
-    auto& resources = page.MustGetResources();
+    auto& resources = page.GetResources();
     auto imageObj = resources.GetResource(PdfResourceType::XObject, "X0");
     unique_ptr<PdfImage> image;
     REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(*imageObj, image));

@@ -137,7 +137,7 @@ TEST_CASE("TestEmbedFont")
     {
         // Substitute existing font in the resources of the oage
         auto& page = doc.GetPages().GetPageAt(0);
-        static_cast<PdfResourceOperations&>(page.MustGetResources()).AddResource(PdfResourceType::Font, "Ft0", substituteFont->GetObject());
+        static_cast<PdfResourceOperations&>(page.GetResources()).AddResource(PdfResourceType::Font, "Ft0", substituteFont->GetObject());
     }
 
     doc.Save(TestUtils::GetTestOutputFilePath("TestEmbedFont.pdf"));
@@ -146,7 +146,7 @@ TEST_CASE("TestEmbedFont")
     doc.Load(TestUtils::GetTestOutputFilePath("TestEmbedFont.pdf"));
     {
         auto& page = doc.GetPages().GetPageAt(0);
-        auto fontObj = page.MustGetResources().GetResource(PdfResourceType::Font, "Ft0");
+        auto fontObj = page.GetResources().GetResource(PdfResourceType::Font, "Ft0");
         (void)PdfFont::TryCreateFromObject(*fontObj, font);
         REQUIRE(font->GetMetrics().GetOrLoadFontFileData().size() != 0);
     }
