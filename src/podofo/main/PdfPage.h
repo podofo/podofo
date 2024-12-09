@@ -323,6 +323,7 @@ private:
     void loadRotation();
 
 private:
+    // Remove some PdfCanvas methods to maintain the class API surface clean
     PdfElement& GetElement() = delete;
     const PdfElement& GetElement() const = delete;
     PdfObject* GetContentsObject() = delete;

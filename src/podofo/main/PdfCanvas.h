@@ -57,17 +57,6 @@ public:
     void CopyContentsTo(charbuff& buffer) const;
     virtual void CopyContentsTo(OutputStream& stream) const = 0;
 
-    /** Get an element from the pages resources dictionary,
-     *  using a type (category) and a key.
-     *
-     *  \param type the type of resource to fetch (e.g. /Font, or /XObject)
-     *  \param key the key of the resource
-     *
-     *  \returns the object of the resource or nullptr if it was not found
-     */
-    PdfObject* GetFromResources(PdfResourceType type, const std::string_view& key);
-    const PdfObject* GetFromResources(PdfResourceType type, const std::string_view& key) const;
-
     /** Get the resource object of this page.
      * \returns a resources object
      */
@@ -101,9 +90,6 @@ protected:
     virtual PdfObject* getContentsObject() = 0;
     virtual PdfResources* getResources() = 0;
     virtual PdfDictionaryElement& getElement() = 0;
-
-private:
-    PdfObject* getFromResources(PdfResourceType type, const std::string_view& key);
 };
 
 };

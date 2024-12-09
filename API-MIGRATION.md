@@ -120,7 +120,9 @@ they are internal implementation details
   * `HasValue` -> renamed to `HasKey`
 - Renamed enum `PdfColorSpace` -> `PdfColorSpaceType`, `PdfColorSpace` is now a doc element.
 - `PdfColor` now it's used just to represent GrayScale, RGB, CMYK colors. Now `PdfColorRaw` is used to supply color components for other color spaces
-- `PdfCanvas`: Rename `GetStreamForAppending()` -> `GetOrCreateContentsStream()`
+- `PdfCanvas`:
+  * Rename `GetStreamForAppending()` -> `GetOrCreateContentsStream()`
+  * Removed `GetFromResources`: just use `GetResources`
 - `PdfContents`: `Reset()` is now parameterless. It was created to replace the stream. To achieve the same one can do GetStreamForAppending()
 and use move semantics on the stream
 - `PdfContents`: Rename `GetStreamForAppending()` -> `CreateStreamForAppending()`

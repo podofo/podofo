@@ -42,16 +42,6 @@ void PdfCanvas::CopyContentsTo(charbuff& buffer) const
     CopyContentsTo(stream);
 }
 
-PdfObject* PdfCanvas::GetFromResources(PdfResourceType type, const string_view& key)
-{
-    return getFromResources(type, key);
-}
-
-const PdfObject* PdfCanvas::GetFromResources(PdfResourceType type, const string_view& key) const
-{
-    return const_cast<PdfCanvas&>(*this).getFromResources(type, key);
-}
-
 PdfResources* PdfCanvas::GetResources()
 {
     return getResources();
@@ -70,14 +60,4 @@ PdfDictionaryElement& PdfCanvas::GetElement()
 const PdfDictionaryElement& PdfCanvas::GetElement() const
 {
     return const_cast<PdfCanvas&>(*this).getElement();
-}
-
-PdfObject* PdfCanvas::getFromResources(PdfResourceType type, const string_view& key)
-{
-    auto resources = getResources();
-    if (resources == nullptr)
-        return nullptr;
-
-    return resources->GetResource(type, key);
-
 }
