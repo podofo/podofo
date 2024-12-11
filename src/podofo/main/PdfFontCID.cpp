@@ -33,7 +33,7 @@ private:
     void emitSameWidth();
     void emitArrayWidths();
     static unsigned getPdfWidth(unsigned gid, const PdfFontMetrics& metrics,
-        const Matrix2D& matrix);
+        const Matrix& matrix);
 
 private:
     PdfArray m_output;
@@ -253,7 +253,7 @@ void WidthExporter::emitArrayWidths()
 
 // Return thousands of PDF units
 unsigned WidthExporter::getPdfWidth(unsigned gid, const PdfFontMetrics& metrics,
-    const Matrix2D& matrix)
+    const Matrix& matrix)
 {
     return (unsigned)std::round(metrics.GetGlyphWidth(gid) / matrix[0]);
 }

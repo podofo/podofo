@@ -24,7 +24,7 @@ static FT_Face getFontFaceFromFile(const string_view& filepath, unsigned faceInd
 static FT_Face getFontFaceFromBuffer(const bufferview& view, unsigned faceIndex, unique_ptr<charbuff>& data);
 
 // Default matrix: thousands of PDF units
-static Matrix2D s_DefaultMatrix = { 1e-3, 0.0, 0.0, 1e-3, 0, 0 };
+static Matrix s_DefaultMatrix = { 1e-3, 0.0, 0.0, 1e-3, 0, 0 };
 
 PdfFontMetrics::PdfFontMetrics() : m_FaceIndex(0) { }
 
@@ -224,7 +224,7 @@ bool PdfFontMetrics::IsStandard14FontMetrics(PdfStandard14FontType& std14Font) c
     return false;
 }
 
-const Matrix2D& PdfFontMetrics::GetMatrix() const
+const Matrix& PdfFontMetrics::GetMatrix() const
 {
     return s_DefaultMatrix;
 }

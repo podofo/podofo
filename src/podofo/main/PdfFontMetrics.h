@@ -7,11 +7,10 @@
 #ifndef PDF_FONT_METRICS_H
 #define PDF_FONT_METRICS_H
 
-#include "PdfDeclarations.h"
-
 #include "PdfString.h"
 #include "PdfCMapEncoding.h"
 #include "PdfCIDToGIDMap.h"
+#include <podofo/auxiliary/Matrix.h>
 
 FORWARD_DECLARE_FREETYPE();
 
@@ -265,7 +264,7 @@ public:
 
     /** Returns the matrix mapping glyph space to text space
      */
-    virtual const Matrix2D& GetMatrix() const;
+    virtual const Matrix& GetMatrix() const;
 
     /** Determine if the metrics are for Adobe Type1 like font
      */

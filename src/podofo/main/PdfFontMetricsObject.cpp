@@ -124,8 +124,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         {
             // Type3 fonts have a custom /FontMatrix
             auto& fontmatrixArr = fontmatrix->GetArray();
-            for (int i = 0; i < 6; i++)
-                m_Matrix[i] = fontmatrixArr[i].GetReal();
+            m_Matrix = Matrix::FromArray(fontmatrixArr);
         }
 
         // Set the default width accordingly to possibly existing
@@ -513,7 +512,7 @@ double PdfFontMetricsObject::GetItalicAngle() const
     return m_ItalicAngle;
 }
 
-const Matrix2D& PdfFontMetricsObject::GetMatrix() const
+const Matrix& PdfFontMetricsObject::GetMatrix() const
 {
     return m_Matrix;
 }

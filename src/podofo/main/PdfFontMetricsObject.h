@@ -98,7 +98,7 @@ public:
 
     unsigned GetFontFileLength3() const override;
 
-    const Matrix2D& GetMatrix() const override;
+    const Matrix& GetMatrix() const override;
 
     bool IsObjectLoaded() const override;
 
@@ -124,7 +124,7 @@ private:
     std::shared_ptr<charbuff> m_Data;
     PdfCIDToGIDMapConstPtr m_CIDToGIDMap;
     std::vector<double> m_BBox;
-    Matrix2D m_Matrix;
+    Matrix m_Matrix;
     std::vector<double> m_Widths;
 
     std::string m_FontName;

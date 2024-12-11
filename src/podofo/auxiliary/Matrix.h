@@ -20,11 +20,11 @@ namespace PoDoFo
         /** Constructs an identity matrix
          */
         Matrix();
+        Matrix(double a, double b, double c, double d, double e, double f);
 
     public:
         static Matrix FromArray(const double arr[6]);
         static Matrix FromArray(const PdfArray& arr);
-        static Matrix FromCoefficients(double a, double b, double c, double d, double e, double f);
         static Matrix CreateTranslation(const Vector2& tx);
         static Matrix CreateScale(const Vector2& scale);
         static Matrix CreateRotation(double teta);
@@ -82,7 +82,6 @@ namespace PoDoFo
 
     private:
         Matrix(const double arr[6]);
-        Matrix(double a, double b, double c, double d, double e, double f);
 
     private:
         double m_mat[6];

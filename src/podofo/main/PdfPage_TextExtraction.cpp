@@ -916,14 +916,14 @@ void ExtractionContext::cm_Operator(double a, double b, double c, double d, doub
 {
     // TABLE 4.7: "cm" Modify the current transformation
     // matrix (CTM) by concatenating the specified matrix
-    Matrix cm = Matrix::FromCoefficients(a, b, c, d, e, f);
+    Matrix cm(a, b, c, d, e, f);
     States.Current->CTM = cm * States.Current->CTM;
     States.Current->ComputeT_rm();
 }
 
 void ExtractionContext::Tm_Operator(double a, double b, double c, double d, double e, double f)
 {
-    States.Current->T_lm = Matrix::FromCoefficients(a, b, c, d, e, f);
+    States.Current->T_lm = Matrix(a, b, c, d, e, f);
     States.Current->T_m = States.Current->T_lm;
     States.Current->ComputeDependentState();
 }

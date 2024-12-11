@@ -32,11 +32,6 @@ Matrix Matrix::FromArray(const PdfArray& arr)
     return Matrix(arr[0].GetReal(), arr[1].GetReal(), arr[2].GetReal(), arr[3].GetReal(), arr[4].GetReal(), arr[5].GetReal());
 }
 
-Matrix Matrix::FromCoefficients(double a, double b, double c, double d, double e, double f)
-{
-    return Matrix(a, b, c, d, e, f);
-}
-
 Matrix Matrix::CreateTranslation(const Vector2& tx)
 {
     // NOTE: Pdf treats vectors as row. See Pdf Reference  1.7 p.205

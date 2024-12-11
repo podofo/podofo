@@ -1,4 +1,6 @@
 ## 0.10.1 -> 1.0.0
+- `Matrix2D`: Removed, all methods using it were converted to use `Matrix` instead, which is a full replacement
+- `Matrix`: Removed `FromCoefficients()`, just use the now public constructor with coefficients
 - `PdfFontMetrics`:
   * `GetFontNameSafe()` removed: Just use `GetFontName` instead
   * `GetBaseFontName()`: make it protected, `GeFamilyFontNameSafe()` it's the closest substitute

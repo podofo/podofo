@@ -838,9 +838,6 @@ enum class PdfHashingAlgorithm
     SHA512,
 };
 
-// NOTE: This may change in the future
-using Matrix2D = std::array<double, 6>;
-
 /** A backing storage for a CID to GID map
  * \remarks It must preserve ordering
  */
