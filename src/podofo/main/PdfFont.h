@@ -309,7 +309,7 @@ public:
      * \returns empty string or a 6 uppercase letter and "+" sign prefix
      *          used for font subsets
      */
-    inline const std::string& GetSubsetPrefix() const { return m_SubsetPrefix; }
+    inline std::string_view GetSubsetPrefix() const;
 
     /** Returns a reference to the fonts encoding
      *  \returns a PdfEncoding object.

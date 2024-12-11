@@ -30,6 +30,7 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Face face, const datahandle& d
         const PdfFontMetrics* refMetrics) :
     m_Face(face),
     m_Data(data),
+    m_SubsetPrefixLength(0),
     m_LengthsReady(false),
     m_Length1(0),
     m_Length2(0),
@@ -160,7 +161,13 @@ void PdfFontMetricsFreetype::init(const PdfFontMetrics* refMetrics)
     else
     {
         if (m_FontName.empty())
+        {
+            // If no postscript name was extracted by the font program
+            // try to recover it from the reference metrics
             m_FontName = refMetrics->GetFontName();
+            m_SubsetPrefixLength = refMetrics->GetSubsetPrefixLength();
+        }
+
         if (m_FontFamilyName.empty())
             m_FontFamilyName = refMetrics->GetFontFamilyName();
 
@@ -335,6 +342,11 @@ string_view PdfFontMetricsFreetype::GetBaseFontName() const
 string_view PdfFontMetricsFreetype::GetFontFamilyName() const
 {
     return m_FontFamilyName;
+}
+
+unsigned char PdfFontMetricsFreetype::GetSubsetPrefixLength() const
+{
+    return m_SubsetPrefixLength;
 }
 
 PdfFontStretch PdfFontMetricsFreetype::GetFontStretch() const

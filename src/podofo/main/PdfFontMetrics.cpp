@@ -93,9 +93,15 @@ string_view PdfFontMetrics::GeFontFamilyNameSafe() const
     return m_FamilyFontNameSafe;
 }
 
-string_view PdfFontMetrics::GetPostScriptNameApprox() const
+unsigned char PdfFontMetrics::GetSubsetPrefixLength() const
 {
-    return GetFontName();
+    // By default return no prefix
+    return 0;
+}
+
+string_view PdfFontMetrics::GetPostScriptNameRough() const
+{
+    return GetFontName().substr(GetSubsetPrefixLength());
 }
 
 void PdfFontMetrics::initFamilyFontNameSafe()

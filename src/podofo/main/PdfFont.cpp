@@ -90,7 +90,7 @@ bool PdfFont::TryCreateSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& su
             PdfFontSearchParams params;
             params.Style = metrics.GetStyle();
             params.FontFamilyPattern = metrics.GeFontFamilyNameSafe();
-            newMetrics = PdfFontManager::SearchFontMetrics(metrics.GetPostScriptNameApprox(), params);
+            newMetrics = PdfFontManager::SearchFontMetrics(metrics.GetPostScriptNameRough(), params);
             if (newMetrics == nullptr)
             {
                 substFont = nullptr;
@@ -176,35 +176,25 @@ void PdfFont::InitImported(bool wantEmbed, bool wantSubset)
         }
     }
 
-    string fontName;
-    if (m_Metrics->IsStandard14FontMetrics())
+    unsigned char subsetPrefixLength = m_Metrics->GetSubsetPrefixLength();
+    if (subsetPrefixLength == 0)
     {
-        fontName = m_Metrics->GetFontName();
+        if (m_SubsettingEnabled)
+        {
+            m_SubsetPrefix = GetDocument().GetFonts().GenerateSubsetPrefix();
+            m_Name = m_SubsetPrefix.append(m_Metrics->GetPostScriptNameRough());
+        }
+        else
+        {
+            m_Name = (string)m_Metrics->GetPostScriptNameRough();
+        }
     }
     else
     {
-        fontName = m_Metrics->GetBaseFontName();
-        if ((m_Metrics->GetStyle() & PdfFontStyle::Bold) == PdfFontStyle::Bold)
-        {
-            if ((m_Metrics->GetStyle() & PdfFontStyle::Italic) == PdfFontStyle::Italic)
-                fontName += ",BoldItalic";
-            else
-                fontName += ",Bold";
-        }
-        else if ((m_Metrics->GetStyle() & PdfFontStyle::Italic) == PdfFontStyle::Italic)
-        {
-            fontName += ",Italic";
-        }
+        m_Name = m_Metrics->GetFontName();
+        m_SubsetPrefix = m_Name.substr(0, subsetPrefixLength);
     }
 
-    if (m_SubsettingEnabled)
-    {
-        m_SubsetPrefix = GetDocument().GetFonts().GenerateSubsetPrefix();
-        PODOFO_ASSERT(!m_SubsetPrefix.empty());
-        fontName = m_SubsetPrefix + fontName;
-    }
-
-    m_Name = fontName;
     initImported();
 }
 
@@ -956,6 +946,11 @@ bool PdfFont::IsCIDKeyed() const
 bool PdfFont::IsObjectLoaded() const
 {
     return false;
+}
+
+inline string_view PdfFont::GetSubsetPrefix() const
+{
+    return m_SubsetPrefix;
 }
 
 // TODO:

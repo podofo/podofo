@@ -165,7 +165,7 @@ namespace PoDoFo
     /**
      * Get the end index of a subset prefix (eg. "AAAAAA+")
      */
-    unsigned char GetSubsetPrefixEndIndex(const std::string_view& fontName);
+    unsigned char GetSubsetPrefixLength(const std::string_view& fontName);
 
     std::vector<std::string> ToPdfKeywordsList(const std::string_view& str);
     std::string ToPdfKeywordsString(const cspan<std::string>&keywords);

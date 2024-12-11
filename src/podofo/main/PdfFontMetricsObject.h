@@ -58,7 +58,7 @@ public:
 
     std::string_view GetFontFamilyName() const override;
 
-    std::string_view GetPostScriptNameApprox() const override;
+    unsigned char GetSubsetPrefixLength() const override;
 
     PdfFontStretch GetFontStretch() const override;
 
@@ -131,7 +131,7 @@ private:
     std::string m_FontNameRaw;
     std::string m_FontBaseName;
     std::string m_FontFamilyName;
-    unsigned char m_SubsetPrefixEndIndex;
+    unsigned char m_SubsetPrefixLength;
     PdfFontStretch m_FontStretch;
     int m_Weight;
     PdfFontDescriptorFlags m_Flags;

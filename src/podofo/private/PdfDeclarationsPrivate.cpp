@@ -306,7 +306,7 @@ string PoDoFo::ExtractBaseFontName(const string_view& fontName, bool skipTrimSub
     }
     else
     {
-        string name(fontName.substr(PoDoFo::GetSubsetPrefixEndIndex(fontName)));
+        string name(fontName.substr(PoDoFo::GetSubsetPrefixLength(fontName)));
         extractFontHints(name, isItalic, isBold);
         return name;
     }
@@ -352,7 +352,7 @@ void PoDoFo::AddToCallStack(PdfError& err, string filepath, unsigned line, strin
     err.AddToCallStack(std::move(filepath), line, std::move(information));
 }
 
-unsigned char PoDoFo::GetSubsetPrefixEndIndex(const string_view& fontName)
+unsigned char PoDoFo::GetSubsetPrefixLength(const string_view& fontName)
 {
     // NOTE: For some reasons, "^[A-Z]{6}\+" doesn't work
     regex regex = std::regex("^[A-Z][A-Z][A-Z][A-Z][A-Z][A-Z]\\+", regex_constants::ECMAScript);

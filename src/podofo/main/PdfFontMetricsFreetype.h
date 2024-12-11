@@ -51,6 +51,8 @@ public:
 
     std::string_view GetFontFamilyName() const override;
 
+    unsigned char GetSubsetPrefixLength() const override;
+
     PdfFontStretch GetFontStretch() const override;
 
     int GetWeightRaw() const override;
@@ -120,6 +122,7 @@ private:
     PdfCIDToGIDMapConstPtr m_CIDToGIDMap;
     PdfFontFileType m_FontFileType;
 
+    unsigned char m_SubsetPrefixLength;
     bool m_HasUnicodeMapping;
     std::unique_ptr<std::unordered_map<uint32_t, unsigned>> m_fallbackUnicodeMap;
 

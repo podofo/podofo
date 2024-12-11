@@ -160,12 +160,16 @@ public:
      */
     std::string_view GeFontFamilyNameSafe() const;
 
+    /** Get the length of the subset prefix (eg. 7 for "AAAAAA+") if present
+     */
+    virtual unsigned char GetSubsetPrefixLength() const;
+
     /**
      * Get a an approximate PostScript name, from available /BaseFont, /FontName
      * (eg. "AAAAAA+Arial-Bold" becomes "Arial-Bold")
      * By default returns GetFontName()
      */
-    virtual std::string_view GetPostScriptNameApprox() const;
+    std::string_view GetPostScriptNameRough() const;
 
     virtual PdfFontStretch GetFontStretch() const = 0;
 
