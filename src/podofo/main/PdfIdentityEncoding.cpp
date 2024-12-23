@@ -137,5 +137,5 @@ PdfEncodingLimits getLimits(unsigned char codeSpaceSize)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Code space size can't be zero or bigger than 4");
 
     return { codeSpaceSize, codeSpaceSize, PdfCharCode(0, codeSpaceSize),
-        PdfCharCode((unsigned)std::pow(2, codeSpaceSize * CHAR_BIT), codeSpaceSize) };
+        PdfCharCode((unsigned)std::pow(2, codeSpaceSize * CHAR_BIT) - 1, codeSpaceSize) };
 }
