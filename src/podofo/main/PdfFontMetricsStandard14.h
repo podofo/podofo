@@ -21,10 +21,11 @@ struct Standard14FontData;
  */
 class PODOFO_API PdfFontMetricsStandard14 final : public PdfFontMetricsBase
 {
+    friend class PdfFont;
 private:
     PdfFontMetricsStandard14(PdfStandard14FontType fontType,
         const Standard14FontData& data,
-        std::unique_ptr<std::vector<double>> parsedWidths = { });
+        GlyphMetricsListConstPtr parsedWidths = { });
 
 public:
     /** Create a Standard14 font metrics
@@ -35,11 +36,11 @@ public:
     static std::unique_ptr<const PdfFontMetricsStandard14> Create(
         PdfStandard14FontType fontType, const PdfObject& fontObj);
 
+private:
+    static std::unique_ptr<const PdfFontMetricsStandard14> Create(
+        PdfStandard14FontType fontType, GlyphMetricsListConstPtr&& parsedWidths);
+
 public:
-    unsigned GetGlyphCount() const override;
-
-    bool TryGetGlyphWidth(unsigned gid, double& width) const override;
-
     bool HasUnicodeMapping() const override;
 
     bool TryGetGID(char32_t codePoint, unsigned& gid) const override;
@@ -103,6 +104,10 @@ public:
 protected:
     std::string_view GetBaseFontName() const override;
 
+    unsigned GetGlyphCountFontProgram() const override;
+
+    bool TryGetGlyphWidthFontProgram(unsigned gid, double& width) const override;
+
     bool getIsItalicHint() const override;
 
     bool getIsBoldHint() const override;
@@ -119,8 +124,6 @@ public:
 private:
     PdfStandard14FontType m_Std14FontType;
     const Standard14FontData& m_data;
-    // /Widths parsed from a font object, if available
-    std::unique_ptr<std::vector<double>> m_parsedWidths;
 
     double m_Ascent;
     double m_Descent;

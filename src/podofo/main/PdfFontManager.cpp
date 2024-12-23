@@ -286,9 +286,9 @@ PdfFont* PdfFontManager::getImportedFont(const string_view& pattern,
     unique_ptr<AdaptedFontSearch> adaptedSearch;
     unique_ptr<const PdfFontMetrics> metrics;
     if (tryAdaptSearchParams(pattern, searchParams, adaptedSearch))
-        metrics = getFontMetrics(adaptedSearch->Pattern, adaptedSearch->Params);
+        metrics = searchFontMetrics(adaptedSearch->Pattern, adaptedSearch->Params);
     else
-        metrics = getFontMetrics(pattern, searchParams);
+        metrics = searchFontMetrics(pattern, searchParams);
 
     if (metrics == nullptr)
         return nullptr;
@@ -311,9 +311,9 @@ PdfFontMetricsConstPtr PdfFontManager::SearchFontMetrics(const string_view& font
 
     unique_ptr<AdaptedFontSearch> adaptedSearch;
     if (tryAdaptSearchParams(fontPattern, params, adaptedSearch))
-        return getFontMetrics(adaptedSearch->Pattern, adaptedSearch->Params);
+        return searchFontMetrics(adaptedSearch->Pattern, adaptedSearch->Params);
     else
-        return getFontMetrics(fontPattern, params);
+        return searchFontMetrics(fontPattern, params);
 }
 
 void PdfFontManager::AddFontDirectory(const string_view& path)
@@ -354,8 +354,14 @@ void PdfFontManager::AddFontDirectory(const string_view& path)
 #endif
 }
 
-unique_ptr<const PdfFontMetrics> PdfFontManager::getFontMetrics(const string_view& fontName,
-    const PdfFontSearchParams& params)
+PdfFontMetricsConstPtr PdfFontManager::SearchFontMetrics(const string_view& fontPattern, const PdfFontSearchParams& params, const PdfFontMetrics* metrics)
+{
+    PODOFO_ASSERT(params.MatchBehavior == PdfFontMatchBehaviorFlags::None);
+    return searchFontMetrics(fontPattern, params, metrics);
+}
+
+unique_ptr<const PdfFontMetrics> PdfFontManager::searchFontMetrics(const string_view& fontName,
+    const PdfFontSearchParams& params, const PdfFontMetrics* refMetrics)
 {
     string path;
     unsigned faceIndex = 0;
@@ -373,7 +379,7 @@ unique_ptr<const PdfFontMetrics> PdfFontManager::getFontMetrics(const string_vie
 
     unique_ptr<const PdfFontMetrics> ret = nullptr;
     if (!path.empty())
-        ret = PdfFontMetrics::Create(path, faceIndex);
+        ret = PdfFontMetrics::Create(path, faceIndex, refMetrics);
 
     if (ret == nullptr)
     {
@@ -384,7 +390,7 @@ unique_ptr<const PdfFontMetrics> PdfFontManager::getFontMetrics(const string_vie
         {
             auto face = getFontFaceFromBuffer(*data);
             if (face != nullptr)
-                ret.reset(new PdfFontMetricsFreetype(face, std::move(data)));
+                ret.reset(new PdfFontMetricsFreetype(face, std::move(data), refMetrics));
         }
 #endif
     }

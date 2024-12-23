@@ -32,15 +32,19 @@ PdfFontMetrics::~PdfFontMetrics() { }
 
 unique_ptr<const PdfFontMetrics> PdfFontMetrics::Create(const string_view& filepath, unsigned faceIndex)
 {
+    return Create(filepath, faceIndex, nullptr);
+}
+unique_ptr<const PdfFontMetrics> PdfFontMetrics::Create(const string_view& filepath, unsigned faceIndex, const PdfFontMetrics* refMetrics)
+{
     unique_ptr<charbuff> data;
     auto face = getFontFaceFromFile(filepath, faceIndex, data);
     if (face == nullptr)
         return nullptr;
 
-    unique_ptr<PdfFontMetrics> metrics(new PdfFontMetricsFreetype(face, std::move(data)));
-    metrics->m_FilePath = filepath;
-    metrics->m_FaceIndex = faceIndex;
-    return metrics;
+    unique_ptr<PdfFontMetrics> ret(new PdfFontMetricsFreetype(face, std::move(data), refMetrics));
+    ret->m_FilePath = filepath;
+    ret->m_FaceIndex = faceIndex;
+    return ret;
 }
 
 unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateFromBuffer(const bufferview& buffer, unsigned faceIndex)
@@ -55,6 +59,29 @@ unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateFromBuffer(const buffervi
     return metrics;
 }
 
+unsigned PdfFontMetrics::GetGlyphCount() const
+{
+    return GetGlyphCountFontProgram();
+}
+
+unsigned PdfFontMetrics::GetGlyphCount(PdfGlyphAccess access) const
+{
+    switch (access)
+    {
+        case PdfGlyphAccess::ReadMetrics:
+        {
+            if (m_ParsedWidths == nullptr)
+                return 0;
+
+            return (unsigned)m_ParsedWidths->size();
+        }
+        case PdfGlyphAccess::FontProgram:
+            return GetGlyphCountFontProgram();
+        default:
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+}
+
 double PdfFontMetrics::GetGlyphWidth(unsigned gid) const
 {
     double width;
@@ -62,6 +89,54 @@ double PdfFontMetrics::GetGlyphWidth(unsigned gid) const
         return GetDefaultWidth();
 
     return width;
+}
+
+double PdfFontMetrics::GetGlyphWidth(unsigned gid, PdfGlyphAccess access) const
+{
+    double width;
+    if (!TryGetGlyphWidth(gid, access, width))
+        return GetDefaultWidth();
+
+    return width;
+}
+
+bool PdfFontMetrics::TryGetGlyphWidth(unsigned gid, double& width) const
+{
+    if (m_ParsedWidths != nullptr)
+    {
+        if (gid >= m_ParsedWidths->size())
+        {
+            width = -1;
+            return false;
+        }
+
+        width = (*m_ParsedWidths)[gid];
+        return true;
+    }
+
+    return TryGetGlyphWidthFontProgram(gid, width);
+}
+
+bool PdfFontMetrics::TryGetGlyphWidth(unsigned gid, PdfGlyphAccess access, double& width) const
+{
+    switch (access)
+    {
+        case PdfGlyphAccess::ReadMetrics:
+        {
+            if (m_ParsedWidths == nullptr || gid >= m_ParsedWidths->size())
+            {
+                width = -1;
+                return false;
+            }
+
+            width = (*m_ParsedWidths)[gid];
+            return true;
+        }
+        case PdfGlyphAccess::FontProgram:
+            return TryGetGlyphWidthFontProgram(gid, width);
+        default:
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
 }
 
 void PdfFontMetrics::SubstituteGIDs(vector<unsigned>& gids, vector<unsigned char>& backwardMap) const
@@ -102,6 +177,11 @@ unsigned char PdfFontMetrics::GetSubsetPrefixLength() const
 string_view PdfFontMetrics::GetPostScriptNameRough() const
 {
     return GetFontName().substr(GetSubsetPrefixLength());
+}
+
+void PdfFontMetrics::SetParsedWidths(GlyphMetricsListConstPtr&& parsedWidths)
+{
+    m_ParsedWidths = std::move(parsedWidths);
 }
 
 void PdfFontMetrics::initFamilyFontNameSafe()
@@ -336,6 +416,31 @@ const PdfCIDToGIDMapConstPtr& PdfFontMetrics::getCIDToGIDMap() const
 {
     static PdfCIDToGIDMapConstPtr s_null;
     return s_null;
+}
+
+unsigned PdfFontMetrics::GetGlyphCountFontProgram() const
+{
+    auto face = GetFaceHandle();
+    return (unsigned)face->num_glyphs;
+}
+
+bool PdfFontMetrics::TryGetGlyphWidthFontProgram(unsigned gid, double& width) const
+{
+    auto face = GetFaceHandle();
+    if (face == nullptr || FT_Load_Glyph(face, gid, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) != 0)
+    {
+        width = -1;
+        return false;
+    }
+
+    // zero return code is success!
+    width = face->glyph->metrics.horiAdvance / (double)face->units_per_EM;
+    return true;
+}
+
+bool PdfFontMetrics::HasParsedWidths() const
+{
+    return m_ParsedWidths != nullptr;
 }
 
 PdfFontMetricsBase::PdfFontMetricsBase()

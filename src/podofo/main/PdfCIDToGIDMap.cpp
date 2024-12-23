@@ -12,10 +12,10 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfCIDToGIDMap::PdfCIDToGIDMap(CIDToGIDMap&& map, PdfGlyphAccess access)
-    : m_cidToGidMap(std::move(map)), m_access(access) { }
+PdfCIDToGIDMap::PdfCIDToGIDMap(CIDToGIDMap&& map)
+    : m_cidToGidMap(std::move(map)) { }
 
-PdfCIDToGIDMap PdfCIDToGIDMap::Create(const PdfObject& cidToGidMapObj, PdfGlyphAccess access)
+PdfCIDToGIDMap PdfCIDToGIDMap::Create(const PdfObject& cidToGidMapObj)
 {
     CIDToGIDMap map;
     // Table 115 — Entries in a CIDFont dictionary
@@ -29,7 +29,7 @@ PdfCIDToGIDMap PdfCIDToGIDMap::Create(const PdfObject& cidToGidMapObj, PdfGlyphA
         map[i] = gid;
     }
 
-    return PdfCIDToGIDMap(std::move(map), access);
+    return PdfCIDToGIDMap(std::move(map));
 }
 
 bool PdfCIDToGIDMap::TryMapCIDToGID(unsigned cid, unsigned& gid) const
@@ -67,11 +67,6 @@ void PdfCIDToGIDMap::ExportTo(PdfObject& descendantFont)
         output.Write(entry.data(), 2);
         previousCid = cid;
     }
-}
-
-bool PdfCIDToGIDMap::HasGlyphAccess(PdfGlyphAccess access) const
-{
-    return (m_access & access) != (PdfGlyphAccess)0;
 }
 
 unsigned PdfCIDToGIDMap::GetSize() const

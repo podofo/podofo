@@ -10,14 +10,14 @@
 namespace PoDoFo
 {
     // Known encoding IDs
-    constexpr size_t NullEncodingId             = 0;
-    constexpr size_t WinAnsiEncodingId          = 11;
-    constexpr size_t MacRomanEncodingId         = 12;
-    constexpr size_t MacExpertEncodingId        = 13;
-    constexpr size_t StandardEncodingId         = 21;
-    constexpr size_t SymbolEncodingId           = 22;
-    constexpr size_t ZapfDingbatsEncodingId     = 23;
-    constexpr size_t CustomEncodingStartId      = 101;
+    constexpr unsigned NullEncodingId             = 0;
+    constexpr unsigned WinAnsiEncodingId          = 11;
+    constexpr unsigned MacRomanEncodingId         = 12;
+    constexpr unsigned MacExpertEncodingId        = 13;
+    constexpr unsigned StandardEncodingId         = 21;
+    constexpr unsigned SymbolEncodingId           = 22;
+    constexpr unsigned ZapfDingbatsEncodingId     = 23;
+    constexpr unsigned CustomEncodingStartId      = 101;
 
     /** Check if the chars in the given utf-8 view are eligible for PdfDocEncofing conversion
      *

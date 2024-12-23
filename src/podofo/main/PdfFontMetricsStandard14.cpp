@@ -17,10 +17,9 @@ using namespace PoDoFo;
 
 PdfFontMetricsStandard14::PdfFontMetricsStandard14(
         PdfStandard14FontType fontType, const Standard14FontData& data,
-        std::unique_ptr<std::vector<double>> parsedWidths) :
+    GlyphMetricsListConstPtr parsedWidths) :
     m_Std14FontType(fontType),
-    m_data(data),
-    m_parsedWidths(std::move(parsedWidths))
+    m_data(data)
 {
     m_LineSpacing = 0.0;
     m_UnderlineThickness = 0.05;
@@ -33,6 +32,8 @@ PdfFontMetricsStandard14::PdfFontMetricsStandard14(
 
     // calculate the line spacing now, as it changes only with the font size
     m_LineSpacing = (data.Ascent + abs(data.Descent)) / 1000.0;
+
+    SetParsedWidths(std::move(parsedWidths));
 }
 
 unique_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::Create(
@@ -45,6 +46,13 @@ unique_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::Create(
     PdfStandard14FontType fontType, const PdfObject& fontObj)
 {
     return create(fontType, &fontObj);
+}
+
+std::unique_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::Create(
+    PdfStandard14FontType fontType, GlyphMetricsListConstPtr&& parsedWidths)
+{
+    return unique_ptr<const PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+        fontType, GetInstance(fontType)->GetRawData(), std::move(parsedWidths)));
 }
 
 unique_ptr<PdfFontMetricsStandard14> PdfFontMetricsStandard14::create(
@@ -69,38 +77,21 @@ unique_ptr<PdfFontMetricsStandard14> PdfFontMetricsStandard14::create(
         fontType, GetInstance(fontType)->GetRawData(), std::move(parsedWidths)));
 }
 
-unsigned PdfFontMetricsStandard14::GetGlyphCount() const
+unsigned PdfFontMetricsStandard14::GetGlyphCountFontProgram() const
 {
-    if (m_parsedWidths == nullptr)
-        return m_data.WidthsSize;
-    else
-        return (unsigned)m_parsedWidths->size();
+    return m_data.WidthsSize;
 }
 
-bool PdfFontMetricsStandard14::TryGetGlyphWidth(unsigned gid, double& width) const
+bool PdfFontMetricsStandard14::TryGetGlyphWidthFontProgram(unsigned gid, double& width) const
 {
-    if (m_parsedWidths == nullptr)
+    if (gid >= m_data.WidthsSize)
     {
-        if (gid >= m_data.WidthsSize)
-        {
-            width = -1;
-            return false;
-        }
-
-        width = m_data.Widths[gid] / 1000.0; // Convert to PDF units
-        return true;
+        width = -1;
+        return false;
     }
-    else
-    {
-        if (gid >= m_parsedWidths->size())
-        {
-            width = -1;
-            return false;
-        }
 
-        width = (*m_parsedWidths)[gid];
-        return true;
-    }
+    width = m_data.Widths[gid] / 1000.0; // Convert to PDF units
+    return true;
 }
 
 bool PdfFontMetricsStandard14::HasUnicodeMapping() const

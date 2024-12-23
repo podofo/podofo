@@ -138,3 +138,12 @@ bool PdfEncodingLimits::HaveValidCodeSizeRange() const
 {
     return MinCodeSize <= MaxCodeSize;
 }
+
+PdfGID::PdfGID()
+    : Id(0), MetricsId(0) { }
+
+PdfGID::PdfGID(unsigned id)
+    : Id(id), MetricsId(id) { }
+
+PdfGID::PdfGID(unsigned id, unsigned metricsId)
+    : Id(id), MetricsId(metricsId) { }

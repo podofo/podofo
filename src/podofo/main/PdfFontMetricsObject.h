@@ -32,10 +32,6 @@ private:
 public:
     static std::unique_ptr<const PdfFontMetricsObject> Create(const PdfObject& font, const PdfObject* descriptor = nullptr);
 
-    unsigned GetGlyphCount() const override;
-
-    bool TryGetGlyphWidth(unsigned gid, double& width) const override;
-
     bool HasUnicodeMapping() const override;
 
     bool TryGetGID(char32_t codePoint, unsigned& gid) const override;
@@ -125,7 +121,6 @@ private:
     PdfCIDToGIDMapConstPtr m_CIDToGIDMap;
     std::vector<double> m_BBox;
     Matrix m_Matrix;
-    std::vector<double> m_Widths;
 
     std::string m_FontName;
     std::string m_FontNameRaw;
@@ -133,6 +128,8 @@ private:
     std::string m_FontFamilyName;
     unsigned char m_SubsetPrefixLength;
     PdfFontStretch m_FontStretch;
+    bool m_IsItalicHint;
+    bool m_IsBoldHint;
     int m_Weight;
     PdfFontDescriptorFlags m_Flags;
     double m_ItalicAngle;
@@ -159,9 +156,6 @@ private:
     double m_UnderlinePosition;
     double m_StrikeThroughThickness;
     double m_StrikeThroughPosition;
-
-    bool m_IsItalicHint;
-    bool m_IsBoldHint;
 };
 
 };

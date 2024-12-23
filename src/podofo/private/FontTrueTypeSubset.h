@@ -25,8 +25,6 @@ enum class TrueTypeFontFileType
     OTF,    ///< OpenType Font
 };
 
-using GIDList = cspan<unsigned>;
-
 /**
  * This class is able to build a new TTF font with only
  * certain glyphs from an existing font.
@@ -35,7 +33,7 @@ using GIDList = cspan<unsigned>;
 class FontTrueTypeSubset final
 {
 private:
-    FontTrueTypeSubset(InputStreamDevice& device);
+    FontTrueTypeSubset(InputStreamDevice& device, const PdfFontMetrics& metrics);
 
 public:
     /**
@@ -44,17 +42,16 @@ public:
      * TTF font file retrieved from a font metrics
      *
      * \param output write the font to this buffer
-     * \param metrics font metrics object for this font
-     * \param gidList a list of gids to load
+     * \param metrics the metrics of the font to subset
+     * \param gids a list of glyphs to subset
      */
-    static void BuildFont(std::string& output, const PdfFontMetrics& metrics,
-        const GIDList& gidList);
+    static void BuildFont(std::string& output, const PdfFontMetrics& metrics, const cspan<PdfCharGIDInfo>& infos);
 
 private:
     FontTrueTypeSubset(const FontTrueTypeSubset& rhs) = delete;
     FontTrueTypeSubset& operator=(const FontTrueTypeSubset& rhs) = delete;
 
-    void BuildFont(std::string& buffer, const GIDList& gidList);
+    void BuildFont(std::string& buffer, const cspan<PdfCharGIDInfo>& infos);
 
     void Init();
     unsigned GetTableOffset(unsigned tag);
@@ -110,26 +107,44 @@ private:
         unsigned GlyphIndex;
     };
 
-    void LoadGlyphs(GlyphContext& ctx, const GIDList& gidList);
-    void LoadGID(GlyphContext& ctx, unsigned gid);
+    struct LongHorMetrics
+    {
+        uint16_t AdvanceWidth;
+        int16_t LeftSideBearing;
+    };
+
+    void LoadGlyphData(GlyphContext& ctx, unsigned gid);
     void LoadCompound(GlyphContext& ctx, const GlyphData& data);
+    void LoadGlyphMetrics(const cspan<PdfCharGIDInfo>& infos);
+    LongHorMetrics GetGlyphMetrics(unsigned gid);
+    LongHorMetrics GetGlyphMetricsPdfAdvance(unsigned gid, unsigned metricsId);
     void WriteGlyphTable(OutputStream& output);
     void WriteHmtxTable(OutputStream& output);
     void WriteLocaTable(OutputStream& output);
     void WriteTables(std::string& buffer);
     void ReadGlyphCompoundData(GlyphCompoundData& data, unsigned offset);
 
+    struct GIDInfo
+    {
+        unsigned Id;
+        LongHorMetrics Metrics;
+    };
+
 private:
     InputStreamDevice* m_device;
+    const PdfFontMetrics* m_metrics;
 
     bool m_isLongLoca;
     uint16_t m_glyphCount;
     uint16_t m_HMetricsCount;
-    uint16_t m_HMetricsCountNew;
+    uint16_t m_unitsPerEM;
+    unsigned m_hmtxTableOffset;
+    unsigned m_leftSideBearingsOffset;
 
     std::vector<TrueTypeTable> m_tables;
     GlyphDatas m_glyphDatas;
-    std::vector<unsigned> m_orderedGIDs; // Ordered list of original GIDs as they will appear in the subset
+    // Ordered list GIDs as they will appear in the subset with their metrics
+    std::vector<GIDInfo> m_subsetGIDs;
     charbuff m_tmpBuffer;
 };
 

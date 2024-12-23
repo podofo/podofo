@@ -287,12 +287,12 @@ enum class PdfFontStyle : uint8_t
 };
 
 /** When accessing a glyph, there may be a difference in
- * the glyph ID to retrieve the width or to index it
+ * the glyph ID to retrieve the widths or to index it
  * within the font program
  */
 enum class PdfGlyphAccess : uint8_t
 {
-    Width = 1,         ///< The glyph is accessed in the widths arrays (/Widths, /W1 keys)
+    ReadMetrics = 1,   ///< The glyph is accessed in the PDF metrics arrays (/Widths, /W keys)
     FontProgram = 2    ///< The glyph is accessed in the font program
 };
 
@@ -837,11 +837,6 @@ enum class PdfHashingAlgorithm
     SHA384,
     SHA512,
 };
-
-/** A backing storage for a CID to GID map
- * \remarks It must preserve ordering
- */
-using CIDToGIDMap = std::map<unsigned, unsigned>;
 
 using PdfFilterList = std::vector<PdfFilterType>;
 

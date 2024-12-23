@@ -70,9 +70,11 @@ namespace PoDoFo
     private:
         PdfEncoding(unsigned id, const PdfEncodingMapConstPtr& encoding,
             const PdfEncodingMapConstPtr& toUnicode = nullptr);
-        PdfEncoding(unsigned id, const PdfEncodingLimits& limits, PdfFont* font,
+        PdfEncoding(unsigned id, bool isObjectLoaded, const PdfEncodingLimits& limits, PdfFont* font,
             const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode);
 
+        /** Create an encoding from object parsed information
+         */
         static PdfEncoding Create(const PdfEncodingLimits& parsedLimits, const PdfEncodingMapConstPtr& encoding,
             const PdfEncodingMapConstPtr& toUnicode);
 
@@ -168,6 +170,11 @@ namespace PoDoFo
          */
         unsigned GetId() const { return m_Id; }
 
+        /**
+         * True if the encoding is constructed from object loaded information
+         */
+        bool IsObjectLoaded() const { return m_IsObjectLoaded; }
+
         /** Get actual limits of the encoding
          *
          * May be the limits inferred from /Encoding or the limits inferred by /FirstChar, /LastChar
@@ -220,6 +227,7 @@ namespace PoDoFo
 
     private:
         unsigned m_Id;
+        bool m_IsObjectLoaded;
         PdfEncodingLimits m_ParsedLimits;
         PdfFont* m_Font;
         PdfEncodingMapConstPtr m_Encoding;

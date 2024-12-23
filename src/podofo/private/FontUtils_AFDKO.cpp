@@ -134,7 +134,6 @@ static size_t PFBRefill(ConvCtxPtr h, char** ptr)
         }
     }
 
-    // NOTE: We won't access the mutable pointer for writing
     *ptr = const_cast<char*>(h->src.buff.data()) + h->src.pos;
     size_t srcleft = h->src.buff.size() - h->src.pos;
     if (srcleft <= h->seg.left)
@@ -381,7 +380,6 @@ static size_t stm_read(ctlStreamCallbacks* cb, void* stream_, char** ptr)
                 return h->seg.refill(h, ptr);
 
             size_t readCount = stream.buff.size() - stream.pos;
-            // NOTE: We won't access the mutable pointer for writing
             *ptr = const_cast<char*>(stream.buff.data()) + stream.pos;
             stream.pos = stream.buff.size(); // Just put it at the end of the buffer
             return readCount;

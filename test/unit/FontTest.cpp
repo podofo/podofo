@@ -130,10 +130,10 @@ TEST_CASE("TestEmbedFont")
 
     // Create a substitute font from a font without a "/FontFile2" entry
     PdfFont* substituteFont;
-    REQUIRE(font->TryCreateSubstituteFont(substituteFont));
+    REQUIRE(font->TryCreateProxyFont(substituteFont));
     // Add all used  GIDs for this font. The following is hardcoded:
     // this should require scanning of the entire document page contents
-    substituteFont->AddSubsetGIDs(PdfString::FromRaw("TEST"));
+    substituteFont->AddSubsetCIDs(PdfString::FromRaw("TEST"));
 
     {
         // Substitute existing font in the resources of the oage

@@ -31,9 +31,6 @@ private:
         const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding);
 
 public:
-    bool tryMapCIDToGID(unsigned cid, unsigned& gid) const override;
-
-public:
     bool IsObjectLoaded() const override;
     PdfFontType GetType() const override;
 };

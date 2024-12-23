@@ -24,16 +24,14 @@ class WidthExporter
 private:
     WidthExporter(unsigned cid, unsigned width);
 public:
-    static PdfArray GetPdfWidths(const CIDToGIDMap& glyphWidths,
-        const PdfFontMetrics& metrics);
+    static PdfArray GetPdfWidths(const cspan<PdfCharGIDInfo>& infos, const PdfFontMetrics& metrics);
 private:
     void update(unsigned cid, unsigned width);
     void finish();
     void reset(unsigned cid, unsigned width);
     void emitSameWidth();
     void emitArrayWidths();
-    static unsigned getPdfWidth(unsigned gid, const PdfFontMetrics& metrics,
-        const Matrix& matrix);
+    static unsigned getPdfWidth(unsigned gid, const PdfFontMetrics& metrics, const Matrix& matrix);
 
 private:
     PdfArray m_output;
@@ -101,7 +99,8 @@ void PdfFontCID::initImported()
 void PdfFontCID::embedFont()
 {
     PODOFO_ASSERT(m_descriptor != nullptr);
-    createWidths(m_descendantFont->GetDictionary(), getCIDToGIDMap());
+    auto infos = GetCharGIDInfos();
+    createWidths(m_descendantFont->GetDictionary(), infos);
     m_Encoding->ExportToFont(*this);
     EmbedFontFile(*m_descriptor);
 }
@@ -111,46 +110,21 @@ PdfObject* PdfFontCID::getDescendantFontObject()
     return m_descendantFont;
 }
 
-void PdfFontCID::createWidths(PdfDictionary& fontDict, const CIDToGIDMap& cidToGidMap)
+void PdfFontCID::createWidths(PdfDictionary& fontDict, const cspan<PdfCharGIDInfo>& infos)
 {
     auto& metrics = GetMetrics();
-    PdfArray arr = WidthExporter::GetPdfWidths(cidToGidMap, metrics);
+    PdfArray arr = WidthExporter::GetPdfWidths(infos, metrics);
     if (arr.size() == 0)
         return;
 
     fontDict.AddKey("W"_n, std::move(arr));
     double defaultWidth;
-    if ((defaultWidth = GetMetrics().GetDefaultWidthRaw()) >= 0)
+    if ((defaultWidth = metrics.GetDefaultWidthRaw()) >= 0)
     {
         // Default of /DW is 1000
         fontDict.AddKey("DW"_n, static_cast<int64_t>(
             std::round(defaultWidth / metrics.GetMatrix()[0])));
     }
-}
-
-CIDToGIDMap PdfFontCID::getCIDToGIDMap()
-{
-    auto substGIDMap = GetSubstituteGIDMap();
-    CIDToGIDMap ret;
-    if (substGIDMap == nullptr)
-    {
-        PODOFO_ASSERT(!IsSubsettingEnabled());
-
-        unsigned gidCount = GetMetrics().GetGlyphCount();
-        for (unsigned gid = 0; gid < gidCount; gid++)
-            ret.insert(std::make_pair(gid, gid));
-    }
-    else
-    {
-        for (auto& pair : *substGIDMap)
-        {
-            unsigned gid = pair.first;
-            unsigned cid = pair.second.Id;
-            ret.insert(std::make_pair(cid, gid));
-        }
-    }
-    return ret;
-
 }
 
 WidthExporter::WidthExporter(unsigned cid, unsigned width)
@@ -208,23 +182,22 @@ void WidthExporter::finish()
     emitSameWidth();
 }
 
-PdfArray WidthExporter::GetPdfWidths(const CIDToGIDMap& cidToGidMap,
-    const PdfFontMetrics& metrics)
+PdfArray WidthExporter::GetPdfWidths(const cspan<PdfCharGIDInfo>& infos, const PdfFontMetrics& metrics)
 {
-    if (cidToGidMap.size() == 0)
+    if (infos.size() == 0)
         return PdfArray();
 
     auto& matrix = metrics.GetMatrix();
-
-    // Always initialize the exporter with GID 0
+    // Always initialize the exporter with CID 0
     WidthExporter exporter(0, getPdfWidth(0, metrics, matrix));
-    for (auto& pair : cidToGidMap)
+    for (unsigned i = 0; i < infos.size(); i++)
     {
-        // If the GID 0 is present in the map, just skip it
-        if (pair.first == 0)
+        auto& info = infos[i];
+        // If the CID 0 is present in the map, just skip it
+        if (info.Cid == 0)
             continue;
 
-        exporter.update(pair.first, getPdfWidth(pair.second, metrics, matrix));
+        exporter.update(info.Cid, getPdfWidth(info.Gid.MetricsId, metrics, matrix));
     }
 
     exporter.finish();
@@ -252,8 +225,7 @@ void WidthExporter::emitArrayWidths()
 }
 
 // Return thousands of PDF units
-unsigned WidthExporter::getPdfWidth(unsigned gid, const PdfFontMetrics& metrics,
-    const Matrix& matrix)
+unsigned WidthExporter::getPdfWidth(unsigned gid, const PdfFontMetrics& metrics, const Matrix& matrix)
 {
     return (unsigned)std::round(metrics.GetGlyphWidth(gid) / matrix[0]);
 }

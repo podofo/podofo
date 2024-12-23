@@ -9,8 +9,6 @@
 
 #include "PdfDeclarations.h"
 
-#include <ostream>
-
 #include "PdfTextState.h"
 #include "PdfName.h"
 #include "PdfEncoding.h"
@@ -20,8 +18,6 @@
 namespace PoDoFo {
 
 class PdfCharCodeMap;
-
-using GIDMap = std::map<unsigned, PdfCID>;
 
 struct PODOFO_API PdfFontCreateParams final
 {
@@ -96,11 +92,12 @@ private:
      *      here.
      * \param encoding the encoding of this font.
      * \param flags flags for font init
+     * \param isProxy true if the font will substitute another font
      * \remarks to be called by PdfFontManager
      * \returns a new PdfFont object or nullptr
      */
     static std::unique_ptr<PdfFont> Create(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-        const PdfFontCreateParams& createParams);
+        const PdfFontCreateParams& createParams, bool isProxy = false);
 
     /**
      * Creates a new standard 14 font object (of class PdfFontStandard14) if
@@ -118,11 +115,12 @@ private:
         const PdfFontCreateParams& createParams);
 
 public:
-    /** Try get a replacement font based on this font characteristics
-     *  \param substFont the created substitute font
+    /** Try create a replacement font that can be used for rendering or font
+     * program embedding based on this font characteristics
+     * \param proxyFont the created substitute font
      */
-    bool TryCreateSubstituteFont(PdfFont*& substFont) const;
-    bool TryCreateSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& substFont) const;
+    bool TryCreateProxyFont(PdfFont*& proxyFont) const;
+    bool TryCreateProxyFont(PdfFontCreateFlags initFlags, PdfFont*& proxyFont) const;
 
     /** Write a string to a PdfObjectStream in a format so that it can
      *  be used with this font.
@@ -213,10 +211,15 @@ public:
     //std::vector<PdfSplittedString> SplitEncodedString(const PdfString& str) const;
 
     /** Add used GIDs to this font for subsetting from an encoded string
-     *
      * If the subsetting is not enabled it's a no-op
+     * \remarks Can't be called on non proxy fonts
      */
-    void AddSubsetGIDs(const PdfString& encodedStr);
+    void AddSubsetCIDs(const PdfString& encodedStr);
+
+    /**
+     * Get the final unscaled width of a CID identifier from the provided /Widths, /W arrays
+     */
+    double GetCIDWidth(unsigned cid) const;
 
     /** Retrieve the line spacing for this font
      *  \returns the linespacing in PDF units
@@ -330,6 +333,10 @@ public:
      */
     inline const std::string& GetName() const { return m_Name; }
 
+    /** True if the font is substitute for embedding
+     */
+    inline bool IsProxy() const { return m_IsProxy; }
+
     PdfObject& GetDescendantFontObject();
 
 protected:
@@ -340,22 +347,28 @@ protected:
     void EmbedFontFileTrueType(PdfObject& descriptor, const bufferview& data);
     void EmbedFontFileOpenType(PdfObject& descriptor, const bufferview& data);
 
-    /** Get a substitute GID to CID map, that can be used to create CID mappings or font subsets
+    /** Try to map the CID to a glyph ID using the /FirstChar, /LastChar limits
      */
-    const GIDMap* GetSubstituteGIDMap() const { return m_SubstGIDMap.get(); }
+    bool tryMapCIDToGIDLoadedMetrics(unsigned cid, unsigned& gid) const;
 
-    virtual bool tryMapCIDToGID(unsigned cid, unsigned& gid) const;
-
-    /**
-     * Get the raw width of a CID identifier
+    /** Map the CID to a glyph ID in the font metrics using an Unicode map
      */
-    double GetCIDLengthRaw(unsigned cid) const;
+    bool tryMapCIDToGIDUnicode(unsigned cid, unsigned& gid) const;
 
     void GetBoundingBox(PdfArray& arr) const;
 
     /** Fill the /FontDescriptor object dictionary
      */
     void FillDescriptor(PdfDictionary& dict) const;
+
+    /** Try getting a map that can be used to produce a replacement CID /Encoding object
+     * \remarks needed when exporting substitute fonts
+     */
+    bool TryGetSubstituteCIDEncoding(std::unique_ptr<PdfEncodingMap>& cidEncodingMap) const;
+
+    /** Get an ordered list of CID/GID info entries
+     */
+    std::vector<PdfCharGIDInfo> GetCharGIDInfos();
 
     virtual PdfObject* getDescendantFontObject();
 
@@ -379,11 +392,12 @@ private:
      * Perform initialization tasks for fonts imported or created
      * from scratch
      */
-    void InitImported(bool wantEmbed, bool wantSubset);
+    void InitImported(bool wantEmbed, bool wantSubset, bool isSubstitute);
 
     /** Add glyph to used in case of subsetting
      *  It either maps them using the font encoding or generate a new code
-     *
+     * 
+     * \remarks Can't be called on substitute fonts
      * \param gid the gid to add
      * \param codePoints code points mapped by this gid. May be a single
      *      code point or a ligature
@@ -401,6 +415,7 @@ private:
      *
      * Example for /Type2 CID fonts may have a /CIDToGIDMap
      */
+    bool TryMapCIDToGID(unsigned cid, PdfGID& gid) const;
     bool TryMapCIDToGID(unsigned cid, PdfGlyphAccess access, unsigned& gid) const;
 
     /** Needs /Encoding CID map writing
@@ -408,6 +423,14 @@ private:
     bool NeedsCIDMapWriting() const;
 
 private:
+    struct CIDSubsetInfo
+    {
+        PdfGID Gid;                     ///< The GID mapped from the source CID in the map
+        PdfCharCodeList Codes;          ///< The codes that maps to the CID in the map
+    };
+
+    using CIDSubsetMap = std::map<unsigned, CIDSubsetInfo>;
+
     bool tryConvertToGIDs(const std::string_view& utf8Str, PdfGlyphAccess access, std::vector<unsigned>& gids) const;
     bool tryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCID& cid);
 
@@ -423,14 +446,18 @@ private:
 
     void initSpaceDescriptors();
 
+    void pushSubsetInfo(unsigned cid, const PdfGID& gid, const PdfCharCode& code);
+
 private:
     std::string m_Name;
     std::string m_SubsetPrefix;
     bool m_EmbeddingEnabled;
     bool m_IsEmbedded;
     bool m_SubsettingEnabled;
-    std::unique_ptr<GIDMap> m_SubstGIDMap;
-    PdfCIDToGIDMapConstPtr m_cidToGidMap;
+    bool m_IsProxy;
+    std::unique_ptr<CIDSubsetMap> m_subsetCIDMap;
+    std::unique_ptr<std::unordered_map<unsigned, unsigned>> m_subsetGIDToCIDMap;
+    PdfCIDToGIDMapConstPtr m_fontProgCIDToGIDMap;
     double m_WordSpacingLengthRaw;
     double m_SpaceCharLengthRaw;
 

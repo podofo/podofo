@@ -29,10 +29,7 @@ public:
 protected:
     void embedFont() override;
     PdfObject* getDescendantFontObject() override;
-    void createWidths(PdfDictionary& fontDict, const CIDToGIDMap& glyphWidths);
-
-protected:
-    CIDToGIDMap getCIDToGIDMap();
+    void createWidths(PdfDictionary& fontDict, const cspan<PdfCharGIDInfo>& infos);
 
 protected:
     void initImported() override;

@@ -25,7 +25,7 @@ using namespace std;
 using namespace PoDoFo;
 
 unique_ptr<PdfFont> PdfFont::Create(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-    const PdfFontCreateParams& createParams)
+    const PdfFontCreateParams& createParams, bool isProxy)
 {
     bool embeddingEnabled = (createParams.Flags & PdfFontCreateFlags::DontEmbed) == PdfFontCreateFlags::None;
     bool subsettingEnabled = (createParams.Flags & PdfFontCreateFlags::DontSubset) == PdfFontCreateFlags::None;
@@ -34,7 +34,7 @@ unique_ptr<PdfFont> PdfFont::Create(PdfDocument& doc, const PdfFontMetricsConstP
     auto font = createFontForType(doc, metrics, createParams.Encoding,
         metrics->GetFontFileType(), preferNonCid);
     if (font != nullptr)
-        font->InitImported(embeddingEnabled, subsettingEnabled);
+        font->InitImported(embeddingEnabled, subsettingEnabled, isProxy);
 
     return font;
 }
@@ -79,6 +79,7 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
     PdfDictionary* dict;
     if (!obj.TryGetDictionary(dict))
     {
+    Fail:
         font.reset();
         return false;
     }
@@ -95,6 +96,7 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Font: No SubType");
 
     auto& subType = subTypeKey->GetName();
+    PdfFontMetricsConstPtr metrics;
     if (subType == "Type0")
     {
         // TABLE 5.18 Entries in a Type 0 font dictionary
@@ -115,15 +117,7 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
         }
 
         if (objFont != nullptr)
-        {
-            PdfFontMetricsConstPtr metrics = PdfFontMetricsObject::Create(*objFont, objDescriptor);
-            auto encoding = PdfEncodingFactory::CreateEncoding(obj, *metrics);
-            if (encoding.IsNull())
-                goto Exit;
-
-            font = PdfFontObject::Create(obj, metrics, encoding);
-            return true;
-        }
+            metrics = PdfFontMetricsObject::Create(*objFont, objDescriptor);
     }
     else if (subType == "Type1")
     {
@@ -141,49 +135,33 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "No known /BaseFont found");
             }
 
-            PdfFontMetricsConstPtr metrics = PdfFontMetricsStandard14::Create(stdFontType, obj);
-            PdfEncoding encoding = PdfEncodingFactory::CreateEncoding(obj, *metrics);
-            if (encoding.IsNull())
-                goto Exit;
-
-            font = PdfFontObject::Create(obj, metrics, encoding);
-            return true;
+            metrics = PdfFontMetricsStandard14::Create(stdFontType, obj);
         }
-
-        PdfFontMetricsConstPtr metrics = PdfFontMetricsObject::Create(obj, objDescriptor);
-        auto encoding = PdfEncodingFactory::CreateEncoding(obj, *metrics);
-        if (encoding.IsNull())
-            goto Exit;
-
-        font = PdfFontObject::Create(obj, metrics, encoding);
-        return true;
+        else
+        {
+            metrics = PdfFontMetricsObject::Create(obj, objDescriptor);
+        }
     }
     else if (subType == "Type3")
     {
         auto objDescriptor = dict->FindKey("FontDescriptor");
-        PdfFontMetricsConstPtr metrics = PdfFontMetricsObject::Create(obj, objDescriptor);
-        auto encoding = PdfEncodingFactory::CreateEncoding(obj, *metrics);
-        if (encoding.IsNull())
-            goto Exit;
-
-        font = PdfFontObject::Create(obj, metrics, encoding);
-        return true;
+        metrics = PdfFontMetricsObject::Create(obj, objDescriptor);
     }
     else if (subType == "TrueType")
     {
         auto objDescriptor = dict->FindKey("FontDescriptor");
-        PdfFontMetricsConstPtr metrics = PdfFontMetricsObject::Create(obj, objDescriptor);
-        auto encoding = PdfEncodingFactory::CreateEncoding(obj, *metrics);
-        if (encoding.IsNull())
-            goto Exit;
-
-        font = PdfFontObject::Create(obj, metrics, encoding);
-        return true;
+        metrics = PdfFontMetricsObject::Create(obj, objDescriptor);
     }
 
-Exit:
-    font.reset();
-    return false;
+    if (metrics == nullptr)
+        goto Fail;
+
+    auto encoding = PdfEncodingFactory::CreateEncoding(obj, *metrics);
+    if (encoding.IsNull())
+        goto Fail;
+
+    font = PdfFontObject::Create(obj, metrics, encoding);
+    return true;
 }
 
 unique_ptr<PdfFont> PdfFont::CreateStandard14(PdfDocument& doc, PdfStandard14FontType std14Font,
@@ -210,7 +188,7 @@ unique_ptr<PdfFont> PdfFont::CreateStandard14(PdfDocument& doc, PdfStandard14Fon
         font.reset(new PdfFontCIDCFF(doc, metrics, createParams.Encoding));
 
     if (font != nullptr)
-        font->InitImported(embeddingEnabled, subsettingEnabled);
+        font->InitImported(embeddingEnabled, subsettingEnabled, false);
 
     return font;
 }

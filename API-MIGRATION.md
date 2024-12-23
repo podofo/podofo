@@ -1,4 +1,7 @@
 ## 0.10.1 -> 1.0.0
+- `GIDMap`: Removed, it was just a infrastructural typedef
+- `PdfCIDToGIDMap`: Removed `HasGlyphAccess`, this map is always for accessing font program GIDs
+- `PdfGlyphAccess`: `Width` renamed to `ReadMetrics`
 - `Matrix2D`: Removed, all methods using it were converted to use `Matrix` instead, which is a full replacement
 - `Matrix`: Removed `FromCoefficients()`, just use the now public constructor with coefficients
 - `PdfFontMetrics`:
@@ -12,8 +15,9 @@
   * `DoXObject` is issued for Form XObject only if `PdfContentReaderFlags::SkipFollowFormXObjects` is passed, otherwise `BeginXObjectForm` is issued 
 - `PdfContentReaderFlags`: Renamed `DontFollowXObjectForms` -> `SkipFollowFormXObjects`
 - `PdfFont`:
-  * Renamed `TryGetSubstituteFont` -> `TryCreateSubstituteFont`
-  * Renamed `GetUsedGIDs` -> `GetSubstituteGIDMap` and make it private (it's more implementation detail for `TryCreateSubstituteFont`)
+  * Renamed `AddSubsetGIDs` -> `AddSubsetCIDs`
+  * Renamed `TryGetSubstituteFont` -> `TryCreateProxyFont`
+  * Removed `GetUsedGIDs`: it was more implementation detail for various embedding operations
 - `PdfFontFileType`:
   * Removed `CIDType1`. Just use `Type1` instead
   * Renamed `OpenType` -> `OpenTypeCFF`

@@ -18,6 +18,9 @@ namespace PoDoFo {
 
 class PdfFontMetrics;
 
+// NOTE: Underlying type may may change in the future
+using GlyphMetricsListConstPtr = std::shared_ptr<const std::vector<double>>;
+
 /** Convenience typedef for a const PdfEncoding shared ptr
  */
 using PdfFontMetricsConstPtr = std::shared_ptr<const PdfFontMetrics>;
@@ -34,6 +37,7 @@ class PODOFO_API PdfFontMetrics
     friend class PdfFontManager;
     friend class PdfFontMetricsBase;
     friend class PdfFontMetricsFreetype;
+    PODOFO_PRIVATE_FRIEND(class FontTrueTypeSubset);
 
 private:
     PdfFontMetrics();
@@ -45,15 +49,33 @@ public:
 
     static std::unique_ptr<const PdfFontMetrics> CreateFromBuffer(const bufferview& buffer, unsigned faceIndex = 0);
 
-    virtual unsigned GetGlyphCount() const = 0;
+    /** Get the glyph count
+     * \remarks By defaults tt returns the actual number of glyphs in the font program
+     */
+    unsigned GetGlyphCount() const;
 
-    /** Get the width of a single glyph id
+    /** Get the glyph count with the given glyph access
+     *  \param access the desired access for retrieving the glyph count
+     */
+    unsigned GetGlyphCount(PdfGlyphAccess access) const;
+
+    /** Get the width of a single glyph id. It tries to access parsed pdf metrics first,
+     * and if unavailable it retrieve it from available font program
      *
      *  \param gid id of the glyph
      *  \returns the width of a single glyph id
      */
     double GetGlyphWidth(unsigned gid) const;
-    virtual bool TryGetGlyphWidth(unsigned gid, double& width) const = 0;
+    bool TryGetGlyphWidth(unsigned gid, double& width) const;
+
+    /** Get the width of a single glyph id
+     *
+     *  \param gid id of the glyph
+     *  \param access the desired access for retrieving the metrics
+     *  \returns the width of a single glyph id
+     */
+    double GetGlyphWidth(unsigned gid, PdfGlyphAccess access) const;
+    bool TryGetGlyphWidth(unsigned gid, PdfGlyphAccess access, double& width) const;
 
     /**
      * Some fonts provides a glyph substitution list, eg. for ligatures.
@@ -305,6 +327,8 @@ public:
      */
     bool TryGetImplicitEncoding(PdfEncodingMapConstPtr &encoding) const;
 
+    /** Get a CID to font program GID map
+     */
     PdfCIDToGIDMapConstPtr GetCIDToGIDMap() const;
 
 public:
@@ -325,7 +349,20 @@ protected:
     virtual const datahandle& GetFontFileDataHandle() const = 0;
     virtual FT_Face GetFaceHandle() const = 0;
 
+    virtual unsigned GetGlyphCountFontProgram() const;
+    virtual bool TryGetGlyphWidthFontProgram(unsigned gid, double& width) const;
+
+    bool HasParsedWidths() const;
+
+    /** Retrieve the parsed width from a /W or /Widths entry, if available
+     */
+    GlyphMetricsListConstPtr GetParsedWidths() const { return m_ParsedWidths; }
+
+    void SetParsedWidths(GlyphMetricsListConstPtr&& parsedWidths);
+
 private:
+    static std::unique_ptr<const PdfFontMetrics> Create(const std::string_view& filepath, unsigned faceIndex, const PdfFontMetrics* metrics);
+
     void initFamilyFontNameSafe();
     static PdfEncodingMapConstPtr getFontType1ImplicitEncoding(FT_Face face);
 
@@ -335,8 +372,9 @@ private:
 
 private:
     std::string m_FilePath;
-    nullable<PdfFontStyle> m_Style;
     std::string m_FamilyFontNameSafe;
+    GlyphMetricsListConstPtr m_ParsedWidths;
+    nullable<PdfFontStyle> m_Style;
     unsigned m_FaceIndex;
 };
 
@@ -358,8 +396,8 @@ protected:
 
 private:
     bool m_dataInit;
-    datahandle m_Data;
     bool m_faceInit;
+    datahandle m_Data;
     FT_Face m_Face;
 };
 

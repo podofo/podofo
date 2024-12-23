@@ -22,13 +22,13 @@ static PdfFontStretch stretchFromString(const string_view& str);
 
 PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObject* descriptor) :
     m_SubsetPrefixLength(0),
+    m_IsItalicHint(false),
+    m_IsBoldHint(false),
     m_DefaultWidth(0),
     m_FontFileObject(nullptr),
     m_Length1(0),
     m_Length2(0),
-    m_Length3(0),
-    m_IsItalicHint(false),
-    m_IsBoldHint(false)
+    m_Length3(0)
 {
     const PdfObject* obj;
     const PdfName& subType = font.GetDictionary().MustFindKey("Subtype").GetName();
@@ -131,13 +131,16 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         // /MissingWidth and /FontMatrix
         m_DefaultWidth = missingWidthRaw * m_Matrix[0];
 
-        auto widths = font.GetDictionary().FindKey("Widths");
-        if (widths != nullptr)
+        auto widthsObj = font.GetDictionary().FindKey("Widths");
+        if (widthsObj != nullptr)
         {
-            auto& arrWidths = widths->GetArray();
-            m_Widths.reserve(arrWidths.size());
+            auto& arrWidths = widthsObj->GetArray();
+            vector<double> widths;
+            widths.reserve(arrWidths.size());
             for (auto& width : arrWidths)
-                m_Widths.push_back(width.GetReal() * m_Matrix[0]);
+                widths.push_back(width.GetReal() * m_Matrix[0]);
+
+            SetParsedWidths(std::make_shared<vector<double>>(std::move(widths)));
         }
     }
     else
@@ -168,7 +171,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             if ((cidToGidMapObj = font.GetDictionary().FindKey("CIDToGIDMap")) != nullptr
                 && (stream = cidToGidMapObj->GetStream()) != nullptr)
             {
-                m_CIDToGIDMap.reset(new PdfCIDToGIDMap(PdfCIDToGIDMap::Create(*cidToGidMapObj, PdfGlyphAccess::Width | PdfGlyphAccess::FontProgram)));
+                m_CIDToGIDMap.reset(new PdfCIDToGIDMap(PdfCIDToGIDMap::Create(*cidToGidMapObj)));
             }
         }
 
@@ -180,13 +183,14 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         }
 
         m_DefaultWidth = font.GetDictionary().FindKeyAs<double>("DW", 1000.0) * m_Matrix[0];
-        auto widths = font.GetDictionary().FindKey("W");
-        if (widths != nullptr)
+        auto widthsObj = font.GetDictionary().FindKey("W");
+        if (widthsObj != nullptr)
         {
             // "W" array format is described in Pdf 32000:2008 "9.7.4.3
             // Glyph Metrics in CIDFonts"
-            auto& widthsArr = widths->GetArray();
+            auto& widthsArr = widthsObj->GetArray();
             unsigned pos = 0;
+            vector<double> widths;
             while (pos < widthsArr.GetSize())
             {
                 unsigned start = (unsigned)widthsArr[pos++].GetNumberLenient();
@@ -194,7 +198,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
                 if (second->IsReference())
                 {
                     // second do not have an associated owner; use the one in pw
-                    second = &widths->GetDocument()->GetObjects().MustGetObject(second->GetReference());
+                    second = &widthsObj->GetDocument()->GetObjects().MustGetObject(second->GetReference());
                     PODOFO_ASSERT(!second->IsNull());
                 }
 
@@ -204,25 +208,27 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
                     pos++;
                     unsigned length = start + arr->GetSize();
                     PODOFO_ASSERT(length >= start);
-                    if (length > m_Widths.size())
-                        m_Widths.resize(length, m_DefaultWidth);
+                    if (length > widths.size())
+                        widths.resize(length, m_DefaultWidth);
 
                     for (unsigned i = 0; i < arr->GetSize(); i++)
-                        m_Widths[start + i] = (*arr)[i].GetReal() * m_Matrix[0];
+                        widths[start + i] = (*arr)[i].GetReal() * m_Matrix[0];
                 }
                 else
                 {
                     unsigned end = (unsigned)widthsArr[pos++].GetNumberLenient();
                     unsigned length = end + 1;
                     PODOFO_ASSERT(length >= start);
-                    if (length > m_Widths.size())
-                        m_Widths.resize(length, m_DefaultWidth);
+                    if (length > widths.size())
+                        widths.resize(length, m_DefaultWidth);
 
                     double width = widthsArr[pos++].GetReal() * m_Matrix[0];
                     for (unsigned i = start; i <= end; i++)
-                        m_Widths[i] = width;
+                        widths[i] = width;
                 }
             }
+
+            SetParsedWidths(std::make_shared<vector<double>>(std::move(widths)));
         }
     }
 
@@ -387,23 +393,6 @@ void PdfFontMetricsObject::GetBoundingBox(vector<double>& bbox) const
 unique_ptr<const PdfFontMetricsObject> PdfFontMetricsObject::Create(const PdfObject& font, const PdfObject* descriptor)
 {
     return unique_ptr<PdfFontMetricsObject>(new PdfFontMetricsObject(font, descriptor));
-}
-
-unsigned PdfFontMetricsObject::GetGlyphCount() const
-{
-    return (unsigned)m_Widths.size();
-}
-
-bool PdfFontMetricsObject::TryGetGlyphWidth(unsigned gid, double& width) const
-{
-    if (gid >= m_Widths.size())
-    {
-        width = -1;
-        return false;
-    }
-
-    width = m_Widths[gid];
-    return true;
 }
 
 bool PdfFontMetricsObject::HasUnicodeMapping() const
@@ -655,6 +644,6 @@ void PdfFontMetricsObject::tryLoadBuiltinCIDToGIDMap()
             }
         }
 
-        m_CIDToGIDMap.reset(new PdfCIDToGIDMap(std::move(map), PdfGlyphAccess::FontProgram));
+        m_CIDToGIDMap.reset(new PdfCIDToGIDMap(std::move(map)));
     }
 }

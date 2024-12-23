@@ -12,6 +12,11 @@
 
 namespace PoDoFo
 {
+    /** A backing storage for a CID to GID map
+     * \remarks It must preserve ordering
+     */
+    using CIDToGIDMap = std::map<unsigned, unsigned>;
+
     /** Helper class to handle the /CIDToGIDMap entry in a Type2 CID font
      * or /TrueType fonts implicit CID to GID mapping
      */
@@ -21,19 +26,15 @@ namespace PoDoFo
         using iterator = CIDToGIDMap::const_iterator;
 
     public:
-        PdfCIDToGIDMap(CIDToGIDMap&& map, PdfGlyphAccess access);
+        PdfCIDToGIDMap(CIDToGIDMap&& map);
         PdfCIDToGIDMap(const PdfCIDToGIDMap&) = default;
         PdfCIDToGIDMap(PdfCIDToGIDMap&&) noexcept = default;
 
-        static PdfCIDToGIDMap Create(const PdfObject& cidToGidMapObj, PdfGlyphAccess access);
+        static PdfCIDToGIDMap Create(const PdfObject& cidToGidMapObj);
 
     public:
         bool TryMapCIDToGID(unsigned cid, unsigned& gid) const;
         void ExportTo(PdfObject& descendantFont);
-
-        /** Determines if the current map provides the queried glyph access
-         */
-        bool HasGlyphAccess(PdfGlyphAccess access) const;
 
     public:
         unsigned GetSize() const;
@@ -42,7 +43,6 @@ namespace PoDoFo
 
     private:
         CIDToGIDMap m_cidToGidMap;
-        PdfGlyphAccess m_access;
     };
 
     using PdfCIDToGIDMapConstPtr = std::shared_ptr<const PdfCIDToGIDMap>;

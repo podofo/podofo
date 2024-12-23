@@ -43,22 +43,22 @@ PdfEncoding::PdfEncoding(const PdfEncodingMapConstPtr& encoding, const PdfToUnic
 }
 
 PdfEncoding::PdfEncoding(unsigned id, const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode)
-    : m_Id(id), m_Font(nullptr), m_Encoding(encoding), m_ToUnicode(toUnicode)
+    : m_Id(id), m_IsObjectLoaded(false), m_Font(nullptr), m_Encoding(encoding), m_ToUnicode(toUnicode)
 {
     if (encoding == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Main encoding must be not null");
 }
 
-PdfEncoding::PdfEncoding(unsigned id, const PdfEncodingLimits& limits, PdfFont* font,
+PdfEncoding::PdfEncoding(unsigned id, bool isObjectLoaded, const PdfEncodingLimits& limits, PdfFont* font,
         const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode)
-    : m_Id(id), m_ParsedLimits(limits), m_Font(font), m_Encoding(encoding), m_ToUnicode(toUnicode)
+    : m_Id(id), m_IsObjectLoaded(isObjectLoaded), m_ParsedLimits(limits), m_Font(font), m_Encoding(encoding), m_ToUnicode(toUnicode)
 {
 }
 
 PdfEncoding PdfEncoding::Create(const PdfEncodingLimits& parsedLimits, const PdfEncodingMapConstPtr& encoding,
     const PdfEncodingMapConstPtr& toUnicode)
 {
-    return PdfEncoding(GetNextId(), parsedLimits, nullptr, encoding, toUnicode);
+    return PdfEncoding(GetNextId(), true, parsedLimits, nullptr, encoding, toUnicode);
 }
 
 unique_ptr<PdfEncoding> PdfEncoding::CreateSchim(const PdfEncoding& encoding, PdfFont& font)
@@ -106,10 +106,10 @@ bool PdfEncoding::TryConvertToEncoded(const string_view& str, charbuff& encoded)
         return true;
 
     PODOFO_ASSERT(m_Font != nullptr);
-    if (m_Font->IsObjectLoaded() || !m_Font->GetMetrics().HasUnicodeMapping())
+    if (m_IsObjectLoaded || !m_Font->GetMetrics().HasUnicodeMapping())
     {
-        // The font is loaded from object. We will attempt to use
-        // just the loaded map to perform the conversion
+        // The font is loaded from object or substitute. We will attempt
+        // to use the loaded map to perform the conversion
         const PdfEncodingMap* toUnicode;
         if (!GetToUnicodeMapSafe(toUnicode))
             return false;
@@ -174,7 +174,7 @@ bool PdfEncoding::TryConvertToEncoded(const string_view& str, charbuff& encoded)
 
 bool PdfEncoding::tryGetCharCode(PdfFont& font, unsigned gid, const unicodeview& codePoints, PdfCharCode& codeUnit) const
 {
-    if (font.IsSubsettingEnabled())
+    if (font.IsSubsettingEnabled() && !font.IsProxy())
     {
         codeUnit = font.AddSubsetGIDSafe(gid, codePoints).Unit;
         return true;
@@ -249,7 +249,7 @@ bool PdfEncoding::TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const
     {
         PODOFO_INVARIANT(m_Encoding->IsSimpleEncoding());
         PODOFO_ASSERT(m_Font != nullptr);
-        if (m_Font->IsObjectLoaded() || !m_Font->GetMetrics().HasUnicodeMapping())
+        if (m_IsObjectLoaded || !m_Font->GetMetrics().HasUnicodeMapping())
         {
             // Assume cid == charcode
             cid = codeUnit.Code;
@@ -582,74 +582,15 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
     }
     output.Write(temp);
 
-    auto substGIDMap = font.GetSubstituteGIDMap();
-    if (substGIDMap != nullptr)
+    unique_ptr<PdfEncodingMap> replCIDEncodingMap;
+    if (font.TryGetSubstituteCIDEncoding(replCIDEncodingMap))
     {
-        unordered_set<unsigned char> usedCodeSpaceSizes;
-        for (auto& pair : *substGIDMap)
-        {
-            auto& codeUnit = pair.second.Unit;
-            auto codeSpaceSize = codeUnit.CodeSpaceSize;
-            usedCodeSpaceSizes.insert(codeSpaceSize);
-        }
-
-        unsigned size = 0;
-        for (auto& usedCodeSpaceSize : usedCodeSpaceSizes)
-        {
-            std::vector<utls::FSSUTFRange> ranges = utls::GetFSSUTFRanges(usedCodeSpaceSize);
-            size += (unsigned)ranges.size();
-        }
-
-        output.Write(std::to_string(size));
-        output.Write(" begincodespacerange\n");
-
-        bool first = true;
-        for (auto& usedCodeSpaceSize : usedCodeSpaceSizes)
-        {
-            std::vector<utls::FSSUTFRange> ranges = utls::GetFSSUTFRanges(usedCodeSpaceSize);
-
-            for (auto& range : ranges)
-            {
-                if (first)
-                    first = false;
-                else
-                    output.Write("\n");
-
-                PdfCharCode firstCode(range.FirstCode);
-                PdfCharCode lastCode(range.LastCode);
-
-                firstCode.WriteHexTo(temp);
-                output.Write(temp);
-                lastCode.WriteHexTo(temp);
-                output.Write(temp);
-            }
-        }
-
-        output.Write("\nendcodespacerange\n");
+        replCIDEncodingMap->AppendCodeSpaceRange(output, temp);
+        replCIDEncodingMap->AppendCIDMappingEntries(output, font, temp);
     }
     else
     {
         m_Encoding->AppendCodeSpaceRange(output, temp);
-    }
-
-    if (substGIDMap != nullptr)
-    {
-        output.Write(std::to_string(substGIDMap->size()));
-        output.Write(" begincidchar\n");
-        string code;
-        for (auto& pair : *substGIDMap)
-        {
-            auto& cid = pair.second;
-            cid.Unit.WriteHexTo(code);
-            output.Write(code);
-            output.Write(" ");
-            output.Write(std::to_string(cid.Id));
-            output.Write("\n");;
-        }
-        output.Write("endcidchar\n");
-    }
-    else
-    {
         m_Encoding->AppendCIDMappingEntries(output, font, temp);
     }
 

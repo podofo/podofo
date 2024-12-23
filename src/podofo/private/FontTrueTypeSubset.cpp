@@ -44,34 +44,44 @@ static uint32_t GetTableCheksum(const char* buf, uint32_t size);
 
 static bool TryAdvanceCompoundOffset(unsigned& offset, unsigned flags);
 
-FontTrueTypeSubset::FontTrueTypeSubset(InputStreamDevice& device) :
+FontTrueTypeSubset::FontTrueTypeSubset(InputStreamDevice& device, const PdfFontMetrics& metrics) :
     m_device(&device),
+    m_metrics(&metrics),
     m_isLongLoca(false),
     m_glyphCount(0),
     m_HMetricsCount(0),
-    m_HMetricsCountNew(0)
+    m_hmtxTableOffset(0),
+    m_leftSideBearingsOffset(0)
 {
 }
 
-void FontTrueTypeSubset::BuildFont(std::string& output, const PdfFontMetrics& metrics,
-    const GIDList& gidList)
+void FontTrueTypeSubset::BuildFont(string& output, const PdfFontMetrics& metrics, const cspan<PdfCharGIDInfo>& infos)
 {
+    if (infos.empty())
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "The cid/gid map must not be empty");
+
     if (metrics.GetFontFileType() != PdfFontFileType::TrueType)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "The font to be subsetted is not a TrueType font");
 
     SpanStreamDevice input(metrics.GetOrLoadFontFileData());
-    FontTrueTypeSubset subset(input);
-    subset.BuildFont(output, gidList);
+    FontTrueTypeSubset subset(input, metrics);
+    subset.BuildFont(output, infos);
 }
 
-void FontTrueTypeSubset::BuildFont(string& buffer, const GIDList& gidList)
+void FontTrueTypeSubset::BuildFont(string& buffer, const cspan<PdfCharGIDInfo>& infos)
 {
     Init();
 
     GlyphContext context;
     context.GlyfTableOffset = GetTableOffset(TTAG_glyf);
     context.LocaTableOffset = GetTableOffset(TTAG_loca);
-    LoadGlyphs(context, gidList);
+
+    // For any fonts, assume that glyph 0 is needed.
+    LoadGlyphData(context, 0);
+    for (unsigned i = 0; i < infos.size(); i++)
+        LoadGlyphData(context, infos[i].Gid.Id);
+
+    LoadGlyphMetrics(infos);
     WriteTables(buffer);
 }
 
@@ -103,6 +113,11 @@ void FontTrueTypeSubset::GetNumberOfGlyphs()
 
     m_device->Seek(offset + sizeof(uint16_t) * 17);
     utls::ReadUInt16BE(*m_device, m_HMetricsCount);
+
+    m_hmtxTableOffset = GetTableOffset(TTAG_hmtx);
+    m_leftSideBearingsOffset = m_hmtxTableOffset + m_HMetricsCount * sizeof(LongHorMetrics);
+
+    m_unitsPerEM = m_metrics->GetFaceHandle()->units_per_EM;
 }
 
 void FontTrueTypeSubset::InitTables()
@@ -197,25 +212,29 @@ void FontTrueTypeSubset::SeeIfLongLocaOrNot()
     m_isLongLoca = (isLong == 0 ? false : true);  // 1 for long
 }
 
-void FontTrueTypeSubset::LoadGlyphs(GlyphContext& ctx, const GIDList& gidList)
+void FontTrueTypeSubset::LoadGlyphMetrics(const cspan<PdfCharGIDInfo>& infos)
 {
-    // For any fonts, assume that glyph 0 is needed.
-    LoadGID(ctx, 0);
-    for (unsigned gid : gidList)
-        LoadGID(ctx, gid);
-
     // Map original GIDs to a new index as they will appear in the subset
     map<unsigned, unsigned> glyphIndexMap;
     glyphIndexMap.insert({ 0, 0 });
-    m_orderedGIDs.push_back(0);
-    for (unsigned gid : gidList)
+
+    PODOFO_ASSERT(infos.size() != 0);
+    auto& first = infos.front();
+
+    // Ensure the first glyph is always the first one
+    if (first.Gid.Id != 0)
+        m_subsetGIDs.push_back({ 0, GetGlyphMetricsPdfAdvance(0, 0) });
+
+    for (unsigned i = 0; i < infos.size(); i++)
     {
-        glyphIndexMap.insert({ gid, (unsigned)glyphIndexMap.size() });
-        m_orderedGIDs.push_back(gid);
+        auto& info = infos[i];
+        glyphIndexMap.insert({ info.Gid.Id, (unsigned)m_subsetGIDs.size() });
+        m_subsetGIDs.push_back({ info.Gid.Id, GetGlyphMetricsPdfAdvance(info.Gid.Id, info.Gid.MetricsId) });
     }
 
     for (auto& pair : m_glyphDatas)
     {
+        // Iterate all loaded for coumpond glyphs to subset
         auto& glyphData = pair.second;
         if (!glyphData.IsCompound)
             continue;
@@ -227,11 +246,11 @@ void FontTrueTypeSubset::LoadGlyphs(GlyphContext& ctx, const GIDList& gidList)
             unsigned componentGlyphIdOffset = glyphData.GlyphAdvOffset + offset;
             ReadGlyphCompoundData(cmpData, componentGlyphIdOffset);
             // Try remap the GID
-            auto inserted = glyphIndexMap.insert({ cmpData.GlyphIndex, (unsigned)glyphIndexMap.size() });
+            auto inserted = glyphIndexMap.insert({ cmpData.GlyphIndex, (unsigned)m_subsetGIDs.size() });
             if (inserted.second)
             {
-                // If insertion occurred, insert it to the original GIDs ordered list
-                m_orderedGIDs.push_back(cmpData.GlyphIndex);
+                // If insertion occurred, insert it to the GIDs ordered list
+                m_subsetGIDs.push_back({ cmpData.GlyphIndex, GetGlyphMetrics(cmpData.GlyphIndex) });
             }
 
             // Insert the compound component using the actual assigned GID
@@ -243,17 +262,50 @@ void FontTrueTypeSubset::LoadGlyphs(GlyphContext& ctx, const GIDList& gidList)
     }
 }
 
-void FontTrueTypeSubset::LoadGID(GlyphContext& ctx, unsigned gid)
+FontTrueTypeSubset::LongHorMetrics FontTrueTypeSubset::GetGlyphMetrics(unsigned gid)
+{
+    LongHorMetrics ret;
+    if (gid < m_HMetricsCount)
+    {
+        // The full horizontal metrics exists
+        m_device->Seek(m_hmtxTableOffset + gid * sizeof(LongHorMetrics));
+        utls::ReadUInt16BE(*m_device, ret.AdvanceWidth);
+        utls::ReadInt16BE(*m_device, ret.LeftSideBearing);
+    }
+    else
+    {
+        // The full horizontal metrics doesn't exists, just copy the left side bearings
+        // at the end of the metrics. From the specification:
+        // "As an optimization, the number of records can be less than the number
+        // of glyphs, in which case the advance width value of the last record applies
+        // to all remaining glyph IDs"
+
+        m_device->Seek(m_hmtxTableOffset + (m_HMetricsCount - 1) * sizeof(LongHorMetrics));
+        utls::ReadUInt16BE(*m_device, ret.AdvanceWidth);
+
+        m_device->Seek(m_leftSideBearingsOffset + sizeof(int16_t) * (gid - m_HMetricsCount));
+        utls::ReadInt16BE(*m_device, ret.LeftSideBearing);
+    }
+
+    return ret;
+}
+
+// Read the metrics with PDF read advance
+FontTrueTypeSubset::LongHorMetrics FontTrueTypeSubset::GetGlyphMetricsPdfAdvance(unsigned gid, unsigned metricsId)
+{
+    auto ret = GetGlyphMetrics(gid);
+    // NOTE: Retrieve the actual CID width and write it in the measure unit as found in the font
+    ret.AdvanceWidth = (uint16_t)std::round(m_metrics->GetGlyphWidth(metricsId) * m_unitsPerEM);
+    return ret;
+}
+
+void FontTrueTypeSubset::LoadGlyphData(GlyphContext& ctx, unsigned gid)
 {
     if (gid >= m_glyphCount)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "GID out of range");
 
     if (m_glyphDatas.find(gid) != m_glyphDatas.end())
         return;
-
-    // Try to advance new count of HMetrics
-    if (gid < m_HMetricsCount)
-        m_HMetricsCountNew++;
 
     // https://docs.microsoft.com/en-us/typography/opentype/spec/loca
     auto& glyphData = m_glyphDatas[gid] = { };
@@ -310,7 +362,7 @@ void FontTrueTypeSubset::LoadCompound(GlyphContext& ctx, const GlyphData& data)
     while (true)
     {
         ReadGlyphCompoundData(cmpData, data.GlyphAdvOffset + offset);
-        LoadGID(ctx, cmpData.GlyphIndex);
+        LoadGlyphData(ctx, cmpData.GlyphIndex);
         if (!TryAdvanceCompoundOffset(offset, cmpData.Flags))
             break;
     }
@@ -319,12 +371,10 @@ void FontTrueTypeSubset::LoadCompound(GlyphContext& ctx, const GlyphData& data)
 // Ref: https://docs.microsoft.com/en-us/typography/opentype/spec/glyf
 void FontTrueTypeSubset::WriteGlyphTable(OutputStream& output)
 {
-    for (unsigned gid : m_orderedGIDs)
+    for (unsigned i = 0; i < m_subsetGIDs.size(); i++)
     {
-        auto& glyphData = m_glyphDatas[gid];
-        if (glyphData.GlyphLength == 0)
-            continue;
-
+        auto& gid = m_subsetGIDs[i];
+        auto& glyphData = m_glyphDatas[gid.Id];
         if (glyphData.IsCompound)
         {
             // Fix the compound glyph data to remap original GIDs indices
@@ -349,41 +399,11 @@ void FontTrueTypeSubset::WriteGlyphTable(OutputStream& output)
 // https://docs.microsoft.com/en-us/typography/opentype/spec/hmtx
 void FontTrueTypeSubset::WriteHmtxTable(OutputStream& output)
 {
-    struct LongHorMetrics
+    for (unsigned i = 0; i < m_subsetGIDs.size(); i++)
     {
-        uint16_t AdvanceWidth;
-        int16_t LeftSideBearing;
-    };
-
-    unsigned hmtxTableOffset = GetTableOffset(TTAG_hmtx);
-    unsigned leftSideBearingsOffset = hmtxTableOffset + m_HMetricsCount * sizeof(LongHorMetrics);
-    uint16_t advanceWidth;
-    int16_t leftSideBearing;
-    for (unsigned i = 0; i < m_orderedGIDs.size(); i++)
-    {
-        unsigned gid = m_orderedGIDs[i];
-        if (gid < m_HMetricsCount)
-        {
-            // The full horizontal metrics exists, just copy it
-            CopyData(output, hmtxTableOffset + gid * sizeof(LongHorMetrics), sizeof(LongHorMetrics));
-        }
-        else
-        {
-            // The full horizontal metrics doesn't exists, just copy the left side bearings
-            // at the end of the metrics and last know advance width. From the specification:
-            // "As an optimization, the number of records can be less than the number
-            // of glyphs, in which case the advance width value of the last record applies
-            // to all remaining glyph IDs"
-            m_device->Seek(leftSideBearingsOffset + sizeof(int16_t) * (gid - m_HMetricsCount));
-
-            utls::ReadInt16BE(*m_device, leftSideBearing);
-
-            m_device->Seek(hmtxTableOffset + (m_HMetricsCount - 1) * sizeof(LongHorMetrics));
-            utls::ReadUInt16BE(*m_device, advanceWidth);
-
-            utls::WriteUInt16BE(output, advanceWidth);
-            utls::WriteInt16BE(output, leftSideBearing);
-        }
+        auto& metrics = m_subsetGIDs[i].Metrics;
+        utls::WriteUInt16BE(output, metrics.AdvanceWidth);
+        utls::WriteInt16BE(output, metrics.LeftSideBearing);
     }
 }
 
@@ -399,9 +419,9 @@ void FontTrueTypeSubset::WriteLocaTable(OutputStream& output)
     uint32_t glyphAddress = 0;
     if (m_isLongLoca)
     {
-        for (unsigned i = 0; i < m_orderedGIDs.size(); i++)
+        for (unsigned i = 0; i < m_subsetGIDs.size(); i++)
         {
-            unsigned gid = m_orderedGIDs[i];
+            unsigned gid = m_subsetGIDs[i].Id;
             auto& glyphData = m_glyphDatas[gid];
             utls::WriteUInt32BE(output, glyphAddress);
             glyphAddress += glyphData.GlyphLength;
@@ -412,9 +432,9 @@ void FontTrueTypeSubset::WriteLocaTable(OutputStream& output)
     }
     else
     {
-        for (unsigned i = 0; i < m_orderedGIDs.size(); i++)
+        for (unsigned i = 0; i < m_subsetGIDs.size(); i++)
         {
-            unsigned gid = m_orderedGIDs[i];
+            unsigned gid = m_subsetGIDs[i].Id;
             auto& glyphData = m_glyphDatas[gid];
             utls::WriteUInt16BE(output, static_cast<uint16_t>(glyphAddress >> 1));
             glyphAddress += glyphData.GlyphLength;
@@ -472,13 +492,13 @@ void FontTrueTypeSubset::WriteTables(string& buffer)
                 // https://docs.microsoft.com/en-us/typography/opentype/spec/maxp
                 CopyData(output, table.Offset, table.Length);
                 // Write the number of glyphs in the font
-                utls::WriteUInt16BE(buffer.data() + tableOffset + 4, (uint16_t)m_glyphDatas.size());
+                utls::WriteUInt16BE(buffer.data() + tableOffset + 4, (uint16_t)m_subsetGIDs.size());
                 break;
             case TTAG_hhea:
                 // https://docs.microsoft.com/en-us/typography/opentype/spec/hhea
                 CopyData(output, table.Offset, table.Length);
                 // Write numOfLongHorMetrics, see also 'hmtx' table
-                utls::WriteUInt16BE(buffer.data() + tableOffset + 34, m_HMetricsCountNew);
+                utls::WriteUInt16BE(buffer.data() + tableOffset + 34, (uint16_t)m_subsetGIDs.size());
                 break;
             case TTAG_post:
                 // https://docs.microsoft.com/en-us/typography/opentype/spec/post

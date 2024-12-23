@@ -27,10 +27,6 @@ public:
 
     std::unique_ptr<PdfCMapEncoding> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const override;
 
-    unsigned GetGlyphCount() const override;
-
-    bool TryGetGlyphWidth(unsigned gid, double& width) const override;
-
     bool HasUnicodeMapping() const override;
 
     bool TryGetGID(char32_t codePoint, unsigned& gid) const override;
@@ -96,6 +92,10 @@ public:
 protected:
     std::string_view GetBaseFontName() const override;
 
+    unsigned GetGlyphCountFontProgram() const override;
+
+    bool TryGetGlyphWidthFontProgram(unsigned gid, double& width) const override;
+
     bool getIsBoldHint() const override;
 
     bool getIsItalicHint() const override;
@@ -103,8 +103,8 @@ protected:
     const PdfCIDToGIDMapConstPtr& getCIDToGIDMap() const override;
 
 private:
-    static std::unique_ptr<const PdfFontMetricsFreetype> CreateSubstituteMetrics(
-        const PdfFontMetrics& metrics, PdfALevel pdfACompliance);
+    static std::unique_ptr<const PdfFontMetricsFreetype> CreateMergedMetrics(
+        const PdfFontMetrics& metricsToMerge);
 
     PdfFontMetricsFreetype(FT_Face face, const datahandle& data, const PdfFontMetrics* refMetrics = nullptr);
 

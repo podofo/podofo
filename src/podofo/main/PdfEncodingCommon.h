@@ -42,6 +42,9 @@ namespace PoDoFo
         void WriteHexTo(std::string& str, bool wrap = true) const;
     };
 
+    // TODO: Optimize me
+    using PdfCharCodeList = std::vector<PdfCharCode>;
+
     /** Represent a CID (Character ID) with full code unit information
      */
     struct PODOFO_API PdfCID final
@@ -62,6 +65,28 @@ namespace PoDoFo
          * Create a CID that has an identical code as a code unit representation
          */
         PdfCID(const PdfCharCode& unit);
+    };
+
+    /** Represents a GID (Glyph ID) with PDF metrics identifier
+     */
+    struct PODOFO_API PdfGID final
+    {
+        unsigned Id = 0;            ///< The id of the glyph in the font program
+        unsigned MetricsId = 0;     ///< The id of the glyph in the PDF metrics (/Widths, /W arrays). In case of Type 0 CIDFonts this effectively corresponds to the CID
+
+        PdfGID();
+
+        PdfGID(unsigned id);
+
+        PdfGID(unsigned id, unsigned metricsId);
+    };
+
+    /** Represents a bundle of a CID and GID information
+     */
+    struct PODOFO_API PdfCharGIDInfo
+    {
+        unsigned Cid = 0;           ///< The identifier of the character
+        PdfGID Gid;                 ///< The identifier of the glyph in font program and PDF metrics
     };
 
     struct PODOFO_API PdfEncodingLimits final

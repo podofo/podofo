@@ -42,8 +42,8 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Face face, const datahandle& d
     init(refMetrics);
 }
 
-unique_ptr<const PdfFontMetricsFreetype> PdfFontMetricsFreetype::CreateSubstituteMetrics(
-    const PdfFontMetrics& metrics, PdfALevel pdfACompliance)
+unique_ptr<const PdfFontMetricsFreetype> PdfFontMetricsFreetype::CreateMergedMetrics(
+    const PdfFontMetrics& metrics)
 {
     if (metrics.GetFontFileType() == PdfFontFileType::Type1)
     {
@@ -55,8 +55,7 @@ unique_ptr<const PdfFontMetricsFreetype> PdfFontMetricsFreetype::CreateSubstitut
         return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(
             face.release(), datahandle(std::move(cffDest)), &metrics));
     }
-    else if (metrics.GetFontFileType() == PdfFontFileType::OpenTypeCFF
-        && (pdfACompliance == PdfALevel::L1A || pdfACompliance == PdfALevel::L1B))
+    else if (metrics.GetFontFileType() == PdfFontFileType::OpenTypeCFF)
     {
         // PDFA/1 is limited to features of PDF 1.4, which supported only CFF fonts
         // as described by Adobe Technical Note #5176 "The Compact Font Format Specification"
@@ -190,6 +189,9 @@ void PdfFontMetricsFreetype::init(const PdfFontMetrics* refMetrics)
 
         m_StrikeThroughPosition = refMetrics->GetStrikeThroughPosition();
         m_StrikeThroughThickness = refMetrics->GetStrikeThroughThickness();
+
+        // Enforce parsed metrics from reference
+        SetParsedWidths(refMetrics->GetParsedWidths());
     }
 
     // OS2 Table is available only in TT fonts
@@ -354,12 +356,12 @@ PdfFontStretch PdfFontMetricsFreetype::GetFontStretch() const
     return m_FontStretch;
 }
 
-unsigned PdfFontMetricsFreetype::GetGlyphCount() const
+unsigned PdfFontMetricsFreetype::GetGlyphCountFontProgram() const
 {
     return (unsigned)m_Face->num_glyphs;
 }
 
-bool PdfFontMetricsFreetype::TryGetGlyphWidth(unsigned gid, double& width) const
+bool PdfFontMetricsFreetype::TryGetGlyphWidthFontProgram(unsigned gid, double& width) const
 {
     if (FT_Load_Glyph(m_Face, gid, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) != 0)
     {
