@@ -209,6 +209,7 @@ The following is an incomplete list of 0.9.8 -> 0.10.0 API modifications. Feel f
 - `PdfDocument::GetPage()`/`PdfDocument::CreatePage()` removed and moved to `PdfPageCollection`
 - `PdfDocument::CreateFont()`, `PdfDocument::CreateFontSubset` moved to `PdfFontManager::SearchFonts()`, `PdfFontManager::GetStandard14Font()`, `PdfFontManager::GetOrCreateFont()`, `PdfDocument::GetOrCreateFontFromBuffer()`
 - Removed `PdfDocument::CreateDuplicateFontType1()`
+- Renamed `PdfMemDocument::Write()` -> `PdfMemDocument::Save()`
 - `PdfArray::FindAt()` now returns reference
 - `PdfDocument::GetFontCache()` -> `PdfDocument::GetFonts()`
 - `PdfPage::GetAnnot()` and annotations methods are removed. Use `PdfPage::GetAnnots()` instead
