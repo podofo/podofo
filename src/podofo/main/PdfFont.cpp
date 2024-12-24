@@ -757,7 +757,7 @@ PdfCharCode PdfFont::AddCharCodeSafe(unsigned gid, const unicodeview& codePoints
 
 bool PdfFont::NeedsCIDMapWriting() const
 {
-    return m_subsetCIDMap != nullptr;
+    return m_subsetCIDMap != nullptr && m_subsetCIDMap->size() != 0;
 }
 
 bool PdfFont::tryConvertToGIDs(const std::string_view& utf8Str, PdfGlyphAccess access, std::vector<unsigned>& gids) const
