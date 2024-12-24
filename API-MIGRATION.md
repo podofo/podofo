@@ -15,6 +15,7 @@
   * `DoXObject` is issued for Form XObject only if `PdfContentReaderFlags::SkipFollowFormXObjects` is passed, otherwise `BeginXObjectForm` is issued 
 - `PdfContentReaderFlags`: Renamed `DontFollowXObjectForms` -> `SkipFollowFormXObjects`
 - `PdfFont`:
+  * Renamed `IsCIDKeyed()` -> `IsCIDFont()`, which is less confusing
   * Renamed `AddSubsetGIDs` -> `AddSubsetCIDs`
   * Renamed `TryGetSubstituteFont` -> `TryCreateProxyFont`
   * Removed `GetUsedGIDs`: it was more implementation detail for various embedding operations

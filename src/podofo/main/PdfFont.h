@@ -292,9 +292,9 @@ public:
     static bool IsStandard14Font(const std::string_view& fontName, bool useAltNames, PdfStandard14FontType& stdFont);
 
 public:
-    /** True if the font is CID keyed
+    /** True if the font is a composite CIDFont
      */
-    bool IsCIDKeyed() const;
+    bool IsCIDFont() const;
 
     /**
      * True if the font is loaded from a PdfObject

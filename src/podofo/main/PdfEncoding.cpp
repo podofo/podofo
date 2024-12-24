@@ -326,7 +326,7 @@ const PdfCharCode& PdfEncoding::GetLastChar() const
 void PdfEncoding::ExportToFont(PdfFont& font) const
 {
     auto& fontDict = font.GetDictionary();
-    if (font.IsCIDKeyed())
+    if (font.IsCIDFont())
     {
         auto fontName = font.GetName();
 
@@ -341,7 +341,7 @@ void PdfEncoding::ExportToFont(PdfFont& font) const
 
         // Some CMap encodings has a name representation, such as
         // Identity-H/Identity-V. NOTE: Use a fixed representation only
-        // if we are not subsetting. In that case we want a CID mapping
+        // if we are not subsetting. In that case we unconditionally want a CID mapping
         if (font.NeedsCIDMapWriting() || !tryExportEncodingTo(fontDict, true))
         {
             // If it doesn't have a name representation, try to export a CID CMap

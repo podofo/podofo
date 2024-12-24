@@ -473,7 +473,7 @@ void PdfFont::FillDescriptor(PdfDictionary& dict) const
             dict.AddKey("StemH"_n, static_cast<int64_t>(std::round(stemH / matrix[3])));
         }
 
-        if (!IsCIDKeyed())
+        if (!IsCIDFont())
         {
             // Default for /MissingWidth is 0
             // NOTE: We assume CID keyed fonts to use the /DW entry
@@ -572,7 +572,7 @@ void PdfFont::EmbedFontFileCFF(PdfObject& descriptor, const bufferview& data)
     embedFontFileData(descriptor, "FontFile3"_n, [&](PdfDictionary& dict)
     {
         PdfName subtype;
-        if (IsCIDKeyed())
+        if (IsCIDFont())
             subtype = "CIDFontType0C"_n;
         else
             subtype = "Type1C"_n;
@@ -1087,7 +1087,7 @@ bool PdfFont::IsStandard14Font(const string_view& fontName, bool useAltNames, Pd
     return ::IsStandard14Font(fontName, useAltNames, stdFont);
 }
 
-bool PdfFont::IsCIDKeyed() const
+bool PdfFont::IsCIDFont() const
 {
     switch (GetType())
     {
