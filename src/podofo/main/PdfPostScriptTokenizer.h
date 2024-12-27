@@ -30,6 +30,9 @@ class PODOFO_API PdfPostScriptTokenizer final : private PdfTokenizer
 {
 public:
     PdfPostScriptTokenizer(PdfPostScriptLanguageLevel level = PdfPostScriptLanguageLevel::L2);
+    /**
+     * \param buffer a shareable internal/temporary buffer. It's not the buffer where the contents will be read!
+     */
     PdfPostScriptTokenizer(const std::shared_ptr<charbuff>& buffer,
         PdfPostScriptLanguageLevel level = PdfPostScriptLanguageLevel::L2);
 public:
