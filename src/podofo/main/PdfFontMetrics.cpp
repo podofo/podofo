@@ -8,6 +8,7 @@
 #include "PdfFontMetrics.h"
 
 #include <podofo/private/FreetypePrivate.h>
+#include <podofo/private/FontUtils.h>
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
@@ -20,9 +21,6 @@
 using namespace std;
 using namespace PoDoFo;
 
-static FT_Face getFontFaceFromFile(const string_view& filepath, unsigned faceIndex, unique_ptr<charbuff>& data);
-static FT_Face getFontFaceFromBuffer(const bufferview& view, unsigned faceIndex, unique_ptr<charbuff>& data);
-
 // Default matrix: thousands of PDF units
 static Matrix s_DefaultMatrix = { 1e-3, 0.0, 0.0, 1e-3, 0, 0 };
 
@@ -32,31 +30,127 @@ PdfFontMetrics::~PdfFontMetrics() { }
 
 unique_ptr<const PdfFontMetrics> PdfFontMetrics::Create(const string_view& filepath, unsigned faceIndex)
 {
-    return Create(filepath, faceIndex, nullptr);
+    return CreateFromFile(filepath, faceIndex, nullptr, false);
 }
-unique_ptr<const PdfFontMetrics> PdfFontMetrics::Create(const string_view& filepath, unsigned faceIndex, const PdfFontMetrics* refMetrics)
+unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateFromFile(const string_view& filepath, unsigned faceIndex,
+    const PdfFontMetrics* refMetrics, bool skipNormalization)
 {
-    unique_ptr<charbuff> data;
-    auto face = getFontFaceFromFile(filepath, faceIndex, data);
+    charbuff buffer;
+    unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> face(FT::CreateFaceFromFile(filepath, faceIndex, buffer), FT_Done_Face);
     if (face == nullptr)
+    {
+        PoDoFo::LogMessage(PdfLogSeverity::Error, "Error when loading the face from buffer");
         return nullptr;
+    }
+    auto ret = CreateFromFace(face.get(), std::make_unique<charbuff>(std::move(buffer)), refMetrics, skipNormalization);
+    if (ret != nullptr)
+    {
+        ret->m_FilePath = filepath;
+        ret->m_FaceIndex = faceIndex;
+    }
 
-    unique_ptr<PdfFontMetrics> ret(new PdfFontMetricsFreetype(face, std::move(data), refMetrics));
-    ret->m_FilePath = filepath;
-    ret->m_FaceIndex = faceIndex;
+    (void)face.release();
     return ret;
 }
 
 unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateFromBuffer(const bufferview& buffer, unsigned faceIndex)
 {
-    unique_ptr<charbuff> data;
-    auto face = getFontFaceFromBuffer(buffer, faceIndex, data);
+    return CreateFromBuffer(buffer, faceIndex, nullptr, false);
+}
+
+unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateFromBuffer(const bufferview& view, unsigned faceIndex,
+    const PdfFontMetrics* refMetrics, bool skipNormalization)
+{
+    charbuff buffer;
+    unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> face(FT::CreateFaceFromBuffer(view, faceIndex, buffer), FT_Done_Face);
     if (face == nullptr)
+    {
+        PoDoFo::LogMessage(PdfLogSeverity::Error, "Error when loading the face from buffer");
+        return nullptr;
+    }
+
+
+    auto ret = CreateFromFace(face.get(), std::make_unique<charbuff>(buffer), refMetrics, skipNormalization);
+    if (ret != nullptr)
+        ret->m_FaceIndex = faceIndex;
+
+    (void)face.release();
+    return ret;
+}
+
+unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateMergedMetrics(bool skipNormalization) const
+{
+    if (!skipNormalization)
+    {
+        auto fontFileType = GetFontFileType();
+        if (fontFileType == PdfFontFileType::Type1)
+        {
+            // Unconditionally convert the Type1 font to CFF: this allow
+            // the font file to be insterted in a CID font
+            charbuff cffDest;
+            utls::ConvertFontType1ToCFF(GetOrLoadFontFileData(), cffDest);
+            unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> face(FT::CreateFaceFromBuffer(cffDest), FT_Done_Face);
+            auto ret = unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(
+                face.get(), datahandle(std::move(cffDest)), this));
+            (void)face.release();
+            return ret;
+        }
+        else if (fontFileType == PdfFontFileType::OpenTypeCFF)
+        {
+            // PDFA/1 is limited to features of PDF 1.4, which supported only CFF fonts
+            // as described by Adobe Technical Note #5176 "The Compact Font Format Specification"
+            charbuff cffDest;
+            unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> face(FT::ExtractCFFFont(GetFaceHandle(), cffDest), FT_Done_Face);
+            auto ret = unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(
+                face.get(), datahandle(std::move(cffDest)), this));
+            (void)face.release();
+            return ret;
+        }
+    }
+
+    auto face = GetFaceHandle();
+    auto ret = unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(face,
+        GetFontFileDataHandle(), this));
+    // Reference the face after having created a new PdfFontMetricsFreetype instance
+    FT_Reference_Face(face);
+    return ret;
+}
+
+unique_ptr<PdfFontMetrics> PdfFontMetrics::CreateFromFace(FT_Face face, unique_ptr<charbuff>&& buffer,
+    const PdfFontMetrics* refMetrics, bool skipNormalization)
+{
+    PdfFontFileType format;
+    if (!FT::TryGetFontFileFormat(face, format))
         return nullptr;
 
-    unique_ptr<PdfFontMetrics> metrics(new PdfFontMetricsFreetype(face, std::move(data)));
-    metrics->m_FaceIndex = faceIndex;
-    return metrics;
+    if (!skipNormalization)
+    {
+        if (format == PdfFontFileType::Type1)
+        {
+            // Unconditionally convert the Type1 font to CFF: this allow
+            // the font file to be insterted in a CID font
+            charbuff cffDest;
+            utls::ConvertFontType1ToCFF(*buffer, cffDest);
+            unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> newface(FT::CreateFaceFromBuffer(cffDest), FT_Done_Face);
+            auto ret = unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(
+                newface.get(), datahandle(std::move(cffDest)), refMetrics));
+            (void)newface.release();
+            return ret;
+        }
+        else if (format == PdfFontFileType::OpenTypeCFF)
+        {
+            // PDFA/1 is limited to features of PDF 1.4, which supported only CFF fonts
+            // as described by Adobe Technical Note #5176 "The Compact Font Format Specification"
+            charbuff cffDest;
+            unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> newface(FT::ExtractCFFFont(face, cffDest), FT_Done_Face);
+            auto ret = unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(
+                newface.get(), datahandle(std::move(cffDest)), refMetrics));
+            (void)newface.release();
+            return ret;
+        }
+    }
+
+    return unique_ptr<PdfFontMetrics>(new PdfFontMetricsFreetype(face, datahandle(std::move(buffer)), refMetrics));
 }
 
 unsigned PdfFontMetrics::GetGlyphCount() const
@@ -469,7 +563,7 @@ FT_Face PdfFontMetricsBase::GetFaceHandle() const
     {
         auto& rthis = const_cast<PdfFontMetricsBase&>(*this);
         auto view = GetFontFileDataHandle().view();
-        // NOTE: The data always represent a face, collections are not 
+        // NOTE: The data always represents a face, not a collection
         if (view.size() != 0)
             rthis.m_Face = FT::CreateFaceFromBuffer(view);
 
@@ -479,36 +573,3 @@ FT_Face PdfFontMetricsBase::GetFaceHandle() const
     return m_Face;
 }
 
-FT_Face getFontFaceFromFile(const string_view& filepath, unsigned faceIndex, unique_ptr<charbuff>& data)
-{
-    charbuff buffer;
-    auto face = FT::CreateFaceFromFile(filepath, faceIndex, buffer);
-    if (face == nullptr)
-    {
-        PoDoFo::LogMessage(PdfLogSeverity::Error, "Error when loading the face from buffer");
-        return nullptr;
-    }
-
-    if (!FT::IsPdfSupported(face))
-        return nullptr;
-
-    data.reset(new charbuff(std::move(buffer)));
-    return face;
-}
-
-FT_Face getFontFaceFromBuffer(const bufferview& view, unsigned faceIndex, unique_ptr<charbuff>& data)
-{
-    charbuff buffer;
-    auto face = FT::CreateFaceFromBuffer(view, faceIndex, buffer);
-    if (face == nullptr)
-    {
-        PoDoFo::LogMessage(PdfLogSeverity::Error, "Error when loading the face from buffer");
-        return nullptr;
-    }
-
-    if (!FT::IsPdfSupported(face))
-        return nullptr;
-
-    data.reset(new charbuff(std::move(buffer)));
-    return face;
-}

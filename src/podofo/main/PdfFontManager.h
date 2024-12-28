@@ -148,9 +148,10 @@ private:
     static void AddFontDirectory(const std::string_view& path);
 
     /** NOTE: This overload doesn't perform normalization or Std14 font search
+     * \param skipNormalization the font search is not normalized for embedding purpouses
      */
     static PdfFontMetricsConstPtr SearchFontMetrics(const std::string_view& fontPattern,
-        const PdfFontSearchParams& params, const PdfFontMetrics* metrics);
+        const PdfFontSearchParams& params, const PdfFontMetrics& metrics, bool skipNormalization);
 
 private:
     /** A private structure, which represents a cached font
@@ -205,7 +206,7 @@ private:
 
 private:
     static std::unique_ptr<const PdfFontMetrics> searchFontMetrics(const std::string_view& fontName,
-        const PdfFontSearchParams& params, const PdfFontMetrics* refMetrics = nullptr);
+        const PdfFontSearchParams& params, const PdfFontMetrics* refMetrics, bool skipNormalization);
     PdfFont* getImportedFont(const std::string_view& pattern,
         const PdfFontSearchParams& searchParams, const PdfFontCreateParams& createParams);
     PdfFont* addImported(std::vector<PdfFont*>& fonts, std::unique_ptr<PdfFont>&& font);

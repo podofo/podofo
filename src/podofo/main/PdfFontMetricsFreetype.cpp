@@ -11,8 +11,6 @@
 #include FT_TRUETYPE_TABLES_H
 #include FT_TYPE1_TABLES_H
 
-#include <podofo/private/FontUtils.h>
-
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfVariant.h"
@@ -40,38 +38,6 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Face face, const datahandle& d
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The buffer can't be null");
 
     init(refMetrics);
-}
-
-unique_ptr<const PdfFontMetricsFreetype> PdfFontMetricsFreetype::CreateMergedMetrics(
-    const PdfFontMetrics& metrics)
-{
-    if (metrics.GetFontFileType() == PdfFontFileType::Type1)
-    {
-        // Unconditionally convert the Type1 font to CFF: this allow
-        // the font file to be insterted in a CID font
-        charbuff cffDest;
-        utls::ConvertFontType1ToCFF(metrics.GetOrLoadFontFileData(), cffDest);
-        unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> face(FT::CreateFaceFromBuffer(cffDest), FT_Done_Face);
-        return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(
-            face.release(), datahandle(std::move(cffDest)), &metrics));
-    }
-    else if (metrics.GetFontFileType() == PdfFontFileType::OpenTypeCFF)
-    {
-        // PDFA/1 is limited to features of PDF 1.4, which supported only CFF fonts
-        // as described by Adobe Technical Note #5176 "The Compact Font Format Specification"
-        charbuff cffDest;
-        unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> face(FT::ExtractCFFFont(metrics.GetFaceHandle(), cffDest), FT_Done_Face);
-        return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(
-            face.release(), datahandle(std::move(cffDest)), &metrics));
-    }
-    else
-    {
-        // Reference the face before creating a new PdfFontMetricsFreetype instance
-        auto face = metrics.GetFaceHandle();
-        FT_Reference_Face(face);
-        return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(face,
-            metrics.GetFontFileDataHandle(), &metrics));
-    }
 }
 
 PdfFontMetricsFreetype::~PdfFontMetricsFreetype()

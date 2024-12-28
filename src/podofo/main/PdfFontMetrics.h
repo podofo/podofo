@@ -361,7 +361,18 @@ protected:
     void SetParsedWidths(GlyphMetricsListConstPtr&& parsedWidths);
 
 private:
-    static std::unique_ptr<const PdfFontMetrics> Create(const std::string_view& filepath, unsigned faceIndex, const PdfFontMetrics* metrics);
+    static std::unique_ptr<const PdfFontMetrics> CreateFromFile(const std::string_view& filepath, unsigned faceIndex,
+        const PdfFontMetrics* metrics, bool skipNormalization);
+
+    static std::unique_ptr<const PdfFontMetrics> CreateFromBuffer(const bufferview& buffer, unsigned faceIndex,
+        const PdfFontMetrics* metrics, bool skipNormalization);
+
+    static std::unique_ptr<PdfFontMetrics> CreateFromFace(FT_Face face, std::unique_ptr<charbuff>&& buffer,
+        const PdfFontMetrics* metrics, bool skipNormalization);
+
+    /** Create a new font metrics by merging characteristics from this instance
+     */
+    std::unique_ptr<const PdfFontMetrics> CreateMergedMetrics(bool skipNormalization) const;
 
     void initFamilyFontNameSafe();
     static PdfEncodingMapConstPtr getFontType1ImplicitEncoding(FT_Face face);

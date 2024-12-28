@@ -78,11 +78,13 @@ bool PdfFont::TryCreateProxyFont(PdfFontCreateFlags initFlags, PdfFont*& proxyFo
 
     auto encoding = GetEncoding();
     auto& metrics = GetMetrics();
+    // No need to normalize the font if embedding is not enabled
+    bool skipNormalization = (initFlags & PdfFontCreateFlags::DontEmbed) != PdfFontCreateFlags::None;
     PdfFontMetricsConstPtr newMetrics;
     PdfStandard14FontType std14Font = PdfStandard14FontType::Unknown;
     if (metrics.HasFontFileData() && !m_Metrics->IsStandard14FontMetrics(std14Font))
     {
-        newMetrics = PdfFontMetricsFreetype::CreateMergedMetrics(metrics);
+        newMetrics = metrics.CreateMergedMetrics(skipNormalization);
     }
     else
     {
@@ -101,7 +103,7 @@ bool PdfFont::TryCreateProxyFont(PdfFontCreateFlags initFlags, PdfFont*& proxyFo
             PdfFontSearchParams params;
             params.Style = metrics.GetStyle();
             params.FontFamilyPattern = metrics.GeFontFamilyNameSafe();
-            newMetrics = PdfFontManager::SearchFontMetrics(metrics.GetPostScriptNameRough(), params, &metrics);
+            newMetrics = PdfFontManager::SearchFontMetrics(metrics.GetPostScriptNameRough(), params, metrics, skipNormalization);
             if (newMetrics == nullptr)
             {
                 proxyFont = nullptr;
