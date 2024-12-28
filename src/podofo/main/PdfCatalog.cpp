@@ -122,14 +122,16 @@ PdfPageMode PdfCatalog::GetPageMode() const
     return thePageMode;
 }
 
-void PdfCatalog::SetPageMode(PdfPageMode inMode)
+void PdfCatalog::SetPageMode(nullable<PdfPageMode> mode)
 {
-    switch (inMode) {
-        default:
-        case PdfPageMode::DontCare:
-            // this value means leave it alone!
-            break;
+    if (mode == nullptr)
+    {
+        GetDictionary().RemoveKey("PageMode");
+        return;
+    }
 
+    switch (*mode)
+    {
         case PdfPageMode::UseNone:
             GetDictionary().AddKey("PageMode"_n, "UseNone"_n);
             break;
@@ -153,6 +155,8 @@ void PdfCatalog::SetPageMode(PdfPageMode inMode)
         case PdfPageMode::UseAttachments:
             GetDictionary().AddKey("PageMode"_n, "UseAttachments"_n);
             break;
+        default:
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 }
 
@@ -162,8 +166,7 @@ void PdfCatalog::SetUseFullScreen()
     PdfPageMode	curMode = GetPageMode();
 
     // if current mode is anything but "don't care", we need to move that to non-full-screen
-    if (curMode != PdfPageMode::DontCare)
-        setViewerPreference("NonFullScreenPageMode"_n, PdfObject(GetDictionary().MustFindKey("PageMode")));
+    setViewerPreference("NonFullScreenPageMode"_n, PdfObject(GetDictionary().MustFindKey("PageMode")));
 
     SetPageMode(PdfPageMode::FullScreen);
 }
@@ -242,16 +245,16 @@ void PdfCatalog::SetBindingDirection(const PdfName& direction)
     setViewerPreference("Direction"_n, direction);
 }
 
-void PdfCatalog::SetPageLayout(PdfPageLayout layout)
+void PdfCatalog::SetPageLayout(nullable<PdfPageLayout> layout)
 {
-    switch (layout)
+    if (layout == nullptr)
     {
-        default:
-        case PdfPageLayout::Ignore:
-            break;	// means do nothing
-        case PdfPageLayout::Default:
-            GetDictionary().RemoveKey("PageLayout");
-            break;
+        GetDictionary().RemoveKey("PageLayout");
+        return;
+    }
+
+    switch (*layout)
+    {
         case PdfPageLayout::SinglePage:
             GetDictionary().AddKey("PageLayout"_n, "SinglePage"_n);
             break;
@@ -270,5 +273,7 @@ void PdfCatalog::SetPageLayout(PdfPageLayout layout)
         case PdfPageLayout::TwoPageRight:
             GetDictionary().AddKey("PageLayout"_n, "TwoPageRight"_n);
             break;
+        default:
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 }

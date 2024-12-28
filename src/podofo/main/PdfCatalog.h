@@ -38,9 +38,9 @@ namespace PoDoFo
         const PdfObject* GetLangObject() const;
 
         /** Sets the opening mode for a document.
-         *  \param inMode which mode to set
+         *  \param mode which mode to set
          */
-        void SetPageMode(PdfPageMode inMode);
+        void SetPageMode(nullable<PdfPageMode> mode);
 
         /** Gets the opening mode for a document.
          *  \returns which mode is set
@@ -53,7 +53,7 @@ namespace PoDoFo
 
         /** Sets the page layout for a document.
          */
-        void SetPageLayout(PdfPageLayout inLayout);
+        void SetPageLayout(nullable<PdfPageLayout> layout);
 
         /** Set the document's Viewer Preferences:
          *  Hide the toolbar in the viewer.

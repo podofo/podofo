@@ -377,7 +377,7 @@ enum class PdfTextRenderingMode
  */
 enum class PdfStrokeStyle
 {
-    Solid,
+    Solid = 1,
     Dash,
     Dot,
     DashDot,
@@ -499,8 +499,7 @@ enum class PdfPageSize
  */
 enum class PdfPageMode
 {
-    DontCare,
-    UseNone,
+    UseNone = 1,
     UseThumbs,
     UseBookmarks,
     FullScreen,
@@ -517,9 +516,7 @@ enum class PdfPageMode
  */
 enum class PdfPageLayout
 {
-    Ignore,
-    Default,
-    SinglePage,
+    SinglePage = 1,
     OneColumn,
     TwoColumnLeft,
     TwoColumnRight,

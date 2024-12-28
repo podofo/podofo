@@ -1,4 +1,8 @@
 ## 0.10.1 -> 1.0.0
+- `PdfPageMode`: Removed `DontCare` (which was something like a pointless "ignore")
+- `PdfPageLayout`:
+  * Removed `Ignore` (pointless)
+  * Removed `Default`: just use nullptr in `PdfCatalog::SetPageLayout()`
 - `GIDMap`: Removed, it was just a infrastructural typedef
 - `PdfCIDToGIDMap`: Removed `HasGlyphAccess`, this map is always for accessing font program GIDs
 - `PdfGlyphAccess`: `Width` renamed to `ReadMetrics`
