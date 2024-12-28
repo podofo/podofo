@@ -150,7 +150,7 @@ void PdfWriter::WritePdfObjects(OutputStreamDevice& device, const PdfIndirectObj
                     size_t objRefLength = obj->GetIndirectReference().ToString().length() + 2;
 
                     // the offset points just after the "0 0 obj" string
-                    if (parserObject->GetOffset() - objRefLength > 0)
+                    if (parserObject->GetOffset() - (ssize_t)objRefLength > 0)
                     {
                         xref.AddInUseObject(obj->GetIndirectReference(), parserObject->GetOffset() - objRefLength);
                         continue;
