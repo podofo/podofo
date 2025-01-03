@@ -162,9 +162,6 @@ void PdfCatalog::SetPageMode(nullable<PdfPageMode> mode)
 
 void PdfCatalog::SetUseFullScreen()
 {
-    // first, we get the current mode
-    PdfPageMode	curMode = GetPageMode();
-
     // if current mode is anything but "don't care", we need to move that to non-full-screen
     setViewerPreference("NonFullScreenPageMode"_n, PdfObject(GetDictionary().MustFindKey("PageMode")));
 

@@ -65,7 +65,7 @@ namespace
         sel_by_cid,
     };
 
-    typedef void(*SubsetCallback)(ConvCtxPtr h, GlyphSelector type, unsigned short id, const char* name);
+    typedef void(*SubsetCallback)(ConvCtxPtr h, GlyphSelector type, unsigned short id);
 
     struct GlyphSubsetCtx
     {
@@ -319,20 +319,20 @@ static void doSubset(ConvCtxPtr h, SubsetCallback callback)
 
     // Ensure the first glyph is always the first one
     h->subsetCtx.cid = 0;
-    h->subsetCtx.hAdv = (float)h->metrics->GetGlyphWidth(0) / matrix[0];
-    callback(h, selector, 0, nullptr);
+    h->subsetCtx.hAdv = (float)(h->metrics->GetGlyphWidth(0) / matrix[0]);
+    callback(h, selector, 0);
 
     for (unsigned i = 0; i < h->subsetInfos.size(); i++)
     {
         auto& info = h->subsetInfos[i];
         // Compute the overridden width and set it to the context
         h->subsetCtx.cid = (unsigned short)(i + 1);
-        h->subsetCtx.hAdv = (float)h->metrics->GetGlyphWidth(info.Gid.MetricsId) / matrix[0];
-        callback(h, selector, (unsigned short)info.Gid.Id, nullptr);
+        h->subsetCtx.hAdv = (float)(h->metrics->GetGlyphWidth(info.Gid.MetricsId) / matrix[0]);
+        callback(h, selector, (unsigned short)info.Gid.Id);
     }
 }
 
-static void callbackGlyphT1(ConvCtxPtr h, GlyphSelector type, unsigned short id, const char* name)
+static void callbackGlyphT1(ConvCtxPtr h, GlyphSelector type, unsigned short id)
 {
     switch (type)
     {
@@ -379,7 +379,7 @@ static void t1rReadFont(ConvCtxPtr h, long origin)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "t1r: t1rEndFont");
 }
 
-static void callbackGlyphCFF(ConvCtxPtr h, GlyphSelector type, unsigned short id, const char* name)
+static void callbackGlyphCFF(ConvCtxPtr h, GlyphSelector type, unsigned short id)
 {
     switch (type)
     {
