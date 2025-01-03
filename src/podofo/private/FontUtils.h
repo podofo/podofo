@@ -3,9 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <podofo/main/PdfDeclarations.h>
+#include <podofo/main/PdfFontMetrics.h>
 
-namespace utls
+namespace PoDoFo
 {
-    void ConvertFontType1ToCFF(const PoDoFo::bufferview& src, PoDoFo::charbuff& dst);
+    void ConvertFontType1ToCFF(const bufferview& src, charbuff& dst);
+    void SubsetFont(const PdfFontMetrics& metrics, const cspan<PdfCharGIDInfo>& subsetInfos,
+        const PdfCIDSystemInfo& cidInfo, charbuff& dst);
 }

@@ -176,8 +176,15 @@ bool PdfEncoding::tryGetCharCode(PdfFont& font, unsigned gid, const unicodeview&
 {
     if (font.IsSubsettingEnabled() && !font.IsProxy())
     {
-        codeUnit = font.AddSubsetGIDSafe(gid, codePoints).Unit;
-        return true;
+        PdfCID cid;
+        if (font.TryAddSubsetGID(gid, codePoints, cid))
+        {
+            codeUnit = cid.Unit;
+            return true;
+        }
+
+        codeUnit = { };
+        return false;
     }
     else
     {
@@ -188,10 +195,7 @@ bool PdfEncoding::tryGetCharCode(PdfFont& font, unsigned gid, const unicodeview&
         }
         else
         {
-            if (!GetToUnicodeMapSafe().TryGetCharCode(codePoints, codeUnit))
-                return false;
-
-            return true;
+            return GetToUnicodeMapSafe().TryGetCharCode(codePoints, codeUnit);
         }
     }
 }
@@ -325,19 +329,29 @@ const PdfCharCode& PdfEncoding::GetLastChar() const
 
 void PdfEncoding::ExportToFont(PdfFont& font) const
 {
+    exportToFont(font, nullptr);
+}
+
+void PdfEncoding::ExportToFont(PdfFont& font, const PdfCIDSystemInfo& cidInfo) const
+{
+    exportToFont(font, &cidInfo);
+}
+
+void PdfEncoding::exportToFont(PdfFont& font, const PdfCIDSystemInfo* cidInfo) const
+{
     auto& fontDict = font.GetDictionary();
     if (font.IsCIDFont())
     {
-        auto fontName = font.GetName();
+        PODOFO_ASSERT(cidInfo != nullptr);
 
         // The CIDSystemInfo, should be an indirect object
-        auto& cidSystemInfo = font.GetDocument().GetObjects().CreateDictionaryObject();
-        cidSystemInfo.GetDictionary().AddKey("Registry"_n, PdfString(CMAP_REGISTRY_NAME));
-        cidSystemInfo.GetDictionary().AddKey("Ordering"_n, PdfString(fontName));
-        cidSystemInfo.GetDictionary().AddKey("Supplement"_n, static_cast<int64_t>(0));
+        auto& cidInfoObj = font.GetDocument().GetObjects().CreateDictionaryObject();
+        cidInfoObj.GetDictionary().AddKey("Registry"_n, cidInfo->Registry);
+        cidInfoObj.GetDictionary().AddKey("Ordering"_n, cidInfo->Ordering);
+        cidInfoObj.GetDictionary().AddKey("Supplement"_n, static_cast<int64_t>(cidInfo->Supplement));
 
         // NOTE: Setting the CIDSystemInfo params in the descendant font object is required
-        font.GetDescendantFontObject().GetDictionary().AddKeyIndirect("CIDSystemInfo"_n, cidSystemInfo);
+        font.GetDescendantFontObject().GetDictionary().AddKeyIndirect("CIDSystemInfo"_n, cidInfoObj);
 
         // Some CMap encodings has a name representation, such as
         // Identity-H/Identity-V. NOTE: Use a fixed representation only
@@ -348,9 +362,9 @@ void PdfEncoding::ExportToFont(PdfFont& font) const
             auto& cmapObj = fontDict.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
 
             // NOTE: Setting the CIDSystemInfo params in the CMap stream object is required
-            cmapObj.GetDictionary().AddKeyIndirect("CIDSystemInfo"_n, cidSystemInfo);
+            cmapObj.GetDictionary().AddKeyIndirect("CIDSystemInfo"_n, cidInfoObj);
 
-            writeCIDMapping(cmapObj, font, fontName);
+            writeCIDMapping(cmapObj, font, *cidInfo);
             fontDict.AddKeyIndirect("Encoding"_n, cmapObj);
         }
     }
@@ -547,13 +561,13 @@ PdfCharCode fetchFallbackCharCode(string_view::iterator& it, const string_view::
     return { code, i };
 }
 
-void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const string_view& fontName) const
+void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const PdfCIDSystemInfo& cidInfo) const
 {
     // CMap specification is in Adobe technical node #5014
     auto& cmapDict = cmapObj.GetDictionary();
-    string cmapName = (string)fontName;
-    if (font.IsSubsettingEnabled())
-        cmapName.append("-subset");
+
+    string cmapName = "CMap-";
+    cmapName.append(cidInfo.Ordering.GetString());
 
     // Table 120: Additional entries in a CMap stream dictionary
     cmapDict.AddKey("Type"_n, "CMap"_n);
@@ -567,13 +581,14 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
         "12 dict begin\n"
         "begincmap\n"
         "/CIDSystemInfo <<\n"
-        "   /Registry (" CMAP_REGISTRY_NAME  ")\n"
+        "   /Registry ({})\n"
         "   /Ordering ({})\n"
-        "   /Supplement 0\n"
+        "   /Supplement {}\n"
         ">> def\n"
         "/CMapName /{} def\n"
         "/CMapType 1 def\n"     // As defined in Adobe Technical Notes #5099
-        , fontName, cmapName);
+        , cidInfo.Registry.GetString(), cidInfo.Ordering.GetString(),
+        cidInfo.Supplement, cmapName);
     auto wmode = m_Encoding->GetWModeSafe();
     if (wmode != PdfWModeKind::Horizontal)
     {

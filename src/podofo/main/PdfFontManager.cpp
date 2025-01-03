@@ -391,10 +391,8 @@ unique_ptr<const PdfFontMetrics> PdfFontManager::searchFontMetrics(const string_
             // NOTE: The font has been already extracted from collections at this point
             unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> face(FT::CreateFaceFromBuffer(*data), FT_Done_Face);
 
-            auto ret = PdfFontMetrics::CreateFromFace(face.get(), std::move(data), refMetrics, skipNormalization);
+            ret = PdfFontMetrics::CreateFromFace(face.get(), std::move(data), refMetrics, skipNormalization);
             (void)face.release();
-            if (ret != nullptr)
-                return ret;
         }
 #endif
     }

@@ -6,6 +6,7 @@
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfFontCIDCFF.h"
+#include <podofo/private/FontUtils.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -15,8 +16,7 @@ PdfFontCIDCFF::PdfFontCIDCFF(PdfDocument& doc, const PdfFontMetricsConstPtr& met
 
 bool PdfFontCIDCFF::SupportsSubsetting() const
 {
-    // Not yet supported
-    return false;
+    return true;
 }
 
 PdfFontType PdfFontCIDCFF::GetType() const
@@ -24,7 +24,12 @@ PdfFontType PdfFontCIDCFF::GetType() const
     return PdfFontType::CIDCFF;
 }
 
-void PdfFontCIDCFF::embedFontSubset()
+void PdfFontCIDCFF::embedFontFileSubset(const vector<PdfCharGIDInfo>& infos,
+    const PdfCIDSystemInfo& cidInfo)
 {
-    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+    PODOFO_ASSERT(GetMetrics().GetFontFileType() == PdfFontFileType::Type1CFF
+        || GetMetrics().GetFontFileType() == PdfFontFileType::CIDKeyedCFF);
+    charbuff buffer;
+    PoDoFo::SubsetFont(GetMetrics(), infos, cidInfo, buffer);
+    EmbedFontFileCFF(GetDescriptor(), buffer, true);
 }

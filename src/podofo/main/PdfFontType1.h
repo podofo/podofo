@@ -38,16 +38,7 @@ private:
         const PdfEncoding& encoding);
 
 public:
-    bool SupportsSubsetting() const override;
     PdfFontType GetType() const override;
-
-protected:
-    //void embedFontSubset() override;
-    //void embedFontFile(PdfObject& descriptor) override;
-
-private:
-    //bool FindSeac(const char* buffer, size_t length);
-    //ptrdiff_t FindInBuffer(const char* needle, const char* haystack, size_t len) const;
 };
 
 };

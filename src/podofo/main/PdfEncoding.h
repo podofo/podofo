@@ -212,16 +212,18 @@ namespace PoDoFo
 
     private:
         // These methods will be called by PdfFont
+        void ExportToFont(PdfFont& font, const PdfCIDSystemInfo& cidInfo) const;
         void ExportToFont(PdfFont& font) const;
         bool TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const;
 
         static unsigned GetNextId();
 
     private:
+        void exportToFont(PdfFont& font, const PdfCIDSystemInfo* cidInfo) const;
         bool tryExportEncodingTo(PdfDictionary& dictionary, bool wantCidMapping) const;
         bool tryConvertEncodedToUtf8(const std::string_view& encoded, std::string& str) const;
         bool tryConvertEncodedToCIDs(const std::string_view& encoded, std::vector<PdfCID>& cids) const;
-        void writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const std::string_view& baseFont) const;
+        void writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const PdfCIDSystemInfo& info) const;
         void writeToUnicodeCMap(PdfObject& cmapObj) const;
         bool tryGetCharCode(PdfFont& font, unsigned gid, const unicodeview& codePoints, PdfCharCode& unit) const;
 

@@ -49,13 +49,14 @@ FontTrueTypeSubset::FontTrueTypeSubset(InputStreamDevice& device, const PdfFontM
     m_metrics(&metrics),
     m_isLongLoca(false),
     m_glyphCount(0),
+    m_unitsPerEM(0),
     m_HMetricsCount(0),
     m_hmtxTableOffset(0),
     m_leftSideBearingsOffset(0)
 {
 }
 
-void FontTrueTypeSubset::BuildFont(string& output, const PdfFontMetrics& metrics, const cspan<PdfCharGIDInfo>& infos)
+void FontTrueTypeSubset::BuildFont(const PdfFontMetrics& metrics, const cspan<PdfCharGIDInfo>& infos, charbuff& output)
 {
     if (infos.empty())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "The cid/gid map must not be empty");
@@ -65,10 +66,10 @@ void FontTrueTypeSubset::BuildFont(string& output, const PdfFontMetrics& metrics
 
     SpanStreamDevice input(metrics.GetOrLoadFontFileData());
     FontTrueTypeSubset subset(input, metrics);
-    subset.BuildFont(output, infos);
+    subset.BuildFont(infos, output);
 }
 
-void FontTrueTypeSubset::BuildFont(string& buffer, const cspan<PdfCharGIDInfo>& infos)
+void FontTrueTypeSubset::BuildFont(const cspan<PdfCharGIDInfo>& infos, charbuff& output)
 {
     Init();
 
@@ -82,7 +83,7 @@ void FontTrueTypeSubset::BuildFont(string& buffer, const cspan<PdfCharGIDInfo>& 
         LoadGlyphData(context, infos[i].Gid.Id);
 
     LoadGlyphMetrics(infos);
-    WriteTables(buffer);
+    WriteTables(output);
 }
 
 void FontTrueTypeSubset::Init()
@@ -218,13 +219,8 @@ void FontTrueTypeSubset::LoadGlyphMetrics(const cspan<PdfCharGIDInfo>& infos)
     map<unsigned, unsigned> glyphIndexMap;
     glyphIndexMap.insert({ 0, 0 });
 
-    PODOFO_ASSERT(infos.size() != 0);
-    auto& first = infos.front();
-
     // Ensure the first glyph is always the first one
-    if (first.Gid.Id != 0)
-        m_subsetGIDs.push_back({ 0, GetGlyphMetricsPdfAdvance(0, 0) });
-
+    m_subsetGIDs.push_back({ 0, GetGlyphMetricsPdfAdvance(0, 0) });
     for (unsigned i = 0; i < infos.size(); i++)
     {
         auto& info = infos[i];
@@ -445,7 +441,7 @@ void FontTrueTypeSubset::WriteLocaTable(OutputStream& output)
     }
 }
 
-void FontTrueTypeSubset::WriteTables(string& buffer)
+void FontTrueTypeSubset::WriteTables(charbuff& buffer)
 {
     StringStreamDevice output(buffer);
 

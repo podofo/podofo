@@ -45,13 +45,13 @@ public:
      * \param metrics the metrics of the font to subset
      * \param gids a list of glyphs to subset
      */
-    static void BuildFont(std::string& output, const PdfFontMetrics& metrics, const cspan<PdfCharGIDInfo>& infos);
+    static void BuildFont(const PdfFontMetrics& metrics, const cspan<PdfCharGIDInfo>& infos, charbuff& output);
 
 private:
     FontTrueTypeSubset(const FontTrueTypeSubset& rhs) = delete;
     FontTrueTypeSubset& operator=(const FontTrueTypeSubset& rhs) = delete;
 
-    void BuildFont(std::string& buffer, const cspan<PdfCharGIDInfo>& infos);
+    void BuildFont(const cspan<PdfCharGIDInfo>& infos, charbuff& output);
 
     void Init();
     unsigned GetTableOffset(unsigned tag);
@@ -121,7 +121,7 @@ private:
     void WriteGlyphTable(OutputStream& output);
     void WriteHmtxTable(OutputStream& output);
     void WriteLocaTable(OutputStream& output);
-    void WriteTables(std::string& buffer);
+    void WriteTables(charbuff& output);
     void ReadGlyphCompoundData(GlyphCompoundData& data, unsigned offset);
 
     struct GIDInfo

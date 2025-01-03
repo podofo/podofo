@@ -15,8 +15,8 @@
 
 using namespace PoDoFo;
 
-// TODO: Implement subsetting using PdfFontTrueTypeSubset
-// similarly to to PdfFontCIDTrueType
+// NOTE: TrueType fonts subsetting is supported only
+// in PdfFontCIDTrueType through conversion
 
 PdfFontTrueType::PdfFontTrueType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding) :

@@ -34,7 +34,8 @@ public:
     PdfFontType GetType() const override;
 
 protected:
-    void embedFontSubset() override;
+    void embedFontFileSubset(const std::vector<PdfCharGIDInfo>& infos,
+        const PdfCIDSystemInfo& cidInfo) override;
 };
 
 };

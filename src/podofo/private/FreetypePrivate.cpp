@@ -9,6 +9,7 @@
 #include FT_TRUETYPE_TAGS_H
 #include FT_TRUETYPE_TABLES_H
 #include FT_FONT_FORMATS_H
+#include FT_CID_H
 
 using namespace std;
 using namespace PoDoFo;
@@ -322,7 +323,10 @@ PdfFontFileType determineFormatCFF(FT_Face face)
         // with some other operator. (This permits the determination of the
         // kind of font without parsing the entire Top DICT)". We assume FreeType
         // is able to make this distinction using the FT_IS_CID_KEYED macro
-        if (FT_IS_CID_KEYED(face))
+
+        FT_Bool isCid = 0;
+        (void)FT_Get_CID_Is_Internally_CID_Keyed(face, &isCid);
+        if (isCid == 1)
             return PdfFontFileType::CIDKeyedCFF;
         else
             return PdfFontFileType::Type1CFF;

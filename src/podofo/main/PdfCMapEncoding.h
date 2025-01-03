@@ -11,13 +11,6 @@
 
 namespace PoDoFo
 {
-    struct PODOFO_API PdfCIDSystemInfo final
-    {
-        PdfString Registry;
-        PdfString Ordering;
-        int Supplement = 0;
-    };
-
     class PdfCMapEncoding;
 
     /** Convenience typedef for a const CMap encoding shared ptr

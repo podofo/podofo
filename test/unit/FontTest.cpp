@@ -77,7 +77,7 @@ TEST_CASE("TestConversionPBF2CFF")
         utls::ReadTo(font1, TestUtils::GetTestInputFilePath("FontsType1", "Lato-Regular.pfb"));
 
         charbuff cff;
-        utls::ConvertFontType1ToCFF(font1, cff);
+        PoDoFo::ConvertFontType1ToCFF(font1, cff);
 
         TestUtils::IsBufferEqual(cff, TestUtils::GetTestInputFilePath("FontsType1", "ConvCFF", "Lato-Regular.cff"));
     }
@@ -87,10 +87,30 @@ TEST_CASE("TestConversionPBF2CFF")
         utls::ReadTo(font1, TestUtils::GetTestInputFilePath("FontsType1", "lmb10.pfb"));
 
         charbuff cff;
-        utls::ConvertFontType1ToCFF(font1, cff);
+        PoDoFo::ConvertFontType1ToCFF(font1, cff);
 
         TestUtils::IsBufferEqual(cff, TestUtils::GetTestInputFilePath("FontsType1", "ConvCFF", "lmb10.cff"));
     }
+}
+
+TEST_CASE("TestSubsetCFFDegenerate")
+{
+    charbuff font1;
+    utls::ReadTo(font1, TestUtils::GetTestInputFilePath("FontsType1", "Degenerate1Glyph.cff"));
+    auto metrics = PdfFontMetrics::CreateFromBuffer(font1);
+
+    vector<PdfCharGIDInfo> subsetInfos;
+    subsetInfos.push_back({ 1, PdfGID(0, 0)});
+
+    PdfCIDSystemInfo cidInfo;
+    cidInfo.Registry = PdfString("Adobe");
+    cidInfo.Ordering = PdfString("Test");
+    cidInfo.Supplement = 0;
+
+    charbuff cff;
+    PoDoFo::SubsetFont(*metrics, subsetInfos, cidInfo, cff);
+
+    TestUtils::IsBufferEqual(cff, TestUtils::GetTestInputFilePath("FontsType1", "SubsetDegenerate1Glyph.cff"));
 }
 
 // Disable load all fonts for now

@@ -343,7 +343,7 @@ protected:
     void EmbedFontFile(PdfObject& descriptor);
     void EmbedFontFileType1(PdfObject& descriptor, const bufferview& data,
         unsigned length1, unsigned length2, unsigned length3);
-    void EmbedFontFileCFF(PdfObject& descriptor, const bufferview& data);
+    void EmbedFontFileCFF(PdfObject& descriptor, const bufferview& data, bool cidKeyed);
     void EmbedFontFileTrueType(PdfObject& descriptor, const bufferview& data);
     void EmbedFontFileOpenType(PdfObject& descriptor, const bufferview& data);
 
@@ -365,6 +365,8 @@ protected:
      * \remarks needed when exporting substitute fonts
      */
     bool TryGetSubstituteCIDEncoding(std::unique_ptr<PdfEncodingMap>& cidEncodingMap) const;
+
+    PdfCIDSystemInfo GetCIDSystemInfo() const;
 
     /** Get an ordered list of CID/GID info entries
      */
@@ -392,18 +394,19 @@ private:
      * Perform initialization tasks for fonts imported or created
      * from scratch
      */
-    void InitImported(bool wantEmbed, bool wantSubset, bool isSubstitute);
+    void InitImported(bool wantEmbed, bool wantSubset, bool isProxy);
 
     /** Add glyph to used in case of subsetting
      *  It either maps them using the font encoding or generate a new code
      * 
-     * \remarks Can't be called on substitute fonts
+     * \remarks Can't be called on proxy fonts
      * \param gid the gid to add
      * \param codePoints code points mapped by this gid. May be a single
      *      code point or a ligature
-     * \return A mapped CID. Return existing CID if already present
+     * \param The mapped CID. Return an existing CID if already present
+     * \returns true if the font provides the mapping for the codepoints
      */
-    PdfCID AddSubsetGIDSafe(unsigned gid, const unicodeview& codePoints);
+    bool TryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCID& cid);
 
     /** Add dynamic charcode from code points.
      *

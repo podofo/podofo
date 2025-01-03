@@ -7,7 +7,7 @@
 #ifndef PDF_ENCODING_COMMON_H
 #define PDF_ENCODING_COMMON_H
 
-#include "PdfDeclarations.h"
+#include "PdfString.h"
 
 namespace PoDoFo
 {
@@ -113,6 +113,13 @@ namespace PoDoFo
         PdfCharCode LastChar;      // The last defined character code
         unsigned char MinCodeSize;
         unsigned char MaxCodeSize;
+    };
+
+    struct PODOFO_API PdfCIDSystemInfo final
+    {
+        PdfString Registry;
+        PdfString Ordering;
+        int Supplement = 0;
     };
 }
 

@@ -28,10 +28,13 @@ public:
 
 protected:
     void embedFont() override;
+    void embedFontSubset() override;
     PdfObject* getDescendantFontObject() override;
     void createWidths(PdfDictionary& fontDict, const cspan<PdfCharGIDInfo>& infos);
 
 protected:
+    virtual void embedFontFileSubset(const std::vector<PdfCharGIDInfo>& subsetInfos,
+        const PdfCIDSystemInfo& cidInfo) = 0;
     void initImported() override;
 
 protected:

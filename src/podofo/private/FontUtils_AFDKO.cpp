@@ -7,6 +7,9 @@
 #include "FontUtils.h"
 #include <afdko/include/cffwrite.h>
 #include <afdko/include/t1read.h>
+#include <afdko/include/cffread.h>
+
+#include <podofo/private/FreetypePrivate.h>
 
  // The following functions include software developed by
  // the Adobe Font Development Kit for OpenType (https://github.com/adobe-type-tools/afdko)
@@ -19,6 +22,7 @@ using namespace PoDoFo;
 #define sig_PostScript1 CTL_TAG('%', 'A', 0x00, 0x00) // %ADO...
 #define sig_PostScript2 CTL_TAG('%', '%', 0x00, 0x00) // %%...
 #define sig_PFB ((ctlTag)0x80010000)
+#define sig_CFF ((ctlTag)0x01000000)
 
 namespace
 {
@@ -55,8 +59,32 @@ namespace
 
     typedef size_t(*SegRefillFunc)(ConvCtxPtr h, char** ptr);
 
-    struct ConvCtx {
+    enum GlyphSelector
+    {
+        sel_by_tag,
+        sel_by_cid,
+    };
+
+    typedef void(*SubsetCallback)(ConvCtxPtr h, GlyphSelector type, unsigned short id, const char* name);
+
+    struct GlyphSubsetCtx
+    {
+        // The original callbacks
+        void (*width)(abfGlyphCallbacks* cb, float hAdv) = nullptr;
+        int (*beg)(abfGlyphCallbacks* cb, abfGlyphInfo* info);
+
+        vector<abfGlyphInfo> glyphInfos;
+        unsigned short cid = 0;
+        float hAdv = 0;
+    };
+
+    struct ConvCtx
+    {
         ConvCtx(const bufferview& src, charbuff& dst);
+        ConvCtx(const bufferview& src, charbuff& dst,
+            const cspan<PdfCharGIDInfo>& subsetInfos,
+            const PdfFontMetrics& metrics,
+            const PdfCIDSystemInfo& cidInfo);
         ~ConvCtx();
 
         abfTopDict* top = nullptr;        // Top dictionary
@@ -69,6 +97,11 @@ namespace
             void (*endfont)(ConvCtxPtr h) = nullptr;
             void (*endset)(ConvCtxPtr h) = nullptr;
         } dst;
+        const PdfFontMetrics* metrics = nullptr;
+        cspan<PdfCharGIDInfo> subsetInfos;
+        const PdfCIDSystemInfo* cidInfo = nullptr;
+        GlyphSubsetCtx subsetCtx;
+        uint16_t unitsPerEM = 0;
         struct // Font data segment
         {
             SegRefillFunc refill = nullptr; // Format-specific refill
@@ -81,6 +114,12 @@ namespace
             charbuff buff;
 
         } t1r;
+        struct // cffread library
+        {
+            cfrCtx ctx{ };
+            ReadWriteBuffer tmp;
+            charbuff buff;
+        } cfr;
         struct // cffwrite library
         {
             cfwCtx ctx{ };
@@ -156,7 +195,7 @@ static size_t PFBRefill(ConvCtxPtr h, char** ptr)
 // Begin font set.
 static void cff_BegSet(ConvCtxPtr h)
 {
-    if (cfwBegSet(h->cfw.ctx, 0))
+    if (cfwBegSet(h->cfw.ctx, CFW_PRESERVE_GLYPH_ORDER))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "cff_BegSet");
 }
 
@@ -227,6 +266,87 @@ static void setModeCFF(ConvCtxPtr h)
     h->cb.glyph.stemVF = nullptr;
 }
 
+static int subsetBegCallback(abfGlyphCallbacks* cb, abfGlyphInfo* info)
+{
+    auto ctx = (GlyphSubsetCtx*)cb->indirect_ctx;
+
+    // Substitute the glyph info. Force the CID to be incremental
+    // and specify the glyph has not been previously inserted
+    auto& newinfo = ctx->glyphInfos[ctx->cid];
+    newinfo = *info;
+    newinfo.cid = ctx->cid;
+    newinfo.flags |= ABF_GLYPH_CID;
+    newinfo.flags &= ~ABF_GLYPH_SEEN;
+
+    // Remove legacy properties for Type1 fonts
+    newinfo.gname.ptr = { };
+    newinfo.encoding = { };
+
+    return ctx->beg(cb, &newinfo);
+}
+
+static void subsetWidthCallback(abfGlyphCallbacks* cb, float hAdv)
+{
+    (void)hAdv;
+    auto ctx = (GlyphSubsetCtx*)cb->indirect_ctx;
+    // Override the width. Must be set outside
+    ctx->width(cb, ctx->hAdv);
+}
+
+// Filter glyphs using the glyph list parameter.
+static void doSubset(ConvCtxPtr h, SubsetCallback callback)
+{
+    // Enforce CID font
+    h->top->sup.flags |= ABF_CID_FONT;
+    h->top->cid.Registry.ptr = const_cast<char*>(h->cidInfo->Registry.GetString().data());
+    h->top->cid.Ordering.ptr = const_cast<char*>(h->cidInfo->Ordering.GetString().data());
+    h->top->cid.Supplement = h->cidInfo->Supplement;
+
+    // Override some callbacks with our implementation
+    h->subsetCtx.beg = h->cb.glyph.beg;
+    h->subsetCtx.width = h->cb.glyph.width;
+    h->cb.glyph.beg = subsetBegCallback;
+    h->cb.glyph.width = subsetWidthCallback;
+    h->cb.glyph.indirect_ctx = &h->subsetCtx;
+
+    // Prepare afdko glyph infos that will be substituted in subsetBegCallback
+    h->subsetCtx.glyphInfos.resize(h->subsetInfos.size() +  1);
+
+    GlyphSelector selector = h->metrics->GetFontFileType() == PdfFontFileType::CIDKeyedCFF
+        ? GlyphSelector::sel_by_cid : GlyphSelector::sel_by_tag;
+
+    auto& matrix = h->metrics->GetMatrix();
+
+    // Ensure the first glyph is always the first one
+    h->subsetCtx.cid = 0;
+    h->subsetCtx.hAdv = (float)h->metrics->GetGlyphWidth(0) / matrix[0];
+    callback(h, selector, 0, nullptr);
+
+    for (unsigned i = 0; i < h->subsetInfos.size(); i++)
+    {
+        auto& info = h->subsetInfos[i];
+        // Compute the overridden width and set it to the context
+        h->subsetCtx.cid = (unsigned short)(i + 1);
+        h->subsetCtx.hAdv = (float)h->metrics->GetGlyphWidth(info.Gid.MetricsId) / matrix[0];
+        callback(h, selector, (unsigned short)info.Gid.Id, nullptr);
+    }
+}
+
+static void callbackGlyphT1(ConvCtxPtr h, GlyphSelector type, unsigned short id, const char* name)
+{
+    switch (type)
+    {
+        case sel_by_tag:
+            (void)t1rGetGlyphByTag(h->t1r.ctx, id, &h->cb.glyph);
+            break;
+        case sel_by_cid:
+            (void)t1rGetGlyphByCID(h->t1r.ctx, id, &h->cb.glyph);
+            break;
+        default:
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+}
+
 // Read font with t1read library.
 static void t1rReadFont(ConvCtxPtr h, long origin)
 {
@@ -243,13 +363,68 @@ static void t1rReadFont(ConvCtxPtr h, long origin)
 
     h->dst.begfont(h, h->top);
 
-    if (t1rIterateGlyphs(h->t1r.ctx, &h->cb.glyph))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "t1r: t1rIterateGlyphs");
+    if (h->subsetInfos.size() == 0)
+    {
+        if (t1rIterateGlyphs(h->t1r.ctx, &h->cb.glyph))
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "t1r: t1rIterateGlyphs");
+    }
+    else
+    {
+        doSubset(h, callbackGlyphT1);
+    }
 
     h->dst.endfont(h);
 
     if (t1rEndFont(h->t1r.ctx))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "t1r: t1rEndFont");
+}
+
+static void callbackGlyphCFF(ConvCtxPtr h, GlyphSelector type, unsigned short id, const char* name)
+{
+    switch (type)
+    {
+        case sel_by_tag:
+            (void)cfrGetGlyphByTag(h->cfr.ctx, id, &h->cb.glyph);
+            break;
+        case sel_by_cid:
+            (void)cfrGetGlyphByCID(h->cfr.ctx, id, &h->cb.glyph);
+            break;
+        default:
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+}
+
+// Read font with cffread library.
+static void cfrReadFont(ConvCtxPtr h, long origin, int ttcIndex)
+{
+    if (h->cfr.ctx == NULL)
+    {
+        h->cfr.ctx = cfrNew(&h->cb.mem, &h->cb.stm, CFR_CHECK_ARGS);
+        if (h->cfr.ctx == NULL)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "cfr: can't init lib");
+    }
+
+    // Convert seac for subsets
+    long flags = h->subsetInfos.size() == 0 ? 0 : CFR_UPDATE_OPS;
+    if (cfrBegFont(h->cfr.ctx, flags, origin, ttcIndex, &h->top, nullptr))
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "cfr: cfrBegFont");
+
+    h->dst.begfont(h, h->top);
+
+    if (h->subsetInfos.size() == 0)
+    {
+        if (cfrIterateGlyphs(h->cfr.ctx, &h->cb.glyph))
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "cfr: cfrIterateGlyphs");
+    }
+    else
+    {
+        doSubset(h, callbackGlyphCFF);
+    }
+
+    h->dst.endfont(h);
+
+    if (cfrEndFont(h->cfr.ctx))
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "cfr: cfrEndFont");
 }
 
 // Manage memory
@@ -283,6 +458,8 @@ static void* stm_open(ctlStreamCallbacks* cb, int id, size_t size)
     {
         case T1R_SRC_STREAM_ID:
             return &h->src;
+        case CFR_SRC_STREAM_ID:
+            return &h->src;
         case CFW_DST_STREAM_ID:
             return &h->dst.stm;
         case T1R_TMP_STREAM_ID:
@@ -290,6 +467,7 @@ static void* stm_open(ctlStreamCallbacks* cb, int id, size_t size)
         case CFW_TMP_STREAM_ID:
             return &h->cfw.tmp;
         case T1R_DBG_STREAM_ID:
+        case CFR_DBG_STREAM_ID:
         case CFW_DBG_STREAM_ID:
             // Return null stream
             return nullptr;
@@ -473,6 +651,14 @@ static int stm_close(ctlStreamCallbacks* cb, void* stream)
     return 0;
 }
 
+ConvCtx::ConvCtx(const bufferview& src, charbuff& dst, const cspan<PdfCharGIDInfo>& subsetInfos,
+    const PdfFontMetrics& metrics, const PdfCIDSystemInfo& cidInfo) : ConvCtx(src, dst)
+{
+    this->subsetInfos = subsetInfos;
+    this->metrics = &metrics;
+    this->cidInfo = &cidInfo;
+}
+
 ConvCtx::ConvCtx(const bufferview& src, charbuff& dst)
 {
     cb.mem.ctx = this;
@@ -513,32 +699,53 @@ static void doConversion(ConvCtxPtr h)
 
     switch (sig)
     {
+        case sig_PFB:
+        {
+            // PFB files have segment interleaving
+            h->seg.refill = PFBRefill;
+            h->seg.left = 0;
+            goto Type1;
+        }
         case sig_PostScript0:
         case sig_PostScript1:
         case sig_PostScript2:
+        {
+        Type1:
+            // Reset source position
+            h->src.pos = 0;
+            t1rReadFont(h, 0);
             break;
-        case sig_PFB:
-            h->seg.refill = PFBRefill;
+        }
+        case sig_CFF:
+        {
+            if (read1(h) != 0x04) // header size
+                goto Unsupported;
+
+            // Reset source position
+            h->src.pos = 0;
+            cfrReadFont(h, 0, 0);
             break;
+        }
         default:
+        Unsupported:
             PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedFontFormat);
     }
-
-    if (h->seg.refill != nullptr)
-    {
-        // Prep source filter
-        h->seg.left = 0;
-    }
-
-    // Reset source position, as it will be used
-    h->src.pos = 0;
-
-    t1rReadFont(h, 0);
 }
 
-void utls::ConvertFontType1ToCFF(const bufferview& src, charbuff& dst)
+void PoDoFo::ConvertFontType1ToCFF(const bufferview& src, charbuff& dst)
 {
     ConvCtx ctx(src, dst);
+    setModeCFF(&ctx);
+
+    ctx.dst.begset(&ctx);
+    doConversion(&ctx);
+    ctx.dst.endset(&ctx);
+}
+
+void PoDoFo::SubsetFont(const PdfFontMetrics& metrics, const cspan<PdfCharGIDInfo>& subsetInfos,
+    const PdfCIDSystemInfo& cidInfo, charbuff& dst)
+{
+    ConvCtx ctx(metrics.GetOrLoadFontFileData(), dst, subsetInfos, metrics, cidInfo);
     setModeCFF(&ctx);
 
     ctx.dst.begset(&ctx);
