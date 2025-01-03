@@ -22,6 +22,11 @@ include_directories(
 
 add_subdirectory(private)
 
+if (MSVC)
+    # Silence linking warnings of podofo_private accessing main podofo symbols
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4217 /ignore:4286")
+endif()
+
 set(PODOFO_BASE_HEADERS
     podofo.h
 )
