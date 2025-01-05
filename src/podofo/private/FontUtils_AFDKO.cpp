@@ -102,7 +102,6 @@ namespace
         cspan<PdfCharGIDInfo> subsetInfos;
         const PdfCIDSystemInfo* cidInfo = nullptr;
         GlyphSubsetCtx subsetCtx;
-        uint16_t unitsPerEM = 0;
         struct // Font data segment
         {
             SegRefillFunc refill = nullptr; // Format-specific refill
@@ -321,7 +320,7 @@ static void doSubset(ConvCtxPtr h, SubsetCallback callback)
 
     // Ensure the first glyph is always the first one
     h->subsetCtx.cid = 0;
-    h->subsetCtx.hAdv = (float)(h->metrics->GetGlyphWidth(0) / matrix[0]);
+    h->subsetCtx.hAdv = (float)(h->metrics->GetGlyphWidth(0) * h->top->sup.UnitsPerEm);
     callback(h, selector, 0);
 
     for (unsigned i = 0; i < h->subsetInfos.size(); i++)
@@ -329,7 +328,7 @@ static void doSubset(ConvCtxPtr h, SubsetCallback callback)
         auto& info = h->subsetInfos[i];
         // Compute the overridden width and set it to the context
         h->subsetCtx.cid = (unsigned short)(i + 1);
-        h->subsetCtx.hAdv = (float)(h->metrics->GetGlyphWidth(info.Gid.MetricsId) / matrix[0]);
+        h->subsetCtx.hAdv = (float)(h->metrics->GetGlyphWidth(info.Gid.MetricsId) * h->top->sup.UnitsPerEm);
         callback(h, selector, (unsigned short)info.Gid.Id);
     }
 }
