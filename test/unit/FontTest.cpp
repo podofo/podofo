@@ -108,7 +108,7 @@ TEST_CASE("TestSubsetCFFDegenerate")
     cidInfo.Supplement = 0;
 
     charbuff cff;
-    PoDoFo::SubsetFont(*metrics, subsetInfos, cidInfo, cff);
+    PoDoFo::SubsetFontCFF(*metrics, subsetInfos, cidInfo, cff);
 
     TestUtils::IsBufferEqual(cff, TestUtils::GetTestInputFilePath("FontsType1", "SubsetDegenerate1Glyph.cff"));
 }
