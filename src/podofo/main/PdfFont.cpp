@@ -841,20 +841,16 @@ void PdfFont::AddSubsetCIDs(const PdfString& encodedStr)
     for (unsigned i = 0; i < cids.size(); i++)
     {
         auto& cid = cids[i];
-        if (TryMapCIDToGID(cid.Id, gid))
+        if (!TryMapCIDToGID(cid.Id, gid) || gid.Id >= m_Metrics->GetGlyphCount())
         {
-            if (gid.Id >= m_Metrics->GetGlyphCount())
-            {
-                // Assume the font will always contain at least one glyph
-                // and add a mapping to CID 0 for the char code
-                pushSubsetInfo(0, PdfGID(0), cid.Unit);
-            }
-            else
-            {
-                // Ignore trying to replace existing mapping
-                pushSubsetInfo(cid.Id, gid, cid.Unit);
-            }
+            // Assume the font will always contain at least one glyph
+            // and add a mapping to CID 0 for the char code
+            pushSubsetInfo(cid.Id, PdfGID(0), cid.Unit);
+            continue;
         }
+
+        // Ignore trying to replace existing mapping
+        pushSubsetInfo(cid.Id, gid, cid.Unit);
     }
 }
 
