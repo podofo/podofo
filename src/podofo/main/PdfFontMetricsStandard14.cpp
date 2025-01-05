@@ -68,8 +68,11 @@ unique_ptr<PdfFontMetricsStandard14> PdfFontMetricsStandard14::create(
         {
             auto& arrWidths = widthsObj->GetArray();
             parsedWidths.reset(new vector<double>(arrWidths.size()));
+            // ISO 32000-2:2020 for Type 1 fonts "The glyph widths shall
+            // be measured in units in which 1000 units correspond to 1
+            // unit in text space"
             for (auto& obj : arrWidths)
-                parsedWidths->push_back(obj.GetReal());
+                parsedWidths->push_back(obj.GetReal() / 1000);
         }
     }
 
