@@ -79,6 +79,8 @@ void PdfFontCID::initImported()
             break;
         case PdfFontType::CIDTrueType:
             subtype = "CIDFontType2"_n;
+            // CIDToGIDMap is required for CIDFontType2 with embedded font program
+            m_descendantFont->GetDictionary().AddKey("CIDToGIDMap"_n, "Identity"_n);
             break;
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
@@ -87,7 +89,6 @@ void PdfFontCID::initImported()
 
     // Same base font as the owner font:
     m_descendantFont->GetDictionary().AddKey("BaseFont"_n, PdfName(this->GetName()));
-    m_descendantFont->GetDictionary().AddKey("CIDToGIDMap"_n, "Identity"_n);
 
     // The FontDescriptor, should be an indirect object:
     auto& descriptorObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("FontDescriptor"_n);
