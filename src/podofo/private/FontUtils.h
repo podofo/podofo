@@ -8,6 +8,8 @@
 namespace PoDoFo
 {
     void ConvertFontType1ToCFF(const bufferview& src, charbuff& dst);
-    void SubsetFont(const PdfFontMetrics& metrics, const cspan<PdfCharGIDInfo>& subsetInfos,
-        const PdfCIDSystemInfo& cidInfo, charbuff& dst);
+    /** Subset a Type1 or CFF based font to a CFF based font 
+     */
+    void SubsetFontCFF(const PdfFontMetrics& metrics, const cspan<PdfCharGIDInfo>& subsetInfos,
+        const PdfCIDSystemInfo& cidInfo, charbuff& dstCFF);
 }

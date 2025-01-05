@@ -27,9 +27,7 @@ PdfFontType PdfFontCIDCFF::GetType() const
 void PdfFontCIDCFF::embedFontFileSubset(const vector<PdfCharGIDInfo>& infos,
     const PdfCIDSystemInfo& cidInfo)
 {
-    PODOFO_ASSERT(GetMetrics().GetFontFileType() == PdfFontFileType::Type1CFF
-        || GetMetrics().GetFontFileType() == PdfFontFileType::CIDKeyedCFF);
     charbuff buffer;
-    PoDoFo::SubsetFont(GetMetrics(), infos, cidInfo, buffer);
+    PoDoFo::SubsetFontCFF(GetMetrics(), infos, cidInfo, buffer);
     EmbedFontFileCFF(GetDescriptor(), buffer, true);
 }

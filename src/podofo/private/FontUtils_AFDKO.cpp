@@ -23,6 +23,7 @@ using namespace PoDoFo;
 #define sig_PostScript2 CTL_TAG('%', '%', 0x00, 0x00) // %%...
 #define sig_PFB ((ctlTag)0x80010000)
 #define sig_CFF ((ctlTag)0x01000000)
+#define sfr_OTTO_tag CTL_TAG('O', 'T', 'T', 'O') // OTF
 
 namespace
 {
@@ -119,6 +120,7 @@ namespace
             cfrCtx ctx{ };
             ReadWriteBuffer tmp;
             charbuff buff;
+            long flags = 0;
         } cfr;
         struct // cffwrite library
         {
@@ -405,7 +407,7 @@ static void cfrReadFont(ConvCtxPtr h, long origin, int ttcIndex)
     }
 
     // Convert seac for subsets
-    long flags = h->subsetInfos.size() == 0 ? 0 : CFR_UPDATE_OPS;
+    long flags = h->subsetInfos.size() == 0 ? h->cfr.flags : h->cfr.flags | CFR_UPDATE_OPS;
     if (cfrBegFont(h->cfr.ctx, flags, origin, ttcIndex, &h->top, nullptr))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "cfr: cfrBegFont");
 
@@ -721,14 +723,27 @@ static void doConversion(ConvCtxPtr h)
             if (read1(h) != 0x04) // header size
                 goto Unsupported;
 
+        CFF:
             // Reset source position
             h->src.pos = 0;
             cfrReadFont(h, 0, 0);
             break;
         }
         default:
+        {
+            // Make a 4-byte signature
+            sig |= read1(h) << 8;
+            sig |= read1(h);
+
+            if (sig == sfr_OTTO_tag)
+            {
+                h->cfr.flags |= CFR_NO_ENCODING;
+                goto CFF;
+            }
+
         Unsupported:
             PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedFontFormat);
+        }
     }
 }
 
@@ -742,9 +757,13 @@ void PoDoFo::ConvertFontType1ToCFF(const bufferview& src, charbuff& dst)
     ctx.dst.endset(&ctx);
 }
 
-void PoDoFo::SubsetFont(const PdfFontMetrics& metrics, const cspan<PdfCharGIDInfo>& subsetInfos,
+void PoDoFo::SubsetFontCFF(const PdfFontMetrics& metrics, const cspan<PdfCharGIDInfo>& subsetInfos,
     const PdfCIDSystemInfo& cidInfo, charbuff& dst)
 {
+    PODOFO_ASSERT(metrics.GetFontFileType() == PdfFontFileType::Type1CFF
+        || metrics.GetFontFileType() == PdfFontFileType::CIDKeyedCFF
+        || metrics.GetFontFileType() == PdfFontFileType::OpenTypeCFF);
+
     ConvCtx ctx(metrics.GetOrLoadFontFileData(), dst, subsetInfos, metrics, cidInfo);
     setModeCFF(&ctx);
 
