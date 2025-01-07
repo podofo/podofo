@@ -402,12 +402,17 @@ unique_ptr<const PdfFontMetrics> PdfFontManager::searchFontMetrics(const string_
 
 void PdfFontManager::EmbedFonts()
 {
-    // Embed all imported fonts
+    // Collect fonts to embed from cached queries
+    set<PdfReference> fontToEmbeds;
     for (auto& pair : m_cachedQueries)
     {
         for (auto& font : pair.second)
-            font->EmbedFont();
+            fontToEmbeds.insert(font->GetObject().GetIndirectReference());
     }
+
+    // Embed fonts now in deterministic order (note set<T> will guarantee this)
+    for (auto& ref : fontToEmbeds)
+        m_fonts[ref].Font->EmbedFont();
 
     // Clear imported font cache
     // TODO: Don't clean standard14 and full embedded fonts
