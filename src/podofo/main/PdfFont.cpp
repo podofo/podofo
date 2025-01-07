@@ -713,11 +713,6 @@ PdfCharCode PdfFont::AddCharCodeSafe(unsigned gid, const unicodeview& codePoints
     return code;
 }
 
-bool PdfFont::NeedsCIDMapWriting() const
-{
-    return m_subsetCIDMap != nullptr && m_subsetCIDMap->size() != 0;
-}
-
 bool PdfFont::tryConvertToGIDs(const std::string_view& utf8Str, PdfGlyphAccess access, std::vector<unsigned>& gids) const
 {
     bool success = true;
@@ -852,6 +847,11 @@ void PdfFont::AddSubsetCIDs(const PdfString& encodedStr)
         // Ignore trying to replace existing mapping
         pushSubsetInfo(cid.Id, gid, cid.Unit);
     }
+}
+
+bool PdfFont::HasCIDSubset() const
+{
+    return m_subsetCIDMap != nullptr && m_subsetCIDMap->size() != 0;
 }
 
 bool PdfFont::SupportsSubsetting() const

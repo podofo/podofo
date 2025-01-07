@@ -216,6 +216,10 @@ public:
      */
     void AddSubsetCIDs(const PdfString& encodedStr);
 
+    /** True if the font has defines a custom subset and needs CID /Encoding writing
+     */
+    bool HasCIDSubset() const;
+
     /**
      * Get the final unscaled width of a CID identifier from the provided /Widths, /W arrays
      */
@@ -420,10 +424,6 @@ private:
      */
     bool TryMapCIDToGID(unsigned cid, PdfGID& gid) const;
     bool TryMapCIDToGID(unsigned cid, PdfGlyphAccess access, unsigned& gid) const;
-
-    /** Needs /Encoding CID map writing
-     */
-    bool NeedsCIDMapWriting() const;
 
 private:
     struct CIDSubsetInfo
