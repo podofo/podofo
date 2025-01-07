@@ -114,7 +114,7 @@ private:
 
     std::vector<double> getBBox(const PdfObject& obj);
 
-    void tryLoadBuiltinCIDToGIDMap();
+    void tryLoadBuiltinTrueTypeCIDToGIDMap();
 
 private:
     std::shared_ptr<charbuff> m_Data;

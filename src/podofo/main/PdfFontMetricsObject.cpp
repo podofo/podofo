@@ -106,11 +106,6 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             else if (fontType == PdfFontType::TrueType)
             {
                 m_FontFileObject = descriptor->GetDictionary().FindKey("FontFile2");
-                // Try to eagerly load a built-in CIDToGID map, if needed
-                // NOTE: This has to be done after having retrieved
-                // the font file object
-                if (!font.GetDictionary().HasKey("Encoding"))
-                    tryLoadBuiltinCIDToGIDMap();
             }
 
             if (fontType != PdfFontType::Type3 && m_FontFileObject == nullptr)
@@ -327,6 +322,18 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         else
         {
             m_FontName = m_FontNameRaw;
+        }
+    }
+
+    if (fontType == PdfFontType::TrueType)
+    {
+        // Try to eagerly load a built-in CIDToGID map, if needed
+        // See condition ISO 32000-2:2020 "When the font has no Encoding entry,
+        // or the font descriptor’s Symbolic flag is set (in which case the Encoding entry is ignored)"
+        if (!font.GetDictionary().HasKey("Encoding")
+            || (m_Flags & PdfFontDescriptorFlags::Symbolic) != PdfFontDescriptorFlags::None)
+        {
+            tryLoadBuiltinTrueTypeCIDToGIDMap();
         }
     }
 
@@ -603,47 +610,56 @@ PdfFontStretch stretchFromString(const string_view& str)
         return PdfFontStretch::Unknown;
 }
 
-void PdfFontMetricsObject::tryLoadBuiltinCIDToGIDMap()
+void PdfFontMetricsObject::tryLoadBuiltinTrueTypeCIDToGIDMap()
 {
     auto face = GetFaceHandle();
-    if (face != nullptr && face->num_charmaps != 0)
+    if (face == nullptr || face->num_charmaps == 0)
+        return;
+
+    CIDToGIDMap map;
+
+    // ISO 32000-1:2008 "9.6.6.4 Encodings for TrueType Fonts"
+    // "A TrueType font program’s built-in encoding maps directly
+    // from character codes to glyph descriptions by means of an
+    // internal data structure called a 'cmap' "
+    FT_Error rc;
+    FT_ULong code;
+    FT_UInt index;
+
+    if (FT_Select_Charmap(m_Face, FT_ENCODING_MS_SYMBOL) == 0)
     {
-        CIDToGIDMap map;
-
-        // ISO 32000-1:2008 "9.6.6.4 Encodings for TrueType Fonts"
-        // "A TrueType font program’s built-in encoding maps directly
-        // from character codes to glyph descriptions by means of an
-        // internal data structure called a 'cmap' "
-        FT_Error rc;
-        FT_ULong code;
-        FT_UInt index;
-
-        rc = FT_Set_Charmap(face, face->charmaps[0]);
-        CHECK_FT_RC(rc, FT_Set_Charmap);
-
-        if (face->charmap->encoding == FT_ENCODING_MS_SYMBOL)
+        code = FT_Get_First_Char(face, &index);
+        while (index != 0)
         {
-            code = FT_Get_First_Char(face, &index);
-            while (index != 0)
-            {
-                // "If the font contains a (3, 0) subtable, the range of character
-                // codes shall be one of these: 0x0000 - 0x00FF,
-                // 0xF000 - 0xF0FF, 0xF100 - 0xF1FF, or 0xF200 - 0xF2FF"
-                // NOTE: we just take the first byte
-                map.insert({ (unsigned)(code & 0xFF), index });
-                code = FT_Get_Next_Char(face, code, &index);
-            }
+            // "If the font contains a (3, 0) subtable, the range of character
+            // codes shall be one of these: 0x0000 - 0x00FF,
+            // 0xF000 - 0xF0FF, 0xF100 - 0xF1FF, or 0xF200 - 0xF2FF"
+            // NOTE: we just take the first byte
+            map.insert({ (unsigned)(code & 0xFF), index });
+            code = FT_Get_Next_Char(face, code, &index);
         }
-        else
-        {
-            code = FT_Get_First_Char(face, &index);
-            while (index != 0)
-            {
-                map.insert({ (unsigned)code, index });
-                code = FT_Get_Next_Char(face, code, &index);
-            }
-        }
-
-        m_CIDToGIDMap.reset(new PdfCIDToGIDMap(std::move(map)));
     }
+    else
+    {
+        // "Otherwise, if the font contains a (1, 0) subtable, single bytes
+        // from the string shall be used to look  up the associated glyph
+        // descriptions from the subtable"
+        if (FT_Select_Charmap(m_Face, FT_ENCODING_APPLE_ROMAN) != 0)
+        {
+            // "If a character cannot be mapped in any of the ways described previously,
+            // a PDF processor may supply a mapping of its choosing"
+            // NOTE: We just pick the first cmap
+            rc = FT_Set_Charmap(face, face->charmaps[0]);
+            CHECK_FT_RC(rc, FT_Set_Charmap);
+        }
+
+        code = FT_Get_First_Char(face, &index);
+        while (index != 0)
+        {
+            map.insert({ (unsigned)code, index });
+            code = FT_Get_Next_Char(face, code, &index);
+        }
+    }
+
+    m_CIDToGIDMap.reset(new PdfCIDToGIDMap(std::move(map)));
 }
