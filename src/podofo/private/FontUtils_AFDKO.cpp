@@ -316,8 +316,6 @@ static void doSubset(ConvCtxPtr h, SubsetCallback callback)
     GlyphSelector selector = h->metrics->GetFontFileType() == PdfFontFileType::CIDKeyedCFF
         ? GlyphSelector::sel_by_cid : GlyphSelector::sel_by_tag;
 
-    auto& matrix = h->metrics->GetMatrix();
-
     // Ensure the first glyph is always the first one
     h->subsetCtx.cid = 0;
     h->subsetCtx.hAdv = (float)(h->metrics->GetGlyphWidth(0) * h->top->sup.UnitsPerEm);

@@ -49,8 +49,8 @@ FontTrueTypeSubset::FontTrueTypeSubset(InputStreamDevice& device, const PdfFontM
     m_metrics(&metrics),
     m_isLongLoca(false),
     m_glyphCount(0),
-    m_unitsPerEM(0),
     m_HMetricsCount(0),
+    m_unitsPerEM(0),
     m_hmtxTableOffset(0),
     m_leftSideBearingsOffset(0)
 {
