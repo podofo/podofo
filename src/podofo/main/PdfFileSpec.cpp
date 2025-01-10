@@ -64,10 +64,23 @@ void PdfFileSpec::SetFilename(nullable<const PdfString&> filename)
 {
     auto& dict = GetDictionary();
     if (filename == nullptr)
+    {
+        dict.RemoveKey("F");
         dict.RemoveKey("UF");
+    }
     else
+    {
+        // Just add both /F and /UF keys with same value.
+        // We neglet that there exists a filename that is not
+        // cross-platform/cross-language compatible
+        dict.AddKey("F"_n, *filename);
         dict.AddKey("UF"_n, *filename);
-    dict.RemoveKey("F");
+    }
+
+    // Remove legacy file specification strings, deprecated in PDF 2.0
+    dict.RemoveKey("DOS");
+    dict.RemoveKey("Mac");
+    dict.RemoveKey("Unix");
 }
 
 void PdfFileSpec::SetEmbeddedData(nullable<const charbuff&> data)
