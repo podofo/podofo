@@ -74,8 +74,8 @@ private:
 
     struct GlyphCompoundComponentData
     {
-        unsigned Offset;
-        unsigned GlyphIndex;
+        unsigned Offset = 0;
+        unsigned GlyphIndex = 0;
     };
 
     /** GlyphData contains the glyph address relative
@@ -83,10 +83,10 @@ private:
      */
     struct GlyphData
     {
-        bool IsCompound;
-        unsigned GlyphOffset;       // Offset of common "glyph" data
-        unsigned GlyphLength;
-        unsigned GlyphAdvOffset;    // Offset of uncommon simple/compound "glyph" data
+        bool IsCompound = false;
+        unsigned GlyphOffset = 0;       // Offset of common "glyph" data
+        unsigned GlyphLength = 0;
+        unsigned GlyphAdvOffset = 0;    // Offset of uncommon simple/compound "glyph" data
         std::vector<GlyphCompoundComponentData> CompoundComponents;
     };
 
@@ -103,14 +103,14 @@ private:
 
     struct GlyphCompoundData
     {
-        unsigned Flags;
-        unsigned GlyphIndex;
+        unsigned Flags = 0;
+        unsigned GlyphIndex = 0;
     };
 
     struct LongHorMetrics
     {
-        uint16_t AdvanceWidth;
-        int16_t LeftSideBearing;
+        uint16_t AdvanceWidth = 0;
+        int16_t LeftSideBearing = 0;
     };
 
     void LoadGlyphData(GlyphContext& ctx, unsigned gid);
@@ -126,7 +126,7 @@ private:
 
     struct GIDInfo
     {
-        unsigned Id;
+        unsigned Id = 0;
         LongHorMetrics Metrics;
     };
 
