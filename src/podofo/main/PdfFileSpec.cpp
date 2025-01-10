@@ -87,9 +87,7 @@ void PdfFileSpec::SetEmbeddedData(nullable<const charbuff&> data)
 {
     if (data == nullptr)
     {
-        auto& dict = GetDictionary();
-        dict.RemoveKey("EF");
-        dict.RemoveKey("F");
+        GetDictionary().RemoveKey("EF");
     }
     else
     {
