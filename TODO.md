@@ -21,7 +21,6 @@
 - According to 5014.CIDFont_Spec page 71-72-73 begincidchar, begincidrange,
   beginbfchar, beginbfrange have a limit of 100 entries. Fix it where relevant
 - noexcept nullable<T> methods
-- nullable<T&>: Accept T* as well?. Disable nullable<T*>
 - Check/Review doxygen doc
 - If the doc is updated, then should not allow to set an encryption
 - If the doc is updated and has an encryption, it should not allow to remove it

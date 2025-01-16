@@ -16,6 +16,24 @@ using namespace PoDoFo;
  *  to make sure they satisfy its requirements for behaviour, size, etc.
  */
 
+TEST_CASE("NullableTest")
+{
+    int intval = 15;
+    nullable<int&> nullint1(intval);
+    nullable<int&> nullint2(&intval);
+    nullable<int&> nullint3;
+    REQUIRE(nullint1 == &intval);
+    REQUIRE(&intval == nullint2);
+    REQUIRE(nullint1 != nullptr);
+    REQUIRE(nullptr != nullint2);
+    REQUIRE(nullint1 == 15);
+    REQUIRE(16 != nullint1);
+    REQUIRE(nullint3 == nullptr);
+    REQUIRE(nullptr == nullint3);
+    REQUIRE(nullint3 != &intval);
+    REQUIRE(&intval != nullint3);
+}
+
 TEST_CASE("BasicTypeTest")
 {
     REQUIRE(std::numeric_limits<uint64_t>::max() >= 9999999999);
