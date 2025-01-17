@@ -56,6 +56,8 @@ private:
      */
     PdfOutlineItem(PdfObject& obj, PdfOutlineItem* parentOutline, PdfOutlineItem* previous);
 
+    PdfOutlineItem(const PdfOutlineItem&) = delete;
+
 public:
     virtual ~PdfOutlineItem();
 

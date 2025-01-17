@@ -95,6 +95,7 @@ class PODOFO_API PdfAnnotation : public PdfDictionaryElement
 private:
     PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const Rect& rect);
     PdfAnnotation(PdfObject& obj, PdfAnnotationType annotType);
+    PdfAnnotation(const PdfAnnotation&) = delete;
 
 public:
     static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfAnnotation>& xobj);

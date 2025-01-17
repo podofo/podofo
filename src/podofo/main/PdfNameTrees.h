@@ -34,6 +34,8 @@ private:
      */
     PdfNameTrees(PdfObject& obj);
 
+    PdfNameTrees(const PdfNameTrees&) = delete;
+
 public:
     template <typename TNameTree>
     TNameTree* GetTree()

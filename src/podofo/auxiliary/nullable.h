@@ -29,29 +29,81 @@ namespace PoDoFo
     {
     public:
         nullable()
-            : m_value{ }, m_hasValue(false) { }
+            : m_dummy{ }, m_hasValue(false) { }
 
         nullable(T value)
             : m_value(std::move(value)), m_hasValue(true) { }
 
         nullable(std::nullptr_t)
-            : m_value{ }, m_hasValue(false) { }
+            : m_dummy{ }, m_hasValue(false) { }
 
-        nullable(const nullable& value) = default;
+        nullable(const nullable& value)
+            : m_dummy{ }
+        {
+            if (value.m_hasValue)
+            {
+                new(&m_value)T(value.m_value);
+                m_hasValue = true;
+            }
+            else
+            {
+                m_hasValue = false;
+            }
+        }
 
-        nullable& operator=(const nullable& value) = default;
+        ~nullable()
+        {
+            if (m_hasValue)
+                m_value.~T();
+        }
+
+        nullable& operator=(const nullable& value)
+        {
+            if (m_hasValue)
+            {
+                if (value.m_hasValue)
+                {
+                    m_value = value.m_value;
+                }
+                else
+                {
+                    m_value.~T();
+                    m_hasValue = false;
+                }
+            }
+            else
+            {
+                if (value.m_hasValue)
+                {
+                    new(&m_value)T(value.m_value);
+                    m_hasValue = true;
+                }
+            }
+
+            return *this;
+        }
 
         nullable& operator=(T value)
         {
-            m_hasValue = true;
-            m_value = std::move(value);
+            if (m_hasValue)
+            {
+                m_value = std::move(value);
+            }
+            else
+            {
+                new(&m_value)T(std::move(value));
+                m_hasValue = true;
+            }
+
             return *this;
         }
 
         nullable& operator=(std::nullptr_t)
         {
+            if (m_hasValue)
+                m_value.~T();
+
             m_hasValue = false;
-            m_value = { };
             return *this;
         }
 
@@ -111,7 +163,20 @@ namespace PoDoFo
         friend std::enable_if_t<!std::is_reference_v<T2>, bool> operator!=(std::nullptr_t, const nullable<T2>& rhs);
 
     private:
-        T m_value;
+        struct NonTrivialDummyType
+        {
+            constexpr NonTrivialDummyType() noexcept
+            {
+                // Avoid zero-initialization when objects are value-initialized
+                // Inspired from MS STL https://github.com/microsoft/STL/blob/8124540f8bce3faad76a6dddd050f9a69af4b87d/stl/inc/optional#L58
+            }
+        };
+
+        union
+        {
+            NonTrivialDummyType m_dummy;
+            T m_value;
+        };
         bool m_hasValue;
     };
 
