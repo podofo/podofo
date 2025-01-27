@@ -1,5 +1,7 @@
 ## 0.10.1 -> 1.0.0
-- `PdfPageMode`: Removed `DontCare` (which was something like a pointless "ignore")
+- `PdfPageMode`:
+  * Removed `DontCare` (which was something like a pointless "ignore")
+  * Renamed `UseBookmarks` -> `UseOutlines`: "bookmark" is not really part of PDF terminology
 - `PdfPageLayout`:
   * Removed `Ignore` (pointless)
   * Removed `Default`: just use nullptr in `PdfCatalog::SetPageLayout()`

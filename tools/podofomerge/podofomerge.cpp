@@ -45,7 +45,7 @@ void merge(const string_view input1Path, const string_view input2Path, const str
 #ifdef TEST_FULL_SCREEN
     input1.GetCatalog().SetUseFullScreen();
 #else
-    input1.GetCatalog().SetPageMode(PdfPageMode::UseBookmarks);
+    input1.GetCatalog().SetPageMode(PdfPageMode::UseOutlines);
     input1.GetCatalog().SetHideToolbar();
     input1.GetCatalog().SetPageLayout(PdfPageLayout::TwoColumnLeft);
 #endif

@@ -108,7 +108,7 @@ PdfPageMode PdfCatalog::GetPageMode() const
         else if (pmName == "UseThumbs")
             thePageMode = PdfPageMode::UseThumbs;
         else if (pmName == "UseOutlines")
-            thePageMode = PdfPageMode::UseBookmarks;
+            thePageMode = PdfPageMode::UseOutlines;
         else if (pmName == "FullScreen")
             thePageMode = PdfPageMode::FullScreen;
         else if (pmName == "UseOC")
@@ -140,7 +140,7 @@ void PdfCatalog::SetPageMode(nullable<PdfPageMode> mode)
             GetDictionary().AddKey("PageMode"_n, "UseThumbs"_n);
             break;
 
-        case PdfPageMode::UseBookmarks:
+        case PdfPageMode::UseOutlines:
             GetDictionary().AddKey("PageMode"_n, "UseOutlines"_n);
             break;
 

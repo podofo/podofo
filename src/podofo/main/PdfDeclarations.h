@@ -501,7 +501,7 @@ enum class PdfPageMode
 {
     UseNone = 1,
     UseThumbs,
-    UseBookmarks,
+    UseOutlines,
     FullScreen,
     UseOC,
     UseAttachments
