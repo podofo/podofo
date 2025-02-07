@@ -29,6 +29,9 @@ namespace PoDoFo {
      */
     class PODOFO_API PdfColorSpaceFilter
     {
+        friend class PdfColorSpace;
+        friend class PdfPainter;
+        friend class PdfColorSpaceInitializer;
         friend class PdfColorSpaceFilterUnkown;
         friend class PdfColorSpaceDeviceGray;
         friend class PdfColorSpaceFilterDeviceRGB;
@@ -40,6 +43,7 @@ namespace PoDoFo {
 
     private:
         PdfColorSpaceFilter();
+
     public:
         virtual ~PdfColorSpaceFilter();
         virtual PdfColorSpaceType GetType() const = 0;
@@ -64,12 +68,14 @@ namespace PoDoFo {
          */
         virtual void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
             unsigned width, unsigned bitsPerComponent) const = 0;
-        /** Get an export object
-         */
-        virtual PdfObject GetExportObject(PdfIndirectObjectList& objectsj) const = 0;
         /** Get the number of the color components for this color space
          */
         virtual unsigned char GetColorComponentCount() const = 0;
+
+    protected:
+        /** Get an export object
+         */
+        virtual PdfObject GetExportObject(PdfIndirectObjectList& objectsj) const = 0;
     };
 
     /** Convenience alias for a constant PdfColorSpaceFilter shared ptr

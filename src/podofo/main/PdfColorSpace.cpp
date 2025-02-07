@@ -12,9 +12,8 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfColorSpace::PdfColorSpace(PdfDocument& doc, const PdfColorSpaceFilterPtr& filter)
-    : PdfDictionaryElement(doc), m_Filter(filter)
+    : PdfElement(getExportObject(doc, filter.get())), m_Filter(filter)
 {
-    GetObject() = filter->GetExportObject(doc.GetObjects());
 }
 
 PdfColorSpaceInitializer::PdfColorSpaceInitializer()
@@ -26,7 +25,7 @@ PdfColorSpaceInitializer::PdfColorSpaceInitializer(const PdfColorSpaceFilterPtr&
     : m_Filter(filter), m_Element(nullptr)
 {
     if (filter == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The input filter must not be nullptr");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The input filter must not be null");
 }
 
 PdfColorSpaceInitializer::PdfColorSpaceInitializer(const PdfColorSpace& colorSpace)
@@ -57,4 +56,17 @@ PdfColorSpaceFilterPtr PdfColorSpaceInitializer::Take(const PdfColorSpace*& elem
     element = m_Element;
     m_Element = nullptr;
     return std::move(m_Filter);
+}
+
+PdfObject getExportObject()
+{
+    return PdfObject();
+}
+
+PdfObject& PdfColorSpace::getExportObject(PdfDocument& doc, const PdfColorSpaceFilter* filter)
+{
+    if (filter == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Filter must not be null");
+
+    return doc.GetObjects().CreateObject(filter->GetExportObject(doc.GetObjects()));
 }

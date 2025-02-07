@@ -14,16 +14,22 @@ namespace PoDoFo {
 
 class PdfDocument;
 
-class PODOFO_API PdfColorSpace final : public PdfDictionaryElement
+class PODOFO_API PdfColorSpace final : public PdfElement
 {
     friend class PdfDocument;
+
 private:
     PdfColorSpace(PdfDocument& doc, const PdfColorSpaceFilterPtr& filter);
 
     PdfColorSpace(const PdfColorSpace&) = default;
+
 public:
     const PdfColorSpaceFilter& GetFilter() const { return *m_Filter; }
     PdfColorSpaceFilterPtr GetFilterPtr() const { return m_Filter; }
+
+protected:
+    static PdfObject& getExportObject(PdfDocument& doc, const PdfColorSpaceFilter* filter);
+
 private:
     PdfColorSpaceFilterPtr m_Filter;
 };
@@ -34,6 +40,7 @@ private:
  */
 class PODOFO_API PdfColorSpaceInitializer final
 {
+    friend class PdfImage;
     friend class PdfGraphicsStateWrapper;
 
     PODOFO_STACK_ONLY
@@ -54,8 +61,6 @@ public:
     PdfColorSpaceInitializer(PdfColorSpaceType colorSpace);
 
 public:
-    PdfObject GetExportObject(PdfIndirectObjectList& objects) const;
-
     bool IsNull() const;
 
     PdfColorSpaceInitializer(const PdfColorSpaceInitializer&) = default;
@@ -67,6 +72,7 @@ public:
 
 private:
     PdfColorSpaceFilterPtr Take(const PdfColorSpace*& element);
+    PdfObject GetExportObject(PdfIndirectObjectList& objects) const;
 
 private:
     PdfColorSpaceFilterPtr m_Filter;
