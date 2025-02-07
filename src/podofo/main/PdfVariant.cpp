@@ -70,6 +70,16 @@ PdfVariant::PdfVariant(PdfVariant&& rhs) noexcept
     moveFrom(std::move(rhs));
 }
 
+PdfVariant::PdfVariant(PdfDictionary* dict)
+    : m_Dictionary(dict)
+{
+}
+
+PdfVariant::PdfVariant(PdfArray* arr)
+    : m_Array(arr)
+{
+}
+
 PdfVariant::~PdfVariant()
 {
     switch (GetDataType())

@@ -317,6 +317,10 @@ private:
     // Delete constructor with nullptr
     PdfVariant(std::nullptr_t) = delete;
 
+    PdfVariant(PdfDictionary* dict);
+
+    PdfVariant(PdfArray* arr);
+
     PdfReference GetReferenceUnsafe() const;
     const PdfDictionary& GetDictionaryUnsafe() const;
     const PdfArray& GetArrayUnsafe() const;

@@ -194,14 +194,14 @@ PdfReference PdfIndirectObjectList::getNextFreeObject()
 PdfObject& PdfIndirectObjectList::CreateDictionaryObject(const PdfName& type,
     const PdfName& subtype)
 {
-    auto dict = PdfDictionary();
+    auto ret = new PdfObject();
+    auto& dict = ret->GetDictionaryUnsafe();
     if (!type.IsNull())
         dict.AddKey("Type"_n, type);
 
     if (!subtype.IsNull())
         dict.AddKey("Subtype"_n, subtype);
 
-    auto ret = new PdfObject(std::move(dict));
     ret->setDirty();
     addNewObject(ret);
     return *ret;
@@ -209,7 +209,7 @@ PdfObject& PdfIndirectObjectList::CreateDictionaryObject(const PdfName& type,
 
 PdfObject& PdfIndirectObjectList::CreateArrayObject()
 {
-    auto ret = new PdfObject(PdfArray());
+    auto ret = new PdfObject(new PdfArray());
     ret->setDirty();
     addNewObject(ret);
     return *ret;

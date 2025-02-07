@@ -445,6 +445,8 @@ public:
 private:
     PdfObject(PdfVariant&& var, const PdfReference& indirectReference, bool isDirty);
 
+    PdfObject(PdfArray* arr);
+
 protected:
     /**
      * Dynamically load the contents of this object from a PDF file by calling

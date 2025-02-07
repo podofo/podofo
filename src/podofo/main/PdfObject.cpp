@@ -22,7 +22,7 @@ using namespace PoDoFo;
 const PdfObject PdfObject::Null = PdfObject(nullptr);
 
 PdfObject::PdfObject()
-    : m_Variant(PdfDictionary()), m_IsDirty(false), m_IsImmutable(false)
+    : m_Variant(new PdfDictionary()), m_IsDirty(false), m_IsImmutable(false)
 {
     initObject();
     m_Variant.GetDictionaryUnsafe().SetOwner(*this);
@@ -135,6 +135,13 @@ PdfObject::PdfObject(PdfVariant&& var, const PdfReference& indirectReference, bo
 {
     initObject();
     SetVariantOwner();
+}
+
+PdfObject::PdfObject(PdfArray* arr)
+    : m_Variant(arr), m_IsDirty(false), m_IsImmutable(false)
+{
+    initObject();
+    m_Variant.GetDictionaryUnsafe().SetOwner(*this);
 }
 
 const PdfObjectStream* PdfObject::GetStream() const
