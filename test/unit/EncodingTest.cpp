@@ -22,10 +22,12 @@ namespace PoDoFo
     {
     public:
         static void TestToUnicodeParse();
+        static void TestDifferencesObject();
     };
 }
 
 METHOD_AS_TEST_CASE(PdfEncodingTest::TestToUnicodeParse, "TestToUnicodeParse")
+METHOD_AS_TEST_CASE(PdfEncodingTest::TestDifferencesObject, "TestDifferencesObject")
 
 TEST_CASE("TestDifferences")
 {
@@ -117,7 +119,7 @@ TEST_CASE("TestDifferences")
     REQUIRE(!difference.TryGetMappedName(100, name, value));
 }
 
-TEST_CASE("TestDifferencesObject")
+void PdfEncodingTest::TestDifferencesObject()
 {
     PdfDifferenceList difference;
     difference.AddDifference(1, "B");

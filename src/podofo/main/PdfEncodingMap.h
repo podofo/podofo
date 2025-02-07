@@ -29,10 +29,12 @@ class PODOFO_API PdfEncodingMap
     friend class PdfEncoding;
     friend class PdfEncodingMapBase;
     friend class PdfEncodingMapOneByte;
+    friend class PdfDifferenceEncoding;
     friend class PdfNullEncodingMap;
     friend class PdfIdentityEncoding;
     friend class PdfPredefinedToUnicodeCMap;
     friend class PdfStringScanContext;
+    PODOFO_PRIVATE_FRIEND(class PdfEncodingTest);
 
 private:
     PdfEncodingMap(PdfEncodingMapType type);
@@ -100,13 +102,6 @@ public:
      */
     virtual bool HasLigaturesSupport() const;
 
-    /** Get an export object that will be used during font init
-     * \param objects list to use to create document objects
-     * \param name name to use
-     * \param obj if not null the object will be used instead
-     */
-    bool TryGetExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const;
-
 public:
     virtual ~PdfEncodingMap();
 
@@ -172,6 +167,13 @@ protected:
     virtual void AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const = 0;
 
 private:
+    /** Get an export object that will be used during font init
+     * \param objects list to use to create document objects
+     * \param name name to use
+     * \param obj if not null the object will be used instead
+     */
+    bool TryGetExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const;
+
     /* Overload of TryGetCodePoints that allows for a fast path to fetch code points from a full CID, if available
      *
      * To be called by PdfStringScanContext
