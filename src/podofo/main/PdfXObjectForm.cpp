@@ -73,7 +73,7 @@ PdfResources* PdfXObjectForm::getResources()
 
 PdfDictionaryElement& PdfXObjectForm::getElement()
 {
-    return const_cast<PdfXObjectForm&>(*this);
+    return *this;
 }
 
 PdfObjectStream& PdfXObjectForm::GetOrCreateContentsStream(PdfStreamAppendFlags flags)
@@ -110,7 +110,7 @@ Rect PdfXObjectForm::GetRectRaw() const
 
 PdfObject* PdfXObjectForm::getContentsObject()
 {
-    return &const_cast<PdfXObjectForm&>(*this).GetObject();
+    return &GetObject();
 }
 
 PdfResources& PdfXObjectForm::GetOrCreateResources()

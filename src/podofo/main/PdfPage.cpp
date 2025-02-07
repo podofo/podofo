@@ -389,12 +389,12 @@ PdfObject* PdfPage::getContentsObject()
     if (m_Contents == nullptr)
         return nullptr;
 
-    return &const_cast<PdfContents&>(*m_Contents).GetObject();
+    return &m_Contents->GetObject();
 }
 
 PdfDictionaryElement& PdfPage::getElement()
 {
-    return const_cast<PdfPage&>(*this);
+    return *this;
 }
 
 PdfObject* PdfPage::findInheritableAttribute(const string_view& name) const
