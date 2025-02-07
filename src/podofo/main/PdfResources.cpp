@@ -14,13 +14,12 @@
 using namespace std;
 using namespace PoDoFo;
 
-static PdfArray getProcSet();
 static PdfName getResourceTypeName(PdfResourceType type);
 PdfResourceType getResourceType(const string_view name);
 static string_view getResourceTypePrefix(PdfResourceType type);
 
 PdfResources::PdfResources(PdfDocument& doc) :
-    PdfDictionaryElement(doc, "Resources"_n),
+    PdfDictionaryElement(doc),
     m_currResourceIds{ } { }
 
 PdfResources::PdfResources(PdfObject& obj) :
@@ -31,7 +30,6 @@ PdfResources::PdfResources(PdfCanvas& canvas) :
     PdfDictionaryElement(canvas.GetElement().GetDictionary().AddKey("Resources"_n, PdfDictionary())),
     m_currResourceIds{ }
 {
-    GetDictionary().AddKey("ProcSet"_n, getProcSet());
 }
 
 bool PdfResources::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfResources>& resources)
@@ -195,17 +193,6 @@ PdfDictionary& PdfResources::getOrCreateDictionary(const PdfName& type)
 }
 
 PdfResourceOperations::PdfResourceOperations() { }
-
-PdfArray getProcSet()
-{
-    PdfArray procset;
-    procset.Add("PDF"_n);
-    procset.Add("Text"_n);
-    procset.Add("ImageB"_n);
-    procset.Add("ImageC"_n);
-    procset.Add("ImageI"_n);
-    return procset;
-}
 
 PdfName getResourceTypeName(PdfResourceType type)
 {
