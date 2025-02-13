@@ -348,17 +348,9 @@ void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset, bool 
 
     if (token != "xref")
     {
-        // Found linearized 1.3-pdf's with trailer-info in xref-stream
-        if (m_PdfVersion < PdfVersion::V1_3)
-        {
-            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRef);
-        }
-        else
-        {
-            m_HasXRefStream = true;
-            ReadXRefStreamContents(device, offset, skipFollowPrevious);
-            return;
-        }
+        ReadXRefStreamContents(device, offset, skipFollowPrevious);
+        m_HasXRefStream = true;
+        return;
     }
 
     // read all xref subsections

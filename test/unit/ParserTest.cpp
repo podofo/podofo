@@ -2761,6 +2761,21 @@ TEST_CASE("TestManyTrailer")
     FAIL("Should fail with stack overflow");
 }
 
+TEST_CASE("TestXRefPDF10")
+{
+    // Test ability to read an XRef stream with an older version PDF
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TestXRefCheckboxUnicode.pdf"));
+
+    auto& page = doc.GetPages().GetPageAt(0);
+    vector<PdfCheckBox*> checkboxes;
+    for (auto field : page.GetFieldsIterator())
+        checkboxes.push_back(dynamic_cast<PdfCheckBox*>(field));
+
+    REQUIRE(checkboxes[0]->IsChecked());
+    REQUIRE(!checkboxes[1]->IsChecked());
+}
+
 TEST_CASE("TestReclaimObjectMemory")
 {
     PdfObject obj;
