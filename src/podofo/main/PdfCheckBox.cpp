@@ -50,23 +50,27 @@ void PdfCheckBox::SetAppearanceUnchecked(const PdfXObject& xobj)
 
 void PdfCheckBox::SetChecked(bool isChecked)
 {
+    // FIXME: This is incorrect, and should handle toggle buttons export values
     GetObject().GetDictionary().AddKey("V", (isChecked ? PdfName("Yes") : PdfName("Off")));
     GetObject().GetDictionary().AddKey("AS", (isChecked ? PdfName("Yes") : PdfName("Off")));
 }
 
 bool PdfCheckBox::IsChecked() const
 {
-    auto& dict = GetObject().GetDictionary();
-    if (dict.HasKey("V"))
-    {
-        auto& name = dict.MustFindKey("V").GetName();
-        return (name == "Yes" || name == "On");
-    }
-    else if (dict.HasKey("AS"))
-    {
-        auto& name = dict.MustFindKey("AS").GetName();
-        return (name == "Yes" || name == "On");
-    }
+    // ISO 32000-2:2020 12.7.5.2.3 "Check boxes":
+    // "The appearance for the off state is optional but,
+    // if present, shall be stored in the appearance dictionary
+    // under the name Off"
+    // 12.7.5.2.4 "Radio buttons": "The parent field’s V entry holds
+    // a name object corresponding to the appearance state of whichever
+    // child field is currently in the on state; the default value for
+    // this entry is Off"
+    auto& dict = GetDictionary();
+    const PdfName* name;
+    if (dict.TryFindKeyAs("V", name))
+        return *name != "Off";
+    else if (dict.TryFindKeyAs("AS", name))
+        return *name != "Off";
 
     return false;
 }
