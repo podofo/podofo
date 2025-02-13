@@ -83,3 +83,23 @@ PdfToggleButton::PdfToggleButton(PdfObject& obj, PdfAcroForm* acroform, PdfField
     : PdfButton(obj, acroform, fieldType)
 {
 }
+
+bool PdfToggleButton::IsChecked() const
+{
+    // ISO 32000-2:2020 12.7.5.2.3 "Check boxes":
+    // "The appearance for the off state is optional but,
+    // if present, shall be stored in the appearance dictionary
+    // under the name Off"
+    // 12.7.5.2.4 "Radio buttons": "The parent field’s V entry holds
+    // a name object corresponding to the appearance state of whichever
+    // child field is currently in the on state; the default value for
+    // this entry is Off"
+    auto& dict = GetDictionary();
+    const PdfName* name;
+    if (dict.TryFindKeyAs("V", name))
+        return *name != "Off";
+    else if (dict.TryFindKeyAs("AS", name))
+        return *name != "Off";
+
+    return false;
+}

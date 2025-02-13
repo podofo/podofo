@@ -46,11 +46,6 @@ namespace PoDoFo
          */
         void SetChecked(bool isChecked);
 
-        /**
-         * \returns true if the checkbox is checked
-         */
-        bool IsChecked() const;
-
         PdfCheckBox* GetParent();
         const PdfCheckBox* GetParent() const;
 

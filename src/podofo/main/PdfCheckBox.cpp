@@ -50,25 +50,9 @@ void PdfCheckBox::SetAppearanceUnchecked(const PdfXObject& xobj)
 
 void PdfCheckBox::SetChecked(bool isChecked)
 {
+    // FIXME: This is incorrect, and should handle toggle buttons export values
     GetDictionary().AddKey("V"_n, (isChecked ? "Yes"_n : "Off"_n));
     GetDictionary().AddKey("AS"_n, (isChecked ? "Yes"_n : "Off"_n));
-}
-
-bool PdfCheckBox::IsChecked() const
-{
-    auto& dict = GetDictionary();
-    if (dict.HasKey("V"))
-    {
-        auto& name = dict.MustFindKey("V").GetName();
-        return (name == "Yes" || name == "On");
-    }
-    else if (dict.HasKey("AS"))
-    {
-        auto& name = dict.MustFindKey("AS").GetName();
-        return (name == "Yes" || name == "On");
-    }
-
-    return false;
 }
 
 PdfCheckBox* PdfCheckBox::GetParent()
