@@ -126,10 +126,13 @@ void PdfPainter::finishDrawing()
 
 void PdfPainter::reset()
 {
+    m_painterStatus = PainterStatus::StatusDefault;
     m_StateStack.Clear();
-    m_stream.Clear();
+    m_textStackCount = 0;
     m_objStream = nullptr;
     m_canvas = nullptr;
+    m_stream.Clear();
+    m_resNameCache.clear();
 }
 
 void PdfPainter::SetStrokeStyle(PdfStrokeStyle strokeStyle, bool inverted, double scale, bool subtractJoinCap)

@@ -11,6 +11,8 @@
 - PdfOperatorUtils: Move to aux/PdfConver.h most functions
 - PdfTokenizer: Evaluate making private IsWhitespace, IsDelimiter,
   IsTokenDelimiter, IsRegular, IsPrintable
+- PdfPainter: Consider setting the flags in the
+  PdfPainter::SetCanvas(canvas) method instead
 
 
 ### After 1.0
