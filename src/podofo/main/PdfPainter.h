@@ -592,8 +592,8 @@ private:
     void m_Operator(double x, double y) override;
     void l_Operator(double x, double y) override;
     void c_Operator(double c1x, double c1y, double c2x, double c2y, double x, double y) override;
-    void v_Operator(double cx, double cy, double x, double y);
-    void y_Operator(double cx, double cy, double x, double y);
+    void v_Operator(double cx, double cy, double x, double y) override;
+    void y_Operator(double cx, double cy, double x, double y) override;
     void n_Operator() override;
     void h_Operator() override;
     void b_Operator() override;
