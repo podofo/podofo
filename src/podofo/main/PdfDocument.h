@@ -18,6 +18,8 @@
 #include "PdfXObjectForm.h"
 #include "PdfImage.h"
 #include "PdfColorSpace.h"
+#include "PdfPattern.h"
+#include "PdfFunction.h"
 #include "PdfInfo.h"
 #include "PdfOutlines.h"
 
@@ -155,7 +157,17 @@ public:
 
     std::unique_ptr<PdfColorSpace> CreateColorSpace(const PdfColorSpaceFilterPtr& filter);
 
-    std::unique_ptr<PdfExtGState> CreateExtGState();
+    std::unique_ptr<PdfFunction> CreateFunction(const PdfFunctionDefinitionPtr& definition);
+
+    std::unique_ptr<PdfUncolouredTilingPattern> CreateTilingPattern(const std::shared_ptr<PdfUncolouredTilingPatternDefinition> &definition);
+
+    std::unique_ptr<PdfColouredTilingPattern> CreateTilingPattern(const std::shared_ptr<PdfColouredTilingPatternDefinition>& definition);
+
+    std::unique_ptr<PdfShadingPattern> CreateShadingPattern(const PdfShadingPatternDefinitionPtr& definition);
+
+    std::unique_ptr<PdfShadingDictionary> CreateShadingDictionary(const PdfShadingDefinitionPtr& definition);
+
+    std::unique_ptr<PdfExtGState> CreateExtGState(const PdfExtGStateDefinitionPtr& definition);
 
     template <typename Taction>
     std::unique_ptr<Taction> CreateAction();

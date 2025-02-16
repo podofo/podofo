@@ -122,6 +122,8 @@ string_view PdfError::ErrorName(PdfErrorCode code)
             return "PdfErrorCode::InvalidFontData"sv;
         case PdfErrorCode::InvalidContentStream:
             return "PdfErrorCode::InvalidContentStream"sv;
+        case PdfErrorCode::InvalidInput:
+            return "PdfErrorCode::InvalidInput"sv;
         case PdfErrorCode::UnsupportedFilter:
             return "PdfErrorCode::UnsupportedFilter"sv;
         case PdfErrorCode::UnsupportedFontFormat:
@@ -211,6 +213,8 @@ string_view PdfError::ErrorMessage(PdfErrorCode code)
             return "The font data is invalid."sv;
         case PdfErrorCode::InvalidContentStream:
             return "The content stream is invalid due to mismatched context pairing or other problems."sv;
+        case PdfErrorCode::InvalidInput:
+            return "The supplied input value is incorrect/unsupported."sv;
         case PdfErrorCode::UnsupportedFilter:
             break;
         case PdfErrorCode::UnsupportedFontFormat:

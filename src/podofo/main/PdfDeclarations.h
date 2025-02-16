@@ -793,7 +793,7 @@ enum class PdfRenderingIntent
 /**
  * List of defined transparency blending modes
  */
-enum class PdfBlendMode
+enum class PdfBlendMode : uint8_t
 {
     Unknown = 0,
     Normal,

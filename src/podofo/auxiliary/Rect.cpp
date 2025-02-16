@@ -50,6 +50,16 @@ void Rect::ToArray(PdfArray& arr) const
     arr.Add(PdfObject((Height + Y)));
 }
 
+PdfArray Rect::ToArray() const
+{
+    PdfArray arr;
+    arr.Add(PdfObject(X));
+    arr.Add(PdfObject(Y));
+    arr.Add(PdfObject((Width + X)));
+    arr.Add(PdfObject((Height + Y)));
+    return arr;
+}
+
 string Rect::ToString() const
 {
     PdfArray arr;
@@ -135,6 +145,11 @@ void Rect::Intersect(const Rect& rect)
             Height -= diff;
         }
     }
+}
+
+bool Rect::IsValid() const
+{
+    return Width != 0 && Height != 0;
 }
 
 Rect Rect::operator*(const Matrix& m) const

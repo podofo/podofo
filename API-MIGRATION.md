@@ -10,6 +10,12 @@
 - `PdfGlyphAccess`: `Width` renamed to `ReadMetrics`
 - `Matrix2D`: Removed, all methods using it were converted to use `Matrix` instead, which is a full replacement
 - `Matrix`: Removed `FromCoefficients()`, just use the now public constructor with coefficients
+- `PdfTilingPattern`, `PdfShadingPatter`: Wholly changed API and semantics. See `PdfTilingPatternDefinition` and
+  `PdfShadingPatternDefinition`
+- `PdfPainter`:
+  * `SetTilingPattern`, `SetShadingPattern`, `SetStrokingShadingPattern`, `SetStrokingTilingPattern`:
+    Removed, use the `SetStrokingPattern`,`SetShadingPattern`, `SetStrokingUncolouredTilingPattern`,
+    `SetNonStrokingUncolouredTilingPattern`
 - `PdfFontMetrics`:
   * `GetFontNameSafe()` removed: Just use `GetFontName` instead
   * `GetBaseFontName()`: make it protected, `GeFamilyFontNameSafe()` it's the closest substitute
@@ -75,6 +81,7 @@
   * `GetResources()`: Now it returns a reference instead (reflecting in the specification resources is required for pages)
   * `MustGetResources()`: Removed, use the reference returning `GetResources()` instead
   or `PdfGraphicsStateWrapper::SetStrokingColorSpace`
+- `PdfColorSpaceFilter`: Make `GetExportObject` protected (no public substitute provided)
 - `FileStreamDevice` doesn't inherit `StandardStreamDevice` anymore
 - `PdfString`:
   * `GetString()` and `GetRawData()` now returns `std::string_view`
@@ -102,13 +109,13 @@
     Removed from the public API: They have always been for inner use and dangerous to call for the user. For object removal we now rely on garbage collection
   * Renamed `ObjectListComparator` to `PdfObjectInequality` and moved it to PoDoFo namespace
 - `PdfExtGState`:
-  * Costructor is now private, create it through `PdfDocument::CreateExtGState()`
-  * All methods now accept nullable
-  * `SetOverprint` -> `SetOverprintEnabled`
-  * `SetFillOverprint` -> `SetFillOverprintEnabled`
-  * `SetStrokeOverprint` -> `SetStrokeOverprintEnabled`
-  * `SetRenderingIntent` uses `PdfRenderingIntent` enum
-  * `SetBlendMode` uses `PdfBlendMode` enum
+  * Costructor is now private, create it through `PdfDocument::CreateExtGState(definition)`
+  * All methods removed: Retrieve the `PdfExtGStateDefinition` instance
+  * Fill opacity -> `PdfExtGStateDefinition::NonStrokingAlpha`
+  * Stroke opacity -> `PdfExtGStateDefinition::StrokingAlpha`
+  * FillOverprintEnabled, StrokeOverprintEnabled -> `PdfExtGStateDefinition::OverprintControl`
+  * NonZeroOverprintEnabled -> `PdfExtGStateDefinition::NonZeroOverprintMode`
+  * `SetFrequency()`: Removed, for now. Needs a more extensive HalfTone dictionary support
 - `PdfStreamedObjectStream`: Removed from public API, it's an internal implementation detail
 - `PdfXRefEntry`,`PdfXRefEntries`, `PdfParserObject`, `PdfXRefStreamParserObject`: Removed from public API,
 they are internal implementation details
@@ -178,6 +185,7 @@ and use move semantics on the stream
 - `PdfEncodingMap`:
   * Removed `IsBuiltinEncoding`. No replacement, it just told if the font was built-in in Type1 font program. For now it's not expected to be useful
   * `TryGetCodePoints()`, `TryGetNextCodePoints` now takes `CodePointSpan` instead of vector<codepoint>
+  * `TryGetExportObject`: Make it private, no public substitute provided
 - `PdfCharCodeMap`: `TryGetCodePoints()` now takes `CodePointSpan` instead of vector<codepoint>
 - `PdfEncoding`: `TryScan` now takes `CodePointSpan` instead of vector<codepoint>
 - `PdfExtension`: Make the constructor internal and class final

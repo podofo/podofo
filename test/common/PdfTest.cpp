@@ -125,6 +125,16 @@ bool TestUtils::IsBufferEqual(const bufferview& buffer, const string_view& filen
     return buffer == tmp;
 }
 
+bool TestUtils::AreFilesEqual(const string_view& filename1, const string_view& filename2)
+{
+    charbuff tmp1;
+    utls::ReadTo(tmp1, filename1);
+
+    charbuff tmp2;
+    utls::ReadTo(tmp2, filename2);
+    return tmp1 == tmp2;
+}
+
 void readTestInputFile(const string_view& filepath, string& str)
 {
 #ifdef _WIN32

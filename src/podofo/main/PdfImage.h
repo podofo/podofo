@@ -15,6 +15,9 @@
 struct jpeg_decompress_struct;
 #endif // PODOFO_HAVE_JPEG_LIB
 
+struct png_struct_def;
+struct png_info_def;
+
 namespace PoDoFo {
 
 class PdfDocument;
@@ -22,8 +25,6 @@ class InputStream;
 
 struct PODOFO_API PdfImageInfo final
 {
-    PODOFO_STACK_ONLY
-
     unsigned Width = 0;
     unsigned Height = 0;
     nullable<PdfFilterList> Filters;
@@ -202,6 +203,8 @@ private:
      *  \param len number of bytes
      */
     void loadFromPngData(const unsigned char* data, size_t len);
+
+    static void loadFromPngContent(PdfImage& image, png_struct_def* png, png_info_def* info);
 #endif // PODOFO_HAVE_PNG_LIB
 
 private:

@@ -19,8 +19,10 @@ using namespace PoDoFo;
 //                            | e f 1 |
 //
 
+Matrix Matrix::Identity;
+
 Matrix::Matrix()
-    : Matrix(1, 0, 0, 1, 0, 0) { }
+    : m_mat{ 1, 0, 0, 1, 0, 0 } { }
 
 Matrix Matrix::FromArray(const double arr[6])
 {
@@ -134,6 +136,18 @@ void Matrix::ToArray(PdfArray& arr) const
     arr.Add(m_mat[3]);
     arr.Add(m_mat[4]);
     arr.Add(m_mat[5]);
+}
+
+PdfArray Matrix::ToArray() const
+{
+    PdfArray arr;
+    arr.Add(m_mat[0]);
+    arr.Add(m_mat[1]);
+    arr.Add(m_mat[2]);
+    arr.Add(m_mat[3]);
+    arr.Add(m_mat[4]);
+    arr.Add(m_mat[5]);
+    return arr;
 }
 
 bool Matrix::operator==(const Matrix& m) const

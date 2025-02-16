@@ -66,6 +66,16 @@ PdfObject& PdfArray::MustFindAt(unsigned idx)
     return *obj;
 }
 
+PdfArray PdfArray::FromBools(cspan<bool> bools)
+{
+    PdfArray arr;
+    arr.reserve(bools.size());
+    for (unsigned i = 0; i < bools.size(); i++)
+        arr.Add(PdfObject(bools[i]));
+
+    return arr;
+}
+
 PdfArray& PdfArray::operator=(const PdfArray& rhs)
 {
     AssertMutable();

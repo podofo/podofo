@@ -289,7 +289,7 @@ TEST_CASE("TestEnableAlgorithms")
 
 void PdfEncryptTest::TestLoadEncrypedFilePdfParser()
 {
-    string tempFile = TestUtils::GetTestOutputFilePath("testLoadEncrypedFilePdfParser.pdf");
+    string tempFile = TestUtils::GetTestOutputFilePath("TestLoadEncrypedFilePdfParser.pdf");
     createEncryptedPdf(tempFile);
 
     auto device = std::make_shared<FileStreamDevice>(tempFile);
@@ -315,7 +315,7 @@ void PdfEncryptTest::TestLoadEncrypedFilePdfParser()
 
 TEST_CASE("TestLoadEncrypedFilePdfMemDocument")
 {
-    string tempFile = TestUtils::GetTestOutputFilePath("testLoadEncrypedFilePdfMemDocument.pdf");
+    string tempFile = TestUtils::GetTestOutputFilePath("TestLoadEncrypedFilePdfMemDocument.pdf");
     createEncryptedPdf(tempFile);
 
     // Try loading with PdfParser

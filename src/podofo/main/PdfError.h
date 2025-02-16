@@ -55,6 +55,7 @@ enum class PdfErrorCode
     InvalidPassword,          ///< The password used to open the PDF file was invalid
     InvalidFontData,          ///< The font file is invalid
     InvalidContentStream,     ///< The content stream is invalid due to mismatched context pairing or other problems
+    InvalidInput,             ///< Invalid input
 
     UnsupportedFilter,        ///< The requested filter is not yet implemented.
     UnsupportedFontFormat,    ///< This font format is not supported by PoDoFo.

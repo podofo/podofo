@@ -28,6 +28,8 @@ void WriteOperator_re(PdfStringStream& stream, double x, double y, double width,
 void WriteOperator_m(PdfStringStream& stream, double x, double y);
 void WriteOperator_l(PdfStringStream& stream, double x, double y);
 void WriteOperator_c(PdfStringStream& stream, double c1x, double c1y, double c2x, double c2y, double x, double y);
+void WriteOperator_y(PdfStringStream& stream, double cx, double cy, double x, double y);
+void WriteOperator_v(PdfStringStream& stream, double cx, double cy, double x, double y);
 void WriteOperator_n(PdfStringStream& stream);
 void WriteOperator_h(PdfStringStream& stream);
 void WriteOperator_b(PdfStringStream& stream);
@@ -52,6 +54,7 @@ void WriteOperator_Q(PdfStringStream& stream);
 void WriteOperator_BT(PdfStringStream& stream);
 void WriteOperator_ET(PdfStringStream& stream);
 void WriteOperator_Td(PdfStringStream& stream, double tx, double ty);
+void WriteOperator_TD(PdfStringStream& stream, double tx, double ty);
 void WriteOperator_Tm(PdfStringStream& stream, double a, double b, double c, double d, double e, double f);
 void WriteOperator_Tr(PdfStringStream& stream, PdfTextRenderingMode mode);
 void WriteOperator_Ts(PdfStringStream& stream, double rise);
@@ -93,6 +96,7 @@ void WriteOperator_RG(PdfStringStream& stream, double red, double green, double 
 void WriteOperator_rg(PdfStringStream& stream, double red, double green, double blue);
 void WriteOperator_K(PdfStringStream& stream, double cyan, double magenta, double yellow, double black);
 void WriteOperator_k(PdfStringStream& stream, double cyan, double magenta, double yellow, double black);
+void WriteOperator_sh(PdfStringStream& stream, const std::string_view& shadingDictName);
 void WriteOperator_BX(PdfStringStream& stream);
 void WriteOperator_EX(PdfStringStream& stream);
 void WriteOperator_Extension(PdfStringStream& stream, const std::string_view& opName, const cspan<PdfVariant>& operands);

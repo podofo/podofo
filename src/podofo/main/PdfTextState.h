@@ -8,6 +8,7 @@
 #define PDF_TEXT_STATE_H
 
 #include "PdfDeclarations.h"
+#include <podofo/auxiliary/Matrix.h>
 
 namespace PoDoFo
 {
@@ -30,6 +31,7 @@ namespace PoDoFo
         double CharSpacing = 0;
         double WordSpacing = 0;
         PdfTextRenderingMode RenderingMode = PdfTextRenderingMode::Fill;
+        Matrix Matrix;
     };
 }
 

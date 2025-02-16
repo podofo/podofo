@@ -8,6 +8,7 @@
 #define PDF_EXTGSTATE_H
 
 #include "PdfElement.h"
+#include "PdfExtGStateDefinition.h"
 
 namespace PoDoFo {
 
@@ -30,54 +31,14 @@ private:
      *  \param parent parent document
      *
      */
-    PdfExtGState(PdfDocument& doc);
-    PdfExtGState(const PdfExtGState&) = default;
+    PdfExtGState(PdfDocument& doc, const PdfExtGStateDefinitionPtr& filter);
 
 public:
-    /** Sets the opacity value to be used for fill operations
-     *  \param opacity a floating point value from 0 (transparent) to 1 (opaque)
-     */
-    void SetFillOpacity(nullable<double> opacity);
+    const PdfExtGStateDefinition& GetDefinition() const { return *m_Definition; }
+    PdfExtGStateDefinitionPtr GetDefinitionPtr() const { return m_Definition; }
 
-    /** Sets the opacity value to be used for stroking operations
-     *  \param opacity a floating point value from 0 (transparent) to 1 (opaque)
-     */
-    void SetStrokeOpacity(nullable<double> opacity);
-
-    /** Sets the transparency blend mode
-     *  \param blendMode one of the predefined blending modes (see PdfDeclarations.h)
-     */
-    void SetBlendMode(nullable<PdfBlendMode> blendMode);
-
-    /** Enables/Disables overprinting for both Fill & Stroke
-     *  \param enable enable or disable
-     */
-    void SetOverprintEnabled(nullable<bool> enabled);
-
-    /** Enables/Disables overprinting for Fill operations
-     *  \param enable enable or disable
-     */
-    void SetFillOverprintEnabled(nullable<bool> enabled);
-
-    /** Enables/Disables overprinting for Stroke operations
-     *  \param enable enable or disable
-     */
-    void SetStrokeOverprintEnabled(nullable<bool> enabled);
-
-    /** Enables/Disables non-zero overprint mode
-     *  \param enable enable or disable
-     */
-    void SetNonZeroOverprintEnabled(nullable<bool> enabled);
-
-    /** Set the Rendering Intent
-     *  \param intent one of the predefined intents
-     */
-    void SetRenderingIntent(nullable<PdfRenderingIntent> intent);
-
-    /** Set the frequency for halftones
-     *  \param frequency screen frequency, measured in halftone cells per inch in device space
-     */
-    void SetFrequency(double frequency);
+public:
+    PdfExtGStateDefinitionPtr m_Definition;
 };
 
 };

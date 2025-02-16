@@ -20,7 +20,6 @@
 using namespace std;
 using namespace PoDoFo;
 
-static PdfColorSpaceFilterPtr getSimpleColorSpaceFilter(PdfColorSpaceType type);
 static string expandTabs(const string_view& str, unsigned tabWidth, unsigned tabCount);
 
 PdfPainter::PdfPainter(PdfPainterFlags flags) :
@@ -757,65 +756,82 @@ void PdfPainter::SetStrokingColor(const PdfColorRaw& color, const PdfColorSpaceF
     PoDoFo::WriteOperator_SCN(m_stream, cspan<double>(color.data(), colorSpace.GetColorComponentCount()));
 }
 
-void PdfPainter::SetNonStrokingColorSpace(const PdfColorSpaceFilter& filter, const PdfColorSpace* colorSpace)
+void PdfPainter::SetNonStrokingColorSpace(const PdfVariant& expVar)
 {
     checkStream();
-    if (colorSpace == nullptr)
+    switch (expVar.GetDataType())
     {
-        if (filter.IsTrivial())
+        case PdfDataType::Name:
         {
-            PoDoFo::WriteOperator_cs(m_stream, PoDoFo::ToString(filter.GetType()));
+            PoDoFo::WriteOperator_cs(m_stream, expVar.GetName());
+            break;
         }
-        else
+        case PdfDataType::Reference:
         {
-            auto& objects = m_canvas->GetElement().GetDocument().GetObjects();
-            setNonStrokingColorSpace(objects.CreateDictionaryObject() = filter.GetExportObject(objects));
+            PoDoFo::WriteOperator_cs(m_stream, tryAddResource(expVar.GetReference(), PdfResourceType::ColorSpace));
+            break;
         }
-    }
-    else
-    {
-        setNonStrokingColorSpace(colorSpace->GetObject());
+        default:
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Unsupported setting the colorspace without an exorpt object");
     }
 }
 
-void PdfPainter::setNonStrokingColorSpace(const PdfObject& csObj)
-{
-    PoDoFo::WriteOperator_cs(m_stream, tryAddResource(csObj, PdfResourceType::ColorSpace));
-}
-
-void PdfPainter::SetStrokingColorSpace(const PdfColorSpaceFilter& filter, const PdfColorSpace* colorSpace)
+void PdfPainter::SetStrokingColorSpace(const PdfVariant& expVar)
 {
     checkStream();
-    if (colorSpace == nullptr)
+    switch (expVar.GetDataType())
     {
-        if (filter.IsTrivial())
+        case PdfDataType::Name:
         {
-            PoDoFo::WriteOperator_CS(m_stream, PoDoFo::ToString(filter.GetType()));
+            PoDoFo::WriteOperator_CS(m_stream, expVar.GetName());
+            break;
         }
-        else
+        case PdfDataType::Reference:
         {
-            auto& objects = m_canvas->GetElement().GetDocument().GetObjects();
-            setStrokingColorSpace(objects.CreateDictionaryObject() = filter.GetExportObject(objects));
+            PoDoFo::WriteOperator_CS(m_stream, tryAddResource(expVar.GetReference(), PdfResourceType::ColorSpace));
+            break;
         }
-    }
-    else
-    {
-        setStrokingColorSpace(colorSpace->GetObject());
+        default:
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Unsupported setting the colorspace without an exorpt object");
     }
 }
 
-void PdfPainter::setStrokingColorSpace(const PdfObject& csObj)
+void PdfPainter::SetStrokingPattern(const PdfPattern& pattern, const PdfColorRaw* color, const PdfColorSpaceFilter* colorSpace)
 {
-    PoDoFo::WriteOperator_CS(m_stream, tryAddResource(csObj, PdfResourceType::ColorSpace));
+    checkStream();
+    if (color == nullptr)
+        PoDoFo::WriteOperator_SCN(m_stream, tryAddResource(pattern.GetObject(), PdfResourceType::Pattern));
+    else
+        PoDoFo::WriteOperator_SCN(m_stream, cspan<double>(color->data(), colorSpace->GetColorComponentCount()), tryAddResource(pattern.GetObject(), PdfResourceType::Pattern));
+}
+
+void PdfPainter::SetNonStrokingPattern(const PdfPattern& pattern, const PdfColorRaw* color, const PdfColorSpaceFilter* colorSpace)
+{
+    checkStream();
+    if (color == nullptr)
+        PoDoFo::WriteOperator_scn(m_stream, tryAddResource(pattern.GetObject(), PdfResourceType::Pattern));
+    else
+        PoDoFo::WriteOperator_scn(m_stream, cspan<double>(color->data(), colorSpace->GetColorComponentCount()), tryAddResource(pattern.GetObject(), PdfResourceType::Pattern));
+}
+
+void PdfPainter::SetShadingDictionary(const PdfShadingDictionary& shading)
+{
+    checkStream();
+    PoDoFo::WriteOperator_sh(m_stream, tryAddResource(shading.GetObject(), PdfResourceType::Shading));
 }
 
 PdfName PdfPainter::tryAddResource(const PdfObject& obj, PdfResourceType type)
 {
-    auto found = m_resNameCache.find(obj.GetIndirectReference());
+    return tryAddResource(obj.GetIndirectReference(), type);
+}
+
+PdfName PdfPainter::tryAddResource(const PdfReference& ref, PdfResourceType type)
+{
+    auto found = m_resNameCache.find(ref);
     if (found == m_resNameCache.end())
     {
-        auto name = m_canvas->GetOrCreateResources().AddResource(type, obj);
-        m_resNameCache[obj.GetIndirectReference()] = name;
+        auto name = m_canvas->GetOrCreateResources().AddResource(type, ref);
+        m_resNameCache[ref] = name;
         return name;
     }
 
@@ -907,6 +923,13 @@ void PdfPainter::SetTextRenderingMode(PdfTextRenderingMode value)
         setTextRenderingMode(value);
 }
 
+void PdfPainter::SetTextMatrix(const Matrix& matrix)
+{
+    checkStream();
+    if (m_painterStatus == StatusTextObject)
+        setTextMatrix(matrix);
+}
+
 void PdfPainter::setTextRenderingMode(PdfTextRenderingMode value)
 {
     auto& textState = m_StateStack.Current->EmittedTextState;
@@ -915,6 +938,16 @@ void PdfPainter::setTextRenderingMode(PdfTextRenderingMode value)
 
     PoDoFo::WriteOperator_Tr(m_stream, value);
     textState.RenderingMode = value;
+}
+
+void PdfPainter::setTextMatrix(const Matrix& value)
+{
+    auto& textState = m_StateStack.Current->EmittedTextState;
+    if (textState.Matrix == value)
+        return;
+
+    PoDoFo::WriteOperator_Tm(m_stream, value[0], value[1], value[2], value[3], value[4], value[5]);
+    textState.Matrix = value;
 }
 
 void PdfPainter::writeTextState()
@@ -934,6 +967,9 @@ void PdfPainter::writeTextState()
 
     if (textState.RenderingMode != PdfTextRenderingMode::Fill)
         setTextRenderingMode(textState.RenderingMode);
+
+    if (textState.Matrix != Matrix::Identity)
+        setTextMatrix(textState.Matrix);
 }
 
 string PdfPainter::expandTabs(const string_view& str) const
@@ -1094,52 +1130,53 @@ void PdfGraphicsStateWrapper::SetRenderingIntent(const string_view& intent)
 
 void PdfGraphicsStateWrapper::SetNonStrokingColorSpace(PdfColorSpaceInitializer&& colorSpace)
 {
-    if (m_state->NonStrokingColorSpaceFilter.get() == &colorSpace.GetFilter())
+    if (m_state->NonStrokingColorSpaceFilter == colorSpace.GetFilter())
         return;
 
-    const PdfColorSpace* element;
-    m_state->NonStrokingColorSpaceFilter = colorSpace.Take(element);
-    m_painter->SetNonStrokingColorSpace(*m_state->NonStrokingColorSpaceFilter, element);
+    PdfVariant expVar;
+    m_state->NonStrokingColorSpaceFilter = colorSpace.Take(expVar);
+    m_painter->SetNonStrokingColorSpace(expVar);
 }
 
 void PdfGraphicsStateWrapper::SetStrokingColorSpace(PdfColorSpaceInitializer&& colorSpace)
 {
-    if (m_state->StrokingColorSpaceFilter.get() == &colorSpace.GetFilter())
+    if (m_state->StrokingColorSpaceFilter == colorSpace.GetFilter())
         return;
 
-    const PdfColorSpace* element;
-    m_state->StrokingColorSpaceFilter = colorSpace.Take(element);
-    m_painter->SetStrokingColorSpace(*m_state->StrokingColorSpaceFilter, element);
+    PdfVariant expVar;
+    m_state->StrokingColorSpaceFilter = colorSpace.Take(expVar);
+    m_painter->SetStrokingColorSpace(expVar);
 }
 
 void PdfGraphicsStateWrapper::SetNonStrokingColor(const PdfColor& color)
 {
-    if (m_state->NonStrokingColorSpaceFilter->GetType() == color.GetColorSpace()
-        && m_state->NonStrokingColor == color.GetRawColor())
-    {
-        return;
-    }
+    if (m_state->NonStrokingColorSpaceFilter->GetType() != color.GetColorSpace())
+        m_state->NonStrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetTrivialFilter(color.GetColorSpace());
 
-    m_state->NonStrokingColorSpaceFilter = getSimpleColorSpaceFilter(color.GetColorSpace());
+    if (m_state->NonStrokingColor == color.GetRawColor())
+        return;
+
     m_state->NonStrokingColor = color.GetRawColor();
     m_painter->SetNonStrokingColor(color);
 }
 
 void PdfGraphicsStateWrapper::SetStrokingColor(const PdfColor& color)
 {
-    if (m_state->StrokingColorSpaceFilter->GetType() == color.GetColorSpace()
-        && m_state->StrokingColor == color.GetRawColor())
-    {
-        return;
-    }
+    if (m_state->StrokingColorSpaceFilter->GetType() != color.GetColorSpace())
+        m_state->StrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetTrivialFilter(color.GetColorSpace());
 
-    m_state->StrokingColorSpaceFilter = getSimpleColorSpaceFilter(color.GetColorSpace());
+    if (m_state->StrokingColor == color.GetRawColor())
+        return;
+
     m_state->StrokingColor = color.GetRawColor();
     m_painter->SetStrokingColor(color);
 }
 
 void PdfGraphicsStateWrapper::SetNonStrokingColor(const PdfColorRaw& color)
 {
+    if (m_state->NonStrokingColorSpaceFilter->GetType() == PdfColorSpaceType::Pattern)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "Found a pattern non stroking color space set");
+
     if (m_state->NonStrokingColor == color)
         return;
 
@@ -1149,6 +1186,9 @@ void PdfGraphicsStateWrapper::SetNonStrokingColor(const PdfColorRaw& color)
 
 void PdfGraphicsStateWrapper::SetStrokingColor(const PdfColorRaw& color)
 {
+    if (m_state->StrokingColorSpaceFilter->GetType() == PdfColorSpaceType::Pattern)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "Found a pattern stroking color space set");
+
     if (m_state->StrokingColor == color)
         return;
 
@@ -1158,14 +1198,80 @@ void PdfGraphicsStateWrapper::SetStrokingColor(const PdfColorRaw& color)
 
 void PdfGraphicsStateWrapper::SetExtGState(const PdfExtGState& extGState)
 {
-    if (m_state->ExtGState != nullptr
-        && m_state->ExtGState->GetObject().GetIndirectReference() == extGState.GetObject().GetIndirectReference())
-    {
+    if (m_state->ExtGState.get() == &extGState.GetDefinition())
         return;
+
+    m_state->ExtGState = extGState.GetDefinitionPtr();
+    m_painter->SetExtGState(extGState);
+}
+
+void PdfGraphicsStateWrapper::SetStrokingUncolouredTilingPattern(const PdfUncolouredTilingPattern& pattern, const PdfColorRaw& color)
+{
+    if (m_state->StrokingColorSpaceFilter->GetType() != PdfColorSpaceType::Pattern)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "Stroking color space should be pattern");
+
+    if (m_state->StrokingPattern.get() == &pattern.GetDefinition() && m_state->StrokingColor == color)
+        return;
+
+    m_state->StrokingPattern = pattern.GetDefinitionPtr();
+    m_state->StrokingColor = color;
+    m_painter->SetStrokingPattern(pattern, &color, m_state->StrokingColorSpaceFilter.get());
+}
+
+void PdfGraphicsStateWrapper::SetNonStrokingUncolouredTilingPattern(const PdfUncolouredTilingPattern& pattern, const PdfColorRaw& color)
+{
+    if (m_state->NonStrokingColorSpaceFilter->GetType() != PdfColorSpaceType::Pattern)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "Non stroking color space should be pattern");
+
+    if (m_state->NonStrokingPattern.get() == &pattern.GetDefinition() && m_state->NonStrokingColor == color)
+        return;
+
+    m_state->NonStrokingPattern = pattern.GetDefinitionPtr();
+    m_state->NonStrokingColor = color;
+    m_painter->SetNonStrokingPattern(pattern, &color, m_state->NonStrokingColorSpaceFilter.get());
+}
+
+void PdfGraphicsStateWrapper::SetStrokingPattern(const PdfPattern& pattern)
+{
+    if (m_state->StrokingPattern.get() == &pattern.GetDefinition())
+        return;
+
+    if (m_state->StrokingColorSpaceFilter->GetType() != PdfColorSpaceType::Pattern
+        || static_cast<const PdfColorSpaceFilterPattern&>(*m_state->StrokingColorSpaceFilter).GetUnderlyingColorSpace().GetType() != PdfColorSpaceType::Unknown)
+    {
+        m_state->StrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetParameterLessPatternInstance();
+        m_painter->SetStrokingColorSpace("Pattern"_n);
     }
 
-    m_state->ExtGState.reset(new PdfExtGState(extGState));
-    m_painter->SetExtGState(extGState);
+    m_state->StrokingPattern = pattern.GetDefinitionPtr();
+    m_state->StrokingColor = { };
+    m_painter->SetStrokingPattern(pattern, nullptr, nullptr);
+}
+
+void PdfGraphicsStateWrapper::SetNonStrokingPattern(const PdfPattern& pattern)
+{
+    if (m_state->NonStrokingPattern.get() == &pattern.GetDefinition())
+        return;
+
+    if (m_state->NonStrokingColorSpaceFilter->GetType() != PdfColorSpaceType::Pattern
+        || static_cast<const PdfColorSpaceFilterPattern&>(*m_state->NonStrokingColorSpaceFilter).GetUnderlyingColorSpace().GetType() != PdfColorSpaceType::Unknown)
+    {
+        m_state->NonStrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetParameterLessPatternInstance();
+        m_painter->SetNonStrokingColorSpace("Pattern"_n);
+    }
+
+    m_state->NonStrokingPattern = pattern.GetDefinitionPtr();
+    m_state->NonStrokingColor = { };
+    m_painter->SetNonStrokingPattern(pattern, nullptr, nullptr);
+}
+
+void PdfGraphicsStateWrapper::SetShadingDictionary(const PdfShadingDictionary& shading)
+{
+    if (m_state->Shading.get() == &shading.GetDefinition())
+        return;
+
+    m_state->Shading = shading.GetDefinitionPtr();
+    m_painter->SetShadingDictionary(shading);
 }
 
 PdfTextStateWrapper::PdfTextStateWrapper(PdfPainter& painter, PdfTextState& state)
@@ -1215,6 +1321,15 @@ void PdfTextStateWrapper::SetRenderingMode(PdfTextRenderingMode mode)
 
     m_State->RenderingMode = mode;
     m_painter->SetTextRenderingMode(m_State->RenderingMode);
+}
+
+void PdfTextStateWrapper::SetMatrix(const Matrix& matrix)
+{
+    if (m_State->Matrix == matrix)
+        return;
+
+    m_State->Matrix = matrix;
+    m_painter->SetTextMatrix(m_State->Matrix);
 }
 
 void PdfPainter::drawRectangle(double x, double y, double width, double height, PdfPathDrawMode mode, double roundX, double roundY)
@@ -1273,21 +1388,6 @@ void PdfPainter::strokeAndFill(bool useEvenOddRule)
 }
 
 PdfContentStreamOperators::PdfContentStreamOperators() { }
-
-PdfColorSpaceFilterPtr getSimpleColorSpaceFilter(PdfColorSpaceType type)
-{
-    switch (type)
-    {
-        case PdfColorSpaceType::DeviceGray:
-            return PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
-        case PdfColorSpaceType::DeviceRGB:
-            return PdfColorSpaceFilterFactory::GetDeviceRGBInstace();
-        case PdfColorSpaceType::DeviceCMYK:
-            return PdfColorSpaceFilterFactory::GetDeviceCMYKInstace();
-        default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "Unsupported color space");
-    }
-}
 
 string expandTabs(const string_view& str, unsigned tabWidth, unsigned tabCount)
 {

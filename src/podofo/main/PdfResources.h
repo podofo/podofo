@@ -25,6 +25,7 @@ class PODOFO_API PdfResources final : public PdfDictionaryElement, public PdfRes
 {
     friend class PdfPage;
     friend class PdfXObjectForm;
+    friend class PdfTilingPattern;
     friend class PdfPainter;
     friend class PdfAcroForm;
     friend class PdfAnnotation;

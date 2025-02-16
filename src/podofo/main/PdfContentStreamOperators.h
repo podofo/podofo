@@ -27,6 +27,8 @@ public:
     virtual void m_Operator(double x, double y) = 0;
     virtual void l_Operator(double x, double y) = 0;
     virtual void c_Operator(double c1x, double c1y, double c2x, double c2y, double x, double y) = 0;
+    virtual void v_Operator(double cx, double cy, double x, double y) = 0;
+    virtual void y_Operator(double cx, double cy, double x, double y) = 0;
     virtual void n_Operator() = 0;
     virtual void h_Operator() = 0;
     virtual void b_Operator() = 0;
@@ -51,6 +53,7 @@ public:
     virtual void BT_Operator() = 0;
     virtual void ET_Operator() = 0;
     virtual void Td_Operator(double tx, double ty) = 0;
+    virtual void TD_Operator(double tx, double ty) = 0;
     virtual void Tm_Operator(double a, double b, double c, double d, double e, double f) = 0;
     virtual void Tr_Operator(PdfTextRenderingMode mode) = 0;
     virtual void Ts_Operator(double rise) = 0;
@@ -92,6 +95,7 @@ public:
     virtual void rg_Operator(double red, double green, double blue) = 0;
     virtual void K_Operator(double cyan, double magenta, double yellow, double black) = 0;
     virtual void k_Operator(double cyan, double magenta, double yellow, double black) = 0;
+    virtual void sh_Operator(const std::string_view& patternName) = 0;
     virtual void BX_Operator() = 0;
     virtual void EX_Operator() = 0;
     virtual void Extension_Operator(const std::string_view& opName, const cspan<PdfVariant>& operands) = 0;

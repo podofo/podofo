@@ -6,8 +6,6 @@
 #ifndef PDF_COLOR_H
 #define PDF_COLOR_H
 
-#include "PdfDeclarations.h"
-
 #include "PdfName.h"
 #include "PdfArray.h"
 

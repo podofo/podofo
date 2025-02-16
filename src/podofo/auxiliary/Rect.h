@@ -53,6 +53,8 @@ public:
      */
     void ToArray(PdfArray& arr) const;
 
+    PdfArray ToArray() const;
+
     /** Returns a string representation of the Rect
      * \returns std::string representation as [ left bottom right top ]
      */
@@ -65,6 +67,8 @@ public:
      *  \param rect the rect to intersect with
      */
     void Intersect(const Rect& rect);
+
+    bool IsValid() const;
 
 public:
     /** Get the left coordinate of the rectangle

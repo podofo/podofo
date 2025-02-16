@@ -103,6 +103,14 @@ public:
     PdfArray(const PdfArray& rhs);
     PdfArray(PdfArray&& rhs) noexcept;
 
+    template <typename TReal, typename = std::enable_if_t<std::is_floating_point_v<TReal>>>
+    static PdfArray FromReals(cspan<TReal> reals);
+
+    template <typename TInt, typename = std::enable_if_t<std::is_integral_v<TInt>>>
+    static PdfArray FromNumbers(cspan<TInt> numbers);
+
+    static PdfArray FromBools(cspan<bool> bools);
+
     /** assignment operator
      *
      *  \param rhs the array to assign
@@ -320,6 +328,28 @@ private:
 private:
     PdfArrayList m_Objects;
 };
+
+template<typename TReal, typename>
+PdfArray PdfArray::FromReals(cspan<TReal> reals)
+{
+    PdfArray arr;
+    arr.reserve(reals.size());
+    for (unsigned i = 0; i < reals.size(); i++)
+        arr.Add(PdfObject(static_cast<double>(reals[i])));
+
+    return arr;
+}
+
+template<typename TInt, typename>
+PdfArray PdfArray::FromNumbers(cspan<TInt> numbers)
+{
+    PdfArray arr;
+    arr.reserve(numbers.size());
+    for (unsigned i = 0; i < numbers.size(); i++)
+        arr.Add(PdfObject(static_cast<int64_t>(numbers[i])));
+
+    return arr;
+}
 
 template<typename T>
 T PdfArray::GetAtAs(unsigned idx) const

@@ -51,7 +51,6 @@ using namespace PoDoFo;
 #ifdef PODOFO_HAVE_PNG_LIB
 #include <png.h>
 static void pngReadData(png_structp pngPtr, png_bytep data, png_size_t length);
-static void loadFromPngContent(PdfImage& image, png_structp png, png_infop info);
 static void createPngContext(png_structp& png, png_infop& pnginfo);
 #endif // PODOFO_HAVE_PNG_LIB
 
@@ -303,7 +302,7 @@ void PdfImage::SetDataRaw(InputStream& stream, const PdfImageInfo& info)
     if (info.ColorSpace.IsNull())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Missing color space");
 
-    m_ColorSpace = info.ColorSpace.GetFilterPtr();
+    m_ColorSpace = info.ColorSpace.GetFilter();
     m_Width = info.Width;
     m_Height = info.Height;
     m_BitsPerComponent = info.BitsPerComponent;
@@ -727,7 +726,7 @@ void PdfImage::loadFromTiffHandle(void* handle, unsigned imageIndex)
 
             // Add the colorspace to our image
             info.ColorSpace = PdfColorSpaceInitializer(std::make_shared<PdfColorSpaceFilterIndexed>(
-                PdfColorSpaceFilterFactory::GetDeviceRGBInstace(), numColors, std::move(data)));
+                PdfColorSpaceInitializer(PdfColorSpaceFilterFactory::GetDeviceRGBInstace()), numColors, std::move(data)));
             break;
         }
 
@@ -1029,7 +1028,7 @@ void PdfImage::loadFromPngData(const unsigned char* data, size_t len)
     png_destroy_read_struct(&png, &pnginfo, (png_infopp)nullptr);
 }
 
-void loadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
+void PdfImage::loadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
 {
     png_set_sig_bytes(png, 8);
     png_read_info(png, pnginfo);
@@ -1189,7 +1188,8 @@ void loadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
         }
 
         info.ColorSpace = PdfColorSpaceInitializer(std::make_shared<PdfColorSpaceFilterIndexed>(
-            PdfColorSpaceFilterFactory::GetDeviceRGBInstace(), colorCount, std::move(data)));
+            PdfColorSpaceInitializer(PdfColorSpaceFilterFactory::GetDeviceRGBInstace()),
+            colorCount, std::move(data)));
     }
     else if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
     {

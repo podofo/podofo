@@ -9,9 +9,10 @@
 
 #include "PdfColor.h"
 
-namespace PoDoFo {
-
+namespace PoDoFo
+{
     class PdfIndirectObjectList;
+    class PdfColorSpace;
 
     /** Output pixel format for a PdfColorSpaceFilter
      */
@@ -40,6 +41,7 @@ namespace PoDoFo {
         friend class PdfColorSpaceFilterSeparation;
         friend class PdfColorSpaceFilterLab;
         friend class PdfColorSpaceFilterICCBased;
+        friend class PdfColorSpaceFilterPattern;
 
     private:
         PdfColorSpaceFilter();
@@ -75,12 +77,61 @@ namespace PoDoFo {
     protected:
         /** Get an export object
          */
-        virtual PdfObject GetExportObject(PdfIndirectObjectList& objectsj) const = 0;
+        virtual PdfVariant GetExportObject(PdfIndirectObjectList& objectsj) const = 0;
     };
 
     /** Convenience alias for a constant PdfColorSpaceFilter shared ptr
      */
     using PdfColorSpaceFilterPtr = std::shared_ptr<const PdfColorSpaceFilter>;
+
+    /**
+     * A proxy class that can used to identify a color space choosing
+     * from several input types
+     */
+    class PODOFO_API PdfColorSpaceInitializer final
+    {
+        friend class PdfImage;
+        friend class PdfGraphicsStateWrapper;
+        friend class PdfShadingDefinition;
+        friend class PdfColorSpaceFilterICCBased;
+        friend class PdfColorSpaceFilterIndexed;
+        friend class PdfColorSpaceFilterPattern;
+        friend class PdfColorSpaceFilterFactory;
+
+    public:
+        /** A null color space
+         */
+        PdfColorSpaceInitializer();
+        /** Identify a color space from color space document element
+         */
+        PdfColorSpaceInitializer(const PdfColorSpace& colorSpace);
+        /** Identify a trivial colorspace from its enum type (DeviceGray, DeviceRGB or DeviceCYMC)
+         */
+        PdfColorSpaceInitializer(PdfColorSpaceType colorSpace);
+
+        PdfColorSpaceInitializer(const PdfColorSpaceInitializer&) = default;
+
+    private:
+        /** Identify a color space from a filter
+         * To re-use the object, create a PdfColorSpace element from a
+         * document with PdfDocument::CreateColorSpace(filter)
+         */
+        PdfColorSpaceInitializer(const PdfColorSpaceFilterPtr& filter);
+
+    public:
+        bool IsNull() const;
+
+        PdfColorSpaceInitializer& operator=(const PdfColorSpaceInitializer&) = default;
+
+    private:
+        const PdfColorSpaceFilterPtr& GetFilter() const { return m_Filter; }
+        PdfColorSpaceFilterPtr Take(PdfVariant& expObj);
+        PdfVariant GetExportObject(PdfIndirectObjectList& objects) const;
+
+    private:
+        PdfColorSpaceFilterPtr m_Filter;
+        PdfVariant m_ExpVar;
+    };
 
     /** Unknown color space filter that default throws on implementations
      */
@@ -96,8 +147,9 @@ namespace PoDoFo {
         unsigned GetScanLineSize(unsigned width, unsigned bitsPerComponent) const override;
         void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
             unsigned width, unsigned bitsPerComponent) const override;
-        PdfObject GetExportObject(PdfIndirectObjectList& objects) const override;
         unsigned char GetColorComponentCount() const override;
+    protected:
+        PdfVariant GetExportObject(PdfIndirectObjectList& objects) const override;
     };
 
     class PODOFO_API PdfColorSpaceDeviceGray final : public PdfColorSpaceFilter
@@ -114,8 +166,9 @@ namespace PoDoFo {
         unsigned GetScanLineSize(unsigned width, unsigned bitsPerComponent) const override;
         void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
             unsigned width, unsigned bitsPerComponent) const override;
-        PdfObject GetExportObject(PdfIndirectObjectList& objects) const override;
         unsigned char GetColorComponentCount() const override;
+    protected:
+        PdfVariant GetExportObject(PdfIndirectObjectList& objects) const override;
     };
 
     class PODOFO_API PdfColorSpaceFilterDeviceRGB final : public PdfColorSpaceFilter
@@ -132,8 +185,9 @@ namespace PoDoFo {
         unsigned GetScanLineSize(unsigned width, unsigned bitsPerComponent) const override;
         void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
             unsigned width, unsigned bitsPerComponent) const override;
-        PdfObject GetExportObject(PdfIndirectObjectList& objects) const override;
         unsigned char GetColorComponentCount() const override;
+    protected:
+        PdfVariant GetExportObject(PdfIndirectObjectList& objects) const override;
     };
 
     class PODOFO_API PdfColorSpaceFilterDeviceCMYK final : public PdfColorSpaceFilter
@@ -150,8 +204,9 @@ namespace PoDoFo {
         unsigned GetScanLineSize(unsigned width, unsigned bitsPerComponent) const override;
         void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
             unsigned width, unsigned bitsPerComponent) const override;
-        PdfObject GetExportObject(PdfIndirectObjectList& objects) const override;
         unsigned char GetColorComponentCount() const override;
+    protected:
+        PdfVariant GetExportObject(PdfIndirectObjectList& objects) const override;
     };
 
     /** Color space as described by ISO 32000-2:2020 "8.6.6.3 Indexed colour spaces"
@@ -159,7 +214,12 @@ namespace PoDoFo {
     class PODOFO_API PdfColorSpaceFilterIndexed final : public PdfColorSpaceFilter
     {
     public:
-        PdfColorSpaceFilterIndexed(const PdfColorSpaceFilterPtr& baseColorSpace, unsigned mapSize, charbuff&& lookup);
+        PdfColorSpaceFilterIndexed(PdfColorSpaceInitializer&& baseColorSpace, unsigned mapSize, charbuff lookup);
+
+        /**
+         * \remarks Deserialization constructor
+         */
+        PdfColorSpaceFilterIndexed(PdfColorSpaceFilterPtr&& baseColorSpace, unsigned mapSize, charbuff&& lookup);
     public:
         PdfColorSpaceType GetType() const override;
         PdfColorSpacePixelFormat GetPixelFormat() const override;
@@ -167,10 +227,12 @@ namespace PoDoFo {
         unsigned GetScanLineSize(unsigned width, unsigned bitsPerComponent) const override;
         void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
             unsigned width, unsigned bitsPerComponent) const override;
-        PdfObject GetExportObject(PdfIndirectObjectList& objects) const override;
         unsigned char GetColorComponentCount() const override;
+    protected:
+        PdfVariant GetExportObject(PdfIndirectObjectList& objects) const override;
     private:
         PdfColorSpaceFilterPtr m_BaseColorSpace;
+        PdfVariant m_colorSpaceExpVar;
         unsigned m_MapSize;
         charbuff m_lookup;
     };
@@ -189,8 +251,9 @@ namespace PoDoFo {
         unsigned GetScanLineSize(unsigned width, unsigned bitsPerComponent) const override;
         void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
             unsigned width, unsigned bitsPerComponent) const override;
-        PdfObject GetExportObject(PdfIndirectObjectList& objects) const override;
         unsigned char GetColorComponentCount() const override;
+    protected:
+        PdfVariant GetExportObject(PdfIndirectObjectList& objects) const override;
     private:
         std::array<double, 3> m_WhitePoint;
         std::array<double, 3> m_BlackPoint;
@@ -220,7 +283,6 @@ namespace PoDoFo {
          *
          */
         static std::unique_ptr<PdfColorSpaceFilterSeparation> CreateSeparationAll();
-
     public:
         PdfColorSpaceType GetType() const override;
         bool IsRawEncoded() const override;
@@ -229,32 +291,87 @@ namespace PoDoFo {
         unsigned GetScanLineSize(unsigned width, unsigned bitsPerComponent) const override;
         void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
             unsigned width, unsigned bitsPerComponent) const override;
-        PdfObject GetExportObject(PdfIndirectObjectList& objects) const override;
         unsigned char GetColorComponentCount() const override;
-
+    protected:
+        PdfVariant GetExportObject(PdfIndirectObjectList& objects) const override;
     public:
         const std::string& GetName() const { return m_Name; }
         const PdfColorRaw& GetAlternateColor() const;
         const PdfColorSpaceFilter& GetColorSpace() const;
-
     private:
         std::string m_Name;
         PdfColor m_AlternateColor;
     };
 
+    /** Color space as described by ISO 32000-2:2020 "8.6.5.5 ICCBased colour spaces"
+     */
+    class PODOFO_API PdfColorSpaceFilterICCBased final : public PdfColorSpaceFilter
+    {
+    public:
+        PdfColorSpaceFilterICCBased(PdfColorSpaceInitializer&& alternateColorSpace, charbuff iccprofile);
+
+        /**
+         * \remarks Deserialization constructor
+         */
+        PdfColorSpaceFilterICCBased(PdfColorSpaceFilterPtr&& alternateColorSpace, charbuff&& iccprofile);
+    public:
+        PdfColorSpaceType GetType() const override;
+        PdfColorSpacePixelFormat GetPixelFormat() const override;
+        unsigned GetSourceScanLineSize(unsigned width, unsigned bitsPerComponent) const override;
+        unsigned GetScanLineSize(unsigned width, unsigned bitsPerComponent) const override;
+        void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
+            unsigned width, unsigned bitsPerComponent) const override;
+        unsigned char GetColorComponentCount() const override;
+    protected:
+        PdfVariant GetExportObject(PdfIndirectObjectList& objects) const override;
+    private:
+        PdfColorSpaceFilterPtr m_AlternateColorSpace;
+        PdfVariant m_colorSpaceExpVar;
+        charbuff m_iccprofile;
+    };
+
+    /** A color space for a tiling or a shading pattern, as decribed by ISO 32000-2:2020 8.6.6.2 "Pattern colour spaces"
+     */
+    class PODOFO_API PdfColorSpaceFilterPattern final : public PdfColorSpaceFilter
+    {
+    public:
+        PdfColorSpaceFilterPattern(PdfColorSpaceInitializer&& underlyingColorSpace);
+
+        /**
+         * \remarks Deserialization constructor
+         */
+        PdfColorSpaceFilterPattern(PdfColorSpaceFilterPtr&& alternateColorSpace);
+    public:
+        PdfColorSpaceType GetType() const override;
+        PdfColorSpacePixelFormat GetPixelFormat() const override;
+        unsigned GetSourceScanLineSize(unsigned width, unsigned bitsPerComponent) const override;
+        unsigned GetScanLineSize(unsigned width, unsigned bitsPerComponent) const override;
+        void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
+            unsigned width, unsigned bitsPerComponent) const override;
+        unsigned char GetColorComponentCount() const override;
+    protected:
+        PdfVariant GetExportObject(PdfIndirectObjectList& objects) const override;
+    public:
+        const PdfColorSpaceFilter& GetUnderlyingColorSpace() const { return *m_UnderlyingColorSpace; }
+    private:
+        PdfColorSpaceFilterPtr m_UnderlyingColorSpace;
+        PdfVariant m_colorSpaceExpVar;
+    };
+
+
     class PODOFO_API PdfColorSpaceFilterFactory final
     {
+        friend class PdfImage;
+        friend class PdfColorSpaceFilterPattern;
+        friend class PdfGraphicsStateWrapper;
+
     public:
         static bool TryCreateFromObject(const PdfObject& obj, PdfColorSpaceFilterPtr& colorSpace);
 
         /** True if the filter is trivial like /DeviceRGB, /DeviceGray or /DeviceCMYK
          */
         static PdfColorSpaceFilterPtr GetTrivialFilter(PdfColorSpaceType type);
-
-        /** Singleton method which returns a global instance
-         *  of Unknown color space
-         */
-        static PdfColorSpaceFilterPtr GetUnkownInstance();
+        static PdfColorSpaceFilterPtr GetTrivialFilter(PdfColorSpaceType type, PdfName& exportName);
 
         /** Singleton method which returns a global instance
          *  of /DeviceGray color space
@@ -270,26 +387,17 @@ namespace PoDoFo {
          *  of /DeviceCMYK color space
          */
         static PdfColorSpaceFilterPtr GetDeviceCMYKInstace();
-    };
 
-    /** Color space as described by ISO 32000-2:2020 "8.6.5.5 ICCBased colour spaces"
- */
-    class PODOFO_API PdfColorSpaceFilterICCBased final : public PdfColorSpaceFilter
-    {
-    public:
-        PdfColorSpaceFilterICCBased(const PdfColorSpaceFilterPtr& alternateColorSpace, charbuff&& iccprofile);
-    public:
-        PdfColorSpaceType GetType() const override;
-        PdfColorSpacePixelFormat GetPixelFormat() const override;
-        unsigned GetSourceScanLineSize(unsigned width, unsigned bitsPerComponent) const override;
-        unsigned GetScanLineSize(unsigned width, unsigned bitsPerComponent) const override;
-        void FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine,
-            unsigned width, unsigned bitsPerComponent) const override;
-        PdfObject GetExportObject(PdfIndirectObjectList& objects) const override;
-        unsigned char GetColorComponentCount() const override;
     private:
-        PdfColorSpaceFilterPtr m_AlternateColorSpace;
-        charbuff m_iccprofile;
+        /** Singleton method which returns a global instance
+         *  of Unknown color space
+         */
+        static PdfColorSpaceFilterPtr GetUnkownInstance();
+
+        /** Singleton method which returns a global instance
+         *  of parameter less Pattern color space
+         */
+        static PdfColorSpaceFilterPtr GetParameterLessPatternInstance();
     };
 }
 

@@ -13,6 +13,7 @@
 #include "PdfPainterPath.h"
 #include "PdfPainterTextObject.h"
 #include "PdfColorSpace.h"
+#include "PdfPattern.h"
 #include "PdfContentStreamOperators.h"
 
 #include <podofo/auxiliary/StateStack.h>
@@ -103,7 +104,7 @@ public:
     /** Set the color for PDF "nonstroking" operations (including "fill")
      */
     void SetNonStrokingColor(const PdfColor& color);
-    /** Set the color for PDF "stroking" operations
+    /** Set the color for PDF "nonstroking" operations (including "fill")
      */
     void SetStrokingColor(const PdfColor& color);
     /** Set the color for PDF "nonstroking" operations (including "fill")
@@ -113,6 +114,22 @@ public:
      */
     void SetStrokingColor(const PdfColorRaw& color);
     void SetExtGState(const PdfExtGState& extGState);
+    /** Set a stroking uncoloured tiling pattern
+     */
+    void SetStrokingUncolouredTilingPattern(const PdfUncolouredTilingPattern& pattern, const PdfColorRaw& color);
+
+    /** Set a non stroking uncoloured tiling pattern
+     */
+    void SetNonStrokingUncolouredTilingPattern(const PdfUncolouredTilingPattern& pattern, const PdfColorRaw& color);
+    /** Set a stroking coloured tiling pattern
+     */
+    void SetStrokingPattern(const PdfPattern& pattern);
+    /** Set a non stroking coloured tiling pattern
+     */
+    void SetNonStrokingPattern(const PdfPattern& pattern);
+    /** Set a shading dictionary
+     */
+    void SetShadingDictionary(const PdfShadingDictionary& shading);
 
 public:
     /** Get the current transformation matrix (CTM)
@@ -161,11 +178,16 @@ public:
     void SetCharSpacing(double charSpacing);
 
     /** Set the word spacing (operator Tw)
-     *  \param fWordSpace word spacing in PDF units
+     *  \param wordSpacing word spacing in PDF units
      */
     void SetWordSpacing(double wordSpacing);
 
     void SetRenderingMode(PdfTextRenderingMode mode);
+
+    /** Set the text spacing (operator Tw)
+     *  \param fWordSpace word spacing in PDF units
+     */
+    void SetMatrix(const Matrix& matrix);
 
 public:
     inline const PdfFont* GetFont() const { return m_State->Font; }
@@ -529,8 +551,11 @@ private:
     void SetStrokingColor(const PdfColor& color);
     void SetNonStrokingColor(const PdfColorRaw& color, const PdfColorSpaceFilter& colorSpace);
     void SetStrokingColor(const PdfColorRaw& color, const PdfColorSpaceFilter& colorSpace);
-    void SetNonStrokingColorSpace(const PdfColorSpaceFilter&filter, const PdfColorSpace* colorSpace);
-    void SetStrokingColorSpace(const PdfColorSpaceFilter& filter, const PdfColorSpace* colorSpace);
+    void SetNonStrokingColorSpace(const PdfVariant& expVar);
+    void SetStrokingColorSpace(const PdfVariant& expVar);
+    void SetStrokingPattern(const PdfPattern& pattern, const PdfColorRaw* color, const PdfColorSpaceFilter* colorSpace);
+    void SetNonStrokingPattern(const PdfPattern& pattern, const PdfColorRaw* color, const PdfColorSpaceFilter* colorSpace);
+    void SetShadingDictionary(const PdfShadingDictionary& shading);
     void SetRenderingIntent(const std::string_view& intent);
     void SetTransformationMatrix(const Matrix& matrix);
     void SetFont(const PdfFont& font, double fontSize);
@@ -538,6 +563,7 @@ private:
     void SetCharSpacing(double value);
     void SetWordSpacing(double value);
     void SetTextRenderingMode(PdfTextRenderingMode value);
+    void SetTextMatrix(const Matrix& matrix);
     void SetExtGState(const PdfExtGState& extGState);
 
 private:
@@ -547,6 +573,7 @@ private:
     void setCharSpacing(double value);
     void setWordSpacing(double value);
     void setTextRenderingMode(PdfTextRenderingMode value);
+    void setTextMatrix(const Matrix& value);
     void save();
     void restore();
     void reset();
@@ -555,9 +582,8 @@ private:
     void stroke();
     void fill(bool useEvenOddRule);
     void strokeAndFill(bool useEvenOddRule);
-    void setNonStrokingColorSpace(const PdfObject& csObj);
-    void setStrokingColorSpace(const PdfObject& csObj);
     PdfName tryAddResource(const PdfObject& obj, PdfResourceType type);
+    PdfName tryAddResource(const PdfReference& ref, PdfResourceType type);
     void drawLines(const std::vector<std::array<double, 4>>& lines);
 
 private:
@@ -566,6 +592,8 @@ private:
     void m_Operator(double x, double y) override;
     void l_Operator(double x, double y) override;
     void c_Operator(double c1x, double c1y, double c2x, double c2y, double x, double y) override;
+    void v_Operator(double cx, double cy, double x, double y);
+    void y_Operator(double cx, double cy, double x, double y);
     void n_Operator() override;
     void h_Operator() override;
     void b_Operator() override;
@@ -590,6 +618,7 @@ private:
     void BT_Operator() override;
     void ET_Operator() override;
     void Td_Operator(double tx, double ty) override;
+    void TD_Operator(double tx, double ty) override;
     void Tm_Operator(double a, double b, double c, double d, double e, double f) override;
     void Tr_Operator(PdfTextRenderingMode mode) override;
     void Ts_Operator(double rise) override;
@@ -631,6 +660,7 @@ private:
     void rg_Operator(double red, double green, double blue) override;
     void K_Operator(double cyan, double magenta, double yellow, double black) override;
     void k_Operator(double cyan, double magenta, double yellow, double black) override;
+    void sh_Operator(const std::string_view& shadingDictName) override;
     void BX_Operator() override;
     void EX_Operator() override;
     void Extension_Operator(const std::string_view& opName, const cspan<PdfVariant>& operands) override;

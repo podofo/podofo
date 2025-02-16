@@ -103,9 +103,6 @@
 // Specify the friend identifier is defined in private symbols only
 #define PODOFO_PRIVATE_FRIEND(identifier)
 
-// Specify the identifier should not be allocated in the heap
-#define PODOFO_STACK_ONLY void* operator new(std::size_t) = delete; void* operator new[](std::size_t) = delete; void operator delete(void*) = delete; void operator delete[](void*) = delete;
-
 // Include some useful compatibility defines
 #include "basecompat.h"
 

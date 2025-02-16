@@ -116,6 +116,8 @@ namespace PoDoFo
             PdfPixelFormat srcPixelFormat, unsigned width, unsigned height);
 
         static bool IsBufferEqual(const bufferview& buffer, const std::string_view& filename);
+
+        static bool AreFilesEqual(const std::string_view& filename1, const std::string_view& filename2);
     };
 
     template<typename ...Ts>

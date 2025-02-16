@@ -196,6 +196,16 @@ void PoDoFo::WriteOperator_c(PdfStringStream& stream, double c1x, double c1y, do
     stream << c1x << ' ' << c1y << ' ' << c2x << ' ' << c2y << ' ' << x << ' ' << y << " c\n";
 }
 
+void PoDoFo::WriteOperator_y(PdfStringStream& stream, double cx, double cy, double x, double y)
+{
+    stream << cx << ' ' << cy << ' ' << x << ' ' << y << " y\n";
+}
+
+void PoDoFo::WriteOperator_v(PdfStringStream& stream, double cx, double cy, double x, double y)
+{
+    stream << cx << ' ' << cy << ' ' << x << ' ' << y << " v\n";
+}
+
 void PoDoFo::WriteOperator_n(PdfStringStream& stream)
 {
     stream << "n\n";
@@ -320,6 +330,11 @@ void PoDoFo::WriteOperator_ET(PdfStringStream& stream)
 void PoDoFo::WriteOperator_Td(PdfStringStream& stream, double tx, double ty)
 {
     stream << tx << ' ' << ty << " Td\n";
+}
+
+void PoDoFo::WriteOperator_TD(PdfStringStream& stream, double tx, double ty)
+{
+    stream << tx << ' ' << ty << " TD\n";
 }
 
 void PoDoFo::WriteOperator_Tm(PdfStringStream& stream, double a, double b, double c, double d, double e, double f)
@@ -536,6 +551,11 @@ void PoDoFo::WriteOperator_K(PdfStringStream& stream, double cyan, double magent
 void PoDoFo::WriteOperator_k(PdfStringStream& stream, double cyan, double magenta, double yellow, double black)
 {
     stream << cyan << ' ' << magenta << ' ' << yellow << ' ' << black << " k\n";
+}
+
+void PoDoFo::WriteOperator_sh(PdfStringStream& stream, const string_view& shadingDictName)
+{
+    stream << '/' << shadingDictName << " sh\n";
 }
 
 void PoDoFo::WriteOperator_BX(PdfStringStream& stream)

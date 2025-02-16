@@ -9,7 +9,8 @@
 
 #include <podofo/auxiliary/Matrix.h>
 #include "PdfColorSpaceFilter.h"
-#include "PdfExtGState.h"
+#include "PdfExtGStateDefinition.h"
+#include "PdfPatternDefinition.h"
 
 namespace PoDoFo
 {
@@ -22,11 +23,14 @@ namespace PoDoFo
         PdfLineCapStyle LineCapStyle = PdfLineCapStyle::Square;
         PdfLineJoinStyle LineJoinStyle = PdfLineJoinStyle::Miter;
         std::string RenderingIntent;
-        PdfColorRaw NonStrokingColor;
-        PdfColorRaw StrokingColor;
+        PdfColorRaw NonStrokingColor{ };
+        PdfColorRaw StrokingColor{ };
         PdfColorSpaceFilterPtr NonStrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
         PdfColorSpaceFilterPtr StrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
-        std::shared_ptr<PdfExtGState> ExtGState;
+        PdfPatternDefinitionPtr NonStrokingPattern;
+        PdfPatternDefinitionPtr StrokingPattern;
+        PdfShadingDefinitionPtr Shading;
+        PdfExtGStateDefinitionPtr ExtGState;
     };
 }
 
