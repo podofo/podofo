@@ -31,7 +31,7 @@ namespace PoDoFo
         double CharSpacing = 0;
         double WordSpacing = 0;
         PdfTextRenderingMode RenderingMode = PdfTextRenderingMode::Fill;
-        Matrix Matrix;
+        class Matrix Matrix;
     };
 }
 
