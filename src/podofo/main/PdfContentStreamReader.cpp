@@ -8,7 +8,6 @@
 #include "PdfContentStreamReader.h"
 
 #include "PdfXObjectForm.h"
-#include "PdfOperatorUtils.h"
 #include "PdfCanvasInputDevice.h"
 #include "PdfData.h"
 #include "PdfDictionary.h"
@@ -127,7 +126,7 @@ bool PdfContentStreamReader::tryReadNextContent(PdfContent& content)
         {
             case PdfPostScriptTokenType::Keyword:
             {
-                if (!TryGetPdfOperator(content.Keyword, content.Operator))
+                if (!TryConvertTo(content.Keyword, content.Operator))
                 {
                     content.Type = PdfContentType::UnexpectedKeyword;
                     return true;

@@ -30,7 +30,6 @@
 #include "main/PdfError.h"
 #include "main/PdfCommon.h"
 #include "main/PdfMath.h"
-#include "main/PdfOperatorUtils.h"
 #include "main/PdfArray.h"
 #include "main/PdfCanvas.h"
 #include "main/PdfColorSpace.h"

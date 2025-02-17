@@ -1,4 +1,6 @@
 ## 0.10.1 -> 1.0.0
+- `PoDoFo::GetPdfOperator()`, `PoDoFo::TryGetPdfOperator()`, `PoDoFo::GetPdfOperatorName()`, `PoDoFo::TryGetPdfOperatorName()`: Make them private, include `<podofo/optional/PdfConvert.h>` for substitutes
+- `PoDoFo::GetOperandCount()`, `PoDoFo::TryGetOperandCount()`: Make them private, no substitute provided
 - `PdfPageMode`:
   * Removed `DontCare` (which was something like a pointless "ignore")
   * Renamed `UseBookmarks` -> `UseOutlines`: "bookmark" is not really part of PDF terminology

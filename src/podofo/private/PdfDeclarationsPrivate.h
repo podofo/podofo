@@ -193,6 +193,16 @@ namespace PoDoFo
 
     void AddToCallStack(PdfError& err, std::string filepath, unsigned line, std::string information);
 
+    /** Get the operands count of the operator
+     * \returns count the number of operand, -1 means variadic number of operands
+     */
+    int GetOperandCount(PdfOperator op);
+
+    /** Get the operands count of the operator
+     * \param count the number of operand, -1 means variadic number of operands
+     */
+    bool TryGetOperandCount(PdfOperator op, int& count);
+
     /** Helper type to serialize 3 byte integers
      */
     struct uint24_t final

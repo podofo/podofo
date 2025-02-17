@@ -536,6 +536,541 @@ namespace PoDoFo
         }
     };
 
+    template<>
+    struct Convert<PdfOperator>
+    {
+        static std::string_view ToString(PdfOperator value)
+        {
+            using namespace std;
+            switch (value)
+            {
+                case PdfOperator::w:
+                    return "w"sv;
+                case PdfOperator::J:
+                    return "J"sv;
+                case PdfOperator::j:
+                    return "j"sv;
+                case PdfOperator::M:
+                    return "M"sv;
+                case PdfOperator::d:
+                    return "d"sv;
+                case PdfOperator::ri:
+                    return "ri"sv;
+                case PdfOperator::i:
+                    return "i"sv;
+                case PdfOperator::gs:
+                    return "gs"sv;
+                case PdfOperator::q:
+                    return "q"sv;
+                case PdfOperator::Q:
+                    return "Q"sv;
+                case PdfOperator::cm:
+                    return "cm"sv;
+                case PdfOperator::m:
+                    return "m"sv;
+                case PdfOperator::l:
+                    return "l"sv;
+                case PdfOperator::c:
+                    return "c"sv;
+                case PdfOperator::v:
+                    return "v"sv;
+                case PdfOperator::y:
+                    return "y"sv;
+                case PdfOperator::h:
+                    return "h"sv;
+                case PdfOperator::re:
+                    return "re"sv;
+                case PdfOperator::S:
+                    return "S"sv;
+                case PdfOperator::s:
+                    return "s"sv;
+                case PdfOperator::f:
+                    return "f"sv;
+                case PdfOperator::F:
+                    return "F"sv;
+                case PdfOperator::f_Star:
+                    return "f*"sv;
+                case PdfOperator::B:
+                    return "B"sv;
+                case PdfOperator::B_Star:
+                    return "B*"sv;
+                case PdfOperator::b:
+                    return "b"sv;
+                case PdfOperator::b_Star:
+                    return "b*"sv;
+                case PdfOperator::n:
+                    return "n"sv;
+                case PdfOperator::W:
+                    return "W"sv;
+                case PdfOperator::W_Star:
+                    return "W*"sv;
+                case PdfOperator::BT:
+                    return "BT"sv;
+                case PdfOperator::ET:
+                    return "ET"sv;
+                case PdfOperator::Tc:
+                    return "Tc"sv;
+                case PdfOperator::Tw:
+                    return "Tw"sv;
+                case PdfOperator::Tz:
+                    return "Tz"sv;
+                case PdfOperator::TL:
+                    return "TL"sv;
+                case PdfOperator::Tf:
+                    return "Tf"sv;
+                case PdfOperator::Tr:
+                    return "Tr"sv;
+                case PdfOperator::Ts:
+                    return "Ts"sv;
+                case PdfOperator::Td:
+                    return "Td"sv;
+                case PdfOperator::TD:
+                    return "TD"sv;
+                case PdfOperator::Tm:
+                    return "Tm"sv;
+                case PdfOperator::T_Star:
+                    return "T*"sv;
+                case PdfOperator::Tj:
+                    return "Tj"sv;
+                case PdfOperator::TJ:
+                    return "TJ"sv;
+                case PdfOperator::Quote:
+                    return "'"sv;
+                case PdfOperator::DoubleQuote:
+                    return "\""sv;
+                case PdfOperator::d0:
+                    return "d0"sv;
+                case PdfOperator::d1:
+                    return "d1"sv;
+                case PdfOperator::CS:
+                    return "CS"sv;
+                case PdfOperator::cs:
+                    return "cs"sv;
+                case PdfOperator::SC:
+                    return "SC"sv;
+                case PdfOperator::SCN:
+                    return "SCN"sv;
+                case PdfOperator::sc:
+                    return "sc"sv;
+                case PdfOperator::scn:
+                    return "scn"sv;
+                case PdfOperator::G:
+                    return "G"sv;
+                case PdfOperator::g:
+                    return "g"sv;
+                case PdfOperator::RG:
+                    return "RG"sv;
+                case PdfOperator::rg:
+                    return "rg"sv;
+                case PdfOperator::K:
+                    return "K"sv;
+                case PdfOperator::k:
+                    return "k"sv;
+                case PdfOperator::sh:
+                    return "sh"sv;
+                case PdfOperator::BI:
+                    return "BI"sv;
+                case PdfOperator::ID:
+                    return "ID"sv;
+                case PdfOperator::EI:
+                    return "EI"sv;
+                case PdfOperator::Do:
+                    return "Do"sv;
+                case PdfOperator::MP:
+                    return "MP"sv;
+                case PdfOperator::DP:
+                    return "DP"sv;
+                case PdfOperator::BMC:
+                    return "BMC"sv;
+                case PdfOperator::BDC:
+                    return "BDC"sv;
+                case PdfOperator::EMC:
+                    return "EMC"sv;
+                case PdfOperator::BX:
+                    return "BX"sv;
+                case PdfOperator::EX:
+                    return "EX"sv;
+                case PdfOperator::Unknown:
+                default:
+                    throw PdfError(PdfErrorCode::InvalidEnumValue, __FILE__, __LINE__);
+            }
+        }
+
+        static bool TryParse(const std::string_view& str, PdfOperator& value)
+        {
+            if (str == "w")
+            {
+                value = PdfOperator::w;
+                return true;
+            }
+            else if (str == "J")
+            {
+                value = PdfOperator::J;
+                return true;
+            }
+            else if (str == "j")
+            {
+                value = PdfOperator::j;
+                return true;
+            }
+            else if (str == "M")
+            {
+                value = PdfOperator::M;
+                return true;
+            }
+            else if (str == "d")
+            {
+                value = PdfOperator::d;
+                return true;
+            }
+            else if (str == "ri")
+            {
+                value = PdfOperator::ri;
+                return true;
+            }
+            else if (str == "i")
+            {
+                value = PdfOperator::i;
+                return true;
+            }
+            else if (str == "gs")
+            {
+                value = PdfOperator::gs;
+                return true;
+            }
+            else if (str == "q")
+            {
+                value = PdfOperator::q;
+                return true;
+            }
+            else if (str == "Q")
+            {
+                value = PdfOperator::Q;
+                return true;
+            }
+            else if (str == "cm")
+            {
+                value = PdfOperator::cm;
+                return true;
+            }
+            else if (str == "m")
+            {
+                value = PdfOperator::m;
+                return true;
+            }
+            else if (str == "l")
+            {
+                value = PdfOperator::l;
+                return true;
+            }
+            else if (str == "c")
+            {
+                value = PdfOperator::c;
+                return true;
+            }
+            else if (str == "v")
+            {
+                value = PdfOperator::v;
+                return true;
+            }
+            else if (str == "y")
+            {
+                value = PdfOperator::y;
+                return true;
+            }
+            else if (str == "h")
+            {
+                value = PdfOperator::h;
+                return true;
+            }
+            else if (str == "re")
+            {
+                value = PdfOperator::re;
+                return true;
+            }
+            else if (str == "S")
+            {
+                value = PdfOperator::S;
+                return true;
+            }
+            else if (str == "s")
+            {
+                value = PdfOperator::s;
+                return true;
+            }
+            else if (str == "f")
+            {
+                value = PdfOperator::f;
+                return true;
+            }
+            else if (str == "F")
+            {
+                value = PdfOperator::F;
+                return true;
+            }
+            else if (str == "f*")
+            {
+                value = PdfOperator::f_Star;
+                return true;
+            }
+            else if (str == "B")
+            {
+                value = PdfOperator::B;
+                return true;
+            }
+            else if (str == "B*")
+            {
+                value = PdfOperator::B_Star;
+                return true;
+            }
+            else if (str == "b")
+            {
+                value = PdfOperator::b;
+                return true;
+            }
+            else if (str == "b*")
+            {
+                value = PdfOperator::b_Star;
+                return true;
+            }
+            else if (str == "n")
+            {
+                value = PdfOperator::n;
+                return true;
+            }
+            else if (str == "W")
+            {
+                value = PdfOperator::W;
+                return true;
+            }
+            else if (str == "W*")
+            {
+                value = PdfOperator::W_Star;
+                return true;
+            }
+            else if (str == "BT")
+            {
+                value = PdfOperator::BT;
+                return true;
+            }
+            else if (str == "ET")
+            {
+                value = PdfOperator::ET;
+                return true;
+            }
+            else if (str == "Tc")
+            {
+                value = PdfOperator::Tc;
+                return true;
+            }
+            else if (str == "Tw")
+            {
+                value = PdfOperator::Tw;
+                return true;
+            }
+            else if (str == "Tz")
+            {
+                value = PdfOperator::Tz;
+                return true;
+            }
+            else if (str == "TL")
+            {
+                value = PdfOperator::TL;
+                return true;
+            }
+            else if (str == "Tf")
+            {
+                value = PdfOperator::Tf;
+                return true;
+            }
+            else if (str == "Tr")
+            {
+                value = PdfOperator::Tr;
+                return true;
+            }
+            else if (str == "Ts")
+            {
+                value = PdfOperator::Ts;
+                return true;
+            }
+            else if (str == "Td")
+            {
+                value = PdfOperator::Td;
+                return true;
+            }
+            else if (str == "TD")
+            {
+                value = PdfOperator::TD;
+                return true;
+            }
+            else if (str == "Tm")
+            {
+                value = PdfOperator::Tm;
+                return true;
+            }
+            else if (str == "T*")
+            {
+                value = PdfOperator::T_Star;
+                return true;
+            }
+            else if (str == "Tj")
+            {
+                value = PdfOperator::Tj;
+                return true;
+            }
+            else if (str == "TJ")
+            {
+                value = PdfOperator::TJ;
+                return true;
+            }
+            else if (str == "'")
+            {
+                value = PdfOperator::Quote;
+                return true;
+            }
+            else if (str == "\"")
+            {
+                value = PdfOperator::DoubleQuote;
+                return true;
+            }
+            else if (str == "d0")
+            {
+                value = PdfOperator::d0;
+                return true;
+            }
+            else if (str == "d1")
+            {
+                value = PdfOperator::d1;
+                return true;
+            }
+            else if (str == "CS")
+            {
+                value = PdfOperator::CS;
+                return true;
+            }
+            else if (str == "cs")
+            {
+                value = PdfOperator::cs;
+                return true;
+            }
+            else if (str == "SC")
+            {
+                value = PdfOperator::SC;
+                return true;
+            }
+            else if (str == "SCN")
+            {
+                value = PdfOperator::SCN;
+                return true;
+            }
+            else if (str == "sc")
+            {
+                value = PdfOperator::sc;
+                return true;
+            }
+            else if (str == "scn")
+            {
+                value = PdfOperator::scn;
+                return true;
+            }
+            else if (str == "G")
+            {
+                value = PdfOperator::G;
+                return true;
+            }
+            else if (str == "g")
+            {
+                value = PdfOperator::g;
+                return true;
+            }
+            else if (str == "RG")
+            {
+                value = PdfOperator::RG;
+                return true;
+            }
+            else if (str == "rg")
+            {
+                value = PdfOperator::rg;
+                return true;
+            }
+            else if (str == "K")
+            {
+                value = PdfOperator::K;
+                return true;
+            }
+            else if (str == "k")
+            {
+                value = PdfOperator::k;
+                return true;
+            }
+            else if (str == "sh")
+            {
+                value = PdfOperator::sh;
+                return true;
+            }
+            else if (str == "BI")
+            {
+                value = PdfOperator::BI;
+                return true;
+            }
+            else if (str == "ID")
+            {
+                value = PdfOperator::ID;
+                return true;
+            }
+            else if (str == "EI")
+            {
+                value = PdfOperator::EI;
+                return true;
+            }
+            else if (str == "Do")
+            {
+                value = PdfOperator::Do;
+                return true;
+            }
+            else if (str == "MP")
+            {
+                value = PdfOperator::MP;
+                return true;
+            }
+            else if (str == "DP")
+            {
+                value = PdfOperator::DP;
+                return true;
+            }
+            else if (str == "BMC")
+            {
+                value = PdfOperator::BMC;
+                return true;
+            }
+            else if (str == "BDC")
+            {
+                value = PdfOperator::BDC;
+                return true;
+            }
+            else if (str == "EMC")
+            {
+                value = PdfOperator::EMC;
+                return true;
+            }
+            else if (str == "BX")
+            {
+                value = PdfOperator::BX;
+                return true;
+            }
+            else if (str == "EX")
+            {
+                value = PdfOperator::EX;
+                return true;
+            }
+            else
+            {
+                value = PdfOperator::Unknown;
+                return false;
+            }
+        }
+    };
+
     template<typename T>
     std::string_view ToString(T value)
     {

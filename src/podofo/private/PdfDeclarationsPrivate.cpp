@@ -347,6 +347,245 @@ PdfXRefEntryType PoDoFo::XRefEntryTypeFromChar(char c)
     }
 }
 
+int PoDoFo::GetOperandCount(PdfOperator op)
+{
+    int count;
+    if (!TryGetOperandCount(op, count))
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Invalid operator");
+
+    return count;
+}
+
+bool PoDoFo::TryGetOperandCount(PdfOperator op, int& count)
+{
+    switch (op)
+    {
+        case PdfOperator::w:
+            count = 1;
+            return true;
+        case PdfOperator::J:
+            count = 1;
+            return true;
+        case PdfOperator::j:
+            count = 1;
+            return true;
+        case PdfOperator::M:
+            count = 1;
+            return true;
+        case PdfOperator::d:
+            count = 2;
+            return true;
+        case PdfOperator::ri:
+            count = 1;
+            return true;
+        case PdfOperator::i:
+            count = 1;
+            return true;
+        case PdfOperator::gs:
+            count = 1;
+            return true;
+        case PdfOperator::q:
+            count = 0;
+            return true;
+        case PdfOperator::Q:
+            count = 0;
+            return true;
+        case PdfOperator::cm:
+            count = 6;
+            return true;
+        case PdfOperator::m:
+            count = 2;
+            return true;
+        case PdfOperator::l:
+            count = 2;
+            return true;
+        case PdfOperator::c:
+            count = 6;
+            return true;
+        case PdfOperator::v:
+            count = 4;
+            return true;
+        case PdfOperator::y:
+            count = 4;
+            return true;
+        case PdfOperator::h:
+            count = 0;
+            return true;
+        case PdfOperator::re:
+            count = 4;
+            return true;
+        case PdfOperator::S:
+            count = 0;
+            return true;
+        case PdfOperator::s:
+            count = 0;
+            return true;
+        case PdfOperator::f:
+            count = 0;
+            return true;
+        case PdfOperator::F:
+            count = 0;
+            return true;
+        case PdfOperator::f_Star:
+            count = 0;
+            return true;
+        case PdfOperator::B:
+            count = 0;
+            return true;
+        case PdfOperator::B_Star:
+            count = 0;
+            return true;
+        case PdfOperator::b:
+            count = 0;
+            return true;
+        case PdfOperator::b_Star:
+            count = 0;
+            return true;
+        case PdfOperator::n:
+            count = 0;
+            return true;
+        case PdfOperator::W:
+            count = 0;
+            return true;
+        case PdfOperator::W_Star:
+            count = 0;
+            return true;
+        case PdfOperator::BT:
+            count = 0;
+            return true;
+        case PdfOperator::ET:
+            count = 0;
+            return true;
+        case PdfOperator::Tc:
+            count = 1;
+            return true;
+        case PdfOperator::Tw:
+            count = 1;
+            return true;
+        case PdfOperator::Tz:
+            count = 1;
+            return true;
+        case PdfOperator::TL:
+            count = 1;
+            return true;
+        case PdfOperator::Tf:
+            count = 2;
+            return true;
+        case PdfOperator::Tr:
+            count = 1;
+            return true;
+        case PdfOperator::Ts:
+            count = 1;
+            return true;
+        case PdfOperator::Td:
+            count = 2;
+            return true;
+        case PdfOperator::TD:
+            count = 2;
+            return true;
+        case PdfOperator::Tm:
+            count = 6;
+            return true;
+        case PdfOperator::T_Star:
+            count = 0;
+            return true;
+        case PdfOperator::Tj:
+            count = 1;
+            return true;
+        case PdfOperator::TJ:
+            count = 1;
+            return true;
+        case PdfOperator::Quote:
+            count = 1;
+            return true;
+        case PdfOperator::DoubleQuote:
+            count = 3;
+            return true;
+        case PdfOperator::d0:
+            count = 2;
+            return true;
+        case PdfOperator::d1:
+            count = 6;
+            return true;
+        case PdfOperator::CS:
+            count = 1;
+            return true;
+        case PdfOperator::cs:
+            count = 1;
+            return true;
+        case PdfOperator::SC:
+            count = -1;
+            return true;
+        case PdfOperator::SCN:
+            count = -1;
+            return true;
+        case PdfOperator::sc:
+            count = -1;
+            return true;
+        case PdfOperator::scn:
+            count = -1;
+            return true;
+        case PdfOperator::G:
+            count = 1;
+            return true;
+        case PdfOperator::g:
+            count = 1;
+            return true;
+        case PdfOperator::RG:
+            count = 3;
+            return true;
+        case PdfOperator::rg:
+            count = 3;
+            return true;
+        case PdfOperator::K:
+            count = 4;
+            return true;
+        case PdfOperator::k:
+            count = 4;
+            return true;
+        case PdfOperator::sh:
+            count = 1;
+            return true;
+        case PdfOperator::BI:
+            count = 0;
+            return true;
+        case PdfOperator::ID:
+            count = 0;
+            return true;
+        case PdfOperator::EI:
+            count = 0;
+            return true;
+        case PdfOperator::Do:
+            count = 1;
+            return true;
+        case PdfOperator::MP:
+            count = 1;
+            return true;
+        case PdfOperator::DP:
+            count = 2;
+            return true;
+        case PdfOperator::BMC:
+            count = 1;
+            return true;
+        case PdfOperator::BDC:
+            count = 2;
+            return true;
+        case PdfOperator::EMC:
+            count = 0;
+            return true;
+        case PdfOperator::BX:
+            count = 0;
+            return true;
+        case PdfOperator::EX:
+            count = 0;
+            return true;
+        default:
+        case PdfOperator::Unknown:
+            count = 0;
+            return false;
+    }
+}
+
 void PoDoFo::AddToCallStack(PdfError& err, string filepath, unsigned line, string information)
 {
     err.AddToCallStack(std::move(filepath), line, std::move(information));
