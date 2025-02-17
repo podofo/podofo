@@ -111,6 +111,8 @@ class PODOFO_API PdfDocument
     friend class PdfMetadata;
     friend class PdfXObjectForm;
     friend class PdfPageCollection;
+    friend class PdfMemDocument;
+    friend class PdfStreamedDocument;
 
 public:
     /** Close down/destruct the PdfDocument
@@ -360,13 +362,6 @@ public:
     PdfFontManager& GetFonts() { return m_FontManager; }
 
 protected:
-    /** Construct a new (empty) PdfDocument
-     *  \param empty if true NO default objects (such as catalog) are created.
-     */
-    PdfDocument(bool empty = false);
-
-    PdfDocument(const PdfDocument& doc);
-
     /** Set the trailer of this PdfDocument
      *  deleting the old one.
      *
@@ -398,6 +393,13 @@ protected:
     virtual void SetPdfVersion(PdfVersion version) = 0;
 
 private:
+    /** Construct a new (empty) PdfDocument
+     *  \param empty if true NO default objects (such as catalog) are created.
+     */
+    PdfDocument(bool empty = false);
+
+    PdfDocument(const PdfDocument& doc);
+
     // Called by PdfPageCollection
     void AppendDocumentPages(const PdfDocument& doc);
     void InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex);
