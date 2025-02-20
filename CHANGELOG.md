@@ -1,3 +1,14 @@
+## Version 0.10.5
+- Fix #191, #197, #201, #212, #233
+- Compilation and linking fixes in various conditions
+- PdfFontManager: Fixed GetOrCreateFontFromBuffer stealing memory
+- PdfPageCollection: Disable copy/assignment
+- PdfPage_TextExtraction: Fix `decodeString` with no font
+- Fix eating of non-space chars in SplitTextAsLines
+- Fix FreeType segfault race condition
+- PdfCheckBox: Fixed IsChecked()
+- PdfParser: Uncondtionally try to read XRef stream in all PDFs that doesn't have a cross reference section
+
 ## Version 0.10.4
 - Fixes #161, #162, #167, #183, merges #157
 - `StandardStreamDevice`: Fixed `seek()` in case of `iostream`/`fstream`
