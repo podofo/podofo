@@ -18,7 +18,7 @@ namespace PoDoFo {
 
 /** Type of the content read from a content stream
  */
-enum class PdfContentType
+enum class PdfContentType : uint8_t
 {
     Unknown = 0,
     Operator,          ///< The token is a PDF operator

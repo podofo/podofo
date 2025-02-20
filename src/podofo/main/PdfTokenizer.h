@@ -17,7 +17,7 @@ namespace PoDoFo {
 
 class PdfVariant;
 
-enum class PdfTokenType
+enum class PdfTokenType : uint8_t
 {
     Unknown = 0,
     Literal,
@@ -34,7 +34,7 @@ enum class PdfTokenType
     Slash,
 };
 
-enum class PdfPostScriptLanguageLevel
+enum class PdfPostScriptLanguageLevel : uint8_t
 {
     L1 = 1,
     L2 = 2,
@@ -147,7 +147,7 @@ protected:
     // it enumerates only data types that can be determined literally
     // by the tokenization and specify better if the strings literals
     // are regular or hex strings
-    enum class PdfLiteralDataType
+    enum class PdfLiteralDataType : uint8_t
     {
         Unknown = 0,
         Bool,

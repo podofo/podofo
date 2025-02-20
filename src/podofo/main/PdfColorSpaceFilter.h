@@ -16,7 +16,7 @@ namespace PoDoFo
 
     /** Output pixel format for a PdfColorSpaceFilter
      */
-    enum class PdfColorSpacePixelFormat
+    enum class PdfColorSpacePixelFormat : uint8_t
     {
         Unknown = 0,
         Grayscale,

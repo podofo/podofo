@@ -109,7 +109,7 @@ namespace PoDoFo
         PdfTilingPaintType GetPaintType() const override;
     };
 
-    enum class PdfShadingType
+    enum class PdfShadingType : uint8_t
     {
         FunctionBased = 1,
         Axial = 2,

@@ -21,7 +21,7 @@ using namespace PoDoFo;
 
 namespace
 {
-    enum class StringEncoding
+    enum class StringEncoding : uint8_t
     {
         utf8,
         utf16be,

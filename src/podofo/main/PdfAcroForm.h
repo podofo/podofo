@@ -13,7 +13,7 @@ namespace PoDoFo {
 
 class PdfDocument;
 
-enum class PdfAcroFormDefaulAppearance
+enum class PdfAcroFormDefaulAppearance : uint8_t
 {
     None = 0, ///< Do not add a default appearrance
     ArialBlack ///< Add a default appearance with Arial embedded and black text if no other DA key is present

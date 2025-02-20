@@ -87,7 +87,7 @@ private:
 
 // These are the .NET System.IO file opening modes
 // https://docs.microsoft.com/en-us/dotnet/api/system.io.filemode?view=net-6.0
-enum class FileMode
+enum class FileMode : uint8_t
 {
     CreateNew = 1,     ///< Create a new file (throw if existing) for writing/reading
     Create,            ///< Create a new file or truncate existing one for writing/reading

@@ -21,7 +21,7 @@ using namespace PoDoFo;
 
 namespace
 {
-    enum class PdfPageTreeNodeType
+    enum class PdfPageTreeNodeType : uint8_t
     {
         Unknown,
         Node,

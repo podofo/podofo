@@ -20,7 +20,7 @@ using namespace std;
 
 constexpr unsigned BalanceTreeMax = 65;
 
-enum class PdfNameLimits
+enum class PdfNameLimits : uint8_t
 {
     Before = 0,
     Inside,

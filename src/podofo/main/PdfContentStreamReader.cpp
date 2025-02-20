@@ -411,7 +411,7 @@ bool PdfContentStreamReader::tryReadInlineImgData(charbuff& data)
         return false;
 
     // Read "EI"
-    enum class ReadEIStatus
+    enum class ReadEIStatus : uint8_t
     {
         ReadE,
         ReadI,

@@ -24,7 +24,7 @@ class PdfDocument;
  *  Please make also sure that the action type you use is
  *  supported by the PDF version you are using.
  */
-enum class PdfActionType
+enum class PdfActionType : uint8_t
 {
     Unknown = 0,
     GoTo,

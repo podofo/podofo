@@ -22,7 +22,7 @@ namespace PoDoFo {
  *
  *  \see PdfError
  */
-enum class PdfErrorCode
+enum class PdfErrorCode : uint8_t
 {
     Unknown = 0,              ///< Unknown error
     InvalidHandle,            ///< Unexpected null pointer or invalid state

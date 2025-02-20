@@ -21,7 +21,7 @@ namespace PoDoFo {
 
 class PdfAcroForm;
 
-enum class PdfCertPermission
+enum class PdfCertPermission : uint8_t
 {
     NoPerms = 1,
     FormFill = 2,

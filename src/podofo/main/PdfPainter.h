@@ -39,7 +39,7 @@ enum class PdfPainterFlags
 /**
  * An enum describing modes to draw paths and figures
  */
-enum class PdfPathDrawMode
+enum class PdfPathDrawMode : uint8_t
 {
     Stroke = 1,
     Fill = 2,               ///< Fill using the the non-zero winding number rule to determine the region to fill
@@ -48,7 +48,7 @@ enum class PdfPathDrawMode
     StrokeFillEvenOdd = 5,  ///< Stroke and fill using the the even-odd rule to determine the region to fill
 };
 
-enum class PdfDrawTextStyle
+enum class PdfDrawTextStyle : uint8_t
 {
     Regular = 0,
     StrikeThrough = 1,

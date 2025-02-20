@@ -208,7 +208,7 @@ enum class PdfFilterType : uint8_t
     Crypt
 };
 
-enum class PdfExportFormat
+enum class PdfExportFormat : uint8_t
 {
     Png = 1,        ///< NOTE: Not yet supported
     Jpeg = 2,
@@ -342,7 +342,7 @@ enum class PdfColorSpaceType : uint8_t
     DeviceN
 };
 
-enum class PdfPixelFormat
+enum class PdfPixelFormat : uint8_t
 {
     Unknown = 0,
     Grayscale,
@@ -359,7 +359,7 @@ enum class PdfPixelFormat
  *
  * Compare ISO 32000-1:2008, Table 106 "Text rendering modes"
  */
-enum class PdfTextRenderingMode
+enum class PdfTextRenderingMode : uint8_t
 {
     Fill = 0,                  ///< Default mode, fill text
     Stroke,                    ///< Stroke text
@@ -375,7 +375,7 @@ enum class PdfTextRenderingMode
  * Enum for the different stroke styles that can be set
  * when drawing to a PDF file (mostly for line drawing).
  */
-enum class PdfStrokeStyle
+enum class PdfStrokeStyle : uint8_t
 {
     Solid = 1,
     Dash,
@@ -388,7 +388,7 @@ enum class PdfStrokeStyle
  * Enum to specify the initial information of the
  * info dictionary.
  */
-enum class PdfInfoInitial
+enum class PdfInfoInitial : uint8_t
 {
     None = 0,
     WriteCreationTime = 1,      ///< Write the creation time (current time). Default for new documents
@@ -399,7 +399,7 @@ enum class PdfInfoInitial
 /**
  * Enum for line cap styles when drawing.
  */
-enum class PdfLineCapStyle
+enum class PdfLineCapStyle : uint8_t
 {
     Butt = 0,
     Round = 1,
@@ -409,7 +409,7 @@ enum class PdfLineCapStyle
 /**
  * Enum for line join styles when drawing.
  */
-enum class PdfLineJoinStyle
+enum class PdfLineJoinStyle : uint8_t
 {
     Miter = 0,
     Round = 1,
@@ -419,7 +419,7 @@ enum class PdfLineJoinStyle
 /**
  * Enum for vertical text alignment
  */
-enum class PdfVerticalAlignment
+enum class PdfVerticalAlignment : uint8_t
 {
     Top = 0,
     Center = 1,
@@ -429,7 +429,7 @@ enum class PdfVerticalAlignment
 /**
  * Enum for text alignment
  */
-enum class PdfHorizontalAlignment
+enum class PdfHorizontalAlignment : uint8_t
 {
     Left = 0,
     Center = 1,
@@ -475,7 +475,7 @@ enum class PdfSaveOptions
  *
  * \see PdfPage
  */
-enum class PdfPageSize
+enum class PdfPageSize : uint8_t
 {
     Unknown = 0,
     A0,              ///< DIN A0
@@ -497,7 +497,7 @@ enum class PdfPageSize
  *
  * \see PdfDocument
  */
-enum class PdfPageMode
+enum class PdfPageMode : uint8_t
 {
     UseNone = 1,
     UseThumbs,
@@ -514,7 +514,7 @@ enum class PdfPageMode
  *
  * \see PdfDocument
  */
-enum class PdfPageLayout
+enum class PdfPageLayout : uint8_t
 {
     SinglePage = 1,
     OneColumn,
@@ -524,7 +524,7 @@ enum class PdfPageLayout
     TwoPageRight
 };
 
-enum class PdfStandard14FontType
+enum class PdfStandard14FontType : uint8_t
 {
     Unknown = 0,
     TimesRoman,
@@ -627,7 +627,7 @@ enum class PdfFieldType : uint32_t
  *  The default value is
  *  PdfHighlightingMode::Invert
  */
-enum class PdfHighlightingMode
+enum class PdfHighlightingMode : uint8_t
 {
     Unknown = 0,
     None,           ///< Do no highlighting
@@ -646,14 +646,14 @@ enum class PdfFieldFlags : uint8_t
 /**
  * Type of the annotation appearance.
  */
-enum class PdfAppearanceType
+enum class PdfAppearanceType : uint8_t
 {
     Normal = 0, ///< Normal appearance
     Rollover,   ///< Rollover appearance; the default is PdfAnnotationAppearance::Normal
     Down        ///< Down appearance; the default is PdfAnnotationAppearance::Normal
 };
 
-enum class PdfResourceType
+enum class PdfResourceType : uint8_t
 {
     Unknown = 0,
     ExtGState,
@@ -665,7 +665,7 @@ enum class PdfResourceType
     Properties
 };
 
-enum class PdfKnownNameTree
+enum class PdfKnownNameTree : uint8_t
 {
     Unknown = 0,
     Dests,
@@ -683,7 +683,7 @@ enum class PdfKnownNameTree
 /**
  * List of PDF stream content operators
  */
-enum class PdfOperator
+enum class PdfOperator : uint8_t
 {
     Unknown = 0,
     // ISO 32008-1:2008 Table 51 – Operator Categories
@@ -781,7 +781,7 @@ enum class PdfOperator
 /**
  * List of defined Rendering intents
  */
-enum class PdfRenderingIntent
+enum class PdfRenderingIntent : uint8_t
 {
     Unknown = 0,
     AbsoluteColorimetric,
@@ -814,20 +814,20 @@ enum class PdfBlendMode : uint8_t
     Luminosity,
 };
 
-enum class PdfSignatureType
+enum class PdfSignatureType : uint8_t
 {
     Unknown = 0,
     PAdES_B = 1,
     Pkcs7 = 2,
 };
 
-enum class PdfSignatureEncryption
+enum class PdfSignatureEncryption : uint8_t
 {
     Unknown = 0,
     RSA,
 };
 
-enum class PdfHashingAlgorithm
+enum class PdfHashingAlgorithm : uint8_t
 {
     Unknown = 0,
     SHA256,

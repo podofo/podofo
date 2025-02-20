@@ -15,7 +15,7 @@ namespace PoDoFo {
 
 /** An enum describing the type of a read token
  */
-enum class PdfPostScriptTokenType
+enum class PdfPostScriptTokenType : uint8_t
 {
     Unknown = 0,
     Keyword, ///< The token is a PDF keyword.

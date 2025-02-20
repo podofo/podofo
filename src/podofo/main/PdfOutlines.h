@@ -18,7 +18,7 @@ class PdfAction;
  * The title of an outline item can be displayed
  * in different formatting styles since PDF 1.4.
  */
-enum class PdfOutlineFormat
+enum class PdfOutlineFormat : uint8_t
 {
     Default = 0,      ///< Default format
     Italic = 1,       ///< Italic

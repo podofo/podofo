@@ -15,7 +15,7 @@ namespace PoDoFo {
 
 class PdfPage;
 
-enum class PdfDestinationFit
+enum class PdfDestinationFit : uint8_t
 {
     Unknown = 0,
     Fit,
@@ -30,7 +30,7 @@ enum class PdfDestinationFit
  *
  *  (see table 151 in the pdf spec)
  */
-enum class PdfDestinationType
+enum class PdfDestinationType : uint8_t
 {
     Unknown = 0,
     XYZ,

@@ -410,14 +410,14 @@ protected:
     // Check two keys for equality
     bool CheckKey(const unsigned char key1[32], const unsigned char key2[32]) const;
 
-    enum class PdfRC4Revision
+    enum class PdfRC4Revision : uint8_t
     {
         R2 = 2,
         R3 = 3,
     };
 
 #ifdef PODOFO_HAVE_LIBIDN
-    enum class PdfAESV3Revision
+    enum class PdfAESV3Revision : uint8_t
     {
         R5 = 5,
         R6 = 6,
