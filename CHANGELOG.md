@@ -1,11 +1,15 @@
-## Version 1.0.0-dev
-- Fixed `PdfStreamedDocument`, see #88
+## Version 1.0.0-beta
+
+- Support Type1, CFF and OpenType CFF fonts for subsetting
+- Many fixes in TrueType legacy subsetting
 - Added high-level signing API, see `PdfSignerCMS` and "TestSignature1" test case
 - Set `PdfSignature` to have correct `/ByteRange` and `/Contents` after signing with `PoDoFo::SignDocument`
+- Added support for predefined CMap(s). It improves CJK text extraction
 - Reviewed `PdfFileSpec`, `PdfAction`, `PdfDestination` API and their usage in
 `PdfOutlineItem`, `PdfOutlines`, `PdfAnnotationActionBase`, `PdfAnnotationLink`, `PdfAnnotationFileAttachment`
 - Reviewed `PdfNameTree`, renamed to `PdfNameTrees` and added `PdfNameTree` to pick specific trees with typed element
 - Reviewed `PdfExtGState`
+- Reviewed `PdfTilingPattern`, `PdfShadingPattern`, `PdfFunction`
 - `PdfDocument`: Added `GetFieldsIterator()`
 - `PdfPage`: Added `GetFieldsIterator()`
 - `PdfSignature`: Added `TryGetPreviousRevision()`
@@ -14,9 +18,28 @@
    separate state context and used as argument in `PdfEncrypt` methods
 - Added `PdfNames` and moved all known names there from `PdfName`
 - `PdfPageCollection`: Methods creating pages now takes PdfPageSize or default inferred from doc
-- `PdfName`: Added `PdfName operator""_nm(const char*, size_t)`
-- `PdfString`: Added `std::string&&` constructor
+- `PdfName`:
+  * Optimized for struct size and construction from string const literal
+  * Added `PdfName operator""_nm(const char*, size_t)`
+- `PdfString`:
+  * Optimized for struct size
+  * Added `std::string&&` constructor
+- `PdfVariant`: Optimized for accessing `PdfString`, `PdfName` and `PdfReference`
 - `FileStreamDevice` now uses again C stdio for better performance
+- Fixed `PdfStreamedDocument`, see #88
+- Tons of API improvements (see [API-MIGRATION.md](https://github.com/podofo/podofo/blob/master/API-MIGRATION.md))
+- Tons of other bug fixes
+
+## Version 0.10.5-rc
+- Fix #191, #197, #201, #212, #233
+- Compilation and linking fixes in various conditions
+- PdfFontManager: Fixed GetOrCreateFontFromBuffer stealing memory
+- PdfPageCollection: Disable copy/assignment
+- PdfPage_TextExtraction: Fix `decodeString` with no font
+- Fix eating of non-space chars in SplitTextAsLines
+- Fix FreeType segfault race condition
+- PdfCheckBox: Fixed IsChecked()
+- PdfParser: Uncondtionally try to read XRef stream in all PDFs that doesn't have a cross reference section
 
 ## Version 0.10.4
 - Fixes #161, #162, #167, #183, merges #157
