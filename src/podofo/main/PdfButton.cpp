@@ -84,6 +84,13 @@ PdfToggleButton::PdfToggleButton(PdfObject& obj, PdfAcroForm* acroform, PdfField
 {
 }
 
+void PdfToggleButton::SetChecked(bool isChecked)
+{
+    // FIXME: This is incorrect, and should handle toggle buttons export values
+    GetDictionary().AddKey("V"_n, (isChecked ? "Yes"_n : "Off"_n));
+    GetDictionary().AddKey("AS"_n, (isChecked ? "Yes"_n : "Off"_n));
+}
+
 bool PdfToggleButton::IsChecked() const
 {
     // ISO 32000-2:2020 12.7.5.2.3 "Check boxes":

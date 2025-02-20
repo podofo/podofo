@@ -48,13 +48,6 @@ void PdfCheckBox::SetAppearanceUnchecked(const PdfXObject& xobj)
     this->AddAppearanceStream("Off"_n, xobj.GetObject().GetIndirectReference());
 }
 
-void PdfCheckBox::SetChecked(bool isChecked)
-{
-    // FIXME: This is incorrect, and should handle toggle buttons export values
-    GetDictionary().AddKey("V"_n, (isChecked ? "Yes"_n : "Off"_n));
-    GetDictionary().AddKey("AS"_n, (isChecked ? "Yes"_n : "Off"_n));
-}
-
 PdfCheckBox* PdfCheckBox::GetParent()
 {
     return GetParentTyped<PdfCheckBox>(PdfFieldType::CheckBox);

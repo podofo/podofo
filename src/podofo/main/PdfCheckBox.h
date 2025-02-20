@@ -40,12 +40,6 @@ namespace PoDoFo
          */
         void SetAppearanceUnchecked(const PdfXObject& xobj);
 
-        /** Sets the state of this checkbox
-         *
-         *  \param isChecked if true the checkbox will be checked
-         */
-        void SetChecked(bool isChecked);
-
         PdfCheckBox* GetParent();
         const PdfCheckBox* GetParent() const;
 
