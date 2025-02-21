@@ -66,6 +66,8 @@ struct PODOFO_API PdfDrawTextMultiLineParams final
 
 struct PODOFO_API PdfPainterState final
 {
+    PdfPainterState();
+
     PdfGraphicsState GraphicsState;
     PdfTextState TextState;         ///< The current semantical text state
     nullable<Vector2> FirstPoint;

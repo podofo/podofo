@@ -39,6 +39,12 @@ static constexpr float NaN = numeric_limits<float>::quiet_NaN();
 // 5.3 Text Objects
 struct TextState
 {
+    TextState()
+    {
+        // Reset font size
+        PdfState.FontSize = -1;
+    }
+
     Matrix T_rm;  // Current T_rm
     Matrix CTM;   // Current CTM
     Matrix T_m;   // Current T_m

@@ -1407,3 +1407,10 @@ string expandTabs(const string_view& str, unsigned tabWidth, unsigned tabCount)
 
     return ret;
 }
+
+PdfPainterState::PdfPainterState()
+{
+    // Reset font size(s)
+    TextState.FontSize = -1;
+    EmittedTextState.FontSize = -1;
+}

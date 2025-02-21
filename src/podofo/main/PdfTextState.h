@@ -26,7 +26,7 @@ namespace PoDoFo
         std::vector<std::string> SplitTextAsLines(const std::string_view& str, double width, bool preserveTrailingSpaces = false) const;
 
         const PdfFont* Font = nullptr;
-        double FontSize = -1;
+        double FontSize = 10;
         double FontScale = 1;
         double CharSpacing = 0;
         double WordSpacing = 0;
