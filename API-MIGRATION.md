@@ -1,7 +1,9 @@
 ## 0.10.1 -> 1.0.0
-- `PdfTokenizer`:  Moved `IsWhitespace`, `IsDelimiter`, `IsTokenDelimiter`, `IsRegular`, `IsPrintable`  to <podofo/optional/PdfUtils.h>.
+- `PdfTokenizer`:
+  * Moved `IsWhitespace`, `IsDelimiter`, `IsTokenDelimiter`, `IsRegular`, `IsPrintable`  to `<podofo/optional/PdfUtils.h>`.
   It doesn't seems justified to have them as part of the regular public API in PdfTokenizer.
-  Also renamed them with "IsChar" suffix
+  Also renamed them with `IsChar` suffix.
+  * `IsPrintable`: Renamed to `IsCharASCIIPrintable`. That should be the correct semantic of the method
 - `PoDoFo::GetPdfOperator()`, `PoDoFo::TryGetPdfOperator()`, `PoDoFo::GetPdfOperatorName()`, `PoDoFo::TryGetPdfOperatorName()`: Make them private, include `<podofo/optional/PdfConvert.h>` for substitutes
 - `PoDoFo::GetOperandCount()`, `PoDoFo::TryGetOperandCount()`: Make them private, no substitute provided
 - `PdfPageMode`:

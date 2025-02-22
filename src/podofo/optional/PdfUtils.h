@@ -99,9 +99,12 @@ namespace PoDoFo
         return !(IsCharWhitespace(ch) || IsCharDelimiter(ch));
     }
 
-    inline bool IsCharPrintable(char ch)
+    /** Check if the character is within the range of
+     * non control code ASCII characters
+     */
+    inline bool IsCharASCIIPrintable(char ch)
     {
-        return ch > 32 && ch < 125;
+        return ch > 32 && ch < 127;
     }
 }
 

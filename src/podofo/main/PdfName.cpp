@@ -239,7 +239,7 @@ void escapeNameTo(string& dst, const bufferview& view)
         {
             // Leave room for either just the char, or a #xx escape of it.
             outchars += (PoDoFo::IsCharRegular(ch) &&
-                PoDoFo::IsCharPrintable(ch) && (ch != '#')) ? 1 : 3;
+                PoDoFo::IsCharASCIIPrintable(ch) && (ch != '#')) ? 1 : 3;
         }
     }
     // Reserve it. We can't use reserve() because the GNU STL doesn't seem to
@@ -251,7 +251,7 @@ void escapeNameTo(string& dst, const bufferview& view)
     {
         char ch = view[i];
         if (PoDoFo::IsCharRegular(ch)
-            && PoDoFo::IsCharPrintable(ch)
+            && PoDoFo::IsCharASCIIPrintable(ch)
             && ch != '#')
         {
             *(bufIt++) = ch;
