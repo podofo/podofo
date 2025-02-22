@@ -74,7 +74,7 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
             goto Eof;
 
         // ignore leading whitespaces
-        if (count == 0 && IsWhitespace(ch1))
+        if (count == 0 && IsCharWhitespace(ch1))
         {
             // Consume the whitespace character
             (void)device.ReadChar();
@@ -133,7 +133,7 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
 
             break;
         }
-        else if (count != 0 && (IsWhitespace(ch1) || IsDelimiter(ch1)))
+        else if (count != 0 && (IsCharWhitespace(ch1) || IsCharDelimiter(ch1)))
         {
             // Next (unconsumed) character is a token-terminating char, so
             // we have a complete token and can return it.
@@ -147,7 +147,7 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
             count++;
 
             PdfTokenType tokenDelimiterType;
-            if (IsTokenDelimiter(ch1, tokenDelimiterType))
+            if (IsCharTokenDelimiter(ch1, tokenDelimiterType))
             {
                 // All delimiters except << and >> (handled above) are
                 // one-character tokens, so if we hit one we can just return it
@@ -662,7 +662,7 @@ void PdfTokenizer::ReadName(InputStreamDevice& device, PdfVariant& variant)
     // 10 0 obj / endobj
     // which stupid but legal PDF
     char ch;
-    if (!device.Peek(ch) || IsWhitespace(ch))
+    if (!device.Peek(ch) || IsCharWhitespace(ch))
     {
         // We have an empty PdfName
         // NOTE: Delimiters are handled correctly by tryReadNextToken
@@ -692,97 +692,6 @@ void PdfTokenizer::ReadName(InputStreamDevice& device, PdfVariant& variant)
 void PdfTokenizer::EnqueueToken(const string_view& token, PdfTokenType tokenType)
 {
     m_tokenQueque.push_back(TokenizerPair(string(token), tokenType));
-}
-
-bool PdfTokenizer::IsWhitespace(char ch)
-{
-    switch (ch)
-    {
-        case '\0': // NULL
-            return true;
-        case '\t': // TAB
-            return true;
-        case '\n': // Line Feed
-            return true;
-        case '\f': // Form Feed
-            return true;
-        case '\r': // Carriage Return
-            return true;
-        case ' ': // White space
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool PdfTokenizer::IsDelimiter(char ch)
-{
-    switch (ch)
-    {
-        case '(':
-            return true;
-        case ')':
-            return true;
-        case '<':
-            return true;
-        case '>':
-            return true;
-        case '[':
-            return true;
-        case ']':
-            return true;
-        case '{':
-            return true;
-        case '}':
-            return true;
-        case '/':
-            return true;
-        case '%':
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool PdfTokenizer::IsTokenDelimiter(char ch, PdfTokenType& tokenType)
-{
-    switch (ch)
-    {
-        case '(':
-            tokenType = PdfTokenType::ParenthesisLeft;
-            return true;
-        case ')':
-            tokenType = PdfTokenType::ParenthesisRight;
-            return true;
-        case '[':
-            tokenType = PdfTokenType::SquareBracketLeft;
-            return true;
-        case ']':
-            tokenType = PdfTokenType::SquareBracketRight;
-            return true;
-        case '{':
-            tokenType = PdfTokenType::BraceLeft;
-            return true;
-        case '}':
-            tokenType = PdfTokenType::BraceRight;
-            return true;
-        case '/':
-            tokenType = PdfTokenType::Slash;
-            return true;
-        default:
-            tokenType = PdfTokenType::Unknown;
-            return false;
-    }
-}
-
-bool PdfTokenizer::IsRegular(char ch)
-{
-    return !IsWhitespace(ch) && !IsDelimiter(ch);
-}
-
-bool PdfTokenizer::IsPrintable(char ch)
-{
-    return ch > 32 && ch < 125;
 }
 
 char getEscapedCharacter(char ch)

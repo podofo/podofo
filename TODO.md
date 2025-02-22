@@ -6,8 +6,6 @@
 - Check PdfExtension API
 - Check performances of PdfContentStreamReader
 - Evaluate make private PdfFontManager::EmbedFonts
-- PdfTokenizer: Evaluate making private IsWhitespace, IsDelimiter,
-  IsTokenDelimiter, IsRegular, IsPrintable
 - PdfPainter: Consider setting the flags in the
   PdfPainter::SetCanvas(canvas) method instead
 

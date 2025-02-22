@@ -449,7 +449,7 @@ bool PdfContentStreamReader::tryReadInlineImgData(charbuff& data)
             }
             case ReadEIStatus::ReadWhiteSpace:
             {
-                if (PdfTokenizer::IsWhitespace(ch))
+                if (PoDoFo::IsCharWhitespace(ch))
                 {
                     data = bufferview(m_buffer->data(), readCount - 2);
                     return true;

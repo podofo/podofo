@@ -166,6 +166,23 @@ enum class PdfDataType : uint8_t
     RawData,               ///< Raw PDF data
 };
 
+enum class PdfTokenType : uint8_t
+{
+    Unknown = 0,
+    Literal,
+    ParenthesisLeft,
+    ParenthesisRight,
+    BraceLeft,
+    BraceRight,
+    AngleBracketLeft,
+    AngleBracketRight,
+    DoubleAngleBracketsLeft,
+    DoubleAngleBracketsRight,
+    SquareBracketLeft,
+    SquareBracketRight,
+    Slash,
+};
+
 enum class PdfTextExtractFlags
 {
     None = 0,

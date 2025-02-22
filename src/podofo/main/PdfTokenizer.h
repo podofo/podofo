@@ -17,23 +17,6 @@ namespace PoDoFo {
 
 class PdfVariant;
 
-enum class PdfTokenType : uint8_t
-{
-    Unknown = 0,
-    Literal,
-    ParenthesisLeft,
-    ParenthesisRight,
-    BraceLeft,
-    BraceRight,
-    AngleBracketLeft,
-    AngleBracketRight,
-    DoubleAngleBracketsLeft,
-    DoubleAngleBracketsRight,
-    SquareBracketLeft,
-    SquareBracketRight,
-    Slash,
-};
-
 enum class PdfPostScriptLanguageLevel : uint8_t
 {
     L1 = 1,
@@ -111,36 +94,6 @@ public:
      */
     void ReadNextVariant(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt = { });
     bool TryReadNextVariant(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt = { });
-
-public:
-    /** Returns true if the given character is a whitespace
-     *  according to the pdf reference
-     *
-     *  \returns true if it is a whitespace character otherwise false
-     */
-    static bool IsWhitespace(char ch);
-
-    /** Returns true if the given character is a delimiter
-     *  according to the pdf reference
-     */
-    static bool IsDelimiter(char ch);
-
-    /** Returns true if the given character is a token delimiter
-     */
-    static bool IsTokenDelimiter(char ch, PdfTokenType& tokenType);
-
-    /**
-     * True if the passed character is a regular character according to the PDF
-     * reference (Section 3.1.1, Character Set); ie it is neither a white-space
-     * nor a delimiter character.
-     */
-    static bool IsRegular(char ch);
-
-    /**
-     * True if the passed character is within the generally accepted "printable"
-     * ASCII range.
-     */
-    static bool IsPrintable(char ch);
 
 protected:
     // This enum differs from regular PdfDataType in the sense

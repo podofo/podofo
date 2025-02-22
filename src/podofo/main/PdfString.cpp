@@ -153,7 +153,7 @@ PdfString PdfString::FromHexData(const string_view& hexView, const PdfStatefulEn
     for (size_t i = 0; i < len; i++)
     {
         char ch = hexView[i];
-        if (PdfTokenizer::IsWhitespace(ch))
+        if (PoDoFo::IsCharWhitespace(ch))
             continue;
 
         (void)utls::TryGetHexValue(ch, val);

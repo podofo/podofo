@@ -238,8 +238,8 @@ void escapeNameTo(string& dst, const bufferview& view)
         else
         {
             // Leave room for either just the char, or a #xx escape of it.
-            outchars += (PdfTokenizer::IsRegular(ch) &&
-                PdfTokenizer::IsPrintable(ch) && (ch != '#')) ? 1 : 3;
+            outchars += (PoDoFo::IsCharRegular(ch) &&
+                PoDoFo::IsCharPrintable(ch) && (ch != '#')) ? 1 : 3;
         }
     }
     // Reserve it. We can't use reserve() because the GNU STL doesn't seem to
@@ -250,8 +250,8 @@ void escapeNameTo(string& dst, const bufferview& view)
     for (size_t i = 0; i < view.size(); i++)
     {
         char ch = view[i];
-        if (PdfTokenizer::IsRegular(ch)
-            && PdfTokenizer::IsPrintable(ch)
+        if (PoDoFo::IsCharRegular(ch)
+            && PoDoFo::IsCharPrintable(ch)
             && ch != '#')
         {
             *(bufIt++) = ch;

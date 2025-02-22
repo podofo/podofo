@@ -249,7 +249,7 @@ void PdfHexFilter::DecodeBlockImpl(const char* buffer, size_t len)
     unsigned char val;
     while (len-- != 0)
     {
-        if (PdfTokenizer::IsWhitespace(*buffer))
+        if (PoDoFo::IsCharWhitespace(*buffer))
         {
             buffer++;
             continue;

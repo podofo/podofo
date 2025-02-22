@@ -428,7 +428,7 @@ void PdfParser::ReadXRefSubsection(InputStreamDevice& device, int64_t& firstObje
 
     // consume all whitespaces
     char ch;
-    while (device.Peek(ch) && m_tokenizer.IsWhitespace(ch))
+    while (device.Peek(ch) && PoDoFo::IsCharWhitespace(ch))
         (void)device.ReadChar();
 
     unsigned index = 0;
