@@ -22,6 +22,7 @@
 #include "PdfFunction.h"
 #include "PdfInfo.h"
 #include "PdfOutlines.h"
+#include "PdfExtension.h"
 
 namespace PoDoFo {
 
@@ -249,6 +250,30 @@ public:
      *  \see PdfEncrypt to set own document permissions.
      */
     bool IsHighPrintAllowed() const;
+
+    /** Add a vendor-specific extension to the current PDF version.
+     *  \param extension extension to add
+     */
+    void PushPdfExtension(const PdfExtension& extension);
+
+    /** Checks whether the documents is tagged to imlpement a vendor-specific
+     *  extension to the current PDF version.
+     *  \param ns  namespace of the extension
+     *  \param level  level of the extension
+     */
+    bool HasPdfExtension(const std::string_view& ns, int64_t level) const;
+
+    /** Remove a vendor-specific extension to the current PDF version.
+     *  \param ns  namespace of the extension
+     *  \param level  level of the extension
+     */
+    void RemovePdfExtension(const std::string_view& ns, int64_t level);
+
+    /** Return the list of all vendor-specific extensions to the current PDF version.
+     *  \param ns  namespace of the extension
+     *  \param level  level of the extension
+     */
+    std::vector<PdfExtension> GetPdfExtensions() const;
 
     PdfAcroForm& MustGetAcroForm();
 

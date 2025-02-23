@@ -3,7 +3,6 @@
 - Optimize passing shared_ptr
 - Settle https://github.com/podofo/podofo/issues/165
 - PdfPage: Add a method to retrieve rotation in radians
-- Check PdfExtension API
 - Check performances of PdfContentStreamReader
 - Evaluate make private PdfFontManager::EmbedFonts
 - PdfPainter: Consider setting the flags in the

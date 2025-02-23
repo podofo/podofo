@@ -583,6 +583,97 @@ bool PdfDocument::IsHighPrintAllowed() const
     return GetEncrypt() == nullptr ? true : GetEncrypt()->IsHighPrintAllowed();
 }
 
+void PdfDocument::PushPdfExtension(const PdfExtension& extension)
+{
+    PdfDictionary* extensionDict;
+    if (!this->GetCatalog().GetDictionary().TryFindKeyAs("Extensions", extensionDict))
+    {
+        auto& obj = GetObjects().CreateDictionaryObject();
+        this->GetCatalog().GetDictionary().AddKeyIndirect("Extensions"_n, obj);
+        extensionDict = &obj.GetDictionary();
+    }
+
+    auto& newExtension = GetObjects().CreateDictionaryObject();
+    auto& newExtensionDict = newExtension.GetDictionary();
+    auto version = extension.GetBaseVersion();
+    if (version == PdfVersion::Unknown)
+        version = GetPdfVersion();
+
+    newExtensionDict.AddKey("BaseVersion"_n, PoDoFo::GetPdfVersionName(version));
+    newExtensionDict.AddKey("ExtensionLevel"_n, extension.GetLevel());
+    if (extension.GetUrl() != nullptr)
+        newExtensionDict.AddKey("URL"_n, *extension.GetUrl());
+    if (extension.GetExtensionRevision() != nullptr)
+        newExtensionDict.AddKey("ExtensionRevision"_n, *extension.GetExtensionRevision());
+
+    extensionDict->AddKeyIndirect(extension.GetNamespace(), newExtension);
+}
+
+bool PdfDocument::HasPdfExtension(const string_view& ns, int64_t level) const
+{
+    const PdfDictionary* dict;
+    int64_t num;
+    if (this->GetCatalog().GetDictionary().TryFindKeyAs("Extensions", dict)
+        && dict->TryFindKeyAs(ns, dict)
+        && dict->TryFindKeyAs("ExtensionLevel", num)
+        && num == level)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+vector<PdfExtension> PdfDocument::GetPdfExtensions() const
+{
+    vector<PdfExtension> ret;
+    const PdfDictionary* dict;
+    if (!this->GetCatalog().GetDictionary().TryFindKeyAs("Extensions", dict))
+        return ret;
+
+    // Loop through all declared extensions
+    const PdfName* name;
+    int64_t num;
+    PdfVersion version;
+    const PdfString* url;
+    const PdfString* extensionRevision;
+    for (auto& pair : dict->GetIndirectIterator())
+    {
+        if (!pair.second->TryGetDictionary(dict))
+            continue;
+
+        if (!(dict->TryFindKeyAs("BaseVersion", name) || dict->TryFindKeyAs("ExtensionLevel", num))
+            || (version = PoDoFo::GetPdfVersion(name->GetString())) == PdfVersion::Unknown)
+        {
+            continue;
+        }
+
+        (void)dict->TryFindKeyAs("URL", url);
+        (void)dict->TryFindKeyAs("ExtensionRevision", extensionRevision);
+
+        ret.push_back(PdfExtension(pair.first, num, version,
+            url == nullptr ? nullable<const PdfString&>{ } : *url,
+            extensionRevision == nullptr ? nullable<const PdfString&>{ } : *extensionRevision));
+    }
+
+    return ret;
+}
+
+void PdfDocument::RemovePdfExtension(const string_view& ns, int64_t level)
+{
+    PdfDictionary* dict;
+    int64_t num;
+    if (!this->GetCatalog().GetDictionary().TryFindKeyAs("Extensions", dict)
+        || !dict->TryFindKeyAs(ns, dict)
+        || !dict->TryFindKeyAs("ExtensionLevel", num)
+        || num != level)
+    {
+        return;
+    }
+
+    dict->RemoveKey(ns);
+}
+
 PdfAcroForm& PdfDocument::MustGetAcroForm()
 {
     if (m_AcroForm == nullptr)

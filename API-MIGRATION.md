@@ -1,4 +1,5 @@
 ## 0.10.1 -> 1.0.0
+- `PdfExtension`: Reworked constructor parameters
 - `PdfTokenizer`:
   * Moved `IsWhitespace`, `IsDelimiter`, `IsTokenDelimiter`, `IsRegular`, `IsPrintable`  to `<podofo/optional/PdfUtils.h>`.
   It doesn't seems justified to have them as part of the regular public API in PdfTokenizer.
@@ -98,6 +99,8 @@
 - `PdfMemDocument`:
   * Renamed `LoadFromDevice()` -> `Load()`
   * FreeObjectMemory: Removed, use PdfObject TryUnload() instead
+  * `AddPdfExtension`, `HasPdfExtension`, `RemovePdfExtension`, `GetPdfExtensions` to `PdfDocument`
+  * Renamed `AddPdfExtension` to `PushPdfExtension`
 - `PdfAppearanceState`: Renamed to `PdfAppearanceStream`
 - `PdfMetadata`:
   * Removed argument `trySyncXMP` from all functions setting values. Manually call new `TrySyncXMPMetadata` instead
