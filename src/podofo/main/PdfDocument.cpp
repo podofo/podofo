@@ -639,10 +639,9 @@ vector<PdfExtension> PdfDocument::GetPdfExtensions() const
     const PdfString* extensionRevision;
     for (auto& pair : dict->GetIndirectIterator())
     {
-        if (!pair.second->TryGetDictionary(dict))
-            continue;
-
-        if (!(dict->TryFindKeyAs("BaseVersion", name) || dict->TryFindKeyAs("ExtensionLevel", num))
+        if (!pair.second->TryGetDictionary(dict)
+            || !dict->TryFindKeyAs("ExtensionLevel", num)
+            || !dict->TryFindKeyAs("BaseVersion", name)
             || (version = PoDoFo::GetPdfVersion(name->GetString())) == PdfVersion::Unknown)
         {
             continue;
