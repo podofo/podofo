@@ -24,7 +24,7 @@ namespace PoDoFo
         nullable<double> StrokingAlpha;
         nullable<double> NonStrokingAlpha;
         nullable<PdfBlendMode> BlendMode;
-        PdfOverprintEnablement OverprintControl;
+        PdfOverprintEnablement OverprintControl = PdfOverprintEnablement::None;
         nullable<bool> NonZeroOverprintMode;
         nullable<PdfRenderingIntent> RenderingIntent;
     };
