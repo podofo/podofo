@@ -287,6 +287,55 @@ unsigned PdfFontMetrics::GetWeight() const
     return (unsigned)weight;
 }
 
+PdfFontDescriptorFlags PdfFontMetrics::GetFlags() const
+{
+    PdfFontDescriptorFlags ret;
+    (void)TryGetFlags(ret);
+    return ret;
+}
+
+array<double, 4> PdfFontMetrics::GetBoundingBox() const
+{
+    array<double, 4> ret;
+    (void)TryGetBoundingBox(ret);
+    return ret;
+}
+
+double PdfFontMetrics::GetItalicAngle() const
+{
+    double ret;
+    (void)TryGetItalicAngle(ret);
+    return ret;
+}
+
+double PdfFontMetrics::GetAscent() const
+{
+    double ret;
+    (void)TryGetAscent(ret);
+    return ret;
+}
+
+double PdfFontMetrics::GetDescent() const
+{
+    double ret;
+    (void)TryGetDescent(ret);
+    return ret;
+}
+
+double PdfFontMetrics::GetCapHeight() const
+{
+    double ret;
+    (void)TryGetCapHeight(ret);
+    return ret;
+}
+
+double PdfFontMetrics::GetStemV() const
+{
+    double ret;
+    (void)TryGetStemV(ret);
+    return ret;
+}
+
 double PdfFontMetrics::GetLeading() const
 {
     double leading = GetLeadingRaw();

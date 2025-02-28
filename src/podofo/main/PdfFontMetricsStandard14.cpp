@@ -122,9 +122,53 @@ bool PdfFontMetricsStandard14::TryGetGID(char32_t codePoint, unsigned& gid) cons
     return true;
 }
 
-PdfFontDescriptorFlags PdfFontMetricsStandard14::GetFlags() const
+bool PdfFontMetricsStandard14::TryGetFlags(PdfFontDescriptorFlags& value) const
 {
-    return m_data.Flags;
+    value = m_data.Flags;
+    return true;
+}
+
+bool PdfFontMetricsStandard14::TryGetBoundingBox(array<double, 4>& value) const
+{
+    // Convert to PDF units
+    value = array<double, 4>
+    {
+        m_data.BBox.X1 / 1000.0,
+        m_data.BBox.Y1 / 1000.0,
+        m_data.BBox.X2 / 1000.0,
+        m_data.BBox.Y2 / 1000.0
+    };
+    return true;
+}
+
+bool PdfFontMetricsStandard14::TryGetItalicAngle(double& value) const
+{
+    value = m_data.ItalicAngle;
+    return true;
+}
+
+bool PdfFontMetricsStandard14::TryGetAscent(double& value) const
+{
+    value = m_Ascent;
+    return true;
+}
+
+bool PdfFontMetricsStandard14::TryGetDescent(double& value) const
+{
+    value = m_Descent;
+    return true;
+}
+
+bool PdfFontMetricsStandard14::TryGetCapHeight(double& value) const
+{
+    value = m_data.CapHeight / 1000.0;
+    return true;
+}
+
+bool PdfFontMetricsStandard14::TryGetStemV(double& value) const
+{
+    value = m_data.StemV / 1000.0;
+    return true;
 }
 
 double PdfFontMetricsStandard14::GetDefaultWidthRaw() const
@@ -157,16 +201,6 @@ double PdfFontMetricsStandard14::GetStrikeThroughThickness() const
     return m_StrikeThroughThickness;
 }
 
-double PdfFontMetricsStandard14::GetAscent() const
-{
-    return m_Ascent;
-}
-
-double PdfFontMetricsStandard14::GetDescent() const
-{
-    return m_Descent;
-}
-
 double PdfFontMetricsStandard14::GetLeadingRaw() const
 {
     return -1;
@@ -197,19 +231,9 @@ int PdfFontMetricsStandard14::GetWeightRaw() const
     return m_data.Weight;
 }
 
-double PdfFontMetricsStandard14::GetCapHeight() const
-{
-    return m_data.CapHeight / 1000.0;
-}
-
 double PdfFontMetricsStandard14::GetXHeightRaw() const
 {
     return m_data.XHeight / 1000.0;
-}
-
-double PdfFontMetricsStandard14::GetStemV() const
-{
-    return m_data.StemV / 1000.0;
 }
 
 double PdfFontMetricsStandard14::GetStemHRaw() const
@@ -227,11 +251,6 @@ double PdfFontMetricsStandard14::GetMaxWidthRaw() const
     return -1;
 }
 
-double PdfFontMetricsStandard14::GetItalicAngle() const
-{
-    return m_data.ItalicAngle;
-}
-
 PdfFontFileType PdfFontMetricsStandard14::GetFontFileType() const
 {
     return PdfFontFileType::Type1CFF;
@@ -241,16 +260,6 @@ bool PdfFontMetricsStandard14::IsStandard14FontMetrics(PdfStandard14FontType& st
 {
     std14Font = m_Std14FontType;
     return true;
-}
-
-void PdfFontMetricsStandard14::GetBoundingBox(std::vector<double>& bbox) const
-{
-    // Convert to PDF units
-    bbox.clear();
-    bbox.push_back(m_data.BBox.X / 1000.0);
-    bbox.push_back(m_data.BBox.Y / 1000.0);
-    bbox.push_back(m_data.BBox.Width / 1000.0);
-    bbox.push_back(m_data.BBox.Height / 1000.0);
 }
 
 datahandle PdfFontMetricsStandard14::getFontFileDataHandle() const

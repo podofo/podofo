@@ -201,19 +201,22 @@ public:
     unsigned GetWeight() const;
     virtual int GetWeightRaw() const = 0;
 
-    virtual PdfFontDescriptorFlags GetFlags() const = 0;
+    virtual bool TryGetFlags(PdfFontDescriptorFlags& value) const = 0;
+    PdfFontDescriptorFlags GetFlags() const;
 
     /** Create the bounding box vector in PDF units
      *
      *  \param bbox write the bounding box to this vector
      */
-    virtual void GetBoundingBox(std::vector<double>& bbox) const = 0;
+    virtual bool TryGetBoundingBox(std::array<double, 4>& value) const = 0;
+    std::array<double, 4> GetBoundingBox() const;
 
     /** Get the italic angle of this font.
      *  Used to build the font dictionary
      *  \returns the italic angle of this font.
      */
-    virtual double GetItalicAngle() const = 0;
+    virtual bool TryGetItalicAngle(double& value) const = 0;
+    double GetItalicAngle() const;
 
     /** Get the ascent of this font in PDF
      *  units for the current font size.
@@ -222,7 +225,8 @@ public:
      *
      * \see GetAscent
      */
-    virtual double GetAscent() const = 0;
+    virtual bool TryGetAscent(double& value) const = 0;
+    double GetAscent() const;
 
     /** Get the descent of this font in PDF
      *  units for the current font size.
@@ -232,16 +236,23 @@ public:
      *
      *  \see GetDescent
      */
-    virtual double GetDescent() const = 0;
+    virtual bool TryGetDescent(double& value) const = 0;
+    double GetDescent() const;
+
+    /** The vertical coordinate of the top of flat capital letters, measured from the baseline
+     */
+    virtual bool TryGetCapHeight(double& value) const = 0;
+    double GetCapHeight() const;
+
+    /** The thickness, measured horizontally, of the dominant vertical stems of glyphs in the font
+     */
+    virtual bool TryGetStemV(double& value) const = 0;
+    double GetStemV() const;
 
     /* /Leading (optional, default 0)
      */
     double GetLeading() const;
     virtual double GetLeadingRaw() const = 0;
-
-    /** The vertical coordinate of the top of flat capital letters, measured from the baseline
-     */
-    virtual double GetCapHeight() const = 0;
 
     /** The font’s x height: the vertical coordinate of the top of flat nonascending
      * lowercase letters (like the letter x), measured from the baseline, in
@@ -249,10 +260,6 @@ public:
      */
     double GetXHeight() const;
     virtual double GetXHeightRaw() const = 0;
-
-    /** The thickness, measured horizontally, of the dominant vertical stems of glyphs in the font
-     */
-    virtual double GetStemV() const = 0;
 
     /** The thickness, measured vertically, of the dominant horizontal
      * stems of glyphs in the font (optional, default 0)

@@ -7,8 +7,10 @@
 - Evaluate make private PdfFontManager::EmbedFonts
 - PdfPainter: Consider setting the flags in the
   PdfPainter::SetCanvas(canvas) method instead
+- PdfFontMetrics: GetBoundingBox() should return Corners
 
 ### After 1.0
+- Remove libidn dependency
 - PdfVariant/PdfObject: Evaluate adding a TryGetStringLenient(string_view& str)
   that catches both PdfString/PdfName
 - Add remaining PdfNameTree(s) (also stub)

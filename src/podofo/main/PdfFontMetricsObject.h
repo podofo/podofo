@@ -36,6 +36,20 @@ public:
 
     bool TryGetGID(char32_t codePoint, unsigned& gid) const override;
 
+    bool TryGetFlags(PdfFontDescriptorFlags& value) const override;
+
+    bool TryGetBoundingBox(std::array<double, 4>& value) const override;
+
+    bool TryGetItalicAngle(double& value) const override;
+
+    bool TryGetAscent(double& value) const override;
+
+    bool TryGetDescent(double& value) const override;
+
+    bool TryGetCapHeight(double& value) const override;
+
+    bool TryGetStemV(double& value) const override;
+
     double GetDefaultWidthRaw() const override;
 
     double GetLineSpacing() const override;
@@ -58,25 +72,11 @@ public:
 
     PdfFontStretch GetFontStretch() const override;
 
-    PdfFontDescriptorFlags GetFlags() const override;
-
-    void GetBoundingBox(std::vector<double>& bbox) const override;
-
-    double GetItalicAngle() const override;
-
-    double GetAscent() const override;
-
-    double GetDescent() const override;
-
     double GetLeadingRaw() const override;
 
     int GetWeightRaw() const override;
 
-    double GetCapHeight() const override;
-
     double GetXHeightRaw() const override;
-
-    double GetStemV() const override;
 
     double GetStemHRaw() const override;
 
@@ -112,14 +112,13 @@ protected:
 private:
     void processFontName();
 
-    std::vector<double> getBBox(const PdfObject& obj);
+    std::array<double, 4> getBBox(const PdfObject& obj);
 
     void tryLoadBuiltinTrueTypeCIDToGIDMap();
 
 private:
     std::shared_ptr<charbuff> m_Data;
     PdfCIDToGIDMapConstPtr m_CIDToGIDMap;
-    std::vector<double> m_BBox;
     Matrix m_Matrix;
 
     std::string m_FontName;
@@ -127,11 +126,14 @@ private:
     std::string m_FontBaseName;
     std::string m_FontFamilyName;
     unsigned char m_SubsetPrefixLength;
-    PdfFontStretch m_FontStretch;
     bool m_IsItalicHint;
     bool m_IsBoldHint;
-    int m_Weight;
-    PdfFontDescriptorFlags m_Flags;
+    bool m_HasBBox;
+    PdfFontStretch m_FontStretch;
+    short m_Weight;
+
+    nullable<PdfFontDescriptorFlags> m_Flags;
+    std::array<double, 4> m_BBox;
     double m_ItalicAngle;
     double m_Ascent;
     double m_Descent;

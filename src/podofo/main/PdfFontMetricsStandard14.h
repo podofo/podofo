@@ -45,6 +45,20 @@ public:
 
     bool TryGetGID(char32_t codePoint, unsigned& gid) const override;
 
+    bool TryGetFlags(PdfFontDescriptorFlags& value) const override;
+
+    bool TryGetBoundingBox(std::array<double, 4>& value) const override;
+
+    bool TryGetItalicAngle(double& value) const override;
+
+    bool TryGetAscent(double& value) const override;
+
+    bool TryGetDescent(double& value) const override;
+
+    bool TryGetCapHeight(double& value) const override;
+
+    bool TryGetStemV(double& value) const override;
+
     double GetDefaultWidthRaw() const override;
 
     double GetLineSpacing() const override;
@@ -65,23 +79,9 @@ public:
 
     int GetWeightRaw() const override;
 
-    PdfFontDescriptorFlags GetFlags() const override;
-
-    void GetBoundingBox(std::vector<double>& bbox) const override;
-
-    double GetItalicAngle() const override;
-
-    double GetAscent() const override;
-
-    double GetDescent() const override;
-
     double GetLeadingRaw() const override;
 
-    double GetCapHeight() const override;
-
     double GetXHeightRaw() const override;
-
-    double GetStemV() const override;
 
     double GetStemHRaw() const override;
 

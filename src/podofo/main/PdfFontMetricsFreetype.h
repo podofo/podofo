@@ -49,25 +49,25 @@ public:
 
     PdfFontStretch GetFontStretch() const override;
 
-    int GetWeightRaw() const override;
+    bool TryGetFlags(PdfFontDescriptorFlags& value) const override;
 
-    PdfFontDescriptorFlags GetFlags() const override;
+    bool TryGetBoundingBox(std::array<double, 4>& value) const override;
 
-    void GetBoundingBox(std::vector<double>& bbox) const override;
+    bool TryGetItalicAngle(double& value) const override;
 
-    double GetItalicAngle() const override;
+    bool TryGetAscent(double& value) const override;
 
-    double GetAscent() const override;
+    bool TryGetDescent(double& value) const override;
 
-    double GetDescent() const override;
+    bool TryGetCapHeight(double& value) const override;
+
+    bool TryGetStemV(double& value) const override;
 
     double GetLeadingRaw() const override;
 
-    double GetCapHeight() const override;
+    int GetWeightRaw() const override;
 
     double GetXHeightRaw() const override;
-
-    double GetStemV() const override;
 
     double GetStemHRaw() const override;
 
@@ -124,21 +124,27 @@ private:
     std::string m_FontBaseName;
     std::string m_FontName;
     std::string m_FontFamilyName;
-    PdfFontStretch m_FontStretch;
-    int m_Weight;
+
+    // Conditionally required metrics
     PdfFontDescriptorFlags m_Flags;
+    std::array<double, 4> m_BBox;
     double m_ItalicAngle;
     double m_Ascent;
     double m_Descent;
-    double m_Leading;
     double m_CapHeight;
-    double m_XHeight;
     double m_StemV;
+
+    // Optional metrics
+    PdfFontStretch m_FontStretch;
+    int m_Weight;
+    double m_Leading;
+    double m_XHeight;
     double m_StemH;
     double m_AvgWidth;
     double m_MaxWidth;
     double m_DefaultWidth;
 
+    // Computed metrics
     double m_LineSpacing;
     double m_UnderlineThickness;
     double m_UnderlinePosition;

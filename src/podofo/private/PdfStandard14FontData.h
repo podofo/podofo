@@ -11,6 +11,16 @@
 
 namespace PoDoFo {
 
+struct Corners
+{
+    Corners(double x1, double y1, double x2, double y2);
+
+    double X1;
+    double Y1;
+    double X2;
+    double Y2;
+};
+
 struct Standard14FontData final
 {
     const unsigned short* Widths;
@@ -28,7 +38,7 @@ struct Standard14FontData final
     int16_t StemH;
     int16_t StrikeThroughPos;
     int16_t UnderlinePos;
-    Rect BBox;
+    Corners BBox;
 };
 
 using Std14CPToGIDMap = std::unordered_map<unsigned short, unsigned char>;

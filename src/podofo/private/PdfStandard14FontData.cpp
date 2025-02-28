@@ -7037,7 +7037,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             262,
             -100,
-            Rect(-168, -218, 1000, 898)
+            Corners(-168, -218, 1000, 898)
         },
         {
             CHAR_DATA_TIMES_ITALIC,
@@ -7055,7 +7055,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             262,
             -100,
-            Rect(-169, -217, 1010, 883)
+            Corners(-169, -217, 1010, 883)
         },
         {
             CHAR_DATA_TIMES_BOLD,
@@ -7073,7 +7073,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             262,
             -100,
-            Rect(-168, -218, 1000, 935)
+            Corners(-168, -218, 1000, 935)
         },
         {
             CHAR_DATA_TIMES_BOLD_ITALIC,
@@ -7091,7 +7091,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             262,
             -100,
-            Rect(-200, -218, 996, 921)
+            Corners(-200, -218, 996, 921)
         },
         {
             CHAR_DATA_HELVETICA,
@@ -7109,7 +7109,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             290,
             -100,
-            Rect(-166, -225, 1000, 931)
+            Corners(-166, -225, 1000, 931)
         },
         {
             CHAR_DATA_HELVETICA_OBLIQUE,
@@ -7127,7 +7127,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             290,
             -100,
-            Rect(-170, -225, 1116, 931)
+            Corners(-170, -225, 1116, 931)
         },
         {
             CHAR_DATA_HELVETICA_BOLD,
@@ -7145,7 +7145,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             290,
             -100,
-            Rect(-170, -228, 1003, 962)
+            Corners(-170, -228, 1003, 962)
         },
         {
             CHAR_DATA_HELVETICA_BOLD_OBLIQUE,
@@ -7163,7 +7163,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             290,
             -100,
-            Rect(-174, -228, 1114, 962)
+            Corners(-174, -228, 1114, 962)
         },
         {
             CHAR_DATA_COURIER,
@@ -7181,7 +7181,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             261,
             -224,
-            Rect(-23, -250, 715, 805)
+            Corners(-23, -250, 715, 805)
         },
         {
             CHAR_DATA_COURIER_OBLIQUE,
@@ -7199,7 +7199,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             261,
             -224,
-            Rect(-27, -250, 849, 805)
+            Corners(-27, -250, 849, 805)
         },
         {
             CHAR_DATA_COURIER_BOLD,
@@ -7217,7 +7217,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             261,
             -224,
-            Rect(-113, -250, 749, 801)
+            Corners(-113, -250, 749, 801)
         },
         {
             CHAR_DATA_COURIER_BOLD_OBLIQUE,
@@ -7235,7 +7235,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             -1,
             261,
             -224,
-            Rect(-57, -250, 869, 801)
+            Corners(-57, -250, 869, 801)
         },
         {
             CHAR_DATA_SYMBOL,
@@ -7253,7 +7253,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             92,
             341,
             -100,
-            Rect(-180, -293, 1090, 1010)
+            Corners(-180, -293, 1090, 1010)
         },
         {
             CHAR_DATA_ZAPF_DINGBATS,
@@ -7271,7 +7271,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             50,
             341,
             -100,
-            Rect(-1, -143, 981, 820)
+            Corners(-1, -143, 981, 820)
         }
     };
 
@@ -7310,3 +7310,6 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Invalid Standard14 font type");
     }
 }
+
+Corners::Corners(double x1, double y1, double x2, double y2) :
+    X1(x1), Y1(y1), X2(x2), Y2(y2) { }

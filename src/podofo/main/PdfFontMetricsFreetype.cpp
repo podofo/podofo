@@ -23,6 +23,46 @@ using namespace PoDoFo;
 
 static void collectCharCodeToGIDMap(FT_Face face, bool symbolFont, unordered_map<unsigned, unsigned>& codeToGidMap);
 static int determineType1FontWeight(const string_view& weight);
+static string getPostscriptName(FT_Face face, string& fontFamilyName);
+
+namespace
+{
+    class MetricsFetcher
+    {
+    public:
+        MetricsFetcher(FT_Face face);
+
+        PdfFontDescriptorFlags GetFlags() const;
+        array<double, 4> GetBoundingBox() const;
+        int GetWeight() const;
+        double GetAscent() const;
+        double GetDescent() const;
+        double GetLeading() const;
+        double GetXHeight() const;
+        double GetItalicAngle() const;
+        double GetLineSpacing() const;
+        double GetUnderlineThickness() const;
+        double GetUnderlinePosition() const;
+        double GetStrikeThroughPosition() const;
+        double GetStrikeThroughThickness() const;
+        double GetCapHeight() const;
+        double GetStemV() const;
+        double GetStemH() const;
+        double GetAvgWidth() const;
+        double GetMaxWidth() const;
+        double GetDefaultWidth() const;
+
+    private:
+        double getMaxHeight() const;
+
+    private:
+        FT_Face m_face;
+        TT_OS2* m_os2Table;         // OS2 Table is available only in TT fonts
+        TT_Postscript* m_psTable;   // Postscript Table is available only in TT fonts
+        PS_FontInfoRec m_type1Info; // FontInfo Table is available only in type1 fonts
+        bool m_hasType1Info;
+    };
+}
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Face face, const datahandle& data,
         const PdfFontMetrics* refMetrics) :
@@ -35,7 +75,7 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Face face, const datahandle& d
     m_Length3(0)
 {
     if (face == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The buffer can't be null");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The face can't be null");
 
     init(refMetrics);
 }
@@ -49,25 +89,6 @@ void PdfFontMetricsFreetype::init(const PdfFontMetrics* refMetrics)
 {
     if (!FT::TryGetFontFileFormat(m_Face, m_FontFileType))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Unsupported font type");
-
-    // Get the postscript name of the font and ensures it has no space:
-    // 5.5.2 TrueType Fonts, "If the name contains any spaces, the spaces are removed"
-    auto psname = FT_Get_Postscript_Name(m_Face);
-    if (psname != nullptr)
-    {
-        m_FontName = psname;
-        m_FontName.erase(std::remove(m_FontName.begin(), m_FontName.end(), ' '), m_FontName.end());
-    }
-
-    if (m_Face->family_name != nullptr)
-        m_FontFamilyName = m_Face->family_name;
-
-    // calculate the line spacing now, as it changes only with the font size
-    m_LineSpacing = m_Face->height / (double)m_Face->units_per_EM;
-    m_UnderlineThickness = m_Face->underline_thickness / (double)m_Face->units_per_EM;
-    m_UnderlinePosition = m_Face->underline_position / (double)m_Face->units_per_EM;
-    m_Ascent = m_Face->ascender / (double)m_Face->units_per_EM;
-    m_Descent = m_Face->descender / (double)m_Face->units_per_EM;
 
     // Try to select an unicode charmap
     if (FT_Select_Charmap(m_Face, FT_ENCODING_UNICODE) == 0)
@@ -85,121 +106,132 @@ void PdfFontMetricsFreetype::init(const PdfFontMetrics* refMetrics)
         m_HasUnicodeMapping = false;
     }
 
-    // Set some default values, in case the font has no direct values
+    unique_ptr<MetricsFetcher> fetcher;
     if (refMetrics == nullptr)
     {
-        if (m_FontName.empty())
-        {
-            // Determine a fallback for the font name
-            if (m_FontFamilyName.empty())
-                m_FontName = "FreeTypeFont";
-            else
-                m_FontName = m_FontFamilyName;
-        }
-
+        m_FontName = getPostscriptName(m_Face, m_FontFamilyName);
         m_FontBaseName = PoDoFo::ExtractBaseFontName(m_FontName, true);
 
-        // Get maximal width and height
-        double width = (m_Face->bbox.xMax - m_Face->bbox.xMin) / (double)m_Face->units_per_EM;
-        double height = (m_Face->bbox.yMax - m_Face->bbox.yMin) / (double)m_Face->units_per_EM;
+        fetcher.reset(new MetricsFetcher(m_Face));
 
+        // Required metrics
+        m_Flags = fetcher->GetFlags();
+        m_BBox = fetcher->GetBoundingBox();
+        m_ItalicAngle = fetcher->GetItalicAngle();
+        m_Ascent = fetcher->GetAscent();
+        m_Descent = fetcher->GetDescent();
+        m_CapHeight = fetcher->GetCapHeight();
+        m_StemV = fetcher->GetStemV();
+
+        // Optional metrics
         m_FontStretch = PdfFontStretch::Unknown;
-        m_Weight = -1;
-        m_Flags = PdfFontDescriptorFlags::Symbolic;
-        m_ItalicAngle = 0;
-        m_Leading = -1;
-        m_CapHeight = height;
-        m_XHeight = 0;
-        // ISO 32000-2:2017, Table 120 — Entries common to all font descriptors
-        // says: "A value of 0 indicates an unknown stem thickness". No mention
-        // is done about this in ISO 32000-1:2008, but we assume 0 is a safe
-        // value for all implementations
-        m_StemV = 0;
-        m_StemH = -1;
-        m_AvgWidth = -1;
-        m_MaxWidth = -1;
-        m_DefaultWidth = width;
+        m_Weight = fetcher->GetWeight();
+        m_Leading = fetcher->GetLeading();
+        m_XHeight = fetcher->GetXHeight();
+        m_StemH = fetcher->GetStemH();
+        m_AvgWidth = fetcher->GetAvgWidth();
+        m_MaxWidth = fetcher->GetMaxWidth();
+        m_DefaultWidth = fetcher->GetDefaultWidth();
 
-        m_StrikeThroughPosition = m_Ascent / 2.0;
-        m_StrikeThroughThickness = m_UnderlineThickness;
+        // Computed metrics
+        m_LineSpacing = fetcher->GetLineSpacing();
+        m_UnderlineThickness = fetcher->GetUnderlineThickness();
+        m_UnderlinePosition = fetcher->GetUnderlinePosition();
+        m_StrikeThroughPosition = fetcher->GetStrikeThroughPosition();
+        m_StrikeThroughThickness = fetcher->GetStrikeThroughThickness();
+
+        // NOTE2: It is not correct to write flags ForceBold if the
+        // font is already bold. The ForceBold flag is just an hint
+        // for the viewer to draw glyphs with more pixels
+        // TODO: Infer more characateristics
+        if ((GetStyle() & PdfFontStyle::Italic) == PdfFontStyle::Italic)
+            m_Flags |= PdfFontDescriptorFlags::Italic;
     }
     else
     {
+        // If no postscript name was extracted by the font program
+        // try to recover it from the reference metrics
+        m_FontName = refMetrics->GetFontName();
+        m_FontFamilyName = refMetrics->GetFontFamilyName();
         if (m_FontName.empty())
-        {
-            // If no postscript name was extracted by the font program
-            // try to recover it from the reference metrics
-            m_FontName = refMetrics->GetFontName();
+            m_FontName = getPostscriptName(m_Face, m_FontFamilyName);
+        else
             m_SubsetPrefixLength = refMetrics->GetSubsetPrefixLength();
-        }
-
-        if (m_FontFamilyName.empty())
-            m_FontFamilyName = refMetrics->GetFontFamilyName();
 
         m_FontBaseName = PoDoFo::ExtractBaseFontName(m_FontName);
 
-        m_CIDToGIDMap = refMetrics->GetCIDToGIDMap();
+        // Required metrics
+        if (!refMetrics->TryGetFlags(m_Flags))
+        {
+            if (fetcher == nullptr)
+                fetcher.reset(new MetricsFetcher(m_Face));
+            m_Flags = fetcher->GetFlags();
+        }
 
+        if (!refMetrics->TryGetBoundingBox(m_BBox))
+        {
+            if (fetcher == nullptr)
+                fetcher.reset(new MetricsFetcher(m_Face));
+            m_BBox = fetcher->GetBoundingBox();
+        }
+
+        if (!refMetrics->TryGetItalicAngle(m_ItalicAngle))
+        {
+            if (fetcher == nullptr)
+                fetcher.reset(new MetricsFetcher(m_Face));
+            m_ItalicAngle = fetcher->GetItalicAngle();
+        }
+
+        if (!refMetrics->TryGetAscent(m_Ascent))
+        {
+            if (fetcher == nullptr)
+                fetcher.reset(new MetricsFetcher(m_Face));
+            m_Ascent = fetcher->GetAscent();
+        }
+
+        if (!refMetrics->TryGetDescent(m_Descent))
+        {
+            if (fetcher == nullptr)
+                fetcher.reset(new MetricsFetcher(m_Face));
+            m_Descent = fetcher->GetDescent();
+        }
+
+        if (!refMetrics->TryGetCapHeight(m_CapHeight))
+        {
+            if (fetcher == nullptr)
+                fetcher.reset(new MetricsFetcher(m_Face));
+            m_CapHeight = fetcher->GetCapHeight();
+        }
+
+        if (!refMetrics->TryGetStemV(m_StemV))
+        {
+            if (fetcher == nullptr)
+                fetcher.reset(new MetricsFetcher(m_Face));
+            m_StemV = fetcher->GetStemV();
+        }
+
+        // Optional metrics
         m_FontStretch = refMetrics->GetFontStretch();
         m_Weight = refMetrics->GetWeightRaw();
-        m_Flags = refMetrics->GetFlags();
-        m_ItalicAngle = refMetrics->GetItalicAngle();
         m_Leading = refMetrics->GetLeadingRaw();
-        m_CapHeight = refMetrics->GetCapHeight();
         m_XHeight = refMetrics->GetXHeightRaw();
-        m_StemV = refMetrics->GetStemV();
         m_StemH = refMetrics->GetStemHRaw();
         m_AvgWidth = refMetrics->GetAvgWidthRaw();
         m_MaxWidth = refMetrics->GetMaxWidthRaw();
         m_DefaultWidth = refMetrics->GetDefaultWidthRaw();
 
+        // Computed metrics
+        m_LineSpacing = refMetrics->GetLineSpacing();
         m_StrikeThroughPosition = refMetrics->GetStrikeThroughPosition();
         m_StrikeThroughThickness = refMetrics->GetStrikeThroughThickness();
+        m_UnderlineThickness = refMetrics->GetUnderlineThickness();
+        m_UnderlinePosition = refMetrics->GetUnderlinePosition();
+
+        m_CIDToGIDMap = refMetrics->GetCIDToGIDMap();
 
         // Enforce parsed metrics from reference
         SetParsedWidths(refMetrics->GetParsedWidths());
     }
-
-    // OS2 Table is available only in TT fonts
-    TT_OS2* os2Table = static_cast<TT_OS2*>(FT_Get_Sfnt_Table(m_Face, FT_SFNT_OS2));
-    if (os2Table != nullptr)
-    {
-        m_StrikeThroughPosition = os2Table->yStrikeoutPosition / (double)m_Face->units_per_EM;
-        m_StrikeThroughThickness = os2Table->yStrikeoutSize / (double)m_Face->units_per_EM;
-        m_CapHeight = os2Table->sCapHeight / (double)m_Face->units_per_EM;
-        m_XHeight = os2Table->sxHeight / (double)m_Face->units_per_EM;
-        m_Weight = os2Table->usWeightClass;
-    }
-
-    // Postscript Table is available only in TT fonts
-    TT_Postscript* psTable = static_cast<TT_Postscript*>(FT_Get_Sfnt_Table(m_Face, FT_SFNT_POST));
-    if (psTable != nullptr)
-    {
-        m_ItalicAngle = (double)psTable->italicAngle;
-        if (psTable->isFixedPitch != 0)
-            m_Flags |= PdfFontDescriptorFlags::FixedPitch;
-    }
-
-    // FontInfo Table is available only in type1 fonts
-    PS_FontInfoRec type1Info;
-    if (FT_Get_PS_Font_Info(m_Face, &type1Info) == 0)
-    {
-        m_ItalicAngle = (double)type1Info.italic_angle;
-        if (type1Info.weight != nullptr)
-            m_Weight = determineType1FontWeight(type1Info.weight);
-        if (type1Info.is_fixed_pitch != 0)
-            m_Flags |= PdfFontDescriptorFlags::FixedPitch;
-    }
-
-    // CHECK-ME: Try to read Type1 tables as well?
-    // https://freetype.org/freetype2/docs/reference/ft2-type1_tables.html
-
-    // NOTE2: It is not correct to write flags ForceBold if the
-    // font is already bold. The ForceBold flag is just an hint
-    // for the viewer to draw glyphs with more pixels
-    // TODO: Infer more characateristics
-    if ((GetStyle() & PdfFontStyle::Italic) == PdfFontStyle::Italic)
-        m_Flags |= PdfFontDescriptorFlags::Italic;
 }
 
 void PdfFontMetricsFreetype::ensureLengthsReady()
@@ -320,6 +352,48 @@ unsigned char PdfFontMetricsFreetype::GetSubsetPrefixLength() const
 PdfFontStretch PdfFontMetricsFreetype::GetFontStretch() const
 {
     return m_FontStretch;
+}
+
+bool PdfFontMetricsFreetype::TryGetFlags(PdfFontDescriptorFlags& value) const
+{
+    value = m_Flags;
+    return true;
+}
+
+bool PdfFontMetricsFreetype::TryGetBoundingBox(std::array<double, 4>& value) const
+{
+    value = m_BBox;
+    return true;
+}
+
+bool PdfFontMetricsFreetype::TryGetItalicAngle(double& value) const
+{
+    value = m_ItalicAngle;
+    return true;
+}
+
+bool PdfFontMetricsFreetype::TryGetAscent(double& value) const
+{
+    value = m_Ascent;
+    return true;
+}
+
+bool PdfFontMetricsFreetype::TryGetDescent(double& value) const
+{
+    value = m_Descent;
+    return true;
+}
+
+bool PdfFontMetricsFreetype::TryGetCapHeight(double& value) const
+{
+    value = m_CapHeight;
+    return true;
+}
+
+bool PdfFontMetricsFreetype::TryGetStemV(double& value) const
+{
+    value = m_StemV;
+    return true;
 }
 
 unsigned PdfFontMetricsFreetype::GetGlyphCountFontProgram() const
@@ -467,23 +541,9 @@ bool PdfFontMetricsFreetype::tryBuildFallbackUnicodeMap()
     return false;
 }
 
-PdfFontDescriptorFlags PdfFontMetricsFreetype::GetFlags() const
-{
-    return m_Flags;
-}
-
 double PdfFontMetricsFreetype::GetDefaultWidthRaw() const
 {
     return m_DefaultWidth;
-}
-
-void PdfFontMetricsFreetype::GetBoundingBox(vector<double>& bbox) const
-{
-    bbox.clear();
-    bbox.push_back(m_Face->bbox.xMin / (double)m_Face->units_per_EM);
-    bbox.push_back(m_Face->bbox.yMin / (double)m_Face->units_per_EM);
-    bbox.push_back(m_Face->bbox.xMax / (double)m_Face->units_per_EM);
-    bbox.push_back(m_Face->bbox.yMax / (double)m_Face->units_per_EM);
 }
 
 bool PdfFontMetricsFreetype::getIsBoldHint() const
@@ -524,16 +584,6 @@ double PdfFontMetricsFreetype::GetUnderlineThickness() const
 double PdfFontMetricsFreetype::GetStrikeThroughThickness() const
 {
     return m_StrikeThroughThickness;
-}
-
-double PdfFontMetricsFreetype::GetAscent() const
-{
-    return m_Ascent;
-}
-
-double PdfFontMetricsFreetype::GetDescent() const
-{
-    return m_Descent;
 }
 
 double PdfFontMetricsFreetype::GetLeadingRaw() const
@@ -580,19 +630,9 @@ int PdfFontMetricsFreetype::GetWeightRaw() const
     return m_Weight;
 }
 
-double PdfFontMetricsFreetype::GetCapHeight() const
-{
-    return m_CapHeight;
-}
-
 double PdfFontMetricsFreetype::GetXHeightRaw() const
 {
     return m_XHeight;
-}
-
-double PdfFontMetricsFreetype::GetStemV() const
-{
-    return m_StemV;
 }
 
 double PdfFontMetricsFreetype::GetStemHRaw() const
@@ -608,11 +648,6 @@ double PdfFontMetricsFreetype::GetAvgWidthRaw() const
 double PdfFontMetricsFreetype::GetMaxWidthRaw() const
 {
     return m_MaxWidth;
-}
-
-double PdfFontMetricsFreetype::GetItalicAngle() const
-{
-    return m_ItalicAngle;
 }
 
 PdfFontFileType PdfFontMetricsFreetype::GetFontFileType() const
@@ -677,4 +712,181 @@ int determineType1FontWeight(const string_view& weightraw)
         return 900;
     else
         return -1;
+}
+
+string getPostscriptName(FT_Face face, string& fontFamilyName)
+{
+    if (face->family_name != nullptr)
+        fontFamilyName = face->family_name;
+
+    auto psname = FT_Get_Postscript_Name(face);
+    if (psname == nullptr)
+        return { };
+
+    // Get the postscript name of the font and ensures it has no space:
+    // 5.5.2 TrueType Fonts, "If the name contains any spaces, the spaces
+    // are removed"
+    string ret = psname;
+    if (ret.empty())
+    {
+        // Determine a fallback for the font name
+        if (fontFamilyName.empty())
+            ret = "FreeTypeFont";
+        else
+            ret = fontFamilyName;
+    }
+    else
+    {
+        ret.erase(std::remove(ret.begin(), ret.end(), ' '), ret.end());
+    }
+
+    return ret;
+}
+
+MetricsFetcher::MetricsFetcher(FT_Face face) :
+    m_face(face),
+    m_os2Table(static_cast<TT_OS2*>(FT_Get_Sfnt_Table(face, FT_SFNT_OS2))),
+    m_psTable(static_cast<TT_Postscript*>(FT_Get_Sfnt_Table(face, FT_SFNT_POST)))
+{
+    m_hasType1Info = FT_Get_PS_Font_Info(m_face, &m_type1Info) == 0;
+
+    // CHECK-ME: Try to read Type1 tables as well?
+    // https://freetype.org/freetype2/docs/reference/ft2-type1_tables.html
+}
+
+PdfFontDescriptorFlags MetricsFetcher::GetFlags() const
+{
+    PdfFontDescriptorFlags ret = PdfFontDescriptorFlags::Symbolic;
+    if (m_psTable != nullptr && m_psTable->isFixedPitch != 0)
+        ret |= PdfFontDescriptorFlags::FixedPitch;
+    else if (m_hasType1Info && m_type1Info.is_fixed_pitch != 0)
+        ret |= PdfFontDescriptorFlags::FixedPitch;
+
+    return ret;
+}
+
+array<double, 4> MetricsFetcher::GetBoundingBox() const
+{
+    return array<double, 4> {
+        m_face->bbox.xMin / (double)m_face->units_per_EM,
+        m_face->bbox.yMin / (double)m_face->units_per_EM,
+        m_face->bbox.xMax / (double)m_face->units_per_EM,
+        m_face->bbox.yMax / (double)m_face->units_per_EM
+    };
+}
+
+int MetricsFetcher::GetWeight() const
+{
+    if (m_os2Table != nullptr)
+        return m_os2Table->usWeightClass;
+    else if (m_hasType1Info && m_type1Info.weight != nullptr)
+        return determineType1FontWeight(m_type1Info.weight);
+
+    return -1;
+}
+
+double MetricsFetcher::GetAscent() const
+{
+    return m_face->ascender / (double)m_face->units_per_EM;
+}
+
+double MetricsFetcher::GetDescent() const
+{
+    return m_face->descender / (double)m_face->units_per_EM;
+}
+
+double MetricsFetcher::GetLeading() const
+{
+    return -1;
+}
+
+double MetricsFetcher::GetItalicAngle() const
+{
+    if (m_psTable)
+        return m_psTable->italicAngle;
+    else if (m_hasType1Info)
+        return m_type1Info.italic_angle;
+
+    return 0;
+}
+
+double MetricsFetcher::GetLineSpacing() const
+{
+    return m_face->height / (double)m_face->units_per_EM;
+}
+
+double MetricsFetcher::GetUnderlineThickness() const
+{
+    return m_face->underline_thickness / (double)m_face->units_per_EM;
+}
+
+double MetricsFetcher::GetUnderlinePosition() const
+{
+    return m_face->underline_position / (double)m_face->units_per_EM;
+}
+
+double MetricsFetcher::GetStrikeThroughPosition() const
+{
+    if (m_os2Table != nullptr)
+        return m_os2Table->yStrikeoutPosition / (double)m_face->units_per_EM;
+
+    return GetAscent() / 2.0;
+}
+
+double MetricsFetcher::GetStrikeThroughThickness() const
+{
+    if (m_os2Table != nullptr)
+        return m_os2Table->yStrikeoutSize / (double)m_face->units_per_EM;
+
+    return GetUnderlineThickness();
+}
+
+double MetricsFetcher::GetCapHeight() const
+{
+    if (m_os2Table != nullptr)
+        return m_os2Table->sCapHeight / (double)m_face->units_per_EM;
+
+    return getMaxHeight();
+}
+
+double MetricsFetcher::GetXHeight() const
+{
+    if (m_os2Table != nullptr)
+        return m_os2Table->sxHeight / (double)m_face->units_per_EM;
+
+    return 0;
+}
+
+double MetricsFetcher::GetStemV() const
+{
+    // ISO 32000-2:2017, Table 120 — Entries common to all font descriptors
+    // says: "A value of 0 indicates an unknown stem thickness". No mention
+    // is done about this in ISO 32000-1:2008, but we assume 0 is a safe
+    // value for all implementations
+    return 0;
+}
+
+double MetricsFetcher::GetStemH() const
+{
+    return -1;
+}
+
+double MetricsFetcher::GetAvgWidth() const
+{
+    return -1;
+}
+
+double MetricsFetcher::GetMaxWidth() const
+{
+    return (m_face->bbox.xMax - m_face->bbox.xMin) / (double)m_face->units_per_EM;
+}
+
+double MetricsFetcher::GetDefaultWidth() const
+{
+    return GetMaxWidth();
+}
+
+double MetricsFetcher::getMaxHeight() const
+{
+    return (m_face->bbox.yMax - m_face->bbox.yMin) / (double)m_face->units_per_EM;
 }
