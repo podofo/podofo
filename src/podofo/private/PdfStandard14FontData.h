@@ -8,18 +8,9 @@
 #define PDF_FONT_STANDARD14_DATA_H
 
 #include <podofo/main/PdfFontMetricsStandard14.h>
+#include <podofo/auxiliary/Corners.h>
 
 namespace PoDoFo {
-
-struct Corners
-{
-    Corners(double x1, double y1, double x2, double y2);
-
-    double X1;
-    double Y1;
-    double X2;
-    double Y2;
-};
 
 struct Standard14FontData final
 {

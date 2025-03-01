@@ -28,6 +28,7 @@
   * `GetFontNameSafe()` removed: Just use `GetFontName` instead
   * `GetBaseFontName()`: make it protected, `GeFamilyFontNameSafe()` it's the closest substitute
   * `GetBaseFontNameSafe()`: removed, `GeFamilyFontNameSafe()` it's the closest substitute 
+  * `GetBoundingBox()` now returns `Corners`
 - `PdfFontMatchBehaviorFlags`: `MatchPostScriptName` inverted logic and renamed to `SkipMatchPostScriptName`
 - `PdfFontConfigSearchFlags`: `MatchPostScriptName` inverted logic and renamed to `SkipMatchPostScriptName`
 - `PdfContentType`:

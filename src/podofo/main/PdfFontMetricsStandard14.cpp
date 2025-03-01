@@ -128,16 +128,15 @@ bool PdfFontMetricsStandard14::TryGetFlags(PdfFontDescriptorFlags& value) const
     return true;
 }
 
-bool PdfFontMetricsStandard14::TryGetBoundingBox(array<double, 4>& value) const
+bool PdfFontMetricsStandard14::TryGetBoundingBox(Corners& value) const
 {
     // Convert to PDF units
-    value = array<double, 4>
-    {
+    value = Corners(
         m_data.BBox.X1 / 1000.0,
         m_data.BBox.Y1 / 1000.0,
         m_data.BBox.X2 / 1000.0,
         m_data.BBox.Y2 / 1000.0
-    };
+    );
     return true;
 }
 

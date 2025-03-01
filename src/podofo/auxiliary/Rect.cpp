@@ -152,6 +152,16 @@ bool Rect::IsValid() const
     return Width != 0 && Height != 0;
 }
 
+Vector2 Rect::GetLeftBottom() const
+{
+    return Vector2(X, Y);
+}
+
+Vector2 Rect::GetRightTop() const
+{
+    return Vector2(X + Width, Y + Height);
+}
+
 Rect Rect::operator*(const Matrix& m) const
 {
     Vector2 corner1(X, Y);

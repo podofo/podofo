@@ -7,7 +7,6 @@
 - Evaluate make private PdfFontManager::EmbedFonts
 - PdfPainter: Consider setting the flags in the
   PdfPainter::SetCanvas(canvas) method instead
-- PdfFontMetrics: GetBoundingBox() should return Corners
 
 ### After 1.0
 - Remove libidn dependency

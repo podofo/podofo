@@ -38,7 +38,7 @@ public:
 
     bool TryGetFlags(PdfFontDescriptorFlags& value) const override;
 
-    bool TryGetBoundingBox(std::array<double, 4>& value) const override;
+    bool TryGetBoundingBox(Corners& value) const override;
 
     bool TryGetItalicAngle(double& value) const override;
 
@@ -112,7 +112,7 @@ protected:
 private:
     void processFontName();
 
-    std::array<double, 4> getBBox(const PdfObject& obj);
+    Corners getBBox(const PdfObject& obj);
 
     void tryLoadBuiltinTrueTypeCIDToGIDMap();
 
@@ -133,7 +133,7 @@ private:
     short m_Weight;
 
     nullable<PdfFontDescriptorFlags> m_Flags;
-    std::array<double, 4> m_BBox;
+    Corners m_BBox;
     double m_ItalicAngle;
     double m_Ascent;
     double m_Descent;

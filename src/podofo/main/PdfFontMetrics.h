@@ -11,6 +11,7 @@
 #include "PdfCMapEncoding.h"
 #include "PdfCIDToGIDMap.h"
 #include <podofo/auxiliary/Matrix.h>
+#include <podofo/auxiliary/Corners.h>
 
 FORWARD_DECLARE_FREETYPE();
 
@@ -208,8 +209,8 @@ public:
      *
      *  \param bbox write the bounding box to this vector
      */
-    virtual bool TryGetBoundingBox(std::array<double, 4>& value) const = 0;
-    std::array<double, 4> GetBoundingBox() const;
+    virtual bool TryGetBoundingBox(Corners& value) const = 0;
+    Corners GetBoundingBox() const;
 
     /** Get the italic angle of this font.
      *  Used to build the font dictionary

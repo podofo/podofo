@@ -463,7 +463,7 @@ bool PdfFontMetricsObject::TryGetFlags(PdfFontDescriptorFlags& value) const
     return true;
 }
 
-bool PdfFontMetricsObject::TryGetBoundingBox(array<double, 4>& value) const
+bool PdfFontMetricsObject::TryGetBoundingBox(Corners& value) const
 {
     value = m_BBox;
     return m_HasBBox;
@@ -655,15 +655,15 @@ void PdfFontMetricsObject::processFontName()
     m_FontBaseName = PoDoFo::ExtractFontHints(string_view(m_FontName).substr(m_SubsetPrefixLength), m_IsItalicHint, m_IsBoldHint);
 }
 
-array<double, 4> PdfFontMetricsObject::getBBox(const PdfObject& obj)
+Corners PdfFontMetricsObject::getBBox(const PdfObject& obj)
 {
-    array<double, 4> ret;
     auto& arr = obj.GetArray();
-    ret[0] = arr[0].GetNumberLenient() * m_Matrix[0];
-    ret[1] = arr[1].GetNumberLenient() * m_Matrix[3];
-    ret[2] = arr[2].GetNumberLenient() * m_Matrix[0];
-    ret[3] = arr[3].GetNumberLenient() * m_Matrix[3];
-    return ret;
+    return Corners(
+        arr[0].GetNumberLenient() * m_Matrix[0],
+        arr[1].GetNumberLenient() * m_Matrix[3],
+        arr[2].GetNumberLenient() * m_Matrix[0],
+        arr[3].GetNumberLenient() * m_Matrix[3]
+    );
 }
 
 PdfFontStretch stretchFromString(const string_view& str)

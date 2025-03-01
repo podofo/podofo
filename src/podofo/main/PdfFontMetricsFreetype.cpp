@@ -33,7 +33,7 @@ namespace
         MetricsFetcher(FT_Face face);
 
         PdfFontDescriptorFlags GetFlags() const;
-        array<double, 4> GetBoundingBox() const;
+        Corners GetBoundingBox() const;
         int GetWeight() const;
         double GetAscent() const;
         double GetDescent() const;
@@ -360,7 +360,7 @@ bool PdfFontMetricsFreetype::TryGetFlags(PdfFontDescriptorFlags& value) const
     return true;
 }
 
-bool PdfFontMetricsFreetype::TryGetBoundingBox(std::array<double, 4>& value) const
+bool PdfFontMetricsFreetype::TryGetBoundingBox(Corners& value) const
 {
     value = m_BBox;
     return true;
@@ -765,14 +765,14 @@ PdfFontDescriptorFlags MetricsFetcher::GetFlags() const
     return ret;
 }
 
-array<double, 4> MetricsFetcher::GetBoundingBox() const
+Corners MetricsFetcher::GetBoundingBox() const
 {
-    return array<double, 4> {
+    return Corners(
         m_face->bbox.xMin / (double)m_face->units_per_EM,
         m_face->bbox.yMin / (double)m_face->units_per_EM,
         m_face->bbox.xMax / (double)m_face->units_per_EM,
         m_face->bbox.yMax / (double)m_face->units_per_EM
-    };
+    );
 }
 
 int MetricsFetcher::GetWeight() const

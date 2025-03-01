@@ -47,7 +47,7 @@ public:
 
     bool TryGetFlags(PdfFontDescriptorFlags& value) const override;
 
-    bool TryGetBoundingBox(std::array<double, 4>& value) const override;
+    bool TryGetBoundingBox(Corners& value) const override;
 
     bool TryGetItalicAngle(double& value) const override;
 

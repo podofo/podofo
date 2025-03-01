@@ -7,14 +7,14 @@
 #ifndef AUX_RECT_H
 #define AUX_RECT_H
 
-#include "basedefs.h"
+#include "Vector2.h"
 
 namespace PoDoFo {
 
 class PdfArray;
 class Matrix;
 
-/** A rectangle defined by position and size
+/** An oriented rectangle defined by position and size
  */
 class PODOFO_API Rect final
 {
@@ -71,6 +71,14 @@ public:
     bool IsValid() const;
 
 public:
+    /** Get the oriented left-bottom point
+     */
+    Vector2 GetLeftBottom() const;
+
+    /** Get the oriented left-bottom point
+     */
+    Vector2 GetRightTop() const;
+
     /** Get the left coordinate of the rectangle
      */
     double GetLeft() const { return X; }

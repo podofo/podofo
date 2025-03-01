@@ -294,9 +294,9 @@ PdfFontDescriptorFlags PdfFontMetrics::GetFlags() const
     return ret;
 }
 
-array<double, 4> PdfFontMetrics::GetBoundingBox() const
+Corners PdfFontMetrics::GetBoundingBox() const
 {
-    array<double, 4> ret;
+    Corners ret;
     (void)TryGetBoundingBox(ret);
     return ret;
 }
