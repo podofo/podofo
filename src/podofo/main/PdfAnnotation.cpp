@@ -50,31 +50,31 @@ PdfAnnotation::PdfAnnotation(PdfObject& obj, PdfAnnotationType annotType)
 {
 }
 
-Rect PdfAnnotation::GetRectRaw() const
+Corners PdfAnnotation::GetRectRaw() const
 {
     const PdfArray* arr;
     if (!GetDictionary().TryFindKeyAs("Rect", arr))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ObjectNotFound, "Missing /Rect element");
 
-    return Rect::FromArray(*arr);
+    return Corners::FromArray(*arr);
 }
 
-Rect PdfAnnotation::GetRect() const
-{
-    return PoDoFo::TransformRectPage(GetRectRaw(), MustGetPage(), true);
-}
-
-void PdfAnnotation::SetRectRaw(const Rect& rect)
+void PdfAnnotation::SetRectRaw(const Corners& rect)
 {
     PdfArray arr;
     rect.ToArray(arr);
     GetDictionary().AddKey("Rect"_n, arr);
 }
 
+Rect PdfAnnotation::GetRect() const
+{
+    return PoDoFo::TransformCornersPage(GetRectRaw(), MustGetPage());
+}
+
 void PdfAnnotation::SetRect(const Rect& rect)
 {
     PdfArray arr;
-    auto transformed = PoDoFo::TransformRectPage(rect, MustGetPage(), false);
+    auto transformed = PoDoFo::TransformRectPage(rect, MustGetPage());
     transformed.ToArray(arr);
     GetDictionary().AddKey("Rect"_n, arr);
 }
@@ -170,7 +170,7 @@ void PdfAnnotation::SetAppearanceStream(const PdfXObjectForm& xobj, PdfAppearanc
     {
         // If the page has a rotation, add a preamble object that
         // will transform the input xobject and adjust the orientation
-        auto newMat = PoDoFo::GetFrameRotationTransform(xobj.GetRect(), -teta);
+        auto newMat = PoDoFo::GetFrameRotationTransform((Rect)xobj.GetRectRaw(), -teta);
         auto actualXobj = GetDocument().CreateXObjectForm(xobj.GetRect());
         actualXobj->GetOrCreateResources().AddResource(PdfResourceType::XObject, "XOb1"_n, xobj.GetObject());
         PdfStringStream sstream;

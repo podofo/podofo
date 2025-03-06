@@ -24,9 +24,9 @@ namespace PoDoFo
 
     public:
         template <typename TAnnotation>
-        TAnnotation& CreateAnnot(const Rect& rect, bool rawRect = false);
+        TAnnotation& CreateAnnot(const Rect& rect);
 
-        PdfAnnotation& CreateAnnot(PdfAnnotationType annotType, const Rect& rect, bool rawRect = false);
+        PdfAnnotation& CreateAnnot(PdfAnnotationType annotType, const Rect& rect);
 
         PdfAnnotation& GetAnnotAt(unsigned index);
 
@@ -121,9 +121,9 @@ namespace PoDoFo
     };
 
     template<typename TAnnotation>
-    TAnnotation& PdfAnnotationCollection::CreateAnnot(const Rect& rect, bool rawRect)
+    TAnnotation& PdfAnnotationCollection::CreateAnnot(const Rect& rect)
     {
-        return static_cast<TAnnotation&>(CreateAnnot(PdfAnnotation::GetAnnotationType<TAnnotation>(), rect, rawRect));
+        return static_cast<TAnnotation&>(CreateAnnot(PdfAnnotation::GetAnnotationType<TAnnotation>(), rect));
     }
 }
 

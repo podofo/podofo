@@ -19,6 +19,7 @@ class PODOFO_API PdfXObjectForm final : public PdfXObject, public PdfCanvas
 {
     friend class PdfDocument;
     friend class PdfXObject;
+    friend class PdfAnnotation;
 
 private:
     /** Create a new XObject with a specified dimension
@@ -60,7 +61,7 @@ private:
     PdfXObjectForm(PdfObject& obj);
 
 private:
-    Rect GetRectRaw() const override;
+    Corners GetRectRaw() const override;
     PdfObject* getContentsObject() override;
     PdfResources* getResources() override;
     PdfDictionaryElement& getElement() override;

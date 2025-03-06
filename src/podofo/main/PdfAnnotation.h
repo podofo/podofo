@@ -146,16 +146,18 @@ public:
     const PdfObject* GetAppearanceStream(PdfAppearanceType appearance = PdfAppearanceType::Normal, const std::string_view& state = { }) const;
 
     /** Get the rectangle of this annotation.
-     *  \returns a rectangle
+     *  \returns a rectangle. It's oriented according to the canonical PDF coordinate system
      */
     Rect GetRect() const;
-    Rect GetRectRaw() const;
 
     /** Set the rectangle of this annotation.
-     * \param rect rectangle to set
+     * \param rect rectangle to set. It's oriented according to the canonical PDF coordinate system
      */
     void SetRect(const Rect& rect);
-    void SetRectRaw(const Rect& rect);
+
+    Corners GetRectRaw() const;
+
+    void SetRectRaw(const Corners& rect);
 
     /** Set the flags of this annotation.
      *  \see GetFlags

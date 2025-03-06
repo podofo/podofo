@@ -23,8 +23,6 @@
   in a following update
 - Evaluate make PdfObjectStream not flate filter by default in PdfMemDocument?
 - Evaluate move more utf8::next to utf8::unchecked::next
-- Add a PdfRect-like class PdfCorners that avoid coordinates normalization
-  by default
 - PdfToggleButton: Add proper IsChecked/ExportValue handling
 - Add version of PdfFont::TryCreateSubstituteFont for rendering
   (metrics/widths of loaded font override metrics found on /FontFile)

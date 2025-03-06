@@ -103,9 +103,9 @@ Rect PdfXObjectForm::GetRect() const
     return m_Rect;
 }
 
-Rect PdfXObjectForm::GetRectRaw() const
+Corners PdfXObjectForm::GetRectRaw() const
 {
-    return m_Rect;
+    return Corners::FromCorners(m_Rect.GetLeftBottom(), m_Rect.GetRightTop());
 }
 
 PdfObject* PdfXObjectForm::getContentsObject()

@@ -10,7 +10,7 @@
 #include "PdfDeclarations.h"
 #include "PdfResources.h"
 #include "PdfArray.h"
-#include <podofo/auxiliary/Rect.h>
+#include <podofo/auxiliary/Corners.h>
 
 namespace PoDoFo {
 
@@ -78,7 +78,7 @@ public:
     /** Get the current canvas size in PDF Units
      *  \returns a Rect containing the page size available for drawing
      */
-    virtual Rect GetRectRaw() const = 0;
+    virtual Corners GetRectRaw() const = 0;
 
     /** Get the current canvas rotation
      * \param teta counterclockwise rotation in radians

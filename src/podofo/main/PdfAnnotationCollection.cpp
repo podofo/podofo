@@ -17,12 +17,9 @@ PdfAnnotationCollection::PdfAnnotationCollection(PdfPage& page)
 {
 }
 
-PdfAnnotation& PdfAnnotationCollection::CreateAnnot(PdfAnnotationType annotType, const Rect& rect, bool rawRect)
+PdfAnnotation& PdfAnnotationCollection::CreateAnnot(PdfAnnotationType annotType, const Rect& rect)
 {
-    Rect actualRect = rect;
-    if (!rawRect)
-        actualRect = PoDoFo::TransformRectPage(actualRect, *m_Page, false);
-
+    Rect actualRect = PoDoFo::TransformRectPage(rect, *m_Page);
     return addAnnotation(PdfAnnotation::Create(*m_Page, annotType, actualRect));
 }
 

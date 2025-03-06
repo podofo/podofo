@@ -34,6 +34,7 @@
 #undef PODOFO_PRIVATE_FRIEND
 #define PODOFO_PRIVATE_FRIEND(identifier) friend identifier
 
+#include <podofo/auxiliary/Rect.h>
 #include <podofo/optional/PdfConvert.h>
 #include <podofo/optional/PdfUtils.h>
 #include <podofo/main/PdfName.h>
@@ -145,9 +146,15 @@ namespace PoDoFo
 {
     class OutputStream;
     class InputStream;
+    class PdfPage;
 
     constexpr double DEG2RAD = std::numbers::pi / 180;
     constexpr double RAD2DEG = 180 / std::numbers::pi;
+
+    /**
+     * Transform the given raw rect accordingly to the page rotation
+     */
+    Rect TransformCornersPage(const Corners& rect, const PdfPage& page);
 
     PdfVersion GetPdfVersion(const std::string_view& str);
 
@@ -242,6 +249,10 @@ namespace utls
         void Enter();
         void Exit();
     };
+
+    /** Normalize the coordiante so the first corner is left-bottom, and the second right-top
+     */
+    void NormalizeCoordinates(double& x1, double& y1, double& x2, double& y2);
 
     void SerializeEncodedString(PoDoFo::OutputStream& stream, const std::string_view& encoded, bool wantHex, bool skipDelimiters = false);
 

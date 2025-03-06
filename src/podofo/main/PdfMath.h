@@ -27,10 +27,10 @@ namespace PoDoFo
 
     /**
      * Transform the given rect accordingly to the page rotation
-     * \param inputIsTransformed if true the input rectangle is already transformed,
-     *   if false the input is canonically oriented in top-right quandrant
+     * \param rect a normalized rect in the canonical PDF coordinate system
+     * \returns a normalized rect in the canonical PDF coordinate system
      */
-    Rect PODOFO_API TransformRectPage(const Rect& rect, const PdfPage& page, bool inputIsTransformed);
+    Rect PODOFO_API TransformRectPage(const Rect& rect, const PdfPage& page);
 }
 
 #endif // PDF_MATH_H

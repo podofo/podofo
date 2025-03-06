@@ -54,7 +54,7 @@ void PdfTilingPattern::CopyContentsTo(OutputStream& stream) const
     objStream->CopyTo(stream);
 }
 
-Rect PdfTilingPattern::GetRectRaw() const
+Corners PdfTilingPattern::GetRectRaw() const
 {
     PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }

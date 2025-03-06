@@ -1,4 +1,5 @@
 ## 0.10.1 -> 1.0.0
+- `PoDofo::TransformRectPage`: Removed `inputIsTransformed` parameter. Now the function accepts only rect in the canonical PDF coordinate system
 - `PdfExtension`: Reworked constructor parameters
 - `PdfTokenizer`:
   * Moved `IsWhitespace`, `IsDelimiter`, `IsTokenDelimiter`, `IsRegular`, `IsPrintable`  to `<podofo/optional/PdfUtils.h>`.
@@ -83,6 +84,10 @@
   * Renamed `SetStrokeColorSpace()` -> `SetStrokingColorSpace()`
   * Renamed `SetCurrentMatrix()` -> `ConcatenateTransformationMatrix()`
 - `PdfPage`:
+  * `GetRectRaw()` now returns `Corners` instead of `Rect`
+  * `SetRectRaw()` now takes `Corners` instead of `Rect`
+  * Removed `rawrect` parameter from `CreateField()`, use `SetRectRaw` after creation if you need it
+  * Removed `rawrect` parameter from `CreateAnnotation()`, use `SetRectRaw` after creation if you need it
   * Renamed `MoveAt()` -> `MoveTo()`
   * Removed `SetPageWidth()`, `SetPageHeight()`. Use `SetRect()`, `SetMediaBox()`, `SetCropBox()`, etc. instead
   * Removed `SetICCProfile()`, `SetICCProfile()`: create a
@@ -156,6 +161,7 @@ they are internal implementation details
 - Renamed enum `PdfColorSpace` -> `PdfColorSpaceType`, `PdfColorSpace` is now a doc element.
 - `PdfColor` now it's used just to represent GrayScale, RGB, CMYK colors. Now `PdfColorRaw` is used to supply color components for other color spaces
 - `PdfCanvas`:
+  * `GetRectRaw()` now returns `Corners` instead of `Rect`
   * Rename `GetStreamForAppending()` -> `GetOrCreateContentsStream()`
   * Removed `GetFromResources`: just use `GetResources`
 - `PdfContents`: `Reset()` is now parameterless. It was created to replace the stream. To achieve the same one can do GetStreamForAppending()
@@ -181,6 +187,9 @@ and use move semantics on the stream
     * Setting/Getting destination now uses `nullable<PdfDestination&>`
     * Setting/Getting action now uses `nullable<PdfAction&>`
     * `InsertChild` is now private only
+- `PdfAnnotation`:
+  * `GetRectRaw()` now returns `Corners` instead of `Rect`
+  * `SetRectRaw()` now takes `Corners` instead of `Rect`
 - `PdfAnnotationActionBase`:
     * Setting/Getting action now uses `nullable<PdfAction&>`
 - `PdfAnnotationLink`:

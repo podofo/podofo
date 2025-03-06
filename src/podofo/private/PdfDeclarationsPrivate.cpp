@@ -1363,6 +1363,24 @@ double modulo(double a, double b)
     return std::fmod((std::fmod(a, b)) + b, b);
 }
 
+void utls::NormalizeCoordinates(double& x1, double& y1, double& x2, double& y2)
+{
+    double temp;
+    if (x1 > x2)
+    {
+        temp = x1;
+        x1 = x2;
+        x2 = temp;
+    }
+
+    if (y1 > y2)
+    {
+        temp = y1;
+        y1 = y2;
+        y2 = temp;
+    }
+}
+
 void utls::SerializeEncodedString(OutputStream& stream, const string_view& encoded, bool wantHex, bool skipDelimiters)
 {
     if (!skipDelimiters)

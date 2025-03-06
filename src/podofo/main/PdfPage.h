@@ -155,40 +155,46 @@ public:
         const std::string_view& pattern = { },
         const PdfTextExtractParams& params = { }) const;
 
-    Rect GetRect() const;
+    /** Get the rectangle of this page.
+     *  \returns a rectangle. It's oriented according to the canonical PDF coordinate system
+     */
+    Rect GetRect() const { return m_Rect; }
 
-    Rect GetRectRaw() const override;
-
+    /** Set the rectangle of this annotation.
+     * \param rect rectangle to set. It's oriented according to the canonical PDF coordinate system
+     */
     void SetRect(const Rect& rect);
 
-    void SetRectRaw(const Rect& rect);
+    Corners GetRectRaw() const override;
+
+    void SetRectRaw(const Corners& rect);
 
     bool HasRotation(double& teta) const override;
 
     /** Set the /MediaBox in PDF Units
      * \param rect a Rect in PDF units
      */
-    void SetMediaBox(const Rect& rect, bool raw = false);
+    void SetMediaBox(const Rect& rect);
 
     /** Set the /CropBox in PDF Units
      * \param rect a Rect in PDF units
      */
-    void SetCropBox(const Rect& rect, bool raw = false);
+    void SetCropBox(const Rect& rect);
 
     /** Set the /TrimBox in PDF Units
      * \param rect a Rect in PDF units
      */
-    void SetTrimBox(const Rect& rect, bool raw = false);
+    void SetTrimBox(const Rect& rect);
 
     /** Set the /BleedBox in PDF Units
      * \param rect a Rect in PDF units
      */
-    void SetBleedBox(const Rect& rect, bool raw = false);
+    void SetBleedBox(const Rect& rect);
 
     /** Set the /ArtBox in PDF Units
      * \param rect a Rect in PDF units
      */
-    void SetArtBox(const Rect& rect, bool raw = false);
+    void SetArtBox(const Rect& rect);
 
     /** Page number inside of the document. The  first page
      *  has the number 1
@@ -209,32 +215,37 @@ public:
     /** Get the current MediaBox (physical page size) in PDF units.
      *  \returns Rect the page box
      */
-    Rect GetMediaBox(bool raw = false) const;
+    Rect GetMediaBox() const;
+    Corners GetMediaBoxRaw() const;
 
     /** Get the current CropBox (visible page size) in PDF units.
      *  \returns Rect the page box
      */
-    Rect GetCropBox(bool raw = false) const;
+    Rect GetCropBox() const;
+    Corners GetCropBoxRaw() const;
 
     /** Get the current TrimBox (cut area) in PDF units.
      *  \returns Rect the page box
      */
-    Rect GetTrimBox(bool raw = false) const;
+    Rect GetTrimBox() const;
+    Corners GetTrimBoxRaw() const;
 
     /** Get the current BleedBox (extra area for printing purposes) in PDF units.
      *  \returns Rect the page box
      */
-    Rect GetBleedBox(bool raw = false) const;
+    Rect GetBleedBox() const;
+    Corners GetBleedBoxRaw() const;
 
     /** Get the current ArtBox in PDF units.
      *  \returns Rect the page box
      */
-    Rect GetArtBox(bool raw = false) const;
+    Rect GetArtBox() const;
+    Corners GetArtBoxRaw() const;
 
     /** Get the normalized page rotation (0, 90, 180 or 270)
      * \remarks It's a clockwise rotation
      */
-    unsigned GetRotation() const;
+    unsigned GetRotation() const { return m_Rotation; }
 
     /** Get the raw page rotation (if any)
      * \remarks It's a clockwise rotation. It may return an invalid real number number
@@ -252,9 +263,9 @@ public:
     bool MoveTo(unsigned index);
 
     template <typename TField>
-    TField& CreateField(const std::string_view& name, const Rect& rect, bool rawRect = false);
+    TField& CreateField(const std::string_view& name, const Rect& rect);
 
-    PdfField& CreateField(const std::string_view& name, PdfFieldType fieldType, const Rect& rect, bool rawRect = false);
+    PdfField& CreateField(const std::string_view& name, PdfFieldType fieldType, const Rect& rect);
 
     /**
      * Get an iterator for all fields in the page. All widget annotation fields
@@ -298,25 +309,19 @@ private:
 
     PdfObject* findInheritableAttribute(const std::string_view& name, bool& isShallow) const;
 
-    /**
-     * Initialize a new page object.
-     * m_Contents must be initialized before calling this!
-     *
-     * \param size page size
-     */
-    void initNewPage(const Rect& size);
-
     void ensureContentsCreated();
 
     /** Get the bounds of a specified page box in PDF units.
      * This function is internal, since there are wrappers for all standard boxes
      *  \returns Rect the page box
      */
-    Rect getPageBox(const std::string_view& inBox, bool isInheritable, bool raw) const;
+    Rect getPageBox(const std::string_view& inBox, bool isInheritable) const;
 
-    void setPageBox(const PdfName& inBox, const Rect& rect, bool raw);
+    Corners getPageBoxRaw(const std::string_view& inBox, bool isInheritable) const;
 
-    void loadRotation();
+    void setPageBox(const PdfName& inBox, const Rect& rect);
+
+    void adaptRectToCurrentRotation(Rect& rect) const;
 
 private:
     // Remove some PdfCanvas methods to maintain the class API surface clean
@@ -327,17 +332,18 @@ private:
 
 private:
     unsigned m_Index;
+    unsigned m_Rotation;
+    Rect m_Rect;
     std::vector<PdfObject*> m_parents;
     std::unique_ptr<PdfContents> m_Contents;
     std::unique_ptr<PdfResources> m_Resources;
     PdfAnnotationCollection m_Annotations;
-    int m_Rotation;
 };
 
 template<typename TField>
-TField& PdfPage::CreateField(const std::string_view& name, const Rect & rect, bool rawRect)
+TField& PdfPage::CreateField(const std::string_view& name, const Rect & rect)
 {
-    return static_cast<TField&>(CreateField(name, PdfField::GetFieldType<TField>(), rect, rawRect));
+    return static_cast<TField&>(CreateField(name, PdfField::GetFieldType<TField>(), rect));
 }
 
 template<typename TField>

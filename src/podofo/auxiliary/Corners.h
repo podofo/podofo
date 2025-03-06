@@ -12,6 +12,7 @@
 namespace PoDoFo {
 
 class PdfArray;
+class Rect;
 
 /** An unoriented rectangle defined by 2 points
  */
@@ -35,9 +36,24 @@ public:
     Corners(const Corners& rhs) = default;
 
 public:
+    static Corners FromCorners(const Vector2& corner1, const Vector2& corner2);
+
+    /** Create a Corners instance from a the 4 values in the array
+     *  \param arr the array to load the values from
+     */
+    static Corners FromArray(const PdfArray& arr);
+
     Vector2 GetCorner1() const;
 
     Vector2 GetCorner2() const;
+
+    double GetWidth() const;
+
+    double GetHeight() const;
+
+    /** Get the normalized rectangle defined by position (left-bottom) and size
+     */
+    Rect GetNormalized() const;
 
     /** Converts the rectangle into an array
      */
@@ -48,6 +64,7 @@ public:
     bool operator==(const Corners& rect) const;
     bool operator!=(const Corners& rect) const;
     Corners& operator=(const Corners& rhs) = default;
+    explicit operator Rect() const;
 };
 
 };
