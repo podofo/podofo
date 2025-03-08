@@ -121,7 +121,10 @@ public:
     static PdfFontConfigWrapper& GetFontConfigWrapper();
 #endif // PODOFO_HAVE_FONTCONFIG
 
-    /** Called by PdfDocument before saving
+    /**
+     * Embed all imported fonts
+     * \remarks This is called by PdfDocument before saving, so
+     * it's usually not necessary to call it manually
      */
     void EmbedFonts();
 
