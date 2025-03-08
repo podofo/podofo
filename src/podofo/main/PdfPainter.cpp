@@ -22,8 +22,8 @@ using namespace PoDoFo;
 
 static string expandTabs(const string_view& str, unsigned tabWidth, unsigned tabCount);
 
-PdfPainter::PdfPainter(PdfPainterFlags flags) :
-    m_flags(flags),
+PdfPainter::PdfPainter() :
+    m_flags(PdfPainterFlags::None),
     m_painterStatus(StatusDefault),
     m_textStackCount(0),
     GraphicsState(*this, m_StateStack.Current->GraphicsState),
@@ -48,16 +48,22 @@ PdfPainter::~PdfPainter() noexcept(false)
     }
 }
 
-void PdfPainter::SetCanvas(PdfCanvas& canvas)
+void PdfPainter::SetCanvas(PdfCanvas& canvas, PdfPainterFlags flags)
 {
-    // Ignore setting the same canvas twice
     if (m_canvas == &canvas)
+    {
+        if (flags != m_flags && m_objStream != nullptr)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid setting the same canvas with different painter flags");
+
+        // Ignore setting the same canvas twice
         return;
+    }
 
     finishDrawing();
     reset();
     canvas.EnsureResourcesCreated();
     m_canvas = &canvas;
+    m_flags = flags;
     m_objStream = nullptr;
 }
 
@@ -125,6 +131,7 @@ void PdfPainter::finishDrawing()
 
 void PdfPainter::reset()
 {
+    m_flags == PdfPainterFlags::None;
     m_painterStatus = PainterStatus::StatusDefault;
     m_StateStack.Clear();
     m_textStackCount = 0;

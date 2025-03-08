@@ -25,6 +25,7 @@
   * `SetTilingPattern`, `SetShadingPattern`, `SetStrokingShadingPattern`, `SetStrokingTilingPattern`:
     Removed, use the `SetStrokingPattern`,`SetShadingPattern`, `SetStrokingUncolouredTilingPattern`,
     `SetNonStrokingUncolouredTilingPattern`
+  * Removed setting `PdfPainterFlags` in the constructor and moved to the `SetCanvas(canvas, flags)` method instead
 - `PdfFontMetrics`:
   * `GetFontNameSafe()` removed: Just use `GetFontName` instead
   * `GetBaseFontName()`: make it protected, `GeFamilyFontNameSafe()` it's the closest substitute

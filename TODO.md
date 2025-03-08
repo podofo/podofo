@@ -4,8 +4,6 @@
 - Settle https://github.com/podofo/podofo/issues/165
 - PdfPage: Add a method to retrieve rotation in radians
 - Check performances of PdfContentStreamReader
-- PdfPainter: Consider setting the flags in the
-  PdfPainter::SetCanvas(canvas) method instead
 
 ### After 1.0
 - Remove libidn dependency

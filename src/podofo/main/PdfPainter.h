@@ -252,7 +252,7 @@ public:
      *
      *  \param saveRestore do save/restore state before appending
      */
-    PdfPainter(PdfPainterFlags flags = PdfPainterFlags::None);
+    PdfPainter();
 
     ~PdfPainter() noexcept(false);
 
@@ -267,7 +267,7 @@ public:
      *  \see PdfPage \see PdfXObject
      *  \see FinishPage()
      */
-    void SetCanvas(PdfCanvas& page);
+    void SetCanvas(PdfCanvas& canvas, PdfPainterFlags flags = PdfPainterFlags::None);
 
     /** Finish drawing onto a canvas.
      *
