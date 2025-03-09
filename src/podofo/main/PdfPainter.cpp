@@ -131,7 +131,7 @@ void PdfPainter::finishDrawing()
 
 void PdfPainter::reset()
 {
-    m_flags == PdfPainterFlags::None;
+    m_flags = PdfPainterFlags::None;
     m_painterStatus = PainterStatus::StatusDefault;
     m_StateStack.Clear();
     m_textStackCount = 0;
