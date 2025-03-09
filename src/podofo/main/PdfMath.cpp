@@ -50,7 +50,7 @@ Matrix PoDoFo::GetFrameRotationTransformInverse(const Rect& rect, double teta)
 Rect PoDoFo::TransformCornersPage(const Corners& corners, const PdfPage& page)
 {
     double teta;
-    if (page.HasRotation(teta))
+    if (page.TryGetRotationRadians(teta))
     {
         // NOTE: The canonical coordinate system is the one with the origin
         // on the left-bottom corner
@@ -68,7 +68,7 @@ Rect PoDoFo::TransformCornersPage(const Corners& corners, const PdfPage& page)
 Rect PoDoFo::TransformRectPage(const Rect& rect, const PdfPage& page)
 {
     double teta;
-    if (page.HasRotation(teta))
+    if (page.TryGetRotationRadians(teta))
     {
         // NOTE: The canonical coordinate system is the one with the origin
         // on the left-bottom corner

@@ -80,11 +80,11 @@ public:
      */
     virtual Corners GetRectRaw() const = 0;
 
-    /** Get the current canvas rotation
+    /** Try getting the current canvas rotation
      * \param teta counterclockwise rotation in radians
      * \returns true if the canvas has a rotation
      */
-    virtual bool HasRotation(double& teta) const = 0;
+    virtual bool TryGetRotationRadians(double& teta) const = 0;
 
 protected:
     virtual PdfObject* getContentsObject() = 0;

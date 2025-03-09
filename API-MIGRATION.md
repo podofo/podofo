@@ -1,4 +1,5 @@
 ## 0.10.1 -> 1.0.0
+- `PdfXObjectForm`: Removed `HasRotation()`. Rotation is zero for xobject forms and it still implements privately `TryGetRotationRadians()`
 - `PoDofo::TransformRectPage`: Removed `inputIsTransformed` parameter. Now the function accepts only rect in the canonical PDF coordinate system
 - `PdfExtension`: Reworked constructor parameters
 - `PdfTokenizer`:
@@ -95,6 +96,8 @@
   `PdfColorSpaceFilterICCBased` and set it through `PdfGraphicsStateWrapper::SetNonStrokingColorSpace`
   * `GetResources()`: Now it returns a reference instead (reflecting in the specification resources is required for pages)
   * `MustGetResources()`: Removed, use the reference returning `GetResources()` instead
+  * Renamed `HasRotation()` -> `TryGetRotationRadians()`
+  * Removed `GetRotationRaw()` and introduced `TryGetRotationRaw()`
   or `PdfGraphicsStateWrapper::SetStrokingColorSpace`
 - `PdfColorSpaceFilter`: Make `GetExportObject` protected (no public substitute provided)
 - `FileStreamDevice` doesn't inherit `StandardStreamDevice` anymore
@@ -165,6 +168,7 @@ they are internal implementation details
   * `GetRectRaw()` now returns `Corners` instead of `Rect`
   * Rename `GetStreamForAppending()` -> `GetOrCreateContentsStream()`
   * Removed `GetFromResources`: just use `GetResources`
+  * Renamed `HasRotation()` -> `TryGetRotationRadians()`
 - `PdfContents`: `Reset()` is now parameterless. It was created to replace the stream. To achieve the same one can do GetStreamForAppending()
 and use move semantics on the stream
 - `PdfContents`: Rename `GetStreamForAppending()` -> `CreateStreamForAppending()`

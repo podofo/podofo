@@ -59,7 +59,7 @@ Corners PdfTilingPattern::GetRectRaw() const
     PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
-bool PdfTilingPattern::HasRotation(double& teta) const
+bool PdfTilingPattern::TryGetRotationRadians(double& teta) const
 {
     teta = 0;
     return false;

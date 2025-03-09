@@ -33,6 +33,7 @@ PdfPage::PdfPage(PdfObject& obj)
 PdfPage::PdfPage(PdfObject& obj, vector<PdfObject*>&& parents) :
     PdfDictionaryElement(obj),
     m_Index(numeric_limits<unsigned>::max()),
+    m_Rotation(0),
     m_parents(std::move(parents)),
     m_Annotations(*this)
 {
@@ -44,7 +45,11 @@ PdfPage::PdfPage(PdfObject& obj, vector<PdfObject*>&& parents) :
     if (resources != nullptr)
         m_Resources.reset(new PdfResources(*resources));
 
-    m_Rotation = utls::NormalizePageRotation(GetRotationRaw());
+    double rotation;
+    if (TryGetRotationRaw(rotation))
+        m_Rotation = utls::NormalizePageRotation(rotation);
+
+    // NOTE: Rotation must be fetched before computing normalized rect
     m_Rect = GetMediaBox();
 }
 
@@ -59,7 +64,7 @@ void PdfPage::SetRectRaw(const Corners& rect)
     rect.ToArray(mediaBox);
     this->GetDictionary().AddKey("MediaBox"_n, mediaBox);
     m_Rect = rect.GetNormalized();
-    adaptRectToCurrentRotation(m_Rect);
+    adjustRectToCurrentRotation(m_Rect);
 }
 
 void PdfPage::SetRect(const Rect& rect)
@@ -67,10 +72,9 @@ void PdfPage::SetRect(const Rect& rect)
     SetMediaBox(rect);
 }
 
-bool PdfPage::HasRotation(double& teta) const
+bool PdfPage::TryGetRotationRadians(double& teta) const
 {
-    int rotation = GetRotation();
-    if (rotation == 0)
+    if (m_Rotation == 0)
     {
         teta = 0;
         return false;
@@ -78,8 +82,15 @@ bool PdfPage::HasRotation(double& teta) const
 
     // Convert to radians and make it a counterclockwise rotation,
     // as common mathematical notation for rotations
-    teta = -rotation * DEG2RAD;
+    teta = -(m_Rotation * DEG2RAD);
     return true;
+}
+
+double PdfPage::GetRotationRadians() const
+{
+    // Convert to radians and make it a counterclockwise rotation,
+    // as common mathematical notation for rotations
+    return -(m_Rotation * DEG2RAD);
 }
 
 void PdfPage::ensureContentsCreated()
@@ -178,7 +189,7 @@ Rect PdfPage::CreateStandardPageSize(const PdfPageSize pageSize, bool landscape)
 Rect PdfPage::getPageBox(const string_view& inBox, bool isInheritable) const
 {
     auto ret = Rect::FromCorners(getPageBoxRaw(inBox, isInheritable));
-    adaptRectToCurrentRotation(ret);
+    adjustRectToCurrentRotation(ret);
     return ret;
 }
 
@@ -217,13 +228,13 @@ Corners PdfPage::getPageBoxRaw(const string_view& inBox, bool isInheritable) con
 void PdfPage::setPageBox(const PdfName& inBox, const Rect& rect)
 {
     auto actualRect = rect;
-    adaptRectToCurrentRotation(actualRect);
+    adjustRectToCurrentRotation(actualRect);
     PdfArray mediaBox;
     actualRect.ToArray(mediaBox);
     this->GetDictionary().AddKey(inBox, mediaBox);
 }
 
-void PdfPage::adaptRectToCurrentRotation(Rect& rect) const
+void PdfPage::adjustRectToCurrentRotation(Rect& rect) const
 {
     switch (GetRotation())
     {
@@ -243,14 +254,16 @@ void PdfPage::adaptRectToCurrentRotation(Rect& rect) const
     }
 }
 
-double PdfPage::GetRotationRaw() const
+bool PdfPage::TryGetRotationRaw(double& rotation) const
 {
     auto obj = findInheritableAttribute("Rotate");
-    double rotation;
     if (obj == nullptr || !obj->TryGetReal(rotation))
-        return 0;
+    {
+        rotation = 0;
+        return false;
+    }
 
-    return rotation;
+    return true;
 }
 
 void PdfPage::SetRotation(int rotation)

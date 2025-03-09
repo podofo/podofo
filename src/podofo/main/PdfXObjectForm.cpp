@@ -39,7 +39,7 @@ void PdfXObjectForm::FillFromPage(const PdfPage& page, bool useTrimBox)
     initAfterPageInsertion(page);
 }
 
-bool PdfXObjectForm::HasRotation(double& teta) const
+bool PdfXObjectForm::TryGetRotationRadians(double& teta) const
 {
     teta = 0;
     return false;

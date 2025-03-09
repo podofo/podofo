@@ -46,7 +46,7 @@ namespace PoDoFo
         PdfObjectStream& ResetContentsStream() override;
         void CopyContentsTo(OutputStream& stream) const override;
         Corners GetRectRaw() const override;
-        bool HasRotation(double& teta) const override;
+        bool TryGetRotationRadians(double& teta) const override;
         PdfObject* getContentsObject() override;
         PdfResources* getResources() override;
         PdfDictionaryElement& getElement() override;

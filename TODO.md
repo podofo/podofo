@@ -2,7 +2,6 @@
 
 - Optimize passing shared_ptr
 - Settle https://github.com/podofo/podofo/issues/165
-- PdfPage: Add a method to retrieve rotation in radians
 - Check performances of PdfContentStreamReader
 
 ### After 1.0

@@ -169,7 +169,12 @@ public:
 
     void SetRectRaw(const Corners& rect);
 
-    bool HasRotation(double& teta) const override;
+    bool TryGetRotationRadians(double& teta) const override;
+
+    /** Get the current page rotation in radians
+     * \returns a counterclockwise rotation in radians
+     */
+    double GetRotationRadians() const;
 
     /** Set the /MediaBox in PDF Units
      * \param rect a Rect in PDF units
@@ -243,14 +248,15 @@ public:
     Corners GetArtBoxRaw() const;
 
     /** Get the normalized page rotation (0, 90, 180 or 270)
-     * \remarks It's a clockwise rotation
+     * \returns a clockwise rotation in degrees
      */
     unsigned GetRotation() const { return m_Rotation; }
 
     /** Get the raw page rotation (if any)
-     * \remarks It's a clockwise rotation. It may return an invalid real number number
+     * \param rotation a clockwise rotation in degrees
+     * \remarks it may return an invalid page rotation
      */
-    double GetRotationRaw() const;
+    bool TryGetRotationRaw(double& rotation) const;
 
     /** Set the current page rotation.
      * \param rotation The rotation to set to the page. Must be a multiple of 90
@@ -321,7 +327,7 @@ private:
 
     void setPageBox(const PdfName& inBox, const Rect& rect);
 
-    void adaptRectToCurrentRotation(Rect& rect) const;
+    void adjustRectToCurrentRotation(Rect& rect) const;
 
 private:
     // Remove some PdfCanvas methods to maintain the class API surface clean

@@ -42,8 +42,6 @@ public:
 public:
     PdfResources& GetOrCreateResources() override;
 
-    bool HasRotation(double& teta) const override;
-
     Rect GetRect() const override;
 
     /** Set the rectangle of this xobject
@@ -61,6 +59,7 @@ private:
     PdfXObjectForm(PdfObject& obj);
 
 private:
+    bool TryGetRotationRadians(double& teta) const override;
     Corners GetRectRaw() const override;
     PdfObject* getContentsObject() override;
     PdfResources* getResources() override;

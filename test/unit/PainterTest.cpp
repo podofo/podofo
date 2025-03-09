@@ -53,7 +53,7 @@ namespace
             objStream->CopyTo(stream);
         }
 
-        bool HasRotation(double& teta) const override
+        bool TryGetRotationRadians(double& teta) const override
         {
             teta = 0;
             return false;

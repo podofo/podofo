@@ -17,11 +17,13 @@ namespace PoDoFo
 
     /**
      * Get a rotation transformation that aligns the rectangle to the axis after the rotation
+     * \param teta rotation in radians
      */
     Matrix PODOFO_API GetFrameRotationTransform(const Rect& rect, double teta);
 
     /**
      * Get an inverse rotation transformation that aligns the rectangle to the axis after the rotation
+     * \param teta rotation in radians
      */
     Matrix PODOFO_API GetFrameRotationTransformInverse(const Rect& rect, double teta);
 
