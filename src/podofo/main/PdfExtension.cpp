@@ -10,8 +10,8 @@ using namespace PoDoFo;
 
 PdfExtension::PdfExtension(const PdfName& ns, int64_t level, PdfVersion baseVersion,
         nullable<const PdfString&> url, nullable<const PdfString&> extensionRevision) :
-    m_Namespace(ns),
     m_BaseVersion(baseVersion),
+    m_Namespace(ns),
     m_Level(level)
 {
     if (url != nullptr)
