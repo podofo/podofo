@@ -9,7 +9,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-constexpr string_view TestSignatureRefHash = "F867FF5A7746D5EE3C386975E5E275BA"sv;
+constexpr string_view TestSignatureRefHash = "1CC60CEA1A7A8D3ECDD18B20FAAAEFE7"sv;
 
 TEST_CASE("TestLoadCertificate")
 {
@@ -94,7 +94,7 @@ TEST_CASE("TestSignature2")
 {
     charbuff buff;
     auto inputPath = TestUtils::GetTestInputFilePath("TestSignature.pdf");
-    auto outputPath = TestUtils::GetTestOutputFilePath("TestSignature1.pdf");
+    auto outputPath = TestUtils::GetTestOutputFilePath("TestSignature2.pdf");
 
     fs::copy_file(fs::u8path(inputPath), fs::u8path(outputPath), fs::copy_options::overwrite_existing);
     auto stream = std::make_shared<FileStreamDevice>(outputPath, FileMode::Open);
@@ -124,6 +124,11 @@ TEST_CASE("TestSignature2")
 
     utls::ReadTo(buff, outputPath);
     REQUIRE(ssl::ComputeMD5Str(buff) == TestSignatureRefHash);
+
+    // Resign should work
+    PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
+    utls::ReadTo(buff, outputPath);
+    REQUIRE(ssl::ComputeMD5Str(buff) == "F4038250AC2A81F552CF34A317619B86");
 }
 
 // Test deferred signing with external service
@@ -131,7 +136,7 @@ TEST_CASE("TestSignature3")
 {
     charbuff buff;
     auto inputPath = TestUtils::GetTestInputFilePath("TestSignature.pdf");
-    auto outputPath = TestUtils::GetTestOutputFilePath("TestSignature2.pdf");
+    auto outputPath = TestUtils::GetTestOutputFilePath("TestSignature3.pdf");
 
     fs::copy_file(fs::u8path(inputPath), fs::u8path(outputPath), fs::copy_options::overwrite_existing);
     auto stream = std::make_shared<FileStreamDevice>(outputPath, FileMode::Open);

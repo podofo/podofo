@@ -136,6 +136,7 @@ unordered_map<PdfSignerId, PdfSigningContext::SignatureCtx> PdfSigningContext::p
         {
             auto& ctx = ret[PdfSignerId(pair.first, i)];
             auto& signer = attrs.Signers[i];
+            signer->Reset();
             if (deferredSigning)
                 signer->ComputeSignatureDeferred({ }, ctx.Contents, true);
             else
@@ -152,10 +153,13 @@ unordered_map<PdfSignerId, PdfSigningContext::SignatureCtx> PdfSigningContext::p
 void PdfSigningContext::saveDocForSigning(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions saveOptions)
 {
     auto& form = doc.GetOrCreateAcroForm();
-
-    // TABLE 8.68 Signature flags: SignaturesExist (1) | AppendOnly (2)
-    // NOTE: This enables the signature panel visualization
-    form.GetDictionary().AddKey("SigFlags"_n, (int64_t)3);
+    auto sigFlags = form.GetSigFlags();
+    if ((sigFlags & (PdfAcroFormSigFlags::SignaturesExist | PdfAcroFormSigFlags::AppendOnly))
+        != (PdfAcroFormSigFlags::SignaturesExist | PdfAcroFormSigFlags::AppendOnly))
+    {
+        // TABLE 8.68 Signature flags: SignaturesExist (1) | AppendOnly (2)
+        form.SetSigFlags(sigFlags | PdfAcroFormSigFlags::SignaturesExist | PdfAcroFormSigFlags::AppendOnly);
+    }
 
     auto acroForm = doc.GetAcroForm();
     if (acroForm != nullptr)

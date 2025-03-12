@@ -107,8 +107,10 @@ void PdfSignerCms::Reset()
     if (m_cmsContext != nullptr)
         resetContext();
 
-    // Reset the reserved size
-    m_reservedSize = 0;
+    // NOTE: Don't reset the reserved size or any other parameter
+    // that has been set. In particular we need the reserved size
+    // to determine the final size of the CMS block when we do
+    // a dry-run
 
     // Reset also deferred signing if it was started
     m_deferredSigning = nullptr;

@@ -19,10 +19,19 @@ enum class PdfAcroFormDefaulAppearance : uint8_t
     ArialBlack ///< Add a default appearance with Arial embedded and black text if no other DA key is present
 };
 
+enum class PdfAcroFormSigFlags
+{
+    None = 0,
+    SignaturesExist = 1,
+    AppendOnly = 2,
+};
+
 class PODOFO_API PdfAcroForm final : public PdfDictionaryElement
 {
     friend class PdfField;
     friend class PdfDocument;
+    friend class PdfSigningContext;
+    friend class PdfSignature;
 
 private:
     /** Create a new PdfAcroForm dictionary object
@@ -55,6 +64,10 @@ public:
      *  \see SetNeedAppearances
      */
     bool GetNeedAppearances() const;
+
+    /** Get the value of the /SigFlags document-level characteristics related to signature fields
+     */
+    PdfAcroFormSigFlags GetSigFlags() const;
 
     template <typename TField>
     TField& CreateField(const std::string_view& name);
@@ -154,6 +167,9 @@ private:
     PdfField& AddField(std::unique_ptr<PdfField>&& field);
     std::shared_ptr<PdfField> GetFieldPtr(const PdfReference& ref);
 
+    // To be called by PdfSignature/PdfSigningContext
+    void SetSigFlags(PdfAcroFormSigFlags flags);
+
 private:
     /** Initialize this object
      *  with a default appearance
@@ -186,5 +202,7 @@ TField& PdfAcroForm::CreateField(const std::string_view& name)
 }
 
 };
+
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfAcroFormSigFlags);
 
 #endif // PDF_ACRO_FORM_H

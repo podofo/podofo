@@ -23,7 +23,10 @@ namespace PoDoFo
         virtual ~PdfSigner();
 
         /**
+         * Prepare the signer for being used/re-used
          * Called before computing the signature with ComputeSignature(buffer, false)
+         * \remarks It's not meant to clear parameters that have been set
+         *      on this signer
          */
         virtual void Reset() = 0;
 

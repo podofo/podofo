@@ -195,6 +195,20 @@ bool PdfAcroForm::GetNeedAppearances() const
     return this->GetDictionary().FindKeyAs<bool>("NeedAppearances", false);
 }
 
+PdfAcroFormSigFlags PdfAcroForm::GetSigFlags() const
+{
+    int64_t num;
+    if (!GetDictionary().TryFindKeyAs("SigFlags", num))
+        return PdfAcroFormSigFlags::None;
+
+    return (PdfAcroFormSigFlags)num;
+}
+
+void PdfAcroForm::SetSigFlags(PdfAcroFormSigFlags flags)
+{
+    GetDictionary().AddKey("SigFlags"_n, (int64_t)flags);
+}
+
 PdfArray* PdfAcroForm::getFieldArray() const
 {
     auto obj = const_cast<PdfAcroForm&>(*this).GetDictionary().FindKey("Fields");

@@ -52,10 +52,10 @@ void PdfSignature::SetAppearanceStream(PdfXObjectForm& obj, PdfAppearanceType ap
 
 void PdfSignature::init(PdfAcroForm& acroForm)
 {
-    // TABLE 8.68 Signature flags: SignaturesExist (1) | AppendOnly (2)
+    // TABLE 8.68 Signature flags: SignaturesExist (1)
     // This will open signature panel when inspecting PDF with acrobat,
     // even if the signature is unsigned
-    acroForm.GetDictionary().AddKey("SigFlags"_n, (int64_t)3);
+    acroForm.SetSigFlags(PdfAcroFormSigFlags::SignaturesExist);
 }
 
 void PdfSignature::SetSignerName(nullable<const PdfString&> text)
@@ -94,7 +94,20 @@ void PdfSignature::PrepareForSigning(const string_view& filter,
     const string_view& subFilter, const string_view& type,
     const PdfSignatureBeacons& beacons)
 {
-    EnsureValueObject();
+    if (m_ValueObj == nullptr)
+    {
+        ensureValueObject();
+    }
+    else
+    {
+        // NOTE: If we are repeating the signature, we must create a newer object
+        if (m_ValueObj->GetDictionary().HasKey("Contents"))
+        {
+            m_ValueObj = &this->GetDocument().GetObjects().CreateObject(*m_ValueObj);
+            GetDictionary().AddKey("V"_n, m_ValueObj->GetIndirectReference());
+        }
+    }
+
     auto& dict = m_ValueObj->GetDictionary();
     // This must be ensured before any signing operation
     dict.AddKey("Filter"_n, PdfName(filter));
@@ -263,10 +276,12 @@ void PdfSignature::EnsureValueObject()
     if (m_ValueObj != nullptr)
         return;
 
-    m_ValueObj = &this->GetDocument().GetObjects().CreateDictionaryObject("Sig"_n);
-    if (m_ValueObj == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::ObjectNotFound);
+    ensureValueObject();
+}
 
+void PdfSignature::ensureValueObject()
+{
+    m_ValueObj = &this->GetDocument().GetObjects().CreateDictionaryObject("Sig"_n);
     GetDictionary().AddKey("V"_n, m_ValueObj->GetIndirectReference());
 }
 

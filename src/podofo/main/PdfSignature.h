@@ -158,6 +158,7 @@ private:
     // To be called by SignDocument()
     void SetContentsByteRangeNoDirtySet(const bufferview& contents, PdfArray&& byteRange);
 
+    void ensureValueObject();
 private:
     void init(PdfAcroForm& acroForm);
 
