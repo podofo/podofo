@@ -75,3 +75,21 @@ TEST_CASE("TextExtraction3")
     auto str = PdfString::FromHexData("00205168770173af5c9b592971366c147ba17f515c1a672a6210578bff0c4e1c90e890e852065efa8bbe6ede540eff0c7ba17f517f3a4e4f7edf4e0089c45212ff0c7ba190537ba15f8430018bbe8ba1538b529b53c25dee4e0d9f50ff0c77015185652f5e72");
     REQUIRE(font->GetEncoding().ConvertToUtf8(str) == " 全省环岛天然气管网尚未成型，东部部分建设滞后，管网缺乏统一规划，管道管径、设计压力参差不齐，省内支干");
 }
+
+TEST_CASE("TextExtraction4")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TextExtraction1.pdf"));
+
+    auto& page = doc.GetPages().GetPageAt(0);
+    vector<PdfTextEntry> entries;
+    bool abort = false;
+    PdfTextExtractParams params = {};
+    params.AbortCheck = [&](int read_cnt) {
+        abort = read_cnt > 2;
+        return abort;
+    };
+    page.ExtractTextTo(entries, params);
+
+    REQUIRE(abort);
+}

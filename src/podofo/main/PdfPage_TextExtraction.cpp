@@ -211,7 +211,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
         // Check for an abort
         read_cnt += 1;
         if (read_cnt % 100 == 0) {
-          if (params.AbortCheck && params.AbortCheck(read_cnt, params.AbortCheckData)) {
+          if (params.AbortCheck && params.AbortCheck(read_cnt)) {
             break;
           }
         }
