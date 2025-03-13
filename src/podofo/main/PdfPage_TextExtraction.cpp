@@ -205,8 +205,17 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
     vector<double> lengths;
     vector<unsigned> positions;
     string decoded;
+    unsigned read_cnt = 0;
     while (reader.TryReadNext(content))
     {
+        // Check for an abort
+        read_cnt += 1;
+        if (read_cnt % 100 == 0) {
+          if (params.AbortCheck && params.AbortCheck(read_cnt, params.AbortCheckData)) {
+            break;
+          }
+        }
+
         switch (content.Type)
         {
             case PdfContentType::Operator:
@@ -1130,7 +1139,7 @@ void splitStringBySpaces(vector<StatefulString> &separatedStrings, const Statefu
     unsigned upperPosLim = (unsigned)str.String.length();
     unsigned lowerPosIndex;
     unsigned upperPosLimIndex;
-    
+
     auto pushString = [&]() {
         getSubstringIndices(str.StringPositions, lowerPos, upperPosLim, lowerPosIndex, upperPosLimIndex);
         double length = 0;
