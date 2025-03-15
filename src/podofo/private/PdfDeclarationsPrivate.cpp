@@ -1462,25 +1462,25 @@ bool utls::DoesMultiplicationOverflow(size_t op1, size_t op2)
 
 string utls::GetWin32ErrorMessage(unsigned rc)
 {
-    LPWSTR psz{ nullptr };
-    const DWORD cchMsg = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM
+    LPWSTR str{ nullptr };
+    DWORD strLength = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM
         | FORMAT_MESSAGE_IGNORE_INSERTS
         | FORMAT_MESSAGE_ALLOCATE_BUFFER,
         NULL, // (not used with FORMAT_MESSAGE_FROM_SYSTEM)
         rc,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        reinterpret_cast<LPWSTR>(&psz),
+        reinterpret_cast<LPWSTR>(&str),
         0,
         NULL);
 
-    if (cchMsg == 0)
+    if (strLength == 0)
         return string();
 
     // Assign buffer to smart pointer with custom deleter so that memory gets released
     // in case String's c'tor throws an exception.
     auto deleter = [](void* p) { ::LocalFree(p); };
-    unique_ptr<WCHAR, decltype(deleter)> ptrBuffer(psz, deleter);
-    return utf8::utf16to8((char16_t*)psz);
+    unique_ptr<WCHAR, decltype(deleter)> ptrBuffer(str, deleter);
+    return utf8::utf16to8(u16string_view((char16_t*)str, strLength));
 }
 
 #endif // _WIN322
