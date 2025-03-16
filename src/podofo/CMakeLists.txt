@@ -5,8 +5,8 @@ endif()
 # Generate our configure file
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/podofo_config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/podofo_config.h")
 
-# Needed for <date/date.h>
-add_compile_definitions(HAS_UNCAUGHT_EXCEPTIONS=1)
+# NOTE: HAS_UNCAUGHT_EXCEPTIONS is needed for <date/date.h>
+add_compile_definitions(HAS_UNCAUGHT_EXCEPTIONS=1 UTF8PROC_STATIC)
 
 set(PODOFO_INCLUDE_DIRS
     ${CMAKE_CURRENT_BINARY_DIR}

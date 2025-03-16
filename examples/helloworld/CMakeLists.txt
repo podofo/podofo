@@ -11,4 +11,4 @@
 
 add_compile_options(${PODOFO_CFLAGS})
 add_executable(helloworld helloworld.cpp)
-target_link_libraries(helloworld ${PODOFO_LIBRARIES})
+target_link_libraries(helloworld ${PODOFO_LIBRARIES} podofo_private podofo_3rdparty)
