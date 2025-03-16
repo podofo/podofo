@@ -6,6 +6,8 @@
 #include "SASLprep.h"
 
 #include <cassert>
+#include <vector>
+
 #include <utf8proc/utf8proc.h>
 #include <utf8cpp/utf8.h>
 
@@ -1165,7 +1167,7 @@ bool tryNormalizeNFKC(const vector<char32_t>& codePoints, vector<char32_t>& norm
         // NOTE: UTF8PROC_DECOMPOSE is undocumented for utf8proc_decompose_char but it's necessary
         rc = utf8proc_decompose_char(codePoints[i], (utf8proc_int32_t*)buff, std::size(buff),
             (utf8proc_option_t)(UTF8PROC_DECOMPOSE | UTF8PROC_COMPAT), &lastBoundClass);
-        if (rc < 0 || rc > std::size(buff))
+        if (rc < 0 || (size_t)rc > std::size(buff))
             goto Fail;
 
         normalized.insert(normalized.end(), buff, buff + rc);
