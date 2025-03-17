@@ -196,6 +196,7 @@ bool CharCategoryMap::TryGetValue(char32_t key, CharCategory& category) const
     return true;
 }
 
+// TODO: Optimize it so it will read the codes from a compressed stream
 Categories::Categories()
 {
     // Ported from https://github.com/reklatsmasters/saslprep/blob/master/lib/code-points.js
