@@ -52,9 +52,7 @@ enum class PdfKeyLength : uint16_t
     L112 = 112,
     L120 = 120,
     L128 = 128,
-#ifdef PODOFO_HAVE_LIBIDN
     L256 = 256
-#endif //PODOFO_HAVE_LIBIDN
 };
 
 /** Set user permissions/restrictions on a document
@@ -92,10 +90,8 @@ enum class PdfEncryptionAlgorithm : uint8_t
     RC4V1 = 1,      ///< RC4 Version 1 encryption using a 40bit key
     RC4V2 = 2,      ///< RC4 Version 2 encryption using a key with 40-128bit
     AESV2 = 4,      ///< AES encryption with a 128 bit key (PDF1.6)
-#ifdef PODOFO_HAVE_LIBIDN
     AESV3R5 = 8,    ///< AES encryption with a 256 bit key (PDF1.7 extension 3, deprecated in PDF 2.0)
     AESV3R6 = 16,   ///< AES encryption with a 256 bit key, Revision 6 (PDF1.7 extension 8, PDF 2.0)
-#endif //PODOFO_HAVE_LIBIDN
 };
 
 enum class PdfAuthResult : uint8_t
@@ -144,7 +140,7 @@ public:
     static std::unique_ptr<PdfEncrypt> Create(const std::string_view& userPassword,
         const std::string_view& ownerPassword,
         PdfPermissions protection = PdfPermissions::Default,
-        PdfEncryptionAlgorithm algorithm = PdfEncryptionAlgorithm::AESV2,
+        PdfEncryptionAlgorithm algorithm = PdfEncryptionAlgorithm::AESV3R6,
         PdfKeyLength keyLength = PdfKeyLength::Unknown);
 
     /** Initialize a PdfEncrypt object from an encryption dictionary in a PDF file.
@@ -416,13 +412,11 @@ protected:
         R3 = 3,
     };
 
-#ifdef PODOFO_HAVE_LIBIDN
     enum class PdfAESV3Revision : uint8_t
     {
         R5 = 5,
         R6 = 6,
     };
-#endif //PODOFO_HAVE_LIBIDN
 
 private:
     PdfEncrypt();
@@ -502,7 +496,6 @@ private:
     size_t m_customCtxSize;
 };
 
-#ifdef PODOFO_HAVE_LIBIDN
 
 /** A pure virtual class that is used to encrypt a PDF file (RC4, AES-128)
  *  This class is the base for classes that implement algorithms based on MD5 hashes
@@ -511,8 +504,6 @@ private:
  *	about PdfEncrypt*, it is created through CreatePdfEncrypt factory method
  *
  */
-#endif // PODOFO_HAVE_LIBIDN
-
 class PdfEncryptMD5Base : public PdfEncrypt
 {
     friend class PdfEncryptRC4;
@@ -596,8 +587,6 @@ private:
     void generateInitialVector(const std::string_view& documentId, unsigned char iv[]) const;
 };
 
-#ifdef PODOFO_HAVE_LIBIDN
-
 /** A class that is used to encrypt a PDF file (AES-256)
  *
  *  Client code is working only with PdfEncrypt class and knows nothing
@@ -679,8 +668,6 @@ private:
     unsigned char m_oeValue[32];        // OE entry in pdf document
     unsigned char m_permsValue[16];     // Perms entry in pdf document
 };
-
-#endif // PODOFO_HAVE_LIBIDN
 
 /** A class that is used to encrypt a PDF file (RC4 40-bit and 128-bit)
  *

@@ -57,7 +57,6 @@ list(APPEND CMAKE_INCLUDE_PATH
     "${DEPS_PATH}/libjpeg/include"
     "${DEPS_PATH}/libtiff/include"
     "${DEPS_PATH}/openssl/include"
-    "${DEPS_PATH}/libidn/include"
     "${DEPS_PATH}/lcms2/include"
 )
 
@@ -71,14 +70,11 @@ list(APPEND CMAKE_LIBRARY_PATH
     "${DEPS_PATH}/libjpeg/lib/${ARCH}"
     "${DEPS_PATH}/libtiff/lib/${ARCH}"
     "${DEPS_PATH}/openssl/lib/${ARCH}"
-    "${DEPS_PATH}/libidn/lib/${ARCH}"
     "${DEPS_PATH}/lcms2/lib/${ARCH}"
 )
 
 # Set use libxml2 static for fontconfig
 add_compile_definitions(LIBXML_STATIC)
-# Set use libidn static
-add_compile_definitions(LIBIDN_STATIC)
 
 if(WIN32)
     if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")

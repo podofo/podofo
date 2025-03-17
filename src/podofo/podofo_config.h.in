@@ -15,6 +15,5 @@
 #cmakedefine PODOFO_HAVE_TIFF_LIB
 #cmakedefine PODOFO_HAVE_FONTCONFIG
 #cmakedefine PODOFO_HAVE_WIN32GDI
-#cmakedefine PODOFO_HAVE_LIBIDN
 
 #endif // PODOFO_CONFIG_H

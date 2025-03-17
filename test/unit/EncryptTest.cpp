@@ -110,9 +110,7 @@ TEST_CASE("TestEncryptDecryptPDFs")
         PdfEncryptionAlgorithm::RC4V2,
         PdfEncryptionAlgorithm::RC4V2,
         PdfEncryptionAlgorithm::AESV2,
-#ifdef PODOFO_HAVE_LIBIDN
         PdfEncryptionAlgorithm::AESV3R6,
-#endif // PODOFO_HAVE_LIBIDN
     };
 
     PdfKeyLength keyLengths[] = {
@@ -122,9 +120,7 @@ TEST_CASE("TestEncryptDecryptPDFs")
         PdfKeyLength::L96,
         PdfKeyLength::L128,
         PdfKeyLength::L128,
-#ifdef PODOFO_HAVE_LIBIDN
         PdfKeyLength::L256,
-#endif // PODOFO_HAVE_LIBIDN
     };
 
     charbuff pdfBuffer;
@@ -238,8 +234,6 @@ TEST_CASE("TestAESV2")
     //TestEncrypt(encrypt, context);
 }
 
-#ifdef PODOFO_HAVE_LIBIDN
-
 TEST_CASE("TestAESV3R5")
 {
     auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
@@ -266,24 +260,18 @@ TEST_CASE("TestAESV3R6")
     //TestEncrypt(encrypt, context);
 }
 
-#endif // PODOFO_HAVE_LIBIDN
-
 TEST_CASE("TestEnableAlgorithms")
 {
     // By default every algorithms should be enabled
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptionAlgorithm::RC4V1));
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptionAlgorithm::RC4V2));
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptionAlgorithm::AESV2));
-#ifdef PODOFO_HAVE_LIBIDN
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptionAlgorithm::AESV3R5));
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptionAlgorithm::AESV3R6));
-#endif // PODOFO_HAVE_LIBIDN
 
     PdfEncryptionAlgorithm testAlgorithms = PdfEncryptionAlgorithm::AESV2;
     testAlgorithms |= PdfEncryptionAlgorithm::RC4V1 | PdfEncryptionAlgorithm::RC4V2;
-#ifdef PODOFO_HAVE_LIBIDN
     testAlgorithms |= PdfEncryptionAlgorithm::AESV3R5 | PdfEncryptionAlgorithm::AESV3R6;;
-#endif // PODOFO_HAVE_LIBIDN
     REQUIRE(testAlgorithms == PdfEncrypt::GetEnabledEncryptionAlgorithms());
 }
 

@@ -37,7 +37,6 @@ CMake 3.16 and the following libraries (tentative minimum versions indicated):
 * libjpeg (9d, optional)
 * libtiff (4.0.10, optional)
 * libpng (1.6.37, optional)
-* libidn (1.38, optional)
 
 For the most popular toolchains, PoDoFo requires the following
 minimum versions:
@@ -80,7 +79,7 @@ Have a look to the [Readme](https://github.com/podofo/podofo/tree/master/playgro
 From the source root run:
 
 ```
-sudo apt-get install -y libfontconfig1-dev libfreetype-dev libxml2-dev libssl-dev libjpeg-dev libpng-dev libtiff-dev libidn11-dev
+sudo apt-get install -y libfontconfig1-dev libfreetype-dev libxml2-dev libssl-dev libjpeg-dev libpng-dev libtiff-dev
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Debug ..
@@ -92,7 +91,7 @@ cmake --build . --config Debug
 Install [brew](https://brew.sh/), then from the source root run:
 
 ```
-brew install fontconfig freetype openssl libxml2 jpeg-turbo libpng libtiff libidn cmake
+brew install fontconfig freetype openssl libxml2 jpeg-turbo libpng libtiff cmake
 mkdir build
 cd build
 cmake  -DCMAKE_BUILD_TYPE=Debug -DCMAKE_FIND_FRAMEWORK=NEVER -DCMAKE_PREFIX_PATH=`brew --prefix` -DFontconfig_INCLUDE_DIR=`brew --prefix fontconfig`/include -DOPENSSL_ROOT_DIR=`brew --prefix openssl@3` ..

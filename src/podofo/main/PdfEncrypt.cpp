@@ -17,15 +17,9 @@
 #include "PdfEncrypt.h"
 
 #include <openssl/md5.h>
+#include <podofo/private/SASLprep.h>
 
 #include "PdfDictionary.h"
-
-#ifdef PODOFO_HAVE_LIBIDN
-// AES-256 dependencies :
-// SASL
-#include <stringprep.h>
-#include <idn-free.h>
-#endif // PODOFO_HAVE_LIBIDN
 
 using namespace std;
 using namespace PoDoFo;
@@ -237,13 +231,11 @@ protected:
                     cipher = ssl::Aes128();
                     break;
                 }
-#ifdef PODOFO_HAVE_LIBIDN
                 case (size_t)PdfKeyLength::L256 / 8:
                 {
                     cipher = ssl::Aes256();
                     break;
                 }
-#endif
                 default:
                     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid AES key length");
             }
@@ -370,11 +362,9 @@ PdfEncryptionAlgorithm PdfEncrypt::GetEnabledEncryptionAlgorithms()
                     PdfEncryptionAlgorithm::RC4V1 |
                     PdfEncryptionAlgorithm::RC4V2;
             }
-#ifdef PODOFO_HAVE_LIBIDN
             s_EnabledEncryptionAlgorithms |=
                 PdfEncryptionAlgorithm::AESV3R5 |
                 PdfEncryptionAlgorithm::AESV3R6;
-#endif // PODOFO_HAVE_LIBIDN
         }
     } init;
 
@@ -398,7 +388,6 @@ unique_ptr<PdfEncrypt> PdfEncrypt::Create(const string_view& userPassword,
 
     switch (algorithm)
     {
-#ifdef PODOFO_HAVE_LIBIDN
         case PdfEncryptionAlgorithm::AESV3R5:
         {
             if (keyLength != PdfKeyLength::Unknown && keyLength != PdfKeyLength::L256)
@@ -415,7 +404,6 @@ unique_ptr<PdfEncrypt> PdfEncrypt::Create(const string_view& userPassword,
             return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(userPassword, ownerPassword,
                 PdfAESV3Revision::R6, protection));
         }
-#endif // PODOFO_HAVE_LIBIDN
         case PdfEncryptionAlgorithm::RC4V2:
         case PdfEncryptionAlgorithm::RC4V1:
             return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(userPassword, ownerPassword, protection, algorithm, keyLength));
@@ -514,7 +502,6 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreateFromObject(const PdfObject& encryptObj)
         {
             return unique_ptr<PdfEncrypt>(new PdfEncryptAESV2(oValue, uValue, pValue, encryptMetadata));
         }
-#ifdef PODOFO_HAVE_LIBIDN
         else if ((lV == 5) && (
             (rValue == 5 && PdfEncrypt::IsEncryptionEnabled(PdfEncryptionAlgorithm::AESV3R5))
             || (rValue == 6 && PdfEncrypt::IsEncryptionEnabled(PdfEncryptionAlgorithm::AESV3R6))))
@@ -526,7 +513,6 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreateFromObject(const PdfObject& encryptObj)
             return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(oValue, oeValue, uValue,
                 ueValue, pValue, permsValue, (PdfAESV3Revision)rValue));
         }
-#endif // PODOFO_HAVE_LIBIDN
         else
         {
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Unsupported encryption method Version={} Revision={}", lV , rValue);
@@ -543,11 +529,9 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreateFromEncrypt(const PdfEncrypt& rhs)
             return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(static_cast<const PdfEncryptRC4&>(rhs)));
         case PdfEncryptionAlgorithm::AESV2:
             return unique_ptr<PdfEncrypt>(new PdfEncryptAESV2(static_cast<const PdfEncryptAESV2&>(rhs)));
-#ifdef PODOFO_HAVE_LIBIDN
         case PdfEncryptionAlgorithm::AESV3R5:
         case PdfEncryptionAlgorithm::AESV3R6:
             return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(static_cast<const PdfEncryptAESV3&>(rhs)));
-#endif // PODOFO_HAVE_LIBIDN
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Invalid algorithm");
     }
@@ -1186,9 +1170,7 @@ PdfEncryptRC4::PdfEncryptRC4(const string_view& userPassword, const string_view&
                     case PdfKeyLength::L120:
                     case PdfKeyLength::L128:
                         break;
-#ifdef PODOFO_HAVE_LIBIDN
                     case PdfKeyLength::L256:
-#endif // PODOFO_HAVE_LIBIDN
                     default:
                         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict,
                             "Invalid encryption key length for RC4V2. Only a multiple of 8 from 40bit to 128bit is supported");;
@@ -1225,10 +1207,8 @@ void AESDecrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned keyLen, 
     int rc;
     if (keyLen == (int)PdfKeyLength::L128 / 8)
         rc = EVP_DecryptInit_ex(ctx, ssl::Aes128(), nullptr, key, iv);
-#ifdef PODOFO_HAVE_LIBIDN
     else if (keyLen == (int)PdfKeyLength::L256 / 8)
         rc = EVP_DecryptInit_ex(ctx, ssl::Aes256(), nullptr, key, iv);
-#endif
     else
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid AES key length");
 
@@ -1256,10 +1236,8 @@ void AESEncrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned keyLen, 
     int rc;
     if (keyLen == (int)PdfKeyLength::L128 / 8)
         rc = EVP_EncryptInit_ex(ctx, ssl::Aes128(), nullptr, key, iv);
-#ifdef PODOFO_HAVE_LIBIDN
     else if (keyLen == (int)PdfKeyLength::L256 / 8)
         rc = EVP_EncryptInit_ex(ctx, ssl::Aes256(), nullptr, key, iv);
-#endif
     else
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid AES key length");
 
@@ -1430,8 +1408,6 @@ unique_ptr<OutputStream> PdfEncryptAESV2::CreateEncryptionOutputStream(OutputStr
 
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "CreateEncryptionOutputStream does not yet support AESV2");
 }
-    
-#ifdef PODOFO_HAVE_LIBIDN
 
 void PdfEncryptAESV3::computeHash(const unsigned char* pswd, unsigned pswdLen, unsigned revision,
     const unsigned char salt[8], const unsigned char uValue[48], unsigned char hashValue[32])
@@ -1626,19 +1602,12 @@ void PdfEncryptAESV3::computeOwnerKey(const unsigned char* ownerpswd, unsigned l
 
 void PdfEncryptAESV3::preprocessPassword(const string_view& password, unsigned char* outBuf, unsigned& len)
 {
-    char* password_sasl;
-    // NOTE: password view may be unterminated. Wrap it for stringprep_profile
-    int rc = stringprep_profile(string(password).data(), &password_sasl, "SASLprep", STRINGPREP_NO_UNASSIGNED);
-    if (rc != STRINGPREP_OK)
+    string prepd;
+    if (!sprep::TrySASLprep(password, prepd))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidPassword, "Error processing password through SASLprep");
 
-    size_t l = std::strlen(password_sasl);
-    len = l > 127 ? 127 : (unsigned)l;
-
-    std::memcpy(outBuf, password_sasl, len);
-    // password_sasl is allocated by stringprep_profile (libidn), so use idn_free
-    // (in Windows the libidn.dll could use an other heap and then the normal free or podofo_free will crash while debugging podofo.)
-    idn_free(password_sasl);
+    len = prepd.size() > 127 ? 127 : (unsigned)prepd.size();
+    std::memcpy(outBuf, prepd.data(), len);
 }
 
 void PdfEncryptAESV3::computeEncryptionKey(unsigned keyLength, unsigned char encryptionKey[32])
@@ -1945,8 +1914,6 @@ void PdfEncryptAESV3::generateInitialVector(unsigned char iv[])
     for (unsigned i = 0; i < AES_IV_LENGTH; i++)
         iv[i] = rand() % 255;
 }
-
-#endif // PODOFO_HAVE_LIBIDN
 
 void PdfEncrypt::EncryptTo(charbuff& out, const bufferview& view, PdfEncryptContext& context, const PdfReference& objref) const
 {

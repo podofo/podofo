@@ -14,6 +14,7 @@
 - `PdfPage`: Added `GetFieldsIterator()`
 - `PdfSignature`: Added `TryGetPreviousRevision()`
 - `PdfCanvas`: Added `CopyContentsTo()`
+- Removed Libidn dependency, default to AESV3R6 encryption
 - `PdfEncrypt` is now stateless: added `PdfEncryptContext` as a
    separate state context and used as argument in `PdfEncrypt` methods
 - Added `PdfNames` and moved all known names there from `PdfName`

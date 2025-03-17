@@ -28,7 +28,7 @@ jobs:
     - name: Install deps
       # NOTE: We need to ensure jpeg-turbo is at least version 2.14
       run: brew update
-           && brew install fontconfig freetype openssl libxml2 jpeg-turbo libpng libtiff libidn
+           && brew install fontconfig freetype openssl libxml2 jpeg-turbo libpng libtiff
 
     - name: Configure CMake
       # NOTE: OpenSSL prefix must be explicitly set
