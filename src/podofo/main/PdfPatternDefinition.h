@@ -214,7 +214,7 @@ namespace PoDoFo
 
     public:
         void fillExportDictionary(PdfDictionary& dict) const override;
-        PdfShadingType GetShadingType() const;
+        PdfShadingType GetShadingType() const override;
         const std::array<double, 4>& GetDomain() const { return m_Domain; }
         const Matrix& GetMatrix() const { return m_Matrix; }
     private:
@@ -239,7 +239,7 @@ namespace PoDoFo
             const Rect& bbox, bool antiAlias);
     public:
         void fillExportDictionary(PdfDictionary& dict) const override;
-        PdfShadingType GetShadingType() const;
+        PdfShadingType GetShadingType() const override;
         const std::vector<PdfFunctionDefinitionPtr>& GetFunctions() const { return m_Functions; }
         const std::array<double, 4>& GetCoords() const { return m_Coords; }
         const std::array<bool, 2>& GetExtend() const { return m_Extend; }
@@ -268,7 +268,7 @@ namespace PoDoFo
             const Rect& bbox, bool antiAlias);
     public:
         void fillExportDictionary(PdfDictionary& dict) const override;
-        PdfShadingType GetShadingType() const;
+        PdfShadingType GetShadingType() const override;
         const std::vector<PdfFunctionDefinitionPtr>& GetFunctions() const { return m_Functions; }
         const std::array<double, 6>& GetCoords() const { return m_Coords; }
         const std::array<bool, 2>& GetExtend() const { return m_Extend; }
@@ -296,7 +296,7 @@ namespace PoDoFo
             const Rect& bbox, bool antiAlias);
     public:
         void fillExportDictionary(PdfDictionary& dict) const override;
-        PdfShadingType GetShadingType() const;
+        PdfShadingType GetShadingType() const override;
         unsigned GetBitsPerCoordinate() const { return m_BitsPerCoordinate; }
         unsigned GetBitsPerComponent() const { return m_BitsPerComponent; }
         unsigned GetBitsPerFlag() const { return m_BitsPerFlag; }
@@ -327,7 +327,7 @@ namespace PoDoFo
 
     public:
         void fillExportDictionary(PdfDictionary& dict) const override;
-        PdfShadingType GetShadingType() const;
+        PdfShadingType GetShadingType() const override;
         unsigned GetBitsPerCoordinate() const { return m_BitsPerCoordinate; }
         unsigned GetBitsPerComponent() const { return m_BitsPerComponent; }
         unsigned GetVerticesPerRow() const { return m_VerticesPerRow; }
@@ -357,7 +357,7 @@ namespace PoDoFo
             const Rect& bbox, bool antiAlias);
     public:
         void fillExportDictionary(PdfDictionary& dict) const override;
-        PdfShadingType GetShadingType() const;
+        PdfShadingType GetShadingType() const override;
         unsigned GetBitsPerCoordinate() const { return m_BitsPerCoordinate; }
         unsigned GetBitsPerComponent() const { return m_BitsPerComponent; }
         unsigned GetBitsPerFlag() const { return m_BitsPerFlag; }
@@ -388,7 +388,7 @@ namespace PoDoFo
 
     public:
         void fillExportDictionary(PdfDictionary& dict) const override;
-        PdfShadingType GetShadingType() const;
+        PdfShadingType GetShadingType() const override;
         unsigned GetBitsPerCoordinate() const { return m_BitsPerCoordinate; }
         unsigned GetBitsPerComponent() const { return m_BitsPerComponent; }
         unsigned GetBitsPerFlag() const { return m_BitsPerFlag; }
