@@ -37,6 +37,8 @@ struct PODOFO_API PdfTextExtractParams final
 {
     nullable<Rect> ClipRect;
     PdfTextExtractFlags Flags = PdfTextExtractFlags::None;
+
+    std::function<bool(int read_cnt)> AbortCheck = nullptr;
 };
 
 template <typename TField>
