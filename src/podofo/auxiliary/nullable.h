@@ -107,6 +107,14 @@ namespace PoDoFo
             return *this;
         }
 
+        operator nullable<const T&>() const
+        {
+            if (m_hasValue)
+                return nullable<const T&>(m_value);
+            else
+                return { };
+        }
+
         const T& value() const
         {
             if (!m_hasValue)
@@ -118,6 +126,13 @@ namespace PoDoFo
         bool has_value() const { return m_hasValue; }
         const T* operator->() const { return &m_value; }
         const T& operator*() const { return m_value; }
+        operator const T* () const
+        {
+            if (m_hasValue)
+                return &m_value;
+            else
+                return nullptr;
+        }
 
     public:
         template <typename T2>
@@ -199,8 +214,9 @@ namespace PoDoFo
             : m_value{ } { }
 
         // Allow nullable<const T&>::nullable(const nullable<T&>&)
-        template <typename T2, std::enable_if_t<std::is_convertible_v<std::add_pointer_t<std::remove_reference_t<T2>>,
-            std::add_pointer_t<std::remove_reference_t<T>>>, int> = 0>
+        template <typename T2, typename = std::enable_if_t<
+            std::is_convertible_v<std::add_pointer_t<std::remove_reference_t<T2>>,
+                std::add_pointer_t<std::remove_reference_t<T>>>, int>>
         nullable(const nullable<T2&>& value)
             : m_value(reinterpret_cast<const nullable&>(value).m_value) { }
 
@@ -217,6 +233,8 @@ namespace PoDoFo
         }
 
         bool has_value() const { return m_value != nullptr; }
+
+        explicit operator T* () const { return m_value; }
         T* operator->() const { return m_value; }
         T& operator*() const { return *m_value; }
 

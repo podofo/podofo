@@ -7,14 +7,14 @@
 #ifndef PODOFO_PDFA_FUNCTIONS_H
 #define PODOFO_PDFA_FUNCTIONS_H
 
-#include <podofo/main/PdfXMPMetadata.h>
+#include "PdfMetadataStore.h"
 #include <podofo/main/PdfXMPPacket.h>
 
 namespace PoDoFo
 {
-    PdfXMPMetadata GetXMPMetadata(const std::string_view& xmpview, std::unique_ptr<PdfXMPPacket>& packet);
+    PdfMetadataStore GetXMPMetadata(const std::string_view& xmpview, std::unique_ptr<PdfXMPPacket>& packet);
     void CreateXMPMetadata(std::unique_ptr<PdfXMPPacket>& packet);
-    void UpdateOrCreateXMPMetadata(std::unique_ptr<PdfXMPPacket>& packet, const PdfXMPMetadata& metatata);
+    void UpdateOrCreateXMPMetadata(std::unique_ptr<PdfXMPPacket>& packet, const PdfMetadataStore& metatata);
 }
 
 // Low level XMP functions

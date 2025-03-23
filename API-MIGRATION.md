@@ -113,6 +113,11 @@
   * Renamed `AddPdfExtension` to `PushPdfExtension`
 - `PdfAppearanceState`: Renamed to `PdfAppearanceStream`
 - `PdfMetadata`:
+  * `GetTitle()`, `GetAuthor()`, `GetSubject()`, `GetKeywordsRaw()`, `GetCreator()`, `GetProducer()` now return `nullable<const PdfString&>` instead
+  * `GetCreationDate()`, `GetModifyDate()` now return `nullable<const PdfDate&>` instead
+  * `GetTrapped()` now returns `nullable<bool>` instead
+  * `SetTrapped()` now takes `nullable<bool>` instead
+  * `GetTrappedRaw()`: removed, you can still access `PdfInfo::GetTrapped()` for a raw version from /Info
   * Removed argument `trySyncXMP` from all functions setting values. Manually call new `TrySyncXMPMetadata` instead
   * Removed `EnsureXMPMetadata`, use `SyncXMPMetadata` instead
 - Added `optional/PdfNames.h` and moved all known `PdfName::Key...` names there

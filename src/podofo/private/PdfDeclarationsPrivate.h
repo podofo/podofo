@@ -367,6 +367,12 @@ namespace utls
             return false;
     }
 
+    template <typename T, typename... Args>
+    std::array<T, sizeof...(Args) + 1> MakeArray(T&& first, Args&&... rest)
+    {
+        return { std::forward<T>(first), std::forward<Args>(rest)... };
+    }
+
     std::string ToLower(const std::string_view& str);
 
     std::string Trim(const std::string_view& str, char ch);

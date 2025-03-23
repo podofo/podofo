@@ -89,16 +89,28 @@ constexpr PdfVersion PdfVersionDefault = PdfVersion::V1_4;
 enum class PdfALevel : uint8_t
 {
     Unknown = 0,
+    // ISO 19005-1:2005
     L1B,
     L1A,
+    // ISO 19005-2:2011
     L2B,
     L2A,
     L2U,
+    // ISO 19005-3:2012
     L3B,
     L3A,
     L3U,
+    // ISO 19005-4:2020
+    L4,
     L4E,
     L4F,
+};
+
+enum class PdfUAVersion : uint8_t
+{
+    Unknown = 0,
+    V1,         // ISO 14289-1:2014
+    V2,         // ISO 14289-2:2024
 };
 
 enum class PdfStringCharset : uint8_t
@@ -483,6 +495,16 @@ enum class PdfSaveOptions
       * \deprecated Use NoMetadataUpdate instead
       */
     NoModifyDateUpdate = NoMetadataUpdate
+};
+
+enum class PdfAdditionalMetadata : uint8_t
+{
+    PdfAIdAmd = 1,
+    PdfAIdCorr,
+    PdfAIdRev,
+    PdfUAIdAmd,
+    PdfUAIdCorr,
+    PdfUAIdRev,
 };
 
 /**

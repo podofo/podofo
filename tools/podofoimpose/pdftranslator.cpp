@@ -351,8 +351,8 @@ void PdfTranslator::setTarget(const string& target)
         targetMetadata.SetTitle(*sourceMetadata.GetTitle());
     if (sourceMetadata.GetKeywords().size() != 0)
         targetMetadata.SetKeywords(sourceMetadata.GetKeywords());
-    if (sourceMetadata.GetTrappedRaw().has_value())
-        targetMetadata.SetTrapped(*sourceMetadata.GetTrappedRaw());
+    if (sourceMetadata.GetTrapped().has_value())
+        targetMetadata.SetTrapped(*sourceMetadata.GetTrapped());
 
     // 	PdfObject *scat( sourceDoc->GetCatalog() );
     // 	PdfObject *tcat( targetDoc->GetCatalog() );
