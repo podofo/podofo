@@ -94,7 +94,7 @@ static void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
 static void removeXMPProperty(xmlNodePtr description, XMPMetadataKind property);
 static xmlNsPtr findOrCreateNamespace(xmlDocPtr doc, xmlNodePtr description, PdfANamespaceKind nsKind);
 static void getPdfALevelComponents(PdfALevel level, string& partStr, string& conformanceStr, string& revision);
-static void getPdfUAVersionComponents(PdfUAVersion version, string& part, string& revision);
+static void getPdfUALevelComponents(PdfUALevel version, string& part, string& revision);
 static nullable<PdfString> getListElementText(xmlNodePtr elem);
 static nullable<PdfString> getElementText(xmlNodePtr elem);
 static void addExtension(xmlDocPtr doc, xmlNodePtr description, string_view extension);
@@ -190,9 +190,9 @@ PdfMetadataStore PoDoFo::GetXMPMetadata(const string_view& xmpview, unique_ptr<P
     childElement = utls::FindChildElement(description, "pdfuaid", "part");
     if (childElement != nullptr && (part = utls::GetNodeContent(childElement)).has_value())
     {
-        tmp = "V";
+        tmp = "L";
         tmp += *part;
-        (void)PoDoFo::TryConvertTo(tmp, metadata.PdfuaVersion);
+        (void)PoDoFo::TryConvertTo(tmp, metadata.PdfuaLevel);
 
         childElement = utls::FindChildElement(description, "pdfuaid", "amd");
         if (childElement != nullptr)
@@ -281,7 +281,7 @@ void setXMPMetadata(xmlDocPtr doc, xmlNodePtr description, const PdfMetadataStor
             addXMPProperty(doc, description, XMPMetadataKind::PdfAIdRev, revision);
     }
 
-    if (metatata.PdfuaVersion != PdfUAVersion::Unknown)
+    if (metatata.PdfuaLevel != PdfUALevel::Unknown)
     {
         if (metatata.PdfaLevel != PdfALevel::Unknown
             && metatata.PdfaLevel < PdfALevel::L4)
@@ -293,7 +293,7 @@ void setXMPMetadata(xmlDocPtr doc, xmlNodePtr description, const PdfMetadataStor
         // Set actual PdfUA version
         string partStr;
         string revision;
-        getPdfUAVersionComponents(metatata.PdfuaVersion, partStr, revision);
+        getPdfUALevelComponents(metatata.PdfuaLevel, partStr, revision);
         addXMPProperty(doc, description, XMPMetadataKind::PdfUAIdPart, partStr);
         if (revision.length() != 0)
             addXMPProperty(doc, description, XMPMetadataKind::PdfUAIdRev, revision);
@@ -699,17 +699,17 @@ void getPdfALevelComponents(PdfALevel level, string& partStr, string& conformanc
     }
 }
 
-void getPdfUAVersionComponents(PdfUAVersion version, string& part, string& revision)
+void getPdfUALevelComponents(PdfUALevel version, string& part, string& revision)
 {
     switch (version)
     {
-        case PdfUAVersion::V1:
+        case PdfUALevel::L1:
         {
             part = "1";
             revision.clear();
             break;
         }
-        case PdfUAVersion::V2:
+        case PdfUALevel::L2:
         {
             part = "2";
             revision = "2024";

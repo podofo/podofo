@@ -1169,32 +1169,32 @@ namespace PoDoFo
     };
 
     template<>
-    struct Convert<PdfUAVersion>
+    struct Convert<PdfUALevel>
     {
-        static std::string_view ToString(PdfUAVersion value)
+        static std::string_view ToString(PdfUALevel value)
         {
             using namespace std;
             switch (value)
             {
-                case PdfUAVersion::V1:
-                    return "V1"sv;
-                case PdfUAVersion::V2:
-                    return "V2"sv;
+                case PdfUALevel::L1:
+                    return "L1"sv;
+                case PdfUALevel::L2:
+                    return "L2"sv;
                 default:
                     throw PdfError(PdfErrorCode::InvalidEnumValue, __FILE__, __LINE__);
             }
         }
 
-        static bool TryParse(const std::string_view& str, PdfUAVersion& value)
+        static bool TryParse(const std::string_view& str, PdfUALevel& value)
         {
-            if (str == "V1")
+            if (str == "L1")
             {
-                value = PdfUAVersion::V1;
+                value = PdfUALevel::L1;
                 return true;
             }
-            else if (str == "V2")
+            else if (str == "L2")
             {
-                value = PdfUAVersion::V2;
+                value = PdfUALevel::L2;
                 return true;
             }
 

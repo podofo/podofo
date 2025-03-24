@@ -256,26 +256,26 @@ void PdfMetadata::SetPdfALevel(PdfALevel level)
     m_xmpSynced = false;
 }
 
-PdfUAVersion PdfMetadata::GetPdfUAVersion() const
+PdfUALevel PdfMetadata::GetPdfUALevel() const
 {
     const_cast<PdfMetadata&>(*this).ensureInitialized();
-    return m_metadata->PdfuaVersion;
+    return m_metadata->PdfuaLevel;
 }
 
-void PdfMetadata::SetPdfUAVersion(PdfUAVersion level)
+void PdfMetadata::SetPdfUALevel(PdfUALevel level)
 {
     ensureInitialized();
-    if (m_metadata->PdfuaVersion == level)
+    if (m_metadata->PdfuaLevel == level)
         return;
 
-    if (level != PdfUAVersion::Unknown)
+    if (level != PdfUALevel::Unknown)
     {
         // The PDF/UA level can be set only in XMP,
         // metadata let's ensure it exists
         CreateXMPMetadata(m_packet);
     }
 
-    m_metadata->PdfuaVersion = level;
+    m_metadata->PdfuaLevel = level;
     m_xmpSynced = false;
 }
 
@@ -412,7 +412,7 @@ void PdfMetadata::ensureInitialized()
         if (m_metadata->Trapped == nullptr)
             m_metadata->Trapped = xmpMetadata.Trapped;
         m_metadata->PdfaLevel = xmpMetadata.PdfaLevel;
-        m_metadata->PdfuaVersion = xmpMetadata.PdfuaVersion;
+        m_metadata->PdfuaLevel = xmpMetadata.PdfuaLevel;
         m_xmpSynced = true;
     }
 }

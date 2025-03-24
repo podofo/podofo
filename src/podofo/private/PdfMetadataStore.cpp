@@ -10,7 +10,7 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfMetadataStore::PdfMetadataStore()
-    : Version(PdfVersion::Unknown), PdfaLevel(PdfALevel::Unknown), PdfuaVersion(PdfUAVersion::Unknown) { }
+    : Version(PdfVersion::Unknown), PdfaLevel(PdfALevel::Unknown), PdfuaLevel(PdfUALevel::Unknown) { }
 
 const PdfString* PdfMetadataStore::GetMetadata(PdfAdditionalMetadata prop) const
 {

@@ -36,7 +36,7 @@ TEST_CASE("TestAdditionalXMPMetatadata")
     auto metadata = PoDoFo::GetXMPMetadata(sourceXmp, packet);
 
     REQUIRE(metadata.PdfaLevel == PdfALevel::L1B);
-    REQUIRE(metadata.PdfuaVersion == PdfUAVersion::V1);
+    REQUIRE(metadata.PdfuaLevel == PdfUALevel::L1);
     REQUIRE(*metadata.GetMetadata(PdfAdditionalMetadata::PdfAIdCorr) == "2:2011");
 }
 
@@ -51,6 +51,6 @@ TEST_CASE("TestPDFA1_PDFUA1")
 {
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("blank-pdfa.pdf"));
-    doc.GetMetadata().SetPdfUAVersion(PdfUAVersion::V1);
+    doc.GetMetadata().SetPdfUALevel(PdfUALevel::L1);
     doc.Save(TestUtils::GetTestOutputFilePath("TestPDFA1_PDFUA1.pdf"));
 }

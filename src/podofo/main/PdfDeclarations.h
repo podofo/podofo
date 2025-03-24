@@ -106,11 +106,11 @@ enum class PdfALevel : uint8_t
     L4F,
 };
 
-enum class PdfUAVersion : uint8_t
+enum class PdfUALevel : uint8_t
 {
     Unknown = 0,
-    V1,         // ISO 14289-1:2014
-    V2,         // ISO 14289-2:2024
+    L1,         // ISO 14289-1:2014
+    L2,         // ISO 14289-2:2024
 };
 
 enum class PdfStringCharset : uint8_t

@@ -28,7 +28,7 @@ namespace PoDoFo
         nullable<bool> Trapped;
         PdfVersion Version;
         PdfALevel PdfaLevel;
-        PdfUAVersion PdfuaVersion;
+        PdfUALevel PdfuaLevel;
     public:
         const PdfString* GetMetadata(PdfAdditionalMetadata prop) const;
         void SetMetadata(PdfAdditionalMetadata prop, const PdfString* value);
