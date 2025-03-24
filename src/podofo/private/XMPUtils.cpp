@@ -54,39 +54,33 @@ enum class PdfANamespaceKind : uint8_t
 };
 
 // Coming from: https://pdfa.org/resource/xmp-extension-schema-templates/
-constexpr string_view PdfUAIdSchema = R"(
-<pdfaExtension:schemas>
-   <rdf:Bag>
-      <rdf:li rdf:parseType="Resource">
-         <pdfaSchema:namespaceURI>http://www.aiim.org/pdfua/ns/id/</pdfaSchema:namespaceURI>
-         <pdfaSchema:prefix>pdfuaid</pdfaSchema:prefix>
-         <pdfaSchema:schema>PDF/UA ID Schema</pdfaSchema:schema>
-         <pdfaSchema:property>
-            <rdf:Seq>
-               <rdf:li rdf:parseType="Resource">
-                  <pdfaProperty:category>internal</pdfaProperty:category>
-                  <pdfaProperty:description>Part of PDF/UA standard</pdfaProperty:description>
-                  <pdfaProperty:name>part</pdfaProperty:name>
-                  <pdfaProperty:valueType>Open Choice of Integer</pdfaProperty:valueType>
-               </rdf:li>
-               <rdf:li rdf:parseType="Resource">
-                  <pdfaProperty:category>internal</pdfaProperty:category>
-                  <pdfaProperty:description>Optional PDF/UA amendment identifier</pdfaProperty:description>
-                  <pdfaProperty:name>amd</pdfaProperty:name>
-                  <pdfaProperty:valueType>Open Choice of Text</pdfaProperty:valueType>
-               </rdf:li>
-               <rdf:li rdf:parseType="Resource">
-                  <pdfaProperty:category>internal</pdfaProperty:category>
-                  <pdfaProperty:description>Optional PDF/UA corrigenda identifier</pdfaProperty:description>
-                  <pdfaProperty:name>corr</pdfaProperty:name>
-                  <pdfaProperty:valueType>Open Choice of Text</pdfaProperty:valueType>
-               </rdf:li>
-            </rdf:Seq>
-         </pdfaSchema:property>
-      </rdf:li>
-   </rdf:Bag>
-</pdfaExtension:schemas>
-)";
+constexpr string_view PdfUAIdSchema = R"(<rdf:li rdf:parseType="Resource">
+   <pdfaSchema:namespaceURI>http://www.aiim.org/pdfua/ns/id/</pdfaSchema:namespaceURI>
+   <pdfaSchema:prefix>pdfuaid</pdfaSchema:prefix>
+   <pdfaSchema:schema>PDF/UA ID Schema</pdfaSchema:schema>
+   <pdfaSchema:property>
+      <rdf:Seq>
+         <rdf:li rdf:parseType="Resource">
+            <pdfaProperty:category>internal</pdfaProperty:category>
+            <pdfaProperty:description>Part of PDF/UA standard</pdfaProperty:description>
+            <pdfaProperty:name>part</pdfaProperty:name>
+            <pdfaProperty:valueType>Open Choice of Integer</pdfaProperty:valueType>
+         </rdf:li>
+         <rdf:li rdf:parseType="Resource">
+            <pdfaProperty:category>internal</pdfaProperty:category>
+            <pdfaProperty:description>Optional PDF/UA amendment identifier</pdfaProperty:description>
+            <pdfaProperty:name>amd</pdfaProperty:name>
+            <pdfaProperty:valueType>Open Choice of Text</pdfaProperty:valueType>
+         </rdf:li>
+         <rdf:li rdf:parseType="Resource">
+            <pdfaProperty:category>internal</pdfaProperty:category>
+            <pdfaProperty:description>Optional PDF/UA corrigenda identifier</pdfaProperty:description>
+            <pdfaProperty:name>corr</pdfaProperty:name>
+            <pdfaProperty:valueType>Open Choice of Text</pdfaProperty:valueType>
+         </rdf:li>
+      </rdf:Seq>
+   </pdfaSchema:property>
+</rdf:li>)";
 
 static void setXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, const PdfMetadataStore& metatata);
 static void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
@@ -98,6 +92,7 @@ static void getPdfUALevelComponents(PdfUALevel version, string& part, string& re
 static nullable<PdfString> getListElementText(xmlNodePtr elem);
 static nullable<PdfString> getElementText(xmlNodePtr elem);
 static void addExtension(xmlDocPtr doc, xmlNodePtr description, string_view extension);
+static xmlNodePtr getOrCreateExtensionBag(xmlDocPtr doc, xmlNodePtr description);
 
 PdfMetadataStore PoDoFo::GetXMPMetadata(const string_view& xmpview, unique_ptr<PdfXMPPacket>& packet)
 {
@@ -744,23 +739,49 @@ nullable<PdfString> getElementText(xmlNodePtr elem)
 
 void addExtension(xmlDocPtr doc, xmlNodePtr description, string_view extension)
 {
+    auto bag = getOrCreateExtensionBag(doc, description);
+    xmlNodePtr newNode = NULL;
+    auto rc = xmlParseInNodeContext(description, extension.data(), (int)extension.size(), 0, &newNode);
+    if (rc != XML_ERR_OK)
+        THROW_LIBXML_EXCEPTION("Could not parse extension fragment");
+
+    if (xmlAddChild(bag, newNode) == nullptr)
+    {
+        xmlFreeNode(newNode);
+        THROW_LIBXML_EXCEPTION("Can't add element to extension bag");
+    }
+}
+
+xmlNodePtr getOrCreateExtensionBag(xmlDocPtr doc, xmlNodePtr description)
+{
     // Add required namespace to write extensions
-    (void)findOrCreateNamespace(doc, description, PdfANamespaceKind::PdfAExtension);
+    auto pdfaExtNs = findOrCreateNamespace(doc, description, PdfANamespaceKind::PdfAExtension);
     (void)findOrCreateNamespace(doc, description, PdfANamespaceKind::PdfASchema);
     (void)findOrCreateNamespace(doc, description, PdfANamespaceKind::PdfAProperty);
     (void)findOrCreateNamespace(doc, description, PdfANamespaceKind::PdfAType);
 
-    xmlNodePtr fragParent = xmlNewNode(NULL, XMLCHAR "temp");
-    int res = xmlParseBalancedChunkMemory(doc, nullptr, nullptr, 0, XMLCHAR extension.data(), &fragParent->children);
-    if (res == 0)
+    auto pdfaExtension = utls::FindChildElement(description, "pdfaExtension", "schemas");
+    if (pdfaExtension == nullptr)
     {
-        xmlNodePtr child = fragParent->children;
-        while (child)
-        {
-            xmlNodePtr next = child->next; // Save next before moving
-            xmlUnlinkNode(child);
-            xmlAddChild(description, child);
-            child = next;
-        }
+        pdfaExtension = xmlNewChild(description, nullptr, XMLCHAR "schemas", nullptr);
+        if (pdfaExtension == nullptr)
+            THROW_LIBXML_EXCEPTION("Can't create pdfaExtension:schemas node");
+
+        xmlSetNs(pdfaExtension, pdfaExtNs);
     }
+
+    auto bag = utls::FindChildElement(description, "rdf", "Bag");
+    if (bag == nullptr)
+    {
+        bag = xmlNewChild(pdfaExtension, nullptr, XMLCHAR "Bag", nullptr);
+        if (bag == nullptr)
+            THROW_LIBXML_EXCEPTION("Can't create rdf:Bag node");
+
+        auto rdfNs = xmlSearchNs(doc, description, XMLCHAR "rdf");
+        PODOFO_ASSERT(rdfNs != nullptr);
+
+        xmlSetNs(bag, rdfNs);
+    }
+
+    return bag;
 }
