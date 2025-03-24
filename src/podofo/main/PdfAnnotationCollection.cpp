@@ -137,6 +137,8 @@ PdfAnnotation& PdfAnnotationCollection::getAnnotAt(unsigned index) const
     const_cast<PdfAnnotationCollection&>(*this).initAnnotations();
     if (index >= m_Annots.size())
         PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
+    else if (m_Annots[index] == nullptr)
+        PODOFO_RAISE_ERROR(PdfErrorCode::AccessNullPointer);
 
     return *m_Annots[index];
 }

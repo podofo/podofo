@@ -75,6 +75,7 @@ enum class PdfErrorCode : uint8_t
 
     XmpMetadataError,         ///< Error while creating or reading XMP metadata
     OpenSSLError,             ///< OpenSSL error
+    AccessNullPointer,        ///< Accessing a null pointer.
 };
 
 class PODOFO_API PdfErrorInfo final

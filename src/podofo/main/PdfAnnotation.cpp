@@ -491,7 +491,9 @@ bool PdfAnnotation::tryCreateFromObject(const PdfObject& obj, PdfAnnotationType 
             xobj = new PdfAnnotationProjection(const_cast<PdfObject&>(obj));
             return true;
         default:
-            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+            // PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+            xobj = nullptr;
+            return false;
     }
 }
 
@@ -503,7 +505,11 @@ PdfAnnotationType PdfAnnotation::getAnnotationType(const PdfObject& obj)
         return PdfAnnotationType::Unknown;
 
     auto subtype = name->GetString();
-    return PoDoFo::ConvertTo<PdfAnnotationType>(subtype);
+    try {
+        return PoDoFo::ConvertTo<PdfAnnotationType>(subtype);
+    } catch (PdfError &err) {
+        return PdfAnnotationType::Unknown;
+    }
 }
 
 PdfName getAppearanceName(PdfAppearanceType appearance)

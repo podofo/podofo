@@ -148,6 +148,8 @@ string_view PdfError::ErrorName(PdfErrorCode code)
             return "PdfErrorCode::ItemAlreadyPresent"sv;
         case PdfErrorCode::OpenSSLError:
             return "PdfErrorCode::OpenSSLError"sv;
+        case PdfErrorCode::AccessNullPointer:
+            return "PdfErrorCode::AccessNullPointer"sv;
         case PdfErrorCode::Unknown:
             return "PdfErrorCode::Unknown"sv;
         default:
@@ -241,6 +243,8 @@ string_view PdfError::ErrorMessage(PdfErrorCode code)
             return "Error while reading or writing XMP metadata"sv;
         case PdfErrorCode::OpenSSLError:
             return "OpenSSL error"sv;
+        case PdfErrorCode::AccessNullPointer:
+            return "Accessing a null pointer."sv;
         case PdfErrorCode::Unknown:
             return "Error code unknown."sv;
         default:
