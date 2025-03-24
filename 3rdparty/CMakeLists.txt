@@ -10,8 +10,13 @@ else()
     add_compile_options(-fPIC)
 endif()
 
-add_source("pdfium" "${PROJECT_SOURCE_DIR}/3rdparty/pdfium" SOURCE_FILES HEADERS_FILES)
-add_source("afdko" "${PROJECT_SOURCE_DIR}/3rdparty/afdko" SOURCE_FILES HEADERS_FILES)
+add_compile_definitions(UTF8PROC_STATIC)
+
+add_source("pdfium" "${CMAKE_CURRENT_SOURCE_DIR}/pdfium" SOURCE_FILES HEADERS_FILES)
+add_source("afdko" "${CMAKE_CURRENT_SOURCE_DIR}/afdko" SOURCE_FILES HEADERS_FILES)
+add_source("utf8proc" "${CMAKE_CURRENT_SOURCE_DIR}/utf8proc" SOURCE_FILES HEADERS_FILES)
+
+list(FILTER SOURCE_FILES EXCLUDE REGEX "utf8proc_data\.c")
 
 include_directories("afdko/resource")
 include_directories("afdko/include")

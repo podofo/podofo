@@ -27,9 +27,30 @@ static void TestNormalizeXMP(string_view filename)
     REQUIRE(normalizedXmp == expectedXmp);
 }
 
+TEST_CASE("TestAdditionalXMPMetatadata")
+{
+    string sourceXmp;
+    TestUtils::ReadTestInputFile("TestXMP5.xml", sourceXmp);
+
+    unique_ptr<PdfXMPPacket> packet;
+    auto metadata = PoDoFo::GetXMPMetadata(sourceXmp, packet);
+
+    REQUIRE(metadata.PdfaLevel == PdfALevel::L1B);
+    REQUIRE(metadata.PdfuaLevel == PdfUALevel::L1);
+    REQUIRE(*metadata.GetMetadata(PdfAdditionalMetadata::PdfAIdCorr) == "2:2011");
+}
+
 TEST_CASE("TestNormalizeXMP")
 {
     TestNormalizeXMP("TestXMP1");
     TestNormalizeXMP("TestXMP5");
     TestNormalizeXMP("TestXMP7");
+}
+
+TEST_CASE("TestPDFA1_PDFUA1")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("blank-pdfa.pdf"));
+    doc.GetMetadata().SetPdfUALevel(PdfUALevel::L1);
+    doc.Save(TestUtils::GetTestOutputFilePath("TestPDFA1_PDFUA1.pdf"));
 }

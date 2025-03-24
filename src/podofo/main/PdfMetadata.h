@@ -8,11 +8,11 @@
 #define PDF_METADATA
 
 #include "PdfInfo.h"
-#include "PdfXMPMetadata.h"
 #include "PdfXMPPacket.h"
 
 namespace PoDoFo
 {
+    class PdfMetadataStore;
     class PdfDocument;
 
     class PODOFO_API PdfMetadata final
@@ -25,6 +25,8 @@ namespace PoDoFo
         PdfMetadata(PdfMetadata&) = delete;
 
     public:
+        ~PdfMetadata();
+
         /** Set the title of the document.
          * \param title title
          */
@@ -33,7 +35,7 @@ namespace PoDoFo
         /** Get the title of the document
          *  \returns the title
          */
-        const nullable<PdfString>& GetTitle() const;
+        nullable<const PdfString&> GetTitle() const;
 
         /** Set the author of the document.
          * \param author author
@@ -43,7 +45,7 @@ namespace PoDoFo
         /** Get the author of the document
          *  \returns the author
          */
-        const nullable<PdfString>& GetAuthor() const;
+        nullable<const PdfString&> GetAuthor() const;
 
         /** Set the subject of the document.
          * \param subject subject
@@ -53,12 +55,12 @@ namespace PoDoFo
         /** Get the subject of the document
          *  \returns the subject
          */
-        const nullable<PdfString>& GetSubject() const;
+        nullable<const PdfString&> GetSubject() const;
 
         /** Get the raw keywords of the document
          *  \returns the subject
          */
-        const nullable<PdfString>& GetKeywordsRaw() const;
+        nullable<const PdfString&> GetKeywordsRaw() const;
 
         /** Set keywords for this document
          * \param keywords a list of keywords
@@ -79,7 +81,7 @@ namespace PoDoFo
         /** Get the creator of the document
          *  \returns the creator
          */
-        const nullable<PdfString>& GetCreator() const;
+        nullable<const PdfString&> GetCreator() const;
 
         /** Set the producer of the document.
          * \param producer producer
@@ -89,7 +91,7 @@ namespace PoDoFo
         /** Get the producer of the document
          *  \returns the producer
          */
-        const nullable<PdfString>& GetProducer() const;
+        nullable<const PdfString&> GetProducer() const;
 
         /** Set the document creation date
          * \param date the creation date
@@ -99,7 +101,7 @@ namespace PoDoFo
         /** Get creation date of document
          *  \return creation date
          */
-        const nullable<PdfDate>& GetCreationDate() const;
+        nullable<const PdfDate&> GetCreationDate() const;
 
         /** Set the document modification date
          * \param date the modification date
@@ -109,19 +111,16 @@ namespace PoDoFo
         /** Get modification date of document
          *  \return modification date
          */
-        const nullable<PdfDate>& GetModifyDate() const;
+        nullable<const PdfDate&> GetModifyDate() const;
 
         /** Set the trapping state of the document.
          * \param trapped trapped
          */
-        void SetTrapped(nullable<const PdfName&> trapped);
+        void SetTrapped(nullable<bool> trapped);
 
         /** Get the trapping state of the document
-         *  \returns the title
          */
-        std::string GetTrapped() const;
-
-        nullable<const PdfName&> GetTrappedRaw() const;
+        nullable<bool>GetTrapped() const;
 
         /** Set the PDF Version of the document. Has to be called before Write() to
          *  have an effect.
@@ -137,6 +136,14 @@ namespace PoDoFo
          * \param level the PDF/A level
          */
         void SetPdfALevel(PdfALevel level);
+
+        PdfUALevel GetPdfUALevel() const;
+
+        void SetPdfUALevel(PdfUALevel version);
+
+        nullable<const PdfString&> GetProperty(PdfAdditionalMetadata prop) const;
+
+        void SetProperty(PdfAdditionalMetadata prop, nullable<const PdfString&> value);
 
         /** Ensure the XMP metadata is created
          * Also, ensure some /Info metadata is normalized
@@ -168,8 +175,7 @@ namespace PoDoFo
 
     private:
         PdfDocument* m_doc;
-        PdfXMPMetadata m_metadata;
-        bool m_initialized;
+        PdfMetadataStore* m_metadata;
         bool m_xmpSynced;
         std::unique_ptr<PdfXMPPacket> m_packet;
     };

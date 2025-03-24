@@ -1071,6 +1071,137 @@ namespace PoDoFo
         }
     };
 
+    template<>
+    struct Convert<PdfALevel>
+    {
+        static std::string_view ToString(PdfALevel value)
+        {
+            using namespace std;
+            switch (value)
+            {
+                case PdfALevel::L1B:
+                    return "L1B"sv;
+                case PdfALevel::L1A:
+                    return "L1A"sv;
+                case PdfALevel::L2B:
+                    return "L2B"sv;
+                case PdfALevel::L2A:
+                    return "L2A"sv;
+                case PdfALevel::L2U:
+                    return "L2U"sv;
+                case PdfALevel::L3B:
+                    return "L3B"sv;
+                case PdfALevel::L3A:
+                    return "L3A"sv;
+                case PdfALevel::L3U:
+                    return "L3U"sv;
+                case PdfALevel::L4:
+                    return "L4"sv;
+                case PdfALevel::L4E:
+                    return "L4E"sv;
+                case PdfALevel::L4F:
+                    return "L4F"sv;
+                default:
+                    throw PdfError(PdfErrorCode::InvalidEnumValue, __FILE__, __LINE__);
+            }
+        }
+
+        static bool TryParse(const std::string_view& str, PdfALevel& value)
+        {
+            if (str == "L1B")
+            {
+                value = PdfALevel::L1B;
+                return true;
+            }
+            else if (str == "L1A")
+            {
+                value = PdfALevel::L1A;
+                return true;
+            }
+            else if (str == "L2B")
+            {
+                value = PdfALevel::L2B;
+                return true;
+            }
+            else if (str == "L2A")
+            {
+                value = PdfALevel::L2A;
+                return true;
+            }
+            else if (str == "L2U")
+            {
+                value = PdfALevel::L2U;
+                return true;
+            }
+            else if (str == "L3B")
+            {
+                value = PdfALevel::L3B;
+                return true;
+            }
+            else if (str == "L3A")
+            {
+                value = PdfALevel::L3A;
+                return true;
+            }
+            else if (str == "L3U")
+            {
+                value = PdfALevel::L3U;
+                return true;
+            }
+            else if (str == "L4")
+            {
+                value = PdfALevel::L4;
+                return true;
+            }
+            else if (str == "L4E")
+            {
+                value = PdfALevel::L4E;
+                return true;
+            }
+            else if (str == "L4F")
+            {
+                value = PdfALevel::L4F;
+                return true;
+            }
+
+            return false;
+        }
+    };
+
+    template<>
+    struct Convert<PdfUALevel>
+    {
+        static std::string_view ToString(PdfUALevel value)
+        {
+            using namespace std;
+            switch (value)
+            {
+                case PdfUALevel::L1:
+                    return "L1"sv;
+                case PdfUALevel::L2:
+                    return "L2"sv;
+                default:
+                    throw PdfError(PdfErrorCode::InvalidEnumValue, __FILE__, __LINE__);
+            }
+        }
+
+        static bool TryParse(const std::string_view& str, PdfUALevel& value)
+        {
+            if (str == "L1")
+            {
+                value = PdfUALevel::L1;
+                return true;
+            }
+            else if (str == "L2")
+            {
+                value = PdfUALevel::L2;
+                return true;
+            }
+
+            return false;
+        }
+    };
+
     template<typename T>
     std::string_view ToString(T value)
     {

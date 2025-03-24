@@ -166,16 +166,6 @@ message("Found zlib headers in ${ZLIB_INCLUDE_DIR}, library at ${ZLIB_LIBRARIES}
 find_package(OpenSSL REQUIRED)
 message("OPENSSL_LIBRARIES: ${OPENSSL_LIBRARIES}")
 
-find_package(Libidn)
-
-if(LIBIDN_FOUND)
-    message("Found Libidn headers in ${LIBIDN_INCLUDE_DIR}, library at ${LIBIDN_LIBRARIES}")
-    set(PODOFO_HAVE_LIBIDN TRUE)
-    message("Libidn found. AES-256 Encryption support will be enabled")
-else()
-    message("Libidn not found. AES-256 Encryption support will be disabled")
-endif()
-
 if (PODOFO_WANT_LCMS2)
 find_package(LCMS2)
 if(LCMS2_FOUND)
@@ -255,12 +245,6 @@ if(JPEG_FOUND)
 endif()
 list(APPEND PODOFO_LIB_DEPENDS ZLIB::ZLIB)
 list(APPEND PODOFO_LIB_DEPENDS ${PLATFORM_SYSTEM_LIBRARIES})
-
-if(LIBIDN_FOUND)
-    # libidn doesn't provide targets.
-    list(APPEND PODOFO_LIB_DEPENDS ${LIBIDN_LIBRARIES})
-    list(APPEND PODOFO_HEADERS_DEPENDS ${LIBIDN_INCLUDE_DIR})
-endif()
 
 if(LCMS2_FOUND)
     # little-cms2 doesn't provide targets.

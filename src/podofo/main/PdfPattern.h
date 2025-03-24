@@ -81,8 +81,6 @@ namespace PoDoFo
     private:
         PdfUncolouredTilingPattern(PdfDocument& doc, std::shared_ptr<PdfUncolouredTilingPatternDefinition> definition);
 
-        PdfUncolouredTilingPattern(const PdfUncolouredTilingPattern&) = default;
-
     public:
         const PdfUncolouredTilingPatternDefinition& GetDefinition() const;
         std::shared_ptr<const PdfUncolouredTilingPatternDefinition> GetDefinitionPtr() const;

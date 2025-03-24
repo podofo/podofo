@@ -28,12 +28,10 @@ void encrypt(const string_view& inputPath, const string_view& outputPath,
             version = PdfVersion::V1_3;
             break;
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
-#ifdef PODOFO_HAVE_LIBIDN
         case PdfEncryptionAlgorithm::AESV3R5:;
             keyLength = PdfKeyLength::L256;
             version = PdfVersion::V1_3;
             break;
-#endif // PODOFO_HAVE_LIBIDN
 #ifndef PODOFO_HAVE_OPENSSL_NO_RC4
         case PdfEncryptionAlgorithm::RC4V2:
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
@@ -104,10 +102,8 @@ void Main(const cspan<string_view>& args)
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
                 if (args[i] == "--aesv2")
                     algorithm = PdfEncryptionAlgorithm::AESV2;
-#ifdef PODOFO_HAVE_LIBIDN
                 else if (args[i] == "--aesv3")
                     algorithm = PdfEncryptionAlgorithm::AESV3R5;
-#endif // PODOFO_HAVE_LIBIDN
                 else if (args[i] == "-u")
                 {
                     i++;
