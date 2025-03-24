@@ -140,7 +140,7 @@ PdfAnnotation& PdfAnnotationCollection::getAnnotAt(unsigned index) const
 
     auto ret = m_Annots[index].get();
     if (ret == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle, "The exception at index {} is invalid", index);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The exception at index {} is invalid", index);
 
     return *ret;
 }
@@ -151,7 +151,7 @@ PdfAnnotation& PdfAnnotationCollection::getAnnot(const PdfReference& ref) const
     unsigned index = (*m_annotMap).at(ref);
     auto ret = m_Annots[index].get();
     if (ret == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle, "The exception at index {} is invalid", index);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The exception at index {} is invalid", index);
 
     return *ret;
 }
