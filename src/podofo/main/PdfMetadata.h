@@ -137,6 +137,10 @@ namespace PoDoFo
          */
         void SetPdfALevel(PdfALevel level);
 
+        PdfUAVersion GetPdfUAVersion() const;
+
+        void SetPdfUAVersion(PdfUAVersion version);
+
         nullable<const PdfString&> GetProperty(PdfAdditionalMetadata prop) const;
 
         void SetProperty(PdfAdditionalMetadata prop, nullable<const PdfString&> value);

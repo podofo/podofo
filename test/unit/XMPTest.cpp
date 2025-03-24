@@ -46,3 +46,11 @@ TEST_CASE("TestNormalizeXMP")
     TestNormalizeXMP("TestXMP5");
     TestNormalizeXMP("TestXMP7");
 }
+
+TEST_CASE("TestPDFA1_PDFUA1")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("blank-pdfa.pdf"));
+    doc.GetMetadata().SetPdfUAVersion(PdfUAVersion::V1);
+    doc.Save(TestUtils::GetTestOutputFilePath("TestPDFA1_PDFUA1.pdf"));
+}

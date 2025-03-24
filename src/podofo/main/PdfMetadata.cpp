@@ -256,6 +256,29 @@ void PdfMetadata::SetPdfALevel(PdfALevel level)
     m_xmpSynced = false;
 }
 
+PdfUAVersion PdfMetadata::GetPdfUAVersion() const
+{
+    const_cast<PdfMetadata&>(*this).ensureInitialized();
+    return m_metadata->PdfuaVersion;
+}
+
+void PdfMetadata::SetPdfUAVersion(PdfUAVersion level)
+{
+    ensureInitialized();
+    if (m_metadata->PdfuaVersion == level)
+        return;
+
+    if (level != PdfUAVersion::Unknown)
+    {
+        // The PDF/UA level can be set only in XMP,
+        // metadata let's ensure it exists
+        CreateXMPMetadata(m_packet);
+    }
+
+    m_metadata->PdfuaVersion = level;
+    m_xmpSynced = false;
+}
+
 nullable<const PdfString&> PdfMetadata::GetProperty(PdfAdditionalMetadata prop) const
 {
     if (m_metadata == nullptr)

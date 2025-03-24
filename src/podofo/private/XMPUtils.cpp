@@ -47,7 +47,46 @@ enum class PdfANamespaceKind : uint8_t
     Xmp,
     PdfAId,
     PdfUAId,
+    PdfAExtension,
+    PdfASchema,
+    PdfAProperty,
+    PdfAType,
 };
+
+// Coming from: https://pdfa.org/resource/xmp-extension-schema-templates/
+constexpr string_view PdfUAIdSchema = R"(
+<pdfaExtension:schemas>
+   <rdf:Bag>
+      <rdf:li rdf:parseType="Resource">
+         <pdfaSchema:namespaceURI>http://www.aiim.org/pdfua/ns/id/</pdfaSchema:namespaceURI>
+         <pdfaSchema:prefix>pdfuaid</pdfaSchema:prefix>
+         <pdfaSchema:schema>PDF/UA ID Schema</pdfaSchema:schema>
+         <pdfaSchema:property>
+            <rdf:Seq>
+               <rdf:li rdf:parseType="Resource">
+                  <pdfaProperty:category>internal</pdfaProperty:category>
+                  <pdfaProperty:description>Part of PDF/UA standard</pdfaProperty:description>
+                  <pdfaProperty:name>part</pdfaProperty:name>
+                  <pdfaProperty:valueType>Open Choice of Integer</pdfaProperty:valueType>
+               </rdf:li>
+               <rdf:li rdf:parseType="Resource">
+                  <pdfaProperty:category>internal</pdfaProperty:category>
+                  <pdfaProperty:description>Optional PDF/UA amendment identifier</pdfaProperty:description>
+                  <pdfaProperty:name>amd</pdfaProperty:name>
+                  <pdfaProperty:valueType>Open Choice of Text</pdfaProperty:valueType>
+               </rdf:li>
+               <rdf:li rdf:parseType="Resource">
+                  <pdfaProperty:category>internal</pdfaProperty:category>
+                  <pdfaProperty:description>Optional PDF/UA corrigenda identifier</pdfaProperty:description>
+                  <pdfaProperty:name>corr</pdfaProperty:name>
+                  <pdfaProperty:valueType>Open Choice of Text</pdfaProperty:valueType>
+               </rdf:li>
+            </rdf:Seq>
+         </pdfaSchema:property>
+      </rdf:li>
+   </rdf:Bag>
+</pdfaExtension:schemas>
+)";
 
 static void setXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, const PdfMetadataStore& metatata);
 static void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
@@ -58,6 +97,7 @@ static void getPdfALevelComponents(PdfALevel level, string& partStr, string& con
 static void getPdfUAVersionComponents(PdfUAVersion version, string& part, string& revision);
 static nullable<PdfString> getListElementText(xmlNodePtr elem);
 static nullable<PdfString> getElementText(xmlNodePtr elem);
+static void addExtension(xmlDocPtr doc, xmlNodePtr description, string_view extension);
 
 PdfMetadataStore PoDoFo::GetXMPMetadata(const string_view& xmpview, unique_ptr<PdfXMPPacket>& packet)
 {
@@ -243,6 +283,13 @@ void setXMPMetadata(xmlDocPtr doc, xmlNodePtr description, const PdfMetadataStor
 
     if (metatata.PdfuaVersion != PdfUAVersion::Unknown)
     {
+        if (metatata.PdfaLevel != PdfALevel::Unknown
+            && metatata.PdfaLevel < PdfALevel::L4)
+        {
+            // PDF/A up to 3 needs extensions schema for external properties
+            addExtension(doc, description, PdfUAIdSchema);
+        }
+
         // Set actual PdfUA version
         string partStr;
         string revision;
@@ -288,6 +335,22 @@ xmlNsPtr findOrCreateNamespace(xmlDocPtr doc, xmlNodePtr description, PdfANamesp
         case PdfANamespaceKind::PdfUAId:
             prefix = "pdfuaid";
             href = "http://www.aiim.org/pdfua/ns/id/";
+            break;
+        case PdfANamespaceKind::PdfAExtension:
+            prefix = "pdfaExtension";
+            href = "http://www.aiim.org/pdfa/ns/extension/";
+            break;
+        case PdfANamespaceKind::PdfASchema:
+            prefix = "pdfaSchema";
+            href = "http://www.aiim.org/pdfa/ns/schema#";
+            break;
+        case PdfANamespaceKind::PdfAProperty:
+            prefix = "pdfaProperty";
+            href = "http://www.aiim.org/pdfa/ns/property#";
+            break;
+        case PdfANamespaceKind::PdfAType:
+            prefix = "pdfaType";
+            href = "http://www.aiim.org/pdfa/ns/type#";
             break;
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unsupported");
@@ -677,4 +740,27 @@ nullable<PdfString> getElementText(xmlNodePtr elem)
         return nullptr;
     else
         return PdfString(*text);
+}
+
+void addExtension(xmlDocPtr doc, xmlNodePtr description, string_view extension)
+{
+    // Add required namespace to write extensions
+    (void)findOrCreateNamespace(doc, description, PdfANamespaceKind::PdfAExtension);
+    (void)findOrCreateNamespace(doc, description, PdfANamespaceKind::PdfASchema);
+    (void)findOrCreateNamespace(doc, description, PdfANamespaceKind::PdfAProperty);
+    (void)findOrCreateNamespace(doc, description, PdfANamespaceKind::PdfAType);
+
+    xmlNodePtr fragParent = xmlNewNode(NULL, XMLCHAR "temp");
+    int res = xmlParseBalancedChunkMemory(doc, nullptr, nullptr, 0, XMLCHAR extension.data(), &fragParent->children);
+    if (res == 0)
+    {
+        xmlNodePtr child = fragParent->children;
+        while (child)
+        {
+            xmlNodePtr next = child->next; // Save next before moving
+            xmlUnlinkNode(child);
+            xmlAddChild(description, child);
+            child = next;
+        }
+    }
 }
