@@ -138,13 +138,22 @@ PdfAnnotation& PdfAnnotationCollection::getAnnotAt(unsigned index) const
     if (index >= m_Annots.size())
         PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
-    return *m_Annots[index];
+    auto ret = m_Annots[index].get();
+    if (ret == nullptr)
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle, "The exception at index {} is invalid", index);
+
+    return *ret;
 }
 
 PdfAnnotation& PdfAnnotationCollection::getAnnot(const PdfReference& ref) const
 {
     const_cast<PdfAnnotationCollection&>(*this).initAnnotations();
-    return *m_Annots[(*m_annotMap).at(ref)];
+    unsigned index = (*m_annotMap).at(ref);
+    auto ret = m_Annots[index].get();
+    if (ret == nullptr)
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle, "The exception at index {} is invalid", index);
+
+    return *ret;
 }
 
 void PdfAnnotationCollection::initAnnotations()
