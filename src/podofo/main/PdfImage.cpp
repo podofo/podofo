@@ -668,20 +668,37 @@ void PdfImage::loadFromTiffHandle(void* handle, unsigned imageIndex)
         }
         case PHOTOMETRIC_MINISWHITE:
         {
-            if (bitsPixel == 1)
+            if (samplesPerPixel == 1)
             {
-                info.DecodeArray.push_back(1);
-                info.DecodeArray.push_back(0);
-                info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
+                if (bitsPixel == 1)
+                {
+                    info.DecodeArray.push_back(1);
+                    info.DecodeArray.push_back(0);
+                    info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
+                }
+                else if (bitsPixel == 8 || bitsPixel == 16)
+                {
+                    info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
+                }
+                else
+                {
+                    PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
+                }
             }
-            else if (bitsPixel == 8 || bitsPixel == 16)
+            else if (samplesPerPixel == 3 && bitsPixel == 8)
             {
-                info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
+                // NOTE: PHOTOMETRIC_MINISWHITE should be used only for B&W images,
+                // but TestRotations.tif uses samplesPerPixel == 3 and bitsPixel == 8
+                // to identify a RGB image. Some viewer/editors adhere to this
+                // convention, eg. Windows Photo Viewer. Some others, like Gimp,
+                // don't
+                info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceRGBInstace();
             }
             else
             {
                 PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
             }
+
             break;
         }
         case PHOTOMETRIC_RGB:
