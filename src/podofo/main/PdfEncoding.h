@@ -224,7 +224,7 @@ namespace PoDoFo
         bool tryConvertEncodedToUtf8(const std::string_view& encoded, std::string& str) const;
         bool tryConvertEncodedToCIDs(const std::string_view& encoded, std::vector<PdfCID>& cids) const;
         void writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const PdfCIDSystemInfo& info) const;
-        void writeToUnicodeCMap(PdfObject& cmapObj) const;
+        void writeToUnicodeCMap(PdfObject& cmapObj, const PdfFont& font) const;
         bool tryGetCharCode(PdfFont& font, unsigned gid, const unicodeview& codePoints, PdfCharCode& unit) const;
 
     private:

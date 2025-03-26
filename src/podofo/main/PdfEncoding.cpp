@@ -25,6 +25,8 @@ namespace PoDoFo
     {
     public:
         PdfDynamicEncodingMap(const shared_ptr<PdfCharCodeMap>& map);
+
+        void AppendCodeSpaceRange(OutputStream& stream, charbuff& temp) const override;
     };
 }
 
@@ -375,7 +377,7 @@ void PdfEncoding::exportToFont(PdfFont& font, const PdfCIDSystemInfo* cidInfo) c
     }
 
     auto& cmapObj = fontDict.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
-    writeToUnicodeCMap(cmapObj);
+    writeToUnicodeCMap(cmapObj, font);
     fontDict.AddKeyIndirect("ToUnicode"_n, cmapObj);
 }
 
@@ -616,7 +618,7 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
         "end");
 }
 
-void PdfEncoding::writeToUnicodeCMap(PdfObject& cmapObj) const
+void PdfEncoding::writeToUnicodeCMap(PdfObject& cmapObj, const PdfFont& font) const
 {
     // NOTE: We definitely want a valid Unicode map at this point
     charbuff temp;
@@ -700,3 +702,42 @@ bool PdfStringScanContext::TryScan(PdfCID& cid, string& utf8str, CodePointSpan& 
 
 PdfDynamicEncodingMap::PdfDynamicEncodingMap(const shared_ptr<PdfCharCodeMap>& map)
     : PdfEncodingMapBase(map, PdfEncodingMapType::CMap) { }
+
+void PdfDynamicEncodingMap::AppendCodeSpaceRange(OutputStream& stream, charbuff& temp) const
+{
+    auto usedCodeSpaceSizes = m_charMap->GetCodeRangeSizes();
+
+    unsigned size = 0;
+    for (auto& usedCodeSpaceSize : usedCodeSpaceSizes)
+    {
+        vector<utls::FSSUTFRange> ranges = utls::GetFSSUTFRanges(usedCodeSpaceSize);
+        size += (unsigned)ranges.size();
+    }
+
+    stream.Write(std::to_string(size));
+    stream.Write(" begincodespacerange\n");
+
+    bool first = true;
+    for (auto& usedCodeSpaceSize : usedCodeSpaceSizes)
+    {
+        vector<utls::FSSUTFRange> ranges = utls::GetFSSUTFRanges(usedCodeSpaceSize);
+
+        for (auto& range : ranges)
+        {
+            if (first)
+                first = false;
+            else
+                stream.Write("\n");
+
+            PdfCharCode firstCode(range.FirstCode);
+            PdfCharCode lastCode(range.LastCode);
+
+            firstCode.WriteHexTo(temp);
+            stream.Write(temp);
+            lastCode.WriteHexTo(temp);
+            stream.Write(temp);
+        }
+    }
+
+    stream.Write("\nendcodespacerange\n");
+}
