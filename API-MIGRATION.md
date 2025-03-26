@@ -207,7 +207,9 @@ and use move semantics on the stream
 - `PdfAnnotationFileAttachment`:
     * Setting/Getting filespec now uses `nullable<PdfFilespec&>`
 - `PdfRef`, `PdfXRefStream`: Make the constructor internal, `PdfXRefStream` class final
-- `PdfSignature::PrepareForSigning()`: Make it internal
+- `PdfSignature`:
+   * Removed `SetAppearanceStream`. Use `GetWidget().SetAppearanceStream()` (plus optional `GetWidget().GetOrCreateAppearanceCharacteristics()`, if you needed that) instead
+   * `PrepareForSigning()`: Make it internal
 - `PdfACtion` hierarchy: make all hierarchy constructors internals and leave classes final
 - `PdfField` hierarchy: make all hierarchy leave classes final
 - `PdfDataProvider`, `PdfDataContainer`: Make the classes internal

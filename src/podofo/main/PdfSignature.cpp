@@ -44,13 +44,6 @@ PdfSignature::PdfSignature(PdfObject& obj, PdfAcroForm* acroform) :
     // NOTE: Do not call init() here
 }
 
-void PdfSignature::SetAppearanceStream(const PdfXObject& obj, PdfAppearanceType appearance, const PdfName& state)
-{
-    auto& annot = MustGetWidget();
-    annot.SetAppearanceStream(obj, appearance, state);
-    (void)annot.GetOrCreateAppearanceCharacteristics();
-}
-
 void PdfSignature::init(PdfAcroForm& acroForm)
 {
     // TABLE 8.68 Signature flags: SignaturesExist (1)

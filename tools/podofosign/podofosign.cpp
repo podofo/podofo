@@ -920,7 +920,7 @@ void Main(const cspan<string_view>& args)
 
                 draw_annotation(document, painter, args, annot_rect);
 
-                signature->SetAppearanceStream(*sigXObject);
+                signature->MustGetWidget().SetAppearanceStream(*sigXObject);
             }
             catch (...)
             {

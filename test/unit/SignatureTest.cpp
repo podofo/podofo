@@ -231,7 +231,7 @@ TEST_CASE("TestSaveOnSigning")
 
     auto signer = PdfSignerCms(x509certbuffer, pkeybuffer);
 
-    signature.SetAppearanceStream(*xformObj);
+    signature.MustGetWidget().SetAppearanceStream(*xformObj);
 
     FileStreamDevice output(TestUtils::GetTestOutputFilePath("TestSaveOnSigning.pdf"), FileMode::Create);
     PoDoFo::SignDocument(doc, output, signer, signature, PdfSaveOptions::SaveOnSigning);
