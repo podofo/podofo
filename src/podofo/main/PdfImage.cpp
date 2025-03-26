@@ -7,13 +7,13 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfImage.h"
 
+#include <csetjmp>
+
 #ifdef __MINGW32__
 // Workaround <csetjmp> inlcuding <Windows.h> in MINGW
 // See https://github.com/podofo/podofo/commit/939ec73578e09aab11012bd38a034a74da1a202c#commitcomment-141054513
 #include <podofo/private/WindowsLeanMean.h>
 #endif // __MINGW32__
-
-#include <csetjmp>
 
 #ifdef PODOFO_HAVE_TIFF_LIB
 #ifdef USE_WIN32_FILEIO
@@ -32,6 +32,7 @@ extern "C" {
 
 #include <podofo/private/FileSystem.h>
 #include <podofo/private/ImageUtils.h>
+#include <podofo/private/PdfDrawingOperations.h>
 
 #include <pdfium/core/fxcodec/fax/faxmodule.h>
 
@@ -200,6 +201,11 @@ charbuff PdfImage::GetDecodedCopy(PdfPixelFormat format)
     return buffer;
 }
 
+const PdfXObjectForm* PdfImage::GetForm() const
+{
+    return m_Transformation.get();
+}
+
 PdfImage::PdfImage(PdfObject& obj)
     : PdfXObject(obj, PdfXObjectType::Image)
 {
@@ -306,6 +312,7 @@ void PdfImage::SetDataRaw(InputStream& stream, const PdfImageInfo& info)
     m_Width = info.Width;
     m_Height = info.Height;
     m_BitsPerComponent = info.BitsPerComponent;
+    m_Transformation = getTransformation(info.Orientation);
 
     auto& dict = GetDictionary();
     dict.AddKey("Width"_n, static_cast<int64_t>(info.Width));
@@ -332,48 +339,55 @@ void PdfImage::SetDataRaw(InputStream& stream, const PdfImageInfo& info)
         GetObject().GetOrCreateStream().SetData(stream);
 }
 
-void PdfImage::Load(const string_view& filepath, unsigned imageIndex)
+PdfImageMetadata PdfImage::Load(const string_view& filepath, const PdfImageLoadParams& params)
 {
-    if (filepath.length() > 3)
-    {
-        auto extension = fs::u8path(filepath).extension().u8string();
-        extension = utls::ToLower(extension);
+    // TODO: This should not look at the extension
+    auto extension = fs::u8path(filepath).extension().u8string();
+    extension = utls::ToLower(extension);
+
+    PdfImageMetadata ret;
+    ret.Orientation = PdfImageOrientation::TopLeft;
+    if (extension.length() == 0)
+        goto Fail;
 
 #ifdef PODOFO_HAVE_TIFF_LIB
-        if (extension == ".tif" || extension == ".tiff")
-        {
-            loadFromTiff(filepath, imageIndex);
-            return;
-        }
+    if (extension == ".tif" || extension == ".tiff")
+    {
+        loadFromTiff(filepath, params, ret);
+        return ret;
+    }
 #endif
 
 #ifdef PODOFO_HAVE_JPEG_LIB
-        if (extension == ".jpg" || extension == ".jpeg")
-        {
-            loadFromJpeg(filepath);
-            return;
-        }
+    if (extension == ".jpg" || extension == ".jpeg")
+    {
+        loadFromJpeg(filepath);
+        return ret;
+    }
 #endif
 
 #ifdef PODOFO_HAVE_PNG_LIB
-        if (extension == ".png")
-        {
-            loadFromPng(filepath);
-            return;
-        }
+    if (extension == ".png")
+    {
+        loadFromPng(filepath);
+        return ret;
+    }
 #endif
 
-    }
+Fail:
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, filepath);
 }
 
-void PdfImage::LoadFromBuffer(const bufferview& buffer, unsigned imageIndex)
+PdfImageMetadata PdfImage::LoadFromBuffer(const bufferview& buffer, const PdfImageLoadParams& params)
 {
     if (buffer.size() <= 4)
-        return;
+        return { };
 
     unsigned char magic[4];
     memcpy(magic, buffer.data(), 4);
+
+    PdfImageMetadata ret;
+    ret.Orientation = PdfImageOrientation::TopLeft;
 
 #ifdef PODOFO_HAVE_TIFF_LIB
     if ((magic[0] == 0x4D &&
@@ -385,8 +399,8 @@ void PdfImage::LoadFromBuffer(const bufferview& buffer, unsigned imageIndex)
             magic[2] == 0x2A &&
             magic[3] == 0x00))
     {
-        loadFromTiffData((const unsigned char*)buffer.data(), buffer.size(), imageIndex);
-        return;
+        loadFromTiffData((const unsigned char*)buffer.data(), buffer.size(), params, ret);
+        return ret;
     }
 #endif
 
@@ -395,7 +409,7 @@ void PdfImage::LoadFromBuffer(const bufferview& buffer, unsigned imageIndex)
         magic[1] == 0xD8)
     {
         loadFromJpegData((const unsigned char*)buffer.data(), buffer.size());
-        return;
+        return ret;
     }
 #endif
 
@@ -406,7 +420,7 @@ void PdfImage::LoadFromBuffer(const bufferview& buffer, unsigned imageIndex)
         magic[3] == 0x47)
     {
         loadFromPngData((const unsigned char*)buffer.data(), buffer.size());
-        return;
+        return ret;
     }
 #endif
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "Unknown magic number");
@@ -601,7 +615,7 @@ static void TIFFErrorWarningHandler(const char*, const char*, va_list)
     // Do nothing
 }
 
-void PdfImage::loadFromTiffHandle(void* handle, unsigned imageIndex)
+void PdfImage::loadFromTiffHandle(void* handle, const PdfImageLoadParams& params, PdfImageMetadata& metadata)
 {
     TIFF* hInTiffHandle = (TIFF*)handle;
 
@@ -613,7 +627,7 @@ void PdfImage::loadFromTiffHandle(void* handle, unsigned imageIndex)
     int32_t resolutionUnit;
 
     // Set the page/image index in the tiff context
-    TIFFSetDirectory(hInTiffHandle, (uint16_t)imageIndex);
+    TIFFSetDirectory(hInTiffHandle, (uint16_t)params.ImageIndex);
 
     TIFFGetField(hInTiffHandle, TIFFTAG_IMAGEWIDTH, &width);
     TIFFGetField(hInTiffHandle, TIFFTAG_IMAGELENGTH, &height);
@@ -623,6 +637,7 @@ void PdfImage::loadFromTiffHandle(void* handle, unsigned imageIndex)
     TIFFGetFieldDefaulted(hInTiffHandle, TIFFTAG_PHOTOMETRIC, &photoMetric);
     TIFFGetFieldDefaulted(hInTiffHandle, TIFFTAG_EXTRASAMPLES, &extraSamples, &sampleInfo);
     TIFFGetFieldDefaulted(hInTiffHandle, TIFFTAG_ORIENTATION, &orientation);
+    metadata.Orientation = (PdfImageOrientation)orientation;
 
     resolutionUnit = 0;
     float resX;
@@ -767,11 +782,16 @@ void PdfImage::loadFromTiffHandle(void* handle, unsigned imageIndex)
         }
     }
 
-    SpanStreamDevice input(buffer);
-    SetDataRaw(input, info);
+    if (orientation != ORIENTATION_TOPLEFT
+        && (params.Flags & PdfImageLoadFlags::SkipTransform) == PdfImageLoadFlags::None)
+    {
+        info.Orientation = (PdfImageOrientation)orientation;
+    }
+
+    SetDataRaw(buffer, info);
 }
 
-void PdfImage::loadFromTiff(const string_view& filename, unsigned imageIndex)
+void PdfImage::loadFromTiff(const string_view& filename, const PdfImageLoadParams& params, PdfImageMetadata& metadata)
 {
     TIFFSetErrorHandler(TIFFErrorWarningHandler);
     TIFFSetWarningHandler(TIFFErrorWarningHandler);
@@ -794,7 +814,7 @@ void PdfImage::loadFromTiff(const string_view& filename, unsigned imageIndex)
 
     try
     {
-        loadFromTiffHandle(hInfile, imageIndex);
+        loadFromTiffHandle(hInfile, params, metadata);
     }
     catch (...)
     {
@@ -834,41 +854,35 @@ struct TiffData
 
     toff_t seek(toff_t pos, int whence)
     {
-        if (pos == 0xFFFFFFFF) {
+        if (pos == 0xFFFFFFFF)
             return 0xFFFFFFFF;
-        }
+
         switch (whence)
         {
             case SEEK_SET:
+            {
                 if (static_cast<tsize_t>(pos) > m_size)
-                {
                     m_pos = m_size;
-                }
                 else
-                {
                     m_pos = pos;
-                }
                 break;
+            }
             case SEEK_CUR:
+            {
                 if (static_cast<tsize_t>(pos + m_pos) > m_size)
-                {
                     m_pos = m_size;
-                }
                 else
-                {
                     m_pos += pos;
-                }
                 break;
+            }
             case SEEK_END:
+            {
                 if (static_cast<tsize_t>(pos) > m_size)
-                {
                     m_pos = 0;
-                }
                 else
-                {
                     m_pos = m_size - pos;
-                }
                 break;
+            }
         }
         return m_pos;
     }
@@ -912,7 +926,7 @@ void tiff_Unmap(thandle_t, tdata_t, toff_t)
 {
     return;
 };
-void PdfImage::loadFromTiffData(const unsigned char* data, size_t len, unsigned imageIndex)
+void PdfImage::loadFromTiffData(const unsigned char* data, size_t len, const PdfImageLoadParams& params, PdfImageMetadata& metadata)
 {
     TIFFSetErrorHandler(TIFFErrorWarningHandler);
     TIFFSetWarningHandler(TIFFErrorWarningHandler);
@@ -929,7 +943,7 @@ void PdfImage::loadFromTiffData(const unsigned char* data, size_t len, unsigned 
 
     try
     {
-        loadFromTiffHandle(hInHandle, imageIndex);
+        loadFromTiffHandle(hInHandle, params, metadata);
     }
     catch (...)
     {
@@ -1043,6 +1057,48 @@ void PdfImage::loadFromPngData(const unsigned char* data, size_t len)
     }
 
     png_destroy_read_struct(&png, &pnginfo, (png_infopp)nullptr);
+}
+
+unique_ptr<PdfXObjectForm> PdfImage::getTransformation(PdfImageOrientation orientation)
+{
+    Matrix transformation;
+    switch (orientation)
+    {
+        case PdfImageOrientation::TopRight:
+            transformation = Matrix(-1, 0, 0, 1, m_Width, 0);
+            break;
+        case PdfImageOrientation::BottomRight:
+            transformation = Matrix(-1, 0, 0, -1, m_Width, m_Height);
+            break;
+        case PdfImageOrientation::BottomLeft:
+            transformation = Matrix(1, 0, 0, -1, 0, m_Height);
+            break;
+        case PdfImageOrientation::LeftTop:
+            transformation = Matrix(0, 1, -1, 0, m_Height, 0);
+            break;
+        case PdfImageOrientation::RightTop:
+            transformation = Matrix(0, 1, 1, 0, 0, 0);
+            break;
+        case PdfImageOrientation::RightBottom:
+            transformation = Matrix(0, -1, 1, 0, 0, m_Width);
+            break;
+        case PdfImageOrientation::LeftBottom:
+            transformation = Matrix(0, -1, -1, 0, m_Height, m_Width);
+            break;
+        case PdfImageOrientation::TopLeft:
+            // This would be the identity matrix, so it requires no transformation
+            return nullptr;
+        default:
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue, "Invalid orientation");
+    }
+
+    auto actualXobj = GetDocument().CreateXObjectForm(GetRect());
+    static_cast<PdfResourceOperations&>(actualXobj->GetOrCreateResources()).AddResource(PdfResourceType::XObject, "XOb1"_n, GetObject());
+    PdfStringStream sstream;
+    PoDoFo::WriteOperator_Do(sstream, "XOb1");
+    actualXobj->GetObject().GetOrCreateStream().SetData(sstream.GetString());
+
+    return actualXobj;
 }
 
 void PdfImage::loadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)

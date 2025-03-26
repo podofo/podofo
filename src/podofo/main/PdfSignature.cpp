@@ -44,10 +44,11 @@ PdfSignature::PdfSignature(PdfObject& obj, PdfAcroForm* acroform) :
     // NOTE: Do not call init() here
 }
 
-void PdfSignature::SetAppearanceStream(PdfXObjectForm& obj, PdfAppearanceType appearance, const PdfName& state)
+void PdfSignature::SetAppearanceStream(const PdfXObject& obj, PdfAppearanceType appearance, const PdfName& state)
 {
-    GetWidget()->SetAppearanceStream(obj, appearance, state);
-    (void)this->GetWidget()->GetOrCreateAppearanceCharacteristics();
+    auto& annot = MustGetWidget();
+    annot.SetAppearanceStream(obj, appearance, state);
+    (void)annot.GetOrCreateAppearanceCharacteristics();
 }
 
 void PdfSignature::init(PdfAcroForm& acroForm)

@@ -14,7 +14,7 @@
 namespace PoDoFo {
 
 class PdfPage;
-class PdfXObjectForm;
+class PdfXObject;
 class PdfAnnotationText;
 class PdfAnnotationLink;
 class PdfAnnotationFreeText;
@@ -91,6 +91,7 @@ class PODOFO_API PdfAnnotation : public PdfDictionaryElement
     friend class PdfAnnotationRedact;
     friend class PdfAnnotationProjection;
     friend class PdfAnnotationActionBase;
+    friend class PdfToggleButton;
 
 private:
     PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const Rect& rect);
@@ -114,16 +115,20 @@ public:
      *  \param xobj an XObject form
      *  \param appearance an appearance type to set
      *  \param state the state for which set it the obj; states depend on the annotation type
+     *  \param skipSelectedState skip setting the selected state, if non null
      */
-    void SetAppearanceStream(const PdfXObjectForm& xobj, PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
+    void SetAppearanceStream(const PdfXObject& xobj, PdfAppearanceType appearance = PdfAppearanceType::Normal,
+        const PdfName& state = { }, bool skipSelectedState = false);
 
     /** Set an appearance stream for this object
      *  to specify its visual appearance without handling page rotations
      *  \param xobj an XObject form
      *  \param appearance an appearance type to set
      *  \param state the state for which set it the obj; states depend on the annotation type
+     *  \param skipSelectedState skip setting the selected state, if non null
      */
-    void SetAppearanceStreamRaw(const PdfXObjectForm& xobj, PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
+    void SetAppearanceStreamRaw(const PdfXObject& xobj, PdfAppearanceType appearance = PdfAppearanceType::Normal,
+        const PdfName& state = { }, bool skipSelectedState = false);
 
     /** Get a list of qualified appearance streams
      */
@@ -252,6 +257,8 @@ private:
     static std::unique_ptr<PdfAnnotation> Create(PdfPage& page, PdfAnnotationType annotType, const Rect& rect);
 
     void SetPage(PdfPage& page) { m_Page = &page; }
+
+    void PushAppearanceStream(const PdfXObject& xobj, PdfAppearanceType appearance, const PdfName& state, bool raw);
 
 private:
     static bool tryCreateFromObject(const PdfObject& obj, PdfAnnotationType targetType, PdfAnnotation*& xobj);

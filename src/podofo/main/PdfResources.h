@@ -28,7 +28,6 @@ class PODOFO_API PdfResources final : public PdfDictionaryElement, public PdfRes
     friend class PdfTilingPattern;
     friend class PdfPainter;
     friend class PdfAcroForm;
-    friend class PdfAnnotation;
 
 private:
     PdfResources(PdfDocument& doc);

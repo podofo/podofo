@@ -47,6 +47,11 @@ bool PdfXObject::TryCreateFromObject(const PdfObject& obj, unique_ptr<const PdfX
     return xobj != nullptr;
 }
 
+const PdfXObjectForm* PdfXObject::GetForm() const
+{
+    return nullptr;
+}
+
 unique_ptr<PdfXObject> PdfXObject::CreateFromObject(const PdfObject& obj, PdfXObjectType reqType, PdfXObjectType& detectedType)
 {
     return unique_ptr<PdfXObject>(createFromObject(obj, reqType, detectedType));
@@ -91,14 +96,9 @@ PdfXObjectType PdfXObject::getPdfXObjectType(const PdfObject& obj)
     return fromString(name->GetString());
 }
 
-Matrix PdfXObject::GetMatrix() const
+const Matrix& PdfXObject::GetMatrix() const
 {
-    auto matrixObj = GetDictionary().GetKey("Matrix");
-    if (matrixObj == nullptr)
-        return Matrix();
-
-    auto& arr = matrixObj->GetArray();
-    return Matrix::FromArray(arr);
+    return Matrix::Identity;
 }
 
 string_view toString(PdfXObjectType type)

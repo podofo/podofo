@@ -208,21 +208,71 @@ TEST_CASE("TestImage6")
 TEST_CASE("TestImage7")
 {
     auto outputFile = TestUtils::GetTestOutputFilePath("TestImage7.pdf");
-    {
-        PdfMemDocument doc;
-        PdfPainter painter;
-        auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
-        painter.SetCanvas(page);
+    PdfMemDocument doc;
+    PdfPainter painter;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    painter.SetCanvas(page);
 
-        auto img1 = doc.CreateImage();
-        img1->Load(TestUtils::GetTestInputFilePath("MultipleFormats.tif"));
-        painter.DrawImage(*img1, 50, 700, 0.5, 0.5);
+    auto img1 = doc.CreateImage();
+    img1->Load(TestUtils::GetTestInputFilePath("MultipleFormats.tif"));
+    painter.DrawImage(*img1, 50, 700, 0.5, 0.5);
 
-        auto img2 = doc.CreateImage();
-        img2->Load(TestUtils::GetTestInputFilePath("MultipleFormats.tif"), 8);
-        painter.DrawImage(*img2, 50, 600, 0.5, 0.5);
+    auto img2 = doc.CreateImage();
+    img2->Load(TestUtils::GetTestInputFilePath("MultipleFormats.tif"), { 8 });
+    painter.DrawImage(*img2, 50, 600, 0.5, 0.5);
 
-        painter.FinishDrawing();
-        doc.Save(outputFile);
-    }
+    painter.FinishDrawing();
+    doc.Save(outputFile);
+}
+
+TEST_CASE("TestImage8")
+{
+    auto outputFile = TestUtils::GetTestOutputFilePath("TestImage8.pdf");
+    PdfMemDocument doc;
+    PdfPainter painter;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    painter.SetCanvas(page);
+
+    auto img = doc.CreateImage();
+    auto metadata = img->Load(TestUtils::GetTestInputFilePath("TestRotations.tif"), { 0 });
+    REQUIRE(metadata.Orientation == PdfImageOrientation::TopLeft);
+    painter.DrawImage(*img, 50, 650, 0.05, 0.05);
+
+    img = doc.CreateImage();
+    metadata = img->Load(TestUtils::GetTestInputFilePath("TestRotations.tif"), { 1 });
+    REQUIRE(metadata.Orientation == PdfImageOrientation::TopRight);
+    painter.DrawImage(*img, 200, 650, 0.05, 0.05);
+
+    img = doc.CreateImage();
+    metadata = img->Load(TestUtils::GetTestInputFilePath("TestRotations.tif"), { 2 });
+    REQUIRE(metadata.Orientation == PdfImageOrientation::BottomRight);
+    painter.DrawImage(*img, 350, 650, 0.05, 0.05);
+
+    img = doc.CreateImage();
+    metadata = img->Load(TestUtils::GetTestInputFilePath("TestRotations.tif"), { 3 });
+    REQUIRE(metadata.Orientation == PdfImageOrientation::BottomLeft);
+    painter.DrawImage(*img, 50, 450, 0.05, 0.05);
+
+    img = doc.CreateImage();
+    metadata = img->Load(TestUtils::GetTestInputFilePath("TestRotations.tif"), { 4 });
+    REQUIRE(metadata.Orientation == PdfImageOrientation::LeftTop);
+    painter.DrawImage(*img, 200, 450, 0.05, 0.05);
+
+    img = doc.CreateImage();
+    metadata = img->Load(TestUtils::GetTestInputFilePath("TestRotations.tif"), { 5 });
+    REQUIRE(metadata.Orientation == PdfImageOrientation::RightTop);
+    painter.DrawImage(*img, 400, 450, 0.05, 0.05);
+
+    img = doc.CreateImage();
+    metadata = img->Load(TestUtils::GetTestInputFilePath("TestRotations.tif"), { 6 });
+    REQUIRE(metadata.Orientation == PdfImageOrientation::RightBottom);
+    painter.DrawImage(*img, 50, 250, 0.05, 0.05);
+
+    img = doc.CreateImage();
+    metadata = img->Load(TestUtils::GetTestInputFilePath("TestRotations.tif"), { 7 });
+    REQUIRE(metadata.Orientation == PdfImageOrientation::LeftBottom);
+    painter.DrawImage(*img, 250, 250, 0.05, 0.05);
+
+    painter.FinishDrawing();
+    doc.Save(outputFile);
 }

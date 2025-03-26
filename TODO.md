@@ -1,7 +1,6 @@
 ### 1.0
 
 - Optimize passing shared_ptr
-- Settle https://github.com/podofo/podofo/issues/165
 - Check performances of PdfContentStreamReader
 
 ### After 1.0

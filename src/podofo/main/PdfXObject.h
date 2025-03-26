@@ -17,6 +17,7 @@ namespace PoDoFo {
 class PdfImage;
 class PdfXObjectForm;
 class PdfXObjectPostScript;
+class PdfAnnotation;
 
 /** A XObject is a content stream with several drawing commands and data
  *  which can be used throughout a PDF document.
@@ -32,6 +33,7 @@ class PODOFO_API PdfXObject : public PdfDictionaryElement
     friend class PdfImage;
     friend class PdfXObjectPostScript;
     friend class PdfContentStreamReader;
+    friend class PdfAnnotation;
 
 private:
     PdfXObject(PdfDocument& doc, PdfXObjectType subType);
@@ -50,9 +52,12 @@ public:
 
     virtual Rect GetRect() const = 0;
 
-    Matrix GetMatrix() const;
+    virtual const Matrix& GetMatrix() const;
 
     inline PdfXObjectType GetType() const { return m_Type; }
+
+protected:
+    virtual const PdfXObjectForm* GetForm() const;
 
 private:
     // To be called from PdfContentStreamReader

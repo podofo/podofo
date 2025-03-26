@@ -23,6 +23,19 @@ namespace PoDoFo {
 class PdfDocument;
 class InputStream;
 
+enum class PdfImageOrientation : uint8_t
+{
+    Unknown = 0,
+    TopLeft,
+    TopRight,
+    BottomRight,
+    BottomLeft,
+    LeftTop,
+    RightTop,
+    RightBottom,
+    LeftBottom
+};
+
 struct PODOFO_API PdfImageInfo final
 {
     unsigned Width = 0;
@@ -31,6 +44,26 @@ struct PODOFO_API PdfImageInfo final
     unsigned char BitsPerComponent = 0;
     PdfColorSpaceInitializer ColorSpace;
     std::vector<double> DecodeArray;
+    PdfImageOrientation Orientation = PdfImageOrientation::TopLeft;
+};
+
+/** Non PDF specific image metadata descriptors fetched from image codecs
+ */
+struct PODOFO_API PdfImageMetadata final
+{
+    PdfImageOrientation Orientation = PdfImageOrientation::Unknown;
+};
+
+enum class PdfImageLoadFlags
+{
+    None = 0,
+    SkipTransform = 1,  ///< Skip applying orientation transform
+};
+
+struct PODOFO_API PdfImageLoadParams final
+{
+    unsigned ImageIndex = 0;
+    PdfImageLoadFlags Flags = PdfImageLoadFlags::None;
 };
 
 /** A PdfImage object is needed when ever you want to embed an image
@@ -105,16 +138,18 @@ public:
     void SetDataRaw(InputStream& stream, const PdfImageInfo& info);
 
     /** Load the image data from bytes
-     * \param imageIndex image index to be fed to multi image/page
-     *   formats (eg. TIFF). Ignored by the other formats
+     * \param params parameters like index to be fed to multi image/page
+     *   formats (eg. TIFF)
+     * \returns image non PDF specific image metadata
      */
-    void Load(const std::string_view& filepath, unsigned imageIndex = 0);
+    PdfImageMetadata Load(const std::string_view& filepath, const PdfImageLoadParams& params = { });
 
     /** Load the image data from bytes
-     * \param imageIndex image index to be fed to multi image/page
-     *   formats (eg. TIFF). Ignored by the other formats
+     * \param params parameters like index to be fed to multi image/page
+     *   formats (eg. TIFF)
+     * \returns image non PDF specific image metadata 
      */
-    void LoadFromBuffer(const bufferview& buffer, unsigned imageIndex = 0);
+    PdfImageMetadata LoadFromBuffer(const bufferview& buffer, const PdfImageLoadParams& params = { });
 
     void ExportTo(charbuff& buff, PdfExportFormat format, PdfArray args = {}) const;
 
@@ -153,6 +188,9 @@ public:
      */
     unsigned GetHeight() const { return m_Height; }
 
+protected:
+    const PdfXObjectForm* GetForm() const override;
+
 private:
     /** Construct an image from an existing PdfObject
      *
@@ -178,17 +216,17 @@ private:
 #endif // PODOFO_HAVE_JPEG_LIB
 
 #ifdef PODOFO_HAVE_TIFF_LIB
-    void loadFromTiffHandle(void* handle, unsigned imageIndex);
+    void loadFromTiffHandle(void* handle, const PdfImageLoadParams& params, PdfImageMetadata& metadata);
     /** Load the image data from a TIFF file
      *  \param filename
      */
-    void loadFromTiff(const std::string_view& filename, unsigned imageIndex);
+    void loadFromTiff(const std::string_view& filename, const PdfImageLoadParams& params, PdfImageMetadata& metadata);
 
     /** Load the image data from TIFF bytes
      *  \param data TIFF bytes
      *  \param len number of bytes
      */
-    void loadFromTiffData(const unsigned char* data, size_t len, unsigned imageIndex);
+    void loadFromTiffData(const unsigned char* data, size_t len, const PdfImageLoadParams& params, PdfImageMetadata& metadata);
 #endif // PODOFO_HAVE_TIFF_LIB
 
 #ifdef PODOFO_HAVE_PNG_LIB
@@ -207,13 +245,18 @@ private:
     static void loadFromPngContent(PdfImage& image, png_struct_def* png, png_info_def* info);
 #endif // PODOFO_HAVE_PNG_LIB
 
+    std::unique_ptr<PdfXObjectForm> getTransformation(PdfImageOrientation orientation);
+
 private:
     PdfColorSpaceFilterPtr m_ColorSpace;
     unsigned m_Width;
     unsigned m_Height;
     unsigned m_BitsPerComponent;
+    std::unique_ptr<PdfXObjectForm> m_Transformation;
 };
 
 };
+
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfImageLoadFlags);
 
 #endif // PDF_IMAGE_H

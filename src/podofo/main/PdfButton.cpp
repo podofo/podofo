@@ -110,3 +110,14 @@ bool PdfToggleButton::IsChecked() const
 
     return false;
 }
+
+void PdfToggleButton::SetAppearanceChecked(const PdfXObject& xobj)
+{
+    // TODO: Correct export value support
+    MustGetWidget().PushAppearanceStream(xobj, PdfAppearanceType::Normal, "Yes"_n, false);
+}
+
+void PdfToggleButton::SetAppearanceUnchecked(const PdfXObject& xobj)
+{
+    MustGetWidget().PushAppearanceStream(xobj, PdfAppearanceType::Normal, "Off"_n, false);
+}

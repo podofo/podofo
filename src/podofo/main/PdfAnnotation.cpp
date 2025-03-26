@@ -22,8 +22,6 @@ using namespace std;
 using namespace PoDoFo;
 
 static PdfName getAppearanceName(PdfAppearanceType appearance);
-static void setAppearanceStream(PdfDictionary& dict, const PdfObject& abObj,
-    PdfAppearanceType appearance, const PdfName& state);
 
 PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const Rect& rect)
     : PdfDictionaryElement(page.GetDocument(), "Annot"_n), m_AnnotationType(annotType), m_Page(&page)
@@ -162,34 +160,20 @@ unique_ptr<PdfAnnotation> PdfAnnotation::Create(PdfPage& page, PdfAnnotationType
     }
 }
 
-void PdfAnnotation::SetAppearanceStream(const PdfXObjectForm& xobj, PdfAppearanceType appearance, const PdfName& state)
+void PdfAnnotation::SetAppearanceStream(const PdfXObject& xobj, PdfAppearanceType appearance,
+    const PdfName& state, bool skipSelectedState)
 {
-    const PdfObject* apObj;
-    double teta;
-    if (MustGetPage().TryGetRotationRadians(teta))
-    {
-        // If the page has a rotation, add a preamble object that
-        // will transform the input xobject and adjust the orientation
-        auto newMat = PoDoFo::GetFrameRotationTransform((Rect)xobj.GetRectRaw(), -teta);
-        auto actualXobj = GetDocument().CreateXObjectForm(xobj.GetRect());
-        actualXobj->GetOrCreateResources().AddResource(PdfResourceType::XObject, "XOb1"_n, xobj.GetObject());
-        PdfStringStream sstream;
-        PoDoFo::WriteOperator_Do(sstream, "XOb1");
-        actualXobj->GetObject().GetOrCreateStream().SetData(sstream.GetString());
-        actualXobj->SetMatrix(newMat);
-        apObj = &actualXobj->GetObject();
-    }
-    else
-    {
-        apObj = &xobj.GetObject();
-    }
-
-    setAppearanceStream(GetDictionary(), *apObj, appearance, state);
+    PushAppearanceStream(xobj, appearance, state, false);
+    if (!state.IsNull() && !skipSelectedState)
+        GetDictionary().AddKey("AS"_n, state);
 }
 
-void PdfAnnotation::SetAppearanceStreamRaw(const PdfXObjectForm& xobj, PdfAppearanceType appearance, const PdfName& state)
+void PdfAnnotation::SetAppearanceStreamRaw(const PdfXObject& xobj, PdfAppearanceType appearance,
+    const PdfName& state, bool skipSelectedState)
 {
-    setAppearanceStream(GetDictionary(), xobj.GetObject(), appearance, state);
+    PushAppearanceStream(xobj, appearance, state, true);
+    if (!state.IsNull() && !skipSelectedState)
+        GetDictionary().AddKey("AS"_n, state);
 }
 
 void PdfAnnotation::GetAppearanceStreams(vector<PdfAppearanceStream>& states) const
@@ -392,6 +376,83 @@ bool PdfAnnotation::TryCreateFromObject(const PdfObject& obj, unique_ptr<const P
     return true;
 }
 
+void PdfAnnotation::PushAppearanceStream(const PdfXObject& xobj, PdfAppearanceType appearance, const PdfName& state, bool raw)
+{
+    auto form = xobj.GetForm();
+
+    const PdfObject* apObj;
+    double teta;
+    if (raw || !MustGetPage().TryGetRotationRadians(teta))
+    {
+        if (form == nullptr)
+        {
+            // Create a preamble form that just draw the xobject
+            auto actualXobj = GetDocument().CreateXObjectForm(xobj.GetRect());
+            static_cast<PdfResourceOperations&>(actualXobj->GetOrCreateResources())
+                .AddResource(PdfResourceType::XObject, "XOb1"_n, xobj.GetObject());
+            PdfStringStream sstream;
+            PoDoFo::WriteOperator_Do(sstream, "XOb1");
+            actualXobj->GetObject().GetOrCreateStream().SetData(sstream.GetString());
+            form = actualXobj.get();
+        }
+
+        apObj = &form->GetObject();
+    }
+    else
+    {
+        // If the page has a rotation, add a preamble from that
+        // will transform the input xobject and adjust the orientation
+        unique_ptr<PdfXObjectForm> actualXobj;
+        Matrix newMat;
+        if (form == nullptr)
+        {
+            actualXobj = GetDocument().CreateXObjectForm(xobj.GetRect());
+            static_cast<PdfResourceOperations&>(actualXobj->GetOrCreateResources())
+                .AddResource(PdfResourceType::XObject, "XOb1"_n, xobj.GetObject());
+            newMat = PoDoFo::GetFrameRotationTransform(xobj.GetRect(), -teta);
+        }
+        else
+        {
+            actualXobj = GetDocument().CreateXObjectForm(form->GetRect());
+            static_cast<PdfResourceOperations&>(actualXobj->GetOrCreateResources())
+                .AddResource(PdfResourceType::XObject, "XOb1"_n, form->GetObject());
+            newMat = PoDoFo::GetFrameRotationTransform(form->GetRect(), -teta);
+        }
+
+        PdfStringStream sstream;
+        PoDoFo::WriteOperator_Do(sstream, "XOb1");
+        actualXobj->GetObject().GetOrCreateStream().SetData(sstream.GetString());
+        actualXobj->SetMatrix(newMat);
+        apObj = &actualXobj->GetObject();
+    }
+
+    PdfName name;
+    if (appearance == PdfAppearanceType::Rollover)
+        name = "R";
+    else if (appearance == PdfAppearanceType::Down)
+        name = "D";
+    else // PdfAnnotationAppearance::Normal
+        name = "N";
+
+    auto apDictObj = GetDictionary().FindKey("AP");
+    if (apDictObj == nullptr || !apDictObj->IsDictionary())
+        apDictObj = &GetDictionary().AddKey("AP"_n, PdfDictionary());
+
+    if (state.IsNull())
+    {
+        apDictObj->GetDictionary().AddKeyIndirectSafe(name, *apObj);
+    }
+    else
+    {
+        // when the state is defined, then the appearance is expected to be a dictionary
+        auto apInnerObj = apDictObj->GetDictionary().FindKey(name);
+        if (apInnerObj == nullptr || !apInnerObj->IsDictionary())
+            apInnerObj = &apDictObj->GetDictionary().AddKey(name, PdfDictionary());
+
+        apInnerObj->GetDictionary().AddKeyIndirectSafe(state, *apObj);
+    }
+}
+
 bool PdfAnnotation::tryCreateFromObject(const PdfObject& obj, PdfAnnotationType targetType, PdfAnnotation*& xobj)
 {
     auto type = getAnnotationType(obj);
@@ -520,41 +581,5 @@ PdfName getAppearanceName(PdfAppearanceType appearance)
             return "D"_n;
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid appearance type");
-    }
-}
-
-void setAppearanceStream(PdfDictionary& dict, const PdfObject& abObj,
-    PdfAppearanceType appearance, const PdfName& state)
-{
-    PdfName name;
-    if (appearance == PdfAppearanceType::Rollover)
-        name = "R";
-    else if (appearance == PdfAppearanceType::Down)
-        name = "D";
-    else // PdfAnnotationAppearance::Normal
-        name = "N";
-
-    auto apDictObj = dict.FindKey("AP");
-    if (apDictObj == nullptr || !apDictObj->IsDictionary())
-        apDictObj = &dict.AddKey("AP"_n, PdfDictionary());
-
-    if (state.IsNull())
-    {
-        apDictObj->GetDictionary().AddKeyIndirectSafe(name, abObj);
-    }
-    else
-    {
-        // when the state is defined, then the appearance is expected to be a dictionary
-        auto apInnerObj = apDictObj->GetDictionary().FindKey(name);
-        if (apInnerObj == nullptr || !apInnerObj->IsDictionary())
-            apInnerObj = &apDictObj->GetDictionary().AddKey(name, PdfDictionary());
-
-        apInnerObj->GetDictionary().AddKeyIndirectSafe(state, abObj);
-    }
-
-    if (!state.IsNull())
-    {
-        if (!dict.HasKey("AS"))
-            dict.AddKey("AS"_n, state);
     }
 }

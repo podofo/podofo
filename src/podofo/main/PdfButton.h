@@ -68,7 +68,6 @@ namespace PoDoFo
         PdfToggleButton(PdfObject& obj, PdfAcroForm* acroform, PdfFieldType fieldType);
 
     public:
-
         /** Sets the state of this toggle button
          *
          *  \param isChecked if true the toggle button will be checked
@@ -79,6 +78,20 @@ namespace PoDoFo
          * \returns true if the toggle button is checked
          */
         bool IsChecked() const;
+
+        /** Set the appearance stream which is displayed when the checkbox
+         *  is checked.
+         *
+         *  \param rXObject an xobject which contains the drawing commands for a checked checkbox
+         */
+        void SetAppearanceChecked(const PdfXObject& xobj);
+
+        /** Set the appearance stream which is displayed when the checkbox
+         *  is unchecked.
+         *
+         *  \param rXObject an xobject which contains the drawing commands for an unchecked checkbox
+         */
+        void SetAppearanceUnchecked(const PdfXObject& xobj);
     };
 }
 

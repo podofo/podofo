@@ -27,6 +27,13 @@ PdfXObjectForm::PdfXObjectForm(PdfObject& obj)
     if (dict.TryFindKeyAs("BBox", arr))
         m_Rect = Rect::FromArray(*arr);
 
+    auto matrixObj = GetDictionary().GetKey("Matrix");
+    if (matrixObj != nullptr)
+    {
+        auto& arr = matrixObj->GetArray();
+        m_Matrix = Matrix::FromArray(arr);
+    }
+
     auto resources = dict.FindKey("Resources");
     if (resources != nullptr)
         m_Resources.reset(new PdfResources(*resources));
@@ -64,6 +71,12 @@ void PdfXObjectForm::SetMatrix(const Matrix& m)
     arr.Add(m[5]);
 
     GetDictionary().AddKey("Matrix"_n, std::move(arr));
+    m_Matrix = m;
+}
+
+const Matrix& PdfXObjectForm::GetMatrix() const
+{
+    return m_Matrix;
 }
 
 PdfResources* PdfXObjectForm::getResources()
@@ -123,25 +136,27 @@ PdfResources& PdfXObjectForm::GetOrCreateResources()
     return *m_Resources;
 }
 
+const PdfXObjectForm* PdfXObjectForm::GetForm() const
+{
+    return this;
+}
+
 void PdfXObjectForm::initXObject(const Rect& rect)
 {
     // Initialize static data
-    if (m_Matrix.IsEmpty())
-    {
-        // This matrix is the same for all PdfXObjects so cache it
-        m_Matrix.Add(PdfObject(static_cast<int64_t>(1)));
-        m_Matrix.Add(PdfObject(static_cast<int64_t>(0)));
-        m_Matrix.Add(PdfObject(static_cast<int64_t>(0)));
-        m_Matrix.Add(PdfObject(static_cast<int64_t>(1)));
-        m_Matrix.Add(PdfObject(static_cast<int64_t>(0)));
-        m_Matrix.Add(PdfObject(static_cast<int64_t>(0)));
-    }
+    PdfArray arr;
+    arr.Add(PdfObject(static_cast<int64_t>(m_Matrix[0])));
+    arr.Add(PdfObject(static_cast<int64_t>(m_Matrix[1])));
+    arr.Add(PdfObject(static_cast<int64_t>(m_Matrix[2])));
+    arr.Add(PdfObject(static_cast<int64_t>(m_Matrix[3])));
+    arr.Add(PdfObject(static_cast<int64_t>(m_Matrix[4])));
+    arr.Add(PdfObject(static_cast<int64_t>(m_Matrix[5])));
 
     PdfArray bbox;
     rect.ToArray(bbox);
     GetDictionary().AddKey("BBox"_n, bbox);
     GetDictionary().AddKey("FormType"_n, PdfVariant(static_cast<int64_t>(1))); // only 1 is only defined in the specification.
-    GetDictionary().AddKey("Matrix"_n, m_Matrix);
+    GetDictionary().AddKey("Matrix"_n, arr);
 }
 
 void PdfXObjectForm::initAfterPageInsertion(const PdfPage& page)

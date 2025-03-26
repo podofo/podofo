@@ -51,9 +51,14 @@ public:
 
     void SetMatrix(const Matrix& m);
 
+    const Matrix& GetMatrix() const override;
+
 public:
     inline PdfResources* GetResources() { return m_Resources.get(); }
     inline const PdfResources* GetResources() const { return m_Resources.get(); }
+
+protected:
+    const PdfXObjectForm* GetForm() const override;
 
 private:
     PdfXObjectForm(PdfObject& obj);
@@ -79,7 +84,7 @@ private:
 
 private:
     Rect m_Rect;
-    PdfArray m_Matrix;
+    Matrix m_Matrix;
     std::unique_ptr<PdfResources> m_Resources;
 };
 
