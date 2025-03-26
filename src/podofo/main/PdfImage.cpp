@@ -685,7 +685,7 @@ void PdfImage::loadFromTiffHandle(void* handle, unsigned imageIndex)
                     PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
                 }
             }
-            else if (samplesPerPixel == 3 && bitsPixel == 8)
+            else if (samplesPerPixel == 3 && bitsPerSample == 8)
             {
                 // NOTE: PHOTOMETRIC_MINISWHITE should be used only for B&W images,
                 // but TestRotations.tif uses samplesPerPixel == 3 and bitsPixel == 8
