@@ -1089,7 +1089,7 @@ unique_ptr<PdfXObjectForm> PdfImage::getTransformation(PdfImageOrientation orien
             // This would be the identity matrix, so it requires no transformation
             return nullptr;
         default:
-            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue, "Invalid orientation");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Invalid orientation");
     }
 
     auto actualXobj = GetDocument().CreateXObjectForm(GetRect());
