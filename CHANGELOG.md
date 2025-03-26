@@ -1,24 +1,17 @@
 ## Version 1.0.0-beta
 
-- Support Type1, CFF and OpenType CFF fonts for subsetting
+- Added support for Type1, CFF and OpenType CFF font subsetting
 - Many fixes in TrueType legacy subsetting
-- Added high-level signing API, see `PdfSignerCMS` and "TestSignature1" test case
-- Set `PdfSignature` to have correct `/ByteRange` and `/Contents` after signing with `PoDoFo::SignDocument`
-- Added support for predefined CMap(s). It improves CJK text extraction
-- Reviewed `PdfFileSpec`, `PdfAction`, `PdfDestination` API and their usage in
-`PdfOutlineItem`, `PdfOutlines`, `PdfAnnotationActionBase`, `PdfAnnotationLink`, `PdfAnnotationFileAttachment`
-- Reviewed `PdfNameTree`, renamed to `PdfNameTrees` and added `PdfNameTree` to pick specific trees with typed element
-- Reviewed `PdfExtGState`
-- Reviewed `PdfTilingPattern`, `PdfShadingPattern`, `PdfFunction`
+- Added high-level signing API, see `PdfSignerCMS` and [`TestSignature1`](https://github.com/podofo/podofo/blob/edbcb16a5b18cb20f1d0da1724639cee13608436/test/unit/SignatureTest.cpp#L37) test case
+- Added support for signing encrypted documents
+- Removed Libidn dependency, default to AESV3R6 encryption
+- Added support for predefined CMap(s) for improved CJK text extraction
+- Added raw rectangle corners retrieval in `PdfAnnotation`, `PdfPage`
 - `PdfDocument`: Added `GetFieldsIterator()`
 - `PdfPage`: Added `GetFieldsIterator()`
 - `PdfSignature`: Added `TryGetPreviousRevision()`
 - `PdfCanvas`: Added `CopyContentsTo()`
-- Removed Libidn dependency, default to AESV3R6 encryption
-- `PdfEncrypt` is now stateless: added `PdfEncryptContext` as a
-   separate state context and used as argument in `PdfEncrypt` methods
-- Added `PdfNames` and moved all known names there from `PdfName`
-- `PdfPageCollection`: Methods creating pages now takes PdfPageSize or default inferred from doc
+- `FileStreamDevice` now uses again C stdio for better performance
 - `PdfName`:
   * Optimized for struct size and construction from string const literal
   * Added `PdfName operator""_nm(const char*, size_t)`
@@ -26,7 +19,17 @@
   * Optimized for struct size
   * Added `std::string&&` constructor
 - `PdfVariant`: Optimized for accessing `PdfString`, `PdfName` and `PdfReference`
-- `FileStreamDevice` now uses again C stdio for better performance
+- Reviewed `PdfFileSpec`, `PdfAction`, `PdfDestination` API and their usage in
+`PdfOutlineItem`, `PdfOutlines`, `PdfAnnotationActionBase`, `PdfAnnotationLink`, `PdfAnnotationFileAttachment`
+- Reviewed `PdfExtension` API
+- Reviewed `PdfNameTree`, renamed to `PdfNameTrees` and added `PdfNameTree` to pick specific trees with typed element
+- Reviewed `PdfExtGState`
+- Reviewed `PdfTilingPattern`, `PdfShadingPattern`, `PdfFunction`: the API now exposes the full capabilities of the PDF specification
+- `PdfEncrypt` is now stateless: added `PdfEncryptContext` as a
+   separate state context and used as argument in `PdfEncrypt` methods
+- Set `PdfSignature` to have correct `/ByteRange` and `/Contents` after signing with `PoDoFo::SignDocument`
+- Added `PdfNames` and moved all known names there from `PdfName`
+- `PdfPageCollection`: Methods creating pages now takes `PdfPageSize` or default inferred size from doc
 - Fixed `PdfStreamedDocument`, see #88
 - Tons of API improvements (see [API-MIGRATION.md](https://github.com/podofo/podofo/blob/master/API-MIGRATION.md))
 - Tons of other bug fixes
