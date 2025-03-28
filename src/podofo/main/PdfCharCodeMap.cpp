@@ -187,16 +187,17 @@ void PdfCharCodeMap::PushRange(const PdfCharCode& srcCodeLo, unsigned rangeSize,
     }
     else
     {
-        auto it = inserted.first;
-        if (it->Size < rangeSize)
+        if (inserted.first->Size < rangeSize)
         {
+            // Prepare an hint for re-insertion
+            auto it = std::prev(inserted.first);
             // If the current range with same srcCodeLo has a
             // size lesser than the one being inserted update it
             invalidRanges = true;
-            auto node = m_Ranges.extract(it);
+            auto node = m_Ranges.extract(inserted.first);
             node.value().Size = rangeSize;
-            m_Ranges.insert(inserted.first, std::move(node));
-            (void)tryFixNextRanges(inserted.first, srcCodeLo.Code + rangeSize);
+            it = m_Ranges.insert(it, std::move(node));
+            (void)tryFixNextRanges(it, srcCodeLo.Code + rangeSize);
         }
     }
 
