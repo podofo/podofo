@@ -463,10 +463,7 @@ void PdfAscii85Filter::WidePut(unsigned tuple, int bytes) const
 #pragma endregion PdfFlateFilter
 
 PdfFlateFilter::PdfFlateFilter()
-{
-    memset(m_buffer, 0, sizeof(m_buffer));
-    memset(&m_stream, 0, sizeof(m_stream));
-}
+    : m_buffer{ }, m_stream{ } { }
 
 void PdfFlateFilter::BeginEncodeImpl()
 {
@@ -543,6 +540,7 @@ void PdfFlateFilter::DecodeBlockImpl(const char* buffer, size_t len)
     int flateErr;
     unsigned writtenDataSize;
 
+Read:
     m_stream.avail_in = static_cast<unsigned>(len);
     m_stream.next_in = reinterpret_cast<Bytef*>(const_cast<char*>(buffer));
 
@@ -557,6 +555,20 @@ void PdfFlateFilter::DecodeBlockImpl(const char* buffer, size_t len)
             case Z_DATA_ERROR:
             case Z_MEM_ERROR:
             {
+                if (m_stream.total_in == 2 && *buffer == '\r')
+                {
+                    // Found a spurious \r when trying to read tye header. Let's
+                    // remove it and try to read the header again. All major
+                    // PDF implementations have some sort of handling for this.
+                    // QPDF unconditionally treat a single carriage return as
+                    // newline https://github.com/qpdf/qpdf/blob/314bd3ebe03280a2cc22eba7527e09b2a179373d/libqpdf/QPDF_objects.cc#L1269
+                    PoDoFo::LogMessage(PdfLogSeverity::Warning, "Found carriage return when reading FladeDecode header");
+                    buffer++;
+                    len--;
+                    (void)inflateReset(&m_stream);
+                    goto Read;
+                }
+
                 PoDoFo::LogMessage(PdfLogSeverity::Error, "Flate Decoding Error from ZLib: {}", flateErr);
                 (void)inflateEnd(&m_stream);
 
