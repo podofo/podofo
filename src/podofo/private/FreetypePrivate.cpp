@@ -87,12 +87,12 @@ FT_Face FT::CreateFaceFromBuffer(const bufferview& view, unsigned faceIndex,
             buffer = view;
 
         // Unconditionally re-create the face from the copied buffer
-        return createFaceFromBuffer(buffer, 0);
+        return createFaceFromBuffer(view, 0);
     }
     else
     {
         buffer = view;
-        return createFaceFromBuffer(buffer, 0);
+        return createFaceFromBuffer(view, 0);
     }
 }
 
