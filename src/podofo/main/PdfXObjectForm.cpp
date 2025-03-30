@@ -27,12 +27,8 @@ PdfXObjectForm::PdfXObjectForm(PdfObject& obj)
     if (dict.TryFindKeyAs("BBox", arr))
         m_Rect = Rect::FromArray(*arr);
 
-    auto matrixObj = GetDictionary().GetKey("Matrix");
-    if (matrixObj != nullptr)
-    {
-        auto& arr = matrixObj->GetArray();
-        m_Matrix = Matrix::FromArray(arr);
-    }
+    if (dict.TryFindKeyAs("Matrix", arr))
+        m_Matrix = Matrix::FromArray(*arr);
 
     auto resources = dict.FindKey("Resources");
     if (resources != nullptr)
