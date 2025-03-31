@@ -19,7 +19,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-static char getEscapedCharacter(char ch);
+static char getEscapedCharacter(char ch, bool isEncrypted);
 static void readHexString(InputStreamDevice& device, charbuff& buffer);
 static bool isOctalChar(char ch);
 
@@ -483,7 +483,7 @@ void PdfTokenizer::ReadDictionary(InputStreamDevice& device, PdfVariant& variant
     if (contentsHexBuffer.get() != nullptr)
     {
         auto type = dict.GetKey("Type");
-        // "Contents" is unencrypted in /Type/Sig and /Type/DocTimeStamp dictionaries 
+        // "Contents" is unencrypted in /Type/Sig and /Type/DocTimeStamp dictionaries
         // https://issues.apache.org/jira/browse/PDFBOX-3173
         bool contentsUnencrypted = type != nullptr && type->GetDataType() == PdfDataType::Name &&
             (type->GetName() == "Sig" || type->GetName() == "DocTimeStamp");
@@ -595,7 +595,7 @@ void PdfTokenizer::ReadString(InputStreamDevice& device, PdfVariant& variant, co
                 if (ch != '\n' && ch != '\r')
                 {
                     // Handle plain escape sequences
-                    char escapedCh = getEscapedCharacter(ch);
+                    char escapedCh = getEscapedCharacter(ch, encrypt != nullptr);
                     if (escapedCh != '\0')
                         m_charBuffer.push_back(escapedCh);
                 }
@@ -694,7 +694,7 @@ void PdfTokenizer::EnqueueToken(const string_view& token, PdfTokenType tokenType
     m_tokenQueque.push_back(TokenizerPair(string(token), tokenType));
 }
 
-char getEscapedCharacter(char ch)
+char getEscapedCharacter(char ch, bool isEncrypted)
 {
     switch (ch)
     {
@@ -715,7 +715,18 @@ char getEscapedCharacter(char ch)
         case '\\':
             return '\\';
         default:
-            return '\0';
+            // ISO 32000-2:
+            // 7.3.4.2 Literal strings:
+            // ...
+            // When a document is encrypted (see 7.6, "Encryption"), all of its
+            // strings are encrypted; the encrypted string values contain
+            // arbitrary 8-bit values. When writing encrypted strings using the
+            // literal string form, the PDF writer shall follow the rules
+            // described. That is, the REVERSE SOLIDUS character shall be used as
+            // an escape to specify unbalanced PARENTHESES or the REVERSE SOLIDUS
+            // character itself. The REVERSE SOLIDUS may, but is not required, to
+            // be used to specify other, arbitrary 8-bit values.
+            return !isEncrypted ? '\0' : ch;
     }
 }
 
