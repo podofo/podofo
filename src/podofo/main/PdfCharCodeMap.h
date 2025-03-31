@@ -73,6 +73,10 @@ namespace PoDoFo
         unsigned Size = 0;
         CodePointSpan DstCodeLo;
 
+        CodeUnitRange();
+
+        CodeUnitRange(PdfCharCode srcCodeLo, unsigned size, CodePointSpan dstCodeLo);
+
         PdfCharCode GetSrcCodeHi() const;
     };
 
@@ -95,6 +99,25 @@ namespace PoDoFo
     };
 
     using CodeUnitRanges = std::set<CodeUnitRange, CodeUnitRangeInequality>;
+
+    /**
+     * Represent a range in the "begincodespacerange" section
+     * \remarks Lo/Hi codes for different ranges can't be compared linearly, unless
+     * they are 1-byte codes. See Adobe CMap specification, pages 48-50:
+     * https://adobe-type-tools.github.io/font-tech-notes/pdfs/5014.CIDFont_Spec.pdf
+     */
+    struct PODOFO_API CodeSpaceRange final
+    {
+        CodeSpaceRange();
+        CodeSpaceRange(unsigned codeLo, unsigned codeHi, unsigned char codeSpaceSize);
+
+        unsigned CodeLo;
+        unsigned CodeHi;
+        unsigned char CodeSpaceSize;
+
+        PdfCharCode GetSrcCodeLo() const;
+        PdfCharCode GetSrcCodeHi() const;
+    };
 
     /**
      * A bidirectional map from character code units to unspecified code points
@@ -172,9 +195,7 @@ namespace PoDoFo
          */
         bool IsTrivialIdentity() const;
 
-        /** Get a list or code range size defined in this map
-         */
-        std::vector<unsigned char> GetCodeRangeSizes() const;
+        std::vector<CodeSpaceRange> GetCodeSpaceRanges() const;
 
     public:
         /** Provides direct mappings

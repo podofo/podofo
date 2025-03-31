@@ -31,6 +31,7 @@ namespace PoDoFo
 }
 
 static PdfCharCode fetchFallbackCharCode(string_view::iterator& it, const string_view::iterator& end, const PdfEncodingLimits& limits);
+static void pushCodeRangeSize(vector<unsigned char>& codeRangeSizes, unsigned char codeRangeSize);
 
 PdfEncoding::PdfEncoding()
     : PdfEncoding(NullEncodingId, PdfEncodingMapFactory::GetNullEncodingMap(), nullptr)
@@ -620,6 +621,7 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
 
 void PdfEncoding::writeToUnicodeCMap(PdfObject& cmapObj, const PdfFont& font) const
 {
+    (void)font;
     // NOTE: We definitely want a valid Unicode map at this point
     charbuff temp;
     auto& toUnicode = GetToUnicodeMap();
@@ -705,7 +707,12 @@ PdfDynamicEncodingMap::PdfDynamicEncodingMap(const shared_ptr<PdfCharCodeMap>& m
 
 void PdfDynamicEncodingMap::AppendCodeSpaceRange(OutputStream& stream, charbuff& temp) const
 {
-    auto usedCodeSpaceSizes = m_charMap->GetCodeRangeSizes();
+    vector<unsigned char> usedCodeSpaceSizes;
+    for (auto& pair : m_charMap->GetMappings())
+        pushCodeRangeSize(usedCodeSpaceSizes, pair.first.CodeSpaceSize);
+
+    for (auto& range : m_charMap->GetRanges())
+        pushCodeRangeSize(usedCodeSpaceSizes, range.SrcCodeLo.CodeSpaceSize);
 
     unsigned size = 0;
     for (auto& usedCodeSpaceSize : usedCodeSpaceSizes)
@@ -740,4 +747,13 @@ void PdfDynamicEncodingMap::AppendCodeSpaceRange(OutputStream& stream, charbuff&
     }
 
     stream.Write("\nendcodespacerange\n");
+}
+
+void pushCodeRangeSize(vector<unsigned char>& codeRangeSizes, unsigned char codeRangeSize)
+{
+    auto found = std::find(codeRangeSizes.begin(), codeRangeSizes.end(), codeRangeSize);
+    if (found != codeRangeSizes.end())
+        return;
+
+    codeRangeSizes.push_back(codeRangeSize);
 }

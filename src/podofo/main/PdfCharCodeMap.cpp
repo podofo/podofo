@@ -13,10 +13,29 @@
 using namespace std;
 using namespace PoDoFo;
 
+namespace
+{
+    /// <summary>
+    /// A temporary structure used to compute CodeSpaceRange(s)
+    /// </summary>
+    struct MappingRange
+    {
+        PdfCharCode SrcCodeLo;
+        unsigned Size;
+
+        MappingRange(PdfCharCode srcCodeLo, unsigned size);
+
+        PdfCharCode GetSrcCodeHi() const;
+
+        bool operator<(const MappingRange& rhs) const;
+    };
+}
+
 static void appendRangesTo(vector<pair<PdfCharCode, CodePointSpan>>& mapppings, const CodeUnitMap& mappings, const CodeUnitRanges ranges);
 static void fetchCodePoints(vector<codepoint>& codePoints, const PdfCharCode& code, const CodeUnitRange& range);
 static void fetchCodePoints(CodePointSpan& codePoints, const PdfCharCode& code, const CodeUnitRange& range);
-static void pushCodeRangeSize(vector<unsigned char>& codeRangeSizes, unsigned char codeRangeSize);
+static void updateCodeSpaceRangeLoHi(unsigned refCodeLo, unsigned refCodeHi, unsigned char codeSpaceSize,
+    unsigned& codeLo, unsigned& codeHi);
 
 PdfCharCodeMap::PdfCharCodeMap()
     : m_MapDirty(false), m_codePointMapHead(nullptr) { }
@@ -109,15 +128,55 @@ bool PdfCharCodeMap::IsTrivialIdentity() const
     return false;
 }
 
-vector<unsigned char> PdfCharCodeMap::GetCodeRangeSizes() const
+vector<CodeSpaceRange> PdfCharCodeMap::GetCodeSpaceRanges() const
 {
-    vector<unsigned char> ret;
+    set<MappingRange> ranges;
     for (auto& pair : m_Mappings)
-        pushCodeRangeSize(ret, pair.first.CodeSpaceSize);
+        ranges.emplace(pair.first, 1);
 
     for (auto& range : m_Ranges)
-        pushCodeRangeSize(ret, range.SrcCodeLo.CodeSpaceSize);
+        ranges.emplace(range.SrcCodeLo, range.Size);
 
+    vector<CodeSpaceRange> ret;
+    auto it = ranges.begin();
+    auto end = ranges.end();
+    if (it == end)
+        return ret;
+
+    PdfCharCode prevCodeHi = it->GetSrcCodeHi();
+    while (++it != end)
+    {
+        auto& range = *it;
+        if (range.SrcCodeLo.CodeSpaceSize != prevCodeHi.CodeSpaceSize && range.SrcCodeLo.GetByteCode(0) <= prevCodeHi.GetByteCode(0))
+        {
+            // TODO1 Fix overlapping ranges by splitting existing 2-byte, 3-byte, 4-byte ranges
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, "Overlapping CodeSpaceRange");
+        }
+        prevCodeHi = range.GetSrcCodeHi();
+    }
+
+    // Merge all smae code space size ranges
+    it = ranges.begin();
+    end = ranges.end();
+    ret.push_back(CodeSpaceRange{ it->SrcCodeLo.Code, it->GetSrcCodeHi().Code, it->SrcCodeLo.CodeSpaceSize });
+    auto prevCodeSpaceRange = &ret.back();
+    while (++it != end)
+    {
+        auto& range = *it;
+        if (range.SrcCodeLo.CodeSpaceSize == prevCodeSpaceRange->CodeSpaceSize)
+        {
+            updateCodeSpaceRangeLoHi(range.SrcCodeLo.Code, range.GetSrcCodeHi().Code, range.SrcCodeLo.CodeSpaceSize,
+                prevCodeSpaceRange->CodeLo, prevCodeSpaceRange->CodeHi);
+        }
+        else
+        {
+            ret.push_back(CodeSpaceRange{ range.SrcCodeLo.Code, range.GetSrcCodeHi().Code, range.SrcCodeLo.CodeSpaceSize });
+            prevCodeSpaceRange = &ret.back();
+        }
+    }
+
+    // TODO2: Fix byte1, byte2, byte3 possible overlappings. This
+    // time we can just restrict ranges on subsequent bytes
     return ret;
 }
 
@@ -161,7 +220,7 @@ void PdfCharCodeMap::PushRange(const PdfCharCode& srcCodeLo, unsigned rangeSize,
         return;
     }
 
-    auto inserted = m_Ranges.emplace(CodeUnitRange{ srcCodeLo, rangeSize, CodePointSpan(dstCodeLo) });
+    auto inserted = m_Ranges.emplace(srcCodeLo, rangeSize, CodePointSpan(dstCodeLo));
     // Try fix invalid ranges: the inserted range
     // always overrides previous ones
     bool invalidRanges = false;
@@ -548,14 +607,11 @@ void fetchCodePoints(CodePointSpan& codePoints, const PdfCharCode& code, const C
     }
 }
 
-void pushCodeRangeSize(vector<unsigned char>& codeRangeSizes, unsigned char codeRangeSize)
-{
-    auto found = std::find(codeRangeSizes.begin(), codeRangeSizes.end(), codeRangeSize);
-    if (found != codeRangeSizes.end())
-        return;
+CodeUnitRange::CodeUnitRange()
+    : Size(0) { }
 
-    codeRangeSizes.push_back(codeRangeSize);
-}
+CodeUnitRange::CodeUnitRange(PdfCharCode srcCodeLo, unsigned size, CodePointSpan dstCodeLo)
+    : SrcCodeLo(srcCodeLo), Size(size), DstCodeLo(dstCodeLo) { }
 
 PdfCharCode CodeUnitRange::GetSrcCodeHi() const
 {
@@ -677,4 +733,74 @@ codepoint CodePointSpan::operator*() const
         return m_Array.Data[0];
     else
         return m_Block.Data[0];
+}
+
+CodeSpaceRange::CodeSpaceRange()
+    : CodeLo(std::numeric_limits<unsigned>::max()), CodeHi(0), CodeSpaceSize(0) { }
+
+CodeSpaceRange::CodeSpaceRange(unsigned codeLo, unsigned codeHi, unsigned char codeSpaceSize)
+    : CodeLo(codeLo), CodeHi(codeHi), CodeSpaceSize(codeSpaceSize) { }
+
+PdfCharCode CodeSpaceRange::GetSrcCodeLo() const
+{
+    return PdfCharCode(CodeLo, CodeSpaceSize);
+}
+
+PdfCharCode CodeSpaceRange::GetSrcCodeHi() const
+{
+    return PdfCharCode(CodeHi, CodeSpaceSize);
+}
+
+MappingRange::MappingRange(PdfCharCode srcCodeLo, unsigned size)
+    : SrcCodeLo(srcCodeLo), Size(size) { }
+
+PdfCharCode MappingRange::GetSrcCodeHi() const
+{
+    return PdfCharCode(SrcCodeLo.Code + Size - 1);
+}
+
+bool MappingRange::operator<(const MappingRange& rhs) const
+{
+    // Order ranges basing on subsequent bytes of the lower code.
+    // If current code byte is same for both ranges, we analyze
+    // the next one. If all bytes were equal, try to compare
+    // code space sizes
+    unsigned char minCodeSpaceSize = std::min(SrcCodeLo.CodeSpaceSize, rhs.SrcCodeLo.CodeSpaceSize);
+    for (unsigned char i = 0; i < minCodeSpaceSize; i++)
+    {
+        unsigned lhsByteCode = SrcCodeLo.GetByteCode(i);
+        unsigned rhsByteCode = rhs.SrcCodeLo.GetByteCode(i);
+        if (lhsByteCode == rhsByteCode)
+            continue;
+
+        return lhsByteCode < rhsByteCode;
+    }
+
+    return SrcCodeLo.CodeSpaceSize < rhs.SrcCodeLo.CodeSpaceSize;
+}
+
+// Iterate all the bytes of the codes and pick the minimum/maximum of each byte
+void updateCodeSpaceRangeLoHi(unsigned refCodeLo, unsigned refCodeHi, unsigned char codeSpaceSize,
+    unsigned& codeLo, unsigned& codeHi)
+{
+    unsigned currCodeLo = codeLo;
+    unsigned currCodeHi = codeHi;
+    unsigned currByteCode;
+    unsigned refByteCode;
+    unsigned mask;
+    for (unsigned char i = 0; i < codeSpaceSize; i++)
+    {
+        // Create a mask to clear the target byte
+        mask = 0xFF << i * CHAR_BIT;
+
+        currByteCode = (currCodeLo >> i * CHAR_BIT) & 0xFFU;
+        refByteCode = (refCodeLo >> i * CHAR_BIT) & 0xFFU;
+        if (refByteCode < currByteCode)
+            codeLo = (codeLo & ~mask) | (refByteCode << i * CHAR_BIT);
+
+        currByteCode = (currCodeHi >> i * CHAR_BIT) & 0xFFU;
+        refByteCode = (refCodeHi >> i * CHAR_BIT) & 0xFFU;
+        if (refByteCode > currByteCode)
+            codeHi = (codeHi & ~mask) | (refByteCode << i * CHAR_BIT);
+    }
 }

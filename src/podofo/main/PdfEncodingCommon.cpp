@@ -40,6 +40,11 @@ bool PdfCharCode::operator!=(const PdfCharCode& rhs) const
     return CodeSpaceSize != rhs.CodeSpaceSize || Code != rhs.Code;
 }
 
+unsigned PdfCharCode::GetByteCode(unsigned char byteIdx) const
+{
+    return (Code >> (CodeSpaceSize - (byteIdx + 1)) * CHAR_BIT) & 0xFFU;
+}
+
 void PdfCharCode::AppendTo(string& str) const
 {
     for (unsigned i = CodeSpaceSize; i >= 1; i--)

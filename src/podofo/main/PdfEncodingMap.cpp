@@ -337,57 +337,8 @@ void PdfEncodingMapBase::AppendCIDMappingEntries(OutputStream& stream, const Pdf
 
 void PdfEncodingMapBase::AppendCodeSpaceRange(OutputStream& stream, charbuff& temp) const
 {
-    struct Limit
-    {
-        PdfCharCode FirstCode;
-        PdfCharCode LastCode;
-        unsigned char CodeSpaceSize;
-    };
-
     // Iterate mappings to create ranges of different code sizes
-    vector<Limit> ranges;
-    for (auto& pair : m_charMap->GetMappings())
-    {
-        auto& codeUnit = pair.first;
-        auto found = std::find_if(ranges.begin(), ranges.end(), [&codeUnit](const Limit& limit) {
-                return limit.CodeSpaceSize == codeUnit.CodeSpaceSize;
-            });
-        if (found == ranges.end())
-        {
-            ranges.emplace_back(Limit{ codeUnit, codeUnit, codeUnit.CodeSpaceSize });
-        }
-        else
-        {
-            if (codeUnit.Code < found->FirstCode.Code)
-                found->FirstCode = codeUnit;
-
-            if (codeUnit.Code > found->LastCode.Code)
-                found->LastCode = codeUnit;
-        }
-    }
-
-    // ...now iterate the map ranges
-    for (auto& range : m_charMap->GetRanges())
-    {
-        auto& srcCodeLo = range.SrcCodeLo;
-        auto srcCodeHi = range.GetSrcCodeHi();
-        auto found = std::find_if(ranges.begin(), ranges.end(), [&srcCodeLo](const Limit& limit) {
-            return limit.CodeSpaceSize == srcCodeLo.CodeSpaceSize;
-            });
-        if (found == ranges.end())
-        {
-            ranges.emplace_back(Limit{ srcCodeLo, srcCodeHi, srcCodeLo.CodeSpaceSize });
-        }
-        else
-        {
-            if (srcCodeLo.Code < found->FirstCode.Code)
-                found->FirstCode = srcCodeLo;
-
-            if (srcCodeHi.Code > found->LastCode.Code)
-                found->LastCode = srcCodeHi;
-        }
-    }
-
+    auto ranges = m_charMap->GetCodeSpaceRanges();
     stream.Write(std::to_string(ranges.size()));
     stream.Write(" begincodespacerange\n");
 
@@ -399,9 +350,9 @@ void PdfEncodingMapBase::AppendCodeSpaceRange(OutputStream& stream, charbuff& te
         else
             stream.Write("\n");
 
-        range.FirstCode.WriteHexTo(temp);
+        range.GetSrcCodeLo().WriteHexTo(temp);
         stream.Write(temp);
-        range.LastCode.WriteHexTo(temp);
+        range.GetSrcCodeHi().WriteHexTo(temp);
         stream.Write(temp);
     }
 
