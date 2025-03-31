@@ -69,8 +69,7 @@ unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateFromBuffer(const buffervi
         return nullptr;
     }
 
-
-    auto ret = CreateFromFace(face.get(), std::make_unique<charbuff>(buffer), refMetrics, skipNormalization);
+    auto ret = CreateFromFace(face.get(), std::make_unique<charbuff>(std::move(buffer)), refMetrics, skipNormalization);
     if (ret != nullptr)
         ret->m_FaceIndex = faceIndex;
 

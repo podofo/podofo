@@ -19,8 +19,16 @@
 namespace FT
 {
     FT_Library GetLibrary();
+    /**
+     * \param buffer a copy of the buffer from which the face will be loaded.
+     * It must be retained
+     */
     FT_Face CreateFaceFromFile(const std::string_view& filepath, unsigned faceIndex,
         PoDoFo::charbuff& buffer);
+    /**
+     * \param buffer a copy of the buffer from which the face will be loaded.
+     * It must be retained
+     */
     FT_Face CreateFaceFromBuffer(const PoDoFo::bufferview& view, unsigned faceIndex,
         PoDoFo::charbuff& buffer);
     // Extract a CFF table from a OpenType CFF font
