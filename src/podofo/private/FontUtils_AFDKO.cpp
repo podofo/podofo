@@ -768,3 +768,21 @@ void PoDoFo::SubsetFontCFF(const PdfFontMetrics& metrics, const cspan<PdfCharGID
     doConversion(&ctx);
     ctx.dst.endset(&ctx);
 }
+
+// Configure AFDKO error handler
+extern "C"
+{
+    struct _t_Exc_buf;
+
+// NOTE: Ignore MSVC warning C4297 ("function assumed not to throw
+// an exception but does") because of extern "C": we will catch
+// the exception in a C++ method
+#pragma warning(push)
+#pragma warning(disable: 4297)
+    void os_raise(_t_Exc_buf* buf, int code, char* msg)
+    {
+        (void)buf;
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "AFDKO error {}: {}", code, msg);
+    }
+#pragma warning(pop)
+}
