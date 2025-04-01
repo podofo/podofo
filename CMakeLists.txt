@@ -137,7 +137,7 @@ else()
 
     # TODO: Remove -Wno-format-truncation after porting the
     # code to std::fmt as it will be unuseful
-    add_compile_options(-Wall -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wno-format-truncation -Wno-unknown-pragmas -Wno-unknown-warning-option $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual -Wreorder>)
+    add_compile_options(-Wall -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wno-format-truncation -Wno-unknown-pragmas -Wno-unknown-warning-option $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual> $<$<COMPILE_LANGUAGE:CXX>:-Wreorder>)
 
     # Note that we do not need debug definitions here. Set
     # -DCMAKE_BUILD_TYPE=debug or (if you want an optimised
