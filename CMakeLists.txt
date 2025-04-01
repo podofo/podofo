@@ -123,11 +123,8 @@ endif()
 
 if (MSVC)
     # Set the compiler less permissive and add some warnings
-    # /w34388: 'expression': signed/unsigned mismatch
-    # /w34389: 'operator': signed/unsigned mismatch
     # /we4287: unsigned/negative constant mismatch
-    # /w34100: unreferenced formal parameter
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive- /utf-8 /we4287 /W4 /Zc:__cplusplus")
+    add_compile_options(/permissive- /utf-8 /we4287 /W4 $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus>)
 
     # Microsoft deprecate certain POSIX functions that we use.
     # for now, turn off these warnings.
@@ -140,7 +137,7 @@ else()
 
     # TODO: Remove -Wno-format-truncation after porting the
     # code to std::fmt as it will be unuseful
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Woverloaded-virtual -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wreorder -Wno-format-truncation -Wno-unknown-pragmas -Wno-unknown-warning-option")
+    add_compile_options(-Wall -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wno-format-truncation -Wno-unknown-pragmas -Wno-unknown-warning-option $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual -Wreorder>)
 
     # Note that we do not need debug definitions here. Set
     # -DCMAKE_BUILD_TYPE=debug or (if you want an optimised
