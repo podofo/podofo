@@ -213,9 +213,9 @@ PdfPage& PdfPageCollection::CreatePage(const nullable<Rect>& size_)
 {
     FlattenStructure();
     auto size = getActualRect(size_);
-    auto page = new PdfPage(GetDocument(), size);
+    unique_ptr<PdfPage> page(new PdfPage(GetDocument(), size));
     insertPageAt((unsigned)m_Pages.size(), *page);
-    return *page;
+    return *page.release();
 }
 
 PdfPage& PdfPageCollection::CreatePage(PdfPageSize pageSize)
@@ -232,9 +232,9 @@ PdfPage& PdfPageCollection::CreatePageAt(unsigned atIndex, const nullable<Rect>&
     if (atIndex > pageCount)
         atIndex = pageCount;
 
-    auto page = new PdfPage(GetDocument(), size);
+    unique_ptr<PdfPage> page(new PdfPage(GetDocument(), size));
     insertPageAt(atIndex, *page);
-    return *page;
+    return *page.release();
 }
 
 PdfPage& PdfPageCollection::CreatePageAt(unsigned atIndex, PdfPageSize pageSize)
@@ -251,7 +251,7 @@ void PdfPageCollection::CreatePagesAt(unsigned atIndex, unsigned count, const nu
     if (atIndex > pageCount)
         atIndex = pageCount;
 
-    std::vector<PdfPage*> pages(count);
+    vector<PdfPage*> pages(count);
     for (unsigned i = 0; i < count; i++)
         pages[i] = new PdfPage(GetDocument(), size);
 
@@ -361,9 +361,9 @@ unsigned PdfPageCollection::traversePageTreeNode(PdfObject& obj, unsigned count,
         case PdfPageTreeNodeType::Page:
         {
             unsigned index = (unsigned)m_Pages.size();
-            auto page = new PdfPage(obj, vector<PdfObject*>(parents));
-            m_Pages.push_back(page);
-            page->SetIndex(index);
+            unique_ptr<PdfPage> page(new PdfPage(obj, vector<PdfObject*>(parents)));
+            m_Pages.push_back(page.get());
+            (*page.release()).SetIndex(index);
             return count - 1;
         }
         case PdfPageTreeNodeType::Unknown:
