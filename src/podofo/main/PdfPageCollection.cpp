@@ -214,7 +214,9 @@ void PdfPageCollection::RemovePageAt(unsigned atIndex)
     if (atIndex >= m_Pages.size())
         return;
 
+    auto page = m_Pages[atIndex];
     m_Pages.erase(m_Pages.begin() + atIndex);
+    delete page;
     m_kidsArray->RemoveAt(atIndex);
 
     // Fix page indices
