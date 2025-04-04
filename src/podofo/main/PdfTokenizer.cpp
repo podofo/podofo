@@ -21,7 +21,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-static char getEscapedCharacter(char ch);
+static bool tryGetEscapedCharacter(char ch, char& escapedChar);
 static void readHexString(InputStreamDevice& device, charbuff& buffer);
 static bool isOctalChar(char ch);
 
@@ -567,14 +567,10 @@ void PdfTokenizer::ReadString(InputStreamDevice& device, PdfVariant& variant, co
             }
             else
             {
-                // Ignore end of line characters when reading escaped sequences
-                if (ch != '\n' && ch != '\r')
-                {
-                    // Handle plain escape sequences
-                    char escapedCh = getEscapedCharacter(ch);
-                    if (escapedCh != '\0')
-                        m_charBuffer.push_back(escapedCh);
-                }
+                // Handle plain escape sequences
+                char escapedCh;
+                if (tryGetEscapedCharacter(ch, escapedCh))
+                    m_charBuffer.push_back(escapedCh);
 
                 escape = false;
             }
@@ -756,28 +752,34 @@ bool PdfTokenizer::IsPrintable(char ch)
     return ch > 32 && ch < 125;
 }
 
-char getEscapedCharacter(char ch)
+bool tryGetEscapedCharacter(char ch, char& escapedChar)
 {
     switch (ch)
     {
+        case '\n':          // Ignore newline characters when reading escaped sequences
+            escapedChar = '\0';
+            return false;
+        case '\r':          // Ignore newline characters when reading escaped sequences
+            escapedChar = '\0';
+            return false;
         case 'n':           // Line feed (LF)
-            return '\n';
+            escapedChar = '\n';
+            return true;
         case 'r':           // Carriage return (CR)
-            return '\r';
+            escapedChar = '\r';
+            return true;
         case 't':           // Horizontal tab (HT)
-            return '\t';
+            escapedChar = '\t';
+            return true;
         case 'b':           // Backspace (BS)
-            return '\b';
+            escapedChar = '\b';
+            return true;
         case 'f':           // Form feed (FF)
-            return '\f';
-        case '(':
-            return '(';
-        case ')':
-            return ')';
-        case '\\':
-            return '\\';
+            escapedChar = '\f';
+            return true;
         default:
-            return '\0';
+            escapedChar = ch;
+            return true;
     }
 }
 
