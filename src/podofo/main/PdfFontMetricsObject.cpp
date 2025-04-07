@@ -119,7 +119,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             if (fontType != PdfFontType::Type3 && m_FontFileObject == nullptr)
                 m_FontFileObject = descriptor->GetDictionary().FindKey("FontFile3");
 
-            missingWidthRaw = descriptor->GetDictionary().FindKeyAs<double>("MissingWidth", 0);
+            missingWidthRaw = descriptor->GetDictionary().FindKeyAsSafe<double>("MissingWidth", 0);
         }
 
         const PdfObject* fontmatrix = nullptr;
@@ -183,12 +183,12 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
 
         if (m_FontFileObject != nullptr)
         {
-            m_Length1 = (unsigned)m_FontFileObject->GetDictionary().FindKeyAs<int64_t>("Length1", 0);
-            m_Length2 = (unsigned)m_FontFileObject->GetDictionary().FindKeyAs<int64_t>("Length2", 0);
-            m_Length3 = (unsigned)m_FontFileObject->GetDictionary().FindKeyAs<int64_t>("Length3", 0);
+            m_Length1 = (unsigned)m_FontFileObject->GetDictionary().FindKeyAsSafe<int64_t>("Length1", 0);
+            m_Length2 = (unsigned)m_FontFileObject->GetDictionary().FindKeyAsSafe<int64_t>("Length2", 0);
+            m_Length3 = (unsigned)m_FontFileObject->GetDictionary().FindKeyAsSafe<int64_t>("Length3", 0);
         }
 
-        m_DefaultWidth = font.GetDictionary().FindKeyAs<double>("DW", 1000.0) * m_Matrix[0];
+        m_DefaultWidth = font.GetDictionary().FindKeyAsSafe<double>("DW", 1000.0) * m_Matrix[0];
         auto widthsObj = font.GetDictionary().FindKey("W");
         if (widthsObj != nullptr)
         {
@@ -326,12 +326,12 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         // NOTE2: Found a document with "/FontWeight 400.0"
         // which is parsed correctly by Adobe Acrobat so just
         // read the value as double
-        m_Weight = static_cast<short>(dict.FindKeyAs<double>("FontWeight", -1));
-        m_Leading = dict.FindKeyAs<double>("Leading", -1) * m_Matrix[3];
-        m_XHeight = dict.FindKeyAs<double>("XHeight", -1) * m_Matrix[3];
-        m_StemH = dict.FindKeyAs<double>("StemH", -1) * m_Matrix[3];
-        m_AvgWidth = dict.FindKeyAs<double>("AvgWidth", -1) * m_Matrix[0];
-        m_MaxWidth = dict.FindKeyAs<double>("MaxWidth", -1) * m_Matrix[0];
+        m_Weight = static_cast<short>(dict.FindKeyAsSafe<double>("FontWeight", -1));
+        m_Leading = dict.FindKeyAsSafe<double>("Leading", -1) * m_Matrix[3];
+        m_XHeight = dict.FindKeyAsSafe<double>("XHeight", -1) * m_Matrix[3];
+        m_StemH = dict.FindKeyAsSafe<double>("StemH", -1) * m_Matrix[3];
+        m_AvgWidth = dict.FindKeyAsSafe<double>("AvgWidth", -1) * m_Matrix[0];
+        m_MaxWidth = dict.FindKeyAsSafe<double>("MaxWidth", -1) * m_Matrix[0];
     }
 
     // According to ISO 32000-2:2020, /FontName "shall be the

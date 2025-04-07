@@ -145,7 +145,7 @@ void PdfParser::ReadDocumentStructure(InputStreamDevice& device, ssize_t eofSear
 
     int64_t entriesCount;
     if (m_Trailer != nullptr && m_Trailer->IsDictionary()
-        && (entriesCount = m_Trailer->GetDictionary().FindKeyAs<int64_t>("Size", -1)) >= 0
+        && (entriesCount = m_Trailer->GetDictionary().FindKeyAsSafe<int64_t>("Size", -1)) >= 0
         && m_entries.GetSize() > (unsigned)entriesCount)
     {
         // Total number of xref entries to read is greater than the /Size

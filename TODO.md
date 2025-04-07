@@ -2,6 +2,8 @@
 
 - Optimize passing shared_ptr
 - Check performances of PdfContentStreamReader
+- Handle \r alone after "stream" for all filters
+- Improve the API for stopping extracting text as suggested [here](https://github.com/podofo/podofo/pull/239#issuecomment-2736664534)
 
 ### After 1.0
 - PdfVariant/PdfObject: Evaluate adding a TryGetStringLenient(string_view& str)

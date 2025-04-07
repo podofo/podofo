@@ -240,25 +240,52 @@ public:
     PdfObject& MustGetKey(const std::string_view& key);
 
     template <typename T>
-    T GetKeyAs(const std::string_view& key, const std::common_type_t<T>& defvalue = { }) const;
+    const typename ObjectAdapter<T>::TRet GetKeyAs(const std::string_view& key) const;
 
     template <typename T>
-    T FindKeyAs(const std::string_view& key, const std::common_type_t<T>& defvalue = { }) const;
+    typename ObjectAdapter<T>::TRet GetKeyAs(const std::string_view& key);
 
     template <typename T>
-    T FindKeyParentAs(const std::string_view& key, const std::common_type_t<T>& defvalue = { }) const;
+    const typename ObjectAdapter<T>::TRet FindKeyAs(const std::string_view& key) const;
 
     template <typename T>
-    T FindKeyAsSafe(const std::string_view& key, const std::common_type_t<T>& defvalue = { }) const;
+    typename ObjectAdapter<T>::TRet FindKeyAs(const std::string_view& key);
 
     template <typename T>
-    T FindKeyParentAsSafe(const std::string_view& key, const std::common_type_t<T>& defvalue = { }) const;
+    const typename ObjectAdapter<T>::TRet FindKeyParentAs(const std::string_view& key) const;
+
+    template <typename T>
+    typename ObjectAdapter<T>::TRet FindKeyParentAs(const std::string_view& key);
+
+    template <typename T>
+    const typename ObjectAdapter<T>::TRet GetKeyAsSafe(const std::string_view& key, const std::common_type_t<T>& fallback = { }) const;
+
+    template <typename T>
+    typename ObjectAdapter<T>::TRet GetKeyAsSafe(const std::string_view& key, const std::common_type_t<T>& fallback = { });
+
+    template <typename T>
+    const typename ObjectAdapter<T>::TRet FindKeyAsSafe(const std::string_view& key, const std::common_type_t<T>& fallback = { }) const;
+
+    template <typename T>
+    typename ObjectAdapter<T>::TRet FindKeyAsSafe(const std::string_view& key, const std::common_type_t<T>& fallback = { });
+
+    template <typename T>
+    const typename ObjectAdapter<T>::TRet FindKeyParentAsSafe(const std::string_view& key, const std::common_type_t<T>& fallback = { }) const;
+
+    template <typename T>
+    typename ObjectAdapter<T>::TRet FindKeyParentAsSafe(const std::string_view& key, const std::common_type_t<T>& fallback = { });
 
     template <typename T>
     bool TryFindKeyAs(const std::string_view& key, T& value) const;
 
     template <typename T>
+    bool TryFindKeyAs(const std::string_view& key, T& value);
+
+    template <typename T>
     bool TryFindKeyParentAs(const std::string_view& key, T& value) const;
+
+    template <typename T>
+    bool TryFindKeyParentAs(const std::string_view& key, T& value);
 
     /** Allows to check if a dictionary contains a certain key.
      * \param key look for the key named key.Name() in the dictionary
@@ -328,63 +355,121 @@ private:
 };
 
 template<typename T>
-T PdfDictionary::GetKeyAs(const std::string_view& key, const std::common_type_t<T>& defvalue) const
+const typename ObjectAdapter<T>::TRet PdfDictionary::GetKeyAs(const std::string_view& key) const
+{
+    return ObjectAdapter<T>::Get(MustGetKey(key));
+}
+
+template<typename T>
+typename ObjectAdapter<T>::TRet PdfDictionary::GetKeyAs(const std::string_view& key)
+{
+    return ObjectAdapter<T>::Get(MustGetKey(key));
+}
+
+template<typename T>
+const typename ObjectAdapter<T>::TRet PdfDictionary::FindKeyAs(const std::string_view& key) const
+{
+    return ObjectAdapter<T>::Get(MustFindKey(key));
+}
+
+template<typename T>
+typename ObjectAdapter<T>::TRet PdfDictionary::FindKeyAs(const std::string_view& key)
+{
+    return ObjectAdapter<T>::Get(MustFindKey(key));
+}
+
+template<typename T>
+const typename ObjectAdapter<T>::TRet PdfDictionary::FindKeyParentAs(const std::string_view& key) const
+{
+    return ObjectAdapter<T>::Get(MustFindKeyParent(key));
+}
+
+template<typename T>
+typename ObjectAdapter<T>::TRet PdfDictionary::FindKeyParentAs(const std::string_view& key)
+{
+    return ObjectAdapter<T>::Get(MustFindKeyParent(key));
+}
+
+template<typename T>
+const typename ObjectAdapter<T>::TRet PdfDictionary::GetKeyAsSafe(const std::string_view& key, const std::common_type_t<T>& fallback) const
 {
     auto obj = getKey(key);
     if (obj == nullptr)
-        return defvalue;
-
-    return Object<T>::Get(*obj);
+        return fallback;
+    else
+        return ObjectAdapter<T>::Get(const_cast<const PdfObject&>(*obj), fallback);
 }
 
 template<typename T>
-T PdfDictionary::FindKeyAs(const std::string_view& key, const std::common_type_t<T>& defvalue) const
+typename ObjectAdapter<T>::TRet PdfDictionary::GetKeyAsSafe(const std::string_view& key, const std::common_type_t<T>& fallback)
+{
+    auto obj = getKey(key);
+    if (obj == nullptr)
+        return fallback;
+    else
+        return ObjectAdapter<T>::Get(*obj, fallback);
+}
+
+template<typename T>
+const typename ObjectAdapter<T>::TRet PdfDictionary::FindKeyAsSafe(const std::string_view& key, const std::common_type_t<T>& fallback) const
 {
     auto obj = findKey(key);
     if (obj == nullptr)
-        return defvalue;
-
-    return Object<T>::Get(*obj);
+        return fallback;
+    else
+        return ObjectAdapter<T>::Get(const_cast<const PdfObject&>(*obj), fallback);
 }
 
 template<typename T>
-T PdfDictionary::FindKeyParentAs(const std::string_view& key, const std::common_type_t<T>& defvalue) const
+typename ObjectAdapter<T>::TRet PdfDictionary::FindKeyAsSafe(const std::string_view& key, const std::common_type_t<T>& fallback)
 {
-    auto obj = findKeyParent(key);
-    T ret{ };
-    if (obj == nullptr)
-        return defvalue;
-
-    return Object<T>::Get(*obj);
-}
-
-template<typename T>
-T PdfDictionary::FindKeyAsSafe(const std::string_view& key, const std::common_type_t<T>& defvalue) const
-{
-    T value;
     auto obj = findKey(key);
-    if (obj != nullptr && Object<T>::TryGet(*obj, value))
-        return value;
+    if (obj == nullptr)
+        return fallback;
     else
-        return defvalue;
+        return ObjectAdapter<T>::Get(*obj, fallback);
 }
 
 template<typename T>
-T PdfDictionary::FindKeyParentAsSafe(const std::string_view& key, const std::common_type_t<T>& defvalue) const
+const typename ObjectAdapter<T>::TRet PdfDictionary::FindKeyParentAsSafe(const std::string_view& key, const std::common_type_t<T>& fallback) const
 {
-    T value;
     auto obj = findKeyParent(key);
-    if (obj != nullptr && Object<T>::TryGet(*obj, value))
-        return value;
+    if (obj == nullptr)
+        return fallback;
     else
-        return defvalue;
+        return ObjectAdapter<T>::Get(const_cast<const PdfObject&>(*obj), fallback);
+}
+
+template<typename T>
+typename ObjectAdapter<T>::TRet PdfDictionary::FindKeyParentAsSafe(const std::string_view& key, const std::common_type_t<T>& fallback)
+{
+    auto obj = findKeyParent(key);
+    if (obj == nullptr)
+        return fallback;
+    else
+        return ObjectAdapter<T>::Get(*obj, fallback);
 }
 
 template <typename T>
 bool PdfDictionary::TryFindKeyAs(const std::string_view& key, T& value) const
 {
     auto obj = findKey(key);
-    if (obj != nullptr && Object<T>::TryGet(*obj, value))
+    if (obj != nullptr && ObjectAdapter<T>::TryGet(const_cast<const PdfObject&>(*obj), value))
+    {
+        return true;
+    }
+    else
+    {
+        value = { };
+        return false;
+    }
+}
+
+template<typename T>
+bool PdfDictionary::TryFindKeyAs(const std::string_view& key, T& value)
+{
+    auto obj = findKey(key);
+    if (obj != nullptr && ObjectAdapter<T>::TryGet(*obj, value))
     {
         return true;
     }
@@ -399,7 +484,22 @@ template <typename T>
 bool PdfDictionary::TryFindKeyParentAs(const std::string_view& key, T& value) const
 {
     auto obj = findKeyParent(key);
-    if (obj != nullptr && Object<T>::TryGet(*obj, value))
+    if (obj != nullptr && ObjectAdapter<T>::TryGet(const_cast<const PdfObject&>(*obj), value))
+    {
+        return true;
+    }
+    else
+    {
+        value = { };
+        return false;
+    }
+}
+
+template<typename T>
+bool PdfDictionary::TryFindKeyParentAs(const std::string_view& key, T& value)
+{
+    auto obj = findKeyParent(key);
+    if (obj != nullptr && ObjectAdapter<T>::TryGet(*obj, value))
     {
         return true;
     }

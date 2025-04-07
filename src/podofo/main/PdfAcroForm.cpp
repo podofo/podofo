@@ -192,7 +192,7 @@ void PdfAcroForm::SetNeedAppearances(bool needAppearances)
 
 bool PdfAcroForm::GetNeedAppearances() const
 {
-    return this->GetDictionary().FindKeyAs<bool>("NeedAppearances", false);
+    return this->GetDictionary().FindKeyAsSafe<bool>("NeedAppearances", false);
 }
 
 PdfAcroFormSigFlags PdfAcroForm::GetSigFlags() const

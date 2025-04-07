@@ -258,6 +258,7 @@ public:
     PdfArray& GetArray();
     bool TryGetArray(const PdfArray*& arr) const;
     bool TryGetArray(PdfArray*& arr);
+    bool TryGetArray(PdfArray& arr) const;
 
     /** Returns the dictionary value of this object
      *  \returns a PdfDictionary
@@ -266,6 +267,7 @@ public:
     PdfDictionary& GetDictionary();
     bool TryGetDictionary(const PdfDictionary*& dict) const;
     bool TryGetDictionary(PdfDictionary*& dict);
+    bool TryGetDictionary(PdfDictionary& dict) const;
 
     /** Set the value of this object as bool
      *  \param b the value as bool.
@@ -605,13 +607,23 @@ private:
     /** Templatized object type getter helper
      */
     template <typename T>
-    struct Object
+    struct ObjectAdapter
     {
-        static T Get(const PdfObject& obj)
+        using TRet = T;
+
+        static TRet Get(const PdfObject& obj)
         {
             (void)obj;
             static_assert(always_false<T>, "Unsupported type");
-            return T{ };
+            return TRet{ };
+        }
+
+        static TRet Get(const PdfObject& obj, const T& defVal)
+        {
+            (void)obj;
+            (void)defVal;
+            static_assert(always_false<T>, "Unsupported type");
+            return TRet{ };
         }
 
         static bool TryGet(const PdfObject& obj, T& value)
@@ -624,11 +636,22 @@ private:
     };
 
     template <>
-    struct Object<bool>
+    struct ObjectAdapter<bool>
     {
+        using TRet = bool;
+
         static bool Get(const PdfObject& obj)
         {
             return obj.GetBool();
+        }
+
+        static bool Get(const PdfObject& obj, bool fallback)
+        {
+            bool ret;
+            if (obj.TryGetBool(ret))
+                return ret;
+            else
+                return fallback;
         }
 
         static bool TryGet(const PdfObject& obj, bool& value)
@@ -638,11 +661,22 @@ private:
     };
 
     template <>
-    struct Object<int64_t>
+    struct ObjectAdapter<int64_t>
     {
+        using TRet = int64_t;
+
         static int64_t Get(const PdfObject& obj)
         {
             return obj.GetNumber();
+        }
+
+        static int64_t Get(const PdfObject& obj, int64_t fallback)
+        {
+            int64_t ret;
+            if (obj.TryGetNumber(ret))
+                return ret;
+            else
+                return fallback;
         }
 
         static bool TryGet(const PdfObject& obj, int64_t& value)
@@ -652,11 +686,22 @@ private:
     };
 
     template <>
-    struct Object<double>
+    struct ObjectAdapter<double>
     {
+        using TRet = double;
+
         static double Get(const PdfObject& obj)
         {
             return obj.GetReal();
+        }
+
+        static double Get(const PdfObject& obj, double fallback)
+        {
+            double ret;
+            if (obj.TryGetReal(ret))
+                return ret;
+            else
+                return fallback;
         }
 
         static bool TryGet(const PdfObject& obj, double& value)
@@ -666,11 +711,22 @@ private:
     };
 
     template <>
-    struct Object<PdfReference>
+    struct ObjectAdapter<PdfReference>
     {
+        using TRet = PdfReference;
+
         static PdfReference Get(const PdfObject& obj)
         {
             return obj.GetReference();
+        }
+
+        static PdfReference Get(const PdfObject& obj, const PdfReference& fallback)
+        {
+            PdfReference ret;
+            if (obj.TryGetReference(ret))
+                return ret;
+            else
+                return fallback;
         }
 
         static bool TryGet(const PdfObject& obj, PdfReference& value)
@@ -680,11 +736,22 @@ private:
     };
 
     template <>
-    struct Object<PdfName>
+    struct ObjectAdapter<PdfName>
     {
-        static PdfName Get(const PdfObject& obj)
+        using TRet = const PdfName&;
+
+        static const PdfName& Get(const PdfObject& obj)
         {
             return obj.GetName();
+        }
+
+        static const PdfName& Get(const PdfObject& obj, const PdfName& fallback)
+        {
+            const PdfName* ret;
+            if (obj.TryGetName(ret))
+                return *ret;
+            else
+                return fallback;
         }
 
         static bool TryGet(const PdfObject& obj, PdfName& value)
@@ -694,11 +761,24 @@ private:
     };
 
     template <>
-    struct Object<const PdfName*>
+    struct ObjectAdapter<const PdfName*>
     {
+        using TRet = const PdfName*;
+
         static const PdfName* Get(const PdfObject& obj)
         {
-            return &obj.GetName();
+            const PdfName* ret;
+            (void)obj.TryGetName(ret);
+            return ret;
+        }
+
+        static const PdfName* Get(const PdfObject& obj, const PdfName* fallback)
+        {
+            const PdfName* ret;
+            if (obj.TryGetName(ret))
+                return ret;
+            else
+                return fallback;
         }
 
         static bool TryGet(const PdfObject& obj, const PdfName*& value)
@@ -708,11 +788,22 @@ private:
     };
 
     template <>
-    struct Object<PdfString>
+    struct ObjectAdapter<PdfString>
     {
-        static PdfString Get(const PdfObject& obj)
+        using TRet = const PdfString&;
+
+        static const PdfString& Get(const PdfObject& obj)
         {
             return obj.GetString();
+        }
+
+        static const PdfString& Get(const PdfObject& obj, const PdfString& fallback)
+        {
+            const PdfString* ret;
+            if (obj.TryGetString(ret))
+                return *ret;
+            else
+                return fallback;
         }
 
         static bool TryGet(const PdfObject& obj, PdfString& value)
@@ -722,11 +813,24 @@ private:
     };
 
     template <>
-    struct Object<const PdfString*>
+    struct ObjectAdapter<const PdfString*>
     {
-        static const PdfString* Get(const PdfObject& obj)
+        using TRet = const PdfString*;
+
+        static const PdfString* Get(PdfObject& obj)
         {
-            return &obj.GetString();
+            const PdfString* ret;
+            (void)obj.TryGetString(ret);
+            return ret;
+        }
+
+        static const PdfString* Get(const PdfObject& obj, const PdfString* fallback)
+        {
+            const PdfString* ret;
+            if (obj.TryGetString(ret))
+                return ret;
+            else
+                return fallback;
         }
 
         static bool TryGet(const PdfObject& obj, const PdfString*& value)
@@ -736,25 +840,24 @@ private:
     };
 
     template <>
-    struct Object<const PdfDictionary*>
+    struct ObjectAdapter<PdfDictionary*>
     {
-        static const PdfDictionary* Get(const PdfObject& obj)
-        {
-            return &obj.GetDictionary();
-        }
+        using TRet = PdfDictionary*;
 
-        static bool TryGet(const PdfObject& obj, const PdfDictionary*& value)
-        {
-            return obj.TryGetDictionary(value);
-        }
-    };
-
-    template <>
-    struct Object<PdfDictionary*>
-    {
         static PdfDictionary* Get(PdfObject& obj)
         {
-            return &obj.GetDictionary();
+            PdfDictionary* ret;
+            (void)obj.TryGetDictionary(ret);
+            return ret;
+        }
+
+        static PdfDictionary* Get(PdfObject& obj, PdfDictionary* fallback)
+        {
+            PdfDictionary* ret;
+            if (obj.TryGetDictionary(ret))
+                return ret;
+            else
+                return fallback;
         }
 
         static bool TryGet(PdfObject& obj, PdfDictionary*& value)
@@ -764,11 +867,103 @@ private:
     };
 
     template <>
-    struct Object<const PdfArray*>
+    struct ObjectAdapter<const PdfDictionary*>
     {
+        using TRet = const PdfDictionary*;
+
+        static const PdfDictionary* Get(const PdfObject& obj)
+        {
+            const PdfDictionary* ret;
+            (void)obj.TryGetDictionary(ret);
+            return ret;
+        }
+
+        static const PdfDictionary* Get(const PdfObject& obj, const PdfDictionary* fallback)
+        {
+            const PdfDictionary* ret;
+            if (obj.TryGetDictionary(ret))
+                return ret;
+            else
+                return fallback;
+        }
+
+        static bool TryGet(const PdfObject& obj, const PdfDictionary*& value)
+        {
+            return obj.TryGetDictionary(value);
+        }
+    };
+
+    template <>
+    struct ObjectAdapter<PdfDictionary>
+    {
+        using TRet = PdfDictionary&;
+
+        static PdfDictionary& Get(PdfObject& obj)
+        {
+            return obj.GetDictionary();
+        }
+
+        static PdfDictionary& Get(PdfObject& obj, PdfDictionary& fallback)
+        {
+            PdfDictionary* ret;
+            if (obj.TryGetDictionary(ret))
+                return *ret;
+            else
+                return fallback;
+        }
+
+        static bool TryGet(const PdfObject& obj, PdfDictionary& value)
+        {
+            return obj.TryGetDictionary(value);
+        }
+    };
+
+    template <>
+    struct ObjectAdapter<PdfArray*>
+    {
+        using TRet = PdfArray*;
+
+        static PdfArray* Get(PdfObject& obj)
+        {
+            PdfArray* ret;
+            (void)obj.TryGetArray(ret);
+            return ret;
+        }
+
+        static PdfArray* Get(PdfObject& obj, PdfArray* fallback)
+        {
+            PdfArray* ret;
+            if (obj.TryGetArray(ret))
+                return ret;
+            else
+                return fallback;
+        }
+
+        static bool TryGet(PdfObject& obj, PdfArray*& value)
+        {
+            return obj.TryGetArray(value);
+        }
+    };
+
+    template <>
+    struct ObjectAdapter<const PdfArray*>
+    {
+        using TRet = const PdfArray*;
+
         static const PdfArray* Get(const PdfObject& obj)
         {
-            return &obj.GetArray();
+            const PdfArray* ret;
+            (void)obj.TryGetArray(ret);
+            return ret;
+        }
+
+        static const PdfArray* Get(PdfObject& obj, const PdfArray* fallback)
+        {
+            const PdfArray* ret;
+            if (obj.TryGetArray(ret))
+                return ret;
+            else
+                return fallback;
         }
 
         static bool TryGet(const PdfObject& obj, const PdfArray*& value)
@@ -778,14 +973,25 @@ private:
     };
 
     template <>
-    struct Object<PdfArray*>
+    struct ObjectAdapter<PdfArray>
     {
-        static PdfArray* Get(PdfObject& obj)
+        using TRet = PdfArray&;
+
+        static PdfArray& Get(PdfObject& obj)
         {
-            return &obj.GetArray();
+            return obj.GetArray();
         }
 
-        static bool TryGet(PdfObject& obj, PdfArray*& value)
+        static PdfArray& Get(PdfObject& obj, PdfArray& fallback)
+        {
+            PdfArray* ret;
+            if (obj.TryGetArray(ret))
+                return *ret;
+            else
+                return fallback;
+        }
+
+        static bool TryGet(const PdfObject& obj, PdfArray& value)
         {
             return obj.TryGetArray(value);
         }

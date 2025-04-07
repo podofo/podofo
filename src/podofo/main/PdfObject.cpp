@@ -765,6 +765,22 @@ bool PdfObject::TryGetArray(PdfArray*& arr)
     return m_Variant.TryGetArray(arr);
 }
 
+bool PdfObject::TryGetArray(PdfArray& arr) const
+{
+    DelayedLoad();
+    const PdfArray* val;
+    if (m_Variant.TryGetArray(val))
+    {
+        arr = *val;
+        return true;
+    }
+    else
+    {
+        arr.Clear();
+        return false;
+    }
+}
+
 const PdfDictionary& PdfObject::GetDictionary() const
 {
     DelayedLoad();
@@ -787,6 +803,22 @@ bool PdfObject::TryGetDictionary(PdfDictionary*& dict)
 {
     DelayedLoad();
     return m_Variant.TryGetDictionary(dict);
+}
+
+bool PdfObject::TryGetDictionary(PdfDictionary& dict) const
+{
+    DelayedLoad();
+    const PdfDictionary* val;
+    if (m_Variant.TryGetDictionary(val))
+    {
+        dict = *val;
+        return true;
+    }
+    else
+    {
+        dict.Clear();
+        return false;
+    }
 }
 
 PdfReference PdfObject::GetReference() const

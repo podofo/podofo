@@ -569,7 +569,7 @@ void createNestedArrayTree(PdfMemDocument& doc)
 
 bool isPageNumber(PdfPage& page, unsigned number)
 {
-    int64_t pageNumber = page.GetDictionary().GetKeyAs<int64_t>(TEST_PAGE_KEY, -1);
+    int64_t pageNumber = page.GetDictionary().GetKeyAsSafe<int64_t>(TEST_PAGE_KEY, -1);
 
     if (pageNumber != static_cast<int64_t>(number))
     {

@@ -26,8 +26,8 @@ PdfObjectStreamParser::PdfObjectStreamParser(PdfParserObject& parser,
 
 void PdfObjectStreamParser::Parse(const cspan<int64_t>& objectList)
 {
-    int64_t num = m_Parser->GetDictionary().FindKeyAs<int64_t>("N", 0);
-    int64_t first = m_Parser->GetDictionary().FindKeyAs<int64_t>("First", 0);
+    int64_t num = m_Parser->GetDictionary().FindKeyAsSafe<int64_t>("N", 0);
+    int64_t first = m_Parser->GetDictionary().FindKeyAsSafe<int64_t>("First", 0);
 
     charbuff buffer;
     m_Parser->GetOrCreateStream().CopyTo(buffer);

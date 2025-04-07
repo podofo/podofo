@@ -49,7 +49,7 @@ PdfAction::PdfAction(PdfObject& obj, PdfActionType type)
 bool PdfAction::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfAction>& action)
 {
     auto type = static_cast<PdfActionType>(utls::TypeNameToIndex(
-        obj.GetDictionary().FindKeyAs<PdfName>("S").GetString().data(),
+        obj.GetDictionary().FindKeyAsSafe<PdfName>("S").GetString().data(),
         s_names, (unsigned)std::size(s_names), (int)PdfActionType::Unknown));
 
     switch (type)

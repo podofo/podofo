@@ -1,4 +1,7 @@
 ## 0.10.1 -> 1.0.0
+- `Object<T>`: Renamed to `ObjectAdapter<T>`
+- `PdfArray`: `FindAtAs` doesn't take a default value anymore and throws on failed lookup . Use `FindAtAsSafe` instead
+- `PdfDictionary`: `GetKeyAs`, `FindKeyAs`, `FindKeyAsParent`. doesn't take a default value anymore and throws on failed lookup . Use safe method versions instead
 - `PdfXObjectForm`: Removed `HasRotation()`. Rotation is zero for xobject forms and it still implements privately `TryGetRotationRadians()`
 - `PoDofo::TransformRectPage`: Removed `inputIsTransformed` parameter. Now the function accepts only rect in the canonical PDF coordinate system
 - `PdfExtension`: Reworked constructor parameters

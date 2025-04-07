@@ -31,11 +31,11 @@ class PdfPredictorDecoder
 public:
     PdfPredictorDecoder(const PdfDictionary& decodeParms)
     {
-        m_Predictor = static_cast<int>(decodeParms.FindKeyAs<int64_t>("Predictor", 1));
-        m_Colors = static_cast<int>(decodeParms.FindKeyAs<int64_t>("Colors", 1));
-        m_BitsPerComponent = static_cast<int>(decodeParms.FindKeyAs<int64_t>("BitsPerComponent", 8));
-        m_ColumnCount = static_cast<int>(decodeParms.FindKeyAs<int64_t>("Columns", 1));
-        m_EarlyChange = static_cast<int>(decodeParms.FindKeyAs<int64_t>("EarlyChange", 1));
+        m_Predictor = static_cast<int>(decodeParms.FindKeyAsSafe<int64_t>("Predictor", 1));
+        m_Colors = static_cast<int>(decodeParms.FindKeyAsSafe<int64_t>("Colors", 1));
+        m_BitsPerComponent = static_cast<int>(decodeParms.FindKeyAsSafe<int64_t>("BitsPerComponent", 8));
+        m_ColumnCount = static_cast<int>(decodeParms.FindKeyAsSafe<int64_t>("Columns", 1));
+        m_EarlyChange = static_cast<int>(decodeParms.FindKeyAsSafe<int64_t>("EarlyChange", 1));
 
         // check that input values are in range (CVE-2018-20797)
         // ISO 32000-2008 specifies these values as all 1 or greater

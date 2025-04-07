@@ -54,7 +54,7 @@ void PdfXRefStreamParserObject::delayedLoad()
     }
 
     if (dict.HasKey("Prev"))
-        m_NextOffset = static_cast<ssize_t>(dict.FindKeyAs<double>("Prev", 0));
+        m_NextOffset = static_cast<ssize_t>(dict.FindKeyAsSafe<double>("Prev", 0));
 
     if (!this->HasStreamToParse())
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRef);
@@ -62,7 +62,7 @@ void PdfXRefStreamParserObject::delayedLoad()
 
 void PdfXRefStreamParserObject::ReadXRefTable()
 {
-    int64_t size = this->GetDictionary().FindKeyAs<int64_t>("Size", 0);
+    int64_t size = this->GetDictionary().FindKeyAsSafe<int64_t>("Size", 0);
     auto& arrObj = this->GetDictionary().MustFindKey("W");
 
     // The pdf reference states that W is always an array with 3 entries

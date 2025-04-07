@@ -136,13 +136,22 @@ public:
         const PdfStatefulEncrypt* encrypt, charbuff& buffer) const override;
 
     template <typename T>
-    T GetAtAs(unsigned idx) const;
+    const typename ObjectAdapter<T>::TRet GetAtAs(unsigned idx) const;
 
     template <typename T>
-    T GetAtAsSafe(unsigned idx, const std::common_type_t<T>& defvalue = { }) const;
+    typename ObjectAdapter<T>::TRet GetAtAs(unsigned idx);
+
+    template <typename T>
+    const typename ObjectAdapter<T>::TRet GetAtAsSafe(unsigned idx, const std::common_type_t<T>& fallback = { }) const;
+
+    template <typename T>
+    typename ObjectAdapter<T>::TRet GetAtAsSafe(unsigned idx, const std::common_type_t<T>& fallback = { });
 
     template <typename T>
     bool TryGetAtAs(unsigned idx, T& value) const;
+
+    template <typename T>
+    bool TryGetAtAs(unsigned idx, T& value);
 
     /** Get the object at the given index out of the array.
      *
@@ -160,13 +169,22 @@ public:
     PdfObject& MustFindAt(unsigned idx);
 
     template <typename T>
-    T FindAtAs(unsigned idx, const std::common_type_t<T>& defvalue = { }) const;
+    const typename ObjectAdapter<T>::TRet FindAtAs(unsigned idx) const;
 
     template <typename T>
-    T FindAtAsSafe(unsigned idx, const std::common_type_t<T>& defvalue = { }) const;
+    typename ObjectAdapter<T>::TRet FindAtAs(unsigned idx);
+
+    template <typename T>
+    const typename ObjectAdapter<T>::TRet FindAtAsSafe(unsigned idx, const std::common_type_t<T>& fallback = { }) const;
+
+    template <typename T>
+    typename ObjectAdapter<T>::TRet FindAtAsSafe(unsigned idx, const std::common_type_t<T>& fallback = { });
 
     template <typename T>
     bool TryFindAtAs(unsigned idx, T& value) const;
+
+    template <typename T>
+    bool TryFindAtAs(unsigned idx, T& value);
 
     void RemoveAt(unsigned idx);
 
@@ -352,25 +370,33 @@ PdfArray PdfArray::FromNumbers(cspan<TInt> numbers)
 }
 
 template<typename T>
-T PdfArray::GetAtAs(unsigned idx) const
+const typename ObjectAdapter<T>::TRet PdfArray::GetAtAs(unsigned idx) const
 {
-    return Object<T>::Get(getAt(idx));
+    return ObjectAdapter<T>::Get(const_cast<const PdfObject&>(getAt(idx)));
 }
 
 template<typename T>
-T PdfArray::GetAtAsSafe(unsigned idx, const std::common_type_t<T>& defvalue) const
+typename ObjectAdapter<T>::TRet PdfArray::GetAtAs(unsigned idx)
 {
-    T value;
-    if (Object<T>::TryGet(getAt(idx), value))
-        return value;
-    else
-        return defvalue;
+    return ObjectAdapter<T>::Get(getAt(idx));
+}
+
+template<typename T>
+const typename ObjectAdapter<T>::TRet PdfArray::GetAtAsSafe(unsigned idx, const std::common_type_t<T>& fallback) const
+{
+    return ObjectAdapter<T>::Get(const_cast<const PdfObject&>(getAt(idx)), fallback);
+}
+
+template<typename T>
+typename ObjectAdapter<T>::TRet PdfArray::GetAtAsSafe(unsigned idx, const std::common_type_t<T>& fallback)
+{
+    return ObjectAdapter<T>::Get(getAt(idx), fallback);
 }
 
 template<typename T>
 bool PdfArray::TryGetAtAs(unsigned idx, T& value) const
 {
-    if (Object<T>::TryGet(getAt(idx), value))
+    if (ObjectAdapter<T>::TryGet(const_cast<const PdfObject&>(getAt(idx)), value))
     {
         return true;
     }
@@ -382,31 +408,71 @@ bool PdfArray::TryGetAtAs(unsigned idx, T& value) const
 }
 
 template<typename T>
-T PdfArray::FindAtAs(unsigned idx, const std::common_type_t<T>& defvalue) const
+bool PdfArray::TryGetAtAs(unsigned idx, T& value)
 {
-    auto obj = findAt(idx);
-    if (obj == nullptr)
-        return defvalue;
-
-    return Object<T>::Get(*obj);
+    if (ObjectAdapter<T>::TryGet(getAt(idx), value))
+    {
+        return true;
+    }
+    else
+    {
+        value = { };
+        return false;
+    }
 }
 
 template<typename T>
-T PdfArray::FindAtAsSafe(unsigned idx, const std::common_type_t<T>& defvalue) const
+const typename ObjectAdapter<T>::TRet PdfArray::FindAtAs(unsigned idx) const
 {
-    T value;
+    return ObjectAdapter<T>::Get(MustFindAt(idx));
+}
+
+template<typename T>
+inline typename ObjectAdapter<T>::TRet PdfArray::FindAtAs(unsigned idx)
+{
+    return ObjectAdapter<T>::Get(MustFindAt(idx));
+}
+
+template<typename T>
+const typename ObjectAdapter<T>::TRet PdfArray::FindAtAsSafe(unsigned idx, const std::common_type_t<T>& fallback) const
+{
     auto obj = findAt(idx);
-    if (obj != nullptr && Object<T>::TryGet(*obj, value))
-        return value;
+    if (obj == nullptr)
+        return fallback;
     else
-        return defvalue;
+        return ObjectAdapter<T>::Get(const_cast<const PdfObject&>(*obj), fallback);
+}
+
+template<typename T>
+inline typename ObjectAdapter<T>::TRet PdfArray::FindAtAsSafe(unsigned idx, const std::common_type_t<T>& fallback)
+{
+    auto obj = findAt(idx);
+    if (obj == nullptr)
+        return fallback;
+    else
+        return ObjectAdapter<T>::Get(*obj, fallback);
 }
 
 template<typename T>
 bool PdfArray::TryFindAtAs(unsigned idx, T& value) const
 {
     auto obj = findAt(idx);
-    if (obj != nullptr && Object<T>::TryGet(*obj, value))
+    if (obj != nullptr && ObjectAdapter<T>::TryGet(const_cast<const PdfObject&>(*obj), value))
+    {
+        return true;
+    }
+    else
+    {
+        value = { };
+        return false;
+    }
+}
+
+template<typename T>
+inline bool PdfArray::TryFindAtAs(unsigned idx, T& value)
+{
+    auto obj = findAt(idx);
+    if (obj != nullptr && ObjectAdapter<T>::TryGet(*obj, value))
     {
         return true;
     }

@@ -125,7 +125,7 @@ bool PdfEncodingMapFactory::TryParseCMapEncoding(const PdfObject& cmapObj, uniqu
         if (cidInfoDict->TryFindKeyAs("Ordering", str))
             info.Ordering = *str;
 
-        info.Supplement = (int)cidInfoDict->FindKeyAs<int64_t>("Supplement", 0);
+        info.Supplement = (int)cidInfoDict->FindKeyAsSafe<int64_t>("Supplement", 0);
     }
     if (dict->TryFindKeyAs("CMapName", name))
         cmapName = *name;
