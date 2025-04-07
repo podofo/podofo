@@ -113,7 +113,7 @@ void PdfAnnotationPopup::SetOpen(const nullable<bool>& value)
 
 bool PdfAnnotationPopup::GetOpen() const
 {
-    return GetDictionary().GetKeyAsSafe<bool>("Open", false);
+    return GetDictionary().FindKeyAsSafe<bool>("Open", false);
 }
 
 void PdfAnnotationText::SetOpen(const nullable<bool>& value)
@@ -126,7 +126,7 @@ void PdfAnnotationText::SetOpen(const nullable<bool>& value)
 
 bool PdfAnnotationText::GetOpen() const
 {
-    return GetDictionary().GetKeyAsSafe<bool>("Open", false);
+    return GetDictionary().FindKeyAsSafe<bool>("Open", false);
 }
 
 PdfAnnotationTextMarkupBase::PdfAnnotationTextMarkupBase(PdfPage& page, PdfAnnotationType annotType, const Rect& rect)
