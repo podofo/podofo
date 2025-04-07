@@ -49,6 +49,7 @@ nullable<const PdfString&> PdfMetadata::GetTitle() const
 
 void PdfMetadata::SetAuthor(nullable<const PdfString&> author)
 {
+    ensureInitialized();
     if (m_metadata->Author == author)
         return;
 
