@@ -44,6 +44,7 @@ const nullable<PdfString>& PdfMetadata::GetTitle() const
 
 void PdfMetadata::SetAuthor(nullable<const PdfString&> author, bool trySyncXMP)
 {
+    ensureInitialized();
     if (m_metadata.Author == author)
         return;
 
