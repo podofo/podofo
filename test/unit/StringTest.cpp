@@ -36,9 +36,18 @@ TEST_CASE("TestEncryptedStringsEscaped")
 
     REQUIRE(*doc.GetMetadata().GetTitle() == "Test title");
 
-    // This has a escaped `\r` character that shall be ignore. This currently works in Pdf.js but
+    // This has a escaped `\r` character that shall be ignored. This currently works in Pdf.js but
     // not on Adobe. It's a rare edge case anyway
     REQUIRE(doc.GetMetadata().GetModifyDate()->ToString() == "D:20250403231507+02'00'");
+
+    doc.Load(TestUtils::GetTestInputFilePath("TestEncryptedStringsEscaped2.pdf"), "userpass");
+
+    // Next title has a escaped `\0`
+    REQUIRE(*doc.GetMetadata().GetTitle() == "Test title 2");
+
+    // Next producer has a escaped `\n` character that shall be ignored. This
+    // works also in Adobe
+    REQUIRE(*doc.GetMetadata().GetProducer() == "PoDoFo - https://github.com/podofo/podofo");
 }
 
 TEST_CASE("TestStringUtf8")
