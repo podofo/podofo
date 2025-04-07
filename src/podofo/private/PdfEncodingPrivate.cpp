@@ -302,7 +302,7 @@ bool PoDoFo::CheckValidUTF8ToPdfDocEcondingChars(const string_view& view, bool& 
     return true;
 }
 
-bool PoDoFo::IsPdfDocEncodingCoincidentToUTF8(const string_view& view)
+bool PoDoFo::IsPdfDocEncodingCoincidentToUTF8(string_view view)
 {
     for (size_t i = 0; i < view.length(); i++)
     {
@@ -356,7 +356,7 @@ string PoDoFo::ConvertPdfDocEncodingToUTF8(const string_view& view, bool& isAsci
     return ret;
 }
 
-void PoDoFo::ConvertPdfDocEncodingToUTF8(const string_view& view, string& u8str, bool& isAsciiEqual)
+void PoDoFo::ConvertPdfDocEncodingToUTF8(string_view view, string& u8str, bool& isAsciiEqual)
 {
     u8str.clear();
     isAsciiEqual = true;

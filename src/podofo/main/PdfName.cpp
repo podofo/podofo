@@ -19,8 +19,8 @@ using namespace PoDoFo;
 template<typename T>
 void hexchr(const unsigned char ch, T& it);
 
-static void escapeNameTo(string& dst, const bufferview& view);
-static charbuff unescapeName(const string_view& view);
+static void escapeNameTo(string& dst, bufferview view);
+static charbuff unescapeName(string_view view);
 
 const PdfName PdfName::Null = PdfName();
 
@@ -220,7 +220,7 @@ void PdfName::expandUtf8String()
  *  \param length Length of input string
  *  \returns Escaped string
  */
-void escapeNameTo(string& dst, const bufferview& view)
+void escapeNameTo(string& dst, bufferview view)
 {
     // Scan the input string once to find out how much memory we need
     // to reserve for the encoded result string. We could do this in one
@@ -272,7 +272,7 @@ void escapeNameTo(string& dst, const bufferview& view)
  *  \param length Length of input string
  *  \returns Unescaped string
  */
-charbuff unescapeName(const string_view& view)
+charbuff unescapeName(string_view view)
 {
     // We know the decoded string can be AT MOST
     // the same length as the encoded one, so:

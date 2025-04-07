@@ -24,11 +24,11 @@ namespace PoDoFo
      * /param isPdfDocEncoding the given utf-8 string is coincident in PdfDocEncoding representation
      */
     bool CheckValidUTF8ToPdfDocEcondingChars(const std::string_view& view, bool& isAsciiEqual);
-    bool IsPdfDocEncodingCoincidentToUTF8(const std::string_view& view);
+    bool IsPdfDocEncodingCoincidentToUTF8(std::string_view view);
     bool TryConvertUTF8ToPdfDocEncoding(const std::string_view& view, std::string& pdfdocencstr);
     std::string ConvertUTF8ToPdfDocEncoding(const std::string_view& view);
     std::string ConvertPdfDocEncodingToUTF8(const std::string_view& view, bool& isAsciiEqual);
-    void ConvertPdfDocEncodingToUTF8(const std::string_view& view, std::string& u8str, bool& isAsciiEqual);
+    void ConvertPdfDocEncodingToUTF8(std::string_view view, std::string& u8str, bool& isAsciiEqual);
 }
 
 #endif // PDF_ENCODING_PRIVATE_H

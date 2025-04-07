@@ -108,7 +108,7 @@ namespace
          *
          *  \returns a PdfColor object
          */
-        static PdfColor createFromRGBString(const string_view& name);
+        static PdfColor createFromRGBString(string_view name);
 
         string m_Name;
         PdfColor m_color;
@@ -707,7 +707,7 @@ bool PdfColor::tryCreateFromArray(const PdfArray& arr, PdfColor& color)
     return false;
 }
 
-PdfColor PdfNamedColor::createFromRGBString(const string_view& name)
+PdfColor PdfNamedColor::createFromRGBString(string_view name)
 {
     // This method cannot use PdfTokenizer::GetHexValue() as static values used there have
     // not been initialised yet. This function should used only during program startup

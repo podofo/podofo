@@ -19,6 +19,7 @@ It follows other lenient rules that are not truly enforced in all the code base,
 ### PoDoFo specifics
 
 - `PdfDictionary` and other methods doing lookups on `PdfName` with keys known at compile time: `GetKey`, `FindKey`, `FindKeyHas`, `HasKey`, `RemoveKey` methods (and in general non addition lookup methods) use string literals or `string_view`. For `AddKey`, `AddKeyIndirect`, `AddKeyIndirectSafe` use the "_n" user literal
+- `std::string_view` are always passed by const reference in the public API
 
 Some examples of expected coding style can be found at the following permalinks:
 
