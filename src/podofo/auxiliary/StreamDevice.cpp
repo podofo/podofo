@@ -729,7 +729,7 @@ FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access
             if (access == DeviceAccess::Read)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Invalid combination FileMode::CreateNew and DeviceAccess::Read");
 
-            if (fs::exists(filepath))
+            if (fs::exists(fs::u8path(filepath)))
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "The file {} must not exist", filepath);
 
             switch (access)
@@ -767,7 +767,7 @@ FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access
         }
         case FileMode::Open:
         {
-            if ((access & DeviceAccess::Write) != DeviceAccess{ } && !fs::exists(filepath))
+            if ((access & DeviceAccess::Write) != DeviceAccess{ } && !fs::exists(fs::u8path(filepath)))
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "The file {} must exist", filepath);
 
             switch (access)
@@ -792,7 +792,7 @@ FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access
             if (access == DeviceAccess::Read)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Invalid combination FileMode::OpenOrCreate and DeviceAccess::Read");
 
-            bool exists = fs::exists(filepath);
+            bool exists = fs::exists(fs::u8path(filepath));
             switch (access)
             {
                 case DeviceAccess::Write:
@@ -812,7 +812,7 @@ FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access
             if (access == DeviceAccess::Read)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Invalid combination FileMode::Truncate and DeviceAccess::Read");
 
-            if (!fs::exists(filepath))
+            if (!fs::exists(fs::u8path(filepath)))
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "The file {} must exist", filepath);
 
             switch (access)
