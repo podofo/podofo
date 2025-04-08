@@ -127,12 +127,13 @@ TEST_CASE("TestPainter3")
     auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
     PdfPainter painter;
     painter.SetCanvas(page);
-    painter.TextState.SetFont(doc.GetFonts().GetStandard14Font(PdfStandard14FontType::TimesRoman), 15);
+    auto& font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::TimesRoman);
+    painter.TextState.SetFont(font, 15);
     painter.DrawText("Hello world", 100, 500, PdfDrawTextStyle::StrikeThrough | PdfDrawTextStyle::Underline);
     painter.FinishDrawing();
     doc.Save(TestUtils::GetTestOutputFilePath("TestPainter3.pdf"));
 
-    auto expected = R"(q
+    auto expectedContent = R"(q
 q
 BT
 /Ft0 15 Tf
@@ -151,7 +152,69 @@ Q
 )"sv;
 
     auto out = getContents(page);
-    REQUIRE(out == expected);
+    REQUIRE(out == expectedContent);
+
+    auto expectedToUnicode = R"(/CIDInit /ProcSet findresource begin
+12 dict begin
+begincmap
+/CIDSystemInfo <<
+   /Registry (Adobe)
+   /Ordering (UCS)
+   /Supplement 0
+>> def
+/CMapName /Adobe-Identity-UCS def
+/CMapType 2 def
+1 begincodespacerange
+<00><7F>
+endcodespacerange
+8 beginbfchar
+<01> <0020>
+<02> <0048>
+<03> <0065>
+<04> <006C>
+<05> <006F>
+<06> <0077>
+<07> <0072>
+<08> <0064>
+endbfchar
+endcmap
+CMapName currentdict /CMap defineresource pop
+end
+end)";
+
+    auto& toUnicodeObj = font.GetDictionary().MustFindKey("ToUnicode");
+    REQUIRE(toUnicodeObj.MustGetStream().GetCopy() == expectedToUnicode);
+
+    auto expectedEncoding = R"(/CIDInit /ProcSet findresource begin
+12 dict begin
+begincmap
+/CIDSystemInfo <<
+   /Registry (PoDoFo)
+   /Ordering (BAAAAA+Times-Roman-subset)
+   /Supplement 0
+>> def
+/CMapName /CMap-BAAAAA+Times-Roman-subset def
+/CMapType 1 def
+1 begincodespacerange
+<00><7F>
+endcodespacerange
+8 begincidchar
+<01> 1
+<02> 2
+<03> 3
+<04> 4
+<05> 5
+<06> 6
+<07> 7
+<08> 8
+endcidchar
+endcmap
+CMapName currentdict /CMap defineresource pop
+end
+end)";
+
+    auto& encodingObj = font.GetDictionary().MustFindKey("Encoding");
+    REQUIRE(encodingObj.MustGetStream().GetCopy() == expectedEncoding);
 }
 
 TEST_CASE("TestPainter4")
