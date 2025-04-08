@@ -644,7 +644,7 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
 
     output.Write(
         "endcmap\n"
-        "CMapName currentdict / CMap defineresource pop\n"
+        "CMapName currentdict /CMap defineresource pop\n"
         "end\n"
         "end");
 }
@@ -677,7 +677,7 @@ void PdfEncoding::writeToUnicodeCMap(PdfObject& cmapObj) const
     toUnicode.AppendToUnicodeEntries(output, temp);
     output.Write(
         "\nendcmap\n"
-        "CMapName currentdict / CMap defineresource pop\n"
+        "CMapName currentdict /CMap defineresource pop\n"
         "end\n"
         "end");
 }
