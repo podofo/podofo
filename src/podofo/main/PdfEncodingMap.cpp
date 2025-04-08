@@ -308,13 +308,19 @@ void PdfEncodingMapBase::AppendCIDMappingEntries(OutputStream& stream, const Pdf
     auto& mappings = m_charMap->GetMappings();
     if (mappings.size() != 0)
     {
+        // Sort the keys, so the output will be deterministic
+        set<PdfCharCode> ordered;
+        std::for_each(mappings.begin(), mappings.end(), [&ordered](auto& pair) {
+            ordered.insert(pair.first);
+        });
+
         utls::FormatTo(temp, mappings.size());
         stream.Write(temp);
         stream.Write(" begincidchar\n");
-        for (auto& pair : mappings)
+        for (auto& code : ordered)
         {
             // We assume the cid to be in the single element
-            writeCIDMapping(stream, pair.first, *pair.second, temp);
+            writeCIDMapping(stream, code, *mappings.at(code), temp);
         }
         stream.Write("endcidchar\n");
     }
@@ -366,15 +372,22 @@ void PdfEncodingMapBase::AppendToUnicodeEntries(OutputStream& stream, charbuff& 
     auto& mappings = m_charMap->GetMappings();
     if (mappings.size() != 0)
     {
+        // Sort the keys, so the output will be deterministic
+        set<PdfCharCode> ordered;
+        std::for_each(mappings.begin(), mappings.end(), [&ordered](auto& pair) {
+            ordered.insert(pair.first);
+        });
+
         utls::FormatTo(temp, mappings.size());
         stream.Write(temp);
         stream.Write(" beginbfchar\n");
-        for (auto& pair : mappings)
+
+        for (auto& code : ordered)
         {
-            pair.first.WriteHexTo(temp);
+            code.WriteHexTo(temp);
             stream.Write(temp);
             stream.Write(" ");
-            PdfEncodingMap::AppendUTF16CodeTo(stream, pair.second, u16temp);
+            PdfEncodingMap::AppendUTF16CodeTo(stream, mappings.at(code), u16temp);
             stream.Write("\n");
         }
         stream.Write("endbfchar\n");
