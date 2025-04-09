@@ -35,9 +35,6 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfObject& fontObj, const P
     if (encoding == nullptr && metrics.TryGetImplicitEncoding(implicitEncoding))
         encoding = implicitEncoding;
 
-    // TODO: Implement full text extraction, including search in predefined
-    // CMap(s) as described in Pdf Reference and here https://stackoverflow.com/a/26910569/213871
-
     // The /ToUnicode CMap is the main entry to search
     // for text extraction
     PdfEncodingMapConstPtr toUnicode;
