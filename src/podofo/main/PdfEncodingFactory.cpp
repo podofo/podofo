@@ -16,29 +16,119 @@
 #include "PdfDifferenceEncoding.h"
 #include "PdfCMapEncoding.h"
 #include "PdfFontMetrics.h"
-#include "PdfEncodingMapFactory.h"
 #include "PdfPredefinedToUnicodeCMap.h"
 
 using namespace std;
 using namespace PoDoFo;
 
+// NOTE: This method is a shortened replica of the initial
+// steps in PdfFont::TryCreateFromObject
 PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfObject& fontObj, const PdfFontMetrics& metrics)
+{
+    const PdfName* name;
+    const PdfDictionary* dict;
+    if (!fontObj.TryGetDictionary(dict)
+        || !dict->TryFindKeyAs("Type", name)
+        || *name != "Font")
+    {
+    Fail:
+        return PdfEncoding();
+    }
+
+    if (!dict->TryFindKeyAs("Subtype", name))
+    {
+        PoDoFo::LogMessage(PdfLogSeverity::Warning, "Font: No SubType");
+        goto Fail;
+    }
+
+    const PdfObject* descendantObj = nullptr;
+    if (*name == "Type0")
+    {
+        const PdfArray* arr;
+        if (!dict->TryFindKeyAs("DescendantFonts", arr))
+        {
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, "Type0 Font : No DescendantFonts");
+            goto Fail;
+        }
+
+        if (arr->size() != 0)
+            descendantObj = &arr->MustFindAt(0);
+    }
+
+    return CreateEncoding(*dict, metrics, descendantObj);
+}
+
+PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfDictionary& fontDict, const PdfFontMetrics& metrics, const PdfObject* descendantFont)
 {
     // The /Encoding entry can be a predefined encoding, a CMap
     PdfEncodingMapConstPtr encoding;
+    PdfCIDToGIDMapConstPtr cidToGidMap;
 
-    auto encodingObj = fontObj.GetDictionary().FindKey("Encoding");
+    auto encodingObj = fontDict.FindKey("Encoding");
     if (encodingObj != nullptr)
         encoding = createEncodingMap(*encodingObj, metrics);
 
-    PdfEncodingMapConstPtr implicitEncoding;
-    if (encoding == nullptr && metrics.TryGetImplicitEncoding(implicitEncoding))
-        encoding = implicitEncoding;
+    auto type = metrics.GetFontType();
+    switch (type)
+    {
+        case PdfFontType::Type1:
+        case PdfFontType::TrueType:
+        case PdfFontType::Type3:
+        {
+            PdfEncodingMapConstPtr implicitEncoding;
+            if (encoding == nullptr)
+            {
+                // See condition ISO 32000-2:2020 "When the font has no Encoding entry..."
+                encoding = metrics.GetImplicitEncoding(cidToGidMap);
+            }
+            else
+            {
+                if (type == PdfFontType::TrueType && (metrics.GetFlags() & PdfFontDescriptorFlags::Symbolic) != PdfFontDescriptorFlags::None)
+                {
+                    // or the font descriptor’s Symbolic flag is set (in which case the Encoding entry is ignored)"
+                    // NOTE: The encoding entry is "ignored" for glyph selecting
+                    cidToGidMap = metrics.GetBuiltinCIDToGIDMap();
+                }
+                else
+                {
+                    const PdfDifferenceEncoding* diffEncoding;
+                    if (encoding != nullptr &&
+                        (diffEncoding = dynamic_cast<const PdfDifferenceEncoding*>(encoding.get())) != nullptr)
+                    {
+                        // Try to create an implicit CID to GID map
+                        // for the /Difference encoding
+                        cidToGidMap = diffEncoding->CreateCIDToGIDMap(metrics);
+                    }
+                }
+            }
 
+            break;
+        }
+        case PdfFontType::CIDTrueType:
+        {
+            const PdfObject* cidToGidMapObj;
+            const PdfObjectStream* stream;
+            const PdfDictionary* descriptorDict;
+            if (descendantFont != nullptr
+                && descendantFont->TryGetDictionary(descriptorDict)
+                && (cidToGidMapObj = descriptorDict->FindKey("CIDToGIDMap")) != nullptr
+                && (stream = cidToGidMapObj->GetStream()) != nullptr)
+            {
+                cidToGidMap.reset(new PdfCIDToGIDMap(PdfCIDToGIDMap::Create(*cidToGidMapObj)));
+            }
+            break;
+        }
+        default:
+        {
+            // Do nothing
+            break;
+        }
+    }
+ 
     // The /ToUnicode CMap is the main entry to search
     // for text extraction
     PdfEncodingMapConstPtr toUnicode;
-    auto toUnicodeObj = fontObj.GetDictionary().FindKey("ToUnicode");
+    auto toUnicodeObj = fontDict.FindKey("ToUnicode");
     if (toUnicodeObj != nullptr)
         toUnicode = createEncodingMap(*toUnicodeObj, metrics);
 
@@ -70,7 +160,10 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfObject& fontObj, const P
             toUnicodeMapName.append("-UCS2");
             auto toUnicodeMap = PdfEncodingMapFactory::GetPredefinedCMap(toUnicodeMapName);
             if (toUnicodeMap == nullptr)
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "A ToUnicode map with name {} was not found", toUnicodeMapName);
+            {
+                PoDoFo::LogMessage(PdfLogSeverity::Warning, "A ToUnicode map with name {} was not found", toUnicodeMapName);
+                return PdfEncoding();
+            }
 
             toUnicode = shared_ptr<PdfPredefinedToUnicodeCMap>(new PdfPredefinedToUnicodeCMap(
                 std::move(toUnicodeMap), std::move(predefinedCIDMap)));
@@ -78,11 +171,11 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfObject& fontObj, const P
     }
 
     PdfEncodingLimits parsedLimits;
-    auto firstCharObj = fontObj.GetDictionary().FindKey("FirstChar");
+    auto firstCharObj = fontDict.FindKey("FirstChar");
     if (firstCharObj != nullptr)
         parsedLimits.FirstChar = PdfCharCode(static_cast<unsigned>(firstCharObj->GetNumber()));
 
-    auto lastCharObj = fontObj.GetDictionary().FindKey("LastChar");
+    auto lastCharObj = fontDict.FindKey("LastChar");
     if (lastCharObj != nullptr)
         parsedLimits.LastChar = PdfCharCode(static_cast<unsigned>(lastCharObj->GetNumber()));
 
@@ -94,7 +187,7 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfObject& fontObj, const P
         parsedLimits.MaxCodeSize = utls::GetCharCodeSize(parsedLimits.LastChar.Code);
     }
 
-    return PdfEncoding::Create(parsedLimits, encoding, toUnicode);
+    return PdfEncoding::Create(parsedLimits, encoding, toUnicode, cidToGidMap);
 }
 
 PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(const PdfObject& obj,
@@ -147,15 +240,15 @@ PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(const PdfObject& ob
 
 PdfEncoding PdfEncodingFactory::CreateWinAnsiEncoding()
 {
-    return PdfEncoding(WinAnsiEncodingId, PdfEncodingMapFactory::WinAnsiEncodingInstance());
+    return PdfEncoding(WinAnsiEncodingId, PdfEncodingMapFactory::WinAnsiEncodingInstance(), nullptr);
 }
 
 PdfEncoding PdfEncodingFactory::CreateMacRomanEncoding()
 {
-    return PdfEncoding(MacRomanEncodingId, PdfEncodingMapFactory::MacRomanEncodingInstance());
+    return PdfEncoding(MacRomanEncodingId, PdfEncodingMapFactory::MacRomanEncodingInstance(), nullptr);
 }
 
 PdfEncoding PdfEncodingFactory::CreateMacExpertEncoding()
 {
-    return PdfEncoding(MacExpertEncodingId, PdfEncodingMapFactory::MacExpertEncodingInstance());
+    return PdfEncoding(MacExpertEncodingId, PdfEncodingMapFactory::MacExpertEncodingInstance(), nullptr);
 }

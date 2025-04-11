@@ -31,7 +31,6 @@ private:
 
 public:
     bool SupportsSubsetting() const override;
-    PdfFontType GetType() const override;
 
 protected:
     void embedFontFileSubset(const std::vector<PdfCharGIDInfo>& infos,

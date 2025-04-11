@@ -34,9 +34,10 @@ using namespace PoDoFo;
 static double getGlyphLength(double glyphLength, const PdfTextState& state, bool ignoreCharSpacing);
 static string_view toString(PdfFontStretch stretch);
 
-PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+PdfFont::PdfFont(PdfDocument& doc, PdfFontType type, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding) :
     PdfDictionaryElement(doc, "Font"_n),
+    m_Type(type),
     m_WordSpacingLengthRaw(-1),
     m_SpaceCharLengthRaw(-1),
     m_Metrics(metrics)
@@ -47,9 +48,10 @@ PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     this->initBase(encoding);
 }
 
-PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
+PdfFont::PdfFont(PdfObject& obj, PdfFontType type, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding) :
     PdfDictionaryElement(obj),
+    m_Type(type),
     m_WordSpacingLengthRaw(-1),
     m_SpaceCharLengthRaw(-1),
     m_Metrics(metrics)
@@ -76,7 +78,6 @@ bool PdfFont::TryCreateProxyFont(PdfFontCreateFlags initFlags, PdfFont*& proxyFo
         return false;
     }
 
-    auto encoding = GetEncoding();
     auto& metrics = GetMetrics();
     // No need to normalize the font if embedding is not enabled
     bool skipNormalization = (initFlags & PdfFontCreateFlags::DontEmbed) != PdfFontCreateFlags::None;
@@ -112,14 +113,17 @@ bool PdfFont::TryCreateProxyFont(PdfFontCreateFlags initFlags, PdfFont*& proxyFo
         }
     }
 
-    if (!encoding.HasValidToUnicodeMap())
+    PdfFontCreateParams params;
+    if (m_Encoding->HasValidToUnicodeMap())
     {
-        shared_ptr<PdfCMapEncoding> toUnicode = newMetrics->CreateToUnicodeMap(encoding.GetLimits());
-        encoding = PdfEncoding(encoding.GetEncodingMapPtr(), toUnicode);
+        params.Encoding = *m_Encoding;
+    }
+    else
+    {
+        shared_ptr<PdfCMapEncoding> toUnicode = newMetrics->CreateToUnicodeMap(m_Encoding->GetLimits());
+        params.Encoding = PdfEncoding::Create(*m_Encoding, toUnicode);
     }
 
-    PdfFontCreateParams params;
-    params.Encoding = encoding;
     params.Flags = initFlags;
     auto newFont = PdfFont::Create(GetDocument(), newMetrics, params, true);
     if (newFont == nullptr)
@@ -138,7 +142,6 @@ void PdfFont::initBase(const PdfEncoding& encoding)
     m_EmbeddingEnabled = false;
     m_SubsettingEnabled = false;
     m_IsProxy = false;
-    m_fontProgCIDToGIDMap = m_Metrics->GetCIDToGIDMap();
 
     if (encoding.IsNull())
     {
@@ -150,6 +153,8 @@ void PdfFont::initBase(const PdfEncoding& encoding)
     {
         m_Encoding = PdfEncoding::CreateSchim(encoding, *this);
     }
+
+    m_fontProgCIDToGIDMap = m_Encoding->GetCIDToGIDMap();
 
     // By default ensure the font has the /BaseFont name or /FontName
     // or, the name inferred from a font file

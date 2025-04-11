@@ -29,9 +29,6 @@ private:
     PdfFontCIDTrueType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);
 
-public:
-    PdfFontType GetType() const override;
-
 protected:
     void embedFontFileSubset(const std::vector<PdfCharGIDInfo>& infos,
         const PdfCIDSystemInfo& cidInfo) override;

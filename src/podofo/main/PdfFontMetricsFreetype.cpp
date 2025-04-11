@@ -227,8 +227,6 @@ void PdfFontMetricsFreetype::init(const PdfFontMetrics* refMetrics)
         m_UnderlineThickness = refMetrics->GetUnderlineThickness();
         m_UnderlinePosition = refMetrics->GetUnderlinePosition();
 
-        m_CIDToGIDMap = refMetrics->GetCIDToGIDMap();
-
         // Enforce parsed metrics from reference
         SetParsedWidths(refMetrics->GetParsedWidths());
     }
@@ -554,11 +552,6 @@ bool PdfFontMetricsFreetype::getIsBoldHint() const
 bool PdfFontMetricsFreetype::getIsItalicHint() const
 {
     return (m_Face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
-}
-
-const PdfCIDToGIDMapConstPtr& PdfFontMetricsFreetype::getCIDToGIDMap() const
-{
-    return m_CIDToGIDMap;
 }
 
 double PdfFontMetricsFreetype::GetLineSpacing() const

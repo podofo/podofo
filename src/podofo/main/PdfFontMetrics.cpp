@@ -255,6 +255,12 @@ void PdfFontMetrics::SetParsedWidths(GlyphMetricsListConstPtr&& parsedWidths)
     m_ParsedWidths = std::move(parsedWidths);
 }
 
+PdfCIDToGIDMapConstPtr PdfFontMetrics::GetBuiltinCIDToGIDMap() const
+{
+    // By default assume there's no map available
+    return nullptr;
+}
+
 void PdfFontMetrics::initFamilyFontNameSafe()
 {
     if (m_FamilyFontNameSafe.length() != 0)
@@ -472,15 +478,30 @@ unique_ptr<PdfCMapEncoding> PdfFontMetrics::CreateToUnicodeMap(const PdfEncoding
     PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
-bool PdfFontMetrics::TryGetImplicitEncoding(PdfEncodingMapConstPtr& encoding) const
+PdfFontType PdfFontMetrics::GetFontType() const
+{
+    return PdfFontType::Unknown;
+}
+
+PdfEncodingMapConstPtr PdfFontMetrics::GetImplicitEncoding(PdfCIDToGIDMapConstPtr& cidToGidMap) const
+{
+    return getImplicitEncoding(true, cidToGidMap);
+}
+
+PdfEncodingMapConstPtr PdfFontMetrics::GetImplicitEncoding() const
+{
+    PdfCIDToGIDMapConstPtr discard;
+    return getImplicitEncoding(false, discard);
+}
+
+PdfEncodingMapConstPtr PdfFontMetrics::getImplicitEncoding(bool tryFetchCidToGidMap, PdfCIDToGIDMapConstPtr& cidToGidMap) const
 {
     PdfStandard14FontType std14Font;
     // Implicit base encoding can be :
     // 1) The implicit encoding of a standard 14 font
     if (IsStandard14FontMetrics(std14Font))
     {
-        encoding = PdfEncodingMapFactory::GetStandard14FontEncodingMap(std14Font);
-        return true;
+        return PdfEncodingMapFactory::GetStandard14FontEncodingMap(std14Font);
     }
     else if (IsType1Kind())
     {
@@ -488,54 +509,35 @@ bool PdfFontMetrics::TryGetImplicitEncoding(PdfEncodingMapConstPtr& encoding) co
         // ISO 32000-1:2008 9.6.6.2 "Encodings for Type 1 Fonts"
         auto face = GetFaceHandle();
         if (face != nullptr)
-        {
-            encoding = getFontType1ImplicitEncoding(face);
-            return true;
-        }
+            return getFontType1ImplicitEncoding(face);
     }
-    else if (IsTrueTypeKind())
+    else if (IsTrueTypeKind() && tryFetchCidToGidMap)
     {
         // 2.2) An encoding stored in the font program (TrueType)
         // ISO 32000-1:2008 9.6.6.4 "Encodings for TrueType Fonts"
         // NOTE: We just take the inferred builtin CID to GID map and we create
         // a identity encoding of the maximum code size. It should always be 1
         // anyway
-        auto& map = getCIDToGIDMap();
-        if (map != nullptr)
+        cidToGidMap = GetBuiltinCIDToGIDMap();
+        if (cidToGidMap != nullptr)
         {
             // Find the maximum CID code size
             unsigned maxCID = 0;
-            for (auto& pair : *map)
+            for (auto& pair : *cidToGidMap)
             {
                 if (pair.first > maxCID)
                     maxCID = pair.first;
             }
 
-            encoding = std::make_shared<PdfIdentityEncoding>(utls::GetCharCodeSize(maxCID));
-            return true;
+            return std::make_shared<PdfIdentityEncoding>(utls::GetCharCodeSize(maxCID));
         }
     }
 
     // As a last chance, try check if the font name is actually a Standard14
     if (PdfFont::IsStandard14Font(GetFontName(), std14Font))
-    {
-        encoding = PdfEncodingMapFactory::GetStandard14FontEncodingMap(std14Font);
-        return true;
-    }
+        return PdfEncodingMapFactory::GetStandard14FontEncodingMap(std14Font);
 
-    encoding = nullptr;
-    return false;
-}
-
-PdfCIDToGIDMapConstPtr PdfFontMetrics::GetCIDToGIDMap() const
-{
-    return getCIDToGIDMap();
-}
-
-const PdfCIDToGIDMapConstPtr& PdfFontMetrics::getCIDToGIDMap() const
-{
-    static PdfCIDToGIDMapConstPtr s_null;
-    return s_null;
+    return nullptr;
 }
 
 unsigned PdfFontMetrics::GetGlyphCountFontProgram() const

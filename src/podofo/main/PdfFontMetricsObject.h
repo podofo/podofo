@@ -21,6 +21,8 @@ namespace PoDoFo {
 
 class PODOFO_API PdfFontMetricsObject final : public PdfFontMetricsBase
 {
+    friend class PdfFont;
+
 private:
     /** Create a font metrics object based on an existing PdfObject
      *
@@ -30,7 +32,7 @@ private:
     PdfFontMetricsObject(const PdfObject& font, const PdfObject* descriptor);
 
 public:
-    static std::unique_ptr<const PdfFontMetricsObject> Create(const PdfObject& font, const PdfObject* descriptor = nullptr);
+    static std::unique_ptr<const PdfFontMetricsObject> Create(const PdfObject& font);
 
     bool HasUnicodeMapping() const override;
 
@@ -101,20 +103,22 @@ public:
 protected:
     std::string_view GetBaseFontName() const override;
 
+    PdfFontType GetFontType() const override;
+
+    PdfCIDToGIDMapConstPtr GetBuiltinCIDToGIDMap() const override;
+
     bool getIsBoldHint() const override;
 
     bool getIsItalicHint() const override;
 
     datahandle getFontFileDataHandle() const override;
 
-    const PdfCIDToGIDMapConstPtr& getCIDToGIDMap() const override;
-
 private:
+    static std::unique_ptr<const PdfFontMetricsObject> Create(const PdfObject& font, const PdfObject* descriptor);
+
     void processFontName();
 
     Corners getBBox(const PdfObject& obj);
-
-    void tryLoadBuiltinTrueTypeCIDToGIDMap();
 
 private:
     std::shared_ptr<charbuff> m_Data;
@@ -147,6 +151,7 @@ private:
     double m_DefaultWidth;
 
     const PdfObject* m_FontFileObject;
+    PdfFontType m_FontType;
     nullable<PdfFontFileType> m_FontFileType;
 
     unsigned m_Length1;

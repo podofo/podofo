@@ -18,6 +18,8 @@ class PdfFontMetrics;
  */
 class PODOFO_API PdfEncodingFactory final
 {
+    friend class PdfFont;
+
 public:
     /** Create a new PdfEncoding from either an
      *  encoding name or an encoding dictionary.
@@ -55,6 +57,9 @@ public:
     static PdfEncoding CreateMacExpertEncoding();
 
 private:
+    static PdfEncoding CreateEncoding(const PdfDictionary& fontDict, const PdfFontMetrics& metrics,
+        const PdfObject* descendantFont);
+
     static PdfEncodingMapConstPtr createEncodingMap(const PdfObject& obj,
         const PdfFontMetrics& metrics);
 

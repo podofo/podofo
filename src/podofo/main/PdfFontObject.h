@@ -32,7 +32,6 @@ private:
 
 public:
     bool IsObjectLoaded() const override;
-    PdfFontType GetType() const override;
 };
 
 }

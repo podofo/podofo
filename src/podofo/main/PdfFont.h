@@ -60,13 +60,13 @@ private:
      *         deleted along with the font.
      *  \param encoding the encoding of this font
      */
-    PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+    PdfFont(PdfDocument& doc, PdfFontType type, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);
 
     /** Create a PdfFont based on an existing PdfObject
      * To be used only by PdfFontObject!
      */
-    PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
+    PdfFont(PdfObject& obj, PdfFontType type, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);
 
 public:
@@ -275,8 +275,6 @@ public:
 
     virtual bool SupportsSubsetting() const;
 
-    virtual PdfFontType GetType() const = 0;
-
     bool IsStandard14Font() const;
 
     bool IsStandard14Font(PdfStandard14FontType& std14Font) const;
@@ -304,6 +302,8 @@ public:
      * True if the font is loaded from a PdfObject
      */
     virtual bool IsObjectLoaded() const;
+
+    PdfFontType GetType() const { return m_Type; }
 
     /** Check if this is a subsetting font.
      * \returns true if this is a subsetting font
@@ -454,13 +454,14 @@ private:
 private:
     std::string m_Name;
     std::string m_SubsetPrefix;
+    PdfFontType m_Type;
     bool m_EmbeddingEnabled;
     bool m_IsEmbedded;
     bool m_SubsettingEnabled;
     bool m_IsProxy;
     std::unique_ptr<CIDSubsetMap> m_subsetCIDMap;
     std::unique_ptr<std::unordered_map<unsigned, unsigned>> m_subsetGIDToCIDMap;
-    PdfCIDToGIDMapConstPtr m_fontProgCIDToGIDMap;
+    const PdfCIDToGIDMap* m_fontProgCIDToGIDMap;
     double m_WordSpacingLengthRaw;
     double m_SpaceCharLengthRaw;
 

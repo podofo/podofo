@@ -53,15 +53,23 @@ PdfEncoding::PdfEncoding(unsigned id, const PdfEncodingMapConstPtr& encoding, co
 }
 
 PdfEncoding::PdfEncoding(unsigned id, bool isObjectLoaded, const PdfEncodingLimits& limits, PdfFont* font,
-        const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode)
-    : m_Id(id), m_IsObjectLoaded(isObjectLoaded), m_ParsedLimits(limits), m_Font(font), m_Encoding(encoding), m_ToUnicode(toUnicode)
+        const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode,
+        const PdfCIDToGIDMapConstPtr& cidToGidMap) :
+    m_Id(id), m_IsObjectLoaded(isObjectLoaded), m_ParsedLimits(limits), m_Font(font),
+    m_Encoding(encoding), m_ToUnicode(toUnicode), m_CIDToGIDMap(cidToGidMap)
 {
 }
 
-PdfEncoding PdfEncoding::Create(const PdfEncodingLimits& parsedLimits, const PdfEncodingMapConstPtr& encoding,
-    const PdfEncodingMapConstPtr& toUnicode)
+PdfEncoding PdfEncoding::Create(const PdfEncoding& ref, const PdfToUnicodeMapConstPtr& toUnicode)
 {
-    return PdfEncoding(GetNextId(), true, parsedLimits, nullptr, encoding, toUnicode);
+    return PdfEncoding(GetNextId(), ref.IsObjectLoaded(), ref.GetLimits(),
+        nullptr, ref.GetEncodingMapPtr(), toUnicode, nullptr);
+}
+
+PdfEncoding PdfEncoding::Create(const PdfEncodingLimits& parsedLimits, const PdfEncodingMapConstPtr& encoding,
+    const PdfEncodingMapConstPtr& toUnicode, const PdfCIDToGIDMapConstPtr& cidToGidMap)
+{
+    return PdfEncoding(GetNextId(), true, parsedLimits, nullptr, encoding, toUnicode, cidToGidMap);
 }
 
 unique_ptr<PdfEncoding> PdfEncoding::CreateSchim(const PdfEncoding& encoding, PdfFont& font)
@@ -513,7 +521,7 @@ const PdfEncodingMap& PdfEncoding::GetToUnicodeMapSafe() const
     return *ret;
 }
 
-const PdfEncodingMapConstPtr PdfEncoding::GetToUnicodeMapPtr() const
+PdfEncodingMapConstPtr PdfEncoding::GetToUnicodeMapPtr() const
 {
     if (m_ToUnicode != nullptr)
         return m_ToUnicode;

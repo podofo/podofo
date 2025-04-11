@@ -20,11 +20,6 @@ using namespace PoDoFo;
 
 PdfFontTrueType::PdfFontTrueType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding) :
-    PdfFontSimple(doc, metrics, encoding)
+    PdfFontSimple(doc, PdfFontType::TrueType, metrics, encoding)
 {
-}
-
-PdfFontType PdfFontTrueType::GetType() const
-{
-    return PdfFontType::TrueType;
 }

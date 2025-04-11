@@ -97,6 +97,12 @@ bool PdfFontMetricsStandard14::TryGetGlyphWidthFontProgram(unsigned gid, double&
     return true;
 }
 
+PdfFontType PdfFontMetricsStandard14::GetFontType() const
+{
+    // Arbitrarily determine this metrics will be used in a /Type1 font
+    return PdfFontType::Type1;
+}
+
 bool PdfFontMetricsStandard14::HasUnicodeMapping() const
 {
     return true;

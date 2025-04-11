@@ -2482,10 +2482,10 @@ size_t PdfDifferenceList::GetCount() const
 }
 
 PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfEncodingMapConstPtr& baseEncoding,
-        const PdfDifferenceList& differences) :
+        PdfDifferenceList differences) :
     PdfEncodingMapOneByte({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }),
     m_baseEncoding(baseEncoding),
-    m_differences(differences),
+    m_differences(std::move(differences)),
     m_reverseMapBuilt(false)
 {
     if (baseEncoding == nullptr)
@@ -2537,13 +2537,14 @@ bool PdfDifferenceEncoding::TryCreateFromObject(const PdfObject& obj,
         }
     }
 
-    PdfEncodingMapConstPtr implicitEncoding;
     if (baseEncoding == nullptr)
     {
-        if (metrics.TryGetImplicitEncoding(implicitEncoding))
-            baseEncoding = implicitEncoding;
-        else // Assume StandardEncoding in case nothing else works
+        baseEncoding = metrics.GetImplicitEncoding();
+        if (baseEncoding == nullptr)
+        {
+            // Assume StandardEncoding in case nothing else works
             baseEncoding = PdfEncodingMapFactory::StandardEncodingInstance();
+        }
     }
 
     // Read the differences key
@@ -2569,7 +2570,7 @@ bool PdfDifferenceEncoding::TryCreateFromObject(const PdfObject& obj,
 
     // CHECK-ME: should we verify it actually have a /Differences?
 
-    encoding.reset(new PdfDifferenceEncoding(baseEncoding, difference));
+    encoding.reset(new PdfDifferenceEncoding(baseEncoding, std::move(difference)));
     return true;
 }
 
@@ -2631,6 +2632,13 @@ bool PdfDifferenceEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, const 
     {
         return m_baseEncoding->TryGetCodePoints(codeUnit, codePoints);
     }
+}
+
+PdfCIDToGIDMapConstPtr PdfDifferenceEncoding::CreateCIDToGIDMap(const PdfFontMetrics& metrics) const
+{
+    // TODO
+    (void)metrics;
+    return nullptr;
 }
 
 void PdfDifferenceEncoding::buildReverseMap()

@@ -35,9 +35,12 @@ using PdfFontMetricsConstPtr = std::shared_ptr<const PdfFontMetrics>;
 class PODOFO_API PdfFontMetrics
 {
     friend class PdfFont;
+    friend class PdfFontObject;
     friend class PdfFontManager;
     friend class PdfFontMetricsBase;
     friend class PdfFontMetricsFreetype;
+    friend class PdfEncodingFactory;
+    friend class PdfDifferenceEncoding;
     PODOFO_PRIVATE_FRIEND(class FontTrueTypeSubset);
 
 private:
@@ -330,20 +333,13 @@ public:
      */
     virtual std::unique_ptr<PdfCMapEncoding> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const;
 
-    /** Get an implicit encoding, such as the one of standard14 fonts,
-     * or the built-in encoding of a Type1 font, if available
-     */
-    bool TryGetImplicitEncoding(PdfEncodingMapConstPtr &encoding) const;
-
-    /** Get a CID to font program GID map
-     */
-    PdfCIDToGIDMapConstPtr GetCIDToGIDMap() const;
-
 public:
     const std::string& GetFilePath() const { return m_FilePath; }
     unsigned GetFaceIndex() const { return m_FaceIndex; }
 
 protected:
+    virtual PdfFontType GetFontType() const;
+
     /** Get a semantical base name for the font that can be used to
      * compose the final name, eg. from "AAAAAA+Arial,Bold" to "Arial"
      *
@@ -351,7 +347,6 @@ protected:
      */
     virtual std::string_view GetBaseFontName() const = 0;
 
-    virtual const PdfCIDToGIDMapConstPtr& getCIDToGIDMap() const;
     virtual bool getIsBoldHint() const = 0;
     virtual bool getIsItalicHint() const = 0;
     virtual const datahandle& GetFontFileDataHandle() const = 0;
@@ -368,6 +363,8 @@ protected:
 
     void SetParsedWidths(GlyphMetricsListConstPtr&& parsedWidths);
 
+    virtual PdfCIDToGIDMapConstPtr GetBuiltinCIDToGIDMap() const;
+
 private:
     static std::unique_ptr<const PdfFontMetrics> CreateFromFile(const std::string_view& filepath, unsigned faceIndex,
         const PdfFontMetrics* metrics, bool skipNormalization);
@@ -382,8 +379,15 @@ private:
      */
     std::unique_ptr<const PdfFontMetrics> CreateMergedMetrics(bool skipNormalization) const;
 
-    void initFamilyFontNameSafe();
+    /** Get an implicit encoding, such as the one of standard14 fonts,
+     * or the built-in encoding of a Type1 font, if available
+     */
+    PdfEncodingMapConstPtr GetImplicitEncoding(PdfCIDToGIDMapConstPtr& cidToGidMap) const;
+    PdfEncodingMapConstPtr GetImplicitEncoding() const;
+
     static PdfEncodingMapConstPtr getFontType1ImplicitEncoding(FT_Face face);
+    void initFamilyFontNameSafe();
+    PdfEncodingMapConstPtr getImplicitEncoding(bool tryFetchCidToGidMap, PdfCIDToGIDMapConstPtr& cidToGidMap) const;
 
 private:
     PdfFontMetrics(const PdfFontMetrics& rhs) = delete;

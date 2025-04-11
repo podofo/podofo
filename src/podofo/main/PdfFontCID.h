@@ -20,8 +20,8 @@ class PODOFO_API PdfFontCID : public PdfFont
     friend class PdfFontCIDCFF;
 
 private:
-    PdfFontCID(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-        const PdfEncoding& encoding);
+    PdfFontCID(PdfDocument& doc, PdfFontType type,
+        const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding);
 
 public:
     bool SupportsSubsetting() const override;

@@ -41,9 +41,9 @@ private:
     unsigned m_rangeCount;     // number of processed glyphIndex'es since start of range
 };
 
-PdfFontCID::PdfFontCID(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-        const PdfEncoding& encoding) :
-    PdfFont(doc, metrics, encoding),
+PdfFontCID::PdfFontCID(PdfDocument& doc, PdfFontType type,
+        const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding) :
+    PdfFont(doc, type, metrics, encoding),
     m_descendantFont(nullptr),
     m_descriptor(nullptr)
 {

@@ -12,16 +12,12 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfFontCIDCFF::PdfFontCIDCFF(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-    const PdfEncoding& encoding) : PdfFontCID(doc, metrics, encoding) { }
+        const PdfEncoding& encoding)
+    : PdfFontCID(doc, PdfFontType::CIDCFF, metrics, encoding) { }
 
 bool PdfFontCIDCFF::SupportsSubsetting() const
 {
     return true;
-}
-
-PdfFontType PdfFontCIDCFF::GetType() const
-{
-    return PdfFontType::CIDCFF;
 }
 
 void PdfFontCIDCFF::embedFontFileSubset(const vector<PdfCharGIDInfo>& infos,

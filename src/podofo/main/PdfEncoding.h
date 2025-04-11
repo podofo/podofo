@@ -10,6 +10,7 @@
 #include "PdfEncodingMap.h"
 #include "PdfString.h"
 #include "PdfObject.h"
+#include "PdfCIDToGIDMap.h"
 
 namespace PoDoFo
 {
@@ -69,14 +70,19 @@ namespace PoDoFo
 
     private:
         PdfEncoding(unsigned id, const PdfEncodingMapConstPtr& encoding,
-            const PdfEncodingMapConstPtr& toUnicode = nullptr);
+            const PdfEncodingMapConstPtr& toUnicode);
         PdfEncoding(unsigned id, bool isObjectLoaded, const PdfEncodingLimits& limits, PdfFont* font,
-            const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode);
+            const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode,
+            const PdfCIDToGIDMapConstPtr& cidToGidMap);
 
         /** Create an encoding from object parsed information
          */
         static PdfEncoding Create(const PdfEncodingLimits& parsedLimits, const PdfEncodingMapConstPtr& encoding,
-            const PdfEncodingMapConstPtr& toUnicode);
+            const PdfEncodingMapConstPtr& toUnicode, const PdfCIDToGIDMapConstPtr& cidToGidMap);
+
+        /** Create a proxy encoding with a supplied /ToUnicode map
+         */
+        static PdfEncoding Create(const PdfEncoding& ref, const PdfToUnicodeMapConstPtr& toUnicode);
 
         /** Encoding shim that mocks an wrap existing encoding. Used by PdfFont
          */
@@ -201,11 +207,11 @@ namespace PoDoFo
          */
         const PdfEncodingMap& GetToUnicodeMapSafe() const;
 
-        inline const PdfEncodingMap& GetEncodingMap() const { return *m_Encoding; }
+        const PdfEncodingMap& GetEncodingMap() const { return *m_Encoding; }
 
-        inline const PdfEncodingMapConstPtr GetEncodingMapPtr() const { return m_Encoding; }
+        PdfEncodingMapConstPtr GetEncodingMapPtr() const { return m_Encoding; }
 
-        const PdfEncodingMapConstPtr GetToUnicodeMapPtr() const;
+        PdfEncodingMapConstPtr GetToUnicodeMapPtr() const;
 
     public:
         PdfEncoding& operator=(const PdfEncoding&) = default;
@@ -215,6 +221,7 @@ namespace PoDoFo
         void ExportToFont(PdfFont& font, const PdfCIDSystemInfo& cidInfo) const;
         void ExportToFont(PdfFont& font) const;
         bool TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const;
+        const PdfCIDToGIDMap* GetCIDToGIDMap() const { return m_CIDToGIDMap.get(); }
 
         static unsigned GetNextId();
 
@@ -234,6 +241,7 @@ namespace PoDoFo
         PdfFont* m_Font;
         PdfEncodingMapConstPtr m_Encoding;
         PdfEncodingMapConstPtr m_ToUnicode;
+        PdfCIDToGIDMapConstPtr m_CIDToGIDMap;
     };
 }
 

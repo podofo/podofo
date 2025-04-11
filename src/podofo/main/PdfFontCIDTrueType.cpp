@@ -17,12 +17,8 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfFontCIDTrueType::PdfFontCIDTrueType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-        const PdfEncoding& encoding) : PdfFontCID(doc, metrics, encoding) { }
-
-PdfFontType PdfFontCIDTrueType::GetType() const
-{
-    return PdfFontType::CIDTrueType;
-}
+        const PdfEncoding& encoding)
+    : PdfFontCID(doc, PdfFontType::CIDTrueType, metrics, encoding) { }
 
 void PdfFontCIDTrueType::embedFontFileSubset(const vector<PdfCharGIDInfo>& infos,
     const PdfCIDSystemInfo& cidInfo)

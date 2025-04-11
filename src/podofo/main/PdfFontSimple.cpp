@@ -12,9 +12,9 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfFontSimple::PdfFontSimple(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-    const PdfEncoding& encoding)
-    : PdfFont(doc, metrics, encoding), m_Descriptor(nullptr)
+PdfFontSimple::PdfFontSimple(PdfDocument& doc, PdfFontType type,
+    const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding)
+    : PdfFont(doc, type, metrics, encoding), m_Descriptor(nullptr)
 {
 }
 

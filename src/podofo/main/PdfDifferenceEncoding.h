@@ -9,10 +9,12 @@
 
 #include "PdfEncodingMap.h"
 #include "PdfArray.h"
+#include "PdfCIDToGIDMap.h"
 
 namespace PoDoFo {
 
 class PdfFontMetrics;
+class PdfEncodingFactory;
 
 /** A helper class for PdfDifferenceEncoding that
  *  can be used to create a differences array.
@@ -106,6 +108,7 @@ private:
  */
 class PODOFO_API PdfDifferenceEncoding final : public PdfEncodingMapOneByte
 {
+    friend class PdfEncodingFactory;
 public:
     /** Create a new PdfDifferenceEncoding which is based on
      *  a predefined encoding.
@@ -114,7 +117,7 @@ public:
      *  \param baseEncoding the base encoding of this font
      */
     PdfDifferenceEncoding(const PdfEncodingMapConstPtr& baseEncoding,
-        const PdfDifferenceList& differences);
+        PdfDifferenceList differences);
 
 public:
     /** Create a new PdfDifferenceEncoding from an existing object
@@ -162,6 +165,8 @@ protected:
     bool tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, CodePointSpan& codePoints) const override;
 
 private:
+    PdfCIDToGIDMapConstPtr CreateCIDToGIDMap(const PdfFontMetrics& metrics) const;
+
     void buildReverseMap();
 
 private:

@@ -34,8 +34,8 @@ private:
      *                   depending on pEncoding->IsAutoDelete()
      *
      */
-    PdfFontSimple(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-        const PdfEncoding& encoding);
+    PdfFontSimple(PdfDocument& doc, PdfFontType type,
+        const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding);
 
 protected:
     void embedFont() override final;

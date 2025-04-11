@@ -24,11 +24,6 @@ using namespace PoDoFo;
 // in PdfFontCIDCFF through conversion
 PdfFontType1::PdfFontType1(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding) :
-    PdfFontSimple(doc, metrics, encoding)
+    PdfFontSimple(doc, PdfFontType::Type1, metrics, encoding)
 {
-}
-
-PdfFontType PdfFontType1::GetType() const
-{
-    return PdfFontType::Type1;
 }

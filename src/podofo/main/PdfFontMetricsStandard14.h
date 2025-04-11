@@ -108,6 +108,8 @@ protected:
 
     bool TryGetGlyphWidthFontProgram(unsigned gid, double& width) const override;
 
+    PdfFontType GetFontType() const override;
+
     bool getIsItalicHint() const override;
 
     bool getIsBoldHint() const override;

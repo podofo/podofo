@@ -35,6 +35,8 @@
   * `GetBaseFontName()`: make it protected, `GeFamilyFontNameSafe()` it's the closest substitute
   * `GetBaseFontNameSafe()`: removed, `GeFamilyFontNameSafe()` it's the closest substitute 
   * `GetBoundingBox()` now returns `Corners`
+  * `TryGetImplicitEncoding()`: removed, no substitute supplied. Retrieving a implicit encoding it's more involuted
+  * `GetCIDToGIDMap()`: removed, no substitute supplied. CID to GID mappings can be retrieved only from the font
 - `PdfFontMatchBehaviorFlags`: `MatchPostScriptName` inverted logic and renamed to `SkipMatchPostScriptName`
 - `PdfFontConfigSearchFlags`: `MatchPostScriptName` inverted logic and renamed to `SkipMatchPostScriptName`
 - `PdfContentType`:

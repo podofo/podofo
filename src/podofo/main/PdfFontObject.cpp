@@ -13,7 +13,7 @@ using namespace PoDoFo;
 
 PdfFontObject::PdfFontObject(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding) :
-    PdfFont(obj, metrics, encoding) { }
+    PdfFont(obj, metrics->GetFontType(), metrics, encoding) { }
 
 unique_ptr<PdfFontObject> PdfFontObject::Create(PdfObject& obj, PdfObject& descendantObj,
     const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding)
@@ -31,10 +31,4 @@ unique_ptr<PdfFontObject> PdfFontObject::Create(PdfObject& obj, const PdfFontMet
 bool PdfFontObject::IsObjectLoaded() const
 {
     return true;
-}
-
-PdfFontType PdfFontObject::GetType() const
-{
-    // TODO Just read the object from the object
-    return PdfFontType::Unknown;
 }

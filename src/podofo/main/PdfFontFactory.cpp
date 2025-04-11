@@ -76,55 +76,54 @@ bool PdfFont::TryCreateFromObject(const PdfObject& obj, unique_ptr<const PdfFont
 
 bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
 {
+    const PdfName* name;
     PdfDictionary* dict;
-    if (!obj.TryGetDictionary(dict))
+    if (!obj.TryGetDictionary(dict)
+        || !dict->TryFindKeyAs("Type", name)
+        || *name != "Font")
     {
     Fail:
         font.reset();
         return false;
     }
 
-    PdfObject* objTypeKey = dict->FindKey("Type");
-    if (objTypeKey == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Font: No Type");
+    if (!dict->TryFindKeyAs("Subtype", name))
+    {
+        PoDoFo::LogMessage(PdfLogSeverity::Warning, "Font: No SubType");
+        goto Fail;
+    }
 
-    if (objTypeKey->GetName() != "Font")
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidDataType);
-
-    auto subTypeKey = dict->FindKey("Subtype");
-    if (subTypeKey == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Font: No SubType");
-
-    auto& subType = subTypeKey->GetName();
     PdfFontMetricsConstPtr metrics;
-    if (subType == "Type0")
+    PdfObject* descendantObj = nullptr;
+    if (*name == "Type0")
     {
         // TABLE 5.18 Entries in a Type 0 font dictionary
 
         // The PDF reference states that DescendantFonts must be an array,
         // some applications (e.g. MS Word) put the array into an indirect object though.
-        auto descendantObj = dict->FindKey("DescendantFonts");
-        if (descendantObj == nullptr)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Type0 Font: No DescendantFonts");
-
-        auto& descendants = descendantObj->GetArray();
-        PdfObject* objFont = nullptr;
-        PdfObject* objDescriptor = nullptr;
-        if (descendants.size() != 0)
+        PdfArray* arr;
+        if (!dict->TryFindKeyAs("DescendantFonts", arr))
         {
-            objFont = &descendants.MustFindAt(0);
-            objDescriptor = objFont->GetDictionary().FindKey("FontDescriptor");
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, "Type0 Font : No DescendantFonts");
+            goto Fail;
         }
 
-        if (objFont != nullptr)
-            metrics = PdfFontMetricsObject::Create(*objFont, objDescriptor);
+        const PdfObject* descriptorObj = nullptr;
+        if (arr->size() != 0)
+        {
+            descendantObj = &arr->MustFindAt(0);
+            descriptorObj = descendantObj->GetDictionary().FindKey("FontDescriptor");
+        }
+
+        if (descendantObj != nullptr)
+            metrics = PdfFontMetricsObject::Create(*descendantObj, descriptorObj);
     }
-    else if (subType == "Type1")
+    else if (*name == "Type1")
     {
-        auto objDescriptor = dict->FindKey("FontDescriptor");
+        auto descriptorObj = dict->FindKey("FontDescriptor");
 
         // Handle missing FontDescriptor for the 14 standard fonts
-        if (objDescriptor == nullptr)
+        if (descriptorObj == nullptr)
         {
             // Check if it's a PdfFontStandard14
             auto baseFont = dict->FindKey("BaseFont");
@@ -132,33 +131,38 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
             if (baseFont == nullptr
                 || !PdfFont::IsStandard14Font(baseFont->GetName().GetString(), stdFontType))
             {
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "No known /BaseFont found");
+                PoDoFo::LogMessage(PdfLogSeverity::Warning, "No known /BaseFont found");
+                goto Fail;
             }
 
             metrics = PdfFontMetricsStandard14::Create(stdFontType, obj);
         }
         else
         {
-            metrics = PdfFontMetricsObject::Create(obj, objDescriptor);
+            metrics = PdfFontMetricsObject::Create(obj, descriptorObj);
         }
     }
-    else if (subType == "Type3")
+    else if (*name == "Type3")
     {
-        auto objDescriptor = dict->FindKey("FontDescriptor");
-        metrics = PdfFontMetricsObject::Create(obj, objDescriptor);
+        metrics = PdfFontMetricsObject::Create(obj, dict->FindKey("FontDescriptor"));
     }
-    else if (subType == "TrueType")
+    else if (*name == "TrueType")
     {
-        auto objDescriptor = dict->FindKey("FontDescriptor");
-        metrics = PdfFontMetricsObject::Create(obj, objDescriptor);
+        metrics = PdfFontMetricsObject::Create(obj, dict->FindKey("FontDescriptor"));
     }
 
     if (metrics == nullptr)
+    {
+        PoDoFo::LogMessage(PdfLogSeverity::Warning, "Missing font metrics");
         goto Fail;
+    }
 
-    auto encoding = PdfEncodingFactory::CreateEncoding(obj, *metrics);
+    auto encoding = PdfEncodingFactory::CreateEncoding(*dict, *metrics, descendantObj);
     if (encoding.IsNull())
+    {
+        PoDoFo::LogMessage(PdfLogSeverity::Warning, "Missing font encoding");
         goto Fail;
+    }
 
     font = PdfFontObject::Create(obj, metrics, encoding);
     return true;

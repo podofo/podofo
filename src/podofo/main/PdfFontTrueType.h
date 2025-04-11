@@ -40,9 +40,6 @@ private:
      */
     PdfFontTrueType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);
-
-public:
-    PdfFontType GetType() const override;
 };
 
 };
