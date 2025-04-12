@@ -12,61 +12,6 @@
 
 namespace PoDoFo
 {
-    /**
-     * A convenient typedef for an unspecified codepoint
-     * The underlying type is convenientely char32_t so
-     * it's a 32 bit fixed sized type that is also compatible
-     * with unicode code points
-     */
-    using codepoint = char32_t;
-    using codepointview = cspan<codepoint>;
-
-    /**
-     * A memory owning immutable block of code points, optimized for small
-     * segments as up to 3 elements can stay in the stack
-     */
-    class PODOFO_API CodePointSpan final
-    {
-    public:
-        CodePointSpan();
-        ~CodePointSpan();
-        CodePointSpan(codepoint codepoint);
-        CodePointSpan(const codepointview& view);
-        CodePointSpan(const codepointview& view, codepoint codepoint);
-        CodePointSpan(const CodePointSpan&);
-        void CopyTo(std::vector<codepoint>& codePoints) const;
-        codepointview view() const;
-        unsigned GetSize() const;
-        CodePointSpan& operator=(const CodePointSpan&);
-        operator codepointview() const;
-
-        /**
-         * Return the first element in the block
-         * \remarks if the size is 0 it will always return U'\0'
-         */
-        codepoint operator*() const;
-
-    private:
-        union
-        {
-            struct
-            {
-                uint32_t Size;
-                std::array<codepoint, 3> Data;
-            } m_Block;
-
-            struct
-            {
-                uint32_t Size;
-                std::unique_ptr<codepoint[]> Data;
-            } m_Array;
-        };
-    };
-
-    // Map code units -> code point(s)
-    // pp. 474-475 of PdfReference 1.7 "The value of dstString can be a string of up to 512 bytes"
-    using CodeUnitMap = std::unordered_map<PdfCharCode, CodePointSpan>;
-
     struct PODOFO_API CodeUnitRange final
     {
         PdfCharCode SrcCodeLo;
