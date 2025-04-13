@@ -8,7 +8,8 @@
 #include "PdfCharCodeMap.h"
 #include <random>
 #include <algorithm>
-#include <utf8cpp/utf8.h>
+
+#include <podofo/private/PdfEncodingCommonPrivate.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -47,7 +48,7 @@ PdfCharCodeMap::PdfCharCodeMap(PdfCharCodeMap&& map) noexcept
 
 PdfCharCodeMap::~PdfCharCodeMap()
 {
-    deleteNode(m_codePointMapHead);
+    PoDoFo::DeleteNodeReverseMap(m_codePointMapHead);
 }
 
 PdfCharCodeMap& PdfCharCodeMap::operator=(PdfCharCodeMap&& map) noexcept
@@ -300,60 +301,19 @@ bool PdfCharCodeMap::TryGetCodePoints(const PdfCharCode& codeUnit, CodePointSpan
 bool PdfCharCodeMap::TryGetNextCharCode(string_view::iterator& it, const string_view::iterator& end, PdfCharCode& code) const
 {
     const_cast<PdfCharCodeMap&>(*this).reviseCodePointMap();
-    return tryFindNextCharacterId(m_codePointMapHead, it, end, code);
+    return PoDoFo::TryGetCodeReverseMap(m_codePointMapHead, it, end, code);
 }
 
-bool PdfCharCodeMap::TryGetCharCode(const codepointview& codePoints, PdfCharCode& codeUnit) const
+bool PdfCharCodeMap::TryGetCharCode(const codepointview& codePoints, PdfCharCode& code) const
 {
     const_cast<PdfCharCodeMap&>(*this).reviseCodePointMap();
-    auto it = codePoints.begin();
-    auto end = codePoints.end();
-    const CodePointMapNode* node = m_codePointMapHead;
-    if (it == end)
-        goto NotFound;
-
-    while (true)
-    {
-        // All the sequence must match
-        node = findNode(node, *it);
-        if (node == nullptr)
-            goto NotFound;
-
-        it++;
-        if (it == end)
-            break;
-
-        node = node->Ligatures;
-    }
-
-    if (node->CodeUnit.CodeSpaceSize == 0)
-    {
-        // Undefined char code
-        goto NotFound;
-    }
-    else
-    {
-        codeUnit = node->CodeUnit;
-        return true;
-    }
-
-NotFound:
-    codeUnit = { };
-    return false;
+    return PoDoFo::TryGetCodeReverseMap(m_codePointMapHead, codePoints, code);
 }
 
 bool PdfCharCodeMap::TryGetCharCode(codepoint codePoint, PdfCharCode& code) const
 {
     const_cast<PdfCharCodeMap&>(*this).reviseCodePointMap();
-    auto node = findNode(m_codePointMapHead, codePoint);
-    if (node == nullptr)
-    {
-        code = { };
-        return false;
-    }
-
-    code = node->CodeUnit;
-    return true;
+    return PoDoFo::TryGetCodeReverseMap(m_codePointMapHead, codePoint, code);
 }
 
 void PdfCharCodeMap::pushMapping(const PdfCharCode& codeUnit, const codepointview& codePoints)
@@ -366,57 +326,6 @@ void PdfCharCodeMap::pushMapping(const PdfCharCode& codeUnit, const codepointvie
     // Update limits
     updateLimits(codeUnit);
     m_MapDirty = true;
-}
-
-bool PdfCharCodeMap::tryFindNextCharacterId(const CodePointMapNode* node, string_view::iterator& it,
-    const string_view::iterator& end, PdfCharCode& codeUnit)
-{
-    PODOFO_INVARIANT(it != end);
-    string_view::iterator curr;
-    codepoint codePoint = (codepoint)utf8::next(it, end);
-    node = findNode(node, codePoint);
-    if (node == nullptr)
-        goto NotFound;
-
-    if (it != end)
-    {
-        // Try to find ligatures, save a temporary iterator
-        // in case the search in unsuccessful
-        curr = it;
-        if (tryFindNextCharacterId(node->Ligatures, curr, end, codeUnit))
-        {
-            it = curr;
-            return true;
-        }
-    }
-
-    if (node->CodeUnit.CodeSpaceSize == 0)
-    {
-        // Undefined char code
-        goto NotFound;
-    }
-    else
-    {
-        codeUnit = node->CodeUnit;
-        return true;
-    }
-
-NotFound:
-    codeUnit = { };
-    return false;
-}
-
-const PdfCharCodeMap::CodePointMapNode* PdfCharCodeMap::findNode(const CodePointMapNode* node, codepoint codePoint)
-{
-    if (node == nullptr)
-        return nullptr;
-
-    if (node->CodePoint == codePoint)
-        return node;
-    else if (node->CodePoint > codePoint)
-        return findNode(node->Left, codePoint);
-    else
-        return findNode(node->Right, codePoint);
 }
 
 void PdfCharCodeMap::updateLimits(const PdfCharCode& codeUnit)
@@ -439,7 +348,7 @@ void PdfCharCodeMap::reviseCodePointMap()
 
     if (m_codePointMapHead != nullptr)
     {
-        deleteNode(m_codePointMapHead);
+        PoDoFo::DeleteNodeReverseMap(m_codePointMapHead);
         m_codePointMapHead = nullptr;
     }
 
@@ -456,27 +365,7 @@ void PdfCharCodeMap::reviseCodePointMap()
     std::shuffle(mappings.begin(), mappings.end(), e);
 
     for (auto& pair : mappings)
-    {
-        CodePointMapNode** curr = &m_codePointMapHead;      // Node root being searched
-        CodePointMapNode* found;                            // Last found node
-        auto codepoints = pair.second.view();
-        auto it = codepoints.begin();
-        auto end = codepoints.end();
-        PODOFO_INVARIANT(it != end);
-        while (true)
-        {
-            found = findOrAddNode(*curr, *it);
-            it++;
-            if (it == end)
-                break;
-
-            // We add subsequent codepoints to ligatures
-            curr = &found->Ligatures;
-        }
-
-        // Finally set the char code on the last found/added node
-        found->CodeUnit = pair.first;
-    }
+        PoDoFo::PushMappingReverseMap(m_codePointMapHead, pair.second.view(), pair.first);
 
     m_MapDirty = false;
 }
@@ -526,34 +415,6 @@ bool PdfCharCodeMap::tryFixNextRanges(const CodeUnitRanges::iterator& it, unsign
     }
 
     return hasInvalidRanges;
-}
-
-PdfCharCodeMap::CodePointMapNode* PdfCharCodeMap::findOrAddNode(CodePointMapNode*& node, codepoint codePoint)
-{
-    if (node == nullptr)
-    {
-        node = new CodePointMapNode{ };
-        node->CodePoint = codePoint;
-        return node;
-    }
-
-    if (node->CodePoint == codePoint)
-        return node;
-    else if (node->CodePoint > codePoint)
-        return findOrAddNode(node->Left, codePoint);
-    else
-        return findOrAddNode(node->Right, codePoint);
-}
-
-void PdfCharCodeMap::deleteNode(CodePointMapNode* node)
-{
-    if (node == nullptr)
-        return;
-
-    deleteNode(node->Ligatures);
-    deleteNode(node->Left);
-    deleteNode(node->Right);
-    delete node;
 }
 
 // Append mappings coming from ranges, excluding the ones

@@ -12,6 +12,8 @@
 
 namespace PoDoFo
 {
+    struct CodePointMapNode;
+
     struct PODOFO_API CodeUnitRange final
     {
         PdfCharCode SrcCodeLo;
@@ -155,16 +157,6 @@ namespace PoDoFo
         void move(PdfCharCodeMap& map) noexcept;
         void pushMapping(const PdfCharCode& codeUnit, const codepointview& codePoints);
 
-        // Map code point(s) -> code units
-        struct CodePointMapNode
-        {
-            codepoint CodePoint;
-            PdfCharCode CodeUnit;
-            CodePointMapNode* Ligatures;
-            CodePointMapNode* Left;
-            CodePointMapNode* Right;
-        };
-
     private:
         PdfCharCodeMap(const PdfCharCodeMap&) = delete;
         PdfCharCodeMap& operator=(const PdfCharCodeMap&) = delete;
@@ -173,11 +165,6 @@ namespace PoDoFo
         void updateLimits(const PdfCharCode& codeUnit);
         void reviseCodePointMap();
         bool tryFixNextRanges(const CodeUnitRanges::iterator& it, unsigned prevRangeCodeUpper);
-        static bool tryFindNextCharacterId(const CodePointMapNode* node, std::string_view::iterator &it,
-            const std::string_view::iterator& end, PdfCharCode& cid);
-        static const CodePointMapNode* findNode(const CodePointMapNode* node, codepoint codePoint);
-        static void deleteNode(CodePointMapNode* node);
-        static CodePointMapNode* findOrAddNode(CodePointMapNode*& node, codepoint codePoint);
 
     private:
         PdfEncodingLimits m_Limits;
