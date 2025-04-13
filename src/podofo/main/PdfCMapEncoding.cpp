@@ -365,9 +365,14 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
 
                     if (tokenizer.TryReadNextVariant(device, *var))
                     {
-                        if (*name == "CMapName" && var->TryGetName(name))
-                            cmapName = *name;
-                        if (*name == "Registry" && var->TryGetString(str))
+                        if (*name == "CMapName")
+                        {
+                            if (var->IsName())
+                                cmapName = var->GetName();
+                            else if (var->IsString())
+                                cmapName = var->GetString().GetString();
+                        }
+                        else if (*name == "Registry" && var->TryGetString(str))
                             info.Registry = *str;
                         else if (*name == "Ordering" && var->TryGetString(str))
                             info.Ordering = *str;
