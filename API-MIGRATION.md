@@ -1,4 +1,9 @@
 ## 0.10.1 -> 1.0.0
+- `PdfDifferenceEncoding`:
+  * Inverted parameters in constructor
+  * `NameToCodePoint()`: Renamed to `TryGetCodePointsFromCharName()`, changed the semantics and now it returns a `CodePointSpan` instead of `char32_t`
+  * `CodePointToName()`: Removed to `TryGetCharNameFromCodePoints()`, changed the semantics and now it accepts a `codepointview` instead of `char32_t`
+- `PdfDifferenceList`: `TryGetMappedName` now returns a `CodePointSpan` instead of `char32_t` in the overload
 - `Object<T>`: Renamed to `ObjectAdapter<T>`
 - `PdfArray`: `FindAtAs` doesn't take a default value anymore and throws on failed lookup . Use `FindAtAsSafe` instead
 - `PdfDictionary`: `GetKeyAs`, `FindKeyAs`, `FindKeyAsParent`. doesn't take a default value anymore and throws on failed lookup . Use safe method versions instead
@@ -165,7 +170,6 @@ they are internal implementation details
 - `PdfWriter`,`PdfImmediateWriter`: Removed from public API, they were an implementation detail
 - `PdfFontManager::GetOrCreateFont(face)`, `PdfFontMetricsFreetype::CreateFromFace(face)`, `PdfFontMetrics::TryGetOrLoadFace(face)`, `PdfFontMetrics::GetOrLoadFace`: removed, exposing methods with `FT_Face` type may be dangerous in a public API because of possible mismatch of FreeType library version used by the API consumer and the version used in the PoDoFo compilation
 - `FreeTypeFacePtr`: Removed, it was just used in the implementation
-- Inverted parameters in `PdfDifferenceEncoding` constructor
 - Moved `PdfCMapEncoding::CreateFromObject` to `PdfEncodingMapFactory::ParseCMapEncoding`
 - `PdfNameTree`:
   * Renamed -> `PdfNameTrees`

@@ -171,6 +171,23 @@ CodePointSpan::CodePointSpan(codepoint cp)
 {
 }
 
+CodePointSpan::CodePointSpan(initializer_list<codepoint> initializer)
+{
+    if (initializer.size() > std::size(m_Block.Data))
+    {
+        auto data = new codepoint[initializer.size()];
+        std::memcpy(data, initializer.begin(), initializer.size() * sizeof(char32_t));
+        new(&m_Array.Data)unique_ptr<codepoint[]>(data);
+        m_Array.Size = (unsigned)initializer.size();
+    }
+    else
+    {
+        new(&m_Block.Data)array<codepoint, 3>{ };
+        std::memcpy(m_Block.Data.data(), initializer.begin(), initializer.size() * sizeof(char32_t));
+        m_Block.Size = (unsigned)initializer.size();
+    }
+}
+
 CodePointSpan::CodePointSpan(const codepointview& view)
 {
     if (view.size() > std::size(m_Block.Data))
@@ -270,4 +287,18 @@ codepoint CodePointSpan::operator*() const
         return m_Array.Data[0];
     else
         return m_Block.Data[0];
+}
+
+size_t CodePointSpan::size() const
+{
+    return *(const uint32_t*)this;
+}
+
+const codepoint* CodePointSpan::data() const
+{
+    unsigned size = *(const uint32_t*)this;
+    if (size > std::size(m_Block.Data))
+        return m_Array.Data.get();
+    else
+        return m_Block.Data.data();
 }

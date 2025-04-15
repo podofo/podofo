@@ -4,8 +4,10 @@
 - Check performances of PdfContentStreamReader
 - Handle \r alone after "stream" for all filters
 - Improve the API for stopping extracting text as suggested [here](https://github.com/podofo/podofo/pull/239#issuecomment-2736664534)
+- PdfEncodingMapFactory: Evaluate prefix methods with Get
 
 ### After 1.0
+- Optimize compilation in PdfDifferenceEncoding, SALSprep
 - PdfVariant/PdfObject: Evaluate adding a TryGetStringLenient(string_view& str)
   that catches both PdfString/PdfName
 - Add remaining PdfNameTree(s) (also stub)

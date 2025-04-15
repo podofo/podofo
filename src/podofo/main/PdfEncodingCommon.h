@@ -142,6 +142,7 @@ namespace PoDoFo
         CodePointSpan();
         ~CodePointSpan();
         CodePointSpan(codepoint codepoint);
+        CodePointSpan(std::initializer_list<codepoint> codepoints);
         CodePointSpan(const codepointview& view);
         CodePointSpan(const codepointview& view, codepoint codepoint);
         CodePointSpan(const CodePointSpan&);
@@ -149,6 +150,9 @@ namespace PoDoFo
         codepointview view() const;
         unsigned GetSize() const;
         CodePointSpan& operator=(const CodePointSpan&);
+        size_t size() const;
+        const codepoint* data() const;
+
         operator codepointview() const;
 
         /**

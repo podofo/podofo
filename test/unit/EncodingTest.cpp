@@ -103,20 +103,20 @@ TEST_CASE("TestDifferences")
 
     // Test if contains works correctly
     const PdfName* name;
-    char32_t value;
-    REQUIRE(difference.TryGetMappedName(0, name, value));
+    CodePointSpan codepoints;
+    REQUIRE(difference.TryGetMappedName(0, name, codepoints));
     REQUIRE(*name == "A");
-    REQUIRE(static_cast<int>(value) == 0x41);
+    REQUIRE(static_cast<int>(*codepoints) == 0x41);
 
-    REQUIRE(difference.TryGetMappedName(9, name, value));
+    REQUIRE(difference.TryGetMappedName(9, name, codepoints));
     REQUIRE(*name == "F");
-    REQUIRE(static_cast<int>(value) == 0x46);
+    REQUIRE(static_cast<int>(*codepoints) == 0x46);
 
-    REQUIRE(difference.TryGetMappedName(255, name, value));
+    REQUIRE(difference.TryGetMappedName(255, name, codepoints));
     REQUIRE(*name  == "X");
-    REQUIRE(static_cast<int>(value) == 0x58);
+    REQUIRE(static_cast<int>(*codepoints) == 0x58);
 
-    REQUIRE(!difference.TryGetMappedName(100, name, value));
+    REQUIRE(!difference.TryGetMappedName(100, name, codepoints));
 }
 
 void PdfEncodingTest::TestDifferencesObject()
@@ -181,82 +181,6 @@ TEST_CASE("TestDifferencesEncoding")
     REQUIRE(encoded == "ABBAI");
     auto unicode = params.Encoding.ConvertToUtf8(PdfString::FromRaw(encoded));
     REQUIRE(unicode == "BAABI");
-}
-
-// FIX-ME: This test passes but it's garbage and very slow
-// Fix it the whole thing by handling properly the Adobe Glyph List
-// in PdfDifferenceEncoding (or better a new separate function)
-TEST_CASE("TestUnicodeNames", "[.]")
-{
-    // List of items which are defined twice and cause
-    // other ids to be returned than those which where send in
-    const char* duplicates[] = {
-        "Delta",
-        "fraction",
-        "hyphen",
-        "macron",
-        "mu",
-        "Omega",
-        "periodcentered",
-        "scedilla",
-        "Scedilla",
-        "space",
-        "tcommaaccent",
-        "Tcommaaccent",
-        "exclamsmall",
-        "dollaroldstyle",
-        "zerooldstyle",
-        "oneoldstyle",
-        "twooldstyle",
-        "threeoldstyle",
-        "fouroldstyle",
-        "fiveoldstyle",
-        "sixoldstyle",
-        "sevenoldstyle",
-        "eightoldstyle",
-        "nineoldstyle",
-        "ampersandsmall",
-        "questionsmall",
-        nullptr
-    };
-
-    unsigned duplicatesCount = 0;
-    unsigned codeCount = 0;
-    for (int i = 0; i < 0xFFFF; i++)
-    {
-        PdfName name = PdfDifferenceEncoding::CodePointToName(static_cast<char32_t>(i));
-        char32_t id = PdfDifferenceEncoding::NameToCodePoint(name);
-
-        bool duplicateFound = false;
-        const char** duplicate = duplicates;
-        while (*duplicate != nullptr)
-        {
-            if (name == *duplicate)
-            {
-                duplicateFound = true;
-                break;
-            }
-
-            duplicate++;
-        }
-
-        if (!duplicateFound)
-        {
-            if (static_cast<char32_t>(i) == id)
-                codeCount++;
-        }
-        else
-        {
-            duplicatesCount++;
-        }
-    }
-
-    // FIX-ME: This test is fishy. It's not clear what "codeCount"
-    // means and why (65535 - duplicatesCount) is different than codeCount
-    // Possibly there are more duplicates
-    INFO(utls::Format("Compared codes count: {}", codeCount));
-    INFO(utls::Format("Duplicate codes count: {}", duplicatesCount));
-    REQUIRE(codeCount == 65421);
 }
 
 TEST_CASE("TestGetCharCode")
