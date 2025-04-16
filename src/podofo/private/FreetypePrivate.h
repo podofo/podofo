@@ -38,6 +38,7 @@ namespace FT
     PoDoFo::charbuff GetDataFromFace(FT_Face face);
     bool TryGetFontFileFormat(FT_Face face, PoDoFo::PdfFontFileType& format);
     bool IsPdfSupported(FT_Face face);
+    std::unordered_map<std::string_view, unsigned> GetPostMap(FT_Face face);
 }
 
 // Other legacy TrueType tables defined in Apple documentation

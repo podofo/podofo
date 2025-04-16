@@ -363,6 +363,8 @@ protected:
 
     void SetParsedWidths(GlyphMetricsListConstPtr&& parsedWidths);
 
+    /** Get a built-in CID to GID map, such as when no /Encoding is defined
+     */
     virtual PdfCIDToGIDMapConstPtr GetBuiltinCIDToGIDMap() const;
 
 private:

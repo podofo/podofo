@@ -91,14 +91,7 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfDictionary& fontDict, co
                 }
                 else
                 {
-                    const PdfDifferenceEncoding* diffEncoding;
-                    if (encoding != nullptr &&
-                        (diffEncoding = dynamic_cast<const PdfDifferenceEncoding*>(encoding.get())) != nullptr)
-                    {
-                        // Try to create an implicit CID to GID map
-                        // for the /Difference encoding
-                        cidToGidMap = diffEncoding->CreateCIDToGIDMap(metrics);
-                    }
+                    cidToGidMap = encoding->GetIntrinsicCIDToGIDMap(fontDict, metrics);
                 }
             }
 

@@ -24,6 +24,13 @@ PdfEncodingMap::PdfEncodingMap(PdfEncodingMapType type)
 
 PdfEncodingMap::~PdfEncodingMap() { }
 
+PdfCIDToGIDMapConstPtr PdfEncodingMap::GetIntrinsicCIDToGIDMap(const PdfDictionary& fontDict, const PdfFontMetrics& metrics) const
+{
+    (void)fontDict;
+    (void)metrics;
+    return nullptr;
+}
+
 bool PdfEncodingMap::TryGetExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
 {
     name = { };

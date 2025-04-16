@@ -9,12 +9,10 @@
 
 #include "PdfEncodingMap.h"
 #include "PdfArray.h"
-#include "PdfCIDToGIDMap.h"
 
 namespace PoDoFo {
 
 class PdfFontMetrics;
-class PdfEncodingFactory;
 struct CodePointMapNode;
 
 struct PdfDifferenceMapping
@@ -116,7 +114,6 @@ private:
  */
 class PODOFO_API PdfDifferenceEncoding final : public PdfEncodingMapOneByte
 {
-    friend class PdfEncodingFactory;
     friend class PdfDifferenceList;
 
 public:
@@ -174,6 +171,8 @@ public:
     const PdfDifferenceList& GetDifferences() const { return m_differences; }
 
 protected:
+    PdfCIDToGIDMapConstPtr GetIntrinsicCIDToGIDMap(const PdfDictionary& fontDict, const PdfFontMetrics& metrics) const override;
+
     void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override;
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
     bool tryGetCharCodeSpan(const unicodeview& codePoints, PdfCharCode& codeUnit) const override;
@@ -184,8 +183,8 @@ protected:
 private:
     static bool TryGetCodePointsFromCharName(std::string_view charName, CodePointSpan& codepoints, const PdfName*& actualName);
 
-    PdfCIDToGIDMapConstPtr CreateCIDToGIDMap(const PdfFontMetrics& metrics) const;
-
+    PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapType1(const PdfFontMetrics& metrics) const;
+    PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapTrueType(const PdfFontMetrics& metrics) const;
     void buildReverseMap();
 
 private:

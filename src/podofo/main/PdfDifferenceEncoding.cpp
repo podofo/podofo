@@ -276,6 +276,33 @@ bool PdfDifferenceEncoding::TryCreateFromObject(const PdfObject& obj,
     return true;
 }
 
+PdfCIDToGIDMapConstPtr PdfDifferenceEncoding::GetIntrinsicCIDToGIDMap(const PdfDictionary& fontDict, const PdfFontMetrics& metrics) const
+{
+    (void)fontDict;
+    switch (metrics.GetFontFileType())
+    {
+        case PdfFontFileType::Type1:
+        case PdfFontFileType::Type1CFF:
+        {
+            return getIntrinsicCIDToGIDMapType1(metrics);
+        }
+        case PdfFontFileType::TrueType:
+        {
+            return getIntrinsicCIDToGIDMapTrueType(metrics);
+        }
+        case PdfFontFileType::Type3:
+        {
+            // CHECK-ME: ISO 32000-2:2020 "9.6.5.3 Encodings for Type 3 fonts"
+            return nullptr;
+        }
+        default:
+        {
+            // Nothing to do
+            return nullptr;
+        }
+    }
+}
+
 void PdfDifferenceEncoding::getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
 {
     (void)name;
@@ -334,13 +361,6 @@ bool PdfDifferenceEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, const 
     return m_baseEncoding->TryGetCodePoints(codeUnit, codePoints);
 }
 
-PdfCIDToGIDMapConstPtr PdfDifferenceEncoding::CreateCIDToGIDMap(const PdfFontMetrics& metrics) const
-{
-    // TODO
-    (void)metrics;
-    return nullptr;
-}
-
 void PdfDifferenceEncoding::buildReverseMap()
 {
     if (m_reverseMap != nullptr)
@@ -351,12 +371,14 @@ void PdfDifferenceEncoding::buildReverseMap()
     // Iterate all the codes of the encoding
     const PdfName* name;
     CodePointSpan codePoints;
-    for (unsigned code = limits.FirstChar.Code, last = limits.LastChar.Code; code <= last; code++)
+    // NOTE: It's safe to assume the base encoding is a one byte encoding
+    unsigned code = std::min(limits.FirstChar.Code, 0xFFU);
+    unsigned last = std::min(limits.LastChar.Code, 0xFFU);
+    for (; code <= last; code++)
     {
         if (m_differences.TryGetMappedName((unsigned char)code, name, codePoints))
         {
             // If there's a difference, use that instead
-            // NOTE: It's safe to assume the base encoding is a one byte encoding
             PoDoFo::PushMappingReverseMap(m_reverseMap, codePoints, PdfCharCode((unsigned char)code, 1));
             continue;
         }

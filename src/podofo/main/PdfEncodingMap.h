@@ -10,11 +10,14 @@
 #include "PdfDeclarations.h"
 #include "PdfObject.h"
 #include "PdfCharCodeMap.h"
+#include "PdfCIDToGIDMap.h"
 
 namespace PoDoFo {
 
 class PdfIndirectObjectList;
 class PdfFont;
+class PdfFontMetrics;
+class PdfEncodingFactory;
 
 /** 
  * A PdfEncodingMap is a low level interface to convert
@@ -34,6 +37,7 @@ class PODOFO_API PdfEncodingMap
     friend class PdfIdentityEncoding;
     friend class PdfPredefinedToUnicodeCMap;
     friend class PdfStringScanContext;
+    friend class PdfEncodingFactory;
     PODOFO_PRIVATE_FRIEND(class PdfEncodingTest);
 
 private:
@@ -166,6 +170,11 @@ protected:
      */
     virtual void AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const = 0;
 
+    /** Get an intrisc CID to GID map, such as the ones implied by having
+     * a defined /Encoding entry with /TrueType, /Type3 fonts
+     */
+    virtual PdfCIDToGIDMapConstPtr GetIntrinsicCIDToGIDMap(const PdfDictionary& fontDict, const PdfFontMetrics& metrics) const;
+
 private:
     /** Get an export object that will be used during font init
      * \param objects list to use to create document objects
@@ -275,7 +284,7 @@ class PODOFO_API PdfBuiltInEncoding : public PdfEncodingMapOneByte
     friend class PdfStandardEncoding;
     friend class PdfSymbolEncoding;
     friend class PdfZapfDingbatsEncoding;
-    friend class AppleLatin1Encoding;
+    PODOFO_PRIVATE_FRIEND(class AppleLatin1Encoding);
 
 private:
     PdfBuiltInEncoding(const PdfName& name);
