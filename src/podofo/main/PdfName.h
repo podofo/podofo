@@ -22,8 +22,6 @@ namespace PoDoFo {
  */
 class PODOFO_API PdfName final : private PdfDataMember, public PdfDataProvider<PdfName>
 {
-    friend PdfName PODOFO_API operator""_n(const char*, size_t);
-
 public:
     /** Null name, corresponds to "/"
      */
@@ -61,6 +59,12 @@ public:
     PdfName(const std::string_view& str);
     PdfName(const std::string& str);
     PdfName(charbuff&& buff);
+
+    /**
+     * This constructor is reserved for read-only string
+     * literals, use with caution
+     */
+    PdfName(const char& str, size_t length);
 
     /** Create a copy of an existing PdfName object.
      *  \param rhs another PdfName object
@@ -131,9 +135,6 @@ public:
     operator std::string_view() const;
 
 private:
-    // Constructor for read-only string literals
-    PdfName(const char* str, size_t length);
-
     // Delete constructor with nullptr
     PdfName(std::nullptr_t) = delete;
 
@@ -166,7 +167,7 @@ private:
  */
 inline PdfName operator""_n(const char* name, size_t length)
 {
-    return PdfName(name, length);
+    return PdfName(*name, length);
 }
 
 // Comparator to enable heterogeneous lookup in

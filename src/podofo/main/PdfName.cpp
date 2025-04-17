@@ -53,10 +53,9 @@ PdfName::PdfName(charbuff&& buff)
 {
 }
 
-// NOTE: This constructor is reserved for read-only
-// string literals: we just set the data view
-PdfName::PdfName(const char* str, size_t length)
-    : PdfDataMember(PdfDataType::Name), m_dataAllocated(false), m_Utf8View(str, length)
+// We expect the input to be a const string literal: we just set the data view
+PdfName::PdfName(const char& str, size_t length)
+    : PdfDataMember(PdfDataType::Name), m_dataAllocated(false), m_Utf8View(&str, length)
 {
 }
 

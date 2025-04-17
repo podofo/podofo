@@ -41,6 +41,9 @@ void foo(string filepath, AGLType type)
         while (!reader.EndOfStream)
         {
             var line = reader.ReadLine()!;
+            if (line.Length == 0 || line.StartsWith("#"))
+                continue;
+
             var splitted = line.Split(';');
             string codeStr;
             string charName;

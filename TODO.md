@@ -7,7 +7,9 @@
 - PdfEncodingMapFactory: Evaluate prefix methods with Get
 
 ### After 1.0
-- Optimize compilation in PdfDifferenceEncoding, SALSprep
+- Optimize compilation SALSprep
+- Optimize small allocations in tryGetCodePointsFromCharNameLigatures(),
+  tryGetCodePointsFromUnicodeHexLigatures() in PdfDifferenceEncoding.cpp
 - PdfVariant/PdfObject: Evaluate adding a TryGetStringLenient(string_view& str)
   that catches both PdfString/PdfName
 - Add remaining PdfNameTree(s) (also stub)
@@ -53,7 +55,6 @@
   to initial length if there's a crash. Not so easy, especially since
   we are now using STL streams and it's not easy to trim files
   without access to native handle and low level I/O operations
-- PdfDifferenceEncoding: Rework Adobe Glyph List handling and moving it to private folder
 - Option to unfold Unicode ligatures to separate codepoints during encoded -> utf8 conversion
 - Option to convert Unicode ligatures <-> separate codepoints when drawing strings/converting to encoded
 - Optimize charbuff to not initialize memory, keeping std::string compatibility,

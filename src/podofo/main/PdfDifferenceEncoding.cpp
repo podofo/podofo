@@ -9,6 +9,7 @@
 
 #include <utf8cpp/utf8.h>
 #include <podofo/private/PdfEncodingCommonPrivate.h>
+#include <podofo/private/PdfFilterFactory.h>
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
@@ -36,10 +37,10 @@ namespace
         unsigned short Code;            ///< The unicode code point of the charater, or the index in the ligatures lists
     };
 
-    struct AGLLigatureInfo
+    struct AglLigatureInfo
     {
-        AGLLigatureInfo(const PdfName& name, initializer_list<codepoint>&& codePoints)
-            : Name(&name), CodePoints(std::move(codePoints)) {
+        AglLigatureInfo(const PdfName& name, codepointview codePoints)
+            : Name(&name), CodePoints(codePoints) {
         }
 
         const PdfName* Name;
@@ -56,7 +57,7 @@ namespace
 }
 
 static unique_ptr<const PdfNameHashMap<AGLMapping>> s_aglMap;
-static unique_ptr<const vector<AGLLigatureInfo>> s_ligatures;
+static unique_ptr<const vector<AglLigatureInfo>> s_ligatures;
 static unique_ptr<const unordered_map<unsigned short, const PdfName*>> s_reverseAglMap;
 static unique_ptr<const CodePointMapNode, AGLReverseMapDeleter> s_reverseLigatureMap(nullptr, AGLReverseMapDeleter{});
 
@@ -621,5172 +622,6500 @@ void ensureReverseAglMapInitialized()
     } s_init;
 }
 
+static string_view s_aglNames[] = {
+    "A"sv,
+    "AE"sv,
+    "AEacute"sv,
+    "AEmacron"sv,
+    "AEsmall"sv,
+    "Aacute"sv,
+    "Aacutesmall"sv,
+    "Abreve"sv,
+    "Abreveacute"sv,
+    "Abrevecyrillic"sv,
+    "Abrevedotbelow"sv,
+    "Abrevegrave"sv,
+    "Abrevehookabove"sv,
+    "Abrevetilde"sv,
+    "Acaron"sv,
+    "Acircle"sv,
+    "Acircumflex"sv,
+    "Acircumflexacute"sv,
+    "Acircumflexdotbelow"sv,
+    "Acircumflexgrave"sv,
+    "Acircumflexhookabove"sv,
+    "Acircumflexsmall"sv,
+    "Acircumflextilde"sv,
+    "Acute"sv,
+    "Acutesmall"sv,
+    "Acyrillic"sv,
+    "Adblgrave"sv,
+    "Adieresis"sv,
+    "Adieresiscyrillic"sv,
+    "Adieresismacron"sv,
+    "Adieresissmall"sv,
+    "Adotbelow"sv,
+    "Adotmacron"sv,
+    "Agrave"sv,
+    "Agravesmall"sv,
+    "Ahookabove"sv,
+    "Aiecyrillic"sv,
+    "Ainvertedbreve"sv,
+    "Alpha"sv,
+    "Alphatonos"sv,
+    "Amacron"sv,
+    "Amonospace"sv,
+    "Aogonek"sv,
+    "Aring"sv,
+    "Aringacute"sv,
+    "Aringbelow"sv,
+    "Aringsmall"sv,
+    "Asmall"sv,
+    "Atilde"sv,
+    "Atildesmall"sv,
+    "Aybarmenian"sv,
+    "B"sv,
+    "Bcircle"sv,
+    "Bdotaccent"sv,
+    "Bdotbelow"sv,
+    "Becyrillic"sv,
+    "Benarmenian"sv,
+    "Beta"sv,
+    "Bhook"sv,
+    "Blinebelow"sv,
+    "Bmonospace"sv,
+    "Brevesmall"sv,
+    "Bsmall"sv,
+    "Btopbar"sv,
+    "C"sv,
+    "Caarmenian"sv,
+    "Cacute"sv,
+    "Caron"sv,
+    "Caronsmall"sv,
+    "Ccaron"sv,
+    "Ccedilla"sv,
+    "Ccedillaacute"sv,
+    "Ccedillasmall"sv,
+    "Ccircle"sv,
+    "Ccircumflex"sv,
+    "Cdot"sv,
+    "Cdotaccent"sv,
+    "Cedillasmall"sv,
+    "Chaarmenian"sv,
+    "Cheabkhasiancyrillic"sv,
+    "Checyrillic"sv,
+    "Chedescenderabkhasiancyrillic"sv,
+    "Chedescendercyrillic"sv,
+    "Chedieresiscyrillic"sv,
+    "Cheharmenian"sv,
+    "Chekhakassiancyrillic"sv,
+    "Cheverticalstrokecyrillic"sv,
+    "Chi"sv,
+    "Chook"sv,
+    "Circumflexsmall"sv,
+    "Cmonospace"sv,
+    "Coarmenian"sv,
+    "Csmall"sv,
+    "D"sv,
+    "DZ"sv,
+    "DZcaron"sv,
+    "Daarmenian"sv,
+    "Dafrican"sv,
+    "Dcaron"sv,
+    "Dcedilla"sv,
+    "Dcircle"sv,
+    "Dcircumflexbelow"sv,
+    "Dcroat"sv,
+    "Ddotaccent"sv,
+    "Ddotbelow"sv,
+    "Decyrillic"sv,
+    "Deicoptic"sv,
+    "Delta"sv,
+    "Deltagreek"sv,
+    "Dhook"sv,
+    "Dieresis"sv,
+    "DieresisAcute"sv,
+    "DieresisGrave"sv,
+    "Dieresissmall"sv,
+    "Digammagreek"sv,
+    "Djecyrillic"sv,
+    "Dlinebelow"sv,
+    "Dmonospace"sv,
+    "Dotaccentsmall"sv,
+    "Dslash"sv,
+    "Dsmall"sv,
+    "Dtopbar"sv,
+    "Dz"sv,
+    "Dzcaron"sv,
+    "Dzeabkhasiancyrillic"sv,
+    "Dzecyrillic"sv,
+    "Dzhecyrillic"sv,
+    "E"sv,
+    "Eacute"sv,
+    "Eacutesmall"sv,
+    "Ebreve"sv,
+    "Ecaron"sv,
+    "Ecedillabreve"sv,
+    "Echarmenian"sv,
+    "Ecircle"sv,
+    "Ecircumflex"sv,
+    "Ecircumflexacute"sv,
+    "Ecircumflexbelow"sv,
+    "Ecircumflexdotbelow"sv,
+    "Ecircumflexgrave"sv,
+    "Ecircumflexhookabove"sv,
+    "Ecircumflexsmall"sv,
+    "Ecircumflextilde"sv,
+    "Ecyrillic"sv,
+    "Edblgrave"sv,
+    "Edieresis"sv,
+    "Edieresissmall"sv,
+    "Edot"sv,
+    "Edotaccent"sv,
+    "Edotbelow"sv,
+    "Efcyrillic"sv,
+    "Egrave"sv,
+    "Egravesmall"sv,
+    "Eharmenian"sv,
+    "Ehookabove"sv,
+    "Eightroman"sv,
+    "Einvertedbreve"sv,
+    "Eiotifiedcyrillic"sv,
+    "Elcyrillic"sv,
+    "Elevenroman"sv,
+    "Emacron"sv,
+    "Emacronacute"sv,
+    "Emacrongrave"sv,
+    "Emcyrillic"sv,
+    "Emonospace"sv,
+    "Encyrillic"sv,
+    "Endescendercyrillic"sv,
+    "Eng"sv,
+    "Enghecyrillic"sv,
+    "Enhookcyrillic"sv,
+    "Eogonek"sv,
+    "Eopen"sv,
+    "Epsilon"sv,
+    "Epsilontonos"sv,
+    "Ercyrillic"sv,
+    "Ereversed"sv,
+    "Ereversedcyrillic"sv,
+    "Escyrillic"sv,
+    "Esdescendercyrillic"sv,
+    "Esh"sv,
+    "Esmall"sv,
+    "Eta"sv,
+    "Etarmenian"sv,
+    "Etatonos"sv,
+    "Eth"sv,
+    "Ethsmall"sv,
+    "Etilde"sv,
+    "Etildebelow"sv,
+    "Euro"sv,
+    "Ezh"sv,
+    "Ezhcaron"sv,
+    "Ezhreversed"sv,
+    "F"sv,
+    "Fcircle"sv,
+    "Fdotaccent"sv,
+    "Feharmenian"sv,
+    "Feicoptic"sv,
+    "Fhook"sv,
+    "Fitacyrillic"sv,
+    "Fiveroman"sv,
+    "Fmonospace"sv,
+    "Fourroman"sv,
+    "Fsmall"sv,
+    "G"sv,
+    "GBsquare"sv,
+    "Gacute"sv,
+    "Gamma"sv,
+    "Gammaafrican"sv,
+    "Gangiacoptic"sv,
+    "Gbreve"sv,
+    "Gcaron"sv,
+    "Gcedilla"sv,
+    "Gcircle"sv,
+    "Gcircumflex"sv,
+    "Gcommaaccent"sv,
+    "Gdot"sv,
+    "Gdotaccent"sv,
+    "Gecyrillic"sv,
+    "Ghadarmenian"sv,
+    "Ghemiddlehookcyrillic"sv,
+    "Ghestrokecyrillic"sv,
+    "Gheupturncyrillic"sv,
+    "Ghook"sv,
+    "Gimarmenian"sv,
+    "Gjecyrillic"sv,
+    "Gmacron"sv,
+    "Gmonospace"sv,
+    "Grave"sv,
+    "Gravesmall"sv,
+    "Gsmall"sv,
+    "Gsmallhook"sv,
+    "Gstroke"sv,
+    "H"sv,
+    "H18533"sv,
+    "H18543"sv,
+    "H18551"sv,
+    "H22073"sv,
+    "HPsquare"sv,
+    "Haabkhasiancyrillic"sv,
+    "Hadescendercyrillic"sv,
+    "Hardsigncyrillic"sv,
+    "Hbar"sv,
+    "Hbrevebelow"sv,
+    "Hcedilla"sv,
+    "Hcircle"sv,
+    "Hcircumflex"sv,
+    "Hdieresis"sv,
+    "Hdotaccent"sv,
+    "Hdotbelow"sv,
+    "Hmonospace"sv,
+    "Hoarmenian"sv,
+    "Horicoptic"sv,
+    "Hsmall"sv,
+    "Hungarumlaut"sv,
+    "Hungarumlautsmall"sv,
+    "Hzsquare"sv,
+    "I"sv,
+    "IAcyrillic"sv,
+    "IJ"sv,
+    "IUcyrillic"sv,
+    "Iacute"sv,
+    "Iacutesmall"sv,
+    "Ibreve"sv,
+    "Icaron"sv,
+    "Icircle"sv,
+    "Icircumflex"sv,
+    "Icircumflexsmall"sv,
+    "Icyrillic"sv,
+    "Idblgrave"sv,
+    "Idieresis"sv,
+    "Idieresisacute"sv,
+    "Idieresiscyrillic"sv,
+    "Idieresissmall"sv,
+    "Idot"sv,
+    "Idotaccent"sv,
+    "Idotbelow"sv,
+    "Iebrevecyrillic"sv,
+    "Iecyrillic"sv,
+    "Ifraktur"sv,
+    "Igrave"sv,
+    "Igravesmall"sv,
+    "Ihookabove"sv,
+    "Iicyrillic"sv,
+    "Iinvertedbreve"sv,
+    "Iishortcyrillic"sv,
+    "Imacron"sv,
+    "Imacroncyrillic"sv,
+    "Imonospace"sv,
+    "Iniarmenian"sv,
+    "Iocyrillic"sv,
+    "Iogonek"sv,
+    "Iota"sv,
+    "Iotaafrican"sv,
+    "Iotadieresis"sv,
+    "Iotatonos"sv,
+    "Ismall"sv,
+    "Istroke"sv,
+    "Itilde"sv,
+    "Itildebelow"sv,
+    "Izhitsacyrillic"sv,
+    "Izhitsadblgravecyrillic"sv,
+    "J"sv,
+    "Jaarmenian"sv,
+    "Jcircle"sv,
+    "Jcircumflex"sv,
+    "Jecyrillic"sv,
+    "Jheharmenian"sv,
+    "Jmonospace"sv,
+    "Jsmall"sv,
+    "K"sv,
+    "KBsquare"sv,
+    "KKsquare"sv,
+    "Kabashkircyrillic"sv,
+    "Kacute"sv,
+    "Kacyrillic"sv,
+    "Kadescendercyrillic"sv,
+    "Kahookcyrillic"sv,
+    "Kappa"sv,
+    "Kastrokecyrillic"sv,
+    "Kaverticalstrokecyrillic"sv,
+    "Kcaron"sv,
+    "Kcedilla"sv,
+    "Kcircle"sv,
+    "Kcommaaccent"sv,
+    "Kdotbelow"sv,
+    "Keharmenian"sv,
+    "Kenarmenian"sv,
+    "Khacyrillic"sv,
+    "Kheicoptic"sv,
+    "Khook"sv,
+    "Kjecyrillic"sv,
+    "Klinebelow"sv,
+    "Kmonospace"sv,
+    "Koppacyrillic"sv,
+    "Koppagreek"sv,
+    "Ksicyrillic"sv,
+    "Ksmall"sv,
+    "L"sv,
+    "LJ"sv,
+    "LL"sv,
+    "Lacute"sv,
+    "Lambda"sv,
+    "Lcaron"sv,
+    "Lcedilla"sv,
+    "Lcircle"sv,
+    "Lcircumflexbelow"sv,
+    "Lcommaaccent"sv,
+    "Ldot"sv,
+    "Ldotaccent"sv,
+    "Ldotbelow"sv,
+    "Ldotbelowmacron"sv,
+    "Liwnarmenian"sv,
+    "Lj"sv,
+    "Ljecyrillic"sv,
+    "Llinebelow"sv,
+    "Lmonospace"sv,
+    "Lslash"sv,
+    "Lslashsmall"sv,
+    "Lsmall"sv,
+    "M"sv,
+    "MBsquare"sv,
+    "Macron"sv,
+    "Macronsmall"sv,
+    "Macute"sv,
+    "Mcircle"sv,
+    "Mdotaccent"sv,
+    "Mdotbelow"sv,
+    "Menarmenian"sv,
+    "Mmonospace"sv,
+    "Msmall"sv,
+    "Mturned"sv,
+    "Mu"sv,
+    "N"sv,
+    "NJ"sv,
+    "Nacute"sv,
+    "Ncaron"sv,
+    "Ncedilla"sv,
+    "Ncircle"sv,
+    "Ncircumflexbelow"sv,
+    "Ncommaaccent"sv,
+    "Ndotaccent"sv,
+    "Ndotbelow"sv,
+    "Nhookleft"sv,
+    "Nineroman"sv,
+    "Nj"sv,
+    "Njecyrillic"sv,
+    "Nlinebelow"sv,
+    "Nmonospace"sv,
+    "Nowarmenian"sv,
+    "Nsmall"sv,
+    "Ntilde"sv,
+    "Ntildesmall"sv,
+    "Nu"sv,
+    "O"sv,
+    "OE"sv,
+    "OEsmall"sv,
+    "Oacute"sv,
+    "Oacutesmall"sv,
+    "Obarredcyrillic"sv,
+    "Obarreddieresiscyrillic"sv,
+    "Obreve"sv,
+    "Ocaron"sv,
+    "Ocenteredtilde"sv,
+    "Ocircle"sv,
+    "Ocircumflex"sv,
+    "Ocircumflexacute"sv,
+    "Ocircumflexdotbelow"sv,
+    "Ocircumflexgrave"sv,
+    "Ocircumflexhookabove"sv,
+    "Ocircumflexsmall"sv,
+    "Ocircumflextilde"sv,
+    "Ocyrillic"sv,
+    "Odblacute"sv,
+    "Odblgrave"sv,
+    "Odieresis"sv,
+    "Odieresiscyrillic"sv,
+    "Odieresissmall"sv,
+    "Odotbelow"sv,
+    "Ogoneksmall"sv,
+    "Ograve"sv,
+    "Ogravesmall"sv,
+    "Oharmenian"sv,
+    "Ohm"sv,
+    "Ohookabove"sv,
+    "Ohorn"sv,
+    "Ohornacute"sv,
+    "Ohorndotbelow"sv,
+    "Ohorngrave"sv,
+    "Ohornhookabove"sv,
+    "Ohorntilde"sv,
+    "Ohungarumlaut"sv,
+    "Oi"sv,
+    "Oinvertedbreve"sv,
+    "Omacron"sv,
+    "Omacronacute"sv,
+    "Omacrongrave"sv,
+    "Omega"sv,
+    "Omegacyrillic"sv,
+    "Omegagreek"sv,
+    "Omegaroundcyrillic"sv,
+    "Omegatitlocyrillic"sv,
+    "Omegatonos"sv,
+    "Omicron"sv,
+    "Omicrontonos"sv,
+    "Omonospace"sv,
+    "Oneroman"sv,
+    "Oogonek"sv,
+    "Oogonekmacron"sv,
+    "Oopen"sv,
+    "Oslash"sv,
+    "Oslashacute"sv,
+    "Oslashsmall"sv,
+    "Osmall"sv,
+    "Ostrokeacute"sv,
+    "Otcyrillic"sv,
+    "Otilde"sv,
+    "Otildeacute"sv,
+    "Otildedieresis"sv,
+    "Otildesmall"sv,
+    "P"sv,
+    "Pacute"sv,
+    "Pcircle"sv,
+    "Pdotaccent"sv,
+    "Pecyrillic"sv,
+    "Peharmenian"sv,
+    "Pemiddlehookcyrillic"sv,
+    "Phi"sv,
+    "Phook"sv,
+    "Pi"sv,
+    "Piwrarmenian"sv,
+    "Pmonospace"sv,
+    "Psi"sv,
+    "Psicyrillic"sv,
+    "Psmall"sv,
+    "Q"sv,
+    "Qcircle"sv,
+    "Qmonospace"sv,
+    "Qsmall"sv,
+    "R"sv,
+    "Raarmenian"sv,
+    "Racute"sv,
+    "Rcaron"sv,
+    "Rcedilla"sv,
+    "Rcircle"sv,
+    "Rcommaaccent"sv,
+    "Rdblgrave"sv,
+    "Rdotaccent"sv,
+    "Rdotbelow"sv,
+    "Rdotbelowmacron"sv,
+    "Reharmenian"sv,
+    "Rfraktur"sv,
+    "Rho"sv,
+    "Ringsmall"sv,
+    "Rinvertedbreve"sv,
+    "Rlinebelow"sv,
+    "Rmonospace"sv,
+    "Rsmall"sv,
+    "Rsmallinverted"sv,
+    "Rsmallinvertedsuperior"sv,
+    "S"sv,
+    "SF010000"sv,
+    "SF020000"sv,
+    "SF030000"sv,
+    "SF040000"sv,
+    "SF050000"sv,
+    "SF060000"sv,
+    "SF070000"sv,
+    "SF080000"sv,
+    "SF090000"sv,
+    "SF100000"sv,
+    "SF110000"sv,
+    "SF190000"sv,
+    "SF200000"sv,
+    "SF210000"sv,
+    "SF220000"sv,
+    "SF230000"sv,
+    "SF240000"sv,
+    "SF250000"sv,
+    "SF260000"sv,
+    "SF270000"sv,
+    "SF280000"sv,
+    "SF360000"sv,
+    "SF370000"sv,
+    "SF380000"sv,
+    "SF390000"sv,
+    "SF400000"sv,
+    "SF410000"sv,
+    "SF420000"sv,
+    "SF430000"sv,
+    "SF440000"sv,
+    "SF450000"sv,
+    "SF460000"sv,
+    "SF470000"sv,
+    "SF480000"sv,
+    "SF490000"sv,
+    "SF500000"sv,
+    "SF510000"sv,
+    "SF520000"sv,
+    "SF530000"sv,
+    "SF540000"sv,
+    "Sacute"sv,
+    "Sacutedotaccent"sv,
+    "Sampigreek"sv,
+    "Scaron"sv,
+    "Scarondotaccent"sv,
+    "Scaronsmall"sv,
+    "Scedilla"sv,
+    "Schwa"sv,
+    "Schwacyrillic"sv,
+    "Schwadieresiscyrillic"sv,
+    "Scircle"sv,
+    "Scircumflex"sv,
+    "Scommaaccent"sv,
+    "Sdotaccent"sv,
+    "Sdotbelow"sv,
+    "Sdotbelowdotaccent"sv,
+    "Seharmenian"sv,
+    "Sevenroman"sv,
+    "Shaarmenian"sv,
+    "Shacyrillic"sv,
+    "Shchacyrillic"sv,
+    "Sheicoptic"sv,
+    "Shhacyrillic"sv,
+    "Shimacoptic"sv,
+    "Sigma"sv,
+    "Sixroman"sv,
+    "Smonospace"sv,
+    "Softsigncyrillic"sv,
+    "Ssmall"sv,
+    "Stigmagreek"sv,
+    "T"sv,
+    "Tau"sv,
+    "Tbar"sv,
+    "Tcaron"sv,
+    "Tcedilla"sv,
+    "Tcircle"sv,
+    "Tcircumflexbelow"sv,
+    "Tcommaaccent"sv,
+    "Tdotaccent"sv,
+    "Tdotbelow"sv,
+    "Tecyrillic"sv,
+    "Tedescendercyrillic"sv,
+    "Tenroman"sv,
+    "Tetsecyrillic"sv,
+    "Theta"sv,
+    "Thook"sv,
+    "Thorn"sv,
+    "Thornsmall"sv,
+    "Threeroman"sv,
+    "Tildesmall"sv,
+    "Tiwnarmenian"sv,
+    "Tlinebelow"sv,
+    "Tmonospace"sv,
+    "Toarmenian"sv,
+    "Tonefive"sv,
+    "Tonesix"sv,
+    "Tonetwo"sv,
+    "Tretroflexhook"sv,
+    "Tsecyrillic"sv,
+    "Tshecyrillic"sv,
+    "Tsmall"sv,
+    "Twelveroman"sv,
+    "Tworoman"sv,
+    "U"sv,
+    "Uacute"sv,
+    "Uacutesmall"sv,
+    "Ubreve"sv,
+    "Ucaron"sv,
+    "Ucircle"sv,
+    "Ucircumflex"sv,
+    "Ucircumflexbelow"sv,
+    "Ucircumflexsmall"sv,
+    "Ucyrillic"sv,
+    "Udblacute"sv,
+    "Udblgrave"sv,
+    "Udieresis"sv,
+    "Udieresisacute"sv,
+    "Udieresisbelow"sv,
+    "Udieresiscaron"sv,
+    "Udieresiscyrillic"sv,
+    "Udieresisgrave"sv,
+    "Udieresismacron"sv,
+    "Udieresissmall"sv,
+    "Udotbelow"sv,
+    "Ugrave"sv,
+    "Ugravesmall"sv,
+    "Uhookabove"sv,
+    "Uhorn"sv,
+    "Uhornacute"sv,
+    "Uhorndotbelow"sv,
+    "Uhorngrave"sv,
+    "Uhornhookabove"sv,
+    "Uhorntilde"sv,
+    "Uhungarumlaut"sv,
+    "Uhungarumlautcyrillic"sv,
+    "Uinvertedbreve"sv,
+    "Ukcyrillic"sv,
+    "Umacron"sv,
+    "Umacroncyrillic"sv,
+    "Umacrondieresis"sv,
+    "Umonospace"sv,
+    "Uogonek"sv,
+    "Upsilon"sv,
+    "Upsilon1"sv,
+    "Upsilonacutehooksymbolgreek"sv,
+    "Upsilonafrican"sv,
+    "Upsilondieresis"sv,
+    "Upsilondieresishooksymbolgreek"sv,
+    "Upsilonhooksymbol"sv,
+    "Upsilontonos"sv,
+    "Uring"sv,
+    "Ushortcyrillic"sv,
+    "Usmall"sv,
+    "Ustraightcyrillic"sv,
+    "Ustraightstrokecyrillic"sv,
+    "Utilde"sv,
+    "Utildeacute"sv,
+    "Utildebelow"sv,
+    "V"sv,
+    "Vcircle"sv,
+    "Vdotbelow"sv,
+    "Vecyrillic"sv,
+    "Vewarmenian"sv,
+    "Vhook"sv,
+    "Vmonospace"sv,
+    "Voarmenian"sv,
+    "Vsmall"sv,
+    "Vtilde"sv,
+    "W"sv,
+    "Wacute"sv,
+    "Wcircle"sv,
+    "Wcircumflex"sv,
+    "Wdieresis"sv,
+    "Wdotaccent"sv,
+    "Wdotbelow"sv,
+    "Wgrave"sv,
+    "Wmonospace"sv,
+    "Wsmall"sv,
+    "X"sv,
+    "Xcircle"sv,
+    "Xdieresis"sv,
+    "Xdotaccent"sv,
+    "Xeharmenian"sv,
+    "Xi"sv,
+    "Xmonospace"sv,
+    "Xsmall"sv,
+    "Y"sv,
+    "Yacute"sv,
+    "Yacutesmall"sv,
+    "Yatcyrillic"sv,
+    "Ycircle"sv,
+    "Ycircumflex"sv,
+    "Ydieresis"sv,
+    "Ydieresissmall"sv,
+    "Ydotaccent"sv,
+    "Ydotbelow"sv,
+    "Yericyrillic"sv,
+    "Yerudieresiscyrillic"sv,
+    "Ygrave"sv,
+    "Yhook"sv,
+    "Yhookabove"sv,
+    "Yiarmenian"sv,
+    "Yicyrillic"sv,
+    "Yiwnarmenian"sv,
+    "Ymonospace"sv,
+    "Ysmall"sv,
+    "Ytilde"sv,
+    "Yusbigcyrillic"sv,
+    "Yusbigiotifiedcyrillic"sv,
+    "Yuslittlecyrillic"sv,
+    "Yuslittleiotifiedcyrillic"sv,
+    "Z"sv,
+    "Zaarmenian"sv,
+    "Zacute"sv,
+    "Zcaron"sv,
+    "Zcaronsmall"sv,
+    "Zcircle"sv,
+    "Zcircumflex"sv,
+    "Zdot"sv,
+    "Zdotaccent"sv,
+    "Zdotbelow"sv,
+    "Zecyrillic"sv,
+    "Zedescendercyrillic"sv,
+    "Zedieresiscyrillic"sv,
+    "Zeta"sv,
+    "Zhearmenian"sv,
+    "Zhebrevecyrillic"sv,
+    "Zhecyrillic"sv,
+    "Zhedescendercyrillic"sv,
+    "Zhedieresiscyrillic"sv,
+    "Zlinebelow"sv,
+    "Zmonospace"sv,
+    "Zsmall"sv,
+    "Zstroke"sv,
+    "a"sv,
+    "aabengali"sv,
+    "aacute"sv,
+    "aadeva"sv,
+    "aagujarati"sv,
+    "aagurmukhi"sv,
+    "aamatragurmukhi"sv,
+    "aarusquare"sv,
+    "aavowelsignbengali"sv,
+    "aavowelsigndeva"sv,
+    "aavowelsigngujarati"sv,
+    "abbreviationmarkarmenian"sv,
+    "abbreviationsigndeva"sv,
+    "abengali"sv,
+    "abopomofo"sv,
+    "abreve"sv,
+    "abreveacute"sv,
+    "abrevecyrillic"sv,
+    "abrevedotbelow"sv,
+    "abrevegrave"sv,
+    "abrevehookabove"sv,
+    "abrevetilde"sv,
+    "acaron"sv,
+    "acircle"sv,
+    "acircumflex"sv,
+    "acircumflexacute"sv,
+    "acircumflexdotbelow"sv,
+    "acircumflexgrave"sv,
+    "acircumflexhookabove"sv,
+    "acircumflextilde"sv,
+    "acute"sv,
+    "acutebelowcmb"sv,
+    "acutecmb"sv,
+    "acutecomb"sv,
+    "acutedeva"sv,
+    "acutelowmod"sv,
+    "acutetonecmb"sv,
+    "acyrillic"sv,
+    "adblgrave"sv,
+    "addakgurmukhi"sv,
+    "adeva"sv,
+    "adieresis"sv,
+    "adieresiscyrillic"sv,
+    "adieresismacron"sv,
+    "adotbelow"sv,
+    "adotmacron"sv,
+    "ae"sv,
+    "aeacute"sv,
+    "aekorean"sv,
+    "aemacron"sv,
+    "afii00208"sv,
+    "afii08941"sv,
+    "afii10017"sv,
+    "afii10018"sv,
+    "afii10019"sv,
+    "afii10020"sv,
+    "afii10021"sv,
+    "afii10022"sv,
+    "afii10023"sv,
+    "afii10024"sv,
+    "afii10025"sv,
+    "afii10026"sv,
+    "afii10027"sv,
+    "afii10028"sv,
+    "afii10029"sv,
+    "afii10030"sv,
+    "afii10031"sv,
+    "afii10032"sv,
+    "afii10033"sv,
+    "afii10034"sv,
+    "afii10035"sv,
+    "afii10036"sv,
+    "afii10037"sv,
+    "afii10038"sv,
+    "afii10039"sv,
+    "afii10040"sv,
+    "afii10041"sv,
+    "afii10042"sv,
+    "afii10043"sv,
+    "afii10044"sv,
+    "afii10045"sv,
+    "afii10046"sv,
+    "afii10047"sv,
+    "afii10048"sv,
+    "afii10049"sv,
+    "afii10050"sv,
+    "afii10051"sv,
+    "afii10052"sv,
+    "afii10053"sv,
+    "afii10054"sv,
+    "afii10055"sv,
+    "afii10056"sv,
+    "afii10057"sv,
+    "afii10058"sv,
+    "afii10059"sv,
+    "afii10060"sv,
+    "afii10061"sv,
+    "afii10062"sv,
+    "afii10063"sv,
+    "afii10064"sv,
+    "afii10065"sv,
+    "afii10066"sv,
+    "afii10067"sv,
+    "afii10068"sv,
+    "afii10069"sv,
+    "afii10070"sv,
+    "afii10071"sv,
+    "afii10072"sv,
+    "afii10073"sv,
+    "afii10074"sv,
+    "afii10075"sv,
+    "afii10076"sv,
+    "afii10077"sv,
+    "afii10078"sv,
+    "afii10079"sv,
+    "afii10080"sv,
+    "afii10081"sv,
+    "afii10082"sv,
+    "afii10083"sv,
+    "afii10084"sv,
+    "afii10085"sv,
+    "afii10086"sv,
+    "afii10087"sv,
+    "afii10088"sv,
+    "afii10089"sv,
+    "afii10090"sv,
+    "afii10091"sv,
+    "afii10092"sv,
+    "afii10093"sv,
+    "afii10094"sv,
+    "afii10095"sv,
+    "afii10096"sv,
+    "afii10097"sv,
+    "afii10098"sv,
+    "afii10099"sv,
+    "afii10100"sv,
+    "afii10101"sv,
+    "afii10102"sv,
+    "afii10103"sv,
+    "afii10104"sv,
+    "afii10105"sv,
+    "afii10106"sv,
+    "afii10107"sv,
+    "afii10108"sv,
+    "afii10109"sv,
+    "afii10110"sv,
+    "afii10145"sv,
+    "afii10146"sv,
+    "afii10147"sv,
+    "afii10148"sv,
+    "afii10192"sv,
+    "afii10193"sv,
+    "afii10194"sv,
+    "afii10195"sv,
+    "afii10196"sv,
+    "afii10831"sv,
+    "afii10832"sv,
+    "afii10846"sv,
+    "afii299"sv,
+    "afii300"sv,
+    "afii301"sv,
+    "afii57381"sv,
+    "afii57388"sv,
+    "afii57392"sv,
+    "afii57393"sv,
+    "afii57394"sv,
+    "afii57395"sv,
+    "afii57396"sv,
+    "afii57397"sv,
+    "afii57398"sv,
+    "afii57399"sv,
+    "afii57400"sv,
+    "afii57401"sv,
+    "afii57403"sv,
+    "afii57407"sv,
+    "afii57409"sv,
+    "afii57410"sv,
+    "afii57411"sv,
+    "afii57412"sv,
+    "afii57413"sv,
+    "afii57414"sv,
+    "afii57415"sv,
+    "afii57416"sv,
+    "afii57417"sv,
+    "afii57418"sv,
+    "afii57419"sv,
+    "afii57420"sv,
+    "afii57421"sv,
+    "afii57422"sv,
+    "afii57423"sv,
+    "afii57424"sv,
+    "afii57425"sv,
+    "afii57426"sv,
+    "afii57427"sv,
+    "afii57428"sv,
+    "afii57429"sv,
+    "afii57430"sv,
+    "afii57431"sv,
+    "afii57432"sv,
+    "afii57433"sv,
+    "afii57434"sv,
+    "afii57440"sv,
+    "afii57441"sv,
+    "afii57442"sv,
+    "afii57443"sv,
+    "afii57444"sv,
+    "afii57445"sv,
+    "afii57446"sv,
+    "afii57448"sv,
+    "afii57449"sv,
+    "afii57450"sv,
+    "afii57451"sv,
+    "afii57452"sv,
+    "afii57453"sv,
+    "afii57454"sv,
+    "afii57455"sv,
+    "afii57456"sv,
+    "afii57457"sv,
+    "afii57458"sv,
+    "afii57470"sv,
+    "afii57505"sv,
+    "afii57506"sv,
+    "afii57507"sv,
+    "afii57508"sv,
+    "afii57509"sv,
+    "afii57511"sv,
+    "afii57512"sv,
+    "afii57513"sv,
+    "afii57514"sv,
+    "afii57519"sv,
+    "afii57534"sv,
+    "afii57636"sv,
+    "afii57645"sv,
+    "afii57658"sv,
+    "afii57664"sv,
+    "afii57665"sv,
+    "afii57666"sv,
+    "afii57667"sv,
+    "afii57668"sv,
+    "afii57669"sv,
+    "afii57670"sv,
+    "afii57671"sv,
+    "afii57672"sv,
+    "afii57673"sv,
+    "afii57674"sv,
+    "afii57675"sv,
+    "afii57676"sv,
+    "afii57677"sv,
+    "afii57678"sv,
+    "afii57679"sv,
+    "afii57680"sv,
+    "afii57681"sv,
+    "afii57682"sv,
+    "afii57683"sv,
+    "afii57684"sv,
+    "afii57685"sv,
+    "afii57686"sv,
+    "afii57687"sv,
+    "afii57688"sv,
+    "afii57689"sv,
+    "afii57690"sv,
+    "afii57694"sv,
+    "afii57695"sv,
+    "afii57700"sv,
+    "afii57705"sv,
+    "afii57716"sv,
+    "afii57717"sv,
+    "afii57718"sv,
+    "afii57723"sv,
+    "afii57793"sv,
+    "afii57794"sv,
+    "afii57795"sv,
+    "afii57796"sv,
+    "afii57797"sv,
+    "afii57798"sv,
+    "afii57799"sv,
+    "afii57800"sv,
+    "afii57801"sv,
+    "afii57802"sv,
+    "afii57803"sv,
+    "afii57804"sv,
+    "afii57806"sv,
+    "afii57807"sv,
+    "afii57839"sv,
+    "afii57841"sv,
+    "afii57842"sv,
+    "afii57929"sv,
+    "afii61248"sv,
+    "afii61289"sv,
+    "afii61352"sv,
+    "afii61573"sv,
+    "afii61574"sv,
+    "afii61575"sv,
+    "afii61664"sv,
+    "afii63167"sv,
+    "afii64937"sv,
+    "agrave"sv,
+    "agujarati"sv,
+    "agurmukhi"sv,
+    "ahiragana"sv,
+    "ahookabove"sv,
+    "aibengali"sv,
+    "aibopomofo"sv,
+    "aideva"sv,
+    "aiecyrillic"sv,
+    "aigujarati"sv,
+    "aigurmukhi"sv,
+    "aimatragurmukhi"sv,
+    "ainarabic"sv,
+    "ainfinalarabic"sv,
+    "aininitialarabic"sv,
+    "ainmedialarabic"sv,
+    "ainvertedbreve"sv,
+    "aivowelsignbengali"sv,
+    "aivowelsigndeva"sv,
+    "aivowelsigngujarati"sv,
+    "akatakana"sv,
+    "akatakanahalfwidth"sv,
+    "akorean"sv,
+    "alef"sv,
+    "alefarabic"sv,
+    "alefdageshhebrew"sv,
+    "aleffinalarabic"sv,
+    "alefhamzaabovearabic"sv,
+    "alefhamzaabovefinalarabic"sv,
+    "alefhamzabelowarabic"sv,
+    "alefhamzabelowfinalarabic"sv,
+    "alefhebrew"sv,
+    "aleflamedhebrew"sv,
+    "alefmaddaabovearabic"sv,
+    "alefmaddaabovefinalarabic"sv,
+    "alefmaksuraarabic"sv,
+    "alefmaksurafinalarabic"sv,
+    "alefmaksurainitialarabic"sv,
+    "alefmaksuramedialarabic"sv,
+    "alefpatahhebrew"sv,
+    "alefqamatshebrew"sv,
+    "aleph"sv,
+    "allequal"sv,
+    "alpha"sv,
+    "alphatonos"sv,
+    "amacron"sv,
+    "amonospace"sv,
+    "ampersand"sv,
+    "ampersandmonospace"sv,
+    "ampersandsmall"sv,
+    "amsquare"sv,
+    "anbopomofo"sv,
+    "angbopomofo"sv,
+    "angkhankhuthai"sv,
+    "angle"sv,
+    "anglebracketleft"sv,
+    "anglebracketleftvertical"sv,
+    "anglebracketright"sv,
+    "anglebracketrightvertical"sv,
+    "angleleft"sv,
+    "angleright"sv,
+    "angstrom"sv,
+    "anoteleia"sv,
+    "anudattadeva"sv,
+    "anusvarabengali"sv,
+    "anusvaradeva"sv,
+    "anusvaragujarati"sv,
+    "aogonek"sv,
+    "apaatosquare"sv,
+    "aparen"sv,
+    "apostrophearmenian"sv,
+    "apostrophemod"sv,
+    "apple"sv,
+    "approaches"sv,
+    "approxequal"sv,
+    "approxequalorimage"sv,
+    "approximatelyequal"sv,
+    "araeaekorean"sv,
+    "araeakorean"sv,
+    "arc"sv,
+    "arighthalfring"sv,
+    "aring"sv,
+    "aringacute"sv,
+    "aringbelow"sv,
+    "arrowboth"sv,
+    "arrowdashdown"sv,
+    "arrowdashleft"sv,
+    "arrowdashright"sv,
+    "arrowdashup"sv,
+    "arrowdblboth"sv,
+    "arrowdbldown"sv,
+    "arrowdblleft"sv,
+    "arrowdblright"sv,
+    "arrowdblup"sv,
+    "arrowdown"sv,
+    "arrowdownleft"sv,
+    "arrowdownright"sv,
+    "arrowdownwhite"sv,
+    "arrowheaddownmod"sv,
+    "arrowheadleftmod"sv,
+    "arrowheadrightmod"sv,
+    "arrowheadupmod"sv,
+    "arrowhorizex"sv,
+    "arrowleft"sv,
+    "arrowleftdbl"sv,
+    "arrowleftdblstroke"sv,
+    "arrowleftoverright"sv,
+    "arrowleftwhite"sv,
+    "arrowright"sv,
+    "arrowrightdblstroke"sv,
+    "arrowrightheavy"sv,
+    "arrowrightoverleft"sv,
+    "arrowrightwhite"sv,
+    "arrowtableft"sv,
+    "arrowtabright"sv,
+    "arrowup"sv,
+    "arrowupdn"sv,
+    "arrowupdnbse"sv,
+    "arrowupdownbase"sv,
+    "arrowupleft"sv,
+    "arrowupleftofdown"sv,
+    "arrowupright"sv,
+    "arrowupwhite"sv,
+    "arrowvertex"sv,
+    "asciicircum"sv,
+    "asciicircummonospace"sv,
+    "asciitilde"sv,
+    "asciitildemonospace"sv,
+    "ascript"sv,
+    "ascriptturned"sv,
+    "asmallhiragana"sv,
+    "asmallkatakana"sv,
+    "asmallkatakanahalfwidth"sv,
+    "asterisk"sv,
+    "asteriskaltonearabic"sv,
+    "asteriskarabic"sv,
+    "asteriskmath"sv,
+    "asteriskmonospace"sv,
+    "asterisksmall"sv,
+    "asterism"sv,
+    "asuperior"sv,
+    "asymptoticallyequal"sv,
+    "at"sv,
+    "atilde"sv,
+    "atmonospace"sv,
+    "atsmall"sv,
+    "aturned"sv,
+    "aubengali"sv,
+    "aubopomofo"sv,
+    "audeva"sv,
+    "augujarati"sv,
+    "augurmukhi"sv,
+    "aulengthmarkbengali"sv,
+    "aumatragurmukhi"sv,
+    "auvowelsignbengali"sv,
+    "auvowelsigndeva"sv,
+    "auvowelsigngujarati"sv,
+    "avagrahadeva"sv,
+    "aybarmenian"sv,
+    "ayin"sv,
+    "ayinaltonehebrew"sv,
+    "ayinhebrew"sv,
+    "b"sv,
+    "babengali"sv,
+    "backslash"sv,
+    "backslashmonospace"sv,
+    "badeva"sv,
+    "bagujarati"sv,
+    "bagurmukhi"sv,
+    "bahiragana"sv,
+    "bahtthai"sv,
+    "bakatakana"sv,
+    "bar"sv,
+    "barmonospace"sv,
+    "bbopomofo"sv,
+    "bcircle"sv,
+    "bdotaccent"sv,
+    "bdotbelow"sv,
+    "beamedsixteenthnotes"sv,
+    "because"sv,
+    "becyrillic"sv,
+    "beharabic"sv,
+    "behfinalarabic"sv,
+    "behinitialarabic"sv,
+    "behiragana"sv,
+    "behmedialarabic"sv,
+    "behmeeminitialarabic"sv,
+    "behmeemisolatedarabic"sv,
+    "behnoonfinalarabic"sv,
+    "bekatakana"sv,
+    "benarmenian"sv,
+    "bet"sv,
+    "beta"sv,
+    "betasymbolgreek"sv,
+    "betdagesh"sv,
+    "betdageshhebrew"sv,
+    "bethebrew"sv,
+    "betrafehebrew"sv,
+    "bhabengali"sv,
+    "bhadeva"sv,
+    "bhagujarati"sv,
+    "bhagurmukhi"sv,
+    "bhook"sv,
+    "bihiragana"sv,
+    "bikatakana"sv,
+    "bilabialclick"sv,
+    "bindigurmukhi"sv,
+    "birusquare"sv,
+    "blackcircle"sv,
+    "blackdiamond"sv,
+    "blackdownpointingtriangle"sv,
+    "blackleftpointingpointer"sv,
+    "blackleftpointingtriangle"sv,
+    "blacklenticularbracketleft"sv,
+    "blacklenticularbracketleftvertical"sv,
+    "blacklenticularbracketright"sv,
+    "blacklenticularbracketrightvertical"sv,
+    "blacklowerlefttriangle"sv,
+    "blacklowerrighttriangle"sv,
+    "blackrectangle"sv,
+    "blackrightpointingpointer"sv,
+    "blackrightpointingtriangle"sv,
+    "blacksmallsquare"sv,
+    "blacksmilingface"sv,
+    "blacksquare"sv,
+    "blackstar"sv,
+    "blackupperlefttriangle"sv,
+    "blackupperrighttriangle"sv,
+    "blackuppointingsmalltriangle"sv,
+    "blackuppointingtriangle"sv,
+    "blank"sv,
+    "blinebelow"sv,
+    "block"sv,
+    "bmonospace"sv,
+    "bobaimaithai"sv,
+    "bohiragana"sv,
+    "bokatakana"sv,
+    "bparen"sv,
+    "bqsquare"sv,
+    "braceex"sv,
+    "braceleft"sv,
+    "braceleftbt"sv,
+    "braceleftmid"sv,
+    "braceleftmonospace"sv,
+    "braceleftsmall"sv,
+    "bracelefttp"sv,
+    "braceleftvertical"sv,
+    "braceright"sv,
+    "bracerightbt"sv,
+    "bracerightmid"sv,
+    "bracerightmonospace"sv,
+    "bracerightsmall"sv,
+    "bracerighttp"sv,
+    "bracerightvertical"sv,
+    "bracketleft"sv,
+    "bracketleftbt"sv,
+    "bracketleftex"sv,
+    "bracketleftmonospace"sv,
+    "bracketlefttp"sv,
+    "bracketright"sv,
+    "bracketrightbt"sv,
+    "bracketrightex"sv,
+    "bracketrightmonospace"sv,
+    "bracketrighttp"sv,
+    "breve"sv,
+    "brevebelowcmb"sv,
+    "brevecmb"sv,
+    "breveinvertedbelowcmb"sv,
+    "breveinvertedcmb"sv,
+    "breveinverteddoublecmb"sv,
+    "bridgebelowcmb"sv,
+    "bridgeinvertedbelowcmb"sv,
+    "brokenbar"sv,
+    "bstroke"sv,
+    "bsuperior"sv,
+    "btopbar"sv,
+    "buhiragana"sv,
+    "bukatakana"sv,
+    "bullet"sv,
+    "bulletinverse"sv,
+    "bulletoperator"sv,
+    "bullseye"sv,
+    "c"sv,
+    "caarmenian"sv,
+    "cabengali"sv,
+    "cacute"sv,
+    "cadeva"sv,
+    "cagujarati"sv,
+    "cagurmukhi"sv,
+    "calsquare"sv,
+    "candrabindubengali"sv,
+    "candrabinducmb"sv,
+    "candrabindudeva"sv,
+    "candrabindugujarati"sv,
+    "capslock"sv,
+    "careof"sv,
+    "caron"sv,
+    "caronbelowcmb"sv,
+    "caroncmb"sv,
+    "carriagereturn"sv,
+    "cbopomofo"sv,
+    "ccaron"sv,
+    "ccedilla"sv,
+    "ccedillaacute"sv,
+    "ccircle"sv,
+    "ccircumflex"sv,
+    "ccurl"sv,
+    "cdot"sv,
+    "cdotaccent"sv,
+    "cdsquare"sv,
+    "cedilla"sv,
+    "cedillacmb"sv,
+    "cent"sv,
+    "centigrade"sv,
+    "centinferior"sv,
+    "centmonospace"sv,
+    "centoldstyle"sv,
+    "centsuperior"sv,
+    "chaarmenian"sv,
+    "chabengali"sv,
+    "chadeva"sv,
+    "chagujarati"sv,
+    "chagurmukhi"sv,
+    "chbopomofo"sv,
+    "cheabkhasiancyrillic"sv,
+    "checkmark"sv,
+    "checyrillic"sv,
+    "chedescenderabkhasiancyrillic"sv,
+    "chedescendercyrillic"sv,
+    "chedieresiscyrillic"sv,
+    "cheharmenian"sv,
+    "chekhakassiancyrillic"sv,
+    "cheverticalstrokecyrillic"sv,
+    "chi"sv,
+    "chieuchacirclekorean"sv,
+    "chieuchaparenkorean"sv,
+    "chieuchcirclekorean"sv,
+    "chieuchkorean"sv,
+    "chieuchparenkorean"sv,
+    "chochangthai"sv,
+    "chochanthai"sv,
+    "chochingthai"sv,
+    "chochoethai"sv,
+    "chook"sv,
+    "cieucacirclekorean"sv,
+    "cieucaparenkorean"sv,
+    "cieuccirclekorean"sv,
+    "cieuckorean"sv,
+    "cieucparenkorean"sv,
+    "cieucuparenkorean"sv,
+    "circle"sv,
+    "circlemultiply"sv,
+    "circleot"sv,
+    "circleplus"sv,
+    "circlepostalmark"sv,
+    "circlewithlefthalfblack"sv,
+    "circlewithrighthalfblack"sv,
+    "circumflex"sv,
+    "circumflexbelowcmb"sv,
+    "circumflexcmb"sv,
+    "clear"sv,
+    "clickalveolar"sv,
+    "clickdental"sv,
+    "clicklateral"sv,
+    "clickretroflex"sv,
+    "club"sv,
+    "clubsuitblack"sv,
+    "clubsuitwhite"sv,
+    "cmcubedsquare"sv,
+    "cmonospace"sv,
+    "cmsquaredsquare"sv,
+    "coarmenian"sv,
+    "colon"sv,
+    "colonmonetary"sv,
+    "colonmonospace"sv,
+    "colonsign"sv,
+    "colonsmall"sv,
+    "colontriangularhalfmod"sv,
+    "colontriangularmod"sv,
+    "comma"sv,
+    "commaabovecmb"sv,
+    "commaaboverightcmb"sv,
+    "commaaccent"sv,
+    "commaarabic"sv,
+    "commaarmenian"sv,
+    "commainferior"sv,
+    "commamonospace"sv,
+    "commareversedabovecmb"sv,
+    "commareversedmod"sv,
+    "commasmall"sv,
+    "commasuperior"sv,
+    "commaturnedabovecmb"sv,
+    "commaturnedmod"sv,
+    "compass"sv,
+    "congruent"sv,
+    "contourintegral"sv,
+    "control"sv,
+    "controlACK"sv,
+    "controlBEL"sv,
+    "controlBS"sv,
+    "controlCAN"sv,
+    "controlCR"sv,
+    "controlDC1"sv,
+    "controlDC2"sv,
+    "controlDC3"sv,
+    "controlDC4"sv,
+    "controlDEL"sv,
+    "controlDLE"sv,
+    "controlEM"sv,
+    "controlENQ"sv,
+    "controlEOT"sv,
+    "controlESC"sv,
+    "controlETB"sv,
+    "controlETX"sv,
+    "controlFF"sv,
+    "controlFS"sv,
+    "controlGS"sv,
+    "controlHT"sv,
+    "controlLF"sv,
+    "controlNAK"sv,
+    "controlRS"sv,
+    "controlSI"sv,
+    "controlSO"sv,
+    "controlSOT"sv,
+    "controlSTX"sv,
+    "controlSUB"sv,
+    "controlSYN"sv,
+    "controlUS"sv,
+    "controlVT"sv,
+    "copyright"sv,
+    "copyrightsans"sv,
+    "copyrightserif"sv,
+    "cornerbracketleft"sv,
+    "cornerbracketlefthalfwidth"sv,
+    "cornerbracketleftvertical"sv,
+    "cornerbracketright"sv,
+    "cornerbracketrighthalfwidth"sv,
+    "cornerbracketrightvertical"sv,
+    "corporationsquare"sv,
+    "cosquare"sv,
+    "coverkgsquare"sv,
+    "cparen"sv,
+    "cruzeiro"sv,
+    "cstretched"sv,
+    "curlyand"sv,
+    "curlyor"sv,
+    "currency"sv,
+    "cyrBreve"sv,
+    "cyrFlex"sv,
+    "cyrbreve"sv,
+    "cyrflex"sv,
+    "d"sv,
+    "daarmenian"sv,
+    "dabengali"sv,
+    "dadarabic"sv,
+    "dadeva"sv,
+    "dadfinalarabic"sv,
+    "dadinitialarabic"sv,
+    "dadmedialarabic"sv,
+    "dagesh"sv,
+    "dageshhebrew"sv,
+    "dagger"sv,
+    "daggerdbl"sv,
+    "dagujarati"sv,
+    "dagurmukhi"sv,
+    "dahiragana"sv,
+    "dakatakana"sv,
+    "dalarabic"sv,
+    "dalet"sv,
+    "daletdagesh"sv,
+    "daletdageshhebrew"sv,
+    "dalethatafpatah"sv,
+    "dalethatafpatahhebrew"sv,
+    "dalethatafsegol"sv,
+    "dalethatafsegolhebrew"sv,
+    "dalethebrew"sv,
+    "dalethiriq"sv,
+    "dalethiriqhebrew"sv,
+    "daletholam"sv,
+    "daletholamhebrew"sv,
+    "daletpatah"sv,
+    "daletpatahhebrew"sv,
+    "daletqamats"sv,
+    "daletqamatshebrew"sv,
+    "daletqubuts"sv,
+    "daletqubutshebrew"sv,
+    "daletsegol"sv,
+    "daletsegolhebrew"sv,
+    "daletsheva"sv,
+    "daletshevahebrew"sv,
+    "dalettsere"sv,
+    "dalettserehebrew"sv,
+    "dalfinalarabic"sv,
+    "dammaarabic"sv,
+    "dammalowarabic"sv,
+    "dammatanaltonearabic"sv,
+    "dammatanarabic"sv,
+    "danda"sv,
+    "dargahebrew"sv,
+    "dargalefthebrew"sv,
+    "dasiapneumatacyrilliccmb"sv,
+    "dblGrave"sv,
+    "dblanglebracketleft"sv,
+    "dblanglebracketleftvertical"sv,
+    "dblanglebracketright"sv,
+    "dblanglebracketrightvertical"sv,
+    "dblarchinvertedbelowcmb"sv,
+    "dblarrowleft"sv,
+    "dblarrowright"sv,
+    "dbldanda"sv,
+    "dblgrave"sv,
+    "dblgravecmb"sv,
+    "dblintegral"sv,
+    "dbllowline"sv,
+    "dbllowlinecmb"sv,
+    "dbloverlinecmb"sv,
+    "dblprimemod"sv,
+    "dblverticalbar"sv,
+    "dblverticallineabovecmb"sv,
+    "dbopomofo"sv,
+    "dbsquare"sv,
+    "dcaron"sv,
+    "dcedilla"sv,
+    "dcircle"sv,
+    "dcircumflexbelow"sv,
+    "dcroat"sv,
+    "ddabengali"sv,
+    "ddadeva"sv,
+    "ddagujarati"sv,
+    "ddagurmukhi"sv,
+    "ddalarabic"sv,
+    "ddalfinalarabic"sv,
+    "dddhadeva"sv,
+    "ddhabengali"sv,
+    "ddhadeva"sv,
+    "ddhagujarati"sv,
+    "ddhagurmukhi"sv,
+    "ddotaccent"sv,
+    "ddotbelow"sv,
+    "decimalseparatorarabic"sv,
+    "decimalseparatorpersian"sv,
+    "decyrillic"sv,
+    "degree"sv,
+    "dehihebrew"sv,
+    "dehiragana"sv,
+    "deicoptic"sv,
+    "dekatakana"sv,
+    "deleteleft"sv,
+    "deleteright"sv,
+    "delta"sv,
+    "deltaturned"sv,
+    "denominatorminusonenumeratorbengali"sv,
+    "dezh"sv,
+    "dhabengali"sv,
+    "dhadeva"sv,
+    "dhagujarati"sv,
+    "dhagurmukhi"sv,
+    "dhook"sv,
+    "dialytikatonos"sv,
+    "dialytikatonoscmb"sv,
+    "diamond"sv,
+    "diamondsuitwhite"sv,
+    "dieresis"sv,
+    "dieresisacute"sv,
+    "dieresisbelowcmb"sv,
+    "dieresiscmb"sv,
+    "dieresisgrave"sv,
+    "dieresistonos"sv,
+    "dihiragana"sv,
+    "dikatakana"sv,
+    "dittomark"sv,
+    "divide"sv,
+    "divides"sv,
+    "divisionslash"sv,
+    "djecyrillic"sv,
+    "dkshade"sv,
+    "dlinebelow"sv,
+    "dlsquare"sv,
+    "dmacron"sv,
+    "dmonospace"sv,
+    "dnblock"sv,
+    "dochadathai"sv,
+    "dodekthai"sv,
+    "dohiragana"sv,
+    "dokatakana"sv,
+    "dollar"sv,
+    "dollarinferior"sv,
+    "dollarmonospace"sv,
+    "dollaroldstyle"sv,
+    "dollarsmall"sv,
+    "dollarsuperior"sv,
+    "dong"sv,
+    "dorusquare"sv,
+    "dotaccent"sv,
+    "dotaccentcmb"sv,
+    "dotbelowcmb"sv,
+    "dotbelowcomb"sv,
+    "dotkatakana"sv,
+    "dotlessi"sv,
+    "dotlessj"sv,
+    "dotlessjstrokehook"sv,
+    "dotmath"sv,
+    "dottedcircle"sv,
+    "doubleyodpatah"sv,
+    "doubleyodpatahhebrew"sv,
+    "downtackbelowcmb"sv,
+    "downtackmod"sv,
+    "dparen"sv,
+    "dsuperior"sv,
+    "dtail"sv,
+    "dtopbar"sv,
+    "duhiragana"sv,
+    "dukatakana"sv,
+    "dz"sv,
+    "dzaltone"sv,
+    "dzcaron"sv,
+    "dzcurl"sv,
+    "dzeabkhasiancyrillic"sv,
+    "dzecyrillic"sv,
+    "dzhecyrillic"sv,
+    "e"sv,
+    "eacute"sv,
+    "earth"sv,
+    "ebengali"sv,
+    "ebopomofo"sv,
+    "ebreve"sv,
+    "ecandradeva"sv,
+    "ecandragujarati"sv,
+    "ecandravowelsigndeva"sv,
+    "ecandravowelsigngujarati"sv,
+    "ecaron"sv,
+    "ecedillabreve"sv,
+    "echarmenian"sv,
+    "echyiwnarmenian"sv,
+    "ecircle"sv,
+    "ecircumflex"sv,
+    "ecircumflexacute"sv,
+    "ecircumflexbelow"sv,
+    "ecircumflexdotbelow"sv,
+    "ecircumflexgrave"sv,
+    "ecircumflexhookabove"sv,
+    "ecircumflextilde"sv,
+    "ecyrillic"sv,
+    "edblgrave"sv,
+    "edeva"sv,
+    "edieresis"sv,
+    "edot"sv,
+    "edotaccent"sv,
+    "edotbelow"sv,
+    "eegurmukhi"sv,
+    "eematragurmukhi"sv,
+    "efcyrillic"sv,
+    "egrave"sv,
+    "egujarati"sv,
+    "eharmenian"sv,
+    "ehbopomofo"sv,
+    "ehiragana"sv,
+    "ehookabove"sv,
+    "eibopomofo"sv,
+    "eight"sv,
+    "eightarabic"sv,
+    "eightbengali"sv,
+    "eightcircle"sv,
+    "eightcircleinversesansserif"sv,
+    "eightdeva"sv,
+    "eighteencircle"sv,
+    "eighteenparen"sv,
+    "eighteenperiod"sv,
+    "eightgujarati"sv,
+    "eightgurmukhi"sv,
+    "eighthackarabic"sv,
+    "eighthangzhou"sv,
+    "eighthnotebeamed"sv,
+    "eightideographicparen"sv,
+    "eightinferior"sv,
+    "eightmonospace"sv,
+    "eightoldstyle"sv,
+    "eightparen"sv,
+    "eightperiod"sv,
+    "eightpersian"sv,
+    "eightroman"sv,
+    "eightsuperior"sv,
+    "eightthai"sv,
+    "einvertedbreve"sv,
+    "eiotifiedcyrillic"sv,
+    "ekatakana"sv,
+    "ekatakanahalfwidth"sv,
+    "ekonkargurmukhi"sv,
+    "ekorean"sv,
+    "elcyrillic"sv,
+    "element"sv,
+    "elevencircle"sv,
+    "elevenparen"sv,
+    "elevenperiod"sv,
+    "elevenroman"sv,
+    "ellipsis"sv,
+    "ellipsisvertical"sv,
+    "emacron"sv,
+    "emacronacute"sv,
+    "emacrongrave"sv,
+    "emcyrillic"sv,
+    "emdash"sv,
+    "emdashvertical"sv,
+    "emonospace"sv,
+    "emphasismarkarmenian"sv,
+    "emptyset"sv,
+    "enbopomofo"sv,
+    "encyrillic"sv,
+    "endash"sv,
+    "endashvertical"sv,
+    "endescendercyrillic"sv,
+    "eng"sv,
+    "engbopomofo"sv,
+    "enghecyrillic"sv,
+    "enhookcyrillic"sv,
+    "enspace"sv,
+    "eogonek"sv,
+    "eokorean"sv,
+    "eopen"sv,
+    "eopenclosed"sv,
+    "eopenreversed"sv,
+    "eopenreversedclosed"sv,
+    "eopenreversedhook"sv,
+    "eparen"sv,
+    "epsilon"sv,
+    "epsilontonos"sv,
+    "equal"sv,
+    "equalmonospace"sv,
+    "equalsmall"sv,
+    "equalsuperior"sv,
+    "equivalence"sv,
+    "erbopomofo"sv,
+    "ercyrillic"sv,
+    "ereversed"sv,
+    "ereversedcyrillic"sv,
+    "escyrillic"sv,
+    "esdescendercyrillic"sv,
+    "esh"sv,
+    "eshcurl"sv,
+    "eshortdeva"sv,
+    "eshortvowelsigndeva"sv,
+    "eshreversedloop"sv,
+    "eshsquatreversed"sv,
+    "esmallhiragana"sv,
+    "esmallkatakana"sv,
+    "esmallkatakanahalfwidth"sv,
+    "estimated"sv,
+    "esuperior"sv,
+    "eta"sv,
+    "etarmenian"sv,
+    "etatonos"sv,
+    "eth"sv,
+    "etilde"sv,
+    "etildebelow"sv,
+    "etnahtafoukhhebrew"sv,
+    "etnahtafoukhlefthebrew"sv,
+    "etnahtahebrew"sv,
+    "etnahtalefthebrew"sv,
+    "eturned"sv,
+    "eukorean"sv,
+    "euro"sv,
+    "evowelsignbengali"sv,
+    "evowelsigndeva"sv,
+    "evowelsigngujarati"sv,
+    "exclam"sv,
+    "exclamarmenian"sv,
+    "exclamdbl"sv,
+    "exclamdown"sv,
+    "exclamdownsmall"sv,
+    "exclammonospace"sv,
+    "exclamsmall"sv,
+    "existential"sv,
+    "ezh"sv,
+    "ezhcaron"sv,
+    "ezhcurl"sv,
+    "ezhreversed"sv,
+    "ezhtail"sv,
+    "f"sv,
+    "fadeva"sv,
+    "fagurmukhi"sv,
+    "fahrenheit"sv,
+    "fathaarabic"sv,
+    "fathalowarabic"sv,
+    "fathatanarabic"sv,
+    "fbopomofo"sv,
+    "fcircle"sv,
+    "fdotaccent"sv,
+    "feharabic"sv,
+    "feharmenian"sv,
+    "fehfinalarabic"sv,
+    "fehinitialarabic"sv,
+    "fehmedialarabic"sv,
+    "feicoptic"sv,
+    "female"sv,
+    "ff"sv,
+    "ffi"sv,
+    "ffl"sv,
+    "fi"sv,
+    "fifteencircle"sv,
+    "fifteenparen"sv,
+    "fifteenperiod"sv,
+    "figuredash"sv,
+    "filledbox"sv,
+    "filledrect"sv,
+    "finalkaf"sv,
+    "finalkafdagesh"sv,
+    "finalkafdageshhebrew"sv,
+    "finalkafhebrew"sv,
+    "finalkafqamats"sv,
+    "finalkafqamatshebrew"sv,
+    "finalkafsheva"sv,
+    "finalkafshevahebrew"sv,
+    "finalmem"sv,
+    "finalmemhebrew"sv,
+    "finalnun"sv,
+    "finalnunhebrew"sv,
+    "finalpe"sv,
+    "finalpehebrew"sv,
+    "finaltsadi"sv,
+    "finaltsadihebrew"sv,
+    "firsttonechinese"sv,
+    "fisheye"sv,
+    "fitacyrillic"sv,
+    "five"sv,
+    "fivearabic"sv,
+    "fivebengali"sv,
+    "fivecircle"sv,
+    "fivecircleinversesansserif"sv,
+    "fivedeva"sv,
+    "fiveeighths"sv,
+    "fivegujarati"sv,
+    "fivegurmukhi"sv,
+    "fivehackarabic"sv,
+    "fivehangzhou"sv,
+    "fiveideographicparen"sv,
+    "fiveinferior"sv,
+    "fivemonospace"sv,
+    "fiveoldstyle"sv,
+    "fiveparen"sv,
+    "fiveperiod"sv,
+    "fivepersian"sv,
+    "fiveroman"sv,
+    "fivesuperior"sv,
+    "fivethai"sv,
+    "fl"sv,
+    "florin"sv,
+    "fmonospace"sv,
+    "fmsquare"sv,
+    "fofanthai"sv,
+    "fofathai"sv,
+    "fongmanthai"sv,
+    "forall"sv,
+    "four"sv,
+    "fourarabic"sv,
+    "fourbengali"sv,
+    "fourcircle"sv,
+    "fourcircleinversesansserif"sv,
+    "fourdeva"sv,
+    "fourgujarati"sv,
+    "fourgurmukhi"sv,
+    "fourhackarabic"sv,
+    "fourhangzhou"sv,
+    "fourideographicparen"sv,
+    "fourinferior"sv,
+    "fourmonospace"sv,
+    "fournumeratorbengali"sv,
+    "fouroldstyle"sv,
+    "fourparen"sv,
+    "fourperiod"sv,
+    "fourpersian"sv,
+    "fourroman"sv,
+    "foursuperior"sv,
+    "fourteencircle"sv,
+    "fourteenparen"sv,
+    "fourteenperiod"sv,
+    "fourthai"sv,
+    "fourthtonechinese"sv,
+    "fparen"sv,
+    "fraction"sv,
+    "franc"sv,
+    "g"sv,
+    "gabengali"sv,
+    "gacute"sv,
+    "gadeva"sv,
+    "gafarabic"sv,
+    "gaffinalarabic"sv,
+    "gafinitialarabic"sv,
+    "gafmedialarabic"sv,
+    "gagujarati"sv,
+    "gagurmukhi"sv,
+    "gahiragana"sv,
+    "gakatakana"sv,
+    "gamma"sv,
+    "gammalatinsmall"sv,
+    "gammasuperior"sv,
+    "gangiacoptic"sv,
+    "gbopomofo"sv,
+    "gbreve"sv,
+    "gcaron"sv,
+    "gcedilla"sv,
+    "gcircle"sv,
+    "gcircumflex"sv,
+    "gcommaaccent"sv,
+    "gdot"sv,
+    "gdotaccent"sv,
+    "gecyrillic"sv,
+    "gehiragana"sv,
+    "gekatakana"sv,
+    "geometricallyequal"sv,
+    "gereshaccenthebrew"sv,
+    "gereshhebrew"sv,
+    "gereshmuqdamhebrew"sv,
+    "germandbls"sv,
+    "gershayimaccenthebrew"sv,
+    "gershayimhebrew"sv,
+    "getamark"sv,
+    "ghabengali"sv,
+    "ghadarmenian"sv,
+    "ghadeva"sv,
+    "ghagujarati"sv,
+    "ghagurmukhi"sv,
+    "ghainarabic"sv,
+    "ghainfinalarabic"sv,
+    "ghaininitialarabic"sv,
+    "ghainmedialarabic"sv,
+    "ghemiddlehookcyrillic"sv,
+    "ghestrokecyrillic"sv,
+    "gheupturncyrillic"sv,
+    "ghhadeva"sv,
+    "ghhagurmukhi"sv,
+    "ghook"sv,
+    "ghzsquare"sv,
+    "gihiragana"sv,
+    "gikatakana"sv,
+    "gimarmenian"sv,
+    "gimel"sv,
+    "gimeldagesh"sv,
+    "gimeldageshhebrew"sv,
+    "gimelhebrew"sv,
+    "gjecyrillic"sv,
+    "glottalinvertedstroke"sv,
+    "glottalstop"sv,
+    "glottalstopinverted"sv,
+    "glottalstopmod"sv,
+    "glottalstopreversed"sv,
+    "glottalstopreversedmod"sv,
+    "glottalstopreversedsuperior"sv,
+    "glottalstopstroke"sv,
+    "glottalstopstrokereversed"sv,
+    "gmacron"sv,
+    "gmonospace"sv,
+    "gohiragana"sv,
+    "gokatakana"sv,
+    "gparen"sv,
+    "gpasquare"sv,
+    "gradient"sv,
+    "grave"sv,
+    "gravebelowcmb"sv,
+    "gravecmb"sv,
+    "gravecomb"sv,
+    "gravedeva"sv,
+    "gravelowmod"sv,
+    "gravemonospace"sv,
+    "gravetonecmb"sv,
+    "greater"sv,
+    "greaterequal"sv,
+    "greaterequalorless"sv,
+    "greatermonospace"sv,
+    "greaterorequivalent"sv,
+    "greaterorless"sv,
+    "greateroverequal"sv,
+    "greatersmall"sv,
+    "gscript"sv,
+    "gstroke"sv,
+    "guhiragana"sv,
+    "guillemotleft"sv,
+    "guillemotright"sv,
+    "guilsinglleft"sv,
+    "guilsinglright"sv,
+    "gukatakana"sv,
+    "guramusquare"sv,
+    "gysquare"sv,
+    "h"sv,
+    "haabkhasiancyrillic"sv,
+    "haaltonearabic"sv,
+    "habengali"sv,
+    "hadescendercyrillic"sv,
+    "hadeva"sv,
+    "hagujarati"sv,
+    "hagurmukhi"sv,
+    "haharabic"sv,
+    "hahfinalarabic"sv,
+    "hahinitialarabic"sv,
+    "hahiragana"sv,
+    "hahmedialarabic"sv,
+    "haitusquare"sv,
+    "hakatakana"sv,
+    "hakatakanahalfwidth"sv,
+    "halantgurmukhi"sv,
+    "hamzaarabic"sv,
+    "hamzadammaarabic"sv,
+    "hamzadammatanarabic"sv,
+    "hamzafathaarabic"sv,
+    "hamzafathatanarabic"sv,
+    "hamzalowarabic"sv,
+    "hamzalowkasraarabic"sv,
+    "hamzalowkasratanarabic"sv,
+    "hamzasukunarabic"sv,
+    "hangulfiller"sv,
+    "hardsigncyrillic"sv,
+    "harpoonleftbarbup"sv,
+    "harpoonrightbarbup"sv,
+    "hasquare"sv,
+    "hatafpatah"sv,
+    "hatafpatah16"sv,
+    "hatafpatah23"sv,
+    "hatafpatah2f"sv,
+    "hatafpatahhebrew"sv,
+    "hatafpatahnarrowhebrew"sv,
+    "hatafpatahquarterhebrew"sv,
+    "hatafpatahwidehebrew"sv,
+    "hatafqamats"sv,
+    "hatafqamats1b"sv,
+    "hatafqamats28"sv,
+    "hatafqamats34"sv,
+    "hatafqamatshebrew"sv,
+    "hatafqamatsnarrowhebrew"sv,
+    "hatafqamatsquarterhebrew"sv,
+    "hatafqamatswidehebrew"sv,
+    "hatafsegol"sv,
+    "hatafsegol17"sv,
+    "hatafsegol24"sv,
+    "hatafsegol30"sv,
+    "hatafsegolhebrew"sv,
+    "hatafsegolnarrowhebrew"sv,
+    "hatafsegolquarterhebrew"sv,
+    "hatafsegolwidehebrew"sv,
+    "hbar"sv,
+    "hbopomofo"sv,
+    "hbrevebelow"sv,
+    "hcedilla"sv,
+    "hcircle"sv,
+    "hcircumflex"sv,
+    "hdieresis"sv,
+    "hdotaccent"sv,
+    "hdotbelow"sv,
+    "he"sv,
+    "heart"sv,
+    "heartsuitblack"sv,
+    "heartsuitwhite"sv,
+    "hedagesh"sv,
+    "hedageshhebrew"sv,
+    "hehaltonearabic"sv,
+    "heharabic"sv,
+    "hehebrew"sv,
+    "hehfinalaltonearabic"sv,
+    "hehfinalalttwoarabic"sv,
+    "hehfinalarabic"sv,
+    "hehhamzaabovefinalarabic"sv,
+    "hehhamzaaboveisolatedarabic"sv,
+    "hehinitialaltonearabic"sv,
+    "hehinitialarabic"sv,
+    "hehiragana"sv,
+    "hehmedialaltonearabic"sv,
+    "hehmedialarabic"sv,
+    "heiseierasquare"sv,
+    "hekatakana"sv,
+    "hekatakanahalfwidth"sv,
+    "hekutaarusquare"sv,
+    "henghook"sv,
+    "herutusquare"sv,
+    "het"sv,
+    "hethebrew"sv,
+    "hhook"sv,
+    "hhooksuperior"sv,
+    "hieuhacirclekorean"sv,
+    "hieuhaparenkorean"sv,
+    "hieuhcirclekorean"sv,
+    "hieuhkorean"sv,
+    "hieuhparenkorean"sv,
+    "hihiragana"sv,
+    "hikatakana"sv,
+    "hikatakanahalfwidth"sv,
+    "hiriq"sv,
+    "hiriq14"sv,
+    "hiriq21"sv,
+    "hiriq2d"sv,
+    "hiriqhebrew"sv,
+    "hiriqnarrowhebrew"sv,
+    "hiriqquarterhebrew"sv,
+    "hiriqwidehebrew"sv,
+    "hlinebelow"sv,
+    "hmonospace"sv,
+    "hoarmenian"sv,
+    "hohipthai"sv,
+    "hohiragana"sv,
+    "hokatakana"sv,
+    "hokatakanahalfwidth"sv,
+    "holam"sv,
+    "holam19"sv,
+    "holam26"sv,
+    "holam32"sv,
+    "holamhebrew"sv,
+    "holamnarrowhebrew"sv,
+    "holamquarterhebrew"sv,
+    "holamwidehebrew"sv,
+    "honokhukthai"sv,
+    "hookabovecomb"sv,
+    "hookcmb"sv,
+    "hookpalatalizedbelowcmb"sv,
+    "hookretroflexbelowcmb"sv,
+    "hoonsquare"sv,
+    "horicoptic"sv,
+    "horizontalbar"sv,
+    "horncmb"sv,
+    "hotsprings"sv,
+    "house"sv,
+    "hparen"sv,
+    "hsuperior"sv,
+    "hturned"sv,
+    "huhiragana"sv,
+    "huiitosquare"sv,
+    "hukatakana"sv,
+    "hukatakanahalfwidth"sv,
+    "hungarumlaut"sv,
+    "hungarumlautcmb"sv,
+    "hv"sv,
+    "hyphen"sv,
+    "hypheninferior"sv,
+    "hyphenmonospace"sv,
+    "hyphensmall"sv,
+    "hyphensuperior"sv,
+    "hyphentwo"sv,
+    "i"sv,
+    "iacute"sv,
+    "iacyrillic"sv,
+    "ibengali"sv,
+    "ibopomofo"sv,
+    "ibreve"sv,
+    "icaron"sv,
+    "icircle"sv,
+    "icircumflex"sv,
+    "icyrillic"sv,
+    "idblgrave"sv,
+    "ideographearthcircle"sv,
+    "ideographfirecircle"sv,
+    "ideographicallianceparen"sv,
+    "ideographiccallparen"sv,
+    "ideographiccentrecircle"sv,
+    "ideographicclose"sv,
+    "ideographiccomma"sv,
+    "ideographiccommaleft"sv,
+    "ideographiccongratulationparen"sv,
+    "ideographiccorrectcircle"sv,
+    "ideographicearthparen"sv,
+    "ideographicenterpriseparen"sv,
+    "ideographicexcellentcircle"sv,
+    "ideographicfestivalparen"sv,
+    "ideographicfinancialcircle"sv,
+    "ideographicfinancialparen"sv,
+    "ideographicfireparen"sv,
+    "ideographichaveparen"sv,
+    "ideographichighcircle"sv,
+    "ideographiciterationmark"sv,
+    "ideographiclaborcircle"sv,
+    "ideographiclaborparen"sv,
+    "ideographicleftcircle"sv,
+    "ideographiclowcircle"sv,
+    "ideographicmedicinecircle"sv,
+    "ideographicmetalparen"sv,
+    "ideographicmoonparen"sv,
+    "ideographicnameparen"sv,
+    "ideographicperiod"sv,
+    "ideographicprintcircle"sv,
+    "ideographicreachparen"sv,
+    "ideographicrepresentparen"sv,
+    "ideographicresourceparen"sv,
+    "ideographicrightcircle"sv,
+    "ideographicsecretcircle"sv,
+    "ideographicselfparen"sv,
+    "ideographicsocietyparen"sv,
+    "ideographicspace"sv,
+    "ideographicspecialparen"sv,
+    "ideographicstockparen"sv,
+    "ideographicstudyparen"sv,
+    "ideographicsunparen"sv,
+    "ideographicsuperviseparen"sv,
+    "ideographicwaterparen"sv,
+    "ideographicwoodparen"sv,
+    "ideographiczero"sv,
+    "ideographmetalcircle"sv,
+    "ideographmooncircle"sv,
+    "ideographnamecircle"sv,
+    "ideographsuncircle"sv,
+    "ideographwatercircle"sv,
+    "ideographwoodcircle"sv,
+    "ideva"sv,
+    "idieresis"sv,
+    "idieresisacute"sv,
+    "idieresiscyrillic"sv,
+    "idotbelow"sv,
+    "iebrevecyrillic"sv,
+    "iecyrillic"sv,
+    "ieungacirclekorean"sv,
+    "ieungaparenkorean"sv,
+    "ieungcirclekorean"sv,
+    "ieungkorean"sv,
+    "ieungparenkorean"sv,
+    "igrave"sv,
+    "igujarati"sv,
+    "igurmukhi"sv,
+    "ihiragana"sv,
+    "ihookabove"sv,
+    "iibengali"sv,
+    "iicyrillic"sv,
+    "iideva"sv,
+    "iigujarati"sv,
+    "iigurmukhi"sv,
+    "iimatragurmukhi"sv,
+    "iinvertedbreve"sv,
+    "iishortcyrillic"sv,
+    "iivowelsignbengali"sv,
+    "iivowelsigndeva"sv,
+    "iivowelsigngujarati"sv,
+    "ij"sv,
+    "ikatakana"sv,
+    "ikatakanahalfwidth"sv,
+    "ikorean"sv,
+    "ilde"sv,
+    "iluyhebrew"sv,
+    "imacron"sv,
+    "imacroncyrillic"sv,
+    "imageorapproximatelyequal"sv,
+    "imatragurmukhi"sv,
+    "imonospace"sv,
+    "increment"sv,
+    "infinity"sv,
+    "iniarmenian"sv,
+    "integral"sv,
+    "integralbottom"sv,
+    "integralbt"sv,
+    "integralex"sv,
+    "integraltop"sv,
+    "integraltp"sv,
+    "intersection"sv,
+    "intisquare"sv,
+    "invbullet"sv,
+    "invcircle"sv,
+    "invsmileface"sv,
+    "iocyrillic"sv,
+    "iogonek"sv,
+    "iota"sv,
+    "iotadieresis"sv,
+    "iotadieresistonos"sv,
+    "iotalatin"sv,
+    "iotatonos"sv,
+    "iparen"sv,
+    "irigurmukhi"sv,
+    "ismallhiragana"sv,
+    "ismallkatakana"sv,
+    "ismallkatakanahalfwidth"sv,
+    "issharbengali"sv,
+    "istroke"sv,
+    "isuperior"sv,
+    "iterationhiragana"sv,
+    "iterationkatakana"sv,
+    "itilde"sv,
+    "itildebelow"sv,
+    "iubopomofo"sv,
+    "iucyrillic"sv,
+    "ivowelsignbengali"sv,
+    "ivowelsigndeva"sv,
+    "ivowelsigngujarati"sv,
+    "izhitsacyrillic"sv,
+    "izhitsadblgravecyrillic"sv,
+    "j"sv,
+    "jaarmenian"sv,
+    "jabengali"sv,
+    "jadeva"sv,
+    "jagujarati"sv,
+    "jagurmukhi"sv,
+    "jbopomofo"sv,
+    "jcaron"sv,
+    "jcircle"sv,
+    "jcircumflex"sv,
+    "jcrossedtail"sv,
+    "jdotlessstroke"sv,
+    "jecyrillic"sv,
+    "jeemarabic"sv,
+    "jeemfinalarabic"sv,
+    "jeeminitialarabic"sv,
+    "jeemmedialarabic"sv,
+    "jeharabic"sv,
+    "jehfinalarabic"sv,
+    "jhabengali"sv,
+    "jhadeva"sv,
+    "jhagujarati"sv,
+    "jhagurmukhi"sv,
+    "jheharmenian"sv,
+    "jis"sv,
+    "jmonospace"sv,
+    "jparen"sv,
+    "jsuperior"sv,
+    "k"sv,
+    "kabashkircyrillic"sv,
+    "kabengali"sv,
+    "kacute"sv,
+    "kacyrillic"sv,
+    "kadescendercyrillic"sv,
+    "kadeva"sv,
+    "kaf"sv,
+    "kafarabic"sv,
+    "kafdagesh"sv,
+    "kafdageshhebrew"sv,
+    "kaffinalarabic"sv,
+    "kafhebrew"sv,
+    "kafinitialarabic"sv,
+    "kafmedialarabic"sv,
+    "kafrafehebrew"sv,
+    "kagujarati"sv,
+    "kagurmukhi"sv,
+    "kahiragana"sv,
+    "kahookcyrillic"sv,
+    "kakatakana"sv,
+    "kakatakanahalfwidth"sv,
+    "kappa"sv,
+    "kappasymbolgreek"sv,
+    "kapyeounmieumkorean"sv,
+    "kapyeounphieuphkorean"sv,
+    "kapyeounpieupkorean"sv,
+    "kapyeounssangpieupkorean"sv,
+    "karoriisquare"sv,
+    "kashidaautoarabic"sv,
+    "kashidaautonosidebearingarabic"sv,
+    "kasmallkatakana"sv,
+    "kasquare"sv,
+    "kasraarabic"sv,
+    "kasratanarabic"sv,
+    "kastrokecyrillic"sv,
+    "katahiraprolongmarkhalfwidth"sv,
+    "kaverticalstrokecyrillic"sv,
+    "kbopomofo"sv,
+    "kcalsquare"sv,
+    "kcaron"sv,
+    "kcedilla"sv,
+    "kcircle"sv,
+    "kcommaaccent"sv,
+    "kdotbelow"sv,
+    "keharmenian"sv,
+    "kehiragana"sv,
+    "kekatakana"sv,
+    "kekatakanahalfwidth"sv,
+    "kenarmenian"sv,
+    "kesmallkatakana"sv,
+    "kgreenlandic"sv,
+    "khabengali"sv,
+    "khacyrillic"sv,
+    "khadeva"sv,
+    "khagujarati"sv,
+    "khagurmukhi"sv,
+    "khaharabic"sv,
+    "khahfinalarabic"sv,
+    "khahinitialarabic"sv,
+    "khahmedialarabic"sv,
+    "kheicoptic"sv,
+    "khhadeva"sv,
+    "khhagurmukhi"sv,
+    "khieukhacirclekorean"sv,
+    "khieukhaparenkorean"sv,
+    "khieukhcirclekorean"sv,
+    "khieukhkorean"sv,
+    "khieukhparenkorean"sv,
+    "khokhaithai"sv,
+    "khokhonthai"sv,
+    "khokhuatthai"sv,
+    "khokhwaithai"sv,
+    "khomutthai"sv,
+    "khook"sv,
+    "khorakhangthai"sv,
+    "khzsquare"sv,
+    "kihiragana"sv,
+    "kikatakana"sv,
+    "kikatakanahalfwidth"sv,
+    "kiroguramusquare"sv,
+    "kiromeetorusquare"sv,
+    "kirosquare"sv,
+    "kiyeokacirclekorean"sv,
+    "kiyeokaparenkorean"sv,
+    "kiyeokcirclekorean"sv,
+    "kiyeokkorean"sv,
+    "kiyeokparenkorean"sv,
+    "kiyeoksioskorean"sv,
+    "kjecyrillic"sv,
+    "klinebelow"sv,
+    "klsquare"sv,
+    "kmcubedsquare"sv,
+    "kmonospace"sv,
+    "kmsquaredsquare"sv,
+    "kohiragana"sv,
+    "kohmsquare"sv,
+    "kokaithai"sv,
+    "kokatakana"sv,
+    "kokatakanahalfwidth"sv,
+    "kooposquare"sv,
+    "koppacyrillic"sv,
+    "koreanstandardsymbol"sv,
+    "koroniscmb"sv,
+    "kparen"sv,
+    "kpasquare"sv,
+    "ksicyrillic"sv,
+    "ktsquare"sv,
+    "kturned"sv,
+    "kuhiragana"sv,
+    "kukatakana"sv,
+    "kukatakanahalfwidth"sv,
+    "kvsquare"sv,
+    "kwsquare"sv,
+    "l"sv,
+    "labengali"sv,
+    "lacute"sv,
+    "ladeva"sv,
+    "lagujarati"sv,
+    "lagurmukhi"sv,
+    "lakkhangyaothai"sv,
+    "lamaleffinalarabic"sv,
+    "lamalefhamzaabovefinalarabic"sv,
+    "lamalefhamzaaboveisolatedarabic"sv,
+    "lamalefhamzabelowfinalarabic"sv,
+    "lamalefhamzabelowisolatedarabic"sv,
+    "lamalefisolatedarabic"sv,
+    "lamalefmaddaabovefinalarabic"sv,
+    "lamalefmaddaaboveisolatedarabic"sv,
+    "lamarabic"sv,
+    "lambda"sv,
+    "lambdastroke"sv,
+    "lamed"sv,
+    "lameddagesh"sv,
+    "lameddageshhebrew"sv,
+    "lamedhebrew"sv,
+    "lamedholam"sv,
+    "lamedholamdagesh"sv,
+    "lamedholamdageshhebrew"sv,
+    "lamedholamhebrew"sv,
+    "lamfinalarabic"sv,
+    "lamhahinitialarabic"sv,
+    "laminitialarabic"sv,
+    "lamjeeminitialarabic"sv,
+    "lamkhahinitialarabic"sv,
+    "lamlamhehisolatedarabic"sv,
+    "lammedialarabic"sv,
+    "lammeemhahinitialarabic"sv,
+    "lammeeminitialarabic"sv,
+    "lammeemjeeminitialarabic"sv,
+    "lammeemkhahinitialarabic"sv,
+    "largecircle"sv,
+    "lbar"sv,
+    "lbelt"sv,
+    "lbopomofo"sv,
+    "lcaron"sv,
+    "lcedilla"sv,
+    "lcircle"sv,
+    "lcircumflexbelow"sv,
+    "lcommaaccent"sv,
+    "ldot"sv,
+    "ldotaccent"sv,
+    "ldotbelow"sv,
+    "ldotbelowmacron"sv,
+    "leftangleabovecmb"sv,
+    "lefttackbelowcmb"sv,
+    "less"sv,
+    "lessequal"sv,
+    "lessequalorgreater"sv,
+    "lessmonospace"sv,
+    "lessorequivalent"sv,
+    "lessorgreater"sv,
+    "lessoverequal"sv,
+    "lesssmall"sv,
+    "lezh"sv,
+    "lfblock"sv,
+    "lhookretroflex"sv,
+    "lira"sv,
+    "liwnarmenian"sv,
+    "lj"sv,
+    "ljecyrillic"sv,
+    "ll"sv,
+    "lladeva"sv,
+    "llagujarati"sv,
+    "llinebelow"sv,
+    "llladeva"sv,
+    "llvocalicbengali"sv,
+    "llvocalicdeva"sv,
+    "llvocalicvowelsignbengali"sv,
+    "llvocalicvowelsigndeva"sv,
+    "lmiddletilde"sv,
+    "lmonospace"sv,
+    "lmsquare"sv,
+    "lochulathai"sv,
+    "logicaland"sv,
+    "logicalnot"sv,
+    "logicalnotreversed"sv,
+    "logicalor"sv,
+    "lolingthai"sv,
+    "longs"sv,
+    "lowlinecenterline"sv,
+    "lowlinecmb"sv,
+    "lowlinedashed"sv,
+    "lozenge"sv,
+    "lparen"sv,
+    "lslash"sv,
+    "lsquare"sv,
+    "lsuperior"sv,
+    "ltshade"sv,
+    "luthai"sv,
+    "lvocalicbengali"sv,
+    "lvocalicdeva"sv,
+    "lvocalicvowelsignbengali"sv,
+    "lvocalicvowelsigndeva"sv,
+    "lxsquare"sv,
+    "m"sv,
+    "mabengali"sv,
+    "macron"sv,
+    "macronbelowcmb"sv,
+    "macroncmb"sv,
+    "macronlowmod"sv,
+    "macronmonospace"sv,
+    "macute"sv,
+    "madeva"sv,
+    "magujarati"sv,
+    "magurmukhi"sv,
+    "mahapakhhebrew"sv,
+    "mahapakhlefthebrew"sv,
+    "mahiragana"sv,
+    "maichattawalowleftthai"sv,
+    "maichattawalowrightthai"sv,
+    "maichattawathai"sv,
+    "maichattawaupperleftthai"sv,
+    "maieklowleftthai"sv,
+    "maieklowrightthai"sv,
+    "maiekthai"sv,
+    "maiekupperleftthai"sv,
+    "maihanakatleftthai"sv,
+    "maihanakatthai"sv,
+    "maitaikhuleftthai"sv,
+    "maitaikhuthai"sv,
+    "maitholowleftthai"sv,
+    "maitholowrightthai"sv,
+    "maithothai"sv,
+    "maithoupperleftthai"sv,
+    "maitrilowleftthai"sv,
+    "maitrilowrightthai"sv,
+    "maitrithai"sv,
+    "maitriupperleftthai"sv,
+    "maiyamokthai"sv,
+    "makatakana"sv,
+    "makatakanahalfwidth"sv,
+    "male"sv,
+    "mansyonsquare"sv,
+    "maqafhebrew"sv,
+    "mars"sv,
+    "masoracirclehebrew"sv,
+    "masquare"sv,
+    "mbopomofo"sv,
+    "mbsquare"sv,
+    "mcircle"sv,
+    "mcubedsquare"sv,
+    "mdotaccent"sv,
+    "mdotbelow"sv,
+    "meemarabic"sv,
+    "meemfinalarabic"sv,
+    "meeminitialarabic"sv,
+    "meemmedialarabic"sv,
+    "meemmeeminitialarabic"sv,
+    "meemmeemisolatedarabic"sv,
+    "meetorusquare"sv,
+    "mehiragana"sv,
+    "meizierasquare"sv,
+    "mekatakana"sv,
+    "mekatakanahalfwidth"sv,
+    "mem"sv,
+    "memdagesh"sv,
+    "memdageshhebrew"sv,
+    "memhebrew"sv,
+    "menarmenian"sv,
+    "merkhahebrew"sv,
+    "merkhakefulahebrew"sv,
+    "merkhakefulalefthebrew"sv,
+    "merkhalefthebrew"sv,
+    "mhook"sv,
+    "mhzsquare"sv,
+    "middledotkatakanahalfwidth"sv,
+    "middot"sv,
+    "mieumacirclekorean"sv,
+    "mieumaparenkorean"sv,
+    "mieumcirclekorean"sv,
+    "mieumkorean"sv,
+    "mieumpansioskorean"sv,
+    "mieumparenkorean"sv,
+    "mieumpieupkorean"sv,
+    "mieumsioskorean"sv,
+    "mihiragana"sv,
+    "mikatakana"sv,
+    "mikatakanahalfwidth"sv,
+    "minus"sv,
+    "minusbelowcmb"sv,
+    "minuscircle"sv,
+    "minusmod"sv,
+    "minusplus"sv,
+    "minute"sv,
+    "miribaarusquare"sv,
+    "mirisquare"sv,
+    "mlonglegturned"sv,
+    "mlsquare"sv,
+    "mmcubedsquare"sv,
+    "mmonospace"sv,
+    "mmsquaredsquare"sv,
+    "mohiragana"sv,
+    "mohmsquare"sv,
+    "mokatakana"sv,
+    "mokatakanahalfwidth"sv,
+    "molsquare"sv,
+    "momathai"sv,
+    "moverssquare"sv,
+    "moverssquaredsquare"sv,
+    "mparen"sv,
+    "mpasquare"sv,
+    "mssquare"sv,
+    "msuperior"sv,
+    "mturned"sv,
+    "mu"sv,
+    "mu1"sv,
+    "muasquare"sv,
+    "muchgreater"sv,
+    "muchless"sv,
+    "mufsquare"sv,
+    "mugreek"sv,
+    "mugsquare"sv,
+    "muhiragana"sv,
+    "mukatakana"sv,
+    "mukatakanahalfwidth"sv,
+    "mulsquare"sv,
+    "multiply"sv,
+    "mumsquare"sv,
+    "munahhebrew"sv,
+    "munahlefthebrew"sv,
+    "musicalnote"sv,
+    "musicalnotedbl"sv,
+    "musicflatsign"sv,
+    "musicsharpsign"sv,
+    "mussquare"sv,
+    "muvsquare"sv,
+    "muwsquare"sv,
+    "mvmegasquare"sv,
+    "mvsquare"sv,
+    "mwmegasquare"sv,
+    "mwsquare"sv,
+    "n"sv,
+    "nabengali"sv,
+    "nabla"sv,
+    "nacute"sv,
+    "nadeva"sv,
+    "nagujarati"sv,
+    "nagurmukhi"sv,
+    "nahiragana"sv,
+    "nakatakana"sv,
+    "nakatakanahalfwidth"sv,
+    "napostrophe"sv,
+    "nasquare"sv,
+    "nbopomofo"sv,
+    "nbspace"sv,
+    "ncaron"sv,
+    "ncedilla"sv,
+    "ncircle"sv,
+    "ncircumflexbelow"sv,
+    "ncommaaccent"sv,
+    "ndotaccent"sv,
+    "ndotbelow"sv,
+    "nehiragana"sv,
+    "nekatakana"sv,
+    "nekatakanahalfwidth"sv,
+    "newsheqelsign"sv,
+    "nfsquare"sv,
+    "ngabengali"sv,
+    "ngadeva"sv,
+    "ngagujarati"sv,
+    "ngagurmukhi"sv,
+    "ngonguthai"sv,
+    "nhiragana"sv,
+    "nhookleft"sv,
+    "nhookretroflex"sv,
+    "nieunacirclekorean"sv,
+    "nieunaparenkorean"sv,
+    "nieuncieuckorean"sv,
+    "nieuncirclekorean"sv,
+    "nieunhieuhkorean"sv,
+    "nieunkorean"sv,
+    "nieunpansioskorean"sv,
+    "nieunparenkorean"sv,
+    "nieunsioskorean"sv,
+    "nieuntikeutkorean"sv,
+    "nihiragana"sv,
+    "nikatakana"sv,
+    "nikatakanahalfwidth"sv,
+    "nikhahitleftthai"sv,
+    "nikhahitthai"sv,
+    "nine"sv,
+    "ninearabic"sv,
+    "ninebengali"sv,
+    "ninecircle"sv,
+    "ninecircleinversesansserif"sv,
+    "ninedeva"sv,
+    "ninegujarati"sv,
+    "ninegurmukhi"sv,
+    "ninehackarabic"sv,
+    "ninehangzhou"sv,
+    "nineideographicparen"sv,
+    "nineinferior"sv,
+    "ninemonospace"sv,
+    "nineoldstyle"sv,
+    "nineparen"sv,
+    "nineperiod"sv,
+    "ninepersian"sv,
+    "nineroman"sv,
+    "ninesuperior"sv,
+    "nineteencircle"sv,
+    "nineteenparen"sv,
+    "nineteenperiod"sv,
+    "ninethai"sv,
+    "nj"sv,
+    "njecyrillic"sv,
+    "nkatakana"sv,
+    "nkatakanahalfwidth"sv,
+    "nlegrightlong"sv,
+    "nlinebelow"sv,
+    "nmonospace"sv,
+    "nmsquare"sv,
+    "nnabengali"sv,
+    "nnadeva"sv,
+    "nnagujarati"sv,
+    "nnagurmukhi"sv,
+    "nnnadeva"sv,
+    "nohiragana"sv,
+    "nokatakana"sv,
+    "nokatakanahalfwidth"sv,
+    "nonbreakingspace"sv,
+    "nonenthai"sv,
+    "nonuthai"sv,
+    "noonarabic"sv,
+    "noonfinalarabic"sv,
+    "noonghunnaarabic"sv,
+    "noonghunnafinalarabic"sv,
+    "noonhehinitialarabic"sv,
+    "nooninitialarabic"sv,
+    "noonjeeminitialarabic"sv,
+    "noonjeemisolatedarabic"sv,
+    "noonmedialarabic"sv,
+    "noonmeeminitialarabic"sv,
+    "noonmeemisolatedarabic"sv,
+    "noonnoonfinalarabic"sv,
+    "notcontains"sv,
+    "notelement"sv,
+    "notelementof"sv,
+    "notequal"sv,
+    "notgreater"sv,
+    "notgreaternorequal"sv,
+    "notgreaternorless"sv,
+    "notidentical"sv,
+    "notless"sv,
+    "notlessnorequal"sv,
+    "notparallel"sv,
+    "notprecedes"sv,
+    "notsubset"sv,
+    "notsucceeds"sv,
+    "notsuperset"sv,
+    "nowarmenian"sv,
+    "nparen"sv,
+    "nssquare"sv,
+    "nsuperior"sv,
+    "ntilde"sv,
+    "nu"sv,
+    "nuhiragana"sv,
+    "nukatakana"sv,
+    "nukatakanahalfwidth"sv,
+    "nuktabengali"sv,
+    "nuktadeva"sv,
+    "nuktagujarati"sv,
+    "nuktagurmukhi"sv,
+    "numbersign"sv,
+    "numbersignmonospace"sv,
+    "numbersignsmall"sv,
+    "numeralsigngreek"sv,
+    "numeralsignlowergreek"sv,
+    "numero"sv,
+    "nun"sv,
+    "nundagesh"sv,
+    "nundageshhebrew"sv,
+    "nunhebrew"sv,
+    "nvsquare"sv,
+    "nwsquare"sv,
+    "nyabengali"sv,
+    "nyadeva"sv,
+    "nyagujarati"sv,
+    "nyagurmukhi"sv,
+    "o"sv,
+    "oacute"sv,
+    "oangthai"sv,
+    "obarred"sv,
+    "obarredcyrillic"sv,
+    "obarreddieresiscyrillic"sv,
+    "obengali"sv,
+    "obopomofo"sv,
+    "obreve"sv,
+    "ocandradeva"sv,
+    "ocandragujarati"sv,
+    "ocandravowelsigndeva"sv,
+    "ocandravowelsigngujarati"sv,
+    "ocaron"sv,
+    "ocircle"sv,
+    "ocircumflex"sv,
+    "ocircumflexacute"sv,
+    "ocircumflexdotbelow"sv,
+    "ocircumflexgrave"sv,
+    "ocircumflexhookabove"sv,
+    "ocircumflextilde"sv,
+    "ocyrillic"sv,
+    "odblacute"sv,
+    "odblgrave"sv,
+    "odeva"sv,
+    "odieresis"sv,
+    "odieresiscyrillic"sv,
+    "odotbelow"sv,
+    "oe"sv,
+    "oekorean"sv,
+    "ogonek"sv,
+    "ogonekcmb"sv,
+    "ograve"sv,
+    "ogujarati"sv,
+    "oharmenian"sv,
+    "ohiragana"sv,
+    "ohookabove"sv,
+    "ohorn"sv,
+    "ohornacute"sv,
+    "ohorndotbelow"sv,
+    "ohorngrave"sv,
+    "ohornhookabove"sv,
+    "ohorntilde"sv,
+    "ohungarumlaut"sv,
+    "oi"sv,
+    "oinvertedbreve"sv,
+    "okatakana"sv,
+    "okatakanahalfwidth"sv,
+    "okorean"sv,
+    "olehebrew"sv,
+    "omacron"sv,
+    "omacronacute"sv,
+    "omacrongrave"sv,
+    "omdeva"sv,
+    "omega"sv,
+    "omega1"sv,
+    "omegacyrillic"sv,
+    "omegalatinclosed"sv,
+    "omegaroundcyrillic"sv,
+    "omegatitlocyrillic"sv,
+    "omegatonos"sv,
+    "omgujarati"sv,
+    "omicron"sv,
+    "omicrontonos"sv,
+    "omonospace"sv,
+    "one"sv,
+    "onearabic"sv,
+    "onebengali"sv,
+    "onecircle"sv,
+    "onecircleinversesansserif"sv,
+    "onedeva"sv,
+    "onedotenleader"sv,
+    "oneeighth"sv,
+    "onefitted"sv,
+    "onegujarati"sv,
+    "onegurmukhi"sv,
+    "onehackarabic"sv,
+    "onehalf"sv,
+    "onehangzhou"sv,
+    "oneideographicparen"sv,
+    "oneinferior"sv,
+    "onemonospace"sv,
+    "onenumeratorbengali"sv,
+    "oneoldstyle"sv,
+    "oneparen"sv,
+    "oneperiod"sv,
+    "onepersian"sv,
+    "onequarter"sv,
+    "oneroman"sv,
+    "onesuperior"sv,
+    "onethai"sv,
+    "onethird"sv,
+    "oogonek"sv,
+    "oogonekmacron"sv,
+    "oogurmukhi"sv,
+    "oomatragurmukhi"sv,
+    "oopen"sv,
+    "oparen"sv,
+    "openbullet"sv,
+    "option"sv,
+    "ordfeminine"sv,
+    "ordmasculine"sv,
+    "orthogonal"sv,
+    "oshortdeva"sv,
+    "oshortvowelsigndeva"sv,
+    "oslash"sv,
+    "oslashacute"sv,
+    "osmallhiragana"sv,
+    "osmallkatakana"sv,
+    "osmallkatakanahalfwidth"sv,
+    "ostrokeacute"sv,
+    "osuperior"sv,
+    "otcyrillic"sv,
+    "otilde"sv,
+    "otildeacute"sv,
+    "otildedieresis"sv,
+    "oubopomofo"sv,
+    "overline"sv,
+    "overlinecenterline"sv,
+    "overlinecmb"sv,
+    "overlinedashed"sv,
+    "overlinedblwavy"sv,
+    "overlinewavy"sv,
+    "overscore"sv,
+    "ovowelsignbengali"sv,
+    "ovowelsigndeva"sv,
+    "ovowelsigngujarati"sv,
+    "p"sv,
+    "paampssquare"sv,
+    "paasentosquare"sv,
+    "pabengali"sv,
+    "pacute"sv,
+    "padeva"sv,
+    "pagedown"sv,
+    "pageup"sv,
+    "pagujarati"sv,
+    "pagurmukhi"sv,
+    "pahiragana"sv,
+    "paiyannoithai"sv,
+    "pakatakana"sv,
+    "palatalizationcyrilliccmb"sv,
+    "palochkacyrillic"sv,
+    "pansioskorean"sv,
+    "paragraph"sv,
+    "parallel"sv,
+    "parenleft"sv,
+    "parenleftaltonearabic"sv,
+    "parenleftbt"sv,
+    "parenleftex"sv,
+    "parenleftinferior"sv,
+    "parenleftmonospace"sv,
+    "parenleftsmall"sv,
+    "parenleftsuperior"sv,
+    "parenlefttp"sv,
+    "parenleftvertical"sv,
+    "parenright"sv,
+    "parenrightaltonearabic"sv,
+    "parenrightbt"sv,
+    "parenrightex"sv,
+    "parenrightinferior"sv,
+    "parenrightmonospace"sv,
+    "parenrightsmall"sv,
+    "parenrightsuperior"sv,
+    "parenrighttp"sv,
+    "parenrightvertical"sv,
+    "partialdiff"sv,
+    "paseqhebrew"sv,
+    "pashtahebrew"sv,
+    "pasquare"sv,
+    "patah"sv,
+    "patah11"sv,
+    "patah1d"sv,
+    "patah2a"sv,
+    "patahhebrew"sv,
+    "patahnarrowhebrew"sv,
+    "patahquarterhebrew"sv,
+    "patahwidehebrew"sv,
+    "pazerhebrew"sv,
+    "pbopomofo"sv,
+    "pcircle"sv,
+    "pdotaccent"sv,
+    "pe"sv,
+    "pecyrillic"sv,
+    "pedagesh"sv,
+    "pedageshhebrew"sv,
+    "peezisquare"sv,
+    "pefinaldageshhebrew"sv,
+    "peharabic"sv,
+    "peharmenian"sv,
+    "pehebrew"sv,
+    "pehfinalarabic"sv,
+    "pehinitialarabic"sv,
+    "pehiragana"sv,
+    "pehmedialarabic"sv,
+    "pekatakana"sv,
+    "pemiddlehookcyrillic"sv,
+    "perafehebrew"sv,
+    "percent"sv,
+    "percentarabic"sv,
+    "percentmonospace"sv,
+    "percentsmall"sv,
+    "period"sv,
+    "periodarmenian"sv,
+    "periodcentered"sv,
+    "periodhalfwidth"sv,
+    "periodinferior"sv,
+    "periodmonospace"sv,
+    "periodsmall"sv,
+    "periodsuperior"sv,
+    "perispomenigreekcmb"sv,
+    "perpendicular"sv,
+    "perthousand"sv,
+    "peseta"sv,
+    "pfsquare"sv,
+    "phabengali"sv,
+    "phadeva"sv,
+    "phagujarati"sv,
+    "phagurmukhi"sv,
+    "phi"sv,
+    "phi1"sv,
+    "phieuphacirclekorean"sv,
+    "phieuphaparenkorean"sv,
+    "phieuphcirclekorean"sv,
+    "phieuphkorean"sv,
+    "phieuphparenkorean"sv,
+    "philatin"sv,
+    "phinthuthai"sv,
+    "phisymbolgreek"sv,
+    "phook"sv,
+    "phophanthai"sv,
+    "phophungthai"sv,
+    "phosamphaothai"sv,
+    "pi"sv,
+    "pieupacirclekorean"sv,
+    "pieupaparenkorean"sv,
+    "pieupcieuckorean"sv,
+    "pieupcirclekorean"sv,
+    "pieupkiyeokkorean"sv,
+    "pieupkorean"sv,
+    "pieupparenkorean"sv,
+    "pieupsioskiyeokkorean"sv,
+    "pieupsioskorean"sv,
+    "pieupsiostikeutkorean"sv,
+    "pieupthieuthkorean"sv,
+    "pieuptikeutkorean"sv,
+    "pihiragana"sv,
+    "pikatakana"sv,
+    "pisymbolgreek"sv,
+    "piwrarmenian"sv,
+    "plus"sv,
+    "plusbelowcmb"sv,
+    "pluscircle"sv,
+    "plusminus"sv,
+    "plusmod"sv,
+    "plusmonospace"sv,
+    "plussmall"sv,
+    "plussuperior"sv,
+    "pmonospace"sv,
+    "pmsquare"sv,
+    "pohiragana"sv,
+    "pointingindexdownwhite"sv,
+    "pointingindexleftwhite"sv,
+    "pointingindexrightwhite"sv,
+    "pointingindexupwhite"sv,
+    "pokatakana"sv,
+    "poplathai"sv,
+    "postalmark"sv,
+    "postalmarkface"sv,
+    "pparen"sv,
+    "precedes"sv,
+    "prescription"sv,
+    "primemod"sv,
+    "primereversed"sv,
+    "product"sv,
+    "projective"sv,
+    "prolongedkana"sv,
+    "propellor"sv,
+    "propersubset"sv,
+    "propersuperset"sv,
+    "proportion"sv,
+    "proportional"sv,
+    "psi"sv,
+    "psicyrillic"sv,
+    "psilipneumatacyrilliccmb"sv,
+    "pssquare"sv,
+    "puhiragana"sv,
+    "pukatakana"sv,
+    "pvsquare"sv,
+    "pwsquare"sv,
+    "q"sv,
+    "qadeva"sv,
+    "qadmahebrew"sv,
+    "qafarabic"sv,
+    "qaffinalarabic"sv,
+    "qafinitialarabic"sv,
+    "qafmedialarabic"sv,
+    "qamats"sv,
+    "qamats10"sv,
+    "qamats1a"sv,
+    "qamats1c"sv,
+    "qamats27"sv,
+    "qamats29"sv,
+    "qamats33"sv,
+    "qamatsde"sv,
+    "qamatshebrew"sv,
+    "qamatsnarrowhebrew"sv,
+    "qamatsqatanhebrew"sv,
+    "qamatsqatannarrowhebrew"sv,
+    "qamatsqatanquarterhebrew"sv,
+    "qamatsqatanwidehebrew"sv,
+    "qamatsquarterhebrew"sv,
+    "qamatswidehebrew"sv,
+    "qarneyparahebrew"sv,
+    "qbopomofo"sv,
+    "qcircle"sv,
+    "qhook"sv,
+    "qmonospace"sv,
+    "qof"sv,
+    "qofdagesh"sv,
+    "qofdageshhebrew"sv,
+    "qofhatafpatah"sv,
+    "qofhatafpatahhebrew"sv,
+    "qofhatafsegol"sv,
+    "qofhatafsegolhebrew"sv,
+    "qofhebrew"sv,
+    "qofhiriq"sv,
+    "qofhiriqhebrew"sv,
+    "qofholam"sv,
+    "qofholamhebrew"sv,
+    "qofpatah"sv,
+    "qofpatahhebrew"sv,
+    "qofqamats"sv,
+    "qofqamatshebrew"sv,
+    "qofqubuts"sv,
+    "qofqubutshebrew"sv,
+    "qofsegol"sv,
+    "qofsegolhebrew"sv,
+    "qofsheva"sv,
+    "qofshevahebrew"sv,
+    "qoftsere"sv,
+    "qoftserehebrew"sv,
+    "qparen"sv,
+    "quarternote"sv,
+    "qubuts"sv,
+    "qubuts18"sv,
+    "qubuts25"sv,
+    "qubuts31"sv,
+    "qubutshebrew"sv,
+    "qubutsnarrowhebrew"sv,
+    "qubutsquarterhebrew"sv,
+    "qubutswidehebrew"sv,
+    "question"sv,
+    "questionarabic"sv,
+    "questionarmenian"sv,
+    "questiondown"sv,
+    "questiondownsmall"sv,
+    "questiongreek"sv,
+    "questionmonospace"sv,
+    "questionsmall"sv,
+    "quotedbl"sv,
+    "quotedblbase"sv,
+    "quotedblleft"sv,
+    "quotedblmonospace"sv,
+    "quotedblprime"sv,
+    "quotedblprimereversed"sv,
+    "quotedblright"sv,
+    "quoteleft"sv,
+    "quoteleftreversed"sv,
+    "quotereversed"sv,
+    "quoteright"sv,
+    "quoterightn"sv,
+    "quotesinglbase"sv,
+    "quotesingle"sv,
+    "quotesinglemonospace"sv,
+    "r"sv,
+    "raarmenian"sv,
+    "rabengali"sv,
+    "racute"sv,
+    "radeva"sv,
+    "radical"sv,
+    "radicalex"sv,
+    "radoverssquare"sv,
+    "radoverssquaredsquare"sv,
+    "radsquare"sv,
+    "rafe"sv,
+    "rafehebrew"sv,
+    "ragujarati"sv,
+    "ragurmukhi"sv,
+    "rahiragana"sv,
+    "rakatakana"sv,
+    "rakatakanahalfwidth"sv,
+    "ralowerdiagonalbengali"sv,
+    "ramiddlediagonalbengali"sv,
+    "ramshorn"sv,
+    "ratio"sv,
+    "rbopomofo"sv,
+    "rcaron"sv,
+    "rcedilla"sv,
+    "rcircle"sv,
+    "rcommaaccent"sv,
+    "rdblgrave"sv,
+    "rdotaccent"sv,
+    "rdotbelow"sv,
+    "rdotbelowmacron"sv,
+    "referencemark"sv,
+    "reflexsubset"sv,
+    "reflexsuperset"sv,
+    "registered"sv,
+    "registersans"sv,
+    "registerserif"sv,
+    "reharabic"sv,
+    "reharmenian"sv,
+    "rehfinalarabic"sv,
+    "rehiragana"sv,
+    "rehyehaleflamarabic"sv,
+    "rekatakana"sv,
+    "rekatakanahalfwidth"sv,
+    "resh"sv,
+    "reshdageshhebrew"sv,
+    "reshhatafpatah"sv,
+    "reshhatafpatahhebrew"sv,
+    "reshhatafsegol"sv,
+    "reshhatafsegolhebrew"sv,
+    "reshhebrew"sv,
+    "reshhiriq"sv,
+    "reshhiriqhebrew"sv,
+    "reshholam"sv,
+    "reshholamhebrew"sv,
+    "reshpatah"sv,
+    "reshpatahhebrew"sv,
+    "reshqamats"sv,
+    "reshqamatshebrew"sv,
+    "reshqubuts"sv,
+    "reshqubutshebrew"sv,
+    "reshsegol"sv,
+    "reshsegolhebrew"sv,
+    "reshsheva"sv,
+    "reshshevahebrew"sv,
+    "reshtsere"sv,
+    "reshtserehebrew"sv,
+    "reversedtilde"sv,
+    "reviahebrew"sv,
+    "reviamugrashhebrew"sv,
+    "revlogicalnot"sv,
+    "rfishhook"sv,
+    "rfishhookreversed"sv,
+    "rhabengali"sv,
+    "rhadeva"sv,
+    "rho"sv,
+    "rhook"sv,
+    "rhookturned"sv,
+    "rhookturnedsuperior"sv,
+    "rhosymbolgreek"sv,
+    "rhotichookmod"sv,
+    "rieulacirclekorean"sv,
+    "rieulaparenkorean"sv,
+    "rieulcirclekorean"sv,
+    "rieulhieuhkorean"sv,
+    "rieulkiyeokkorean"sv,
+    "rieulkiyeoksioskorean"sv,
+    "rieulkorean"sv,
+    "rieulmieumkorean"sv,
+    "rieulpansioskorean"sv,
+    "rieulparenkorean"sv,
+    "rieulphieuphkorean"sv,
+    "rieulpieupkorean"sv,
+    "rieulpieupsioskorean"sv,
+    "rieulsioskorean"sv,
+    "rieulthieuthkorean"sv,
+    "rieultikeutkorean"sv,
+    "rieulyeorinhieuhkorean"sv,
+    "rightangle"sv,
+    "righttackbelowcmb"sv,
+    "righttriangle"sv,
+    "rihiragana"sv,
+    "rikatakana"sv,
+    "rikatakanahalfwidth"sv,
+    "ring"sv,
+    "ringbelowcmb"sv,
+    "ringcmb"sv,
+    "ringhalfleft"sv,
+    "ringhalfleftarmenian"sv,
+    "ringhalfleftbelowcmb"sv,
+    "ringhalfleftcentered"sv,
+    "ringhalfright"sv,
+    "ringhalfrightbelowcmb"sv,
+    "ringhalfrightcentered"sv,
+    "rinvertedbreve"sv,
+    "rittorusquare"sv,
+    "rlinebelow"sv,
+    "rlongleg"sv,
+    "rlonglegturned"sv,
+    "rmonospace"sv,
+    "rohiragana"sv,
+    "rokatakana"sv,
+    "rokatakanahalfwidth"sv,
+    "roruathai"sv,
+    "rparen"sv,
+    "rrabengali"sv,
+    "rradeva"sv,
+    "rragurmukhi"sv,
+    "rreharabic"sv,
+    "rrehfinalarabic"sv,
+    "rrvocalicbengali"sv,
+    "rrvocalicdeva"sv,
+    "rrvocalicgujarati"sv,
+    "rrvocalicvowelsignbengali"sv,
+    "rrvocalicvowelsigndeva"sv,
+    "rrvocalicvowelsigngujarati"sv,
+    "rsuperior"sv,
+    "rtblock"sv,
+    "rturned"sv,
+    "rturnedsuperior"sv,
+    "ruhiragana"sv,
+    "rukatakana"sv,
+    "rukatakanahalfwidth"sv,
+    "rupeemarkbengali"sv,
+    "rupeesignbengali"sv,
+    "rupiah"sv,
+    "ruthai"sv,
+    "rvocalicbengali"sv,
+    "rvocalicdeva"sv,
+    "rvocalicgujarati"sv,
+    "rvocalicvowelsignbengali"sv,
+    "rvocalicvowelsigndeva"sv,
+    "rvocalicvowelsigngujarati"sv,
+    "s"sv,
+    "sabengali"sv,
+    "sacute"sv,
+    "sacutedotaccent"sv,
+    "sadarabic"sv,
+    "sadeva"sv,
+    "sadfinalarabic"sv,
+    "sadinitialarabic"sv,
+    "sadmedialarabic"sv,
+    "sagujarati"sv,
+    "sagurmukhi"sv,
+    "sahiragana"sv,
+    "sakatakana"sv,
+    "sakatakanahalfwidth"sv,
+    "sallallahoualayhewasallamarabic"sv,
+    "samekh"sv,
+    "samekhdagesh"sv,
+    "samekhdageshhebrew"sv,
+    "samekhhebrew"sv,
+    "saraaathai"sv,
+    "saraaethai"sv,
+    "saraaimaimalaithai"sv,
+    "saraaimaimuanthai"sv,
+    "saraamthai"sv,
+    "saraathai"sv,
+    "saraethai"sv,
+    "saraiileftthai"sv,
+    "saraiithai"sv,
+    "saraileftthai"sv,
+    "saraithai"sv,
+    "saraothai"sv,
+    "saraueeleftthai"sv,
+    "saraueethai"sv,
+    "saraueleftthai"sv,
+    "sarauethai"sv,
+    "sarauthai"sv,
+    "sarauuthai"sv,
+    "sbopomofo"sv,
+    "scaron"sv,
+    "scarondotaccent"sv,
+    "scedilla"sv,
+    "schwa"sv,
+    "schwacyrillic"sv,
+    "schwadieresiscyrillic"sv,
+    "schwahook"sv,
+    "scircle"sv,
+    "scircumflex"sv,
+    "scommaaccent"sv,
+    "sdotaccent"sv,
+    "sdotbelow"sv,
+    "sdotbelowdotaccent"sv,
+    "seagullbelowcmb"sv,
+    "second"sv,
+    "secondtonechinese"sv,
+    "section"sv,
+    "seenarabic"sv,
+    "seenfinalarabic"sv,
+    "seeninitialarabic"sv,
+    "seenmedialarabic"sv,
+    "segol"sv,
+    "segol13"sv,
+    "segol1f"sv,
+    "segol2c"sv,
+    "segolhebrew"sv,
+    "segolnarrowhebrew"sv,
+    "segolquarterhebrew"sv,
+    "segoltahebrew"sv,
+    "segolwidehebrew"sv,
+    "seharmenian"sv,
+    "sehiragana"sv,
+    "sekatakana"sv,
+    "sekatakanahalfwidth"sv,
+    "semicolon"sv,
+    "semicolonarabic"sv,
+    "semicolonmonospace"sv,
+    "semicolonsmall"sv,
+    "semivoicedmarkkana"sv,
+    "semivoicedmarkkanahalfwidth"sv,
+    "sentisquare"sv,
+    "sentosquare"sv,
+    "seven"sv,
+    "sevenarabic"sv,
+    "sevenbengali"sv,
+    "sevencircle"sv,
+    "sevencircleinversesansserif"sv,
+    "sevendeva"sv,
+    "seveneighths"sv,
+    "sevengujarati"sv,
+    "sevengurmukhi"sv,
+    "sevenhackarabic"sv,
+    "sevenhangzhou"sv,
+    "sevenideographicparen"sv,
+    "seveninferior"sv,
+    "sevenmonospace"sv,
+    "sevenoldstyle"sv,
+    "sevenparen"sv,
+    "sevenperiod"sv,
+    "sevenpersian"sv,
+    "sevenroman"sv,
+    "sevensuperior"sv,
+    "seventeencircle"sv,
+    "seventeenparen"sv,
+    "seventeenperiod"sv,
+    "seventhai"sv,
+    "sfthyphen"sv,
+    "shaarmenian"sv,
+    "shabengali"sv,
+    "shacyrillic"sv,
+    "shaddaarabic"sv,
+    "shaddadammaarabic"sv,
+    "shaddadammatanarabic"sv,
+    "shaddafathaarabic"sv,
+    "shaddafathatanarabic"sv,
+    "shaddakasraarabic"sv,
+    "shaddakasratanarabic"sv,
+    "shade"sv,
+    "shadedark"sv,
+    "shadelight"sv,
+    "shademedium"sv,
+    "shadeva"sv,
+    "shagujarati"sv,
+    "shagurmukhi"sv,
+    "shalshelethebrew"sv,
+    "shbopomofo"sv,
+    "shchacyrillic"sv,
+    "sheenarabic"sv,
+    "sheenfinalarabic"sv,
+    "sheeninitialarabic"sv,
+    "sheenmedialarabic"sv,
+    "sheicoptic"sv,
+    "sheqel"sv,
+    "sheqelhebrew"sv,
+    "sheva"sv,
+    "sheva115"sv,
+    "sheva15"sv,
+    "sheva22"sv,
+    "sheva2e"sv,
+    "shevahebrew"sv,
+    "shevanarrowhebrew"sv,
+    "shevaquarterhebrew"sv,
+    "shevawidehebrew"sv,
+    "shhacyrillic"sv,
+    "shimacoptic"sv,
+    "shin"sv,
+    "shindagesh"sv,
+    "shindageshhebrew"sv,
+    "shindageshshindot"sv,
+    "shindageshshindothebrew"sv,
+    "shindageshsindot"sv,
+    "shindageshsindothebrew"sv,
+    "shindothebrew"sv,
+    "shinhebrew"sv,
+    "shinshindot"sv,
+    "shinshindothebrew"sv,
+    "shinsindot"sv,
+    "shinsindothebrew"sv,
+    "shook"sv,
+    "sigma"sv,
+    "sigma1"sv,
+    "sigmafinal"sv,
+    "sigmalunatesymbolgreek"sv,
+    "sihiragana"sv,
+    "sikatakana"sv,
+    "sikatakanahalfwidth"sv,
+    "siluqhebrew"sv,
+    "siluqlefthebrew"sv,
+    "similar"sv,
+    "sindothebrew"sv,
+    "siosacirclekorean"sv,
+    "siosaparenkorean"sv,
+    "sioscieuckorean"sv,
+    "sioscirclekorean"sv,
+    "sioskiyeokkorean"sv,
+    "sioskorean"sv,
+    "siosnieunkorean"sv,
+    "siosparenkorean"sv,
+    "siospieupkorean"sv,
+    "siostikeutkorean"sv,
+    "six"sv,
+    "sixarabic"sv,
+    "sixbengali"sv,
+    "sixcircle"sv,
+    "sixcircleinversesansserif"sv,
+    "sixdeva"sv,
+    "sixgujarati"sv,
+    "sixgurmukhi"sv,
+    "sixhackarabic"sv,
+    "sixhangzhou"sv,
+    "sixideographicparen"sv,
+    "sixinferior"sv,
+    "sixmonospace"sv,
+    "sixoldstyle"sv,
+    "sixparen"sv,
+    "sixperiod"sv,
+    "sixpersian"sv,
+    "sixroman"sv,
+    "sixsuperior"sv,
+    "sixteencircle"sv,
+    "sixteencurrencydenominatorbengali"sv,
+    "sixteenparen"sv,
+    "sixteenperiod"sv,
+    "sixthai"sv,
+    "slash"sv,
+    "slashmonospace"sv,
+    "slong"sv,
+    "slongdotaccent"sv,
+    "smileface"sv,
+    "smonospace"sv,
+    "sofpasuqhebrew"sv,
+    "softhyphen"sv,
+    "softsigncyrillic"sv,
+    "sohiragana"sv,
+    "sokatakana"sv,
+    "sokatakanahalfwidth"sv,
+    "soliduslongoverlaycmb"sv,
+    "solidusshortoverlaycmb"sv,
+    "sorusithai"sv,
+    "sosalathai"sv,
+    "sosothai"sv,
+    "sosuathai"sv,
+    "space"sv,
+    "spacehackarabic"sv,
+    "spade"sv,
+    "spadesuitblack"sv,
+    "spadesuitwhite"sv,
+    "sparen"sv,
+    "squarebelowcmb"sv,
+    "squarecc"sv,
+    "squarecm"sv,
+    "squarediagonalcrosshatchfill"sv,
+    "squarehorizontalfill"sv,
+    "squarekg"sv,
+    "squarekm"sv,
+    "squarekmcapital"sv,
+    "squareln"sv,
+    "squarelog"sv,
+    "squaremg"sv,
+    "squaremil"sv,
+    "squaremm"sv,
+    "squaremsquared"sv,
+    "squareorthogonalcrosshatchfill"sv,
+    "squareupperlefttolowerrightfill"sv,
+    "squareupperrighttolowerleftfill"sv,
+    "squareverticalfill"sv,
+    "squarewhitewithsmallblack"sv,
+    "srsquare"sv,
+    "ssabengali"sv,
+    "ssadeva"sv,
+    "ssagujarati"sv,
+    "ssangcieuckorean"sv,
+    "ssanghieuhkorean"sv,
+    "ssangieungkorean"sv,
+    "ssangkiyeokkorean"sv,
+    "ssangnieunkorean"sv,
+    "ssangpieupkorean"sv,
+    "ssangsioskorean"sv,
+    "ssangtikeutkorean"sv,
+    "ssuperior"sv,
+    "sterling"sv,
+    "sterlingmonospace"sv,
+    "strokelongoverlaycmb"sv,
+    "strokeshortoverlaycmb"sv,
+    "subset"sv,
+    "subsetnotequal"sv,
+    "subsetorequal"sv,
+    "succeeds"sv,
+    "suchthat"sv,
+    "suhiragana"sv,
+    "sukatakana"sv,
+    "sukatakanahalfwidth"sv,
+    "sukunarabic"sv,
+    "summation"sv,
+    "sun"sv,
+    "superset"sv,
+    "supersetnotequal"sv,
+    "supersetorequal"sv,
+    "svsquare"sv,
+    "syouwaerasquare"sv,
+    "t"sv,
+    "tabengali"sv,
+    "tackdown"sv,
+    "tackleft"sv,
+    "tadeva"sv,
+    "tagujarati"sv,
+    "tagurmukhi"sv,
+    "taharabic"sv,
+    "tahfinalarabic"sv,
+    "tahinitialarabic"sv,
+    "tahiragana"sv,
+    "tahmedialarabic"sv,
+    "taisyouerasquare"sv,
+    "takatakana"sv,
+    "takatakanahalfwidth"sv,
+    "tatweelarabic"sv,
+    "tau"sv,
+    "tav"sv,
+    "tavdages"sv,
+    "tavdagesh"sv,
+    "tavdageshhebrew"sv,
+    "tavhebrew"sv,
+    "tbar"sv,
+    "tbopomofo"sv,
+    "tcaron"sv,
+    "tccurl"sv,
+    "tcedilla"sv,
+    "tcheharabic"sv,
+    "tchehfinalarabic"sv,
+    "tchehinitialarabic"sv,
+    "tchehmedialarabic"sv,
+    "tchehmeeminitialarabic"sv,
+    "tcircle"sv,
+    "tcircumflexbelow"sv,
+    "tcommaaccent"sv,
+    "tdieresis"sv,
+    "tdotaccent"sv,
+    "tdotbelow"sv,
+    "tecyrillic"sv,
+    "tedescendercyrillic"sv,
+    "teharabic"sv,
+    "tehfinalarabic"sv,
+    "tehhahinitialarabic"sv,
+    "tehhahisolatedarabic"sv,
+    "tehinitialarabic"sv,
+    "tehiragana"sv,
+    "tehjeeminitialarabic"sv,
+    "tehjeemisolatedarabic"sv,
+    "tehmarbutaarabic"sv,
+    "tehmarbutafinalarabic"sv,
+    "tehmedialarabic"sv,
+    "tehmeeminitialarabic"sv,
+    "tehmeemisolatedarabic"sv,
+    "tehnoonfinalarabic"sv,
+    "tekatakana"sv,
+    "tekatakanahalfwidth"sv,
+    "telephone"sv,
+    "telephoneblack"sv,
+    "telishagedolahebrew"sv,
+    "telishaqetanahebrew"sv,
+    "tencircle"sv,
+    "tenideographicparen"sv,
+    "tenparen"sv,
+    "tenperiod"sv,
+    "tenroman"sv,
+    "tesh"sv,
+    "tet"sv,
+    "tetdagesh"sv,
+    "tetdageshhebrew"sv,
+    "tethebrew"sv,
+    "tetsecyrillic"sv,
+    "tevirhebrew"sv,
+    "tevirlefthebrew"sv,
+    "thabengali"sv,
+    "thadeva"sv,
+    "thagujarati"sv,
+    "thagurmukhi"sv,
+    "thalarabic"sv,
+    "thalfinalarabic"sv,
+    "thanthakhatlowleftthai"sv,
+    "thanthakhatlowrightthai"sv,
+    "thanthakhatthai"sv,
+    "thanthakhatupperleftthai"sv,
+    "theharabic"sv,
+    "thehfinalarabic"sv,
+    "thehinitialarabic"sv,
+    "thehmedialarabic"sv,
+    "thereexists"sv,
+    "therefore"sv,
+    "theta"sv,
+    "theta1"sv,
+    "thetasymbolgreek"sv,
+    "thieuthacirclekorean"sv,
+    "thieuthaparenkorean"sv,
+    "thieuthcirclekorean"sv,
+    "thieuthkorean"sv,
+    "thieuthparenkorean"sv,
+    "thirteencircle"sv,
+    "thirteenparen"sv,
+    "thirteenperiod"sv,
+    "thonangmonthothai"sv,
+    "thook"sv,
+    "thophuthaothai"sv,
+    "thorn"sv,
+    "thothahanthai"sv,
+    "thothanthai"sv,
+    "thothongthai"sv,
+    "thothungthai"sv,
+    "thousandcyrillic"sv,
+    "thousandsseparatorarabic"sv,
+    "thousandsseparatorpersian"sv,
+    "three"sv,
+    "threearabic"sv,
+    "threebengali"sv,
+    "threecircle"sv,
+    "threecircleinversesansserif"sv,
+    "threedeva"sv,
+    "threeeighths"sv,
+    "threegujarati"sv,
+    "threegurmukhi"sv,
+    "threehackarabic"sv,
+    "threehangzhou"sv,
+    "threeideographicparen"sv,
+    "threeinferior"sv,
+    "threemonospace"sv,
+    "threenumeratorbengali"sv,
+    "threeoldstyle"sv,
+    "threeparen"sv,
+    "threeperiod"sv,
+    "threepersian"sv,
+    "threequarters"sv,
+    "threequartersemdash"sv,
+    "threeroman"sv,
+    "threesuperior"sv,
+    "threethai"sv,
+    "thzsquare"sv,
+    "tihiragana"sv,
+    "tikatakana"sv,
+    "tikatakanahalfwidth"sv,
+    "tikeutacirclekorean"sv,
+    "tikeutaparenkorean"sv,
+    "tikeutcirclekorean"sv,
+    "tikeutkorean"sv,
+    "tikeutparenkorean"sv,
+    "tilde"sv,
+    "tildebelowcmb"sv,
+    "tildecmb"sv,
+    "tildecomb"sv,
+    "tildedoublecmb"sv,
+    "tildeoperator"sv,
+    "tildeoverlaycmb"sv,
+    "tildeverticalcmb"sv,
+    "timescircle"sv,
+    "tipehahebrew"sv,
+    "tipehalefthebrew"sv,
+    "tippigurmukhi"sv,
+    "titlocyrilliccmb"sv,
+    "tiwnarmenian"sv,
+    "tlinebelow"sv,
+    "tmonospace"sv,
+    "toarmenian"sv,
+    "tohiragana"sv,
+    "tokatakana"sv,
+    "tokatakanahalfwidth"sv,
+    "tonebarextrahighmod"sv,
+    "tonebarextralowmod"sv,
+    "tonebarhighmod"sv,
+    "tonebarlowmod"sv,
+    "tonebarmidmod"sv,
+    "tonefive"sv,
+    "tonesix"sv,
+    "tonetwo"sv,
+    "tonos"sv,
+    "tonsquare"sv,
+    "topatakthai"sv,
+    "tortoiseshellbracketleft"sv,
+    "tortoiseshellbracketleftsmall"sv,
+    "tortoiseshellbracketleftvertical"sv,
+    "tortoiseshellbracketright"sv,
+    "tortoiseshellbracketrightsmall"sv,
+    "tortoiseshellbracketrightvertical"sv,
+    "totaothai"sv,
+    "tpalatalhook"sv,
+    "tparen"sv,
+    "trademark"sv,
+    "trademarksans"sv,
+    "trademarkserif"sv,
+    "tretroflexhook"sv,
+    "triagdn"sv,
+    "triaglf"sv,
+    "triagrt"sv,
+    "triagup"sv,
+    "ts"sv,
+    "tsadi"sv,
+    "tsadidagesh"sv,
+    "tsadidageshhebrew"sv,
+    "tsadihebrew"sv,
+    "tsecyrillic"sv,
+    "tsere"sv,
+    "tsere12"sv,
+    "tsere1e"sv,
+    "tsere2b"sv,
+    "tserehebrew"sv,
+    "tserenarrowhebrew"sv,
+    "tserequarterhebrew"sv,
+    "tserewidehebrew"sv,
+    "tshecyrillic"sv,
+    "tsuperior"sv,
+    "ttabengali"sv,
+    "ttadeva"sv,
+    "ttagujarati"sv,
+    "ttagurmukhi"sv,
+    "tteharabic"sv,
+    "ttehfinalarabic"sv,
+    "ttehinitialarabic"sv,
+    "ttehmedialarabic"sv,
+    "tthabengali"sv,
+    "tthadeva"sv,
+    "tthagujarati"sv,
+    "tthagurmukhi"sv,
+    "tturned"sv,
+    "tuhiragana"sv,
+    "tukatakana"sv,
+    "tukatakanahalfwidth"sv,
+    "tusmallhiragana"sv,
+    "tusmallkatakana"sv,
+    "tusmallkatakanahalfwidth"sv,
+    "twelvecircle"sv,
+    "twelveparen"sv,
+    "twelveperiod"sv,
+    "twelveroman"sv,
+    "twentycircle"sv,
+    "twentyhangzhou"sv,
+    "twentyparen"sv,
+    "twentyperiod"sv,
+    "two"sv,
+    "twoarabic"sv,
+    "twobengali"sv,
+    "twocircle"sv,
+    "twocircleinversesansserif"sv,
+    "twodeva"sv,
+    "twodotenleader"sv,
+    "twodotleader"sv,
+    "twodotleadervertical"sv,
+    "twogujarati"sv,
+    "twogurmukhi"sv,
+    "twohackarabic"sv,
+    "twohangzhou"sv,
+    "twoideographicparen"sv,
+    "twoinferior"sv,
+    "twomonospace"sv,
+    "twonumeratorbengali"sv,
+    "twooldstyle"sv,
+    "twoparen"sv,
+    "twoperiod"sv,
+    "twopersian"sv,
+    "tworoman"sv,
+    "twostroke"sv,
+    "twosuperior"sv,
+    "twothai"sv,
+    "twothirds"sv,
+    "u"sv,
+    "uacute"sv,
+    "ubar"sv,
+    "ubengali"sv,
+    "ubopomofo"sv,
+    "ubreve"sv,
+    "ucaron"sv,
+    "ucircle"sv,
+    "ucircumflex"sv,
+    "ucircumflexbelow"sv,
+    "ucyrillic"sv,
+    "udattadeva"sv,
+    "udblacute"sv,
+    "udblgrave"sv,
+    "udeva"sv,
+    "udieresis"sv,
+    "udieresisacute"sv,
+    "udieresisbelow"sv,
+    "udieresiscaron"sv,
+    "udieresiscyrillic"sv,
+    "udieresisgrave"sv,
+    "udieresismacron"sv,
+    "udotbelow"sv,
+    "ugrave"sv,
+    "ugujarati"sv,
+    "ugurmukhi"sv,
+    "uhiragana"sv,
+    "uhookabove"sv,
+    "uhorn"sv,
+    "uhornacute"sv,
+    "uhorndotbelow"sv,
+    "uhorngrave"sv,
+    "uhornhookabove"sv,
+    "uhorntilde"sv,
+    "uhungarumlaut"sv,
+    "uhungarumlautcyrillic"sv,
+    "uinvertedbreve"sv,
+    "ukatakana"sv,
+    "ukatakanahalfwidth"sv,
+    "ukcyrillic"sv,
+    "ukorean"sv,
+    "umacron"sv,
+    "umacroncyrillic"sv,
+    "umacrondieresis"sv,
+    "umatragurmukhi"sv,
+    "umonospace"sv,
+    "underscore"sv,
+    "underscoredbl"sv,
+    "underscoremonospace"sv,
+    "underscorevertical"sv,
+    "underscorewavy"sv,
+    "union"sv,
+    "universal"sv,
+    "uogonek"sv,
+    "uparen"sv,
+    "upblock"sv,
+    "upperdothebrew"sv,
+    "upsilon"sv,
+    "upsilondieresis"sv,
+    "upsilondieresistonos"sv,
+    "upsilonlatin"sv,
+    "upsilontonos"sv,
+    "uptackbelowcmb"sv,
+    "uptackmod"sv,
+    "uragurmukhi"sv,
+    "uring"sv,
+    "ushortcyrillic"sv,
+    "usmallhiragana"sv,
+    "usmallkatakana"sv,
+    "usmallkatakanahalfwidth"sv,
+    "ustraightcyrillic"sv,
+    "ustraightstrokecyrillic"sv,
+    "utilde"sv,
+    "utildeacute"sv,
+    "utildebelow"sv,
+    "uubengali"sv,
+    "uudeva"sv,
+    "uugujarati"sv,
+    "uugurmukhi"sv,
+    "uumatragurmukhi"sv,
+    "uuvowelsignbengali"sv,
+    "uuvowelsigndeva"sv,
+    "uuvowelsigngujarati"sv,
+    "uvowelsignbengali"sv,
+    "uvowelsigndeva"sv,
+    "uvowelsigngujarati"sv,
+    "v"sv,
+    "vadeva"sv,
+    "vagujarati"sv,
+    "vagurmukhi"sv,
+    "vakatakana"sv,
+    "vav"sv,
+    "vavdagesh"sv,
+    "vavdagesh65"sv,
+    "vavdageshhebrew"sv,
+    "vavhebrew"sv,
+    "vavholam"sv,
+    "vavholamhebrew"sv,
+    "vavvavhebrew"sv,
+    "vavyodhebrew"sv,
+    "vcircle"sv,
+    "vdotbelow"sv,
+    "vecyrillic"sv,
+    "veharabic"sv,
+    "vehfinalarabic"sv,
+    "vehinitialarabic"sv,
+    "vehmedialarabic"sv,
+    "vekatakana"sv,
+    "venus"sv,
+    "verticalbar"sv,
+    "verticallineabovecmb"sv,
+    "verticallinebelowcmb"sv,
+    "verticallinelowmod"sv,
+    "verticallinemod"sv,
+    "vewarmenian"sv,
+    "vhook"sv,
+    "vikatakana"sv,
+    "viramabengali"sv,
+    "viramadeva"sv,
+    "viramagujarati"sv,
+    "visargabengali"sv,
+    "visargadeva"sv,
+    "visargagujarati"sv,
+    "vmonospace"sv,
+    "voarmenian"sv,
+    "voicediterationhiragana"sv,
+    "voicediterationkatakana"sv,
+    "voicedmarkkana"sv,
+    "voicedmarkkanahalfwidth"sv,
+    "vokatakana"sv,
+    "vparen"sv,
+    "vtilde"sv,
+    "vturned"sv,
+    "vuhiragana"sv,
+    "vukatakana"sv,
+    "w"sv,
+    "wacute"sv,
+    "waekorean"sv,
+    "wahiragana"sv,
+    "wakatakana"sv,
+    "wakatakanahalfwidth"sv,
+    "wakorean"sv,
+    "wasmallhiragana"sv,
+    "wasmallkatakana"sv,
+    "wattosquare"sv,
+    "wavedash"sv,
+    "wavyunderscorevertical"sv,
+    "wawarabic"sv,
+    "wawfinalarabic"sv,
+    "wawhamzaabovearabic"sv,
+    "wawhamzaabovefinalarabic"sv,
+    "wbsquare"sv,
+    "wcircle"sv,
+    "wcircumflex"sv,
+    "wdieresis"sv,
+    "wdotaccent"sv,
+    "wdotbelow"sv,
+    "wehiragana"sv,
+    "weierstrass"sv,
+    "wekatakana"sv,
+    "wekorean"sv,
+    "weokorean"sv,
+    "wgrave"sv,
+    "whitebullet"sv,
+    "whitecircle"sv,
+    "whitecircleinverse"sv,
+    "whitecornerbracketleft"sv,
+    "whitecornerbracketleftvertical"sv,
+    "whitecornerbracketright"sv,
+    "whitecornerbracketrightvertical"sv,
+    "whitediamond"sv,
+    "whitediamondcontainingblacksmalldiamond"sv,
+    "whitedownpointingsmalltriangle"sv,
+    "whitedownpointingtriangle"sv,
+    "whiteleftpointingsmalltriangle"sv,
+    "whiteleftpointingtriangle"sv,
+    "whitelenticularbracketleft"sv,
+    "whitelenticularbracketright"sv,
+    "whiterightpointingsmalltriangle"sv,
+    "whiterightpointingtriangle"sv,
+    "whitesmallsquare"sv,
+    "whitesmilingface"sv,
+    "whitesquare"sv,
+    "whitestar"sv,
+    "whitetelephone"sv,
+    "whitetortoiseshellbracketleft"sv,
+    "whitetortoiseshellbracketright"sv,
+    "whiteuppointingsmalltriangle"sv,
+    "whiteuppointingtriangle"sv,
+    "wihiragana"sv,
+    "wikatakana"sv,
+    "wikorean"sv,
+    "wmonospace"sv,
+    "wohiragana"sv,
+    "wokatakana"sv,
+    "wokatakanahalfwidth"sv,
+    "won"sv,
+    "wonmonospace"sv,
+    "wowaenthai"sv,
+    "wparen"sv,
+    "wring"sv,
+    "wsuperior"sv,
+    "wturned"sv,
+    "wynn"sv,
+    "x"sv,
+    "xabovecmb"sv,
+    "xbopomofo"sv,
+    "xcircle"sv,
+    "xdieresis"sv,
+    "xdotaccent"sv,
+    "xeharmenian"sv,
+    "xi"sv,
+    "xmonospace"sv,
+    "xparen"sv,
+    "xsuperior"sv,
+    "y"sv,
+    "yaadosquare"sv,
+    "yabengali"sv,
+    "yacute"sv,
+    "yadeva"sv,
+    "yaekorean"sv,
+    "yagujarati"sv,
+    "yagurmukhi"sv,
+    "yahiragana"sv,
+    "yakatakana"sv,
+    "yakatakanahalfwidth"sv,
+    "yakorean"sv,
+    "yamakkanthai"sv,
+    "yasmallhiragana"sv,
+    "yasmallkatakana"sv,
+    "yasmallkatakanahalfwidth"sv,
+    "yatcyrillic"sv,
+    "ycircle"sv,
+    "ycircumflex"sv,
+    "ydieresis"sv,
+    "ydotaccent"sv,
+    "ydotbelow"sv,
+    "yeharabic"sv,
+    "yehbarreearabic"sv,
+    "yehbarreefinalarabic"sv,
+    "yehfinalarabic"sv,
+    "yehhamzaabovearabic"sv,
+    "yehhamzaabovefinalarabic"sv,
+    "yehhamzaaboveinitialarabic"sv,
+    "yehhamzaabovemedialarabic"sv,
+    "yehinitialarabic"sv,
+    "yehmedialarabic"sv,
+    "yehmeeminitialarabic"sv,
+    "yehmeemisolatedarabic"sv,
+    "yehnoonfinalarabic"sv,
+    "yehthreedotsbelowarabic"sv,
+    "yekorean"sv,
+    "yen"sv,
+    "yenmonospace"sv,
+    "yeokorean"sv,
+    "yeorinhieuhkorean"sv,
+    "yerahbenyomohebrew"sv,
+    "yerahbenyomolefthebrew"sv,
+    "yericyrillic"sv,
+    "yerudieresiscyrillic"sv,
+    "yesieungkorean"sv,
+    "yesieungpansioskorean"sv,
+    "yesieungsioskorean"sv,
+    "yetivhebrew"sv,
+    "ygrave"sv,
+    "yhook"sv,
+    "yhookabove"sv,
+    "yiarmenian"sv,
+    "yicyrillic"sv,
+    "yikorean"sv,
+    "yinyang"sv,
+    "yiwnarmenian"sv,
+    "ymonospace"sv,
+    "yod"sv,
+    "yoddagesh"sv,
+    "yoddageshhebrew"sv,
+    "yodhebrew"sv,
+    "yodyodhebrew"sv,
+    "yodyodpatahhebrew"sv,
+    "yohiragana"sv,
+    "yoikorean"sv,
+    "yokatakana"sv,
+    "yokatakanahalfwidth"sv,
+    "yokorean"sv,
+    "yosmallhiragana"sv,
+    "yosmallkatakana"sv,
+    "yosmallkatakanahalfwidth"sv,
+    "yotgreek"sv,
+    "yoyaekorean"sv,
+    "yoyakorean"sv,
+    "yoyakthai"sv,
+    "yoyingthai"sv,
+    "yparen"sv,
+    "ypogegrammeni"sv,
+    "ypogegrammenigreekcmb"sv,
+    "yr"sv,
+    "yring"sv,
+    "ysuperior"sv,
+    "ytilde"sv,
+    "yturned"sv,
+    "yuhiragana"sv,
+    "yuikorean"sv,
+    "yukatakana"sv,
+    "yukatakanahalfwidth"sv,
+    "yukorean"sv,
+    "yusbigcyrillic"sv,
+    "yusbigiotifiedcyrillic"sv,
+    "yuslittlecyrillic"sv,
+    "yuslittleiotifiedcyrillic"sv,
+    "yusmallhiragana"sv,
+    "yusmallkatakana"sv,
+    "yusmallkatakanahalfwidth"sv,
+    "yuyekorean"sv,
+    "yuyeokorean"sv,
+    "yyabengali"sv,
+    "yyadeva"sv,
+    "z"sv,
+    "zaarmenian"sv,
+    "zacute"sv,
+    "zadeva"sv,
+    "zagurmukhi"sv,
+    "zaharabic"sv,
+    "zahfinalarabic"sv,
+    "zahinitialarabic"sv,
+    "zahiragana"sv,
+    "zahmedialarabic"sv,
+    "zainarabic"sv,
+    "zainfinalarabic"sv,
+    "zakatakana"sv,
+    "zaqefgadolhebrew"sv,
+    "zaqefqatanhebrew"sv,
+    "zarqahebrew"sv,
+    "zayin"sv,
+    "zayindagesh"sv,
+    "zayindageshhebrew"sv,
+    "zayinhebrew"sv,
+    "zbopomofo"sv,
+    "zcaron"sv,
+    "zcircle"sv,
+    "zcircumflex"sv,
+    "zcurl"sv,
+    "zdot"sv,
+    "zdotaccent"sv,
+    "zdotbelow"sv,
+    "zecyrillic"sv,
+    "zedescendercyrillic"sv,
+    "zedieresiscyrillic"sv,
+    "zehiragana"sv,
+    "zekatakana"sv,
+    "zero"sv,
+    "zeroarabic"sv,
+    "zerobengali"sv,
+    "zerodeva"sv,
+    "zerogujarati"sv,
+    "zerogurmukhi"sv,
+    "zerohackarabic"sv,
+    "zeroinferior"sv,
+    "zeromonospace"sv,
+    "zerooldstyle"sv,
+    "zeropersian"sv,
+    "zerosuperior"sv,
+    "zerothai"sv,
+    "zerowidthjoiner"sv,
+    "zerowidthnonjoiner"sv,
+    "zerowidthspace"sv,
+    "zeta"sv,
+    "zhbopomofo"sv,
+    "zhearmenian"sv,
+    "zhebrevecyrillic"sv,
+    "zhecyrillic"sv,
+    "zhedescendercyrillic"sv,
+    "zhedieresiscyrillic"sv,
+    "zihiragana"sv,
+    "zikatakana"sv,
+    "zinorhebrew"sv,
+    "zlinebelow"sv,
+    "zmonospace"sv,
+    "zohiragana"sv,
+    "zokatakana"sv,
+    "zparen"sv,
+    "zretroflexhook"sv,
+    "zstroke"sv,
+    "zuhiragana"sv,
+    "zukatakana"sv,
+    "A"sv,
+    "AE"sv,
+    "AEacute"sv,
+    "Aacute"sv,
+    "Abreve"sv,
+    "Acircumflex"sv,
+    "Adieresis"sv,
+    "Agrave"sv,
+    "Alpha"sv,
+    "Alphatonos"sv,
+    "Amacron"sv,
+    "Aogonek"sv,
+    "Aring"sv,
+    "Aringacute"sv,
+    "Atilde"sv,
+    "B"sv,
+    "Beta"sv,
+    "C"sv,
+    "Cacute"sv,
+    "Ccaron"sv,
+    "Ccedilla"sv,
+    "Ccircumflex"sv,
+    "Cdotaccent"sv,
+    "Chi"sv,
+    "D"sv,
+    "Dcaron"sv,
+    "Dcroat"sv,
+    "Delta"sv,
+    "E"sv,
+    "Eacute"sv,
+    "Ebreve"sv,
+    "Ecaron"sv,
+    "Ecircumflex"sv,
+    "Edieresis"sv,
+    "Edotaccent"sv,
+    "Egrave"sv,
+    "Emacron"sv,
+    "Eng"sv,
+    "Eogonek"sv,
+    "Epsilon"sv,
+    "Epsilontonos"sv,
+    "Eta"sv,
+    "Etatonos"sv,
+    "Eth"sv,
+    "Euro"sv,
+    "F"sv,
+    "G"sv,
+    "Gamma"sv,
+    "Gbreve"sv,
+    "Gcaron"sv,
+    "Gcircumflex"sv,
+    "Gdotaccent"sv,
+    "H"sv,
+    "H18533"sv,
+    "H18543"sv,
+    "H18551"sv,
+    "H22073"sv,
+    "Hbar"sv,
+    "Hcircumflex"sv,
+    "I"sv,
+    "IJ"sv,
+    "Iacute"sv,
+    "Ibreve"sv,
+    "Icircumflex"sv,
+    "Idieresis"sv,
+    "Idotaccent"sv,
+    "Ifraktur"sv,
+    "Igrave"sv,
+    "Imacron"sv,
+    "Iogonek"sv,
+    "Iota"sv,
+    "Iotadieresis"sv,
+    "Iotatonos"sv,
+    "Itilde"sv,
+    "J"sv,
+    "Jcircumflex"sv,
+    "K"sv,
+    "Kappa"sv,
+    "L"sv,
+    "Lacute"sv,
+    "Lambda"sv,
+    "Lcaron"sv,
+    "Ldot"sv,
+    "Lslash"sv,
+    "M"sv,
+    "Mu"sv,
+    "N"sv,
+    "Nacute"sv,
+    "Ncaron"sv,
+    "Ntilde"sv,
+    "Nu"sv,
+    "O"sv,
+    "OE"sv,
+    "Oacute"sv,
+    "Obreve"sv,
+    "Ocircumflex"sv,
+    "Odieresis"sv,
+    "Ograve"sv,
+    "Ohorn"sv,
+    "Ohungarumlaut"sv,
+    "Omacron"sv,
+    "Omega"sv,
+    "Omegatonos"sv,
+    "Omicron"sv,
+    "Omicrontonos"sv,
+    "Oslash"sv,
+    "Oslashacute"sv,
+    "Otilde"sv,
+    "P"sv,
+    "Phi"sv,
+    "Pi"sv,
+    "Psi"sv,
+    "Q"sv,
+    "R"sv,
+    "Racute"sv,
+    "Rcaron"sv,
+    "Rfraktur"sv,
+    "Rho"sv,
+    "S"sv,
+    "SF010000"sv,
+    "SF020000"sv,
+    "SF030000"sv,
+    "SF040000"sv,
+    "SF050000"sv,
+    "SF060000"sv,
+    "SF070000"sv,
+    "SF080000"sv,
+    "SF090000"sv,
+    "SF100000"sv,
+    "SF110000"sv,
+    "SF190000"sv,
+    "SF200000"sv,
+    "SF210000"sv,
+    "SF220000"sv,
+    "SF230000"sv,
+    "SF240000"sv,
+    "SF250000"sv,
+    "SF260000"sv,
+    "SF270000"sv,
+    "SF280000"sv,
+    "SF360000"sv,
+    "SF370000"sv,
+    "SF380000"sv,
+    "SF390000"sv,
+    "SF400000"sv,
+    "SF410000"sv,
+    "SF420000"sv,
+    "SF430000"sv,
+    "SF440000"sv,
+    "SF450000"sv,
+    "SF460000"sv,
+    "SF470000"sv,
+    "SF480000"sv,
+    "SF490000"sv,
+    "SF500000"sv,
+    "SF510000"sv,
+    "SF520000"sv,
+    "SF530000"sv,
+    "SF540000"sv,
+    "Sacute"sv,
+    "Scaron"sv,
+    "Scedilla"sv,
+    "Scircumflex"sv,
+    "Sigma"sv,
+    "T"sv,
+    "Tau"sv,
+    "Tbar"sv,
+    "Tcaron"sv,
+    "Theta"sv,
+    "Thorn"sv,
+    "U"sv,
+    "Uacute"sv,
+    "Ubreve"sv,
+    "Ucircumflex"sv,
+    "Udieresis"sv,
+    "Ugrave"sv,
+    "Uhorn"sv,
+    "Uhungarumlaut"sv,
+    "Umacron"sv,
+    "Uogonek"sv,
+    "Upsilon"sv,
+    "Upsilon1"sv,
+    "Upsilondieresis"sv,
+    "Upsilontonos"sv,
+    "Uring"sv,
+    "Utilde"sv,
+    "V"sv,
+    "W"sv,
+    "Wacute"sv,
+    "Wcircumflex"sv,
+    "Wdieresis"sv,
+    "Wgrave"sv,
+    "X"sv,
+    "Xi"sv,
+    "Y"sv,
+    "Yacute"sv,
+    "Ycircumflex"sv,
+    "Ydieresis"sv,
+    "Ygrave"sv,
+    "Z"sv,
+    "Zacute"sv,
+    "Zcaron"sv,
+    "Zdotaccent"sv,
+    "Zeta"sv,
+    "a"sv,
+    "aacute"sv,
+    "abreve"sv,
+    "acircumflex"sv,
+    "acute"sv,
+    "acutecomb"sv,
+    "adieresis"sv,
+    "ae"sv,
+    "aeacute"sv,
+    "agrave"sv,
+    "aleph"sv,
+    "alpha"sv,
+    "alphatonos"sv,
+    "amacron"sv,
+    "ampersand"sv,
+    "angle"sv,
+    "angleleft"sv,
+    "angleright"sv,
+    "anoteleia"sv,
+    "aogonek"sv,
+    "approxequal"sv,
+    "aring"sv,
+    "aringacute"sv,
+    "arrowboth"sv,
+    "arrowdblboth"sv,
+    "arrowdbldown"sv,
+    "arrowdblleft"sv,
+    "arrowdblright"sv,
+    "arrowdblup"sv,
+    "arrowdown"sv,
+    "arrowleft"sv,
+    "arrowright"sv,
+    "arrowup"sv,
+    "arrowupdn"sv,
+    "arrowupdnbse"sv,
+    "asciicircum"sv,
+    "asciitilde"sv,
+    "asterisk"sv,
+    "asteriskmath"sv,
+    "at"sv,
+    "atilde"sv,
+    "b"sv,
+    "backslash"sv,
+    "bar"sv,
+    "beta"sv,
+    "block"sv,
+    "braceleft"sv,
+    "braceright"sv,
+    "bracketleft"sv,
+    "bracketright"sv,
+    "breve"sv,
+    "brokenbar"sv,
+    "bullet"sv,
+    "c"sv,
+    "cacute"sv,
+    "caron"sv,
+    "carriagereturn"sv,
+    "ccaron"sv,
+    "ccedilla"sv,
+    "ccircumflex"sv,
+    "cdotaccent"sv,
+    "cedilla"sv,
+    "cent"sv,
+    "chi"sv,
+    "circle"sv,
+    "circlemultiply"sv,
+    "circleplus"sv,
+    "circumflex"sv,
+    "club"sv,
+    "colon"sv,
+    "colonmonetary"sv,
+    "comma"sv,
+    "congruent"sv,
+    "copyright"sv,
+    "currency"sv,
+    "d"sv,
+    "dagger"sv,
+    "daggerdbl"sv,
+    "dcaron"sv,
+    "dcroat"sv,
+    "degree"sv,
+    "delta"sv,
+    "diamond"sv,
+    "dieresis"sv,
+    "dieresistonos"sv,
+    "divide"sv,
+    "dkshade"sv,
+    "dnblock"sv,
+    "dollar"sv,
+    "dong"sv,
+    "dotaccent"sv,
+    "dotbelowcomb"sv,
+    "dotlessi"sv,
+    "dotmath"sv,
+    "e"sv,
+    "eacute"sv,
+    "ebreve"sv,
+    "ecaron"sv,
+    "ecircumflex"sv,
+    "edieresis"sv,
+    "edotaccent"sv,
+    "egrave"sv,
+    "eight"sv,
+    "element"sv,
+    "ellipsis"sv,
+    "emacron"sv,
+    "emdash"sv,
+    "emptyset"sv,
+    "endash"sv,
+    "eng"sv,
+    "eogonek"sv,
+    "epsilon"sv,
+    "epsilontonos"sv,
+    "equal"sv,
+    "equivalence"sv,
+    "estimated"sv,
+    "eta"sv,
+    "etatonos"sv,
+    "eth"sv,
+    "exclam"sv,
+    "exclamdbl"sv,
+    "exclamdown"sv,
+    "existential"sv,
+    "f"sv,
+    "female"sv,
+    "figuredash"sv,
+    "filledbox"sv,
+    "filledrect"sv,
+    "five"sv,
+    "fiveeighths"sv,
+    "florin"sv,
+    "four"sv,
+    "fraction"sv,
+    "franc"sv,
+    "g"sv,
+    "gamma"sv,
+    "gbreve"sv,
+    "gcaron"sv,
+    "gcircumflex"sv,
+    "gdotaccent"sv,
+    "germandbls"sv,
+    "gradient"sv,
+    "grave"sv,
+    "gravecomb"sv,
+    "greater"sv,
+    "greaterequal"sv,
+    "guillemotleft"sv,
+    "guillemotright"sv,
+    "guilsinglleft"sv,
+    "guilsinglright"sv,
+    "h"sv,
+    "hbar"sv,
+    "hcircumflex"sv,
+    "heart"sv,
+    "hookabovecomb"sv,
+    "house"sv,
+    "hungarumlaut"sv,
+    "hyphen"sv,
+    "i"sv,
+    "iacute"sv,
+    "ibreve"sv,
+    "icircumflex"sv,
+    "idieresis"sv,
+    "igrave"sv,
+    "ij"sv,
+    "imacron"sv,
+    "infinity"sv,
+    "integral"sv,
+    "integralbt"sv,
+    "integraltp"sv,
+    "intersection"sv,
+    "invbullet"sv,
+    "invcircle"sv,
+    "invsmileface"sv,
+    "iogonek"sv,
+    "iota"sv,
+    "iotadieresis"sv,
+    "iotadieresistonos"sv,
+    "iotatonos"sv,
+    "itilde"sv,
+    "j"sv,
+    "jcircumflex"sv,
+    "k"sv,
+    "kappa"sv,
+    "kgreenlandic"sv,
+    "l"sv,
+    "lacute"sv,
+    "lambda"sv,
+    "lcaron"sv,
+    "ldot"sv,
+    "less"sv,
+    "lessequal"sv,
+    "lfblock"sv,
+    "lira"sv,
+    "logicaland"sv,
+    "logicalnot"sv,
+    "logicalor"sv,
+    "longs"sv,
+    "lozenge"sv,
+    "lslash"sv,
+    "ltshade"sv,
+    "m"sv,
+    "macron"sv,
+    "male"sv,
+    "minus"sv,
+    "minute"sv,
+    "mu"sv,
+    "multiply"sv,
+    "musicalnote"sv,
+    "musicalnotedbl"sv,
+    "n"sv,
+    "nacute"sv,
+    "napostrophe"sv,
+    "ncaron"sv,
+    "nine"sv,
+    "notelement"sv,
+    "notequal"sv,
+    "notsubset"sv,
+    "ntilde"sv,
+    "nu"sv,
+    "numbersign"sv,
+    "o"sv,
+    "oacute"sv,
+    "obreve"sv,
+    "ocircumflex"sv,
+    "odieresis"sv,
+    "oe"sv,
+    "ogonek"sv,
+    "ograve"sv,
+    "ohorn"sv,
+    "ohungarumlaut"sv,
+    "omacron"sv,
+    "omega"sv,
+    "omega1"sv,
+    "omegatonos"sv,
+    "omicron"sv,
+    "omicrontonos"sv,
+    "one"sv,
+    "onedotenleader"sv,
+    "oneeighth"sv,
+    "onehalf"sv,
+    "onequarter"sv,
+    "onethird"sv,
+    "openbullet"sv,
+    "ordfeminine"sv,
+    "ordmasculine"sv,
+    "orthogonal"sv,
+    "oslash"sv,
+    "oslashacute"sv,
+    "otilde"sv,
+    "p"sv,
+    "paragraph"sv,
+    "parenleft"sv,
+    "parenright"sv,
+    "partialdiff"sv,
+    "percent"sv,
+    "period"sv,
+    "periodcentered"sv,
+    "perpendicular"sv,
+    "perthousand"sv,
+    "peseta"sv,
+    "phi"sv,
+    "phi1"sv,
+    "pi"sv,
+    "plus"sv,
+    "plusminus"sv,
+    "prescription"sv,
+    "product"sv,
+    "propersubset"sv,
+    "propersuperset"sv,
+    "proportional"sv,
+    "psi"sv,
+    "q"sv,
+    "question"sv,
+    "questiondown"sv,
+    "quotedbl"sv,
+    "quotedblbase"sv,
+    "quotedblleft"sv,
+    "quotedblright"sv,
+    "quoteleft"sv,
+    "quotereversed"sv,
+    "quoteright"sv,
+    "quotesinglbase"sv,
+    "quotesingle"sv,
+    "r"sv,
+    "racute"sv,
+    "radical"sv,
+    "rcaron"sv,
+    "reflexsubset"sv,
+    "reflexsuperset"sv,
+    "registered"sv,
+    "revlogicalnot"sv,
+    "rho"sv,
+    "ring"sv,
+    "rtblock"sv,
+    "s"sv,
+    "sacute"sv,
+    "scaron"sv,
+    "scedilla"sv,
+    "scircumflex"sv,
+    "second"sv,
+    "section"sv,
+    "semicolon"sv,
+    "seven"sv,
+    "seveneighths"sv,
+    "shade"sv,
+    "sigma"sv,
+    "sigma1"sv,
+    "similar"sv,
+    "six"sv,
+    "slash"sv,
+    "smileface"sv,
+    "space"sv,
+    "spade"sv,
+    "sterling"sv,
+    "suchthat"sv,
+    "summation"sv,
+    "sun"sv,
+    "t"sv,
+    "tau"sv,
+    "tbar"sv,
+    "tcaron"sv,
+    "therefore"sv,
+    "theta"sv,
+    "theta1"sv,
+    "thorn"sv,
+    "three"sv,
+    "threeeighths"sv,
+    "threequarters"sv,
+    "tilde"sv,
+    "tildecomb"sv,
+    "tonos"sv,
+    "trademark"sv,
+    "triagdn"sv,
+    "triaglf"sv,
+    "triagrt"sv,
+    "triagup"sv,
+    "two"sv,
+    "twodotenleader"sv,
+    "twothirds"sv,
+    "u"sv,
+    "uacute"sv,
+    "ubreve"sv,
+    "ucircumflex"sv,
+    "udieresis"sv,
+    "ugrave"sv,
+    "uhorn"sv,
+    "uhungarumlaut"sv,
+    "umacron"sv,
+    "underscore"sv,
+    "underscoredbl"sv,
+    "union"sv,
+    "universal"sv,
+    "uogonek"sv,
+    "upblock"sv,
+    "upsilon"sv,
+    "upsilondieresis"sv,
+    "upsilondieresistonos"sv,
+    "upsilontonos"sv,
+    "uring"sv,
+    "utilde"sv,
+    "v"sv,
+    "w"sv,
+    "wacute"sv,
+    "wcircumflex"sv,
+    "wdieresis"sv,
+    "weierstrass"sv,
+    "wgrave"sv,
+    "x"sv,
+    "xi"sv,
+    "y"sv,
+    "yacute"sv,
+    "ycircumflex"sv,
+    "ydieresis"sv,
+    "yen"sv,
+    "ygrave"sv,
+    "z"sv,
+    "zacute"sv,
+    "zcaron"sv,
+    "zdotaccent"sv,
+    "zero"sv,
+    "zeta"sv,
+    "a100"sv,
+    "a101"sv,
+    "a102"sv,
+    "a103"sv,
+    "a104"sv,
+    "a105"sv,
+    "a106"sv,
+    "a107"sv,
+    "a108"sv,
+    "a109"sv,
+    "a10"sv,
+    "a110"sv,
+    "a111"sv,
+    "a112"sv,
+    "a117"sv,
+    "a118"sv,
+    "a119"sv,
+    "a11"sv,
+    "a120"sv,
+    "a121"sv,
+    "a122"sv,
+    "a123"sv,
+    "a124"sv,
+    "a125"sv,
+    "a126"sv,
+    "a127"sv,
+    "a128"sv,
+    "a129"sv,
+    "a12"sv,
+    "a130"sv,
+    "a131"sv,
+    "a132"sv,
+    "a133"sv,
+    "a134"sv,
+    "a135"sv,
+    "a136"sv,
+    "a137"sv,
+    "a138"sv,
+    "a139"sv,
+    "a13"sv,
+    "a140"sv,
+    "a141"sv,
+    "a142"sv,
+    "a143"sv,
+    "a144"sv,
+    "a145"sv,
+    "a146"sv,
+    "a147"sv,
+    "a148"sv,
+    "a149"sv,
+    "a14"sv,
+    "a150"sv,
+    "a151"sv,
+    "a152"sv,
+    "a153"sv,
+    "a154"sv,
+    "a155"sv,
+    "a156"sv,
+    "a157"sv,
+    "a158"sv,
+    "a159"sv,
+    "a15"sv,
+    "a160"sv,
+    "a161"sv,
+    "a162"sv,
+    "a163"sv,
+    "a164"sv,
+    "a165"sv,
+    "a166"sv,
+    "a167"sv,
+    "a168"sv,
+    "a169"sv,
+    "a16"sv,
+    "a170"sv,
+    "a171"sv,
+    "a172"sv,
+    "a173"sv,
+    "a174"sv,
+    "a175"sv,
+    "a176"sv,
+    "a177"sv,
+    "a178"sv,
+    "a179"sv,
+    "a17"sv,
+    "a180"sv,
+    "a181"sv,
+    "a182"sv,
+    "a183"sv,
+    "a184"sv,
+    "a185"sv,
+    "a186"sv,
+    "a187"sv,
+    "a188"sv,
+    "a189"sv,
+    "a18"sv,
+    "a190"sv,
+    "a191"sv,
+    "a192"sv,
+    "a193"sv,
+    "a194"sv,
+    "a195"sv,
+    "a196"sv,
+    "a197"sv,
+    "a198"sv,
+    "a199"sv,
+    "a19"sv,
+    "a1"sv,
+    "a200"sv,
+    "a201"sv,
+    "a202"sv,
+    "a203"sv,
+    "a204"sv,
+    "a205"sv,
+    "a206"sv,
+    "a20"sv,
+    "a21"sv,
+    "a22"sv,
+    "a23"sv,
+    "a24"sv,
+    "a25"sv,
+    "a26"sv,
+    "a27"sv,
+    "a28"sv,
+    "a29"sv,
+    "a2"sv,
+    "a30"sv,
+    "a31"sv,
+    "a32"sv,
+    "a33"sv,
+    "a34"sv,
+    "a35"sv,
+    "a36"sv,
+    "a37"sv,
+    "a38"sv,
+    "a39"sv,
+    "a3"sv,
+    "a40"sv,
+    "a41"sv,
+    "a42"sv,
+    "a43"sv,
+    "a44"sv,
+    "a45"sv,
+    "a46"sv,
+    "a47"sv,
+    "a48"sv,
+    "a49"sv,
+    "a4"sv,
+    "a50"sv,
+    "a51"sv,
+    "a52"sv,
+    "a53"sv,
+    "a54"sv,
+    "a55"sv,
+    "a56"sv,
+    "a57"sv,
+    "a58"sv,
+    "a59"sv,
+    "a5"sv,
+    "a60"sv,
+    "a61"sv,
+    "a62"sv,
+    "a63"sv,
+    "a64"sv,
+    "a65"sv,
+    "a66"sv,
+    "a67"sv,
+    "a68"sv,
+    "a69"sv,
+    "a6"sv,
+    "a70"sv,
+    "a71"sv,
+    "a72"sv,
+    "a73"sv,
+    "a74"sv,
+    "a75"sv,
+    "a76"sv,
+    "a77"sv,
+    "a78"sv,
+    "a79"sv,
+    "a7"sv,
+    "a81"sv,
+    "a82"sv,
+    "a83"sv,
+    "a84"sv,
+    "a85"sv,
+    "a86"sv,
+    "a87"sv,
+    "a88"sv,
+    "a89"sv,
+    "a8"sv,
+    "a90"sv,
+    "a91"sv,
+    "a92"sv,
+    "a93"sv,
+    "a94"sv,
+    "a95"sv,
+    "a96"sv,
+    "a97"sv,
+    "a98"sv,
+    "a99"sv,
+    "a9"sv,
+};
+
 void ensureAglMapInitialized()
 {
     static struct Init
     {
         Init()
         {
-            // TODO: Optimize the compilation because it's very slow because of many AST nodes
-            // NOTE: The map is build will all the known AGL lists: "Adobe Glyph List",
+            static constexpr const char CompressedMaps[] =
+"\170\234\044\335\165\200\334\304\333\300\361\144\342\236\111\221"
+"\142\313\335\166\367\212\263\322\002\305\151\213\273\273\264\105"
+"\052\270\273\113\161\167\247\005\212\273\133\161\167\327\037\132"
+"\334\341\356\340\312\356\373\175\362\376\363\020\262\271\225\144"
+"\346\263\317\116\236\231\016\173\045\177\310\064\215\065\362\207"
+"\211\317\345\217\230\246\071\327\260\210\137\032\266\151\016\314"
+"\311\037\145\377\223\206\313\366\027\371\143\354\127\206\157\232"
+"\225\333\215\300\064\355\067\214\220\355\373\215\210\170\247\021"
+"\023\357\066\022\342\275\106\312\221\257\032\231\151\326\356\317"
+"\037\347\031\236\062\064\373\147\032\005\361\126\143\030\361\006"
+"\143\036\342\054\143\136\236\371\113\143\076\266\157\066\346\067"
+"\315\376\027\215\341\354\271\327\130\200\347\317\215\005\345\005"
+"\363\047\170\206\147\214\205\331\363\226\261\010\317\374\231\121"
+"\341\230\257\215\105\371\253\153\214\036\366\174\236\317\346\230"
+"\331\106\225\375\237\033\043\330\177\235\121\343\370\167\214\072"
+"\317\240\362\047\115\323\072\067\177\212\170\162\376\064\307\033"
+"\306\342\246\331\355\315\237\061\345\145\236\145\307\263\371\163"
+"\154\377\153\054\315\337\032\306\062\074\317\067\306\262\304\011"
+"\371\363\074\372\264\321\144\373\053\243\145\232\116\063\177\201"
+"\075\143\215\121\174\272\007\214\321\034\257\214\345\210\266\261"
+"\074\117\246\215\025\070\246\225\277\310\153\235\147\254\310\163"
+"\036\147\254\304\243\256\261\062\257\130\065\126\341\063\376\145"
+"\254\312\263\115\064\126\343\321\343\363\227\170\266\161\306\032"
+"\374\325\252\371\313\354\161\215\161\034\363\222\061\236\370\167"
+"\376\012\173\342\374\125\216\171\336\130\233\347\361\215\165\370"
+"\333\157\215\165\171\365\007\363\327\170\324\067\326\047\206\371"
+"\353\022\215\015\171\364\101\143\043\236\155\135\143\143\336\317"
+"\243\306\046\304\221\306\246\304\307\215\315\210\367\033\233\023"
+"\377\062\266\340\230\161\306\226\154\277\154\154\105\174\060\177"
+"\203\367\174\243\261\015\317\163\212\261\055\257\336\157\154\307"
+"\173\036\141\154\317\221\233\032\073\360\314\223\362\067\171\047"
+"\343\215\235\070\346\167\143\147\342\063\306\056\074\072\312\230"
+"\300\366\251\371\133\304\324\230\304\373\314\215\135\171\207\017"
+"\031\273\261\135\344\157\263\077\067\366\140\073\064\046\023\143"
+"\143\012\257\070\217\061\225\127\374\045\177\307\064\253\256\261"
+"\047\333\027\030\173\161\344\151\306\336\274\372\313\306\076\304"
+"\127\214\175\211\257\032\373\361\352\263\214\375\071\346\023\343"
+"\000\376\126\031\007\362\074\251\161\020\357\260\146\034\314\061"
+"\003\306\041\345\253\034\312\221\273\032\207\261\175\272\161\070"
+"\361\017\343\010\342\263\306\221\374\325\347\306\121\104\307\070"
+"\232\230\345\357\362\131\326\314\337\043\276\150\034\307\137\175"
+"\237\277\317\221\363\344\037\020\027\064\116\344\371\027\066\116"
+"\342\323\215\066\116\346\263\074\234\177\310\221\057\031\323\331"
+"\377\270\161\052\161\270\161\032\361\071\343\164\342\154\343\014"
+"\342\123\306\231\074\317\017\306\131\154\077\143\234\315\253\330"
+"\306\071\264\100\073\377\210\277\175\331\070\217\107\177\064\316"
+"\347\371\347\313\077\226\150\134\310\221\017\032\027\161\144\055"
+"\377\204\143\136\060\056\341\230\357\214\113\171\335\345\215\313"
+"\170\364\141\343\162\323\354\335\303\270\202\347\161\215\053\071"
+"\162\127\343\052\342\102\306\325\354\237\232\177\312\363\024\306"
+"\265\034\071\237\161\035\161\036\143\006\217\056\154\314\344\314"
+"\324\215\353\331\136\304\270\201\170\135\376\031\107\256\147\314"
+"\142\173\246\161\023\361\371\374\177\354\031\156\334\102\074\047"
+"\377\234\163\173\141\376\005\161\272\161\073\217\366\030\167\260"
+"\377\054\343\116\266\227\066\356\042\366\032\167\023\157\066\356"
+"\141\377\115\306\275\274\317\335\362\057\071\376\142\343\176\336"
+"\355\012\371\127\154\237\232\177\315\247\170\303\100\225\201\337"
+"\014\124\251\074\152\240\112\145\301\374\033\323\354\271\325\020"
+"\103\036\060\060\301\374\305\240\137\233\017\346\163\070\176\055"
+"\203\036\132\173\304\240\207\126\052\006\075\324\331\312\240\157"
+"\132\137\033\364\115\363\134\203\276\151\357\157\320\023\173\167"
+"\065\350\175\335\076\203\376\325\073\311\240\357\014\354\236\177"
+"\313\063\254\155\320\123\332\247\030\364\024\363\257\374\073\376"
+"\366\174\103\172\304\005\206\264\352\037\362\357\115\151\224\077"
+"\020\347\030\322\032\253\006\255\256\366\150\376\043\333\013\033"
+"\357\225\173\344\352\367\344\077\111\064\270\326\366\060\203\253"
+"\346\214\065\270\122\366\005\006\127\307\076\317\340\154\333\347"
+"\030\162\046\317\067\070\173\116\333\340\274\331\226\301\171\253"
+"\364\030\234\215\356\110\203\363\320\377\232\301\171\030\330\305"
+"\340\123\017\354\141\360\031\325\345\006\357\323\374\072\377\231"
+"\167\273\116\376\213\151\326\137\317\177\045\336\234\377\106\274"
+"\045\377\235\170\255\301\243\355\227\015\036\265\147\031\074\152"
+"\337\155\360\250\275\104\376\007\177\333\147\020\053\113\030\177"
+"\022\027\063\376\342\375\077\226\263\155\326\214\176\366\364\031"
+"\003\304\252\061\110\254\031\377\360\116\026\063\376\345\035\256"
+"\156\014\161\006\276\063\346\362\116\046\033\377\361\336\136\067"
+"\072\304\101\243\313\153\235\223\363\074\242\011\257\262\154\376"
+"\067\377\151\231\370\157\057\223\363\234\234\115\207\277\372\071"
+"\347\231\315\245\114\217\370\272\211\377\265\307\163\136\305\170"
+"\315\304\377\201\137\114\374\267\135\023\377\225\237\363\272\234"
+"\167\374\257\054\143\342\277\375\265\231\163\314\257\046\376\233"
+"\215\374\137\211\246\370\377\222\211\377\366\173\046\376\333\363"
+"\346\274\303\136\235\363\016\271\212\342\377\117\046\376\127\136"
+"\060\361\337\036\156\056\304\063\207\246\370\277\100\316\373\067"
+"\227\060\361\337\376\322\304\377\356\342\046\376\073\053\231\275"
+"\354\061\163\076\227\271\114\316\347\262\056\065\361\337\274\110"
+"\033\154\337\054\057\156\235\146\216\344\231\247\230\213\361\077"
+"\027\153\105\134\214\147\062\053\113\231\113\362\267\007\362\371"
+"\114\373\140\315\147\067\326\063\361\337\131\303\304\377\332\023"
+"\232\357\101\163\224\211\377\266\157\212\377\353\233\155\136\167"
+"\011\366\231\003\123\065\347\007\177\361\277\175\222\211\377\355"
+"\127\115\374\267\257\061\307\360\314\015\023\377\355\005\115\374"
+"\267\057\063\361\337\176\132\363\115\152\135\146\342\277\175\225"
+"\211\377\366\025\346\352\074\377\167\046\376\363\054\143\171\305"
+"\331\346\270\162\033\377\053\055\163\115\136\161\013\163\055\342"
+"\152\046\376\333\165\023\377\255\071\246\134\261\113\314\365\330"
+"\023\233\370\137\031\145\156\300\273\132\322\304\177\373\130\023"
+"\377\255\317\114\361\177\157\023\377\007\246\151\256\235\261\201"
+"\211\377\346\363\046\376\367\077\241\271\216\346\030\315\367\270"
+"\165\271\346\072\232\253\230\133\023\127\062\361\277\366\244\211"
+"\377\225\225\315\355\144\217\346\372\362\136\167\050\343\216\354"
+"\137\316\304\377\312\012\046\376\073\053\233\370\157\276\140\342"
+"\277\035\230\023\331\277\242\211\377\335\245\064\355\201\117\205"
+"\377\375\377\230\273\363\036\366\324\344\006\174\077\341\177\373"
+"\144\023\377\373\337\060\361\177\340\016\163\032\177\265\252\211"
+"\377\265\247\114\374\257\254\156\342\177\145\254\211\377\316\170"
+"\023\377\273\113\233\342\377\136\046\376\233\127\150\132\227\165"
+"\205\246\165\361\075\207\377\346\113\232\066\146\216\323\162\231"
+"\327\066\361\237\263\206\377\265\247\115\374\257\254\147\036\121"
+"\356\301\377\312\170\023\377\053\153\231\370\157\136\151\036\103"
+"\253\233\154\036\313\366\313\046\376\333\241\171\074\217\256\143"
+"\236\300\053\056\143\342\277\263\226\211\377\003\173\153\362\026"
+"\343\115\363\024\266\177\327\264\136\353\112\115\353\065\066\326"
+"\264\136\316\051\376\367\377\253\311\141\220\105\374\377\323\304"
+"\177\373\073\123\374\377\101\223\325\160\075\316\045\276\151\342"
+"\277\171\265\211\377\265\147\064\355\034\203\304\377\067\114\374"
+"\257\174\140\136\114\174\213\253\152\126\336\061\361\177\340\057"
+"\123\374\177\317\304\177\273\142\342\077\327\022\377\125\254\351"
+"\035\230\205\377\366\034\363\032\216\354\067\305\377\127\114\374"
+"\357\037\322\364\032\343\055\023\377\007\376\060\361\337\331\322"
+"\304\377\336\076\363\106\216\171\115\323\233\370\033\374\257\174"
+"\144\336\114\374\322\304\377\312\047\346\255\304\317\314\333\210"
+"\237\353\205\313\327\022\377\257\063\361\137\245\132\362\256\015"
+"\114\374\257\154\146\342\177\145\023\135\051\237\363\076\336\303"
+"\056\046\376\133\067\231\017\260\175\270\371\040\361\110\115\337"
+"\264\316\326\364\115\353\152\115\337\264\316\060\311\044\273\313"
+"\232\370\337\273\213\051\376\377\140\212\377\077\231\144\156\346"
+"\311\232\314\315\370\100\223\271\231\035\023\377\007\006\115\374"
+"\037\330\307\174\266\334\043\376\037\255\351\321\306\273\264\065"
+"\263\262\201\211\377\225\215\114\361\377\157\115\216\107\226\203"
+"\377\225\055\114\374\257\075\153\222\027\125\266\302\052\323\136"
+"\324\304\177\147\075\316\275\151\337\240\373\170\047\067\230\342"
+"\377\114\215\006\326\065\046\071\200\263\271\211\377\335\206\106"
+"\006\153\226\311\267\277\275\257\211\377\003\373\152\262\104\062"
+"\047\374\257\075\147\342\177\267\151\342\377\300\176\032\067\310"
+"\245\304\377\015\064\172\230\133\150\364\240\347\340\277\271\225"
+"\211\377\265\347\315\257\313\155\374\127\271\211\377\225\155\114"
+"\374\257\154\107\137\067\053\073\230\174\037\071\233\150\262\315"
+"\336\205\065\332\130\327\162\046\314\376\271\046\376\253\302\304"
+"\377\312\116\046\376\167\133\046\376\017\354\157\362\355\240\216"
+"\063\361\137\335\257\161\311\330\134\067\370\276\210\065\056\325"
+"\347\321\270\124\317\065\056\325\207\153\134\252\257\254\311\113"
+"\353\113\151\134\252\217\322\270\124\137\130\343\122\275\246\161"
+"\251\156\150\134\252\053\215\113\365\011\032\227\352\023\065\171"
+"\151\175\053\215\113\365\055\065\056\325\047\151\134\252\157\252"
+"\161\251\276\265\306\245\372\216\032\227\352\073\150\134\252\157"
+"\257\161\251\276\223\306\245\372\316\032\227\352\333\151\134\252"
+"\157\241\161\251\076\105\343\122\175\167\215\113\365\135\064\056"
+"\325\067\321\270\124\337\123\343\122\175\017\215\113\365\311\032"
+"\227\352\273\152\362\322\372\156\032\227\352\333\152\134\252\157"
+"\243\311\113\353\233\151\362\322\372\346\232\274\264\076\115\343"
+"\122\175\252\226\274\164\073\105\073\254\354\252\150\173\326\347"
+"\032\243\314\135\024\155\254\262\273\242\215\365\377\247\305\253"
+"\235\224\264\242\263\225\344\377\037\050\332\206\375\221\342\272"
+"\327\136\320\344\261\346\016\212\253\254\206\053\256\154\145\027"
+"\045\376\117\124\134\301\312\144\305\025\164\066\124\162\105\166"
+"\127\342\377\332\212\363\154\057\246\070\317\366\342\212\363\154"
+"\175\251\070\317\366\303\212\363\154\375\244\361\320\232\241\070"
+"\317\275\273\051\316\163\267\255\044\377\137\112\161\236\007\016"
+"\120\234\147\353\043\215\226\306\026\032\055\255\231\132\262\345"
+"\335\265\150\271\253\342\074\233\023\025\347\271\366\242\342\074"
+"\127\366\125\153\224\173\070\317\225\251\212\363\134\331\123\161"
+"\236\355\252\342\074\333\267\052\316\163\357\024\045\376\337\253"
+"\221\326\272\104\211\377\267\152\274\065\076\123\234\347\201\216"
+"\342\074\367\116\124\234\347\376\216\222\374\177\143\305\171\256"
+"\354\255\070\317\335\121\212\363\354\214\121\342\377\243\212\363"
+"\154\236\250\070\317\346\215\212\363\154\336\256\044\377\357\123"
+"\234\147\073\122\234\347\201\003\025\347\266\167\232\342\174\366"
+"\116\320\170\156\154\251\311\347\215\217\024\237\150\340\137\215"
+"\352\346\236\112\076\321\333\212\117\124\173\111\043\274\361\261"
+"\022\377\017\126\034\077\060\244\070\336\036\241\344\310\175\025"
+"\217\252\171\064\371\277\361\211\302\177\363\175\205\377\225\375"
+"\025\376\233\037\052\374\267\177\123\370\157\176\254\044\377\177"
+"\127\341\377\300\134\205\377\225\257\065\307\033\037\052\361\377"
+"\037\205\377\225\071\232\277\065\357\120\222\377\177\247\360\277"
+"\362\233\042\377\257\374\240\310\377\053\077\051\374\257\374\242"
+"\247\226\257\213\377\366\037\012\377\325\174\112\362\377\103\065"
+"\257\145\116\125\222\377\377\242\360\277\162\270\302\377\356\150"
+"\055\257\276\277\346\325\255\353\065\257\156\275\245\360\337\172"
+"\133\341\277\171\227\346\235\130\267\050\374\267\336\121\323\345"
+"\121\315\267\222\165\226\346\135\231\173\053\374\267\123\105\376"
+"\077\160\220\302\177\373\166\045\376\337\251\345\333\152\262\042"
+"\377\257\034\252\360\277\162\240\346\227\213\261\225\022\377\137"
+"\126\027\260\347\150\205\377\166\241\360\337\331\110\341\277\171"
+"\267\302\377\356\162\112\362\377\165\024\376\017\034\254\360\277"
+"\162\244\346\363\032\133\153\371\274\307\053\362\377\332\053\232"
+"\117\155\036\250\345\123\237\250\304\377\223\225\344\377\323\265"
+"\234\201\143\225\344\377\313\053\374\037\070\104\363\155\150\154"
+"\243\360\277\366\252\042\377\257\234\241\304\377\323\024\376\073"
+"\253\150\316\222\165\225\302\377\356\012\012\377\007\016\325\234"
+"\061\143\133\315\031\063\076\125\370\077\360\237\222\374\177\242"
+"\302\377\332\153\232\357\120\363\140\055\337\241\207\052\374\037"
+"\350\052\374\257\234\245\360\277\362\227\022\377\227\124\344\377"
+"\366\240\226\063\374\207\222\121\205\173\024\376\127\372\025\376"
+"\073\153\052\374\267\075\205\377\316\146\012\377\273\143\024\371"
+"\377\300\141\112\362\377\101\205\377\366\124\205\377\366\236\012"
+"\377\355\335\225\370\077\131\163\245\214\355\024\376\073\313\151"
+"\276\257\315\303\064\337\327\346\121\212\137\315\375\135\205\377"
+"\265\327\025\376\127\316\121\362\273\370\010\175\202\104\205\377"
+"\225\363\224\370\077\277\342\367\251\175\211\302\177\373\063\055"
+"\327\367\042\045\376\257\250\360\337\176\122\221\377\333\363\051"
+"\361\377\042\045\371\377\047\212\374\277\162\201\302\377\356\212"
+"\012\377\007\016\127\362\153\353\076\115\253\060\046\050\374\017"
+"\116\326\374\066\064\276\120\344\377\201\253\360\077\074\131\341"
+"\177\350\052\374\017\127\125\370\337\266\024\376\007\217\053\374"
+"\017\126\125\370\037\076\256\304\377\235\025\277\107\202\175\025"
+"\277\101\202\223\024\376\067\027\324\247\110\252\252\304\377\073"
+"\224\344\377\157\052\374\257\074\240\360\277\162\227\222\374\377"
+"\036\045\371\377\175\212\274\335\174\115\221\261\327\336\320\264"
+"\111\343\113\045\371\377\365\112\362\377\333\024\171\170\345\106"
+"\105\276\135\271\111\221\135\127\156\321\374\142\065\356\125\344"
+"\317\326\374\212\074\331\062\365\151\022\055\062\344\140\013\031"
+"\362\121\257\133\144\305\326\032\226\344\377\015\213\274\127\231"
+"\026\371\155\270\237\105\326\032\070\232\166\156\174\155\221\067"
+"\332\157\133\344\215\346\377\054\031\377\271\326\222\374\360\013"
+"\115\373\067\346\150\332\277\371\237\105\206\326\334\304\042\103"
+"\063\277\262\310\315\172\346\265\310\315\172\146\132\205\014\267"
+"\130\303\144\234\304\222\374\277\260\044\377\037\146\315\047\243"
+"\001\326\374\362\133\300\032\056\231\274\045\343\077\363\131\222"
+"\377\317\157\055\044\277\002\254\062\377\267\026\221\214\332\222"
+"\374\177\041\153\121\371\235\153\365\310\057\134\113\362\377\212"
+"\125\225\157\174\153\204\374\172\265\304\377\136\113\374\257\132"
+"\175\142\221\065\122\176\145\133\213\111\026\155\055\056\342\131"
+"\370\157\217\264\044\377\137\314\222\374\177\161\153\151\371\265"
+"\145\055\043\155\330\022\377\227\262\304\377\245\055\311\377\227"
+"\261\304\377\145\255\266\374\006\264\370\236\265\225\065\132\176"
+"\375\131\370\157\333\226\370\357\130\222\377\273\326\030\151\341"
+"\226\344\377\276\045\371\177\140\111\376\037\132\253\210\261\226"
+"\344\377\261\045\371\177\152\341\177\377\063\026\376\367\077\153"
+"\215\055\317\074\376\333\115\113\374\157\131\342\177\333\302\177"
+"\173\224\045\376\217\266\370\236\265\067\265\360\337\136\316\222"
+"\374\177\171\013\377\355\025\054\374\267\307\130\222\377\257\150"
+"\341\277\275\222\045\371\377\312\226\214\377\254\142\311\370\317"
+"\252\226\214\377\254\146\311\370\317\352\026\376\333\153\130\062"
+"\376\063\326\022\377\307\131\342\377\170\013\377\355\065\055\374"
+"\267\327\262\360\337\136\333\342\173\323\136\307\342\373\316\136"
+"\327\302\177\173\075\213\157\064\173\175\013\377\355\015\054\374"
+"\267\067\264\044\377\337\310\302\177\173\143\013\377\355\163\055"
+"\361\177\063\013\377\355\315\055\374\267\267\260\360\337\336\322"
+"\302\163\173\053\113\306\177\266\266\120\332\336\306\022\377\267"
+"\265\020\330\336\316\102\140\173\173\013\201\355\035\054\324\265"
+"\167\262\220\326\316\254\375\304\037\013\121\355\375\055\031\377"
+"\071\320\302\303\376\347\054\074\264\167\266\220\320\236\144\041"
+"\241\175\200\205\176\366\101\026\342\365\077\157\041\133\377\013"
+"\026\232\331\037\132\150\326\223\132\330\325\223\131\330\325\223"
+"\130\350\344\116\265\120\305\215\055\074\161\167\261\360\304\235"
+"\140\341\206\073\321\302\007\167\222\105\117\167\167\265\350\343"
+"\356\156\026\175\323\335\335\242\257\271\173\130\364\046\167\062"
+"\277\051\115\167\212\105\277\160\027\042\303\065\335\105\055\332"
+"\277\333\153\341\277\133\265\310\377\335\021\026\376\273\065\013"
+"\377\335\272\105\376\357\366\131\370\357\216\264\360\337\135\314"
+"\302\177\167\161\013\377\335\045\054\374\167\227\264\360\337\135"
+"\212\337\257\246\273\064\277\024\115\167\031\013\377\335\145\055"
+"\362\177\267\141\221\377\273\115\013\377\335\226\105\376\357\266"
+"\311\141\115\167\024\371\243\351\216\266\360\337\135\316\232\101"
+"\134\336\302\177\167\005\013\377\335\061\344\274\246\273\242\205"
+"\377\356\352\144\270\246\273\006\331\272\351\216\265\360\337\035"
+"\147\221\377\273\343\055\374\167\327\264\360\337\135\313\272\235"
+"\270\216\105\376\357\256\153\341\277\273\236\205\377\356\372\026"
+"\376\273\033\130\344\377\356\206\326\275\304\215\054\374\167\067"
+"\266\360\337\335\304\302\177\167\123\013\377\335\315\054\374\167"
+"\327\266\036\046\316\264\360\337\075\332\302\177\367\144\013\377"
+"\335\113\054\374\167\357\260\360\337\075\314\302\177\167\272\205"
+"\377\356\271\026\376\273\017\133\370\357\276\145\341\277\373\256"
+"\205\377\075\067\133\370\357\074\156\075\117\174\332\022\377\337"
+"\260\310\377\235\067\055\362\177\347\055\013\377\235\267\055\374"
+"\167\336\261\360\337\171\327\302\177\347\075\213\374\337\171\337"
+"\222\374\377\003\013\377\235\017\055\374\167\076\262\360\337\371"
+"\330\172\207\370\211\045\376\177\152\341\277\363\231\205\377\316"
+"\377\054\374\167\076\267\360\337\371\302\222\361\237\057\055\374"
+"\167\276\262\360\337\371\332\302\177\347\033\176\133\233\316\034"
+"\113\362\377\157\255\317\211\337\131\370\357\174\157\341\277\363"
+"\203\205\377\103\113\130\370\077\264\244\205\377\103\353\363\173"
+"\335\034\132\324\302\177\347\067\013\377\235\337\055\361\377\017"
+"\013\377\207\106\133\370\357\334\153\341\277\163\237\105\376\357"
+"\334\157\341\277\363\210\205\377\316\203\026\376\073\017\130\370"
+"\357\334\151\341\277\163\267\205\377\316\135\026\376\073\367\130"
+"\370\357\074\145\365\023\237\264\360\337\171\310\302\177\347\121"
+"\013\377\235\307\054\031\377\171\302\302\177\147\266\065\027\317"
+"\037\265\360\277\327\261\360\277\167\230\325\045\316\147\343\177"
+"\317\122\062\310\321\263\264\215\377\075\313\330\370\337\023\333"
+"\354\162\367\262\361\137\075\246\151\317\306\347\266\307\167\301"
+"\111\066\376\207\016\277\365\315\306\130\133\374\237\141\343\177"
+"\160\216\315\357\375\146\305\346\067\176\220\333\370\157\277\153"
+"\343\177\170\216\235\313\340\264\215\377\341\072\166\041\255\321"
+"\306\377\316\113\066\376\167\136\266\361\277\363\212\215\377\312"
+"\262\361\077\170\301\306\377\140\035\033\377\303\027\154\374\157"
+"\134\147\343\177\167\077\033\377\233\033\333\213\310\325\347\327"
+"\060\075\210\337\166\346\120\303\306\377\316\131\166\257\364\065"
+"\033\377\073\047\332\043\244\257\331\370\337\231\156\327\313\343"
+"\361\177\150\143\173\244\364\112\033\377\073\307\333\213\113\333"
+"\266\361\277\363\233\215\377\235\077\155\374\357\374\145\343\377"
+"\320\062\066\376\017\055\253\351\277\275\243\155\374\257\156\240"
+"\351\305\326\135\232\136\154\335\252\317\053\107\313\360\277\273"
+"\206\246\057\033\175\266\344\377\256\215\377\003\175\066\376\267"
+"\237\262\361\277\131\265\361\277\131\263\361\077\335\116\323\337"
+"\253\075\066\376\067\174\033\377\073\253\331\370\337\010\154\374"
+"\357\254\256\161\140\304\342\032\007\106\054\141\343\177\357\222"
+"\032\015\254\123\154\374\017\066\263\361\077\070\336\306\377\100"
+"\331\370\037\036\257\121\302\164\154\374\157\033\066\376\327\256"
+"\260\361\337\331\316\336\120\256\262\215\377\203\135\033\377\253"
+"\233\150\044\251\256\143\343\177\165\063\033\377\253\153\332\370"
+"\337\074\313\306\377\346\231\066\376\217\050\154\374\257\134\246"
+"\321\306\370\106\243\215\071\144\313\370\217\251\061\247\367\002"
+"\033\377\173\277\262\361\277\367\163\033\377\173\277\264\361\277"
+"\367\013\215\105\275\357\150\054\352\175\133\313\130\364\033\032"
+"\213\172\337\322\130\324\373\246\306\242\336\363\155\374\357\275"
+"\324\306\377\336\113\154\374\357\375\336\306\177\365\254\215\377"
+"\352\051\033\377\325\323\066\376\253\147\154\374\037\374\126\143"
+"\127\357\071\366\336\362\154\066\376\367\276\312\157\161\263\367"
+"\071\033\377\173\347\150\114\353\075\317\306\377\336\327\155\374"
+"\037\171\225\215\377\275\317\330\370\337\373\235\215\377\275\137"
+"\333\370\337\373\215\306\275\336\163\265\214\173\134\250\161\257"
+"\167\226\175\144\031\361\277\367\042\033\377\173\237\265\145\374"
+"\347\142\033\377\173\277\265\361\177\160\216\306\106\143\047\133"
+"\306\177\126\325\010\151\034\155\343\177\167\047\033\377\325\246"
+"\066\376\253\315\154\374\157\254\141\343\177\343\132\033\377\273"
+"\173\150\024\065\226\260\317\050\373\213\370\277\227\106\324\352"
+"\374\066\355\247\033\332\264\234\316\004\233\226\323\063\326\246"
+"\345\364\177\157\323\146\252\343\064\336\032\253\153\274\065\276"
+"\262\271\356\335\036\233\053\336\231\146\163\145\325\046\066\127"
+"\055\270\300\346\212\064\173\154\256\110\060\217\315\265\010\057"
+"\260\071\347\341\074\066\347\074\170\337\346\234\207\033\330\234"
+"\363\340\025\233\163\036\154\140\163\316\303\127\154\316\141\260"
+"\212\315\271\162\046\330\062\376\363\245\315\171\030\352\261\157"
+"\224\155\215\355\306\104\233\117\027\334\252\021\336\330\301\346"
+"\335\166\127\266\171\077\301\122\066\357\047\274\325\346\230\160"
+"\051\233\107\033\373\332\370\237\256\146\343\177\343\015\315\266"
+"\161\244\215\377\335\035\154\374\157\072\066\376\327\336\264\045"
+"\377\267\154\311\377\035\033\377\373\366\264\361\277\072\332\176"
+"\130\062\031\133\374\137\314\306\377\316\071\066\376\167\316\265"
+"\361\277\161\230\215\377\235\363\154\374\237\173\265\215\377\163"
+"\175\033\377\347\356\145\343\177\343\103\033\377\235\211\366\263"
+"\342\274\346\325\255\273\155\374\267\336\260\361\177\250\151\277"
+"\130\106\361\377\115\033\377\207\066\260\361\077\270\315\306\377"
+"\140\151\033\377\303\333\154\374\017\227\266\361\137\155\156\343"
+"\177\343\000\033\377\033\157\333\370\257\056\261\361\077\124\066"
+"\376\267\233\366\173\062\032\157\343\177\375\071\033\377\353\217"
+"\332\370\137\177\306\306\377\372\154\373\143\031\272\266\361\277"
+"\263\222\215\377\015\155\343\177\147\145\033\377\353\137\331\370"
+"\137\377\322\306\377\372\255\066\376\327\037\266\361\277\176\277"
+"\375\265\214\355\333\370\337\267\222\215\377\365\153\154\374\357"
+"\163\154\374\257\177\155\343\177\375\033\033\377\353\367\332\370"
+"\137\277\333\306\377\332\010\033\377\053\236\346\173\266\076\335"
+"\226\361\237\261\066\376\247\013\332\370\337\070\322\306\377\306"
+"\047\066\376\327\256\264\361\277\375\264\215\377\203\177\151\256"
+"\210\161\204\215\377\203\177\332\370\077\370\207\055\343\377\333"
+"\333\370\337\331\336\306\377\301\337\155\374\357\054\257\271\152"
+"\306\121\066\376\017\166\154\374\037\374\317\301\377\356\216\216"
+"\014\263\355\340\340\377\340\134\007\377\073\053\150\256\254\261"
+"\275\303\003\203\277\071\344\377\203\277\072\370\337\135\311\301"
+"\377\301\137\064\127\334\330\321\301\377\301\041\007\377\007\377"
+"\165\360\277\273\212\203\377\203\377\150\132\202\372\300\301\177"
+"\153\031\007\377\055\327\301\177\153\131\007\377\055\355\310\010"
+"\352\004\007\377\255\045\034\374\267\126\324\264\031\343\006\107"
+"\106\112\217\165\360\277\377\007\007\377\315\023\034\361\377\140"
+"\007\377\033\357\151\132\124\117\325\301\377\372\007\016\376\127"
+"\027\160\360\277\376\232\226\073\327\223\034\374\167\366\166\360"
+"\077\270\114\313\357\115\317\301\377\140\101\007\377\303\313\034"
+"\374\017\027\164\360\277\075\335\301\377\340\070\007\377\255\334"
+"\301\377\300\164\360\077\074\316\301\377\336\037\034\031\377\161"
+"\064\155\125\075\357\220\377\133\113\071\370\157\305\132\306\055"
+"\357\163\310\377\233\303\265\214\136\046\132\356\112\177\353\310"
+"\375\337\300\301\377\332\133\132\106\062\003\007\377\325\226\016"
+"\376\233\221\176\122\242\203\377\355\147\065\155\333\170\320\301"
+"\177\153\244\246\205\033\327\071\370\337\153\071\222\377\377\317"
+"\041\377\357\176\356\220\377\017\134\347\310\375\337\317\035\362"
+"\177\347\060\107\374\277\334\021\377\027\162\360\077\274\334\021"
+"\377\027\162\310\377\233\363\070\222\377\077\346\340\377\310\141"
+"\216\344\377\153\073\222\377\077\341\110\376\377\200\043\371\377"
+"\337\016\371\277\163\200\043\371\377\053\216\344\377\017\151\271"
+"\263\366\274\203\377\255\103\034\374\157\315\357\340\177\153\212"
+"\103\376\337\134\317\041\377\157\005\016\376\247\241\103\376\237"
+"\372\016\376\247\201\203\377\151\354\340\277\071\335\301\377\326"
+"\301\016\371\177\153\076\207\374\277\065\331\041\377\157\256\343"
+"\220\377\267\174\207\374\277\265\260\246\347\326\137\326\144\156"
+"\325\213\035\374\257\136\252\351\277\325\013\035\374\157\054\347"
+"\340\177\375\015\007\377\353\157\152\172\264\172\316\221\373\277"
+"\113\073\062\002\243\034\374\037\061\322\301\177\363\051\007\377"
+"\315\331\216\214\264\074\351\310\210\312\323\232\276\337\067\311"
+"\071\260\214\370\337\267\207\203\377\355\231\016\376\167\307\071"
+"\370\337\276\306\041\377\167\216\323\162\157\175\105\215\017\075"
+"\327\072\370\337\135\320\071\252\334\306\377\316\226\016\376\253"
+"\067\035\374\127\157\150\364\060\226\162\310\377\255\141\016\376"
+"\133\363\072\344\377\375\117\073\222\377\307\016\376\073\073\072"
+"\370\337\377\205\203\377\335\330\301\177\153\036\347\064\311\216"
+"\034\362\377\316\046\016\376\367\177\351\340\277\125\070\344\113"
+"\352\021\007\377\373\126\326\257\312\167\256\203\377\325\145\034"
+"\374\037\141\071\222\063\270\016\371\200\341\071\174\357\033\276"
+"\203\377\306\160\007\377\215\304\301\177\103\073\370\157\024\216"
+"\174\043\017\163\360\337\230\307\301\177\343\030\007\377\215\334"
+"\301\177\143\001\007\377\015\307\301\177\303\166\360\337\130\310"
+"\301\177\143\176\007\377\015\313\301\177\043\166\360\337\130\330"
+"\301\177\143\021\007\377\215\300\221\357\270\320\221\157\267\171"
+"\035\371\346\252\070\370\157\144\216\174\037\245\216\174\037\051"
+"\107\276\043\114\107\276\035\026\164\304\374\371\034\004\066\026"
+"\165\160\311\210\064\272\032\067\071\110\062\370\275\203\022\375"
+"\037\072\150\320\210\035\172\175\167\242\103\137\356\254\341\320"
+"\133\033\211\103\337\354\116\162\350\217\235\261\016\175\252\175"
+"\214\103\077\152\077\357\320\203\332\317\071\364\240\332\125\016"
+"\275\246\347\072\207\236\242\056\166\350\043\325\327\035\172\107"
+"\365\065\215\336\306\114\207\126\324\377\246\103\053\352\177\313"
+"\241\375\364\277\343\320\132\372\337\325\250\156\354\352\210\377"
+"\273\072\134\337\340\006\347\025\371\355\343\210\377\175\016\357"
+"\260\363\270\303\063\164\236\160\070\262\063\333\221\374\377\121"
+"\107\362\377\107\065\333\075\075\232\355\236\136\007\377\303\033"
+"\034\374\017\373\034\374\157\354\342\340\177\143\266\363\241\374"
+"\346\162\044\377\177\333\301\377\241\266\363\111\031\077\065\225"
+"\141\070\237\021\371\255\100\124\316\347\104\313\371\242\074\362"
+"\113\266\155\347\053\242\343\174\115\164\235\157\210\236\063\107"
+"\352\146\234\157\211\201\363\035\061\164\276\047\106\316\017\304"
+"\330\371\221\230\070\077\021\123\347\147\142\346\374\042\145\057"
+"\316\257\104\355\374\106\054\234\337\211\303\034\374\357\334\354"
+"\374\051\277\271\234\277\312\370\267\374\042\163\372\313\210\377"
+"\301\256\216\344\377\067\072\377\224\021\377\355\223\034\374\357"
+"\177\333\301\377\106\350\220\377\167\126\161\360\277\021\071\370"
+"\337\131\325\225\073\244\113\002\074\271\234\253\044\177\163\361"
+"\077\330\315\045\377\357\177\317\305\177\053\163\171\270\272\224"
+"\213\377\075\363\273\370\157\265\135\271\157\270\232\213\377\352"
+"\141\027\377\173\346\163\361\337\112\135\374\157\006\056\371\177"
+"\373\005\055\367\131\062\027\377\053\332\305\377\332\333\256\324"
+"\377\014\323\174\363\232\332\305\377\340\132\027\377\203\136\227"
+"\374\077\274\326\305\377\260\327\035\056\277\007\135\374\037\072"
+"\325\305\377\140\007\027\377\203\353\134\362\377\240\352\342\177"
+"\170\235\213\377\141\325\225\372\237\310\225\361\377\304\225\374"
+"\177\232\133\055\243\214\377\214\322\122\335\161\247\053\371\377"
+"\155\056\376\067\366\160\345\216\317\257\056\376\067\236\167\361"
+"\177\304\222\056\376\217\350\323\134\175\353\136\127\356\340\234"
+"\351\342\177\060\350\222\377\253\231\056\376\007\067\272\370\037"
+"\214\164\233\274\342\215\056\376\207\043\335\066\217\156\355\222"
+"\377\133\047\271\370\157\215\327\264\234\276\335\135\362\377\276"
+"\211\232\366\143\314\162\361\277\377\175\227\374\337\252\271\370"
+"\157\371\356\312\354\371\100\177\130\376\025\371\177\143\242\053"
+"\371\377\123\056\376\067\054\055\365\041\003\056\376\127\107\270"
+"\370\137\235\327\225\361\237\315\064\155\257\176\276\213\377\225"
+"\314\305\377\366\305\356\072\345\331\303\377\356\170\115\233\254"
+"\237\350\342\177\232\272\370\237\316\343\342\177\143\212\213\377"
+"\215\027\065\271\212\121\163\361\277\377\053\027\377\273\266\213"
+"\377\003\065\227\374\277\063\305\305\377\376\257\065\231\114\317"
+"\055\056\376\267\373\064\371\214\372\320\305\177\313\163\361\337"
+"\032\241\245\046\144\204\213\377\215\041\115\013\067\233\056\376"
+"\367\077\356\342\277\072\121\223\355\124\237\165\361\277\376\212"
+"\073\101\176\341\272\023\313\210\377\126\305\335\225\143\336\165"
+"\311\377\153\127\273\370\337\377\243\113\376\257\266\162\145\374"
+"\377\014\027\377\033\273\271\370\337\170\326\225\061\371\077\135"
+"\374\127\063\134\031\377\177\316\305\177\165\275\053\343\077\137"
+"\270\062\376\263\245\053\343\077\073\153\062\053\143\067\055\025"
+"\046\337\273\342\377\032\056\376\007\147\273\370\337\134\130\223"
+"\153\231\363\272\370\037\044\056\376\207\147\272\207\263\275\246"
+"\173\004\333\317\152\162\060\163\041\127\356\377\056\342\342\277"
+"\263\233\213\377\316\051\056\376\327\336\321\122\103\362\203\053"
+"\367\177\237\160\361\277\262\200\053\365\077\317\273\370\137\171"
+"\322\305\377\312\323\056\376\127\236\165\247\313\130\226\213\377"
+"\312\161\361\077\310\064\031\235\361\243\213\377\346\374\132\352"
+"\114\346\167\245\376\347\041\027\377\303\314\045\377\017\327\166"
+"\317\225\261\065\115\276\147\174\347\342\177\170\266\213\377\316"
+"\036\056\376\067\027\161\361\277\261\216\053\367\177\037\161\361"
+"\277\271\250\046\047\064\126\160\145\374\147\262\053\371\377\057"
+"\056\376\327\366\160\361\177\344\271\256\344\377\173\273\370\137"
+"\333\317\305\377\332\111\056\376\327\056\165\045\377\377\305\305"
+"\377\160\157\167\146\371\267\370\337\130\314\305\377\276\151\056"
+"\376\267\106\272\370\337\063\335\305\377\356\160\027\377\007\126"
+"\160\361\277\166\204\213\377\265\263\135\031\377\031\164\361\277"
+"\367\020\027\377\173\016\165\045\377\337\306\305\177\345\271\122"
+"\377\263\233\113\266\331\230\345\342\177\367\100\027\377\303\003"
+"\135\374\157\156\341\312\375\337\225\064\171\154\325\167\361\277"
+"\066\325\305\377\332\321\056\376\327\316\163\361\277\367\160\115"
+"\176\333\323\347\342\177\365\027\375\013\347\152\230\213\377\225"
+"\371\135\374\257\314\353\076\045\043\226\232\274\267\147\036\227"
+"\054\245\323\164\361\277\273\246\053\343\077\333\153\062\341\252"
+"\343\342\177\163\204\373\242\214\152\152\262\342\236\141\056\376"
+"\167\132\056\376\333\063\264\324\311\254\357\342\177\263\356\312"
+"\375\337\353\135\374\267\137\160\305\174\245\245\132\146\001\027"
+"\227\232\233\273\050\244\266\167\121\102\135\346\042\200\332\301"
+"\245\027\253\235\134\372\257\332\321\245\237\326\256\321\030\153"
+"\335\247\061\326\272\115\113\075\314\052\056\175\252\273\210\053"
+"\371\377\356\056\375\245\347\110\215\272\325\011\056\275\243\331"
+"\347\176\051\043\253\056\255\124\155\343\176\055\343\242\356\067"
+"\062\312\352\322\366\354\133\134\332\230\072\301\245\265\250\223"
+"\135\332\111\220\272\062\376\277\226\053\065\110\067\273\234\067"
+"\165\222\313\371\151\254\355\162\146\032\067\272\222\377\117\325"
+"\170\336\273\214\313\047\355\377\111\243\272\365\200\053\343\077"
+"\223\065\266\133\267\153\154\067\176\163\245\376\347\061\127\306"
+"\377\027\162\305\377\163\335\177\312\370\157\031\207\312\210\377"
+"\346\247\056\376\067\047\270\035\251\305\162\361\077\170\336\223"
+"\361\377\265\245\264\047\174\136\113\005\116\257\207\377\316\016"
+"\232\043\173\126\326\034\151\134\353\111\375\347\265\236\344\377"
+"\246\207\377\003\275\232\277\255\132\236\370\177\236\047\343\377"
+"\277\172\122\377\163\276\207\377\346\103\236\324\177\076\134\360"
+"\314\306\356\036\376\007\073\171\062\376\263\223\207\377\275\201"
+"\067\114\106\016\275\171\312\070\257\214\053\172\370\337\364\075"
+"\374\257\275\353\341\177\145\121\157\001\031\245\364\360\337\071"
+"\331\303\377\316\133\036\376\167\336\366\360\277\363\216\047\367"
+"\177\277\341\311\314\276\325\075\374\037\062\074\374\037\262\274"
+"\252\014\135\170\370\077\144\172\344\377\265\275\075\374\257\035"
+"\357\311\375\337\213\012\031\335\052\012\113\176\213\025\266\374"
+"\136\363\226\220\361\100\217\374\177\150\105\157\251\062\056\135"
+"\356\131\206\157\333\171\274\145\211\363\172\015\342\174\136\223"
+"\070\277\047\365\077\237\172\355\062\216\222\321\102\157\164\031"
+"\227\223\021\102\157\371\062\112\375\347\067\336\230\062\342\277"
+"\172\321\223\373\354\057\172\062\376\177\100\041\365\102\243\275"
+"\125\145\074\331\303\377\340\107\017\377\153\273\172\344\377\043"
+"\317\362\360\077\230\126\160\266\173\167\364\360\077\374\321\043"
+"\377\017\247\171\153\225\307\343\177\243\356\341\177\253\346\341"
+"\177\317\111\036\371\177\167\136\117\356\377\216\366\360\277\166"
+"\250\207\377\265\063\074\374\167\377\366\310\377\173\017\364\360"
+"\277\347\040\017\377\323\055\075\374\037\122\205\134\354\363\074"
+"\374\357\256\345\221\377\267\057\365\360\077\135\324\043\377\117"
+"\027\361\360\077\335\330\333\126\012\342\012\256\265\061\312\333"
+"\136\306\300\075\362\377\340\007\017\377\153\223\074\374\037\171"
+"\246\107\376\037\114\365\360\077\374\301\303\377\160\252\067\261"
+"\074\022\377\033\065\017\377\133\043\074\374\357\071\321\303\377"
+"\356\074\036\376\007\003\036\376\017\214\362\360\277\166\210\207"
+"\377\265\323\075\374\167\377\362\360\277\367\000\017\377\173\016"
+"\364\360\277\266\227\207\377\265\343\074\374\257\135\350\341\177"
+"\272\205\107\376\257\136\366\016\140\317\265\005\031\110\317\370"
+"\202\026\330\063\243\240\005\032\173\170\344\377\301\305\236\324"
+"\377\374\355\341\177\060\277\167\270\214\063\173\370\077\164\276"
+"\107\376\077\164\201\207\377\103\027\172\370\037\136\354\341\177"
+"\070\277\207\377\215\015\274\343\210\267\026\222\303\334\343\341"
+"\277\232\344\341\277\372\334\303\177\353\107\017\377\233\111\041"
+"\155\173\321\102\332\366\267\036\376\233\043\074\374\257\275\127"
+"\310\175\256\105\274\063\312\075\162\377\253\267\220\172\244\136"
+"\117\352\177\332\036\376\067\066\363\360\277\161\267\107\376\137"
+"\335\324\303\177\347\012\117\374\377\323\303\177\347\312\202\336"
+"\141\374\317\303\177\347\052\017\377\235\277\074\362\377\306\060"
+"\017\377\203\113\074\374\167\366\367\360\077\030\356\311\370\317"
+"\045\036\376\207\303\075\031\377\137\321\303\377\316\153\036\376"
+"\167\136\367\360\277\363\206\047\365\237\027\172\370\157\237\357"
+"\111\375\347\271\036\376\007\333\171\370\037\156\347\341\277\332"
+"\305\303\377\366\371\036\376\067\066\362\360\277\161\273\207\377"
+"\316\044\357\066\031\121\367\360\177\250\345\335\121\306\073\313"
+"\075\162\377\167\163\017\377\315\307\075\374\127\027\170\370\257"
+"\056\362\360\137\315\366\360\137\135\350\311\257\376\047\075\362"
+"\177\365\265\207\377\352\132\017\377\325\165\236\324\177\366\172"
+"\122\377\263\266\107\376\337\330\302\223\361\237\173\075\311\377"
+"\257\363\360\277\175\153\101\147\256\172\005\062\030\273\170\344"
+"\377\326\174\236\374\112\065\012\031\045\060\074\374\017\066\367"
+"\310\377\325\153\236\324\177\256\356\111\175\365\352\005\172\030"
+"\253\026\350\121\335\315\303\377\352\307\036\371\177\267\342\341"
+"\177\365\000\017\377\253\207\170\370\137\335\303\303\377\316\156"
+"\036\071\277\232\340\111\136\372\215\207\377\215\115\012\314\061"
+"\156\051\244\026\353\221\002\163\172\306\024\230\323\263\242\207"
+"\377\215\073\075\262\262\366\160\217\034\254\375\142\201\102\306"
+"\144\117\352\077\157\362\360\337\175\322\223\373\277\017\171\122"
+"\377\171\217\047\367\177\307\170\162\377\367\041\117\356\377\216"
+"\361\276\226\073\070\036\376\167\256\363\360\277\063\303\303\377"
+"\306\076\036\376\167\146\172\370\337\136\302\303\377\306\353\036"
+"\376\167\117\363\360\077\334\320\373\131\356\037\171\222\377\017"
+"\367\044\377\137\300\223\374\177\101\117\362\377\205\274\077\312"
+"\107\377\144\173\141\357\057\342\042\336\337\304\212\207\377\315"
+"\135\275\001\271\067\347\311\367\305\243\036\376\367\316\366\360"
+"\277\375\222\047\376\337\355\315\055\343\177\145\354\224\261\053"
+"\321\067\312\150\226\121\225\121\374\277\307\267\313\350\224\321"
+"\055\243\127\106\277\214\101\031\303\062\106\162\077\302\217\313"
+"\230\224\061\055\143\126\306\274\214\272\214\205\304\102\252\313"
+"\106\372\134\331\146\346\163\005\053\113\372\122\377\277\270\057"
+"\376\277\137\110\245\131\335\227\372\317\221\076\327\242\062\302"
+"\347\314\127\352\376\302\162\177\247\100\376\276\335\374\377\217"
+"\344\377\175\023\174\361\177\224\337\133\106\311\377\237\364\145"
+"\374\177\155\277\046\307\373\370\077\164\243\217\377\235\037\374"
+"\221\145\044\377\037\272\336\047\377\037\232\351\343\377\320\054"
+"\137\306\377\177\364\361\277\161\250\057\343\377\067\371\344\377"
+"\235\237\174\362\377\366\021\076\371\177\343\003\237\374\277\173"
+"\246\217\377\355\345\174\311\377\367\360\361\277\075\306\027\377"
+"\337\367\227\053\043\376\253\335\175\031\377\271\313\307\377\326"
+"\021\076\376\267\026\362\361\277\265\227\217\377\315\215\374\125"
+"\330\116\174\311\377\367\367\045\377\177\313\307\377\356\351\376"
+"\032\162\017\310\037\133\306\161\145\034\137\306\065\313\270\126"
+"\031\327\056\343\072\145\304\377\312\105\276\370\277\216\217\377"
+"\316\276\276\344\377\113\372\222\377\037\341\113\376\377\261\217"
+"\377\335\263\174\031\377\171\310\337\264\214\233\225\161\363\062"
+"\156\121\306\055\313\270\125\031\267\056\243\370\277\114\041\365"
+"\173\201\277\135\031\361\337\352\365\245\336\251\352\343\177\173"
+"\254\057\025\115\337\373\073\313\235\175\037\377\255\205\174\374"
+"\357\233\134\160\055\106\050\037\377\153\063\174\311\377\357\364"
+"\361\137\355\346\343\177\343\040\037\377\333\155\137\306\177\336"
+"\365\361\277\173\106\301\125\123\237\372\370\157\105\276\124\340"
+"\134\130\110\035\340\322\276\324\377\177\343\343\177\067\361\361"
+"\277\063\311\307\377\376\071\376\376\122\240\135\160\175\215\051"
+"\205\124\003\376\354\313\375\337\215\175\362\377\340\024\037\377"
+"\233\043\013\256\270\271\264\057\365\377\157\370\370\137\373\240"
+"\340\352\033\277\370\122\377\263\225\217\377\052\360\361\277\165"
+"\266\217\377\255\323\175\374\157\255\346\343\177\153\105\237\374"
+"\277\165\275\217\377\015\327\077\121\112\225\175\031\377\337\325"
+"\307\377\326\362\076\371\177\153\206\117\376\337\132\326\307\377"
+"\326\052\076\376\267\256\364\117\047\256\356\343\177\353\042\037"
+"\377\133\313\371\344\377\255\045\175\374\157\265\174\374\157\315"
+"\364\305\177\307\307\377\326\045\076\376\267\126\360\361\277\165"
+"\243\217\377\255\033\174\362\377\326\115\076\376\267\226\361\361"
+"\277\265\204\217\377\255\121\076\376\067\224\217\377\255\253\174"
+"\374\157\215\363\361\277\065\306\307\377\326\252\076\376\267\146"
+"\371\370\337\272\324\307\377\326\130\037\377\133\155\037\377\033"
+"\206\217\377\255\321\076\376\267\232\076\376\267\126\362\045\377"
+"\157\370\370\337\132\331\307\377\326\122\076\376\267\226\366\305"
+"\177\317\307\377\326\131\076\376\267\116\363\361\277\165\201\217"
+"\377\255\163\174\374\157\235\341\343\177\353\114\037\377\003\257"
+"\240\037\031\277\372\370\137\131\326\227\372\317\157\174\031\377"
+"\177\331\227\374\377\175\137\352\177\106\373\370\337\072\310\307"
+"\377\326\274\076\376\267\366\360\361\277\271\266\217\377\055\257"
+"\240\017\032\077\371\370\037\236\342\343\177\350\371\344\377\215"
+"\361\276\324\377\274\350\343\177\060\335\227\372\237\025\174\362"
+"\377\300\367\361\077\234\356\343\177\350\373\370\037\256\356\343"
+"\277\212\374\227\244\346\301\227\361\237\331\276\214\377\257\356"
+"\343\177\070\273\240\167\233\155\037\377\033\063\175\374\357\356"
+"\357\343\177\163\222\057\376\177\342\313\375\337\133\013\372\276"
+"\271\244\117\376\157\177\345\223\377\127\067\367\311\377\303\325"
+"\174\362\377\356\272\376\207\062\047\245\100\206\152\305\227\373"
+"\277\323\012\174\250\056\351\343\377\210\336\142\151\211\076\376"
+"\017\376\355\343\377\210\236\142\231\062\042\106\165\161\037\377"
+"\333\116\041\365\231\037\024\122\237\371\141\321\222\273\000\376"
+"\267\122\271\121\240\207\271\154\041\243\007\017\025\062\172\360"
+"\122\201\036\326\071\276\344\377\123\012\014\261\356\360\311\377"
+"\153\063\175\362\377\160\177\237\137\075\215\161\276\214\377\317"
+"\360\361\277\073\331\047\377\017\376\365\371\155\242\046\373\374"
+"\066\351\377\331\307\377\306\225\076\376\067\376\053\360\307\134"
+"\334\227\372\237\245\175\374\157\056\356\017\111\155\206\217\377"
+"\301\023\076\376\007\253\371\370\037\076\341\167\245\122\042\300"
+"\177\373\220\002\257\214\251\201\370\277\137\040\343\077\127\004"
+"\370\037\054\034\110\375\317\025\001\376\207\013\007\370\337\314"
+"\003\371\252\370\055\300\377\332\207\205\314\157\032\035\340\277"
+"\272\062\220\374\177\347\040\221\212\216\040\225\032\206\000\377"
+"\073\127\005\370\337\271\072\300\377\316\065\201\334\377\275\044"
+"\340\133\176\350\364\100\306\177\256\014\144\374\147\221\100\306"
+"\177\256\014\144\374\147\221\200\357\142\347\210\000\377\033\166"
+"\200\377\335\365\002\374\257\135\037\340\277\272\273\300\122\143"
+"\132\040\365\077\327\006\030\025\134\030\310\370\117\063\220\372"
+"\237\025\003\251\377\271\074\300\207\140\336\100\374\377\070\250"
+"\113\205\103\040\367\177\127\012\106\226\121\356\377\176\024\054"
+"\136\076\052\367\177\077\016\304\377\117\002\311\377\067\014\270"
+"\262\341\205\001\127\063\234\067\340\152\066\326\017\244\376\347"
+"\231\200\353\330\270\045\340\072\166\017\056\220\334\172\070\220"
+"\053\370\133\300\025\154\356\027\160\005\233\047\006\134\273\346"
+"\241\001\347\277\171\130\300\371\154\047\301\212\122\161\021\254"
+"\124\106\376\252\361\167\200\377\355\023\003\311\377\067\011\126"
+"\223\072\212\000\377\355\253\003\031\377\337\067\220\372\237\053"
+"\003\374\157\246\001\376\267\117\015\360\337\374\076\300\177\163"
+"\371\000\377\153\037\005\353\224\333\342\177\073\300\177\347\304"
+"\000\377\033\233\006\370\337\270\053\300\377\356\141\201\324\177"
+"\356\023\340\177\243\277\340\025\315\025\002\374\017\056\012\144"
+"\374\177\315\000\377\203\371\002\374\017\057\012\360\077\234\057"
+"\330\112\352\114\002\374\357\334\020\340\177\347\306\200\374\277"
+"\063\053\020\377\277\015\360\077\330\066\300\377\160\333\000\377"
+"\133\207\006\062\376\077\074\220\361\377\251\001\376\067\327\017"
+"\360\277\025\006\344\377\251\012\360\077\165\002\374\117\255\000"
+"\377\123\073\300\377\164\373\000\377\315\113\003\374\117\335\000"
+"\377\333\347\006\062\376\263\141\200\377\215\333\002\374\357\036"
+"\022\220\377\267\347\015\360\277\075\137\200\377\355\171\002\374"
+"\157\355\035\340\177\053\015\360\277\265\113\100\376\337\154\006"
+"\007\262\155\004\370\337\154\007\122\377\263\103\040\225\220\243"
+"\003\031\377\277\044\300\377\366\015\001\376\167\327\017\310\377"
+"\333\327\005\370\337\330\074\300\377\366\354\000\377\123\063\300"
+"\377\306\075\201\324\177\036\036\340\177\273\022\340\277\175\134"
+"\200\377\255\143\002\251\017\034\027\340\177\355\206\000\377\333"
+"\067\007\370\157\357\023\340\177\373\365\100\306\177\256\012\360"
+"\277\261\161\200\377\215\073\002\374\357\036\032\340\177\373\301"
+"\000\377\333\217\027\134\145\143\317\000\377\203\273\013\231\353"
+"\267\142\200\377\101\053\220\361\237\273\003\374\017\133\001\376"
+"\247\153\006\370\337\231\033\310\375\337\301\000\377\073\003\001"
+"\376\167\376\015\360\277\363\117\200\377\235\241\000\377\073\375"
+"\001\376\167\376\016\244\376\147\174\101\313\261\036\011\360\337"
+"\274\074\300\177\347\223\000\377\207\126\016\146\224\161\146\271"
+"\347\172\362\303\105\203\033\110\242\173\202\033\211\275\301\054"
+"\366\124\003\374\357\174\026\340\377\334\227\002\374\357\374\057"
+"\300\377\271\057\006\370\077\367\345\000\377\377\373\043\300\377"
+"\316\347\001\376\377\067\075\300\377\271\257\004\167\363\014\043"
+"\202\173\210\265\000\377\353\277\006\370\157\136\026\110\376\277"
+"\147\200\377\315\270\240\045\233\253\006\370\157\256\034\310\370"
+"\317\307\201\344\377\253\004\217\312\236\202\026\156\256\036\074"
+"\136\106\374\257\054\037\310\370\317\230\000\377\255\005\003\231"
+"\241\071\274\240\375\033\053\027\264\377\352\256\001\376\127\077"
+"\012\360\277\273\160\040\367\217\366\017\360\277\172\160\200\377"
+"\325\335\003\374\357\354\032\340\277\332\273\220\212\364\063\002"
+"\374\127\173\025\153\111\265\141\040\365\077\173\006\370\157\276"
+"\030\110\375\347\266\001\376\367\317\016\360\077\150\007\162\377"
+"\367\236\000\377\053\053\005\370\037\214\012\360\077\370\042\300"
+"\377\140\102\200\377\301\127\001\371\177\060\051\300\177\065\055"
+"\220\372\377\015\002\374\157\277\021\220\377\247\113\025\364\307"
+"\352\310\202\376\150\334\032\220\377\217\310\013\172\145\165\261"
+"\000\377\323\172\101\337\064\217\011\044\377\337\050\040\377\267"
+"\132\001\376\167\066\054\244\052\376\245\200\374\277\166\143\101"
+"\237\065\307\006\077\112\065\116\040\365\377\277\024\122\047\177"
+"\156\200\377\151\137\200\377\301\031\001\376\007\161\200\377\301"
+"\227\001\376\007\023\003\374\157\277\135\320\307\215\275\002\374"
+"\017\156\057\350\351\306\035\001\376\133\315\200\374\337\262\003"
+"\374\127\257\006\370\337\375\052\220\372\317\325\002\361\177\231"
+"\000\377\303\333\003\361\177\231\100\362\377\231\241\121\106\336"
+"\110\343\350\120\356\377\136\030\342\377\340\005\041\376\247\353"
+"\207\162\377\367\374\120\356\377\236\021\342\377\340\351\041\376"
+"\247\353\204\370\077\170\132\050\367\177\117\014\361\077\155\206"
+"\370\077\170\152\210\377\351\332\041\376\017\236\035\342\377\340"
+"\131\041\376\247\353\206\370\077\170\146\210\377\203\347\205\370"
+"\077\170\156\210\377\351\172\041\376\017\236\023\342\177\272\126"
+"\210\377\215\317\102\374\357\236\135\220\265\366\215\015\361\277"
+"\275\166\210\377\316\343\341\302\345\036\251\377\271\043\304\377"
+"\366\011\041\376\067\275\020\377\333\357\204\370\137\373\044\304"
+"\377\366\365\241\314\377\135\043\304\377\312\270\120\374\137\063"
+"\224\374\377\313\120\362\377\257\102\361\377\353\020\377\347\276"
+"\031\342\377\334\165\102\374\157\157\030\112\376\177\134\210\377"
+"\355\243\103\374\157\174\021\342\177\367\274\020\377\235\317\102"
+"\374\037\132\065\154\225\261\135\356\221\361\237\003\103\311\377"
+"\257\017\045\377\277\041\134\276\214\053\224\173\360\137\355\027"
+"\342\177\373\274\020\377\273\273\205\370\157\074\020\112\376\277"
+"\177\210\014\255\042\304\204\326\256\041\275\270\271\106\110\257"
+"\151\356\033\322\073\132\166\050\376\357\035\322\376\233\373\204"
+"\264\352\306\061\041\355\271\361\277\220\366\326\075\247\220\112"
+"\236\042\244\245\131\075\041\155\254\172\121\110\213\122\357\207"
+"\264\245\352\260\002\341\173\132\041\155\243\275\136\110\253\150"
+"\257\033\162\046\325\276\041\177\325\276\050\344\321\366\214\020"
+"\377\273\033\206\370\337\276\072\304\377\306\361\241\214\377\077"
+"\031\342\177\343\313\020\377\273\347\207\370\337\176\057\224\373"
+"\277\275\041\376\267\157\014\361\277\075\053\224\361\237\131\041"
+"\376\267\157\011\361\277\175\117\210\377\375\277\206\370\257\366"
+"\051\170\146\343\276\160\122\031\361\277\175\174\210\377\325\151"
+"\241\334\377\235\032\112\376\177\106\210\377\326\243\241\370\177"
+"\146\050\376\037\033\212\377\237\207\342\377\271\241\370\177\141"
+"\301\173\063\336\017\305\377\313\103\374\167\146\204\373\111\054"
+"\170\267\175\123\213\255\144\064\073\224\361\377\275\102\271\377"
+"\273\117\050\367\177\357\016\361\277\175\177\050\376\077\032\212"
+"\377\017\205\370\337\176\040\024\377\237\010\361\277\375\130\301"
+"\147\064\366\016\361\077\230\025\036\123\216\071\310\274\222\361"
+"\041\376\007\213\205\370\037\316\012\361\077\134\054\224\374\177"
+"\152\210\377\215\227\102\374\357\236\124\310\174\223\165\103\361"
+"\377\270\020\377\233\121\210\377\306\065\205\314\072\131\047\224"
+"\361\237\265\102\374\257\175\032\312\370\377\372\341\331\345\036"
+"\251\377\137\063\224\372\377\265\103\374\157\354\025\342\177\343"
+"\325\020\377\273\323\303\013\245\276\061\304\377\366\351\041\376"
+"\007\227\206\370\037\054\020\342\177\170\151\210\377\341\002\041"
+"\376\247\136\210\377\215\363\103\231\377\265\177\210\377\352\200"
+"\120\362\377\175\102\311\377\263\020\377\233\243\103\311\377\047"
+"\204\370\337\134\056\304\377\346\250\220\374\277\071\071\224\374"
+"\337\014\311\377\233\173\204\344\377\315\335\103\374\157\114\013"
+"\145\374\347\345\120\352\177\116\016\361\177\360\322\020\377\323"
+"\015\013\256\270\061\046\224\372\317\051\041\376\007\277\206\370"
+"\137\233\034\222\377\217\074\057\274\207\075\373\204\370\037\376"
+"\032\312\370\377\076\341\375\345\221\370\337\130\074\044\377\157"
+"\055\026\112\265\306\251\241\334\377\135\040\304\377\201\061\041"
+"\376\327\216\014\311\377\153\347\204\122\377\371\117\210\377\275"
+"\207\206\162\377\367\260\020\377\153\373\207\370\137\073\071\044"
+"\377\257\135\026\222\377\247\333\206\062\377\353\225\120\352\377"
+"\267\013\361\277\361\147\050\343\077\127\206\370\157\136\025\342"
+"\177\145\335\020\377\273\033\205\062\377\367\262\120\356\377\316"
+"\010\137\043\216\010\245\376\147\106\210\377\341\210\020\377\203"
+"\305\103\251\377\331\073\304\377\306\153\041\376\167\117\015\345"
+"\056\341\065\041\376\247\303\102\374\117\027\010\077\220\012\330"
+"\020\377\073\163\302\217\244\036\065\224\373\277\127\207\237\360"
+"\275\131\017\361\277\363\155\210\377\163\337\012\311\377\347\256"
+"\037\222\377\167\276\013\361\177\356\273\341\227\304\215\102\374"
+"\237\173\146\370\065\255\053\056\350\065\325\040\234\043\261\240"
+"\357\124\167\011\277\043\356\023\342\177\165\277\360\007\342\141"
+"\041\376\127\047\206\162\337\144\357\360\147\342\276\041\376\127"
+"\373\102\374\257\036\133\320\327\252\047\206\370\137\075\056\304"
+"\377\352\111\241\214\377\037\034\312\374\337\233\102\374\157\337"
+"\025\222\377\367\034\123\320\037\215\337\013\371\075\376\130\210"
+"\377\215\075\103\374\157\274\022\342\177\367\224\120\374\177\064"
+"\224\374\177\345\120\374\177\064\304\377\160\345\202\236\153\214"
+"\220\041\374\256\025\341\177\147\347\010\377\255\003\043\374\267"
+"\016\212\034\251\021\215\144\374\347\363\010\377\207\126\217\374"
+"\062\006\345\036\374\157\337\027\361\307\355\107\042\374\017\256"
+"\212\244\376\263\022\341\177\170\125\044\365\237\225\102\346\050"
+"\355\123\210\011\177\106\370\237\056\035\341\277\072\050\222\372"
+"\377\357\043\251\377\377\061\302\377\340\374\010\377\233\013\025"
+"\270\141\156\034\221\377\007\072\302\377\360\334\110\356\377\256"
+"\033\341\177\370\142\044\243\103\157\105\370\137\373\254\300\026"
+"\343\257\110\362\377\067\043\374\257\174\030\341\177\345\355\110"
+"\374\177\067\022\377\337\217\244\376\177\325\010\377\315\115\043"
+"\374\127\111\044\365\077\303\012\231\257\324\037\111\375\377\267"
+"\221\314\377\172\265\220\354\164\363\010\377\233\333\025\122\243"
+"\370\161\044\365\077\213\025\110\145\374\021\311\375\337\363\043"
+"\031\377\077\051\302\377\306\172\021\376\127\136\057\144\236\321"
+"\265\221\254\377\360\161\204\377\225\257\042\374\257\174\032\311"
+"\374\337\377\105\370\137\371\242\230\126\276\072\376\233\063\042"
+"\374\127\131\044\343\077\067\107\370\337\075\050\022\377\267\216"
+"\144\374\347\226\102\306\100\066\214\144\376\327\346\221\314\377"
+"\335\064\222\372\237\115\012\251\212\171\261\220\171\111\357\105"
+"\122\377\077\041\302\177\165\110\044\365\077\107\104\122\377\177"
+"\124\041\163\224\136\213\310\037\302\067\012\231\235\364\104\201"
+"\231\326\053\221\314\377\332\270\040\163\066\232\321\146\122\337"
+"\036\111\376\377\155\204\261\265\135\042\104\035\171\132\204\250"
+"\301\036\005\171\165\117\255\300\325\336\355\043\131\377\341\223"
+"\010\331\302\157\043\064\010\367\210\166\220\277\055\360\326\170"
+"\054\242\115\066\172\043\311\377\173\042\332\133\317\161\021\255"
+"\250\253\043\256\165\360\127\044\363\277\232\221\254\377\160\140"
+"\044\367\177\247\107\234\155\367\367\002\245\215\107\043\316\155"
+"\357\276\221\234\325\207\042\316\136\272\151\041\165\233\233\107"
+"\362\331\177\214\344\376\357\317\021\237\064\034\026\361\211\302"
+"\365\043\076\213\332\042\342\263\324\156\056\260\275\076\047\342"
+"\175\216\250\027\062\247\351\346\002\341\215\207\013\204\257\056"
+"\032\311\370\177\021\311\375\337\365\012\231\273\064\130\310\114"
+"\245\156\304\243\215\165\043\311\377\157\212\330\323\235\026\035"
+"\135\356\307\377\376\337\042\362\177\373\230\202\075\306\337\221"
+"\334\377\335\060\222\373\277\033\107\370\337\354\215\360\277\147"
+"\325\010\377\073\353\105\062\377\313\211\360\277\263\156\204\377"
+"\235\015\042\374\357\254\037\311\274\230\073\042\374\017\136\216"
+"\360\077\130\077\302\377\360\345\202\347\067\366\215\360\277\175"
+"\154\204\377\355\045\043\311\377\157\216\360\277\262\145\204\377"
+"\301\022\021\376\367\376\057\302\377\336\317\042\374\017\157\216"
+"\360\077\134\042\222\361\377\375\042\374\117\227\215\360\277\361"
+"\146\204\377\366\211\221\254\377\060\073\302\377\346\061\205\314"
+"\207\272\077\302\377\152\275\340\373\313\130\054\302\377\377\126"
+"\215\360\177\360\347\010\377\007\177\212\360\277\347\314\010\377"
+"\273\176\204\377\235\155\043\271\377\173\124\204\377\203\077\106"
+"\370\337\031\135\360\251\215\305\043\374\377\157\265\010\377\007"
+"\007\043\362\377\301\201\110\356\377\236\025\341\177\067\210\360"
+"\277\263\135\204\377\075\107\107\370\077\330\037\341\177\147\271"
+"\202\163\125\125\221\254\377\060\073\302\177\347\322\010\377\333"
+"\067\105\370\357\074\020\075\134\306\107\312\370\150\031\037\053"
+"\343\343\145\174\242\214\263\313\210\377\316\265\321\123\122\142"
+"\020\211\377\377\213\360\277\262\165\044\365\237\137\107\342\377"
+"\152\021\376\017\215\217\136\050\043\376\267\127\212\360\177\150"
+"\134\364\262\314\057\210\244\376\377\360\350\325\362\170\374\037"
+"\332\072\302\377\241\155\042\374\157\034\036\341\377\320\266\221"
+"\370\377\121\044\363\277\156\214\360\177\150\243\202\253\154\324"
+"\043\374\167\247\106\370\337\165\042\374\357\114\055\144\206\327"
+"\062\221\324\377\234\132\310\014\257\007\042\311\377\047\104\370"
+"\337\377\155\204\377\335\064\302\377\316\146\021\376\367\177\027"
+"\341\277\065\266\240\205\124\257\057\150\041\075\215\202\026\322"
+"\163\143\044\363\277\116\213\144\376\327\055\221\314\377\132\062"
+"\222\371\137\267\104\370\037\056\131\310\014\254\347\012\332\217"
+"\365\156\204\377\255\303\043\374\157\055\030\341\177\153\317\010"
+"\377\233\033\106\344\377\255\070\222\371\277\207\106\370\237\256"
+"\030\375\131\036\057\363\277\256\217\360\077\255\104\370\237\056"
+"\034\221\377\247\075\005\355\320\232\035\341\177\353\200\010\377"
+"\133\303\042\374\157\036\034\341\177\153\267\110\356\377\356\037"
+"\341\177\163\154\204\377\055\047\046\377\157\036\050\223\365\233"
+"\343\143\374\157\036\024\343\177\363\220\030\377\233\007\304\370"
+"\337\070\060\306\377\306\073\261\047\376\304\062\376\177\102\101"
+"\073\067\226\214\361\337\132\064\216\244\256\257\220\071\002\167"
+"\305\370\257\336\213\123\351\136\261\214\377\114\214\145\376\327"
+"\341\061\371\177\167\223\030\377\333\037\304\370\337\070\052\306"
+"\377\276\105\143\374\357\133\070\306\377\276\112\214\377\175\213"
+"\304\344\377\215\117\143\374\117\027\212\245\376\263\210\245\376"
+"\263\047\306\377\332\055\061\376\127\017\057\244\062\277\022\223"
+"\377\253\207\142\374\357\031\135\320\313\252\131\214\377\043\234"
+"\030\377\033\163\143\374\037\061\274\220\272\273\343\013\271\357"
+"\166\102\214\377\325\345\013\251\276\136\244\240\367\131\057\304"
+"\342\377\176\261\314\377\072\071\046\377\157\337\031\343\177\343"
+"\220\130\362\377\367\143\031\377\277\067\046\377\157\077\134\110"
+"\235\336\176\061\376\007\333\304\222\377\317\212\107\311\014\232"
+"\230\374\277\363\136\214\377\235\367\143\374\357\174\020\113\376"
+"\377\140\074\246\214\053\226\161\245\062\256\134\306\125\312\270"
+"\152\031\127\053\343\352\145\134\243\214\143\313\070\256\214\343"
+"\313\270\146\031\327\052\343\332\145\224\361\377\253\143\251\377"
+"\324\061\376\327\076\217\045\377\277\046\226\365\037\066\215\361"
+"\337\371\066\046\377\037\132\073\336\270\214\233\220\267\364\305"
+"\233\022\107\306\233\021\027\213\067\047\056\036\157\121\036\271"
+"\045\333\113\304\133\021\227\214\267\046\056\025\157\103\134\072"
+"\336\226\270\114\274\035\161\331\170\173\142\043\336\201\330\214"
+"\167\044\266\342\235\210\355\170\147\342\250\170\027\342\350\170"
+"\002\161\271\170\042\161\371\170\022\161\205\170\127\342\230\130"
+"\374\277\065\306\377\276\051\061\337\260\316\043\361\344\062\116"
+"\051\343\324\062\116\053\343\236\145\334\253\214\173\113\054\244"
+"\052\162\265\170\137\231\127\025\113\376\277\123\041\025\222\117"
+"\304\370\077\360\104\314\367\224\165\164\054\353\377\054\032\363"
+"\315\062\260\132\041\225\223\325\002\071\173\052\005\162\366\054"
+"\034\313\370\217\212\305\377\112\054\376\057\122\140\151\317\042"
+"\005\226\366\014\217\361\271\147\241\342\312\062\042\152\317\002"
+"\261\314\047\135\267\040\257\356\131\260\220\272\312\221\261\214"
+"\377\173\005\331\265\261\177\114\357\166\216\214\351\335\301\235"
+"\005\322\232\133\306\122\377\323\050\360\266\272\140\114\277\033"
+"\374\046\226\361\237\333\143\031\377\271\043\246\225\266\157\213"
+"\151\231\316\023\361\271\145\244\035\206\167\306\062\376\323\210"
+"\151\201\215\123\143\332\125\343\373\130\352\377\057\216\045\377"
+"\377\075\226\374\377\267\230\117\241\166\215\371\024\325\345\142"
+"\336\163\163\276\002\317\315\155\143\336\255\271\165\054\363\177"
+"\277\210\257\056\267\171\237\112\307\274\303\312\266\261\314\377"
+"\335\076\346\375\124\166\214\071\276\147\245\002\377\253\047\027"
+"\370\137\075\245\220\372\317\333\143\374\037\374\056\306\377\376"
+"\217\142\231\377\325\214\311\377\235\143\143\374\357\334\036\343"
+"\177\343\214\370\166\323\066\126\214\245\376\377\247\130\374\277"
+"\054\306\177\347\273\030\377\207\326\211\357\341\312\256\024\337"
+"\113\134\071\276\217\270\112\174\077\161\325\370\201\362\230\007"
+"\331\136\055\176\210\270\172\374\060\161\215\370\021\342\330\370"
+"\121\342\270\370\061\342\370\370\161\342\232\361\023\304\265\342"
+"\331\304\265\343\047\211\353\304\117\021\327\215\237\046\256\027"
+"\077\103\134\077\176\226\270\101\374\034\161\303\370\171\342\106"
+"\261\214\377\254\022\313\374\257\213\143\251\377\274\270\230\045"
+"\143\057\061\376\253\243\143\031\377\071\046\226\374\377\323\030"
+"\377\203\035\013\076\251\365\144\214\377\352\250\130\306\377\217"
+"\210\245\376\377\276\030\377\255\337\143\251\377\371\054\306\377"
+"\326\176\061\376\267\164\214\377\255\111\061\371\177\163\365\030"
+"\377\233\053\306\344\377\315\051\061\376\067\307\304\370\337\134"
+"\051\306\377\346\236\061\376\267\254\030\377\233\253\305\122\377"
+"\263\162\114\376\337\234\026\223\377\067\127\211\311\377\233\253"
+"\306\370\337\234\032\343\177\163\257\370\133\311\122\142\131\233"
+"\150\201\130\362\377\047\142\271\377\173\132\114\376\337\370\041"
+"\306\377\356\045\005\127\104\175\024\343\277\125\217\361\337\012"
+"\143\374\127\117\304\062\377\153\333\030\377\255\205\143\374\127"
+"\157\307\062\376\377\170\054\265\111\143\142\374\127\157\305\370"
+"\257\206\305\203\264\272\115\143\031\377\337\071\306\177\165\144"
+"\214\377\352\360\030\377\273\233\305\370\337\070\063\226\372\317"
+"\237\143\374\357\136\236\340\177\072\102\112\033\152\267\045\370"
+"\037\174\222\310\370\177\063\301\377\160\207\304\221\171\171\011"
+"\376\017\235\231\340\177\360\171\202\377\301\056\011\371\177\370"
+"\171\202\377\301\063\211\314\377\032\237\360\025\022\076\223\360"
+"\104\375\277\027\264\250\372\071\011\376\253\303\022\374\127\367"
+"\046\370\337\070\075\301\377\306\217\011\376\167\057\115\144\374"
+"\377\217\104\306\377\377\114\360\277\377\323\004\377\323\132\042"
+"\363\277\116\117\044\377\217\022\311\377\117\117\044\377\177\072"
+"\221\372\317\161\211\324\177\076\135\110\255\362\001\211\214\377"
+"\077\130\320\142\315\355\023\311\377\167\113\344\376\357\350\104"
+"\306\377\127\110\144\376\327\303\011\371\177\347\221\104\306\177"
+"\036\115\360\077\174\060\041\377\017\127\110\026\347\235\154\231"
+"\340\177\343\276\004\377\273\107\044\370\377\337\277\211\324\377"
+"\174\221\310\374\257\065\222\145\313\330\050\367\220\377\247\255"
+"\004\377\323\065\022\374\117\307\047\370\237\216\113\360\077\155"
+"\047\370\237\066\022\374\117\127\117\360\177\360\344\004\377\323"
+"\321\011\376\017\236\224\310\374\257\121\011\376\247\143\023\374"
+"\037\234\236\340\177\272\174\202\377\203\247\044\370\237\056\227"
+"\340\177\272\102\202\377\351\230\104\306\177\026\050\310\301\314"
+"\011\011\376\127\366\050\144\045\226\235\023\374\127\333\046\222"
+"\377\177\230\310\374\337\217\023\374\127\333\045\062\377\353\313"
+"\202\176\152\356\230\310\374\257\005\022\374\257\114\110\144\375"
+"\207\111\011\371\177\145\112\262\051\355\144\345\202\136\334\323"
+"\116\310\377\325\113\205\324\162\337\230\154\051\163\110\023\362"
+"\377\316\335\211\214\377\337\223\310\370\377\275\011\371\277\163"
+"\177\262\135\031\267\057\343\016\145\334\261\214\073\225\161\347"
+"\062\312\372\157\347\045\023\312\155\362\177\347\250\104\352\177"
+"\266\117\310\377\033\217\044\370\337\075\272\220\371\051\053\045"
+"\370\357\056\224\340\177\167\241\004\377\073\133\044\062\376\163"
+"\105\202\377\335\253\023\374\157\127\023\031\377\031\121\310\054"
+"\225\345\023\362\177\167\217\004\377\203\237\023\311\377\167\117"
+"\370\025\063\362\234\004\377\203\275\212\373\310\001\166\112\360"
+"\077\374\071\301\377\160\257\344\220\362\170\362\377\306\310\204"
+"\137\007\255\276\004\377\173\116\111\360\277\073\177\202\377\003"
+"\313\047\344\377\265\303\023\262\375\332\131\211\314\377\035\110"
+"\144\376\327\301\011\371\163\317\041\011\376\327\366\115\310\151"
+"\153\047\046\144\206\265\113\022\374\117\267\116\044\003\274\055"
+"\021\377\017\111\304\377\373\223\123\145\116\164\042\363\177\067"
+"\115\310\337\346\116\110\360\177\356\116\011\376\317\335\045\071"
+"\013\251\066\116\360\177\356\304\004\377\347\356\134\220\041\327"
+"\317\113\316\223\152\336\344\174\031\343\115\056\050\367\340\177"
+"\260\134\202\377\341\375\211\344\377\313\045\122\377\163\176\202"
+"\377\315\171\223\313\144\316\165\042\363\177\107\045\062\376\177"
+"\177\042\343\377\017\044\370\337\171\060\301\177\353\253\344\032"
+"\031\101\112\256\055\043\376\073\167\046\063\312\070\263\214\327"
+"\227\361\206\062\336\130\306\131\145\274\251\214\067\227\221\336"
+"\152\077\222\320\247\254\237\023\251\377\371\076\221\372\237\165"
+"\223\073\312\110\273\032\132\052\271\253\214\342\377\322\311\075"
+"\145\344\032\071\117\046\367\225\307\337\057\063\136\223\007\312"
+"\370\240\314\173\115\036\052\243\324\377\034\137\260\337\172\272"
+"\140\277\365\124\362\130\031\311\377\255\077\022\362\377\306\326"
+"\011\371\177\343\201\204\374\277\173\144\102\376\357\074\226\310"
+"\372\157\217\025\062\203\154\345\104\362\377\247\022\362\377\326"
+"\201\011\371\177\153\236\104\352\077\217\116\360\277\265\173\202"
+"\377\315\303\023\362\377\346\232\011\376\067\217\110\360\277\345"
+"\046\122\377\171\124\202\377\315\043\013\231\037\264\134\202\377"
+"\356\356\011\376\007\077\045\370\137\333\055\301\377\221\147\047"
+"\370\037\354\231\110\375\377\117\211\334\377\335\063\371\240\074"
+"\122\352\177\372\022\374\157\325\023\374\357\071\071\221\374\177"
+"\276\104\326\377\131\056\301\377\332\141\011\376\327\316\114\360"
+"\337\355\117\360\277\367\240\004\377\173\016\116\144\375\237\175"
+"\022\374\017\376\111\360\277\166\102\202\377\265\213\023\374\117"
+"\267\052\370\065\144\054\233\340\177\067\113\144\075\272\143\022"
+"\374\257\134\136\360\373\250\157\305\204\374\277\273\171\042\363"
+"\177\237\116\176\055\133\235\254\377\266\101\042\367\177\167\114"
+"\144\376\327\143\011\376\167\217\111\244\066\165\205\104\374\137"
+"\076\221\374\177\361\104\362\377\305\022\374\117\243\004\377\323"
+"\045\012\316\266\321\223\110\215\150\117\301\071\357\333\045\371"
+"\257\214\370\337\267\153\202\377\265\333\123\251\377\137\111\212"
+"\332\332\317\244\370\337\276\062\225\012\311\233\122\251\220\234"
+"\231\342\177\373\354\024\377\333\127\245\370\337\176\055\305\377"
+"\366\233\051\376\267\337\112\145\374\347\254\124\306\177\336\115"
+"\361\277\175\105\212\377\355\153\123\236\256\176\103\212\377\365"
+"\033\123\374\257\317\112\361\277\176\175\212\377\365\031\051\376"
+"\267\077\116\305\377\007\122\361\177\371\124\356\377\076\220\312"
+"\370\317\272\051\376\067\117\112\361\277\171\154\212\377\315\126"
+"\212\377\315\335\122\231\377\073\056\305\377\346\132\151\205\270"
+"\102\212\377\375\177\024\062\017\153\106\212\377\335\057\122\374"
+"\267\226\113\361\337\032\235\326\044\363\117\361\277\172\132\332"
+"\047\131\120\052\371\377\021\005\355\255\032\245\342\377\266\251"
+"\370\377\120\052\376\037\225\056\045\363\326\013\332\141\125\027"
+"\117\311\314\235\124\356\346\237\220\312\374\337\323\323\246\144"
+"\120\251\324\377\174\222\342\177\373\310\102\346\160\035\230\342"
+"\177\060\063\305\377\352\314\024\377\253\063\122\374\017\152\051"
+"\376\207\063\123\374\017\153\251\334\377\135\076\305\377\316\123"
+"\051\376\167\236\116\145\374\147\347\024\377\073\317\244\370\337"
+"\076\052\305\377\306\023\051\376\167\217\115\307\311\375\342\102"
+"\352\337\236\111\045\377\377\041\045\377\037\132\057\135\273\214"
+"\353\224\161\135\331\137\310\350\350\036\051\376\067\303\102\326"
+"\057\335\055\025\377\147\245\370\157\116\112\067\226\031\367\051"
+"\376\017\035\221\342\377\320\221\251\324\177\036\225\112\376\277"
+"\111\052\343\077\137\245\370\137\331\057\335\252\074\036\377\053"
+"\027\247\370\137\231\226\312\374\337\275\122\131\377\141\154\052"
+"\353\077\334\226\312\370\317\022\051\376\167\056\112\361\177\356"
+"\165\051\376\317\215\123\374\357\134\234\342\177\143\367\024\377"
+"\347\136\233\342\377\334\050\305\177\167\361\024\377\073\027\244"
+"\344\377\235\113\122\374\237\073\063\305\377\271\151\212\377\163"
+"\017\110\305\377\347\122\361\377\204\124\352\077\173\123\374\357"
+"\113\123\311\377\257\111\145\375\267\233\122\251\377\234\222\312"
+"\375\337\305\123\374\257\035\225\112\375\347\271\251\214\123\035"
+"\226\342\277\272\061\305\177\347\203\024\377\207\126\110\017\055"
+"\343\141\345\036\131\377\347\276\024\377\235\313\323\043\313\210"
+"\377\301\365\251\214\377\327\123\251\377\274\076\305\377\260\236"
+"\036\047\253\053\244\370\337\271\065\305\377\301\113\122\374\037"
+"\274\070\025\377\067\110\361\177\360\242\124\326\177\130\062\225"
+"\361\237\313\122\031\377\271\074\225\361\237\053\322\323\245\026"
+"\272\220\273\223\243\012\164\262\036\054\244\072\361\315\364\354"
+"\062\112\375\317\141\051\371\177\153\201\124\352\177\246\245\370"
+"\337\334\040\225\372\237\050\305\377\332\236\051\376\327\216\115"
+"\361\277\166\101\212\377\251\116\361\337\274\055\225\361\237\242"
+"\220\131\154\235\024\377\323\371\123\374\117\363\024\377\323\341"
+"\051\376\247\363\245\370\157\037\237\342\277\273\147\052\353\077"
+"\354\131\340\241\321\116\245\376\177\122\212\377\301\367\051\376"
+"\327\046\246\370\077\362\214\024\377\203\051\005\132\366\356\220"
+"\342\177\370\175\212\377\341\224\364\326\362\170\311\377\107\244"
+"\122\377\123\115\145\374\347\204\124\362\377\141\051\376\007\375"
+"\051\376\017\264\123\374\257\035\234\342\177\355\264\124\326\177"
+"\370\263\220\365\151\037\117\161\276\377\263\024\347\173\367\117"
+"\145\125\341\173\122\354\115\067\117\021\257\175\101\212\157\215"
+"\011\251\324\177\076\231\142\121\367\270\224\236\333\332\067\245"
+"\077\266\362\224\176\327\232\230\312\370\317\362\051\075\253\245"
+"\212\327\244\126\047\245\205\133\215\224\266\155\131\305\353\022"
+"\123\071\303\273\244\162\377\167\345\224\063\143\215\112\371\274"
+"\326\252\251\324\177\136\234\312\370\317\105\351\153\145\224\361"
+"\377\175\123\251\377\077\041\225\371\137\307\244\370\137\331\047"
+"\305\377\356\026\251\254\377\060\045\305\377\306\344\024\377\033"
+"\057\244\062\376\163\142\052\365\377\337\244\370\257\276\117\361"
+"\137\315\111\345\376\357\167\051\376\253\157\123\131\377\347\261"
+"\124\326\377\074\051\225\325\123\147\025\262\276\350\211\051\376"
+"\267\107\246\370\237\146\051\376\067\346\111\361\277\263\143\052"
+"\367\177\307\244\370\337\230\067\225\373\277\073\245\122\377\271"
+"\142\212\377\351\274\251\370\177\113\212\377\265\073\012\336\141"
+"\157\065\305\377\301\037\122\374\357\377\070\305\177\065\275\170"
+"\113\346\043\027\157\313\174\344\342\035\231\137\134\274\053\363"
+"\205\123\311\377\157\110\145\375\207\071\051\376\017\255\225\016"
+"\224\161\260\334\363\217\254\337\222\112\375\377\175\351\120\031"
+"\347\226\361\277\062\166\312\050\367\177\357\313\214\062\232\145"
+"\124\262\372\112\206\377\375\177\146\122\377\163\165\206\377\301"
+"\242\231\324\377\134\235\311\372\017\213\146\276\254\332\221\341"
+"\377\320\036\031\376\017\115\316\360\177\150\112\046\343\377\327"
+"\144\062\376\337\223\311\370\377\065\231\214\377\367\144\222\377"
+"\237\222\111\376\277\153\046\371\377\063\231\344\377\307\147\370"
+"\337\230\224\341\177\343\351\014\377\273\373\144\122\377\071\055"
+"\303\377\332\061\031\376\327\316\317\360\277\367\210\114\352\177"
+"\016\310\360\177\363\361\031\376\327\116\311\144\374\377\362\102"
+"\126\356\155\145\075\274\237\211\031\376\007\337\145\370\137\233"
+"\220\341\377\310\323\063\231\377\073\271\340\232\366\324\263\276"
+"\062\312\375\337\106\046\371\377\167\031\376\207\223\263\045\312"
+"\277\305\377\106\065\303\377\126\157\106\376\337\163\174\106\376"
+"\337\055\062\231\377\365\167\206\377\003\255\014\377\153\007\145"
+"\370\137\073\065\303\177\367\217\214\374\277\167\277\014\377\315"
+"\107\062\374\067\356\316\044\377\337\254\240\375\364\156\121\310"
+"\132\301\007\025\062\253\353\337\014\377\325\251\031\376\007\247"
+"\146\370\337\134\254\220\265\177\367\312\244\046\344\235\114\352"
+"\377\277\056\144\355\337\241\114\326\177\073\044\223\365\177\306"
+"\145\343\071\176\323\114\352\177\366\313\360\137\315\233\311\372"
+"\017\101\041\263\272\346\146\262\376\333\007\031\371\177\345\200"
+"\114\326\177\376\050\223\371\277\277\147\370\157\176\222\211\377"
+"\357\145\222\377\177\123\320\126\215\177\062\374\017\117\315\360"
+"\077\014\062\362\377\306\132\031\376\127\276\055\244\015\337\231"
+"\311\372\017\337\147\342\377\357\231\370\377\143\046\376\377\234"
+"\341\177\345\327\342\363\362\075\310\372\077\177\146\370\257\346"
+"\317\144\374\377\206\014\377\273\007\144\262\376\317\141\031\376"
+"\067\167\050\350\005\346\264\114\326\377\371\065\303\377\312\021"
+"\031\376\207\153\144\122\377\277\145\101\357\060\166\056\276\222"
+"\131\204\231\324\177\256\226\341\177\247\235\341\177\147\343\102"
+"\356\227\055\121\174\123\316\073\220\271\132\007\144\122\377\177"
+"\147\101\257\251\037\233\311\370\317\063\205\374\166\176\266\240"
+"\357\130\057\027\364\035\353\316\114\374\077\255\240\007\131\257"
+"\146\370\157\055\222\341\277\172\047\223\371\137\007\024\262\226"
+"\357\076\231\254\377\263\123\046\343\077\153\146\370\337\270\076"
+"\303\377\356\224\014\377\355\073\062\031\377\277\253\240\337\231"
+"\123\062\031\377\077\054\223\361\377\203\062\374\017\116\313\360"
+"\077\010\063\374\017\117\313\360\077\014\063\374\017\307\146\370"
+"\037\074\225\311\370\317\330\014\377\303\247\062\031\377\177\062"
+"\223\361\377\065\062\031\377\177\262\240\027\033\007\147\122\377"
+"\063\072\303\377\360\276\114\306\177\106\147\162\377\167\040\223"
+"\372\377\167\263\013\145\005\230\354\242\062\136\134\306\113\312"
+"\375\227\312\272\061\331\145\145\224\372\377\337\062\374\167\176"
+"\317\360\277\366\115\206\377\225\143\062\131\377\263\225\311\372"
+"\077\063\063\374\037\232\226\111\375\317\236\231\324\377\354\225"
+"\341\177\343\237\354\172\231\043\223\311\374\337\043\063\374\267"
+"\222\014\377\255\305\063\362\177\365\112\046\243\015\057\144\062"
+"\376\163\164\206\377\352\364\114\374\037\314\360\077\170\065\303"
+"\377\140\303\014\377\303\127\063\361\377\204\114\352\077\255\014"
+"\377\303\023\062\231\377\265\125\046\371\377\241\231\314\377\275"
+"\052\223\373\277\235\014\377\033\227\147\370\337\275\052\303\377"
+"\306\277\231\314\377\272\053\223\365\337\216\312\360\137\235\221"
+"\111\375\377\005\231\344\377\177\025\222\345\036\122\310\052\147"
+"\047\144\342\377\266\231\254\377\160\166\106\376\323\370\065\223"
+"\371\137\127\144\370\337\334\046\223\373\277\147\145\370\337\370"
+"\045\223\361\377\255\063\374\157\054\234\311\374\257\121\231\314"
+"\377\135\047\303\377\316\057\031\376\273\265\114\346\377\236\234"
+"\341\163\373\323\014\135\153\163\012\262\150\363\240\102\126\121"
+"\073\051\303\322\312\051\231\324\377\234\232\211\377\347\026\344"
+"\325\275\303\063\231\377\373\173\046\343\077\073\145\062\376\263"
+"\143\201\264\225\343\062\231\153\071\047\373\124\146\265\147\237"
+"\111\125\147\106\337\151\244\231\334\377\035\227\321\362\033\131"
+"\106\013\357\214\317\144\375\207\347\063\131\377\341\205\214\366"
+"\134\177\042\223\365\037\036\313\244\045\077\235\311\372\017\117"
+"\146\264\341\306\174\231\214\377\314\237\311\372\017\017\145\264"
+"\325\372\003\331\317\262\026\164\366\213\374\026\310\144\165\350"
+"\153\063\316\114\237\233\361\316\373\262\114\362\377\341\031\357"
+"\263\261\100\306\273\252\337\227\341\177\375\236\114\352\077\317"
+"\311\244\376\363\267\014\377\233\073\147\262\376\303\326\231\334"
+"\377\075\057\303\377\306\037\231\214\377\354\236\311\254\256\233"
+"\062\374\357\316\311\360\077\035\231\343\177\355\156\231\260\122"
+"\271\044\307\177\365\100\216\377\352\314\134\226\004\172\242\340"
+"\371\215\103\163\131\265\170\225\134\352\077\213\134\326\177\376"
+"\066\307\377\312\231\271\254\377\163\172\056\365\377\173\025\274"
+"\007\353\361\034\377\273\333\344\370\137\273\047\227\361\237\257"
+"\012\336\225\161\130\216\377\355\215\162\374\017\356\050\144\355"
+"\350\377\162\311\377\227\315\361\277\271\131\056\371\377\035\271"
+"\324\177\056\233\313\370\377\211\271\324\177\176\235\113\375\347"
+"\005\271\344\377\233\346\370\237\156\224\343\177\343\204\034\377"
+"\033\137\345\262\376\363\236\271\254\377\066\051\227\372\237\357"
+"\012\076\265\171\110\301\247\066\272\271\334\377\075\073\047\377"
+"\257\374\235\367\311\032\126\271\254\377\363\126\056\365\377\167"
+"\344\370\337\371\043\027\377\373\162\251\377\074\055\227\365\177"
+"\116\317\361\277\163\106\056\365\377\177\346\370\337\371\053\307"
+"\377\271\237\346\370\077\167\233\034\377\347\136\220\213\377\157"
+"\346\370\337\334\252\220\337\126\327\347\262\376\317\067\271\324"
+"\177\156\231\113\375\347\311\271\214\377\337\234\257\130\106\131"
+"\377\155\375\134\346\177\375\223\213\377\307\345\344\377\315\023"
+"\162\374\157\036\237\313\370\377\145\005\127\247\362\147\056\325"
+"\161\367\346\162\377\167\040\227\361\377\203\162\131\377\155\353"
+"\034\377\233\023\163\374\357\133\066\227\361\377\343\163\231\377"
+"\273\155\056\365\237\037\346\370\077\064\046\337\240\214\033\226"
+"\173\244\376\363\217\134\306\377\027\315\311\377\033\323\163\374"
+"\157\236\232\343\177\343\273\134\352\177\056\312\145\375\237\355"
+"\163\251\377\071\045\307\377\306\267\071\376\167\367\316\145\376"
+"\357\237\071\376\067\247\347\370\337\074\045\227\365\037\252\271"
+"\254\377\220\344\122\377\163\157\056\365\377\207\347\370\157\255"
+"\231\313\212\246\067\344\370\137\271\064\047\377\127\017\346\370"
+"\137\371\047\227\372\377\263\162\374\157\234\234\343\177\363\214"
+"\234\374\277\061\047\227\361\237\013\163\374\157\356\222\313\372"
+"\157\323\162\131\377\155\257\134\326\177\333\043\227\365\337\246"
+"\344\344\377\215\223\162\374\157\174\223\313\372\317\173\345\370"
+"\337\074\075\047\377\157\236\226\313\370\317\377\162\362\377\140"
+"\347\202\366\154\034\236\113\376\277\173\041\253\177\037\236\313"
+"\375\337\355\163\361\177\373\134\346\177\255\220\343\177\347\271"
+"\034\377\073\317\347\342\377\126\271\254\377\360\102\056\343\077"
+"\255\034\377\073\167\346\344\377\215\373\163\374\167\056\314\361"
+"\337\271\040\227\365\237\057\311\361\337\171\057\307\377\241\345"
+"\362\123\312\070\275\334\043\365\077\363\027\364\040\363\350\034"
+"\377\153\337\347\370\137\071\067\307\177\165\156\216\377\346\221"
+"\303\014\211\271\324\377\234\237\313\374\337\345\163\374\267\057"
+"\315\361\337\376\137\056\343\377\073\344\062\376\377\050\011\221"
+"\151\064\162\131\377\155\227\134\306\377\347\344\262\376\317\356"
+"\271\324\377\314\311\361\077\334\075\277\242\174\124\356\126\034"
+"\233\343\177\067\317\361\177\240\221\213\377\277\345\062\376\263"
+"\157\216\377\351\046\071\376\167\272\271\214\377\307\271\334\377"
+"\215\206\311\272\216\367\347\122\377\063\054\227\361\237\251\071"
+"\376\333\117\345\370\157\057\227\313\370\317\305\071\376\333\237"
+"\346\342\377\066\071\376\067\036\314\361\337\271\075\307\377\312"
+"\205\071\376\167\267\313\361\277\261\123\056\363\177\037\317\045"
+"\377\277\057\227\371\137\347\344\370\157\336\237\213\377\333\345"
+"\342\377\303\371\103\252\374\127\105\124\371\257\212\360\362\163"
+"\363\107\331\176\062\177\114\210\311\037\147\373\251\374\011\342"
+"\063\371\154\342\354\374\111\125\376\013\035\252\374\027\072\070"
+"\306\310\237\221\144\064\177\126\225\377\066\007\333\377\346\317"
+"\263\375\164\376\002\161\154\376\042\107\236\227\277\304\366\270"
+"\374\145\036\165\363\127\124\371\057\145\260\347\371\374\065\266"
+"\375\374\165\142\230\277\301\221\067\346\157\262\177\174\376\226"
+"\222\237\117\157\023\363\374\035\145\126\335\374\135\125\376\033"
+"\020\304\027\363\367\125\371\257\077\020\027\314\077\144\317\113"
+"\371\107\304\227\363\217\225\374\173\015\237\260\375\102\376\051"
+"\333\105\376\031\161\275\374\177\304\341\371\347\252\374\167\023"
+"\210\323\363\057\211\027\347\137\251\362\337\101\340\370\067\362"
+"\157\224\331\163\153\076\207\355\265\362\157\211\153\347\337\361"
+"\350\371\371\367\374\155\045\377\201\070\047\377\221\270\160\376"
+"\223\114\117\315\177\126\345\277\016\240\312\177\035\100\225\377"
+"\072\200\052\377\165\000\342\265\371\037\034\323\227\377\111\254"
+"\345\177\161\344\272\371\337\112\176\076\365\263\375\152\076\300"
+"\366\122\371\040\333\257\345\377\020\137\317\377\145\117\043\037"
+"\122\345\352\372\354\171\045\377\217\075\113\344\035\125\256\223"
+"\317\073\271\124\033\252\134\041\237\170\232\126\354\137\114\133"
+"\034\271\236\226\305\340\106\151\207\355\365\265\313\243\227\151"
+"\217\355\015\264\114\022\033\243\003\125\256\033\317\366\052\132"
+"\312\206\126\323\162\363\170\015\235\160\314\206\072\125\345\012"
+"\355\154\157\244\345\113\145\234\226\005\367\327\326\005\173\336"
+"\324\064\107\131\101\135\225\053\250\263\177\063\075\037\333\157"
+"\353\371\331\336\110\017\147\373\035\275\000\361\075\275\040\361"
+"\055\275\020\373\257\321\013\023\067\321\213\020\067\320\025\076"
+"\121\237\136\124\225\153\214\253\162\215\161\342\031\272\252\312"
+"\125\304\245\214\111\327\330\176\127\327\211\233\350\076\036\275"
+"\101\217\044\136\243\027\043\316\322\213\263\177\123\275\004\161"
+"\063\275\244\052\127\360\046\156\243\227\126\345\212\334\034\163"
+"\255\136\126\225\353\154\253\162\235\155\125\256\263\255\312\165"
+"\266\125\271\316\266\052\327\331\126\345\072\333\252\134\147\133"
+"\225\353\154\253\162\235\155\125\256\263\255\312\165\266\125\271"
+"\316\266\052\327\331\126\345\072\333\252\134\147\133\225\353\154"
+"\253\162\235\155\125\256\263\255\312\165\266\125\271\316\266\052"
+"\327\331\126\345\072\333\252\134\147\133\225\353\154\253\162\235"
+"\155\125\256\263\255\312\165\266\125\271\316\266\052\327\331\126"
+"\345\072\333\252\134\147\133\225\353\154\253\162\235\155\125\256"
+"\263\255\312\165\266\125\271\316\266\052\327\331\126\345\072\333"
+"\252\134\147\133\225\353\154\163\036\266\323\333\022\167\321\333"
+"\021\167\322\333\023\167\320\073\160\116\146\350\035\125\271\242"
+"\265\052\127\264\126\345\212\326\304\135\365\004\366\134\242\047"
+"\362\350\147\172\222\052\327\213\046\176\244\167\343\321\075\365"
+"\356\154\177\254\367\040\176\242\047\023\077\324\123\330\177\207"
+"\236\112\334\127\117\043\116\325\173\252\162\005\146\125\256\300"
+"\254\144\215\345\175\210\267\350\175\125\271\322\062\217\356\255"
+"\367\047\116\326\007\360\014\133\351\003\125\271\036\262\062\053"
+"\307\353\203\125\271\022\062\333\047\352\103\211\307\352\303\170"
+"\164\033\175\070\177\173\225\076\102\225\253\031\023\077\325\107"
+"\251\162\355\142\342\241\372\030\216\374\103\037\313\376\355\364"
+"\161\252\134\117\230\170\224\076\101\311\352\301\047\362\267\027"
+"\351\223\170\164\202\076\231\370\205\076\105\030\325\323\331\376"
+"\122\237\112\274\127\237\246\144\035\335\323\331\376\132\237\241"
+"\312\365\157\071\346\077\175\026\333\237\353\263\151\113\243\365"
+"\071\252\134\071\120\225\053\007\362\250\251\317\347\321\076\175"
+"\001\376\364\350\013\125\271\356\037\161\011\175\061\307\234\242"
+"\057\221\111\070\372\122\036\135\107\137\246\312\025\371\330\063"
+"\244\257\340\331\056\320\127\252\162\315\075\125\256\271\247\312"
+"\065\367\124\271\346\236\052\327\334\043\236\257\147\020\317\321"
+"\063\211\347\351\353\125\271\016\236\052\327\301\043\316\322\263"
+"\170\316\235\364\115\304\243\365\315\304\045\364\055\274\326\374"
+"\372\126\125\256\107\107\374\112\337\116\234\250\357\040\356\240"
+"\357\044\036\251\357\342\275\335\255\357\246\205\114\327\367\260"
+"\347\010\175\057\361\050\175\037\161\173\175\077\161\107\375\200"
+"\062\325\007\372\101\266\157\320\370\337\123\325\342\377\044\055"
+"\376\173\032\377\325\363\032\377\173\357\323\370\057\053\150\361"
+"\350\267\172\266\334\164\324\370\157\106\032\377\215\007\065\376"
+"\033\327\151\374\267\236\327\370\057\253\110\361\016\057\326\370"
+"\137\275\120\343\377\377\325\160\337\101\122\224\151\034\307\273"
+"\173\234\135\127\107\360\375\075\052\040\012\063\263\354\042\042"
+"\031\024\001\025\021\043\042\351\014\110\220\264\004\021\021\061"
+"\142\026\060\213\210\172\147\026\024\004\025\141\131\066\262\004"
+"\023\030\056\325\325\325\235\247\247\347\005\117\314\341\320\113"
+"\336\255\367\175\246\353\376\371\076\157\365\154\015\133\005\365"
+"\251\246\373\355\116\366\004\374\257\236\031\334\377\041\001\377"
+"\363\153\002\376\107\307\004\374\057\236\032\360\077\172\056\340"
+"\177\264\066\340\177\064\053\340\177\076\037\360\077\137\010\356"
+"\177\373\200\377\161\010\356\177\155\300\377\114\175\300\377\352"
+"\331\001\377\243\015\001\377\063\313\203\373\377\217\200\377\125"
+"\017\004\374\257\132\026\360\077\352\026\360\077\377\102\300\377"
+"\344\235\340\376\127\206\077\371\326\231\200\377\305\335\001\377"
+"\375\055\045\364\223\200\377\361\241\001\377\343\316\301\375\377"
+"\064\340\177\364\131\160\377\073\004\374\217\076\016\370\037\015"
+"\016\370\137\334\077\340\177\276\072\340\177\154\001\377\363\207"
+"\004\374\057\146\003\376\347\055\270\377\243\202\373\337\051\340"
+"\277\277\233\042\051\275\233\202\157\070\041\340\177\161\172\300"
+"\377\102\357\200\377\231\246\200\377\376\216\010\076\375\072\270"
+"\377\205\200\377\376\126\007\326\153\002\376\027\063\302\377\150"
+"\266\360\277\172\270\360\337\337\220\220\224\336\220\100\067\312"
+"\375\037\044\374\057\114\021\376\307\253\204\377\321\100\341\277"
+"\077\175\237\224\236\276\347\310\034\341\177\146\253\374\026\162"
+"\127\371\215\204\275\362\313\111\107\312\375\057\010\377\243\017"
+"\204\377\376\224\067\353\151\302\377\114\044\374\367\047\270\071"
+"\136\043\374\367\147\261\223\322\263\330\111\351\131\154\072\104"
+"\370\037\315\225\373\337\135\356\177\225\360\277\272\106\356\177"
+"\205\360\277\062\021\376\047\357\313\375\357\045\374\367\347\103"
+"\351\027\302\377\270\227\360\077\372\122\370\037\175\045\374\217"
+"\076\127\017\277\325\041\374\217\173\012\377\213\135\204\377\305"
+"\236\302\377\312\202\360\337\237\346\343\110\017\271\377\277\223"
+"\373\377\216\360\277\172\250\360\337\237\340\113\112\117\360\045"
+"\245\047\370\350\112\341\177\146\263\360\077\356\041\374\217\056"
+"\026\376\307\203\204\377\321\174\341\177\146\233\360\077\036\054"
+"\374\217\056\021\376\307\103\204\377\231\126\341\177\174\242\360"
+"\077\036\056\374\367\347\137\370\323\147\311\375\277\107\370\237"
+"\137\053\374\367\347\115\370\164\243\360\277\170\224\360\077\276"
+"\111\356\377\133\302\377\170\204\334\377\373\205\377\321\002\341"
+"\177\264\131\370\137\075\102\370\137\224\360\077\337\137\370\037"
+"\065\010\377\243\267\205\377\276\243\236\316\027\376\107\227\312"
+"\375\037\051\367\377\114\271\377\147\010\377\243\343\205\377\276"
+"\207\231\116\023\376\027\227\011\377\175\277\061\277\377\016\341"
+"\177\124\051\367\177\241\334\377\175\302\377\170\214\360\077\372"
+"\126\356\377\337\205\377\361\004\341\177\362\173\341\177\364\067"
+"\271\377\153\344\376\217\223\373\077\132\356\377\233\162\377\177"
+"\053\367\377\027\162\377\167\011\377\063\077\023\376\107\375\204"
+"\377\276\117\225\177\223\223\204\377\321\016\341\177\264\135\370"
+"\137\230\040\374\257\372\110\356\377\363\302\177\337\035\312\157"
+"\333\125\356\377\077\345\376\377\040\374\217\276\023\376\107\227"
+"\311\375\157\024\376\107\107\011\377\243\036\302\377\142\042\374"
+"\217\252\344\376\367\226\373\337\044\374\367\335\175\111\151\167"
+"\037\135\057\367\177\217\360\077\363\033\341\177\346\045\341\177"
+"\324\123\356\377\026\271\377\135\204\377\305\366\302\177\337\207"
+"\106\227\012\377\175\007\032\077\377\206\360\077\132\044\374\217"
+"\116\022\376\107\273\204\377\276\213\051\051\355\142\242\107\010"
+"\377\175\317\022\355\050\374\367\335\112\264\223\360\337\367\051"
+"\361\363\335\205\377\321\345\302\377\370\134\341\177\361\160\341"
+"\177\074\121\370\357\373\177\222\322\376\037\176\146\223\360\277"
+"\362\140\341\177\346\145\341\177\362\256\360\277\152\245\334\377"
+"\305\302\377\170\222\360\077\236\056\374\217\057\022\376\307\123"
+"\204\377\371\001\302\377\150\275\334\377\241\162\377\217\023\376"
+"\027\246\012\377\253\126\011\377\375\076\057\175\105\370\137\034"
+"\046\367\377\130\341\177\324\107\370\137\075\104\370\357\367\042"
+"\131\117\223\373\377\214\360\277\170\240\360\337\357\273\161\174"
+"\230\334\377\053\344\376\277\046\374\217\347\310\317\377\153\344"
+"\376\017\024\376\373\035\026\372\053\271\377\155\302\377\150\200"
+"\360\277\060\131\176\376\277\123\370\237\274\047\374\317\144\344"
+"\347\377\313\204\377\205\242\360\337\257\245\047\245\153\351\111"
+"\351\132\072\255\223\237\377\367\027\376\347\253\204\377\176\375"
+"\066\051\135\277\245\377\226\237\377\057\220\237\377\177\057\367"
+"\377\077\302\377\350\137\362\363\377\132\341\177\274\110\356\377"
+"\174\341\277\137\341\344\173\072\010\377\375\172\146\122\272\236"
+"\311\247\213\205\377\125\067\313\317\377\167\013\377\375\032\046"
+"\255\025\376\147\176\056\077\377\137\050\374\217\347\011\377\243"
+"\253\204\377\176\145\214\263\224\245\302\177\277\162\305\172\271"
+"\360\277\320\121\370\337\345\026\341\177\164\215\360\077\263\123"
+"\370\037\135\053\077\377\377\257\360\337\257\204\260\376\101\356"
+"\377\072\341\177\227\175\302\377\150\211\374\374\177\211\360\077"
+"\276\321\360\237\377\253\342\177\324\327\360\077\323\150\231\114"
+"\334\175\252\355\107\247\133\226\316\260\062\072\323\312\351\054"
+"\333\237\036\154\025\264\306\016\240\263\355\100\072\307\162\031"
+"\376\116\355\040\326\005\153\307\272\306\332\323\331\166\060\235"
+"\151\201\343\025\046\272\277\031\055\267\103\070\336\331\016\315"
+"\304\335\246\331\141\164\272\165\240\063\254\043\235\151\235\350"
+"\054\073\234\326\130\147\072\333\216\240\163\354\110\072\327\272"
+"\320\171\326\225\157\350\142\171\276\355\052\053\320\253\255\110"
+"\257\261\112\172\255\165\243\113\254\212\136\147\325\364\172\353"
+"\116\157\260\243\350\215\326\203\336\144\107\323\234\365\244\067"
+"\333\061\364\026\353\105\157\265\336\164\251\365\241\313\254\057"
+"\135\156\375\350\155\326\237\336\156\003\350\035\066\220\336\151"
+"\203\350\101\166\054\275\313\216\243\167\333\140\172\217\035\117"
+"\357\265\041\164\205\015\245\367\331\060\272\322\116\240\367\333"
+"\211\164\225\235\104\037\260\341\264\235\235\114\037\264\021\031"
+"\316\331\354\024\326\317\330\110\326\017\332\251\364\041\073\215"
+"\043\217\330\351\364\061\073\203\076\156\147\322\047\354\054\372"
+"\244\215\242\355\355\154\372\224\215\246\253\355\034\272\306\306"
+"\320\247\155\054\135\153\343\350\072\033\117\237\265\011\164\275"
+"\375\210\156\260\163\351\163\166\036\015\166\076\175\301\056\240"
+"\057\332\104\272\331\056\244\165\066\211\156\265\311\264\301\246"
+"\320\146\233\112\267\331\105\264\325\246\321\355\066\235\312\146"
+"\320\035\066\223\356\264\131\364\121\253\241\317\333\154\332\150"
+"\163\150\213\315\245\017\333\074\132\157\027\323\046\233\117\067"
+"\332\045\324\154\001\215\355\122\272\311\026\322\055\166\031\315"
+"\330\042\072\326\056\247\343\155\061\275\324\256\240\227\331\225"
+"\364\020\273\212\036\152\127\323\303\354\032\332\301\256\245\035"
+"\155\011\355\144\327\321\303\355\172\332\331\156\240\107\330\215"
+"\264\150\067\321\304\156\246\225\166\013\355\146\267\322\052\133"
+"\112\253\155\031\355\156\313\371\067\226\265\333\130\367\260\333"
+"\351\321\166\007\355\151\167\322\143\354\056\272\237\335\115\173"
+"\331\075\264\267\335\113\373\330\012\332\327\356\243\375\154\045"
+"\355\157\367\323\001\266\212\016\264\007\350\040\173\220\036\153"
+"\017\361\375\355\354\307\254\217\263\237\320\301\366\060\075\336"
+"\036\241\103\354\121\072\324\036\243\303\354\161\172\202\075\101"
+"\117\264\047\351\111\366\024\035\156\253\151\231\255\241\047\333"
+"\323\164\204\075\103\117\261\265\164\244\255\243\247\332\263\364"
+"\064\133\117\117\267\015\364\014\173\216\236\151\317\323\263\354"
+"\005\172\244\155\244\243\354\305\114\134\365\113\333\304\172\264"
+"\155\146\275\332\152\131\217\261\055\164\234\325\161\244\316\266"
+"\322\355\126\117\367\130\003\307\317\263\106\332\305\232\070\362"
+"\266\065\263\276\300\132\350\104\333\106\057\264\126\272\320\266"
+"\323\105\266\203\136\156\073\351\142\333\105\347\332\113\264\253"
+"\275\114\347\331\053\364\022\173\225\056\260\327\350\305\266\233"
+"\316\267\075\364\012\173\235\136\151\157\320\111\366\046\235\154"
+"\157\321\051\366\123\232\217\306\145\337\117\262\277\316\326\145"
+"\377\220\216\017\174\154\311\376\061\035\177\366\121\237\375\113"
+"\072\076\364\321\222\375\153\072\076\362\321\224\335\233\216\217"
+"\175\064\147\077\111\307\247\076\132\263\237\245\343\163\037\215"
+"\331\057\322\361\245\217\332\354\127\351\370\332\107\103\366\233"
+"\322\050\357\235\144\337\315\066\227\367\111\107\137\037\265\345"
+"\375\322\361\145\122\126\050\033\123\376\225\217\263\313\277\366"
+"\161\116\371\067\076\106\225\357\363\061\266\374\133\037\243\313"
+"\277\363\061\276\142\135\222\175\057\333\122\361\154\306\107\166"
+"\173\305\372\377\057\066\244\037\324\145\332\076\150\373\260\155"
+"\165\305\326\164\261\341\200\367\222\266\275\155\237\347\306\046"
+"\331\275\331\272\334\270\164\214\367\261\045\067\041\035\347\372"
+"\250\317\235\227\216\363\175\264\344\056\110\307\104\037\115\271"
+"\013\323\061\311\107\163\156\162\072\246\370\150\315\115\115\307"
+"\105\076\032\163\323\322\061\335\107\155\156\106\072\146\372\150"
+"\310\315\112\307\246\375\312\372\265\355\153\133\121\066\062\267"
+"\065\311\176\314\357\123\237\216\006\037\133\162\215\351\150\366"
+"\121\237\153\111\307\066\037\055\271\326\164\154\367\321\224\333"
+"\221\216\235\076\232\163\273\322\361\222\217\326\334\313\351\170"
+"\305\107\143\356\325\164\274\346\243\066\267\073\035\173\174\064"
+"\344\136\057\215\203\126\044\145\343\312\106\265\233\220\174\177"
+"\175\333\207\377\003\070\312\177\172"
+;
+
+            // NOTE: The map is build with all the known AGL lists: "Adobe Glyph List",
             // "Adobe Glyph List For New Fonts" and "ITC Zapf Dingbats Glyph List".
             // All the lists are not colliding. CHECK-ME: "Zapf Dingbats" list should be used
             // for the /Encoding of a "Zapf Dingbats" font
             // References:
             // https://github.com/adobe-type-tools/agl-aglfn/
             // https://github.com/adobe-type-tools/agl-specification
-            unique_ptr<PdfNameHashMap<AGLMapping>> aglMap(new PdfNameHashMap<AGLMapping>());
-            aglMap->emplace("A"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0041 });
-            aglMap->emplace("AE"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00C6 });
-            aglMap->emplace("AEacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01FC });
-            aglMap->emplace("AEmacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01E2 });
-            aglMap->emplace("AEsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7E6 });
-            aglMap->emplace("Aacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00C1 });
-            aglMap->emplace("Aacutesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7E1 });
-            aglMap->emplace("Abreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0102 });
-            aglMap->emplace("Abreveacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EAE });
-            aglMap->emplace("Abrevecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04D0 });
-            aglMap->emplace("Abrevedotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EB6 });
-            aglMap->emplace("Abrevegrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EB0 });
-            aglMap->emplace("Abrevehookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EB2 });
-            aglMap->emplace("Abrevetilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EB4 });
-            aglMap->emplace("Acaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01CD });
-            aglMap->emplace("Acircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24B6 });
-            aglMap->emplace("Acircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00C2 });
-            aglMap->emplace("Acircumflexacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EA4 });
-            aglMap->emplace("Acircumflexdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EAC });
-            aglMap->emplace("Acircumflexgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EA6 });
-            aglMap->emplace("Acircumflexhookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EA8 });
-            aglMap->emplace("Acircumflexsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7E2 });
-            aglMap->emplace("Acircumflextilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EAA });
-            aglMap->emplace("Acute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6C9 });
-            aglMap->emplace("Acutesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7B4 });
-            aglMap->emplace("Acyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0410 });
-            aglMap->emplace("Adblgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0200 });
-            aglMap->emplace("Adieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00C4 });
-            aglMap->emplace("Adieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04D2 });
-            aglMap->emplace("Adieresismacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01DE });
-            aglMap->emplace("Adieresissmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7E4 });
-            aglMap->emplace("Adotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EA0 });
-            aglMap->emplace("Adotmacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01E0 });
-            aglMap->emplace("Agrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00C0 });
-            aglMap->emplace("Agravesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7E0 });
-            aglMap->emplace("Ahookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EA2 });
-            aglMap->emplace("Aiecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04D4 });
-            aglMap->emplace("Ainvertedbreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0202 });
-            aglMap->emplace("Alpha"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0391 });
-            aglMap->emplace("Alphatonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0386 });
-            aglMap->emplace("Amacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0100 });
-            aglMap->emplace("Amonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF21 });
-            aglMap->emplace("Aogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0104 });
-            aglMap->emplace("Aring"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00C5 });
-            aglMap->emplace("Aringacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01FA });
-            aglMap->emplace("Aringbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E00 });
-            aglMap->emplace("Aringsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7E5 });
-            aglMap->emplace("Asmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF761 });
-            aglMap->emplace("Atilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00C3 });
-            aglMap->emplace("Atildesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7E3 });
-            aglMap->emplace("Aybarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0531 });
-            aglMap->emplace("B"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0042 });
-            aglMap->emplace("Bcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24B7 });
-            aglMap->emplace("Bdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E02 });
-            aglMap->emplace("Bdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E04 });
-            aglMap->emplace("Becyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0411 });
-            aglMap->emplace("Benarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0532 });
-            aglMap->emplace("Beta"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0392 });
-            aglMap->emplace("Bhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0181 });
-            aglMap->emplace("Blinebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E06 });
-            aglMap->emplace("Bmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF22 });
-            aglMap->emplace("Brevesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6F4 });
-            aglMap->emplace("Bsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF762 });
-            aglMap->emplace("Btopbar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0182 });
-            aglMap->emplace("C"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0043 });
-            aglMap->emplace("Caarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x053E });
-            aglMap->emplace("Cacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0106 });
-            aglMap->emplace("Caron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6CA });
-            aglMap->emplace("Caronsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6F5 });
-            aglMap->emplace("Ccaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x010C });
-            aglMap->emplace("Ccedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00C7 });
-            aglMap->emplace("Ccedillaacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E08 });
-            aglMap->emplace("Ccedillasmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7E7 });
-            aglMap->emplace("Ccircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24B8 });
-            aglMap->emplace("Ccircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0108 });
-            aglMap->emplace("Cdot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x010A });
-            aglMap->emplace("Cdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x010A });
-            aglMap->emplace("Cedillasmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7B8 });
-            aglMap->emplace("Chaarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0549 });
-            aglMap->emplace("Cheabkhasiancyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04BC });
-            aglMap->emplace("Checyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0427 });
-            aglMap->emplace("Chedescenderabkhasiancyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04BE });
-            aglMap->emplace("Chedescendercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04B6 });
-            aglMap->emplace("Chedieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04F4 });
-            aglMap->emplace("Cheharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0543 });
-            aglMap->emplace("Chekhakassiancyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04CB });
-            aglMap->emplace("Cheverticalstrokecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04B8 });
-            aglMap->emplace("Chi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03A7 });
-            aglMap->emplace("Chook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0187 });
-            aglMap->emplace("Circumflexsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6F6 });
-            aglMap->emplace("Cmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF23 });
-            aglMap->emplace("Coarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0551 });
-            aglMap->emplace("Csmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF763 });
-            aglMap->emplace("D"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0044 });
-            aglMap->emplace("DZ"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01F1 });
-            aglMap->emplace("DZcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01C4 });
-            aglMap->emplace("Daarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0534 });
-            aglMap->emplace("Dafrican"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0189 });
-            aglMap->emplace("Dcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x010E });
-            aglMap->emplace("Dcedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E10 });
-            aglMap->emplace("Dcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24B9 });
-            aglMap->emplace("Dcircumflexbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E12 });
-            aglMap->emplace("Dcroat"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0110 });
-            aglMap->emplace("Ddotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E0A });
-            aglMap->emplace("Ddotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E0C });
-            aglMap->emplace("Decyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0414 });
-            aglMap->emplace("Deicoptic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03EE });
-            aglMap->emplace("Delta"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2206 });
-            aglMap->emplace("Deltagreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0394 });
-            aglMap->emplace("Dhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x018A });
-            aglMap->emplace("Dieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6CB });
-            aglMap->emplace("DieresisAcute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6CC });
-            aglMap->emplace("DieresisGrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6CD });
-            aglMap->emplace("Dieresissmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7A8 });
-            aglMap->emplace("Digammagreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03DC });
-            aglMap->emplace("Djecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0402 });
-            aglMap->emplace("Dlinebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E0E });
-            aglMap->emplace("Dmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF24 });
-            aglMap->emplace("Dotaccentsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6F7 });
-            aglMap->emplace("Dslash"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0110 });
-            aglMap->emplace("Dsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF764 });
-            aglMap->emplace("Dtopbar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x018B });
-            aglMap->emplace("Dz"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01F2 });
-            aglMap->emplace("Dzcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01C5 });
-            aglMap->emplace("Dzeabkhasiancyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04E0 });
-            aglMap->emplace("Dzecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0405 });
-            aglMap->emplace("Dzhecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x040F });
-            aglMap->emplace("E"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0045 });
-            aglMap->emplace("Eacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00C9 });
-            aglMap->emplace("Eacutesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7E9 });
-            aglMap->emplace("Ebreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0114 });
-            aglMap->emplace("Ecaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x011A });
-            aglMap->emplace("Ecedillabreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E1C });
-            aglMap->emplace("Echarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0535 });
-            aglMap->emplace("Ecircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24BA });
-            aglMap->emplace("Ecircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00CA });
-            aglMap->emplace("Ecircumflexacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EBE });
-            aglMap->emplace("Ecircumflexbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E18 });
-            aglMap->emplace("Ecircumflexdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EC6 });
-            aglMap->emplace("Ecircumflexgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EC0 });
-            aglMap->emplace("Ecircumflexhookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EC2 });
-            aglMap->emplace("Ecircumflexsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7EA });
-            aglMap->emplace("Ecircumflextilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EC4 });
-            aglMap->emplace("Ecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0404 });
-            aglMap->emplace("Edblgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0204 });
-            aglMap->emplace("Edieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00CB });
-            aglMap->emplace("Edieresissmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7EB });
-            aglMap->emplace("Edot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0116 });
-            aglMap->emplace("Edotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0116 });
-            aglMap->emplace("Edotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EB8 });
-            aglMap->emplace("Efcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0424 });
-            aglMap->emplace("Egrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00C8 });
-            aglMap->emplace("Egravesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7E8 });
-            aglMap->emplace("Eharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0537 });
-            aglMap->emplace("Ehookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EBA });
-            aglMap->emplace("Eightroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2167 });
-            aglMap->emplace("Einvertedbreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0206 });
-            aglMap->emplace("Eiotifiedcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0464 });
-            aglMap->emplace("Elcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x041B });
-            aglMap->emplace("Elevenroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x216A });
-            aglMap->emplace("Emacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0112 });
-            aglMap->emplace("Emacronacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E16 });
-            aglMap->emplace("Emacrongrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E14 });
-            aglMap->emplace("Emcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x041C });
-            aglMap->emplace("Emonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF25 });
-            aglMap->emplace("Encyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x041D });
-            aglMap->emplace("Endescendercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04A2 });
-            aglMap->emplace("Eng"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x014A });
-            aglMap->emplace("Enghecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04A4 });
-            aglMap->emplace("Enhookcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04C7 });
-            aglMap->emplace("Eogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0118 });
-            aglMap->emplace("Eopen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0190 });
-            aglMap->emplace("Epsilon"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0395 });
-            aglMap->emplace("Epsilontonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0388 });
-            aglMap->emplace("Ercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0420 });
-            aglMap->emplace("Ereversed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x018E });
-            aglMap->emplace("Ereversedcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x042D });
-            aglMap->emplace("Escyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0421 });
-            aglMap->emplace("Esdescendercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04AA });
-            aglMap->emplace("Esh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01A9 });
-            aglMap->emplace("Esmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF765 });
-            aglMap->emplace("Eta"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0397 });
-            aglMap->emplace("Etarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0538 });
-            aglMap->emplace("Etatonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0389 });
-            aglMap->emplace("Eth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00D0 });
-            aglMap->emplace("Ethsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7F0 });
-            aglMap->emplace("Etilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EBC });
-            aglMap->emplace("Etildebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E1A });
-            aglMap->emplace("Euro"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x20AC });
-            aglMap->emplace("Ezh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01B7 });
-            aglMap->emplace("Ezhcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01EE });
-            aglMap->emplace("Ezhreversed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01B8 });
-            aglMap->emplace("F"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0046 });
-            aglMap->emplace("Fcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24BB });
-            aglMap->emplace("Fdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E1E });
-            aglMap->emplace("Feharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0556 });
-            aglMap->emplace("Feicoptic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03E4 });
-            aglMap->emplace("Fhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0191 });
-            aglMap->emplace("Fitacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0472 });
-            aglMap->emplace("Fiveroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2164 });
-            aglMap->emplace("Fmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF26 });
-            aglMap->emplace("Fourroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2163 });
-            aglMap->emplace("Fsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF766 });
-            aglMap->emplace("G"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0047 });
-            aglMap->emplace("GBsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3387 });
-            aglMap->emplace("Gacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01F4 });
-            aglMap->emplace("Gamma"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0393 });
-            aglMap->emplace("Gammaafrican"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0194 });
-            aglMap->emplace("Gangiacoptic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03EA });
-            aglMap->emplace("Gbreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x011E });
-            aglMap->emplace("Gcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01E6 });
-            aglMap->emplace("Gcedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0122 });
-            aglMap->emplace("Gcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24BC });
-            aglMap->emplace("Gcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x011C });
-            aglMap->emplace("Gcommaaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0122 });
-            aglMap->emplace("Gdot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0120 });
-            aglMap->emplace("Gdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0120 });
-            aglMap->emplace("Gecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0413 });
-            aglMap->emplace("Ghadarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0542 });
-            aglMap->emplace("Ghemiddlehookcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0494 });
-            aglMap->emplace("Ghestrokecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0492 });
-            aglMap->emplace("Gheupturncyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0490 });
-            aglMap->emplace("Ghook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0193 });
-            aglMap->emplace("Gimarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0533 });
-            aglMap->emplace("Gjecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0403 });
-            aglMap->emplace("Gmacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E20 });
-            aglMap->emplace("Gmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF27 });
-            aglMap->emplace("Grave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6CE });
-            aglMap->emplace("Gravesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF760 });
-            aglMap->emplace("Gsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF767 });
-            aglMap->emplace("Gsmallhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x029B });
-            aglMap->emplace("Gstroke"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01E4 });
-            aglMap->emplace("H"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0048 });
-            aglMap->emplace("H18533"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25CF });
-            aglMap->emplace("H18543"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25AA });
-            aglMap->emplace("H18551"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25AB });
-            aglMap->emplace("H22073"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25A1 });
-            aglMap->emplace("HPsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33CB });
-            aglMap->emplace("Haabkhasiancyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04A8 });
-            aglMap->emplace("Hadescendercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04B2 });
-            aglMap->emplace("Hardsigncyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x042A });
-            aglMap->emplace("Hbar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0126 });
-            aglMap->emplace("Hbrevebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E2A });
-            aglMap->emplace("Hcedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E28 });
-            aglMap->emplace("Hcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24BD });
-            aglMap->emplace("Hcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0124 });
-            aglMap->emplace("Hdieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E26 });
-            aglMap->emplace("Hdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E22 });
-            aglMap->emplace("Hdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E24 });
-            aglMap->emplace("Hmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF28 });
-            aglMap->emplace("Hoarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0540 });
-            aglMap->emplace("Horicoptic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03E8 });
-            aglMap->emplace("Hsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF768 });
-            aglMap->emplace("Hungarumlaut"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6CF });
-            aglMap->emplace("Hungarumlautsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6F8 });
-            aglMap->emplace("Hzsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3390 });
-            aglMap->emplace("I"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0049 });
-            aglMap->emplace("IAcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x042F });
-            aglMap->emplace("IJ"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0132 });
-            aglMap->emplace("IUcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x042E });
-            aglMap->emplace("Iacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00CD });
-            aglMap->emplace("Iacutesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7ED });
-            aglMap->emplace("Ibreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x012C });
-            aglMap->emplace("Icaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01CF });
-            aglMap->emplace("Icircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24BE });
-            aglMap->emplace("Icircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00CE });
-            aglMap->emplace("Icircumflexsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7EE });
-            aglMap->emplace("Icyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0406 });
-            aglMap->emplace("Idblgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0208 });
-            aglMap->emplace("Idieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00CF });
-            aglMap->emplace("Idieresisacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E2E });
-            aglMap->emplace("Idieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04E4 });
-            aglMap->emplace("Idieresissmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7EF });
-            aglMap->emplace("Idot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0130 });
-            aglMap->emplace("Idotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0130 });
-            aglMap->emplace("Idotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1ECA });
-            aglMap->emplace("Iebrevecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04D6 });
-            aglMap->emplace("Iecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0415 });
-            aglMap->emplace("Ifraktur"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2111 });
-            aglMap->emplace("Igrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00CC });
-            aglMap->emplace("Igravesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7EC });
-            aglMap->emplace("Ihookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EC8 });
-            aglMap->emplace("Iicyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0418 });
-            aglMap->emplace("Iinvertedbreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x020A });
-            aglMap->emplace("Iishortcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0419 });
-            aglMap->emplace("Imacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x012A });
-            aglMap->emplace("Imacroncyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04E2 });
-            aglMap->emplace("Imonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF29 });
-            aglMap->emplace("Iniarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x053B });
-            aglMap->emplace("Iocyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0401 });
-            aglMap->emplace("Iogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x012E });
-            aglMap->emplace("Iota"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0399 });
-            aglMap->emplace("Iotaafrican"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0196 });
-            aglMap->emplace("Iotadieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03AA });
-            aglMap->emplace("Iotatonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x038A });
-            aglMap->emplace("Ismall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF769 });
-            aglMap->emplace("Istroke"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0197 });
-            aglMap->emplace("Itilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0128 });
-            aglMap->emplace("Itildebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E2C });
-            aglMap->emplace("Izhitsacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0474 });
-            aglMap->emplace("Izhitsadblgravecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0476 });
-            aglMap->emplace("J"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x004A });
-            aglMap->emplace("Jaarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0541 });
-            aglMap->emplace("Jcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24BF });
-            aglMap->emplace("Jcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0134 });
-            aglMap->emplace("Jecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0408 });
-            aglMap->emplace("Jheharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x054B });
-            aglMap->emplace("Jmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF2A });
-            aglMap->emplace("Jsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF76A });
-            aglMap->emplace("K"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x004B });
-            aglMap->emplace("KBsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3385 });
-            aglMap->emplace("KKsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33CD });
-            aglMap->emplace("Kabashkircyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04A0 });
-            aglMap->emplace("Kacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E30 });
-            aglMap->emplace("Kacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x041A });
-            aglMap->emplace("Kadescendercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x049A });
-            aglMap->emplace("Kahookcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04C3 });
-            aglMap->emplace("Kappa"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x039A });
-            aglMap->emplace("Kastrokecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x049E });
-            aglMap->emplace("Kaverticalstrokecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x049C });
-            aglMap->emplace("Kcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01E8 });
-            aglMap->emplace("Kcedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0136 });
-            aglMap->emplace("Kcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24C0 });
-            aglMap->emplace("Kcommaaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0136 });
-            aglMap->emplace("Kdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E32 });
-            aglMap->emplace("Keharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0554 });
-            aglMap->emplace("Kenarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x053F });
-            aglMap->emplace("Khacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0425 });
-            aglMap->emplace("Kheicoptic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03E6 });
-            aglMap->emplace("Khook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0198 });
-            aglMap->emplace("Kjecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x040C });
-            aglMap->emplace("Klinebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E34 });
-            aglMap->emplace("Kmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF2B });
-            aglMap->emplace("Koppacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0480 });
-            aglMap->emplace("Koppagreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03DE });
-            aglMap->emplace("Ksicyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x046E });
-            aglMap->emplace("Ksmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF76B });
-            aglMap->emplace("L"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x004C });
-            aglMap->emplace("LJ"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01C7 });
-            aglMap->emplace("LL"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6BF });
-            aglMap->emplace("Lacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0139 });
-            aglMap->emplace("Lambda"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x039B });
-            aglMap->emplace("Lcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x013D });
-            aglMap->emplace("Lcedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x013B });
-            aglMap->emplace("Lcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24C1 });
-            aglMap->emplace("Lcircumflexbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E3C });
-            aglMap->emplace("Lcommaaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x013B });
-            aglMap->emplace("Ldot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x013F });
-            aglMap->emplace("Ldotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x013F });
-            aglMap->emplace("Ldotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E36 });
-            aglMap->emplace("Ldotbelowmacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E38 });
-            aglMap->emplace("Liwnarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x053C });
-            aglMap->emplace("Lj"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01C8 });
-            aglMap->emplace("Ljecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0409 });
-            aglMap->emplace("Llinebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E3A });
-            aglMap->emplace("Lmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF2C });
-            aglMap->emplace("Lslash"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0141 });
-            aglMap->emplace("Lslashsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6F9 });
-            aglMap->emplace("Lsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF76C });
-            aglMap->emplace("M"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x004D });
-            aglMap->emplace("MBsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3386 });
-            aglMap->emplace("Macron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6D0 });
-            aglMap->emplace("Macronsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7AF });
-            aglMap->emplace("Macute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E3E });
-            aglMap->emplace("Mcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24C2 });
-            aglMap->emplace("Mdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E40 });
-            aglMap->emplace("Mdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E42 });
-            aglMap->emplace("Menarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0544 });
-            aglMap->emplace("Mmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF2D });
-            aglMap->emplace("Msmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF76D });
-            aglMap->emplace("Mturned"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x019C });
-            aglMap->emplace("Mu"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x039C });
-            aglMap->emplace("N"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x004E });
-            aglMap->emplace("NJ"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01CA });
-            aglMap->emplace("Nacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0143 });
-            aglMap->emplace("Ncaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0147 });
-            aglMap->emplace("Ncedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0145 });
-            aglMap->emplace("Ncircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24C3 });
-            aglMap->emplace("Ncircumflexbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E4A });
-            aglMap->emplace("Ncommaaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0145 });
-            aglMap->emplace("Ndotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E44 });
-            aglMap->emplace("Ndotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E46 });
-            aglMap->emplace("Nhookleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x019D });
-            aglMap->emplace("Nineroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2168 });
-            aglMap->emplace("Nj"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01CB });
-            aglMap->emplace("Njecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x040A });
-            aglMap->emplace("Nlinebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E48 });
-            aglMap->emplace("Nmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF2E });
-            aglMap->emplace("Nowarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0546 });
-            aglMap->emplace("Nsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF76E });
-            aglMap->emplace("Ntilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00D1 });
-            aglMap->emplace("Ntildesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7F1 });
-            aglMap->emplace("Nu"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x039D });
-            aglMap->emplace("O"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x004F });
-            aglMap->emplace("OE"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0152 });
-            aglMap->emplace("OEsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6FA });
-            aglMap->emplace("Oacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00D3 });
-            aglMap->emplace("Oacutesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7F3 });
-            aglMap->emplace("Obarredcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04E8 });
-            aglMap->emplace("Obarreddieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04EA });
-            aglMap->emplace("Obreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x014E });
-            aglMap->emplace("Ocaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01D1 });
-            aglMap->emplace("Ocenteredtilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x019F });
-            aglMap->emplace("Ocircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24C4 });
-            aglMap->emplace("Ocircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00D4 });
-            aglMap->emplace("Ocircumflexacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1ED0 });
-            aglMap->emplace("Ocircumflexdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1ED8 });
-            aglMap->emplace("Ocircumflexgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1ED2 });
-            aglMap->emplace("Ocircumflexhookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1ED4 });
-            aglMap->emplace("Ocircumflexsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7F4 });
-            aglMap->emplace("Ocircumflextilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1ED6 });
-            aglMap->emplace("Ocyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x041E });
-            aglMap->emplace("Odblacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0150 });
-            aglMap->emplace("Odblgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x020C });
-            aglMap->emplace("Odieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00D6 });
-            aglMap->emplace("Odieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04E6 });
-            aglMap->emplace("Odieresissmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7F6 });
-            aglMap->emplace("Odotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1ECC });
-            aglMap->emplace("Ogoneksmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6FB });
-            aglMap->emplace("Ograve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00D2 });
-            aglMap->emplace("Ogravesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7F2 });
-            aglMap->emplace("Oharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0555 });
-            aglMap->emplace("Ohm"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2126 });
-            aglMap->emplace("Ohookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1ECE });
-            aglMap->emplace("Ohorn"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01A0 });
-            aglMap->emplace("Ohornacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EDA });
-            aglMap->emplace("Ohorndotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EE2 });
-            aglMap->emplace("Ohorngrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EDC });
-            aglMap->emplace("Ohornhookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EDE });
-            aglMap->emplace("Ohorntilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EE0 });
-            aglMap->emplace("Ohungarumlaut"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0150 });
-            aglMap->emplace("Oi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01A2 });
-            aglMap->emplace("Oinvertedbreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x020E });
-            aglMap->emplace("Omacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x014C });
-            aglMap->emplace("Omacronacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E52 });
-            aglMap->emplace("Omacrongrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E50 });
-            aglMap->emplace("Omega"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2126 });
-            aglMap->emplace("Omegacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0460 });
-            aglMap->emplace("Omegagreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03A9 });
-            aglMap->emplace("Omegaroundcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x047A });
-            aglMap->emplace("Omegatitlocyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x047C });
-            aglMap->emplace("Omegatonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x038F });
-            aglMap->emplace("Omicron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x039F });
-            aglMap->emplace("Omicrontonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x038C });
-            aglMap->emplace("Omonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF2F });
-            aglMap->emplace("Oneroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2160 });
-            aglMap->emplace("Oogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01EA });
-            aglMap->emplace("Oogonekmacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01EC });
-            aglMap->emplace("Oopen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0186 });
-            aglMap->emplace("Oslash"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00D8 });
-            aglMap->emplace("Oslashacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01FE });
-            aglMap->emplace("Oslashsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7F8 });
-            aglMap->emplace("Osmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF76F });
-            aglMap->emplace("Ostrokeacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01FE });
-            aglMap->emplace("Otcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x047E });
-            aglMap->emplace("Otilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00D5 });
-            aglMap->emplace("Otildeacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E4C });
-            aglMap->emplace("Otildedieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E4E });
-            aglMap->emplace("Otildesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7F5 });
-            aglMap->emplace("P"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0050 });
-            aglMap->emplace("Pacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E54 });
-            aglMap->emplace("Pcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24C5 });
-            aglMap->emplace("Pdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E56 });
-            aglMap->emplace("Pecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x041F });
-            aglMap->emplace("Peharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x054A });
-            aglMap->emplace("Pemiddlehookcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04A6 });
-            aglMap->emplace("Phi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03A6 });
-            aglMap->emplace("Phook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01A4 });
-            aglMap->emplace("Pi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03A0 });
-            aglMap->emplace("Piwrarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0553 });
-            aglMap->emplace("Pmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF30 });
-            aglMap->emplace("Psi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03A8 });
-            aglMap->emplace("Psicyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0470 });
-            aglMap->emplace("Psmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF770 });
-            aglMap->emplace("Q"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0051 });
-            aglMap->emplace("Qcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24C6 });
-            aglMap->emplace("Qmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF31 });
-            aglMap->emplace("Qsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF771 });
-            aglMap->emplace("R"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0052 });
-            aglMap->emplace("Raarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x054C });
-            aglMap->emplace("Racute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0154 });
-            aglMap->emplace("Rcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0158 });
-            aglMap->emplace("Rcedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0156 });
-            aglMap->emplace("Rcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24C7 });
-            aglMap->emplace("Rcommaaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0156 });
-            aglMap->emplace("Rdblgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0210 });
-            aglMap->emplace("Rdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E58 });
-            aglMap->emplace("Rdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E5A });
-            aglMap->emplace("Rdotbelowmacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E5C });
-            aglMap->emplace("Reharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0550 });
-            aglMap->emplace("Rfraktur"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x211C });
-            aglMap->emplace("Rho"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03A1 });
-            aglMap->emplace("Ringsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6FC });
-            aglMap->emplace("Rinvertedbreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0212 });
-            aglMap->emplace("Rlinebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E5E });
-            aglMap->emplace("Rmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF32 });
-            aglMap->emplace("Rsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF772 });
-            aglMap->emplace("Rsmallinverted"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0281 });
-            aglMap->emplace("Rsmallinvertedsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02B6 });
-            aglMap->emplace("S"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0053 });
-            aglMap->emplace("SF010000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x250C });
-            aglMap->emplace("SF020000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2514 });
-            aglMap->emplace("SF030000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2510 });
-            aglMap->emplace("SF040000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2518 });
-            aglMap->emplace("SF050000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x253C });
-            aglMap->emplace("SF060000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x252C });
-            aglMap->emplace("SF070000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2534 });
-            aglMap->emplace("SF080000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x251C });
-            aglMap->emplace("SF090000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2524 });
-            aglMap->emplace("SF100000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2500 });
-            aglMap->emplace("SF110000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2502 });
-            aglMap->emplace("SF190000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2561 });
-            aglMap->emplace("SF200000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2562 });
-            aglMap->emplace("SF210000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2556 });
-            aglMap->emplace("SF220000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2555 });
-            aglMap->emplace("SF230000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2563 });
-            aglMap->emplace("SF240000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2551 });
-            aglMap->emplace("SF250000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2557 });
-            aglMap->emplace("SF260000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x255D });
-            aglMap->emplace("SF270000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x255C });
-            aglMap->emplace("SF280000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x255B });
-            aglMap->emplace("SF360000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x255E });
-            aglMap->emplace("SF370000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x255F });
-            aglMap->emplace("SF380000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x255A });
-            aglMap->emplace("SF390000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2554 });
-            aglMap->emplace("SF400000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2569 });
-            aglMap->emplace("SF410000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2566 });
-            aglMap->emplace("SF420000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2560 });
-            aglMap->emplace("SF430000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2550 });
-            aglMap->emplace("SF440000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x256C });
-            aglMap->emplace("SF450000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2567 });
-            aglMap->emplace("SF460000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2568 });
-            aglMap->emplace("SF470000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2564 });
-            aglMap->emplace("SF480000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2565 });
-            aglMap->emplace("SF490000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2559 });
-            aglMap->emplace("SF500000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2558 });
-            aglMap->emplace("SF510000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2552 });
-            aglMap->emplace("SF520000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2553 });
-            aglMap->emplace("SF530000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x256B });
-            aglMap->emplace("SF540000"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x256A });
-            aglMap->emplace("Sacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x015A });
-            aglMap->emplace("Sacutedotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E64 });
-            aglMap->emplace("Sampigreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03E0 });
-            aglMap->emplace("Scaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0160 });
-            aglMap->emplace("Scarondotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E66 });
-            aglMap->emplace("Scaronsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6FD });
-            aglMap->emplace("Scedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x015E });
-            aglMap->emplace("Schwa"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x018F });
-            aglMap->emplace("Schwacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04D8 });
-            aglMap->emplace("Schwadieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04DA });
-            aglMap->emplace("Scircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24C8 });
-            aglMap->emplace("Scircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x015C });
-            aglMap->emplace("Scommaaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0218 });
-            aglMap->emplace("Sdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E60 });
-            aglMap->emplace("Sdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E62 });
-            aglMap->emplace("Sdotbelowdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E68 });
-            aglMap->emplace("Seharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x054D });
-            aglMap->emplace("Sevenroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2166 });
-            aglMap->emplace("Shaarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0547 });
-            aglMap->emplace("Shacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0428 });
-            aglMap->emplace("Shchacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0429 });
-            aglMap->emplace("Sheicoptic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03E2 });
-            aglMap->emplace("Shhacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04BA });
-            aglMap->emplace("Shimacoptic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03EC });
-            aglMap->emplace("Sigma"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03A3 });
-            aglMap->emplace("Sixroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2165 });
-            aglMap->emplace("Smonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF33 });
-            aglMap->emplace("Softsigncyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x042C });
-            aglMap->emplace("Ssmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF773 });
-            aglMap->emplace("Stigmagreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03DA });
-            aglMap->emplace("T"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0054 });
-            aglMap->emplace("Tau"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03A4 });
-            aglMap->emplace("Tbar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0166 });
-            aglMap->emplace("Tcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0164 });
-            aglMap->emplace("Tcedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0162 });
-            aglMap->emplace("Tcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24C9 });
-            aglMap->emplace("Tcircumflexbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E70 });
-            aglMap->emplace("Tcommaaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0162 });
-            aglMap->emplace("Tdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E6A });
-            aglMap->emplace("Tdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E6C });
-            aglMap->emplace("Tecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0422 });
-            aglMap->emplace("Tedescendercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04AC });
-            aglMap->emplace("Tenroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2169 });
-            aglMap->emplace("Tetsecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04B4 });
-            aglMap->emplace("Theta"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0398 });
-            aglMap->emplace("Thook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01AC });
-            aglMap->emplace("Thorn"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00DE });
-            aglMap->emplace("Thornsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7FE });
-            aglMap->emplace("Threeroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2162 });
-            aglMap->emplace("Tildesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6FE });
-            aglMap->emplace("Tiwnarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x054F });
-            aglMap->emplace("Tlinebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E6E });
-            aglMap->emplace("Tmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF34 });
-            aglMap->emplace("Toarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0539 });
-            aglMap->emplace("Tonefive"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01BC });
-            aglMap->emplace("Tonesix"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0184 });
-            aglMap->emplace("Tonetwo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01A7 });
-            aglMap->emplace("Tretroflexhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01AE });
-            aglMap->emplace("Tsecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0426 });
-            aglMap->emplace("Tshecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x040B });
-            aglMap->emplace("Tsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF774 });
-            aglMap->emplace("Twelveroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x216B });
-            aglMap->emplace("Tworoman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2161 });
-            aglMap->emplace("U"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0055 });
-            aglMap->emplace("Uacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00DA });
-            aglMap->emplace("Uacutesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7FA });
-            aglMap->emplace("Ubreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x016C });
-            aglMap->emplace("Ucaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01D3 });
-            aglMap->emplace("Ucircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24CA });
-            aglMap->emplace("Ucircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00DB });
-            aglMap->emplace("Ucircumflexbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E76 });
-            aglMap->emplace("Ucircumflexsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7FB });
-            aglMap->emplace("Ucyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0423 });
-            aglMap->emplace("Udblacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0170 });
-            aglMap->emplace("Udblgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0214 });
-            aglMap->emplace("Udieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00DC });
-            aglMap->emplace("Udieresisacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01D7 });
-            aglMap->emplace("Udieresisbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E72 });
-            aglMap->emplace("Udieresiscaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01D9 });
-            aglMap->emplace("Udieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04F0 });
-            aglMap->emplace("Udieresisgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01DB });
-            aglMap->emplace("Udieresismacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01D5 });
-            aglMap->emplace("Udieresissmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7FC });
-            aglMap->emplace("Udotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EE4 });
-            aglMap->emplace("Ugrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00D9 });
-            aglMap->emplace("Ugravesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7F9 });
-            aglMap->emplace("Uhookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EE6 });
-            aglMap->emplace("Uhorn"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01AF });
-            aglMap->emplace("Uhornacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EE8 });
-            aglMap->emplace("Uhorndotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EF0 });
-            aglMap->emplace("Uhorngrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EEA });
-            aglMap->emplace("Uhornhookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EEC });
-            aglMap->emplace("Uhorntilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EEE });
-            aglMap->emplace("Uhungarumlaut"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0170 });
-            aglMap->emplace("Uhungarumlautcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04F2 });
-            aglMap->emplace("Uinvertedbreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0216 });
-            aglMap->emplace("Ukcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0478 });
-            aglMap->emplace("Umacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x016A });
-            aglMap->emplace("Umacroncyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04EE });
-            aglMap->emplace("Umacrondieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E7A });
-            aglMap->emplace("Umonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF35 });
-            aglMap->emplace("Uogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0172 });
-            aglMap->emplace("Upsilon"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03A5 });
-            aglMap->emplace("Upsilon1"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03D2 });
-            aglMap->emplace("Upsilonacutehooksymbolgreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03D3 });
-            aglMap->emplace("Upsilonafrican"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01B1 });
-            aglMap->emplace("Upsilondieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03AB });
-            aglMap->emplace("Upsilondieresishooksymbolgreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03D4 });
-            aglMap->emplace("Upsilonhooksymbol"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03D2 });
-            aglMap->emplace("Upsilontonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x038E });
-            aglMap->emplace("Uring"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x016E });
-            aglMap->emplace("Ushortcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x040E });
-            aglMap->emplace("Usmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF775 });
-            aglMap->emplace("Ustraightcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04AE });
-            aglMap->emplace("Ustraightstrokecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04B0 });
-            aglMap->emplace("Utilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0168 });
-            aglMap->emplace("Utildeacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E78 });
-            aglMap->emplace("Utildebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E74 });
-            aglMap->emplace("V"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0056 });
-            aglMap->emplace("Vcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24CB });
-            aglMap->emplace("Vdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E7E });
-            aglMap->emplace("Vecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0412 });
-            aglMap->emplace("Vewarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x054E });
-            aglMap->emplace("Vhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01B2 });
-            aglMap->emplace("Vmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF36 });
-            aglMap->emplace("Voarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0548 });
-            aglMap->emplace("Vsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF776 });
-            aglMap->emplace("Vtilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E7C });
-            aglMap->emplace("W"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0057 });
-            aglMap->emplace("Wacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E82 });
-            aglMap->emplace("Wcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24CC });
-            aglMap->emplace("Wcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0174 });
-            aglMap->emplace("Wdieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E84 });
-            aglMap->emplace("Wdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E86 });
-            aglMap->emplace("Wdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E88 });
-            aglMap->emplace("Wgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E80 });
-            aglMap->emplace("Wmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF37 });
-            aglMap->emplace("Wsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF777 });
-            aglMap->emplace("X"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0058 });
-            aglMap->emplace("Xcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24CD });
-            aglMap->emplace("Xdieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E8C });
-            aglMap->emplace("Xdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E8A });
-            aglMap->emplace("Xeharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x053D });
-            aglMap->emplace("Xi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x039E });
-            aglMap->emplace("Xmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF38 });
-            aglMap->emplace("Xsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF778 });
-            aglMap->emplace("Y"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0059 });
-            aglMap->emplace("Yacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00DD });
-            aglMap->emplace("Yacutesmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7FD });
-            aglMap->emplace("Yatcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0462 });
-            aglMap->emplace("Ycircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24CE });
-            aglMap->emplace("Ycircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0176 });
-            aglMap->emplace("Ydieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0178 });
-            aglMap->emplace("Ydieresissmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7FF });
-            aglMap->emplace("Ydotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E8E });
-            aglMap->emplace("Ydotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EF4 });
-            aglMap->emplace("Yericyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x042B });
-            aglMap->emplace("Yerudieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04F8 });
-            aglMap->emplace("Ygrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EF2 });
-            aglMap->emplace("Yhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01B3 });
-            aglMap->emplace("Yhookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EF6 });
-            aglMap->emplace("Yiarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0545 });
-            aglMap->emplace("Yicyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0407 });
-            aglMap->emplace("Yiwnarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0552 });
-            aglMap->emplace("Ymonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF39 });
-            aglMap->emplace("Ysmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF779 });
-            aglMap->emplace("Ytilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EF8 });
-            aglMap->emplace("Yusbigcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x046A });
-            aglMap->emplace("Yusbigiotifiedcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x046C });
-            aglMap->emplace("Yuslittlecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0466 });
-            aglMap->emplace("Yuslittleiotifiedcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0468 });
-            aglMap->emplace("Z"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x005A });
-            aglMap->emplace("Zaarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0536 });
-            aglMap->emplace("Zacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0179 });
-            aglMap->emplace("Zcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x017D });
-            aglMap->emplace("Zcaronsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6FF });
-            aglMap->emplace("Zcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24CF });
-            aglMap->emplace("Zcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E90 });
-            aglMap->emplace("Zdot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x017B });
-            aglMap->emplace("Zdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x017B });
-            aglMap->emplace("Zdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E92 });
-            aglMap->emplace("Zecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0417 });
-            aglMap->emplace("Zedescendercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0498 });
-            aglMap->emplace("Zedieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04DE });
-            aglMap->emplace("Zeta"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0396 });
-            aglMap->emplace("Zhearmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x053A });
-            aglMap->emplace("Zhebrevecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04C1 });
-            aglMap->emplace("Zhecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0416 });
-            aglMap->emplace("Zhedescendercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0496 });
-            aglMap->emplace("Zhedieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04DC });
-            aglMap->emplace("Zlinebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E94 });
-            aglMap->emplace("Zmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF3A });
-            aglMap->emplace("Zsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF77A });
-            aglMap->emplace("Zstroke"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01B5 });
-            aglMap->emplace("a"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0061 });
-            aglMap->emplace("aabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0986 });
-            aglMap->emplace("aacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00E1 });
-            aglMap->emplace("aadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0906 });
-            aglMap->emplace("aagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A86 });
-            aglMap->emplace("aagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A06 });
-            aglMap->emplace("aamatragurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A3E });
-            aglMap->emplace("aarusquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3303 });
-            aglMap->emplace("aavowelsignbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09BE });
-            aglMap->emplace("aavowelsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x093E });
-            aglMap->emplace("aavowelsigngujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0ABE });
-            aglMap->emplace("abbreviationmarkarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x055F });
-            aglMap->emplace("abbreviationsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0970 });
-            aglMap->emplace("abengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0985 });
-            aglMap->emplace("abopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x311A });
-            aglMap->emplace("abreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0103 });
-            aglMap->emplace("abreveacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EAF });
-            aglMap->emplace("abrevecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04D1 });
-            aglMap->emplace("abrevedotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EB7 });
-            aglMap->emplace("abrevegrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EB1 });
-            aglMap->emplace("abrevehookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EB3 });
-            aglMap->emplace("abrevetilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EB5 });
-            aglMap->emplace("acaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01CE });
-            aglMap->emplace("acircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24D0 });
-            aglMap->emplace("acircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00E2 });
-            aglMap->emplace("acircumflexacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EA5 });
-            aglMap->emplace("acircumflexdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EAD });
-            aglMap->emplace("acircumflexgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EA7 });
-            aglMap->emplace("acircumflexhookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EA9 });
-            aglMap->emplace("acircumflextilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EAB });
-            aglMap->emplace("acute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00B4 });
-            aglMap->emplace("acutebelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0317 });
-            aglMap->emplace("acutecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0301 });
-            aglMap->emplace("acutecomb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0301 });
-            aglMap->emplace("acutedeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0954 });
-            aglMap->emplace("acutelowmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02CF });
-            aglMap->emplace("acutetonecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0341 });
-            aglMap->emplace("acyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0430 });
-            aglMap->emplace("adblgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0201 });
-            aglMap->emplace("addakgurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A71 });
-            aglMap->emplace("adeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0905 });
-            aglMap->emplace("adieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00E4 });
-            aglMap->emplace("adieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04D3 });
-            aglMap->emplace("adieresismacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01DF });
-            aglMap->emplace("adotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EA1 });
-            aglMap->emplace("adotmacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01E1 });
-            aglMap->emplace("ae"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00E6 });
-            aglMap->emplace("aeacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01FD });
-            aglMap->emplace("aekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3150 });
-            aglMap->emplace("aemacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01E3 });
-            aglMap->emplace("afii00208"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2015 });
-            aglMap->emplace("afii08941"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x20A4 });
-            aglMap->emplace("afii10017"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0410 });
-            aglMap->emplace("afii10018"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0411 });
-            aglMap->emplace("afii10019"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0412 });
-            aglMap->emplace("afii10020"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0413 });
-            aglMap->emplace("afii10021"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0414 });
-            aglMap->emplace("afii10022"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0415 });
-            aglMap->emplace("afii10023"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0401 });
-            aglMap->emplace("afii10024"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0416 });
-            aglMap->emplace("afii10025"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0417 });
-            aglMap->emplace("afii10026"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0418 });
-            aglMap->emplace("afii10027"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0419 });
-            aglMap->emplace("afii10028"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x041A });
-            aglMap->emplace("afii10029"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x041B });
-            aglMap->emplace("afii10030"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x041C });
-            aglMap->emplace("afii10031"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x041D });
-            aglMap->emplace("afii10032"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x041E });
-            aglMap->emplace("afii10033"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x041F });
-            aglMap->emplace("afii10034"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0420 });
-            aglMap->emplace("afii10035"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0421 });
-            aglMap->emplace("afii10036"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0422 });
-            aglMap->emplace("afii10037"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0423 });
-            aglMap->emplace("afii10038"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0424 });
-            aglMap->emplace("afii10039"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0425 });
-            aglMap->emplace("afii10040"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0426 });
-            aglMap->emplace("afii10041"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0427 });
-            aglMap->emplace("afii10042"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0428 });
-            aglMap->emplace("afii10043"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0429 });
-            aglMap->emplace("afii10044"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x042A });
-            aglMap->emplace("afii10045"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x042B });
-            aglMap->emplace("afii10046"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x042C });
-            aglMap->emplace("afii10047"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x042D });
-            aglMap->emplace("afii10048"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x042E });
-            aglMap->emplace("afii10049"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x042F });
-            aglMap->emplace("afii10050"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0490 });
-            aglMap->emplace("afii10051"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0402 });
-            aglMap->emplace("afii10052"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0403 });
-            aglMap->emplace("afii10053"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0404 });
-            aglMap->emplace("afii10054"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0405 });
-            aglMap->emplace("afii10055"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0406 });
-            aglMap->emplace("afii10056"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0407 });
-            aglMap->emplace("afii10057"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0408 });
-            aglMap->emplace("afii10058"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0409 });
-            aglMap->emplace("afii10059"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x040A });
-            aglMap->emplace("afii10060"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x040B });
-            aglMap->emplace("afii10061"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x040C });
-            aglMap->emplace("afii10062"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x040E });
-            aglMap->emplace("afii10063"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6C4 });
-            aglMap->emplace("afii10064"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6C5 });
-            aglMap->emplace("afii10065"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0430 });
-            aglMap->emplace("afii10066"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0431 });
-            aglMap->emplace("afii10067"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0432 });
-            aglMap->emplace("afii10068"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0433 });
-            aglMap->emplace("afii10069"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0434 });
-            aglMap->emplace("afii10070"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0435 });
-            aglMap->emplace("afii10071"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0451 });
-            aglMap->emplace("afii10072"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0436 });
-            aglMap->emplace("afii10073"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0437 });
-            aglMap->emplace("afii10074"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0438 });
-            aglMap->emplace("afii10075"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0439 });
-            aglMap->emplace("afii10076"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x043A });
-            aglMap->emplace("afii10077"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x043B });
-            aglMap->emplace("afii10078"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x043C });
-            aglMap->emplace("afii10079"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x043D });
-            aglMap->emplace("afii10080"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x043E });
-            aglMap->emplace("afii10081"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x043F });
-            aglMap->emplace("afii10082"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0440 });
-            aglMap->emplace("afii10083"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0441 });
-            aglMap->emplace("afii10084"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0442 });
-            aglMap->emplace("afii10085"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0443 });
-            aglMap->emplace("afii10086"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0444 });
-            aglMap->emplace("afii10087"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0445 });
-            aglMap->emplace("afii10088"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0446 });
-            aglMap->emplace("afii10089"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0447 });
-            aglMap->emplace("afii10090"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0448 });
-            aglMap->emplace("afii10091"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0449 });
-            aglMap->emplace("afii10092"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x044A });
-            aglMap->emplace("afii10093"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x044B });
-            aglMap->emplace("afii10094"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x044C });
-            aglMap->emplace("afii10095"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x044D });
-            aglMap->emplace("afii10096"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x044E });
-            aglMap->emplace("afii10097"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x044F });
-            aglMap->emplace("afii10098"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0491 });
-            aglMap->emplace("afii10099"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0452 });
-            aglMap->emplace("afii10100"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0453 });
-            aglMap->emplace("afii10101"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0454 });
-            aglMap->emplace("afii10102"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0455 });
-            aglMap->emplace("afii10103"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0456 });
-            aglMap->emplace("afii10104"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0457 });
-            aglMap->emplace("afii10105"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0458 });
-            aglMap->emplace("afii10106"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0459 });
-            aglMap->emplace("afii10107"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x045A });
-            aglMap->emplace("afii10108"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x045B });
-            aglMap->emplace("afii10109"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x045C });
-            aglMap->emplace("afii10110"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x045E });
-            aglMap->emplace("afii10145"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x040F });
-            aglMap->emplace("afii10146"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0462 });
-            aglMap->emplace("afii10147"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0472 });
-            aglMap->emplace("afii10148"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0474 });
-            aglMap->emplace("afii10192"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6C6 });
-            aglMap->emplace("afii10193"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x045F });
-            aglMap->emplace("afii10194"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0463 });
-            aglMap->emplace("afii10195"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0473 });
-            aglMap->emplace("afii10196"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0475 });
-            aglMap->emplace("afii10831"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6C7 });
-            aglMap->emplace("afii10832"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6C8 });
-            aglMap->emplace("afii10846"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04D9 });
-            aglMap->emplace("afii299"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x200E });
-            aglMap->emplace("afii300"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x200F });
-            aglMap->emplace("afii301"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x200D });
-            aglMap->emplace("afii57381"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x066A });
-            aglMap->emplace("afii57388"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x060C });
-            aglMap->emplace("afii57392"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0660 });
-            aglMap->emplace("afii57393"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0661 });
-            aglMap->emplace("afii57394"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0662 });
-            aglMap->emplace("afii57395"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0663 });
-            aglMap->emplace("afii57396"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0664 });
-            aglMap->emplace("afii57397"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0665 });
-            aglMap->emplace("afii57398"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0666 });
-            aglMap->emplace("afii57399"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0667 });
-            aglMap->emplace("afii57400"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0668 });
-            aglMap->emplace("afii57401"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0669 });
-            aglMap->emplace("afii57403"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x061B });
-            aglMap->emplace("afii57407"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x061F });
-            aglMap->emplace("afii57409"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0621 });
-            aglMap->emplace("afii57410"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0622 });
-            aglMap->emplace("afii57411"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0623 });
-            aglMap->emplace("afii57412"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0624 });
-            aglMap->emplace("afii57413"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0625 });
-            aglMap->emplace("afii57414"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0626 });
-            aglMap->emplace("afii57415"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0627 });
-            aglMap->emplace("afii57416"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0628 });
-            aglMap->emplace("afii57417"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0629 });
-            aglMap->emplace("afii57418"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x062A });
-            aglMap->emplace("afii57419"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x062B });
-            aglMap->emplace("afii57420"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x062C });
-            aglMap->emplace("afii57421"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x062D });
-            aglMap->emplace("afii57422"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x062E });
-            aglMap->emplace("afii57423"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x062F });
-            aglMap->emplace("afii57424"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0630 });
-            aglMap->emplace("afii57425"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0631 });
-            aglMap->emplace("afii57426"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0632 });
-            aglMap->emplace("afii57427"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0633 });
-            aglMap->emplace("afii57428"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0634 });
-            aglMap->emplace("afii57429"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0635 });
-            aglMap->emplace("afii57430"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0636 });
-            aglMap->emplace("afii57431"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0637 });
-            aglMap->emplace("afii57432"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0638 });
-            aglMap->emplace("afii57433"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0639 });
-            aglMap->emplace("afii57434"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x063A });
-            aglMap->emplace("afii57440"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0640 });
-            aglMap->emplace("afii57441"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0641 });
-            aglMap->emplace("afii57442"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0642 });
-            aglMap->emplace("afii57443"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0643 });
-            aglMap->emplace("afii57444"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0644 });
-            aglMap->emplace("afii57445"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0645 });
-            aglMap->emplace("afii57446"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0646 });
-            aglMap->emplace("afii57448"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0648 });
-            aglMap->emplace("afii57449"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0649 });
-            aglMap->emplace("afii57450"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x064A });
-            aglMap->emplace("afii57451"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x064B });
-            aglMap->emplace("afii57452"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x064C });
-            aglMap->emplace("afii57453"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x064D });
-            aglMap->emplace("afii57454"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x064E });
-            aglMap->emplace("afii57455"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x064F });
-            aglMap->emplace("afii57456"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0650 });
-            aglMap->emplace("afii57457"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0651 });
-            aglMap->emplace("afii57458"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0652 });
-            aglMap->emplace("afii57470"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0647 });
-            aglMap->emplace("afii57505"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06A4 });
-            aglMap->emplace("afii57506"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x067E });
-            aglMap->emplace("afii57507"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0686 });
-            aglMap->emplace("afii57508"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0698 });
-            aglMap->emplace("afii57509"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06AF });
-            aglMap->emplace("afii57511"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0679 });
-            aglMap->emplace("afii57512"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0688 });
-            aglMap->emplace("afii57513"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0691 });
-            aglMap->emplace("afii57514"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06BA });
-            aglMap->emplace("afii57519"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06D2 });
-            aglMap->emplace("afii57534"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06D5 });
-            aglMap->emplace("afii57636"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x20AA });
-            aglMap->emplace("afii57645"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BE });
-            aglMap->emplace("afii57658"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05C3 });
-            aglMap->emplace("afii57664"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D0 });
-            aglMap->emplace("afii57665"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D1 });
-            aglMap->emplace("afii57666"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D2 });
-            aglMap->emplace("afii57667"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D3 });
-            aglMap->emplace("afii57668"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D4 });
-            aglMap->emplace("afii57669"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D5 });
-            aglMap->emplace("afii57670"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D6 });
-            aglMap->emplace("afii57671"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D7 });
-            aglMap->emplace("afii57672"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D8 });
-            aglMap->emplace("afii57673"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D9 });
-            aglMap->emplace("afii57674"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DA });
-            aglMap->emplace("afii57675"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DB });
-            aglMap->emplace("afii57676"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DC });
-            aglMap->emplace("afii57677"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DD });
-            aglMap->emplace("afii57678"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DE });
-            aglMap->emplace("afii57679"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DF });
-            aglMap->emplace("afii57680"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E0 });
-            aglMap->emplace("afii57681"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E1 });
-            aglMap->emplace("afii57682"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E2 });
-            aglMap->emplace("afii57683"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E3 });
-            aglMap->emplace("afii57684"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E4 });
-            aglMap->emplace("afii57685"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E5 });
-            aglMap->emplace("afii57686"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E6 });
-            aglMap->emplace("afii57687"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E7 });
-            aglMap->emplace("afii57688"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E8 });
-            aglMap->emplace("afii57689"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E9 });
-            aglMap->emplace("afii57690"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05EA });
-            aglMap->emplace("afii57694"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB2A });
-            aglMap->emplace("afii57695"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB2B });
-            aglMap->emplace("afii57700"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB4B });
-            aglMap->emplace("afii57705"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB1F });
-            aglMap->emplace("afii57716"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05F0 });
-            aglMap->emplace("afii57717"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05F1 });
-            aglMap->emplace("afii57718"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05F2 });
-            aglMap->emplace("afii57723"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB35 });
-            aglMap->emplace("afii57793"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B4 });
-            aglMap->emplace("afii57794"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B5 });
-            aglMap->emplace("afii57795"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B6 });
-            aglMap->emplace("afii57796"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BB });
-            aglMap->emplace("afii57797"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B8 });
-            aglMap->emplace("afii57798"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B7 });
-            aglMap->emplace("afii57799"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B0 });
-            aglMap->emplace("afii57800"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B2 });
-            aglMap->emplace("afii57801"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B1 });
-            aglMap->emplace("afii57802"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B3 });
-            aglMap->emplace("afii57803"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05C2 });
-            aglMap->emplace("afii57804"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05C1 });
-            aglMap->emplace("afii57806"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B9 });
-            aglMap->emplace("afii57807"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BC });
-            aglMap->emplace("afii57839"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BD });
-            aglMap->emplace("afii57841"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BF });
-            aglMap->emplace("afii57842"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05C0 });
-            aglMap->emplace("afii57929"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02BC });
-            aglMap->emplace("afii61248"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2105 });
-            aglMap->emplace("afii61289"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2113 });
-            aglMap->emplace("afii61352"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2116 });
-            aglMap->emplace("afii61573"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x202C });
-            aglMap->emplace("afii61574"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x202D });
-            aglMap->emplace("afii61575"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x202E });
-            aglMap->emplace("afii61664"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x200C });
-            aglMap->emplace("afii63167"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x066D });
-            aglMap->emplace("afii64937"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02BD });
-            aglMap->emplace("agrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00E0 });
-            aglMap->emplace("agujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A85 });
-            aglMap->emplace("agurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A05 });
-            aglMap->emplace("ahiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3042 });
-            aglMap->emplace("ahookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EA3 });
-            aglMap->emplace("aibengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0990 });
-            aglMap->emplace("aibopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x311E });
-            aglMap->emplace("aideva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0910 });
-            aglMap->emplace("aiecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04D5 });
-            aglMap->emplace("aigujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A90 });
-            aglMap->emplace("aigurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A10 });
-            aglMap->emplace("aimatragurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A48 });
-            aglMap->emplace("ainarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0639 });
-            aglMap->emplace("ainfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFECA });
-            aglMap->emplace("aininitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFECB });
-            aglMap->emplace("ainmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFECC });
-            aglMap->emplace("ainvertedbreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0203 });
-            aglMap->emplace("aivowelsignbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09C8 });
-            aglMap->emplace("aivowelsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0948 });
-            aglMap->emplace("aivowelsigngujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AC8 });
-            aglMap->emplace("akatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30A2 });
-            aglMap->emplace("akatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF71 });
-            aglMap->emplace("akorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x314F });
-            aglMap->emplace("alef"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D0 });
-            aglMap->emplace("alefarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0627 });
-            aglMap->emplace("alefdageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB30 });
-            aglMap->emplace("aleffinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE8E });
-            aglMap->emplace("alefhamzaabovearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0623 });
-            aglMap->emplace("alefhamzaabovefinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE84 });
-            aglMap->emplace("alefhamzabelowarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0625 });
-            aglMap->emplace("alefhamzabelowfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE88 });
-            aglMap->emplace("alefhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D0 });
-            aglMap->emplace("aleflamedhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB4F });
-            aglMap->emplace("alefmaddaabovearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0622 });
-            aglMap->emplace("alefmaddaabovefinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE82 });
-            aglMap->emplace("alefmaksuraarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0649 });
-            aglMap->emplace("alefmaksurafinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEF0 });
-            aglMap->emplace("alefmaksurainitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEF3 });
-            aglMap->emplace("alefmaksuramedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEF4 });
-            aglMap->emplace("alefpatahhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB2E });
-            aglMap->emplace("alefqamatshebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB2F });
-            aglMap->emplace("aleph"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2135 });
-            aglMap->emplace("allequal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x224C });
-            aglMap->emplace("alpha"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03B1 });
-            aglMap->emplace("alphatonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03AC });
-            aglMap->emplace("amacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0101 });
-            aglMap->emplace("amonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF41 });
-            aglMap->emplace("ampersand"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0026 });
-            aglMap->emplace("ampersandmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF06 });
-            aglMap->emplace("ampersandsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF726 });
-            aglMap->emplace("amsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33C2 });
-            aglMap->emplace("anbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3122 });
-            aglMap->emplace("angbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3124 });
-            aglMap->emplace("angkhankhuthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E5A });
-            aglMap->emplace("angle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2220 });
-            aglMap->emplace("anglebracketleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3008 });
-            aglMap->emplace("anglebracketleftvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE3F });
-            aglMap->emplace("anglebracketright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3009 });
-            aglMap->emplace("anglebracketrightvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE40 });
-            aglMap->emplace("angleleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2329 });
-            aglMap->emplace("angleright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x232A });
-            aglMap->emplace("angstrom"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x212B });
-            aglMap->emplace("anoteleia"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0387 });
-            aglMap->emplace("anudattadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0952 });
-            aglMap->emplace("anusvarabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0982 });
-            aglMap->emplace("anusvaradeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0902 });
-            aglMap->emplace("anusvaragujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A82 });
-            aglMap->emplace("aogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0105 });
-            aglMap->emplace("apaatosquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3300 });
-            aglMap->emplace("aparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x249C });
-            aglMap->emplace("apostrophearmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x055A });
-            aglMap->emplace("apostrophemod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02BC });
-            aglMap->emplace("apple"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8FF });
-            aglMap->emplace("approaches"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2250 });
-            aglMap->emplace("approxequal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2248 });
-            aglMap->emplace("approxequalorimage"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2252 });
-            aglMap->emplace("approximatelyequal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2245 });
-            aglMap->emplace("araeaekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x318E });
-            aglMap->emplace("araeakorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x318D });
-            aglMap->emplace("arc"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2312 });
-            aglMap->emplace("arighthalfring"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E9A });
-            aglMap->emplace("aring"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00E5 });
-            aglMap->emplace("aringacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01FB });
-            aglMap->emplace("aringbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E01 });
-            aglMap->emplace("arrowboth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2194 });
-            aglMap->emplace("arrowdashdown"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21E3 });
-            aglMap->emplace("arrowdashleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21E0 });
-            aglMap->emplace("arrowdashright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21E2 });
-            aglMap->emplace("arrowdashup"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21E1 });
-            aglMap->emplace("arrowdblboth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21D4 });
-            aglMap->emplace("arrowdbldown"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21D3 });
-            aglMap->emplace("arrowdblleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21D0 });
-            aglMap->emplace("arrowdblright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21D2 });
-            aglMap->emplace("arrowdblup"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21D1 });
-            aglMap->emplace("arrowdown"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2193 });
-            aglMap->emplace("arrowdownleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2199 });
-            aglMap->emplace("arrowdownright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2198 });
-            aglMap->emplace("arrowdownwhite"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21E9 });
-            aglMap->emplace("arrowheaddownmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02C5 });
-            aglMap->emplace("arrowheadleftmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02C2 });
-            aglMap->emplace("arrowheadrightmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02C3 });
-            aglMap->emplace("arrowheadupmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02C4 });
-            aglMap->emplace("arrowhorizex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8E7 });
-            aglMap->emplace("arrowleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2190 });
-            aglMap->emplace("arrowleftdbl"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21D0 });
-            aglMap->emplace("arrowleftdblstroke"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21CD });
-            aglMap->emplace("arrowleftoverright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21C6 });
-            aglMap->emplace("arrowleftwhite"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21E6 });
-            aglMap->emplace("arrowright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2192 });
-            aglMap->emplace("arrowrightdblstroke"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21CF });
-            aglMap->emplace("arrowrightheavy"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x279E });
-            aglMap->emplace("arrowrightoverleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21C4 });
-            aglMap->emplace("arrowrightwhite"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21E8 });
-            aglMap->emplace("arrowtableft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21E4 });
-            aglMap->emplace("arrowtabright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21E5 });
-            aglMap->emplace("arrowup"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2191 });
-            aglMap->emplace("arrowupdn"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2195 });
-            aglMap->emplace("arrowupdnbse"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21A8 });
-            aglMap->emplace("arrowupdownbase"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21A8 });
-            aglMap->emplace("arrowupleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2196 });
-            aglMap->emplace("arrowupleftofdown"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21C5 });
-            aglMap->emplace("arrowupright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2197 });
-            aglMap->emplace("arrowupwhite"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21E7 });
-            aglMap->emplace("arrowvertex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8E6 });
-            aglMap->emplace("asciicircum"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x005E });
-            aglMap->emplace("asciicircummonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF3E });
-            aglMap->emplace("asciitilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x007E });
-            aglMap->emplace("asciitildemonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF5E });
-            aglMap->emplace("ascript"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0251 });
-            aglMap->emplace("ascriptturned"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0252 });
-            aglMap->emplace("asmallhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3041 });
-            aglMap->emplace("asmallkatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30A1 });
-            aglMap->emplace("asmallkatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF67 });
-            aglMap->emplace("asterisk"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x002A });
-            aglMap->emplace("asteriskaltonearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x066D });
-            aglMap->emplace("asteriskarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x066D });
-            aglMap->emplace("asteriskmath"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2217 });
-            aglMap->emplace("asteriskmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF0A });
-            aglMap->emplace("asterisksmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE61 });
-            aglMap->emplace("asterism"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2042 });
-            aglMap->emplace("asuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6E9 });
-            aglMap->emplace("asymptoticallyequal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2243 });
-            aglMap->emplace("at"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0040 });
-            aglMap->emplace("atilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00E3 });
-            aglMap->emplace("atmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF20 });
-            aglMap->emplace("atsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE6B });
-            aglMap->emplace("aturned"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0250 });
-            aglMap->emplace("aubengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0994 });
-            aglMap->emplace("aubopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3120 });
-            aglMap->emplace("audeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0914 });
-            aglMap->emplace("augujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A94 });
-            aglMap->emplace("augurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A14 });
-            aglMap->emplace("aulengthmarkbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09D7 });
-            aglMap->emplace("aumatragurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A4C });
-            aglMap->emplace("auvowelsignbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09CC });
-            aglMap->emplace("auvowelsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x094C });
-            aglMap->emplace("auvowelsigngujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0ACC });
-            aglMap->emplace("avagrahadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x093D });
-            aglMap->emplace("aybarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0561 });
-            aglMap->emplace("ayin"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E2 });
-            aglMap->emplace("ayinaltonehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB20 });
-            aglMap->emplace("ayinhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E2 });
-            aglMap->emplace("b"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0062 });
-            aglMap->emplace("babengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09AC });
-            aglMap->emplace("backslash"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x005C });
-            aglMap->emplace("backslashmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF3C });
-            aglMap->emplace("badeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x092C });
-            aglMap->emplace("bagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AAC });
-            aglMap->emplace("bagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A2C });
-            aglMap->emplace("bahiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3070 });
-            aglMap->emplace("bahtthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E3F });
-            aglMap->emplace("bakatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30D0 });
-            aglMap->emplace("bar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x007C });
-            aglMap->emplace("barmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF5C });
-            aglMap->emplace("bbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3105 });
-            aglMap->emplace("bcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24D1 });
-            aglMap->emplace("bdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E03 });
-            aglMap->emplace("bdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E05 });
-            aglMap->emplace("beamedsixteenthnotes"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x266C });
-            aglMap->emplace("because"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2235 });
-            aglMap->emplace("becyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0431 });
-            aglMap->emplace("beharabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0628 });
-            aglMap->emplace("behfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE90 });
-            aglMap->emplace("behinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE91 });
-            aglMap->emplace("behiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3079 });
-            aglMap->emplace("behmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE92 });
-            aglMap->emplace("behmeeminitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC9F });
-            aglMap->emplace("behmeemisolatedarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC08 });
-            aglMap->emplace("behnoonfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC6D });
-            aglMap->emplace("bekatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30D9 });
-            aglMap->emplace("benarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0562 });
-            aglMap->emplace("bet"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D1 });
-            aglMap->emplace("beta"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03B2 });
-            aglMap->emplace("betasymbolgreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03D0 });
-            aglMap->emplace("betdagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB31 });
-            aglMap->emplace("betdageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB31 });
-            aglMap->emplace("bethebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D1 });
-            aglMap->emplace("betrafehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB4C });
-            aglMap->emplace("bhabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09AD });
-            aglMap->emplace("bhadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x092D });
-            aglMap->emplace("bhagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AAD });
-            aglMap->emplace("bhagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A2D });
-            aglMap->emplace("bhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0253 });
-            aglMap->emplace("bihiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3073 });
-            aglMap->emplace("bikatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30D3 });
-            aglMap->emplace("bilabialclick"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0298 });
-            aglMap->emplace("bindigurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A02 });
-            aglMap->emplace("birusquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3331 });
-            aglMap->emplace("blackcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25CF });
-            aglMap->emplace("blackdiamond"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25C6 });
-            aglMap->emplace("blackdownpointingtriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25BC });
-            aglMap->emplace("blackleftpointingpointer"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25C4 });
-            aglMap->emplace("blackleftpointingtriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25C0 });
-            aglMap->emplace("blacklenticularbracketleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3010 });
-            aglMap->emplace("blacklenticularbracketleftvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE3B });
-            aglMap->emplace("blacklenticularbracketright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3011 });
-            aglMap->emplace("blacklenticularbracketrightvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE3C });
-            aglMap->emplace("blacklowerlefttriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25E3 });
-            aglMap->emplace("blacklowerrighttriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25E2 });
-            aglMap->emplace("blackrectangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25AC });
-            aglMap->emplace("blackrightpointingpointer"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25BA });
-            aglMap->emplace("blackrightpointingtriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25B6 });
-            aglMap->emplace("blacksmallsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25AA });
-            aglMap->emplace("blacksmilingface"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x263B });
-            aglMap->emplace("blacksquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25A0 });
-            aglMap->emplace("blackstar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2605 });
-            aglMap->emplace("blackupperlefttriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25E4 });
-            aglMap->emplace("blackupperrighttriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25E5 });
-            aglMap->emplace("blackuppointingsmalltriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25B4 });
-            aglMap->emplace("blackuppointingtriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25B2 });
-            aglMap->emplace("blank"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2423 });
-            aglMap->emplace("blinebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E07 });
-            aglMap->emplace("block"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2588 });
-            aglMap->emplace("bmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF42 });
-            aglMap->emplace("bobaimaithai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E1A });
-            aglMap->emplace("bohiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x307C });
-            aglMap->emplace("bokatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30DC });
-            aglMap->emplace("bparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x249D });
-            aglMap->emplace("bqsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33C3 });
-            aglMap->emplace("braceex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8F4 });
-            aglMap->emplace("braceleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x007B });
-            aglMap->emplace("braceleftbt"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8F3 });
-            aglMap->emplace("braceleftmid"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8F2 });
-            aglMap->emplace("braceleftmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF5B });
-            aglMap->emplace("braceleftsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE5B });
-            aglMap->emplace("bracelefttp"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8F1 });
-            aglMap->emplace("braceleftvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE37 });
-            aglMap->emplace("braceright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x007D });
-            aglMap->emplace("bracerightbt"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8FE });
-            aglMap->emplace("bracerightmid"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8FD });
-            aglMap->emplace("bracerightmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF5D });
-            aglMap->emplace("bracerightsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE5C });
-            aglMap->emplace("bracerighttp"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8FC });
-            aglMap->emplace("bracerightvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE38 });
-            aglMap->emplace("bracketleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x005B });
-            aglMap->emplace("bracketleftbt"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8F0 });
-            aglMap->emplace("bracketleftex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8EF });
-            aglMap->emplace("bracketleftmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF3B });
-            aglMap->emplace("bracketlefttp"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8EE });
-            aglMap->emplace("bracketright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x005D });
-            aglMap->emplace("bracketrightbt"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8FB });
-            aglMap->emplace("bracketrightex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8FA });
-            aglMap->emplace("bracketrightmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF3D });
-            aglMap->emplace("bracketrighttp"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8F9 });
-            aglMap->emplace("breve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02D8 });
-            aglMap->emplace("brevebelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x032E });
-            aglMap->emplace("brevecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0306 });
-            aglMap->emplace("breveinvertedbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x032F });
-            aglMap->emplace("breveinvertedcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0311 });
-            aglMap->emplace("breveinverteddoublecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0361 });
-            aglMap->emplace("bridgebelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x032A });
-            aglMap->emplace("bridgeinvertedbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x033A });
-            aglMap->emplace("brokenbar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00A6 });
-            aglMap->emplace("bstroke"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0180 });
-            aglMap->emplace("bsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6EA });
-            aglMap->emplace("btopbar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0183 });
-            aglMap->emplace("buhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3076 });
-            aglMap->emplace("bukatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30D6 });
-            aglMap->emplace("bullet"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2022 });
-            aglMap->emplace("bulletinverse"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25D8 });
-            aglMap->emplace("bulletoperator"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2219 });
-            aglMap->emplace("bullseye"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25CE });
-            aglMap->emplace("c"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0063 });
-            aglMap->emplace("caarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x056E });
-            aglMap->emplace("cabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x099A });
-            aglMap->emplace("cacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0107 });
-            aglMap->emplace("cadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x091A });
-            aglMap->emplace("cagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A9A });
-            aglMap->emplace("cagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A1A });
-            aglMap->emplace("calsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3388 });
-            aglMap->emplace("candrabindubengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0981 });
-            aglMap->emplace("candrabinducmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0310 });
-            aglMap->emplace("candrabindudeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0901 });
-            aglMap->emplace("candrabindugujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A81 });
-            aglMap->emplace("capslock"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21EA });
-            aglMap->emplace("careof"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2105 });
-            aglMap->emplace("caron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02C7 });
-            aglMap->emplace("caronbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x032C });
-            aglMap->emplace("caroncmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x030C });
-            aglMap->emplace("carriagereturn"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21B5 });
-            aglMap->emplace("cbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3118 });
-            aglMap->emplace("ccaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x010D });
-            aglMap->emplace("ccedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00E7 });
-            aglMap->emplace("ccedillaacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E09 });
-            aglMap->emplace("ccircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24D2 });
-            aglMap->emplace("ccircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0109 });
-            aglMap->emplace("ccurl"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0255 });
-            aglMap->emplace("cdot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x010B });
-            aglMap->emplace("cdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x010B });
-            aglMap->emplace("cdsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33C5 });
-            aglMap->emplace("cedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00B8 });
-            aglMap->emplace("cedillacmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0327 });
-            aglMap->emplace("cent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00A2 });
-            aglMap->emplace("centigrade"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2103 });
-            aglMap->emplace("centinferior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6DF });
-            aglMap->emplace("centmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFFE0 });
-            aglMap->emplace("centoldstyle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7A2 });
-            aglMap->emplace("centsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6E0 });
-            aglMap->emplace("chaarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0579 });
-            aglMap->emplace("chabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x099B });
-            aglMap->emplace("chadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x091B });
-            aglMap->emplace("chagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A9B });
-            aglMap->emplace("chagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A1B });
-            aglMap->emplace("chbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3114 });
-            aglMap->emplace("cheabkhasiancyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04BD });
-            aglMap->emplace("checkmark"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2713 });
-            aglMap->emplace("checyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0447 });
-            aglMap->emplace("chedescenderabkhasiancyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04BF });
-            aglMap->emplace("chedescendercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04B7 });
-            aglMap->emplace("chedieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04F5 });
-            aglMap->emplace("cheharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0573 });
-            aglMap->emplace("chekhakassiancyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04CC });
-            aglMap->emplace("cheverticalstrokecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04B9 });
-            aglMap->emplace("chi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03C7 });
-            aglMap->emplace("chieuchacirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3277 });
-            aglMap->emplace("chieuchaparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3217 });
-            aglMap->emplace("chieuchcirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3269 });
-            aglMap->emplace("chieuchkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x314A });
-            aglMap->emplace("chieuchparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3209 });
-            aglMap->emplace("chochangthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E0A });
-            aglMap->emplace("chochanthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E08 });
-            aglMap->emplace("chochingthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E09 });
-            aglMap->emplace("chochoethai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E0C });
-            aglMap->emplace("chook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0188 });
-            aglMap->emplace("cieucacirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3276 });
-            aglMap->emplace("cieucaparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3216 });
-            aglMap->emplace("cieuccirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3268 });
-            aglMap->emplace("cieuckorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3148 });
-            aglMap->emplace("cieucparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3208 });
-            aglMap->emplace("cieucuparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x321C });
-            aglMap->emplace("circle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25CB });
-            aglMap->emplace("circlemultiply"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2297 });
-            aglMap->emplace("circleot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2299 });
-            aglMap->emplace("circleplus"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2295 });
-            aglMap->emplace("circlepostalmark"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3036 });
-            aglMap->emplace("circlewithlefthalfblack"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25D0 });
-            aglMap->emplace("circlewithrighthalfblack"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25D1 });
-            aglMap->emplace("circumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02C6 });
-            aglMap->emplace("circumflexbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x032D });
-            aglMap->emplace("circumflexcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0302 });
-            aglMap->emplace("clear"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2327 });
-            aglMap->emplace("clickalveolar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01C2 });
-            aglMap->emplace("clickdental"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01C0 });
-            aglMap->emplace("clicklateral"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01C1 });
-            aglMap->emplace("clickretroflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01C3 });
-            aglMap->emplace("club"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2663 });
-            aglMap->emplace("clubsuitblack"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2663 });
-            aglMap->emplace("clubsuitwhite"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2667 });
-            aglMap->emplace("cmcubedsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33A4 });
-            aglMap->emplace("cmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF43 });
-            aglMap->emplace("cmsquaredsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33A0 });
-            aglMap->emplace("coarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0581 });
-            aglMap->emplace("colon"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x003A });
-            aglMap->emplace("colonmonetary"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x20A1 });
-            aglMap->emplace("colonmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF1A });
-            aglMap->emplace("colonsign"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x20A1 });
-            aglMap->emplace("colonsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE55 });
-            aglMap->emplace("colontriangularhalfmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02D1 });
-            aglMap->emplace("colontriangularmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02D0 });
-            aglMap->emplace("comma"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x002C });
-            aglMap->emplace("commaabovecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0313 });
-            aglMap->emplace("commaaboverightcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0315 });
-            aglMap->emplace("commaaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6C3 });
-            aglMap->emplace("commaarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x060C });
-            aglMap->emplace("commaarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x055D });
-            aglMap->emplace("commainferior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6E1 });
-            aglMap->emplace("commamonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF0C });
-            aglMap->emplace("commareversedabovecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0314 });
-            aglMap->emplace("commareversedmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02BD });
-            aglMap->emplace("commasmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE50 });
-            aglMap->emplace("commasuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6E2 });
-            aglMap->emplace("commaturnedabovecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0312 });
-            aglMap->emplace("commaturnedmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02BB });
-            aglMap->emplace("compass"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x263C });
-            aglMap->emplace("congruent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2245 });
-            aglMap->emplace("contourintegral"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x222E });
-            aglMap->emplace("control"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2303 });
-            aglMap->emplace("controlACK"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0006 });
-            aglMap->emplace("controlBEL"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0007 });
-            aglMap->emplace("controlBS"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0008 });
-            aglMap->emplace("controlCAN"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0018 });
-            aglMap->emplace("controlCR"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x000D });
-            aglMap->emplace("controlDC1"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0011 });
-            aglMap->emplace("controlDC2"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0012 });
-            aglMap->emplace("controlDC3"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0013 });
-            aglMap->emplace("controlDC4"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0014 });
-            aglMap->emplace("controlDEL"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x007F });
-            aglMap->emplace("controlDLE"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0010 });
-            aglMap->emplace("controlEM"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0019 });
-            aglMap->emplace("controlENQ"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0005 });
-            aglMap->emplace("controlEOT"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0004 });
-            aglMap->emplace("controlESC"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x001B });
-            aglMap->emplace("controlETB"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0017 });
-            aglMap->emplace("controlETX"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0003 });
-            aglMap->emplace("controlFF"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x000C });
-            aglMap->emplace("controlFS"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x001C });
-            aglMap->emplace("controlGS"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x001D });
-            aglMap->emplace("controlHT"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0009 });
-            aglMap->emplace("controlLF"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x000A });
-            aglMap->emplace("controlNAK"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0015 });
-            aglMap->emplace("controlRS"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x001E });
-            aglMap->emplace("controlSI"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x000F });
-            aglMap->emplace("controlSO"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x000E });
-            aglMap->emplace("controlSOT"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0002 });
-            aglMap->emplace("controlSTX"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0001 });
-            aglMap->emplace("controlSUB"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x001A });
-            aglMap->emplace("controlSYN"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0016 });
-            aglMap->emplace("controlUS"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x001F });
-            aglMap->emplace("controlVT"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x000B });
-            aglMap->emplace("copyright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00A9 });
-            aglMap->emplace("copyrightsans"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8E9 });
-            aglMap->emplace("copyrightserif"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6D9 });
-            aglMap->emplace("cornerbracketleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x300C });
-            aglMap->emplace("cornerbracketlefthalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF62 });
-            aglMap->emplace("cornerbracketleftvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE41 });
-            aglMap->emplace("cornerbracketright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x300D });
-            aglMap->emplace("cornerbracketrighthalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF63 });
-            aglMap->emplace("cornerbracketrightvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE42 });
-            aglMap->emplace("corporationsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x337F });
-            aglMap->emplace("cosquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33C7 });
-            aglMap->emplace("coverkgsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33C6 });
-            aglMap->emplace("cparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x249E });
-            aglMap->emplace("cruzeiro"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x20A2 });
-            aglMap->emplace("cstretched"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0297 });
-            aglMap->emplace("curlyand"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x22CF });
-            aglMap->emplace("curlyor"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x22CE });
-            aglMap->emplace("currency"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00A4 });
-            aglMap->emplace("cyrBreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6D1 });
-            aglMap->emplace("cyrFlex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6D2 });
-            aglMap->emplace("cyrbreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6D4 });
-            aglMap->emplace("cyrflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6D5 });
-            aglMap->emplace("d"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0064 });
-            aglMap->emplace("daarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0564 });
-            aglMap->emplace("dabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09A6 });
-            aglMap->emplace("dadarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0636 });
-            aglMap->emplace("dadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0926 });
-            aglMap->emplace("dadfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEBE });
-            aglMap->emplace("dadinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEBF });
-            aglMap->emplace("dadmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEC0 });
-            aglMap->emplace("dagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BC });
-            aglMap->emplace("dageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BC });
-            aglMap->emplace("dagger"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2020 });
-            aglMap->emplace("daggerdbl"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2021 });
-            aglMap->emplace("dagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AA6 });
-            aglMap->emplace("dagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A26 });
-            aglMap->emplace("dahiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3060 });
-            aglMap->emplace("dakatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30C0 });
-            aglMap->emplace("dalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x062F });
-            aglMap->emplace("dalet"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D3 });
-            aglMap->emplace("daletdagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB33 });
-            aglMap->emplace("daletdageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB33 });
-            aglMap->emplace("dalethatafpatah"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 0 });
-            aglMap->emplace("dalethatafpatahhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 1 });
-            aglMap->emplace("dalethatafsegol"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 2 });
-            aglMap->emplace("dalethatafsegolhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 3 });
-            aglMap->emplace("dalethebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D3 });
-            aglMap->emplace("dalethiriq"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 4 });
-            aglMap->emplace("dalethiriqhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 5 });
-            aglMap->emplace("daletholam"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 6 });
-            aglMap->emplace("daletholamhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 7 });
-            aglMap->emplace("daletpatah"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 8 });
-            aglMap->emplace("daletpatahhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 9 });
-            aglMap->emplace("daletqamats"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 10 });
-            aglMap->emplace("daletqamatshebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 11 });
-            aglMap->emplace("daletqubuts"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 12 });
-            aglMap->emplace("daletqubutshebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 13 });
-            aglMap->emplace("daletsegol"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 14 });
-            aglMap->emplace("daletsegolhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 15 });
-            aglMap->emplace("daletsheva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 16 });
-            aglMap->emplace("daletshevahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 17 });
-            aglMap->emplace("dalettsere"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 18 });
-            aglMap->emplace("dalettserehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 19 });
-            aglMap->emplace("dalfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEAA });
-            aglMap->emplace("dammaarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x064F });
-            aglMap->emplace("dammalowarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x064F });
-            aglMap->emplace("dammatanaltonearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x064C });
-            aglMap->emplace("dammatanarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x064C });
-            aglMap->emplace("danda"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0964 });
-            aglMap->emplace("dargahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05A7 });
-            aglMap->emplace("dargalefthebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05A7 });
-            aglMap->emplace("dasiapneumatacyrilliccmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0485 });
-            aglMap->emplace("dblGrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6D3 });
-            aglMap->emplace("dblanglebracketleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x300A });
-            aglMap->emplace("dblanglebracketleftvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE3D });
-            aglMap->emplace("dblanglebracketright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x300B });
-            aglMap->emplace("dblanglebracketrightvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE3E });
-            aglMap->emplace("dblarchinvertedbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x032B });
-            aglMap->emplace("dblarrowleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21D4 });
-            aglMap->emplace("dblarrowright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21D2 });
-            aglMap->emplace("dbldanda"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0965 });
-            aglMap->emplace("dblgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6D6 });
-            aglMap->emplace("dblgravecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x030F });
-            aglMap->emplace("dblintegral"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x222C });
-            aglMap->emplace("dbllowline"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2017 });
-            aglMap->emplace("dbllowlinecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0333 });
-            aglMap->emplace("dbloverlinecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x033F });
-            aglMap->emplace("dblprimemod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02BA });
-            aglMap->emplace("dblverticalbar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2016 });
-            aglMap->emplace("dblverticallineabovecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x030E });
-            aglMap->emplace("dbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3109 });
-            aglMap->emplace("dbsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33C8 });
-            aglMap->emplace("dcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x010F });
-            aglMap->emplace("dcedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E11 });
-            aglMap->emplace("dcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24D3 });
-            aglMap->emplace("dcircumflexbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E13 });
-            aglMap->emplace("dcroat"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0111 });
-            aglMap->emplace("ddabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09A1 });
-            aglMap->emplace("ddadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0921 });
-            aglMap->emplace("ddagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AA1 });
-            aglMap->emplace("ddagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A21 });
-            aglMap->emplace("ddalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0688 });
-            aglMap->emplace("ddalfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB89 });
-            aglMap->emplace("dddhadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x095C });
-            aglMap->emplace("ddhabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09A2 });
-            aglMap->emplace("ddhadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0922 });
-            aglMap->emplace("ddhagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AA2 });
-            aglMap->emplace("ddhagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A22 });
-            aglMap->emplace("ddotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E0B });
-            aglMap->emplace("ddotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E0D });
-            aglMap->emplace("decimalseparatorarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x066B });
-            aglMap->emplace("decimalseparatorpersian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x066B });
-            aglMap->emplace("decyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0434 });
-            aglMap->emplace("degree"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00B0 });
-            aglMap->emplace("dehihebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05AD });
-            aglMap->emplace("dehiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3067 });
-            aglMap->emplace("deicoptic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03EF });
-            aglMap->emplace("dekatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30C7 });
-            aglMap->emplace("deleteleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x232B });
-            aglMap->emplace("deleteright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2326 });
-            aglMap->emplace("delta"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03B4 });
-            aglMap->emplace("deltaturned"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x018D });
-            aglMap->emplace("denominatorminusonenumeratorbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09F8 });
-            aglMap->emplace("dezh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02A4 });
-            aglMap->emplace("dhabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09A7 });
-            aglMap->emplace("dhadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0927 });
-            aglMap->emplace("dhagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AA7 });
-            aglMap->emplace("dhagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A27 });
-            aglMap->emplace("dhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0257 });
-            aglMap->emplace("dialytikatonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0385 });
-            aglMap->emplace("dialytikatonoscmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0344 });
-            aglMap->emplace("diamond"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2666 });
-            aglMap->emplace("diamondsuitwhite"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2662 });
-            aglMap->emplace("dieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00A8 });
-            aglMap->emplace("dieresisacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6D7 });
-            aglMap->emplace("dieresisbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0324 });
-            aglMap->emplace("dieresiscmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0308 });
-            aglMap->emplace("dieresisgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6D8 });
-            aglMap->emplace("dieresistonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0385 });
-            aglMap->emplace("dihiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3062 });
-            aglMap->emplace("dikatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30C2 });
-            aglMap->emplace("dittomark"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3003 });
-            aglMap->emplace("divide"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00F7 });
-            aglMap->emplace("divides"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2223 });
-            aglMap->emplace("divisionslash"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2215 });
-            aglMap->emplace("djecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0452 });
-            aglMap->emplace("dkshade"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2593 });
-            aglMap->emplace("dlinebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E0F });
-            aglMap->emplace("dlsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3397 });
-            aglMap->emplace("dmacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0111 });
-            aglMap->emplace("dmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF44 });
-            aglMap->emplace("dnblock"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2584 });
-            aglMap->emplace("dochadathai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E0E });
-            aglMap->emplace("dodekthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E14 });
-            aglMap->emplace("dohiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3069 });
-            aglMap->emplace("dokatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30C9 });
-            aglMap->emplace("dollar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0024 });
-            aglMap->emplace("dollarinferior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6E3 });
-            aglMap->emplace("dollarmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF04 });
-            aglMap->emplace("dollaroldstyle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF724 });
-            aglMap->emplace("dollarsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE69 });
-            aglMap->emplace("dollarsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6E4 });
-            aglMap->emplace("dong"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x20AB });
-            aglMap->emplace("dorusquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3326 });
-            aglMap->emplace("dotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02D9 });
-            aglMap->emplace("dotaccentcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0307 });
-            aglMap->emplace("dotbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0323 });
-            aglMap->emplace("dotbelowcomb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0323 });
-            aglMap->emplace("dotkatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30FB });
-            aglMap->emplace("dotlessi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0131 });
-            aglMap->emplace("dotlessj"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6BE });
-            aglMap->emplace("dotlessjstrokehook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0284 });
-            aglMap->emplace("dotmath"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x22C5 });
-            aglMap->emplace("dottedcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25CC });
-            aglMap->emplace("doubleyodpatah"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB1F });
-            aglMap->emplace("doubleyodpatahhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB1F });
-            aglMap->emplace("downtackbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x031E });
-            aglMap->emplace("downtackmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02D5 });
-            aglMap->emplace("dparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x249F });
-            aglMap->emplace("dsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6EB });
-            aglMap->emplace("dtail"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0256 });
-            aglMap->emplace("dtopbar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x018C });
-            aglMap->emplace("duhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3065 });
-            aglMap->emplace("dukatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30C5 });
-            aglMap->emplace("dz"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01F3 });
-            aglMap->emplace("dzaltone"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02A3 });
-            aglMap->emplace("dzcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01C6 });
-            aglMap->emplace("dzcurl"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02A5 });
-            aglMap->emplace("dzeabkhasiancyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04E1 });
-            aglMap->emplace("dzecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0455 });
-            aglMap->emplace("dzhecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x045F });
-            aglMap->emplace("e"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0065 });
-            aglMap->emplace("eacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00E9 });
-            aglMap->emplace("earth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2641 });
-            aglMap->emplace("ebengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x098F });
-            aglMap->emplace("ebopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x311C });
-            aglMap->emplace("ebreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0115 });
-            aglMap->emplace("ecandradeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x090D });
-            aglMap->emplace("ecandragujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A8D });
-            aglMap->emplace("ecandravowelsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0945 });
-            aglMap->emplace("ecandravowelsigngujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AC5 });
-            aglMap->emplace("ecaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x011B });
-            aglMap->emplace("ecedillabreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E1D });
-            aglMap->emplace("echarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0565 });
-            aglMap->emplace("echyiwnarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0587 });
-            aglMap->emplace("ecircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24D4 });
-            aglMap->emplace("ecircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00EA });
-            aglMap->emplace("ecircumflexacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EBF });
-            aglMap->emplace("ecircumflexbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E19 });
-            aglMap->emplace("ecircumflexdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EC7 });
-            aglMap->emplace("ecircumflexgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EC1 });
-            aglMap->emplace("ecircumflexhookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EC3 });
-            aglMap->emplace("ecircumflextilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EC5 });
-            aglMap->emplace("ecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0454 });
-            aglMap->emplace("edblgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0205 });
-            aglMap->emplace("edeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x090F });
-            aglMap->emplace("edieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00EB });
-            aglMap->emplace("edot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0117 });
-            aglMap->emplace("edotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0117 });
-            aglMap->emplace("edotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EB9 });
-            aglMap->emplace("eegurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A0F });
-            aglMap->emplace("eematragurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A47 });
-            aglMap->emplace("efcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0444 });
-            aglMap->emplace("egrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00E8 });
-            aglMap->emplace("egujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A8F });
-            aglMap->emplace("eharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0567 });
-            aglMap->emplace("ehbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x311D });
-            aglMap->emplace("ehiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3048 });
-            aglMap->emplace("ehookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EBB });
-            aglMap->emplace("eibopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x311F });
-            aglMap->emplace("eight"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0038 });
-            aglMap->emplace("eightarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0668 });
-            aglMap->emplace("eightbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09EE });
-            aglMap->emplace("eightcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2467 });
-            aglMap->emplace("eightcircleinversesansserif"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2791 });
-            aglMap->emplace("eightdeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x096E });
-            aglMap->emplace("eighteencircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2471 });
-            aglMap->emplace("eighteenparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2485 });
-            aglMap->emplace("eighteenperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2499 });
-            aglMap->emplace("eightgujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AEE });
-            aglMap->emplace("eightgurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A6E });
-            aglMap->emplace("eighthackarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0668 });
-            aglMap->emplace("eighthangzhou"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3028 });
-            aglMap->emplace("eighthnotebeamed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x266B });
-            aglMap->emplace("eightideographicparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3227 });
-            aglMap->emplace("eightinferior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2088 });
-            aglMap->emplace("eightmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF18 });
-            aglMap->emplace("eightoldstyle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF738 });
-            aglMap->emplace("eightparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x247B });
-            aglMap->emplace("eightperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x248F });
-            aglMap->emplace("eightpersian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06F8 });
-            aglMap->emplace("eightroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2177 });
-            aglMap->emplace("eightsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2078 });
-            aglMap->emplace("eightthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E58 });
-            aglMap->emplace("einvertedbreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0207 });
-            aglMap->emplace("eiotifiedcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0465 });
-            aglMap->emplace("ekatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30A8 });
-            aglMap->emplace("ekatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF74 });
-            aglMap->emplace("ekonkargurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A74 });
-            aglMap->emplace("ekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3154 });
-            aglMap->emplace("elcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x043B });
-            aglMap->emplace("element"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2208 });
-            aglMap->emplace("elevencircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x246A });
-            aglMap->emplace("elevenparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x247E });
-            aglMap->emplace("elevenperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2492 });
-            aglMap->emplace("elevenroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x217A });
-            aglMap->emplace("ellipsis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2026 });
-            aglMap->emplace("ellipsisvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x22EE });
-            aglMap->emplace("emacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0113 });
-            aglMap->emplace("emacronacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E17 });
-            aglMap->emplace("emacrongrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E15 });
-            aglMap->emplace("emcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x043C });
-            aglMap->emplace("emdash"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2014 });
-            aglMap->emplace("emdashvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE31 });
-            aglMap->emplace("emonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF45 });
-            aglMap->emplace("emphasismarkarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x055B });
-            aglMap->emplace("emptyset"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2205 });
-            aglMap->emplace("enbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3123 });
-            aglMap->emplace("encyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x043D });
-            aglMap->emplace("endash"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2013 });
-            aglMap->emplace("endashvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE32 });
-            aglMap->emplace("endescendercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04A3 });
-            aglMap->emplace("eng"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x014B });
-            aglMap->emplace("engbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3125 });
-            aglMap->emplace("enghecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04A5 });
-            aglMap->emplace("enhookcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04C8 });
-            aglMap->emplace("enspace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2002 });
-            aglMap->emplace("eogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0119 });
-            aglMap->emplace("eokorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3153 });
-            aglMap->emplace("eopen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x025B });
-            aglMap->emplace("eopenclosed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x029A });
-            aglMap->emplace("eopenreversed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x025C });
-            aglMap->emplace("eopenreversedclosed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x025E });
-            aglMap->emplace("eopenreversedhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x025D });
-            aglMap->emplace("eparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24A0 });
-            aglMap->emplace("epsilon"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03B5 });
-            aglMap->emplace("epsilontonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03AD });
-            aglMap->emplace("equal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x003D });
-            aglMap->emplace("equalmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF1D });
-            aglMap->emplace("equalsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE66 });
-            aglMap->emplace("equalsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x207C });
-            aglMap->emplace("equivalence"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2261 });
-            aglMap->emplace("erbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3126 });
-            aglMap->emplace("ercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0440 });
-            aglMap->emplace("ereversed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0258 });
-            aglMap->emplace("ereversedcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x044D });
-            aglMap->emplace("escyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0441 });
-            aglMap->emplace("esdescendercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04AB });
-            aglMap->emplace("esh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0283 });
-            aglMap->emplace("eshcurl"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0286 });
-            aglMap->emplace("eshortdeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x090E });
-            aglMap->emplace("eshortvowelsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0946 });
-            aglMap->emplace("eshreversedloop"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01AA });
-            aglMap->emplace("eshsquatreversed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0285 });
-            aglMap->emplace("esmallhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3047 });
-            aglMap->emplace("esmallkatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30A7 });
-            aglMap->emplace("esmallkatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF6A });
-            aglMap->emplace("estimated"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x212E });
-            aglMap->emplace("esuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6EC });
-            aglMap->emplace("eta"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03B7 });
-            aglMap->emplace("etarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0568 });
-            aglMap->emplace("etatonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03AE });
-            aglMap->emplace("eth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00F0 });
-            aglMap->emplace("etilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EBD });
-            aglMap->emplace("etildebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E1B });
-            aglMap->emplace("etnahtafoukhhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0591 });
-            aglMap->emplace("etnahtafoukhlefthebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0591 });
-            aglMap->emplace("etnahtahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0591 });
-            aglMap->emplace("etnahtalefthebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0591 });
-            aglMap->emplace("eturned"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01DD });
-            aglMap->emplace("eukorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3161 });
-            aglMap->emplace("euro"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x20AC });
-            aglMap->emplace("evowelsignbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09C7 });
-            aglMap->emplace("evowelsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0947 });
-            aglMap->emplace("evowelsigngujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AC7 });
-            aglMap->emplace("exclam"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0021 });
-            aglMap->emplace("exclamarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x055C });
-            aglMap->emplace("exclamdbl"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x203C });
-            aglMap->emplace("exclamdown"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00A1 });
-            aglMap->emplace("exclamdownsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7A1 });
-            aglMap->emplace("exclammonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF01 });
-            aglMap->emplace("exclamsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF721 });
-            aglMap->emplace("existential"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2203 });
-            aglMap->emplace("ezh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0292 });
-            aglMap->emplace("ezhcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01EF });
-            aglMap->emplace("ezhcurl"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0293 });
-            aglMap->emplace("ezhreversed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01B9 });
-            aglMap->emplace("ezhtail"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01BA });
-            aglMap->emplace("f"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0066 });
-            aglMap->emplace("fadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x095E });
-            aglMap->emplace("fagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A5E });
-            aglMap->emplace("fahrenheit"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2109 });
-            aglMap->emplace("fathaarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x064E });
-            aglMap->emplace("fathalowarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x064E });
-            aglMap->emplace("fathatanarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x064B });
-            aglMap->emplace("fbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3108 });
-            aglMap->emplace("fcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24D5 });
-            aglMap->emplace("fdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E1F });
-            aglMap->emplace("feharabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0641 });
-            aglMap->emplace("feharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0586 });
-            aglMap->emplace("fehfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFED2 });
-            aglMap->emplace("fehinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFED3 });
-            aglMap->emplace("fehmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFED4 });
-            aglMap->emplace("feicoptic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03E5 });
-            aglMap->emplace("female"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2640 });
-            aglMap->emplace("ff"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB00 });
-            aglMap->emplace("ffi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB03 });
-            aglMap->emplace("ffl"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB04 });
-            aglMap->emplace("fi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB01 });
-            aglMap->emplace("fifteencircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x246E });
-            aglMap->emplace("fifteenparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2482 });
-            aglMap->emplace("fifteenperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2496 });
-            aglMap->emplace("figuredash"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2012 });
-            aglMap->emplace("filledbox"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25A0 });
-            aglMap->emplace("filledrect"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25AC });
-            aglMap->emplace("finalkaf"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DA });
-            aglMap->emplace("finalkafdagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB3A });
-            aglMap->emplace("finalkafdageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB3A });
-            aglMap->emplace("finalkafhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DA });
-            aglMap->emplace("finalkafqamats"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 20 });
-            aglMap->emplace("finalkafqamatshebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 21 });
-            aglMap->emplace("finalkafsheva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 22 });
-            aglMap->emplace("finalkafshevahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 23 });
-            aglMap->emplace("finalmem"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DD });
-            aglMap->emplace("finalmemhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DD });
-            aglMap->emplace("finalnun"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DF });
-            aglMap->emplace("finalnunhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DF });
-            aglMap->emplace("finalpe"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E3 });
-            aglMap->emplace("finalpehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E3 });
-            aglMap->emplace("finaltsadi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E5 });
-            aglMap->emplace("finaltsadihebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E5 });
-            aglMap->emplace("firsttonechinese"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02C9 });
-            aglMap->emplace("fisheye"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25C9 });
-            aglMap->emplace("fitacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0473 });
-            aglMap->emplace("five"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0035 });
-            aglMap->emplace("fivearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0665 });
-            aglMap->emplace("fivebengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09EB });
-            aglMap->emplace("fivecircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2464 });
-            aglMap->emplace("fivecircleinversesansserif"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x278E });
-            aglMap->emplace("fivedeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x096B });
-            aglMap->emplace("fiveeighths"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x215D });
-            aglMap->emplace("fivegujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AEB });
-            aglMap->emplace("fivegurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A6B });
-            aglMap->emplace("fivehackarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0665 });
-            aglMap->emplace("fivehangzhou"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3025 });
-            aglMap->emplace("fiveideographicparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3224 });
-            aglMap->emplace("fiveinferior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2085 });
-            aglMap->emplace("fivemonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF15 });
-            aglMap->emplace("fiveoldstyle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF735 });
-            aglMap->emplace("fiveparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2478 });
-            aglMap->emplace("fiveperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x248C });
-            aglMap->emplace("fivepersian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06F5 });
-            aglMap->emplace("fiveroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2174 });
-            aglMap->emplace("fivesuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2075 });
-            aglMap->emplace("fivethai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E55 });
-            aglMap->emplace("fl"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB02 });
-            aglMap->emplace("florin"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0192 });
-            aglMap->emplace("fmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF46 });
-            aglMap->emplace("fmsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3399 });
-            aglMap->emplace("fofanthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E1F });
-            aglMap->emplace("fofathai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E1D });
-            aglMap->emplace("fongmanthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E4F });
-            aglMap->emplace("forall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2200 });
-            aglMap->emplace("four"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0034 });
-            aglMap->emplace("fourarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0664 });
-            aglMap->emplace("fourbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09EA });
-            aglMap->emplace("fourcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2463 });
-            aglMap->emplace("fourcircleinversesansserif"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x278D });
-            aglMap->emplace("fourdeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x096A });
-            aglMap->emplace("fourgujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AEA });
-            aglMap->emplace("fourgurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A6A });
-            aglMap->emplace("fourhackarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0664 });
-            aglMap->emplace("fourhangzhou"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3024 });
-            aglMap->emplace("fourideographicparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3223 });
-            aglMap->emplace("fourinferior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2084 });
-            aglMap->emplace("fourmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF14 });
-            aglMap->emplace("fournumeratorbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09F7 });
-            aglMap->emplace("fouroldstyle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF734 });
-            aglMap->emplace("fourparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2477 });
-            aglMap->emplace("fourperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x248B });
-            aglMap->emplace("fourpersian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06F4 });
-            aglMap->emplace("fourroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2173 });
-            aglMap->emplace("foursuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2074 });
-            aglMap->emplace("fourteencircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x246D });
-            aglMap->emplace("fourteenparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2481 });
-            aglMap->emplace("fourteenperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2495 });
-            aglMap->emplace("fourthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E54 });
-            aglMap->emplace("fourthtonechinese"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02CB });
-            aglMap->emplace("fparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24A1 });
-            aglMap->emplace("fraction"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2044 });
-            aglMap->emplace("franc"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x20A3 });
-            aglMap->emplace("g"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0067 });
-            aglMap->emplace("gabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0997 });
-            aglMap->emplace("gacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01F5 });
-            aglMap->emplace("gadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0917 });
-            aglMap->emplace("gafarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06AF });
-            aglMap->emplace("gaffinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB93 });
-            aglMap->emplace("gafinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB94 });
-            aglMap->emplace("gafmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB95 });
-            aglMap->emplace("gagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A97 });
-            aglMap->emplace("gagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A17 });
-            aglMap->emplace("gahiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x304C });
-            aglMap->emplace("gakatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30AC });
-            aglMap->emplace("gamma"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03B3 });
-            aglMap->emplace("gammalatinsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0263 });
-            aglMap->emplace("gammasuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02E0 });
-            aglMap->emplace("gangiacoptic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03EB });
-            aglMap->emplace("gbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x310D });
-            aglMap->emplace("gbreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x011F });
-            aglMap->emplace("gcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01E7 });
-            aglMap->emplace("gcedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0123 });
-            aglMap->emplace("gcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24D6 });
-            aglMap->emplace("gcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x011D });
-            aglMap->emplace("gcommaaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0123 });
-            aglMap->emplace("gdot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0121 });
-            aglMap->emplace("gdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0121 });
-            aglMap->emplace("gecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0433 });
-            aglMap->emplace("gehiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3052 });
-            aglMap->emplace("gekatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30B2 });
-            aglMap->emplace("geometricallyequal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2251 });
-            aglMap->emplace("gereshaccenthebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x059C });
-            aglMap->emplace("gereshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05F3 });
-            aglMap->emplace("gereshmuqdamhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x059D });
-            aglMap->emplace("germandbls"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00DF });
-            aglMap->emplace("gershayimaccenthebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x059E });
-            aglMap->emplace("gershayimhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05F4 });
-            aglMap->emplace("getamark"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3013 });
-            aglMap->emplace("ghabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0998 });
-            aglMap->emplace("ghadarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0572 });
-            aglMap->emplace("ghadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0918 });
-            aglMap->emplace("ghagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A98 });
-            aglMap->emplace("ghagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A18 });
-            aglMap->emplace("ghainarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x063A });
-            aglMap->emplace("ghainfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFECE });
-            aglMap->emplace("ghaininitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFECF });
-            aglMap->emplace("ghainmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFED0 });
-            aglMap->emplace("ghemiddlehookcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0495 });
-            aglMap->emplace("ghestrokecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0493 });
-            aglMap->emplace("gheupturncyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0491 });
-            aglMap->emplace("ghhadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x095A });
-            aglMap->emplace("ghhagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A5A });
-            aglMap->emplace("ghook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0260 });
-            aglMap->emplace("ghzsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3393 });
-            aglMap->emplace("gihiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x304E });
-            aglMap->emplace("gikatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30AE });
-            aglMap->emplace("gimarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0563 });
-            aglMap->emplace("gimel"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D2 });
-            aglMap->emplace("gimeldagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB32 });
-            aglMap->emplace("gimeldageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB32 });
-            aglMap->emplace("gimelhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D2 });
-            aglMap->emplace("gjecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0453 });
-            aglMap->emplace("glottalinvertedstroke"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01BE });
-            aglMap->emplace("glottalstop"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0294 });
-            aglMap->emplace("glottalstopinverted"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0296 });
-            aglMap->emplace("glottalstopmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02C0 });
-            aglMap->emplace("glottalstopreversed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0295 });
-            aglMap->emplace("glottalstopreversedmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02C1 });
-            aglMap->emplace("glottalstopreversedsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02E4 });
-            aglMap->emplace("glottalstopstroke"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02A1 });
-            aglMap->emplace("glottalstopstrokereversed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02A2 });
-            aglMap->emplace("gmacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E21 });
-            aglMap->emplace("gmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF47 });
-            aglMap->emplace("gohiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3054 });
-            aglMap->emplace("gokatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30B4 });
-            aglMap->emplace("gparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24A2 });
-            aglMap->emplace("gpasquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33AC });
-            aglMap->emplace("gradient"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2207 });
-            aglMap->emplace("grave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0060 });
-            aglMap->emplace("gravebelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0316 });
-            aglMap->emplace("gravecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0300 });
-            aglMap->emplace("gravecomb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0300 });
-            aglMap->emplace("gravedeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0953 });
-            aglMap->emplace("gravelowmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02CE });
-            aglMap->emplace("gravemonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF40 });
-            aglMap->emplace("gravetonecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0340 });
-            aglMap->emplace("greater"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x003E });
-            aglMap->emplace("greaterequal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2265 });
-            aglMap->emplace("greaterequalorless"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x22DB });
-            aglMap->emplace("greatermonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF1E });
-            aglMap->emplace("greaterorequivalent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2273 });
-            aglMap->emplace("greaterorless"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2277 });
-            aglMap->emplace("greateroverequal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2267 });
-            aglMap->emplace("greatersmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE65 });
-            aglMap->emplace("gscript"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0261 });
-            aglMap->emplace("gstroke"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01E5 });
-            aglMap->emplace("guhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3050 });
-            aglMap->emplace("guillemotleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00AB });
-            aglMap->emplace("guillemotright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00BB });
-            aglMap->emplace("guilsinglleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2039 });
-            aglMap->emplace("guilsinglright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x203A });
-            aglMap->emplace("gukatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30B0 });
-            aglMap->emplace("guramusquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3318 });
-            aglMap->emplace("gysquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33C9 });
-            aglMap->emplace("h"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0068 });
-            aglMap->emplace("haabkhasiancyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04A9 });
-            aglMap->emplace("haaltonearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06C1 });
-            aglMap->emplace("habengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09B9 });
-            aglMap->emplace("hadescendercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04B3 });
-            aglMap->emplace("hadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0939 });
-            aglMap->emplace("hagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AB9 });
-            aglMap->emplace("hagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A39 });
-            aglMap->emplace("haharabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x062D });
-            aglMap->emplace("hahfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEA2 });
-            aglMap->emplace("hahinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEA3 });
-            aglMap->emplace("hahiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x306F });
-            aglMap->emplace("hahmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEA4 });
-            aglMap->emplace("haitusquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x332A });
-            aglMap->emplace("hakatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30CF });
-            aglMap->emplace("hakatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF8A });
-            aglMap->emplace("halantgurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A4D });
-            aglMap->emplace("hamzaarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0621 });
-            aglMap->emplace("hamzadammaarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 24 });
-            aglMap->emplace("hamzadammatanarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 25 });
-            aglMap->emplace("hamzafathaarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 26 });
-            aglMap->emplace("hamzafathatanarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 27 });
-            aglMap->emplace("hamzalowarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0621 });
-            aglMap->emplace("hamzalowkasraarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 28 });
-            aglMap->emplace("hamzalowkasratanarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 29 });
-            aglMap->emplace("hamzasukunarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 30 });
-            aglMap->emplace("hangulfiller"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3164 });
-            aglMap->emplace("hardsigncyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x044A });
-            aglMap->emplace("harpoonleftbarbup"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21BC });
-            aglMap->emplace("harpoonrightbarbup"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21C0 });
-            aglMap->emplace("hasquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33CA });
-            aglMap->emplace("hatafpatah"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B2 });
-            aglMap->emplace("hatafpatah16"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B2 });
-            aglMap->emplace("hatafpatah23"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B2 });
-            aglMap->emplace("hatafpatah2f"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B2 });
-            aglMap->emplace("hatafpatahhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B2 });
-            aglMap->emplace("hatafpatahnarrowhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B2 });
-            aglMap->emplace("hatafpatahquarterhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B2 });
-            aglMap->emplace("hatafpatahwidehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B2 });
-            aglMap->emplace("hatafqamats"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B3 });
-            aglMap->emplace("hatafqamats1b"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B3 });
-            aglMap->emplace("hatafqamats28"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B3 });
-            aglMap->emplace("hatafqamats34"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B3 });
-            aglMap->emplace("hatafqamatshebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B3 });
-            aglMap->emplace("hatafqamatsnarrowhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B3 });
-            aglMap->emplace("hatafqamatsquarterhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B3 });
-            aglMap->emplace("hatafqamatswidehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B3 });
-            aglMap->emplace("hatafsegol"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B1 });
-            aglMap->emplace("hatafsegol17"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B1 });
-            aglMap->emplace("hatafsegol24"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B1 });
-            aglMap->emplace("hatafsegol30"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B1 });
-            aglMap->emplace("hatafsegolhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B1 });
-            aglMap->emplace("hatafsegolnarrowhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B1 });
-            aglMap->emplace("hatafsegolquarterhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B1 });
-            aglMap->emplace("hatafsegolwidehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B1 });
-            aglMap->emplace("hbar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0127 });
-            aglMap->emplace("hbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x310F });
-            aglMap->emplace("hbrevebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E2B });
-            aglMap->emplace("hcedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E29 });
-            aglMap->emplace("hcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24D7 });
-            aglMap->emplace("hcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0125 });
-            aglMap->emplace("hdieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E27 });
-            aglMap->emplace("hdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E23 });
-            aglMap->emplace("hdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E25 });
-            aglMap->emplace("he"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D4 });
-            aglMap->emplace("heart"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2665 });
-            aglMap->emplace("heartsuitblack"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2665 });
-            aglMap->emplace("heartsuitwhite"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2661 });
-            aglMap->emplace("hedagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB34 });
-            aglMap->emplace("hedageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB34 });
-            aglMap->emplace("hehaltonearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06C1 });
-            aglMap->emplace("heharabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0647 });
-            aglMap->emplace("hehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D4 });
-            aglMap->emplace("hehfinalaltonearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFBA7 });
-            aglMap->emplace("hehfinalalttwoarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEEA });
-            aglMap->emplace("hehfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEEA });
-            aglMap->emplace("hehhamzaabovefinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFBA5 });
-            aglMap->emplace("hehhamzaaboveisolatedarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFBA4 });
-            aglMap->emplace("hehinitialaltonearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFBA8 });
-            aglMap->emplace("hehinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEEB });
-            aglMap->emplace("hehiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3078 });
-            aglMap->emplace("hehmedialaltonearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFBA9 });
-            aglMap->emplace("hehmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEEC });
-            aglMap->emplace("heiseierasquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x337B });
-            aglMap->emplace("hekatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30D8 });
-            aglMap->emplace("hekatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF8D });
-            aglMap->emplace("hekutaarusquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3336 });
-            aglMap->emplace("henghook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0267 });
-            aglMap->emplace("herutusquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3339 });
-            aglMap->emplace("het"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D7 });
-            aglMap->emplace("hethebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D7 });
-            aglMap->emplace("hhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0266 });
-            aglMap->emplace("hhooksuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02B1 });
-            aglMap->emplace("hieuhacirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x327B });
-            aglMap->emplace("hieuhaparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x321B });
-            aglMap->emplace("hieuhcirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x326D });
-            aglMap->emplace("hieuhkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x314E });
-            aglMap->emplace("hieuhparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x320D });
-            aglMap->emplace("hihiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3072 });
-            aglMap->emplace("hikatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30D2 });
-            aglMap->emplace("hikatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF8B });
-            aglMap->emplace("hiriq"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B4 });
-            aglMap->emplace("hiriq14"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B4 });
-            aglMap->emplace("hiriq21"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B4 });
-            aglMap->emplace("hiriq2d"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B4 });
-            aglMap->emplace("hiriqhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B4 });
-            aglMap->emplace("hiriqnarrowhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B4 });
-            aglMap->emplace("hiriqquarterhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B4 });
-            aglMap->emplace("hiriqwidehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B4 });
-            aglMap->emplace("hlinebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E96 });
-            aglMap->emplace("hmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF48 });
-            aglMap->emplace("hoarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0570 });
-            aglMap->emplace("hohipthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E2B });
-            aglMap->emplace("hohiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x307B });
-            aglMap->emplace("hokatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30DB });
-            aglMap->emplace("hokatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF8E });
-            aglMap->emplace("holam"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B9 });
-            aglMap->emplace("holam19"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B9 });
-            aglMap->emplace("holam26"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B9 });
-            aglMap->emplace("holam32"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B9 });
-            aglMap->emplace("holamhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B9 });
-            aglMap->emplace("holamnarrowhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B9 });
-            aglMap->emplace("holamquarterhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B9 });
-            aglMap->emplace("holamwidehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B9 });
-            aglMap->emplace("honokhukthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E2E });
-            aglMap->emplace("hookabovecomb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0309 });
-            aglMap->emplace("hookcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0309 });
-            aglMap->emplace("hookpalatalizedbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0321 });
-            aglMap->emplace("hookretroflexbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0322 });
-            aglMap->emplace("hoonsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3342 });
-            aglMap->emplace("horicoptic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03E9 });
-            aglMap->emplace("horizontalbar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2015 });
-            aglMap->emplace("horncmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x031B });
-            aglMap->emplace("hotsprings"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2668 });
-            aglMap->emplace("house"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2302 });
-            aglMap->emplace("hparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24A3 });
-            aglMap->emplace("hsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02B0 });
-            aglMap->emplace("hturned"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0265 });
-            aglMap->emplace("huhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3075 });
-            aglMap->emplace("huiitosquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3333 });
-            aglMap->emplace("hukatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30D5 });
-            aglMap->emplace("hukatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF8C });
-            aglMap->emplace("hungarumlaut"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02DD });
-            aglMap->emplace("hungarumlautcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x030B });
-            aglMap->emplace("hv"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0195 });
-            aglMap->emplace("hyphen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x002D });
-            aglMap->emplace("hypheninferior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6E5 });
-            aglMap->emplace("hyphenmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF0D });
-            aglMap->emplace("hyphensmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE63 });
-            aglMap->emplace("hyphensuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6E6 });
-            aglMap->emplace("hyphentwo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2010 });
-            aglMap->emplace("i"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0069 });
-            aglMap->emplace("iacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00ED });
-            aglMap->emplace("iacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x044F });
-            aglMap->emplace("ibengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0987 });
-            aglMap->emplace("ibopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3127 });
-            aglMap->emplace("ibreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x012D });
-            aglMap->emplace("icaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01D0 });
-            aglMap->emplace("icircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24D8 });
-            aglMap->emplace("icircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00EE });
-            aglMap->emplace("icyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0456 });
-            aglMap->emplace("idblgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0209 });
-            aglMap->emplace("ideographearthcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x328F });
-            aglMap->emplace("ideographfirecircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x328B });
-            aglMap->emplace("ideographicallianceparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x323F });
-            aglMap->emplace("ideographiccallparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x323A });
-            aglMap->emplace("ideographiccentrecircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x32A5 });
-            aglMap->emplace("ideographicclose"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3006 });
-            aglMap->emplace("ideographiccomma"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3001 });
-            aglMap->emplace("ideographiccommaleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF64 });
-            aglMap->emplace("ideographiccongratulationparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3237 });
-            aglMap->emplace("ideographiccorrectcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x32A3 });
-            aglMap->emplace("ideographicearthparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x322F });
-            aglMap->emplace("ideographicenterpriseparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x323D });
-            aglMap->emplace("ideographicexcellentcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x329D });
-            aglMap->emplace("ideographicfestivalparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3240 });
-            aglMap->emplace("ideographicfinancialcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3296 });
-            aglMap->emplace("ideographicfinancialparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3236 });
-            aglMap->emplace("ideographicfireparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x322B });
-            aglMap->emplace("ideographichaveparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3232 });
-            aglMap->emplace("ideographichighcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x32A4 });
-            aglMap->emplace("ideographiciterationmark"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3005 });
-            aglMap->emplace("ideographiclaborcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3298 });
-            aglMap->emplace("ideographiclaborparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3238 });
-            aglMap->emplace("ideographicleftcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x32A7 });
-            aglMap->emplace("ideographiclowcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x32A6 });
-            aglMap->emplace("ideographicmedicinecircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x32A9 });
-            aglMap->emplace("ideographicmetalparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x322E });
-            aglMap->emplace("ideographicmoonparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x322A });
-            aglMap->emplace("ideographicnameparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3234 });
-            aglMap->emplace("ideographicperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3002 });
-            aglMap->emplace("ideographicprintcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x329E });
-            aglMap->emplace("ideographicreachparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3243 });
-            aglMap->emplace("ideographicrepresentparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3239 });
-            aglMap->emplace("ideographicresourceparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x323E });
-            aglMap->emplace("ideographicrightcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x32A8 });
-            aglMap->emplace("ideographicsecretcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3299 });
-            aglMap->emplace("ideographicselfparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3242 });
-            aglMap->emplace("ideographicsocietyparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3233 });
-            aglMap->emplace("ideographicspace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3000 });
-            aglMap->emplace("ideographicspecialparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3235 });
-            aglMap->emplace("ideographicstockparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3231 });
-            aglMap->emplace("ideographicstudyparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x323B });
-            aglMap->emplace("ideographicsunparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3230 });
-            aglMap->emplace("ideographicsuperviseparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x323C });
-            aglMap->emplace("ideographicwaterparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x322C });
-            aglMap->emplace("ideographicwoodparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x322D });
-            aglMap->emplace("ideographiczero"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3007 });
-            aglMap->emplace("ideographmetalcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x328E });
-            aglMap->emplace("ideographmooncircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x328A });
-            aglMap->emplace("ideographnamecircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3294 });
-            aglMap->emplace("ideographsuncircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3290 });
-            aglMap->emplace("ideographwatercircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x328C });
-            aglMap->emplace("ideographwoodcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x328D });
-            aglMap->emplace("ideva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0907 });
-            aglMap->emplace("idieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00EF });
-            aglMap->emplace("idieresisacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E2F });
-            aglMap->emplace("idieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04E5 });
-            aglMap->emplace("idotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1ECB });
-            aglMap->emplace("iebrevecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04D7 });
-            aglMap->emplace("iecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0435 });
-            aglMap->emplace("ieungacirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3275 });
-            aglMap->emplace("ieungaparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3215 });
-            aglMap->emplace("ieungcirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3267 });
-            aglMap->emplace("ieungkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3147 });
-            aglMap->emplace("ieungparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3207 });
-            aglMap->emplace("igrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00EC });
-            aglMap->emplace("igujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A87 });
-            aglMap->emplace("igurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A07 });
-            aglMap->emplace("ihiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3044 });
-            aglMap->emplace("ihookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EC9 });
-            aglMap->emplace("iibengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0988 });
-            aglMap->emplace("iicyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0438 });
-            aglMap->emplace("iideva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0908 });
-            aglMap->emplace("iigujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A88 });
-            aglMap->emplace("iigurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A08 });
-            aglMap->emplace("iimatragurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A40 });
-            aglMap->emplace("iinvertedbreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x020B });
-            aglMap->emplace("iishortcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0439 });
-            aglMap->emplace("iivowelsignbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09C0 });
-            aglMap->emplace("iivowelsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0940 });
-            aglMap->emplace("iivowelsigngujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AC0 });
-            aglMap->emplace("ij"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0133 });
-            aglMap->emplace("ikatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30A4 });
-            aglMap->emplace("ikatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF72 });
-            aglMap->emplace("ikorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3163 });
-            aglMap->emplace("ilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02DC });
-            aglMap->emplace("iluyhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05AC });
-            aglMap->emplace("imacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x012B });
-            aglMap->emplace("imacroncyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04E3 });
-            aglMap->emplace("imageorapproximatelyequal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2253 });
-            aglMap->emplace("imatragurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A3F });
-            aglMap->emplace("imonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF49 });
-            aglMap->emplace("increment"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2206 });
-            aglMap->emplace("infinity"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x221E });
-            aglMap->emplace("iniarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x056B });
-            aglMap->emplace("integral"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x222B });
-            aglMap->emplace("integralbottom"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2321 });
-            aglMap->emplace("integralbt"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2321 });
-            aglMap->emplace("integralex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8F5 });
-            aglMap->emplace("integraltop"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2320 });
-            aglMap->emplace("integraltp"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2320 });
-            aglMap->emplace("intersection"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2229 });
-            aglMap->emplace("intisquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3305 });
-            aglMap->emplace("invbullet"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25D8 });
-            aglMap->emplace("invcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25D9 });
-            aglMap->emplace("invsmileface"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x263B });
-            aglMap->emplace("iocyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0451 });
-            aglMap->emplace("iogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x012F });
-            aglMap->emplace("iota"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03B9 });
-            aglMap->emplace("iotadieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03CA });
-            aglMap->emplace("iotadieresistonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0390 });
-            aglMap->emplace("iotalatin"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0269 });
-            aglMap->emplace("iotatonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03AF });
-            aglMap->emplace("iparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24A4 });
-            aglMap->emplace("irigurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A72 });
-            aglMap->emplace("ismallhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3043 });
-            aglMap->emplace("ismallkatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30A3 });
-            aglMap->emplace("ismallkatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF68 });
-            aglMap->emplace("issharbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09FA });
-            aglMap->emplace("istroke"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0268 });
-            aglMap->emplace("isuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6ED });
-            aglMap->emplace("iterationhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x309D });
-            aglMap->emplace("iterationkatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30FD });
-            aglMap->emplace("itilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0129 });
-            aglMap->emplace("itildebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E2D });
-            aglMap->emplace("iubopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3129 });
-            aglMap->emplace("iucyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x044E });
-            aglMap->emplace("ivowelsignbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09BF });
-            aglMap->emplace("ivowelsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x093F });
-            aglMap->emplace("ivowelsigngujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0ABF });
-            aglMap->emplace("izhitsacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0475 });
-            aglMap->emplace("izhitsadblgravecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0477 });
-            aglMap->emplace("j"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x006A });
-            aglMap->emplace("jaarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0571 });
-            aglMap->emplace("jabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x099C });
-            aglMap->emplace("jadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x091C });
-            aglMap->emplace("jagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A9C });
-            aglMap->emplace("jagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A1C });
-            aglMap->emplace("jbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3110 });
-            aglMap->emplace("jcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01F0 });
-            aglMap->emplace("jcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24D9 });
-            aglMap->emplace("jcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0135 });
-            aglMap->emplace("jcrossedtail"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x029D });
-            aglMap->emplace("jdotlessstroke"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x025F });
-            aglMap->emplace("jecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0458 });
-            aglMap->emplace("jeemarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x062C });
-            aglMap->emplace("jeemfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE9E });
-            aglMap->emplace("jeeminitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE9F });
-            aglMap->emplace("jeemmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEA0 });
-            aglMap->emplace("jeharabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0698 });
-            aglMap->emplace("jehfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB8B });
-            aglMap->emplace("jhabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x099D });
-            aglMap->emplace("jhadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x091D });
-            aglMap->emplace("jhagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A9D });
-            aglMap->emplace("jhagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A1D });
-            aglMap->emplace("jheharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x057B });
-            aglMap->emplace("jis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3004 });
-            aglMap->emplace("jmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF4A });
-            aglMap->emplace("jparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24A5 });
-            aglMap->emplace("jsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02B2 });
-            aglMap->emplace("k"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x006B });
-            aglMap->emplace("kabashkircyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04A1 });
-            aglMap->emplace("kabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0995 });
-            aglMap->emplace("kacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E31 });
-            aglMap->emplace("kacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x043A });
-            aglMap->emplace("kadescendercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x049B });
-            aglMap->emplace("kadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0915 });
-            aglMap->emplace("kaf"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DB });
-            aglMap->emplace("kafarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0643 });
-            aglMap->emplace("kafdagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB3B });
-            aglMap->emplace("kafdageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB3B });
-            aglMap->emplace("kaffinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEDA });
-            aglMap->emplace("kafhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DB });
-            aglMap->emplace("kafinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEDB });
-            aglMap->emplace("kafmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEDC });
-            aglMap->emplace("kafrafehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB4D });
-            aglMap->emplace("kagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A95 });
-            aglMap->emplace("kagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A15 });
-            aglMap->emplace("kahiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x304B });
-            aglMap->emplace("kahookcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04C4 });
-            aglMap->emplace("kakatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30AB });
-            aglMap->emplace("kakatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF76 });
-            aglMap->emplace("kappa"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03BA });
-            aglMap->emplace("kappasymbolgreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03F0 });
-            aglMap->emplace("kapyeounmieumkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3171 });
-            aglMap->emplace("kapyeounphieuphkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3184 });
-            aglMap->emplace("kapyeounpieupkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3178 });
-            aglMap->emplace("kapyeounssangpieupkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3179 });
-            aglMap->emplace("karoriisquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x330D });
-            aglMap->emplace("kashidaautoarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0640 });
-            aglMap->emplace("kashidaautonosidebearingarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0640 });
-            aglMap->emplace("kasmallkatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30F5 });
-            aglMap->emplace("kasquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3384 });
-            aglMap->emplace("kasraarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0650 });
-            aglMap->emplace("kasratanarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x064D });
-            aglMap->emplace("kastrokecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x049F });
-            aglMap->emplace("katahiraprolongmarkhalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF70 });
-            aglMap->emplace("kaverticalstrokecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x049D });
-            aglMap->emplace("kbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x310E });
-            aglMap->emplace("kcalsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3389 });
-            aglMap->emplace("kcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01E9 });
-            aglMap->emplace("kcedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0137 });
-            aglMap->emplace("kcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24DA });
-            aglMap->emplace("kcommaaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0137 });
-            aglMap->emplace("kdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E33 });
-            aglMap->emplace("keharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0584 });
-            aglMap->emplace("kehiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3051 });
-            aglMap->emplace("kekatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30B1 });
-            aglMap->emplace("kekatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF79 });
-            aglMap->emplace("kenarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x056F });
-            aglMap->emplace("kesmallkatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30F6 });
-            aglMap->emplace("kgreenlandic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0138 });
-            aglMap->emplace("khabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0996 });
-            aglMap->emplace("khacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0445 });
-            aglMap->emplace("khadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0916 });
-            aglMap->emplace("khagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A96 });
-            aglMap->emplace("khagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A16 });
-            aglMap->emplace("khaharabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x062E });
-            aglMap->emplace("khahfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEA6 });
-            aglMap->emplace("khahinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEA7 });
-            aglMap->emplace("khahmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEA8 });
-            aglMap->emplace("kheicoptic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03E7 });
-            aglMap->emplace("khhadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0959 });
-            aglMap->emplace("khhagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A59 });
-            aglMap->emplace("khieukhacirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3278 });
-            aglMap->emplace("khieukhaparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3218 });
-            aglMap->emplace("khieukhcirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x326A });
-            aglMap->emplace("khieukhkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x314B });
-            aglMap->emplace("khieukhparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x320A });
-            aglMap->emplace("khokhaithai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E02 });
-            aglMap->emplace("khokhonthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E05 });
-            aglMap->emplace("khokhuatthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E03 });
-            aglMap->emplace("khokhwaithai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E04 });
-            aglMap->emplace("khomutthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E5B });
-            aglMap->emplace("khook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0199 });
-            aglMap->emplace("khorakhangthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E06 });
-            aglMap->emplace("khzsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3391 });
-            aglMap->emplace("kihiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x304D });
-            aglMap->emplace("kikatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30AD });
-            aglMap->emplace("kikatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF77 });
-            aglMap->emplace("kiroguramusquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3315 });
-            aglMap->emplace("kiromeetorusquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3316 });
-            aglMap->emplace("kirosquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3314 });
-            aglMap->emplace("kiyeokacirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x326E });
-            aglMap->emplace("kiyeokaparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x320E });
-            aglMap->emplace("kiyeokcirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3260 });
-            aglMap->emplace("kiyeokkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3131 });
-            aglMap->emplace("kiyeokparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3200 });
-            aglMap->emplace("kiyeoksioskorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3133 });
-            aglMap->emplace("kjecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x045C });
-            aglMap->emplace("klinebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E35 });
-            aglMap->emplace("klsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3398 });
-            aglMap->emplace("kmcubedsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33A6 });
-            aglMap->emplace("kmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF4B });
-            aglMap->emplace("kmsquaredsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33A2 });
-            aglMap->emplace("kohiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3053 });
-            aglMap->emplace("kohmsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33C0 });
-            aglMap->emplace("kokaithai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E01 });
-            aglMap->emplace("kokatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30B3 });
-            aglMap->emplace("kokatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF7A });
-            aglMap->emplace("kooposquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x331E });
-            aglMap->emplace("koppacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0481 });
-            aglMap->emplace("koreanstandardsymbol"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x327F });
-            aglMap->emplace("koroniscmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0343 });
-            aglMap->emplace("kparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24A6 });
-            aglMap->emplace("kpasquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33AA });
-            aglMap->emplace("ksicyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x046F });
-            aglMap->emplace("ktsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33CF });
-            aglMap->emplace("kturned"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x029E });
-            aglMap->emplace("kuhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x304F });
-            aglMap->emplace("kukatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30AF });
-            aglMap->emplace("kukatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF78 });
-            aglMap->emplace("kvsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33B8 });
-            aglMap->emplace("kwsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33BE });
-            aglMap->emplace("l"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x006C });
-            aglMap->emplace("labengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09B2 });
-            aglMap->emplace("lacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x013A });
-            aglMap->emplace("ladeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0932 });
-            aglMap->emplace("lagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AB2 });
-            aglMap->emplace("lagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A32 });
-            aglMap->emplace("lakkhangyaothai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E45 });
-            aglMap->emplace("lamaleffinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEFC });
-            aglMap->emplace("lamalefhamzaabovefinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEF8 });
-            aglMap->emplace("lamalefhamzaaboveisolatedarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEF7 });
-            aglMap->emplace("lamalefhamzabelowfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEFA });
-            aglMap->emplace("lamalefhamzabelowisolatedarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEF9 });
-            aglMap->emplace("lamalefisolatedarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEFB });
-            aglMap->emplace("lamalefmaddaabovefinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEF6 });
-            aglMap->emplace("lamalefmaddaaboveisolatedarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEF5 });
-            aglMap->emplace("lamarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0644 });
-            aglMap->emplace("lambda"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03BB });
-            aglMap->emplace("lambdastroke"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x019B });
-            aglMap->emplace("lamed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DC });
-            aglMap->emplace("lameddagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB3C });
-            aglMap->emplace("lameddageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB3C });
-            aglMap->emplace("lamedhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DC });
-            aglMap->emplace("lamedholam"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 31 });
-            aglMap->emplace("lamedholamdagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 3, 32 });
-            aglMap->emplace("lamedholamdageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 3, 33 });
-            aglMap->emplace("lamedholamhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 34 });
-            aglMap->emplace("lamfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEDE });
-            aglMap->emplace("lamhahinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFCCA });
-            aglMap->emplace("laminitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEDF });
-            aglMap->emplace("lamjeeminitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFCC9 });
-            aglMap->emplace("lamkhahinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFCCB });
-            aglMap->emplace("lamlamhehisolatedarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFDF2 });
-            aglMap->emplace("lammedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEE0 });
-            aglMap->emplace("lammeemhahinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFD88 });
-            aglMap->emplace("lammeeminitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFCCC });
-            aglMap->emplace("lammeemjeeminitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 3, 35 });
-            aglMap->emplace("lammeemkhahinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 3, 36 });
-            aglMap->emplace("largecircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25EF });
-            aglMap->emplace("lbar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x019A });
-            aglMap->emplace("lbelt"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x026C });
-            aglMap->emplace("lbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x310C });
-            aglMap->emplace("lcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x013E });
-            aglMap->emplace("lcedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x013C });
-            aglMap->emplace("lcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24DB });
-            aglMap->emplace("lcircumflexbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E3D });
-            aglMap->emplace("lcommaaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x013C });
-            aglMap->emplace("ldot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0140 });
-            aglMap->emplace("ldotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0140 });
-            aglMap->emplace("ldotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E37 });
-            aglMap->emplace("ldotbelowmacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E39 });
-            aglMap->emplace("leftangleabovecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x031A });
-            aglMap->emplace("lefttackbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0318 });
-            aglMap->emplace("less"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x003C });
-            aglMap->emplace("lessequal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2264 });
-            aglMap->emplace("lessequalorgreater"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x22DA });
-            aglMap->emplace("lessmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF1C });
-            aglMap->emplace("lessorequivalent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2272 });
-            aglMap->emplace("lessorgreater"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2276 });
-            aglMap->emplace("lessoverequal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2266 });
-            aglMap->emplace("lesssmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE64 });
-            aglMap->emplace("lezh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x026E });
-            aglMap->emplace("lfblock"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x258C });
-            aglMap->emplace("lhookretroflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x026D });
-            aglMap->emplace("lira"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x20A4 });
-            aglMap->emplace("liwnarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x056C });
-            aglMap->emplace("lj"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01C9 });
-            aglMap->emplace("ljecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0459 });
-            aglMap->emplace("ll"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6C0 });
-            aglMap->emplace("lladeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0933 });
-            aglMap->emplace("llagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AB3 });
-            aglMap->emplace("llinebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E3B });
-            aglMap->emplace("llladeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0934 });
-            aglMap->emplace("llvocalicbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09E1 });
-            aglMap->emplace("llvocalicdeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0961 });
-            aglMap->emplace("llvocalicvowelsignbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09E3 });
-            aglMap->emplace("llvocalicvowelsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0963 });
-            aglMap->emplace("lmiddletilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x026B });
-            aglMap->emplace("lmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF4C });
-            aglMap->emplace("lmsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33D0 });
-            aglMap->emplace("lochulathai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E2C });
-            aglMap->emplace("logicaland"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2227 });
-            aglMap->emplace("logicalnot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00AC });
-            aglMap->emplace("logicalnotreversed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2310 });
-            aglMap->emplace("logicalor"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2228 });
-            aglMap->emplace("lolingthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E25 });
-            aglMap->emplace("longs"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x017F });
-            aglMap->emplace("lowlinecenterline"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE4E });
-            aglMap->emplace("lowlinecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0332 });
-            aglMap->emplace("lowlinedashed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE4D });
-            aglMap->emplace("lozenge"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25CA });
-            aglMap->emplace("lparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24A7 });
-            aglMap->emplace("lslash"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0142 });
-            aglMap->emplace("lsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2113 });
-            aglMap->emplace("lsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6EE });
-            aglMap->emplace("ltshade"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2591 });
-            aglMap->emplace("luthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E26 });
-            aglMap->emplace("lvocalicbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x098C });
-            aglMap->emplace("lvocalicdeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x090C });
-            aglMap->emplace("lvocalicvowelsignbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09E2 });
-            aglMap->emplace("lvocalicvowelsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0962 });
-            aglMap->emplace("lxsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33D3 });
-            aglMap->emplace("m"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x006D });
-            aglMap->emplace("mabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09AE });
-            aglMap->emplace("macron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00AF });
-            aglMap->emplace("macronbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0331 });
-            aglMap->emplace("macroncmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0304 });
-            aglMap->emplace("macronlowmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02CD });
-            aglMap->emplace("macronmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFFE3 });
-            aglMap->emplace("macute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E3F });
-            aglMap->emplace("madeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x092E });
-            aglMap->emplace("magujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AAE });
-            aglMap->emplace("magurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A2E });
-            aglMap->emplace("mahapakhhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05A4 });
-            aglMap->emplace("mahapakhlefthebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05A4 });
-            aglMap->emplace("mahiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x307E });
-            aglMap->emplace("maichattawalowleftthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF895 });
-            aglMap->emplace("maichattawalowrightthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF894 });
-            aglMap->emplace("maichattawathai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E4B });
-            aglMap->emplace("maichattawaupperleftthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF893 });
-            aglMap->emplace("maieklowleftthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF88C });
-            aglMap->emplace("maieklowrightthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF88B });
-            aglMap->emplace("maiekthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E48 });
-            aglMap->emplace("maiekupperleftthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF88A });
-            aglMap->emplace("maihanakatleftthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF884 });
-            aglMap->emplace("maihanakatthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E31 });
-            aglMap->emplace("maitaikhuleftthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF889 });
-            aglMap->emplace("maitaikhuthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E47 });
-            aglMap->emplace("maitholowleftthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF88F });
-            aglMap->emplace("maitholowrightthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF88E });
-            aglMap->emplace("maithothai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E49 });
-            aglMap->emplace("maithoupperleftthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF88D });
-            aglMap->emplace("maitrilowleftthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF892 });
-            aglMap->emplace("maitrilowrightthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF891 });
-            aglMap->emplace("maitrithai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E4A });
-            aglMap->emplace("maitriupperleftthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF890 });
-            aglMap->emplace("maiyamokthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E46 });
-            aglMap->emplace("makatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30DE });
-            aglMap->emplace("makatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF8F });
-            aglMap->emplace("male"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2642 });
-            aglMap->emplace("mansyonsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3347 });
-            aglMap->emplace("maqafhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BE });
-            aglMap->emplace("mars"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2642 });
-            aglMap->emplace("masoracirclehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05AF });
-            aglMap->emplace("masquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3383 });
-            aglMap->emplace("mbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3107 });
-            aglMap->emplace("mbsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33D4 });
-            aglMap->emplace("mcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24DC });
-            aglMap->emplace("mcubedsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33A5 });
-            aglMap->emplace("mdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E41 });
-            aglMap->emplace("mdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E43 });
-            aglMap->emplace("meemarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0645 });
-            aglMap->emplace("meemfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEE2 });
-            aglMap->emplace("meeminitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEE3 });
-            aglMap->emplace("meemmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEE4 });
-            aglMap->emplace("meemmeeminitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFCD1 });
-            aglMap->emplace("meemmeemisolatedarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC48 });
-            aglMap->emplace("meetorusquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x334D });
-            aglMap->emplace("mehiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3081 });
-            aglMap->emplace("meizierasquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x337E });
-            aglMap->emplace("mekatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30E1 });
-            aglMap->emplace("mekatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF92 });
-            aglMap->emplace("mem"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DE });
-            aglMap->emplace("memdagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB3E });
-            aglMap->emplace("memdageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB3E });
-            aglMap->emplace("memhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05DE });
-            aglMap->emplace("menarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0574 });
-            aglMap->emplace("merkhahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05A5 });
-            aglMap->emplace("merkhakefulahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05A6 });
-            aglMap->emplace("merkhakefulalefthebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05A6 });
-            aglMap->emplace("merkhalefthebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05A5 });
-            aglMap->emplace("mhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0271 });
-            aglMap->emplace("mhzsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3392 });
-            aglMap->emplace("middledotkatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF65 });
-            aglMap->emplace("middot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00B7 });
-            aglMap->emplace("mieumacirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3272 });
-            aglMap->emplace("mieumaparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3212 });
-            aglMap->emplace("mieumcirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3264 });
-            aglMap->emplace("mieumkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3141 });
-            aglMap->emplace("mieumpansioskorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3170 });
-            aglMap->emplace("mieumparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3204 });
-            aglMap->emplace("mieumpieupkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x316E });
-            aglMap->emplace("mieumsioskorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x316F });
-            aglMap->emplace("mihiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x307F });
-            aglMap->emplace("mikatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30DF });
-            aglMap->emplace("mikatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF90 });
-            aglMap->emplace("minus"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2212 });
-            aglMap->emplace("minusbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0320 });
-            aglMap->emplace("minuscircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2296 });
-            aglMap->emplace("minusmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02D7 });
-            aglMap->emplace("minusplus"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2213 });
-            aglMap->emplace("minute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2032 });
-            aglMap->emplace("miribaarusquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x334A });
-            aglMap->emplace("mirisquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3349 });
-            aglMap->emplace("mlonglegturned"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0270 });
-            aglMap->emplace("mlsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3396 });
-            aglMap->emplace("mmcubedsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33A3 });
-            aglMap->emplace("mmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF4D });
-            aglMap->emplace("mmsquaredsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x339F });
-            aglMap->emplace("mohiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3082 });
-            aglMap->emplace("mohmsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33C1 });
-            aglMap->emplace("mokatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30E2 });
-            aglMap->emplace("mokatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF93 });
-            aglMap->emplace("molsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33D6 });
-            aglMap->emplace("momathai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E21 });
-            aglMap->emplace("moverssquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33A7 });
-            aglMap->emplace("moverssquaredsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33A8 });
-            aglMap->emplace("mparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24A8 });
-            aglMap->emplace("mpasquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33AB });
-            aglMap->emplace("mssquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33B3 });
-            aglMap->emplace("msuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6EF });
-            aglMap->emplace("mturned"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x026F });
-            aglMap->emplace("mu"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00B5 });
-            aglMap->emplace("mu1"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00B5 });
-            aglMap->emplace("muasquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3382 });
-            aglMap->emplace("muchgreater"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x226B });
-            aglMap->emplace("muchless"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x226A });
-            aglMap->emplace("mufsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x338C });
-            aglMap->emplace("mugreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03BC });
-            aglMap->emplace("mugsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x338D });
-            aglMap->emplace("muhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3080 });
-            aglMap->emplace("mukatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30E0 });
-            aglMap->emplace("mukatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF91 });
-            aglMap->emplace("mulsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3395 });
-            aglMap->emplace("multiply"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00D7 });
-            aglMap->emplace("mumsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x339B });
-            aglMap->emplace("munahhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05A3 });
-            aglMap->emplace("munahlefthebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05A3 });
-            aglMap->emplace("musicalnote"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x266A });
-            aglMap->emplace("musicalnotedbl"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x266B });
-            aglMap->emplace("musicflatsign"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x266D });
-            aglMap->emplace("musicsharpsign"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x266F });
-            aglMap->emplace("mussquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33B2 });
-            aglMap->emplace("muvsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33B6 });
-            aglMap->emplace("muwsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33BC });
-            aglMap->emplace("mvmegasquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33B9 });
-            aglMap->emplace("mvsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33B7 });
-            aglMap->emplace("mwmegasquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33BF });
-            aglMap->emplace("mwsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33BD });
-            aglMap->emplace("n"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x006E });
-            aglMap->emplace("nabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09A8 });
-            aglMap->emplace("nabla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2207 });
-            aglMap->emplace("nacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0144 });
-            aglMap->emplace("nadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0928 });
-            aglMap->emplace("nagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AA8 });
-            aglMap->emplace("nagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A28 });
-            aglMap->emplace("nahiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x306A });
-            aglMap->emplace("nakatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30CA });
-            aglMap->emplace("nakatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF85 });
-            aglMap->emplace("napostrophe"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0149 });
-            aglMap->emplace("nasquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3381 });
-            aglMap->emplace("nbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x310B });
-            aglMap->emplace("nbspace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00A0 });
-            aglMap->emplace("ncaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0148 });
-            aglMap->emplace("ncedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0146 });
-            aglMap->emplace("ncircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24DD });
-            aglMap->emplace("ncircumflexbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E4B });
-            aglMap->emplace("ncommaaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0146 });
-            aglMap->emplace("ndotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E45 });
-            aglMap->emplace("ndotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E47 });
-            aglMap->emplace("nehiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x306D });
-            aglMap->emplace("nekatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30CD });
-            aglMap->emplace("nekatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF88 });
-            aglMap->emplace("newsheqelsign"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x20AA });
-            aglMap->emplace("nfsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x338B });
-            aglMap->emplace("ngabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0999 });
-            aglMap->emplace("ngadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0919 });
-            aglMap->emplace("ngagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A99 });
-            aglMap->emplace("ngagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A19 });
-            aglMap->emplace("ngonguthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E07 });
-            aglMap->emplace("nhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3093 });
-            aglMap->emplace("nhookleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0272 });
-            aglMap->emplace("nhookretroflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0273 });
-            aglMap->emplace("nieunacirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x326F });
-            aglMap->emplace("nieunaparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x320F });
-            aglMap->emplace("nieuncieuckorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3135 });
-            aglMap->emplace("nieuncirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3261 });
-            aglMap->emplace("nieunhieuhkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3136 });
-            aglMap->emplace("nieunkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3134 });
-            aglMap->emplace("nieunpansioskorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3168 });
-            aglMap->emplace("nieunparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3201 });
-            aglMap->emplace("nieunsioskorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3167 });
-            aglMap->emplace("nieuntikeutkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3166 });
-            aglMap->emplace("nihiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x306B });
-            aglMap->emplace("nikatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30CB });
-            aglMap->emplace("nikatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF86 });
-            aglMap->emplace("nikhahitleftthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF899 });
-            aglMap->emplace("nikhahitthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E4D });
-            aglMap->emplace("nine"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0039 });
-            aglMap->emplace("ninearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0669 });
-            aglMap->emplace("ninebengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09EF });
-            aglMap->emplace("ninecircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2468 });
-            aglMap->emplace("ninecircleinversesansserif"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2792 });
-            aglMap->emplace("ninedeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x096F });
-            aglMap->emplace("ninegujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AEF });
-            aglMap->emplace("ninegurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A6F });
-            aglMap->emplace("ninehackarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0669 });
-            aglMap->emplace("ninehangzhou"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3029 });
-            aglMap->emplace("nineideographicparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3228 });
-            aglMap->emplace("nineinferior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2089 });
-            aglMap->emplace("ninemonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF19 });
-            aglMap->emplace("nineoldstyle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF739 });
-            aglMap->emplace("nineparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x247C });
-            aglMap->emplace("nineperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2490 });
-            aglMap->emplace("ninepersian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06F9 });
-            aglMap->emplace("nineroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2178 });
-            aglMap->emplace("ninesuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2079 });
-            aglMap->emplace("nineteencircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2472 });
-            aglMap->emplace("nineteenparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2486 });
-            aglMap->emplace("nineteenperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x249A });
-            aglMap->emplace("ninethai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E59 });
-            aglMap->emplace("nj"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01CC });
-            aglMap->emplace("njecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x045A });
-            aglMap->emplace("nkatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30F3 });
-            aglMap->emplace("nkatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF9D });
-            aglMap->emplace("nlegrightlong"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x019E });
-            aglMap->emplace("nlinebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E49 });
-            aglMap->emplace("nmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF4E });
-            aglMap->emplace("nmsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x339A });
-            aglMap->emplace("nnabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09A3 });
-            aglMap->emplace("nnadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0923 });
-            aglMap->emplace("nnagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AA3 });
-            aglMap->emplace("nnagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A23 });
-            aglMap->emplace("nnnadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0929 });
-            aglMap->emplace("nohiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x306E });
-            aglMap->emplace("nokatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30CE });
-            aglMap->emplace("nokatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF89 });
-            aglMap->emplace("nonbreakingspace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00A0 });
-            aglMap->emplace("nonenthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E13 });
-            aglMap->emplace("nonuthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E19 });
-            aglMap->emplace("noonarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0646 });
-            aglMap->emplace("noonfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEE6 });
-            aglMap->emplace("noonghunnaarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06BA });
-            aglMap->emplace("noonghunnafinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB9F });
-            aglMap->emplace("noonhehinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 37 });
-            aglMap->emplace("nooninitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEE7 });
-            aglMap->emplace("noonjeeminitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFCD2 });
-            aglMap->emplace("noonjeemisolatedarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC4B });
-            aglMap->emplace("noonmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEE8 });
-            aglMap->emplace("noonmeeminitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFCD5 });
-            aglMap->emplace("noonmeemisolatedarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC4E });
-            aglMap->emplace("noonnoonfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC8D });
-            aglMap->emplace("notcontains"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x220C });
-            aglMap->emplace("notelement"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2209 });
-            aglMap->emplace("notelementof"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2209 });
-            aglMap->emplace("notequal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2260 });
-            aglMap->emplace("notgreater"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x226F });
-            aglMap->emplace("notgreaternorequal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2271 });
-            aglMap->emplace("notgreaternorless"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2279 });
-            aglMap->emplace("notidentical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2262 });
-            aglMap->emplace("notless"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x226E });
-            aglMap->emplace("notlessnorequal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2270 });
-            aglMap->emplace("notparallel"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2226 });
-            aglMap->emplace("notprecedes"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2280 });
-            aglMap->emplace("notsubset"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2284 });
-            aglMap->emplace("notsucceeds"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2281 });
-            aglMap->emplace("notsuperset"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2285 });
-            aglMap->emplace("nowarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0576 });
-            aglMap->emplace("nparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24A9 });
-            aglMap->emplace("nssquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33B1 });
-            aglMap->emplace("nsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x207F });
-            aglMap->emplace("ntilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00F1 });
-            aglMap->emplace("nu"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03BD });
-            aglMap->emplace("nuhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x306C });
-            aglMap->emplace("nukatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30CC });
-            aglMap->emplace("nukatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF87 });
-            aglMap->emplace("nuktabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09BC });
-            aglMap->emplace("nuktadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x093C });
-            aglMap->emplace("nuktagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0ABC });
-            aglMap->emplace("nuktagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A3C });
-            aglMap->emplace("numbersign"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0023 });
-            aglMap->emplace("numbersignmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF03 });
-            aglMap->emplace("numbersignsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE5F });
-            aglMap->emplace("numeralsigngreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0374 });
-            aglMap->emplace("numeralsignlowergreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0375 });
-            aglMap->emplace("numero"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2116 });
-            aglMap->emplace("nun"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E0 });
-            aglMap->emplace("nundagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB40 });
-            aglMap->emplace("nundageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB40 });
-            aglMap->emplace("nunhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E0 });
-            aglMap->emplace("nvsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33B5 });
-            aglMap->emplace("nwsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33BB });
-            aglMap->emplace("nyabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x099E });
-            aglMap->emplace("nyadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x091E });
-            aglMap->emplace("nyagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A9E });
-            aglMap->emplace("nyagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A1E });
-            aglMap->emplace("o"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x006F });
-            aglMap->emplace("oacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00F3 });
-            aglMap->emplace("oangthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E2D });
-            aglMap->emplace("obarred"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0275 });
-            aglMap->emplace("obarredcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04E9 });
-            aglMap->emplace("obarreddieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04EB });
-            aglMap->emplace("obengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0993 });
-            aglMap->emplace("obopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x311B });
-            aglMap->emplace("obreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x014F });
-            aglMap->emplace("ocandradeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0911 });
-            aglMap->emplace("ocandragujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A91 });
-            aglMap->emplace("ocandravowelsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0949 });
-            aglMap->emplace("ocandravowelsigngujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AC9 });
-            aglMap->emplace("ocaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01D2 });
-            aglMap->emplace("ocircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24DE });
-            aglMap->emplace("ocircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00F4 });
-            aglMap->emplace("ocircumflexacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1ED1 });
-            aglMap->emplace("ocircumflexdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1ED9 });
-            aglMap->emplace("ocircumflexgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1ED3 });
-            aglMap->emplace("ocircumflexhookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1ED5 });
-            aglMap->emplace("ocircumflextilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1ED7 });
-            aglMap->emplace("ocyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x043E });
-            aglMap->emplace("odblacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0151 });
-            aglMap->emplace("odblgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x020D });
-            aglMap->emplace("odeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0913 });
-            aglMap->emplace("odieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00F6 });
-            aglMap->emplace("odieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04E7 });
-            aglMap->emplace("odotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1ECD });
-            aglMap->emplace("oe"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0153 });
-            aglMap->emplace("oekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x315A });
-            aglMap->emplace("ogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02DB });
-            aglMap->emplace("ogonekcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0328 });
-            aglMap->emplace("ograve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00F2 });
-            aglMap->emplace("ogujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A93 });
-            aglMap->emplace("oharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0585 });
-            aglMap->emplace("ohiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x304A });
-            aglMap->emplace("ohookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1ECF });
-            aglMap->emplace("ohorn"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01A1 });
-            aglMap->emplace("ohornacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EDB });
-            aglMap->emplace("ohorndotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EE3 });
-            aglMap->emplace("ohorngrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EDD });
-            aglMap->emplace("ohornhookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EDF });
-            aglMap->emplace("ohorntilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EE1 });
-            aglMap->emplace("ohungarumlaut"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0151 });
-            aglMap->emplace("oi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01A3 });
-            aglMap->emplace("oinvertedbreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x020F });
-            aglMap->emplace("okatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30AA });
-            aglMap->emplace("okatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF75 });
-            aglMap->emplace("okorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3157 });
-            aglMap->emplace("olehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05AB });
-            aglMap->emplace("omacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x014D });
-            aglMap->emplace("omacronacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E53 });
-            aglMap->emplace("omacrongrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E51 });
-            aglMap->emplace("omdeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0950 });
-            aglMap->emplace("omega"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03C9 });
-            aglMap->emplace("omega1"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03D6 });
-            aglMap->emplace("omegacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0461 });
-            aglMap->emplace("omegalatinclosed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0277 });
-            aglMap->emplace("omegaroundcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x047B });
-            aglMap->emplace("omegatitlocyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x047D });
-            aglMap->emplace("omegatonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03CE });
-            aglMap->emplace("omgujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AD0 });
-            aglMap->emplace("omicron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03BF });
-            aglMap->emplace("omicrontonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03CC });
-            aglMap->emplace("omonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF4F });
-            aglMap->emplace("one"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0031 });
-            aglMap->emplace("onearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0661 });
-            aglMap->emplace("onebengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09E7 });
-            aglMap->emplace("onecircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2460 });
-            aglMap->emplace("onecircleinversesansserif"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x278A });
-            aglMap->emplace("onedeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0967 });
-            aglMap->emplace("onedotenleader"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2024 });
-            aglMap->emplace("oneeighth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x215B });
-            aglMap->emplace("onefitted"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6DC });
-            aglMap->emplace("onegujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AE7 });
-            aglMap->emplace("onegurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A67 });
-            aglMap->emplace("onehackarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0661 });
-            aglMap->emplace("onehalf"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00BD });
-            aglMap->emplace("onehangzhou"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3021 });
-            aglMap->emplace("oneideographicparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3220 });
-            aglMap->emplace("oneinferior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2081 });
-            aglMap->emplace("onemonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF11 });
-            aglMap->emplace("onenumeratorbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09F4 });
-            aglMap->emplace("oneoldstyle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF731 });
-            aglMap->emplace("oneparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2474 });
-            aglMap->emplace("oneperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2488 });
-            aglMap->emplace("onepersian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06F1 });
-            aglMap->emplace("onequarter"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00BC });
-            aglMap->emplace("oneroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2170 });
-            aglMap->emplace("onesuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00B9 });
-            aglMap->emplace("onethai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E51 });
-            aglMap->emplace("onethird"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2153 });
-            aglMap->emplace("oogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01EB });
-            aglMap->emplace("oogonekmacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01ED });
-            aglMap->emplace("oogurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A13 });
-            aglMap->emplace("oomatragurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A4B });
-            aglMap->emplace("oopen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0254 });
-            aglMap->emplace("oparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24AA });
-            aglMap->emplace("openbullet"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25E6 });
-            aglMap->emplace("option"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2325 });
-            aglMap->emplace("ordfeminine"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00AA });
-            aglMap->emplace("ordmasculine"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00BA });
-            aglMap->emplace("orthogonal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x221F });
-            aglMap->emplace("oshortdeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0912 });
-            aglMap->emplace("oshortvowelsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x094A });
-            aglMap->emplace("oslash"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00F8 });
-            aglMap->emplace("oslashacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01FF });
-            aglMap->emplace("osmallhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3049 });
-            aglMap->emplace("osmallkatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30A9 });
-            aglMap->emplace("osmallkatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF6B });
-            aglMap->emplace("ostrokeacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01FF });
-            aglMap->emplace("osuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6F0 });
-            aglMap->emplace("otcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x047F });
-            aglMap->emplace("otilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00F5 });
-            aglMap->emplace("otildeacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E4D });
-            aglMap->emplace("otildedieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E4F });
-            aglMap->emplace("oubopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3121 });
-            aglMap->emplace("overline"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x203E });
-            aglMap->emplace("overlinecenterline"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE4A });
-            aglMap->emplace("overlinecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0305 });
-            aglMap->emplace("overlinedashed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE49 });
-            aglMap->emplace("overlinedblwavy"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE4C });
-            aglMap->emplace("overlinewavy"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE4B });
-            aglMap->emplace("overscore"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00AF });
-            aglMap->emplace("ovowelsignbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09CB });
-            aglMap->emplace("ovowelsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x094B });
-            aglMap->emplace("ovowelsigngujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0ACB });
-            aglMap->emplace("p"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0070 });
-            aglMap->emplace("paampssquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3380 });
-            aglMap->emplace("paasentosquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x332B });
-            aglMap->emplace("pabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09AA });
-            aglMap->emplace("pacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E55 });
-            aglMap->emplace("padeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x092A });
-            aglMap->emplace("pagedown"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21DF });
-            aglMap->emplace("pageup"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x21DE });
-            aglMap->emplace("pagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AAA });
-            aglMap->emplace("pagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A2A });
-            aglMap->emplace("pahiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3071 });
-            aglMap->emplace("paiyannoithai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E2F });
-            aglMap->emplace("pakatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30D1 });
-            aglMap->emplace("palatalizationcyrilliccmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0484 });
-            aglMap->emplace("palochkacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04C0 });
-            aglMap->emplace("pansioskorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x317F });
-            aglMap->emplace("paragraph"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00B6 });
-            aglMap->emplace("parallel"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2225 });
-            aglMap->emplace("parenleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0028 });
-            aglMap->emplace("parenleftaltonearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFD3E });
-            aglMap->emplace("parenleftbt"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8ED });
-            aglMap->emplace("parenleftex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8EC });
-            aglMap->emplace("parenleftinferior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x208D });
-            aglMap->emplace("parenleftmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF08 });
-            aglMap->emplace("parenleftsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE59 });
-            aglMap->emplace("parenleftsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x207D });
-            aglMap->emplace("parenlefttp"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8EB });
-            aglMap->emplace("parenleftvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE35 });
-            aglMap->emplace("parenright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0029 });
-            aglMap->emplace("parenrightaltonearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFD3F });
-            aglMap->emplace("parenrightbt"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8F8 });
-            aglMap->emplace("parenrightex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8F7 });
-            aglMap->emplace("parenrightinferior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x208E });
-            aglMap->emplace("parenrightmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF09 });
-            aglMap->emplace("parenrightsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE5A });
-            aglMap->emplace("parenrightsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x207E });
-            aglMap->emplace("parenrighttp"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8F6 });
-            aglMap->emplace("parenrightvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE36 });
-            aglMap->emplace("partialdiff"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2202 });
-            aglMap->emplace("paseqhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05C0 });
-            aglMap->emplace("pashtahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0599 });
-            aglMap->emplace("pasquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33A9 });
-            aglMap->emplace("patah"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B7 });
-            aglMap->emplace("patah11"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B7 });
-            aglMap->emplace("patah1d"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B7 });
-            aglMap->emplace("patah2a"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B7 });
-            aglMap->emplace("patahhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B7 });
-            aglMap->emplace("patahnarrowhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B7 });
-            aglMap->emplace("patahquarterhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B7 });
-            aglMap->emplace("patahwidehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B7 });
-            aglMap->emplace("pazerhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05A1 });
-            aglMap->emplace("pbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3106 });
-            aglMap->emplace("pcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24DF });
-            aglMap->emplace("pdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E57 });
-            aglMap->emplace("pe"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E4 });
-            aglMap->emplace("pecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x043F });
-            aglMap->emplace("pedagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB44 });
-            aglMap->emplace("pedageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB44 });
-            aglMap->emplace("peezisquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x333B });
-            aglMap->emplace("pefinaldageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB43 });
-            aglMap->emplace("peharabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x067E });
-            aglMap->emplace("peharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x057A });
-            aglMap->emplace("pehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E4 });
-            aglMap->emplace("pehfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB57 });
-            aglMap->emplace("pehinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB58 });
-            aglMap->emplace("pehiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x307A });
-            aglMap->emplace("pehmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB59 });
-            aglMap->emplace("pekatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30DA });
-            aglMap->emplace("pemiddlehookcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04A7 });
-            aglMap->emplace("perafehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB4E });
-            aglMap->emplace("percent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0025 });
-            aglMap->emplace("percentarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x066A });
-            aglMap->emplace("percentmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF05 });
-            aglMap->emplace("percentsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE6A });
-            aglMap->emplace("period"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x002E });
-            aglMap->emplace("periodarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0589 });
-            aglMap->emplace("periodcentered"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00B7 });
-            aglMap->emplace("periodhalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF61 });
-            aglMap->emplace("periodinferior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6E7 });
-            aglMap->emplace("periodmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF0E });
-            aglMap->emplace("periodsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE52 });
-            aglMap->emplace("periodsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6E8 });
-            aglMap->emplace("perispomenigreekcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0342 });
-            aglMap->emplace("perpendicular"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x22A5 });
-            aglMap->emplace("perthousand"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2030 });
-            aglMap->emplace("peseta"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x20A7 });
-            aglMap->emplace("pfsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x338A });
-            aglMap->emplace("phabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09AB });
-            aglMap->emplace("phadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x092B });
-            aglMap->emplace("phagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AAB });
-            aglMap->emplace("phagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A2B });
-            aglMap->emplace("phi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03C6 });
-            aglMap->emplace("phi1"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03D5 });
-            aglMap->emplace("phieuphacirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x327A });
-            aglMap->emplace("phieuphaparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x321A });
-            aglMap->emplace("phieuphcirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x326C });
-            aglMap->emplace("phieuphkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x314D });
-            aglMap->emplace("phieuphparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x320C });
-            aglMap->emplace("philatin"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0278 });
-            aglMap->emplace("phinthuthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E3A });
-            aglMap->emplace("phisymbolgreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03D5 });
-            aglMap->emplace("phook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01A5 });
-            aglMap->emplace("phophanthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E1E });
-            aglMap->emplace("phophungthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E1C });
-            aglMap->emplace("phosamphaothai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E20 });
-            aglMap->emplace("pi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03C0 });
-            aglMap->emplace("pieupacirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3273 });
-            aglMap->emplace("pieupaparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3213 });
-            aglMap->emplace("pieupcieuckorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3176 });
-            aglMap->emplace("pieupcirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3265 });
-            aglMap->emplace("pieupkiyeokkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3172 });
-            aglMap->emplace("pieupkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3142 });
-            aglMap->emplace("pieupparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3205 });
-            aglMap->emplace("pieupsioskiyeokkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3174 });
-            aglMap->emplace("pieupsioskorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3144 });
-            aglMap->emplace("pieupsiostikeutkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3175 });
-            aglMap->emplace("pieupthieuthkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3177 });
-            aglMap->emplace("pieuptikeutkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3173 });
-            aglMap->emplace("pihiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3074 });
-            aglMap->emplace("pikatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30D4 });
-            aglMap->emplace("pisymbolgreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03D6 });
-            aglMap->emplace("piwrarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0583 });
-            aglMap->emplace("plus"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x002B });
-            aglMap->emplace("plusbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x031F });
-            aglMap->emplace("pluscircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2295 });
-            aglMap->emplace("plusminus"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00B1 });
-            aglMap->emplace("plusmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02D6 });
-            aglMap->emplace("plusmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF0B });
-            aglMap->emplace("plussmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE62 });
-            aglMap->emplace("plussuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x207A });
-            aglMap->emplace("pmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF50 });
-            aglMap->emplace("pmsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33D8 });
-            aglMap->emplace("pohiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x307D });
-            aglMap->emplace("pointingindexdownwhite"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x261F });
-            aglMap->emplace("pointingindexleftwhite"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x261C });
-            aglMap->emplace("pointingindexrightwhite"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x261E });
-            aglMap->emplace("pointingindexupwhite"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x261D });
-            aglMap->emplace("pokatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30DD });
-            aglMap->emplace("poplathai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E1B });
-            aglMap->emplace("postalmark"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3012 });
-            aglMap->emplace("postalmarkface"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3020 });
-            aglMap->emplace("pparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24AB });
-            aglMap->emplace("precedes"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x227A });
-            aglMap->emplace("prescription"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x211E });
-            aglMap->emplace("primemod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02B9 });
-            aglMap->emplace("primereversed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2035 });
-            aglMap->emplace("product"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x220F });
-            aglMap->emplace("projective"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2305 });
-            aglMap->emplace("prolongedkana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30FC });
-            aglMap->emplace("propellor"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2318 });
-            aglMap->emplace("propersubset"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2282 });
-            aglMap->emplace("propersuperset"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2283 });
-            aglMap->emplace("proportion"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2237 });
-            aglMap->emplace("proportional"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x221D });
-            aglMap->emplace("psi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03C8 });
-            aglMap->emplace("psicyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0471 });
-            aglMap->emplace("psilipneumatacyrilliccmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0486 });
-            aglMap->emplace("pssquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33B0 });
-            aglMap->emplace("puhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3077 });
-            aglMap->emplace("pukatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30D7 });
-            aglMap->emplace("pvsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33B4 });
-            aglMap->emplace("pwsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33BA });
-            aglMap->emplace("q"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0071 });
-            aglMap->emplace("qadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0958 });
-            aglMap->emplace("qadmahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05A8 });
-            aglMap->emplace("qafarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0642 });
-            aglMap->emplace("qaffinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFED6 });
-            aglMap->emplace("qafinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFED7 });
-            aglMap->emplace("qafmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFED8 });
-            aglMap->emplace("qamats"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B8 });
-            aglMap->emplace("qamats10"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B8 });
-            aglMap->emplace("qamats1a"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B8 });
-            aglMap->emplace("qamats1c"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B8 });
-            aglMap->emplace("qamats27"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B8 });
-            aglMap->emplace("qamats29"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B8 });
-            aglMap->emplace("qamats33"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B8 });
-            aglMap->emplace("qamatsde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B8 });
-            aglMap->emplace("qamatshebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B8 });
-            aglMap->emplace("qamatsnarrowhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B8 });
-            aglMap->emplace("qamatsqatanhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B8 });
-            aglMap->emplace("qamatsqatannarrowhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B8 });
-            aglMap->emplace("qamatsqatanquarterhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B8 });
-            aglMap->emplace("qamatsqatanwidehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B8 });
-            aglMap->emplace("qamatsquarterhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B8 });
-            aglMap->emplace("qamatswidehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B8 });
-            aglMap->emplace("qarneyparahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x059F });
-            aglMap->emplace("qbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3111 });
-            aglMap->emplace("qcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24E0 });
-            aglMap->emplace("qhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02A0 });
-            aglMap->emplace("qmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF51 });
-            aglMap->emplace("qof"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E7 });
-            aglMap->emplace("qofdagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB47 });
-            aglMap->emplace("qofdageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB47 });
-            aglMap->emplace("qofhatafpatah"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 38 });
-            aglMap->emplace("qofhatafpatahhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 39 });
-            aglMap->emplace("qofhatafsegol"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 40 });
-            aglMap->emplace("qofhatafsegolhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 41 });
-            aglMap->emplace("qofhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E7 });
-            aglMap->emplace("qofhiriq"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 42 });
-            aglMap->emplace("qofhiriqhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 43 });
-            aglMap->emplace("qofholam"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 44 });
-            aglMap->emplace("qofholamhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 45 });
-            aglMap->emplace("qofpatah"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 46 });
-            aglMap->emplace("qofpatahhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 47 });
-            aglMap->emplace("qofqamats"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 48 });
-            aglMap->emplace("qofqamatshebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 49 });
-            aglMap->emplace("qofqubuts"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 50 });
-            aglMap->emplace("qofqubutshebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 51 });
-            aglMap->emplace("qofsegol"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 52 });
-            aglMap->emplace("qofsegolhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 53 });
-            aglMap->emplace("qofsheva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 54 });
-            aglMap->emplace("qofshevahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 55 });
-            aglMap->emplace("qoftsere"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 56 });
-            aglMap->emplace("qoftserehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 57 });
-            aglMap->emplace("qparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24AC });
-            aglMap->emplace("quarternote"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2669 });
-            aglMap->emplace("qubuts"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BB });
-            aglMap->emplace("qubuts18"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BB });
-            aglMap->emplace("qubuts25"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BB });
-            aglMap->emplace("qubuts31"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BB });
-            aglMap->emplace("qubutshebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BB });
-            aglMap->emplace("qubutsnarrowhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BB });
-            aglMap->emplace("qubutsquarterhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BB });
-            aglMap->emplace("qubutswidehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BB });
-            aglMap->emplace("question"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x003F });
-            aglMap->emplace("questionarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x061F });
-            aglMap->emplace("questionarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x055E });
-            aglMap->emplace("questiondown"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00BF });
-            aglMap->emplace("questiondownsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF7BF });
-            aglMap->emplace("questiongreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x037E });
-            aglMap->emplace("questionmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF1F });
-            aglMap->emplace("questionsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF73F });
-            aglMap->emplace("quotedbl"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0022 });
-            aglMap->emplace("quotedblbase"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x201E });
-            aglMap->emplace("quotedblleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x201C });
-            aglMap->emplace("quotedblmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF02 });
-            aglMap->emplace("quotedblprime"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x301E });
-            aglMap->emplace("quotedblprimereversed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x301D });
-            aglMap->emplace("quotedblright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x201D });
-            aglMap->emplace("quoteleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2018 });
-            aglMap->emplace("quoteleftreversed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x201B });
-            aglMap->emplace("quotereversed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x201B });
-            aglMap->emplace("quoteright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2019 });
-            aglMap->emplace("quoterightn"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0149 });
-            aglMap->emplace("quotesinglbase"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x201A });
-            aglMap->emplace("quotesingle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0027 });
-            aglMap->emplace("quotesinglemonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF07 });
-            aglMap->emplace("r"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0072 });
-            aglMap->emplace("raarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x057C });
-            aglMap->emplace("rabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09B0 });
-            aglMap->emplace("racute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0155 });
-            aglMap->emplace("radeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0930 });
-            aglMap->emplace("radical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x221A });
-            aglMap->emplace("radicalex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8E5 });
-            aglMap->emplace("radoverssquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33AE });
-            aglMap->emplace("radoverssquaredsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33AF });
-            aglMap->emplace("radsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33AD });
-            aglMap->emplace("rafe"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BF });
-            aglMap->emplace("rafehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BF });
-            aglMap->emplace("ragujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AB0 });
-            aglMap->emplace("ragurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A30 });
-            aglMap->emplace("rahiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3089 });
-            aglMap->emplace("rakatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30E9 });
-            aglMap->emplace("rakatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF97 });
-            aglMap->emplace("ralowerdiagonalbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09F1 });
-            aglMap->emplace("ramiddlediagonalbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09F0 });
-            aglMap->emplace("ramshorn"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0264 });
-            aglMap->emplace("ratio"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2236 });
-            aglMap->emplace("rbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3116 });
-            aglMap->emplace("rcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0159 });
-            aglMap->emplace("rcedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0157 });
-            aglMap->emplace("rcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24E1 });
-            aglMap->emplace("rcommaaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0157 });
-            aglMap->emplace("rdblgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0211 });
-            aglMap->emplace("rdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E59 });
-            aglMap->emplace("rdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E5B });
-            aglMap->emplace("rdotbelowmacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E5D });
-            aglMap->emplace("referencemark"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x203B });
-            aglMap->emplace("reflexsubset"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2286 });
-            aglMap->emplace("reflexsuperset"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2287 });
-            aglMap->emplace("registered"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00AE });
-            aglMap->emplace("registersans"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8E8 });
-            aglMap->emplace("registerserif"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6DA });
-            aglMap->emplace("reharabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0631 });
-            aglMap->emplace("reharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0580 });
-            aglMap->emplace("rehfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEAE });
-            aglMap->emplace("rehiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x308C });
-            aglMap->emplace("rehyehaleflamarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 4, 58 });
-            aglMap->emplace("rekatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30EC });
-            aglMap->emplace("rekatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF9A });
-            aglMap->emplace("resh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E8 });
-            aglMap->emplace("reshdageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB48 });
-            aglMap->emplace("reshhatafpatah"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 59 });
-            aglMap->emplace("reshhatafpatahhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 60 });
-            aglMap->emplace("reshhatafsegol"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 61 });
-            aglMap->emplace("reshhatafsegolhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 62 });
-            aglMap->emplace("reshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E8 });
-            aglMap->emplace("reshhiriq"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 63 });
-            aglMap->emplace("reshhiriqhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 64 });
-            aglMap->emplace("reshholam"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 65 });
-            aglMap->emplace("reshholamhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 66 });
-            aglMap->emplace("reshpatah"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 67 });
-            aglMap->emplace("reshpatahhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 68 });
-            aglMap->emplace("reshqamats"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 69 });
-            aglMap->emplace("reshqamatshebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 70 });
-            aglMap->emplace("reshqubuts"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 71 });
-            aglMap->emplace("reshqubutshebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 72 });
-            aglMap->emplace("reshsegol"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 73 });
-            aglMap->emplace("reshsegolhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 74 });
-            aglMap->emplace("reshsheva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 75 });
-            aglMap->emplace("reshshevahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 76 });
-            aglMap->emplace("reshtsere"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 77 });
-            aglMap->emplace("reshtserehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 78 });
-            aglMap->emplace("reversedtilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x223D });
-            aglMap->emplace("reviahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0597 });
-            aglMap->emplace("reviamugrashhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0597 });
-            aglMap->emplace("revlogicalnot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2310 });
-            aglMap->emplace("rfishhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x027E });
-            aglMap->emplace("rfishhookreversed"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x027F });
-            aglMap->emplace("rhabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09DD });
-            aglMap->emplace("rhadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x095D });
-            aglMap->emplace("rho"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03C1 });
-            aglMap->emplace("rhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x027D });
-            aglMap->emplace("rhookturned"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x027B });
-            aglMap->emplace("rhookturnedsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02B5 });
-            aglMap->emplace("rhosymbolgreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03F1 });
-            aglMap->emplace("rhotichookmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02DE });
-            aglMap->emplace("rieulacirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3271 });
-            aglMap->emplace("rieulaparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3211 });
-            aglMap->emplace("rieulcirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3263 });
-            aglMap->emplace("rieulhieuhkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3140 });
-            aglMap->emplace("rieulkiyeokkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x313A });
-            aglMap->emplace("rieulkiyeoksioskorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3169 });
-            aglMap->emplace("rieulkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3139 });
-            aglMap->emplace("rieulmieumkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x313B });
-            aglMap->emplace("rieulpansioskorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x316C });
-            aglMap->emplace("rieulparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3203 });
-            aglMap->emplace("rieulphieuphkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x313F });
-            aglMap->emplace("rieulpieupkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x313C });
-            aglMap->emplace("rieulpieupsioskorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x316B });
-            aglMap->emplace("rieulsioskorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x313D });
-            aglMap->emplace("rieulthieuthkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x313E });
-            aglMap->emplace("rieultikeutkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x316A });
-            aglMap->emplace("rieulyeorinhieuhkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x316D });
-            aglMap->emplace("rightangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x221F });
-            aglMap->emplace("righttackbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0319 });
-            aglMap->emplace("righttriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x22BF });
-            aglMap->emplace("rihiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x308A });
-            aglMap->emplace("rikatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30EA });
-            aglMap->emplace("rikatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF98 });
-            aglMap->emplace("ring"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02DA });
-            aglMap->emplace("ringbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0325 });
-            aglMap->emplace("ringcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x030A });
-            aglMap->emplace("ringhalfleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02BF });
-            aglMap->emplace("ringhalfleftarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0559 });
-            aglMap->emplace("ringhalfleftbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x031C });
-            aglMap->emplace("ringhalfleftcentered"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02D3 });
-            aglMap->emplace("ringhalfright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02BE });
-            aglMap->emplace("ringhalfrightbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0339 });
-            aglMap->emplace("ringhalfrightcentered"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02D2 });
-            aglMap->emplace("rinvertedbreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0213 });
-            aglMap->emplace("rittorusquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3351 });
-            aglMap->emplace("rlinebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E5F });
-            aglMap->emplace("rlongleg"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x027C });
-            aglMap->emplace("rlonglegturned"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x027A });
-            aglMap->emplace("rmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF52 });
-            aglMap->emplace("rohiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x308D });
-            aglMap->emplace("rokatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30ED });
-            aglMap->emplace("rokatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF9B });
-            aglMap->emplace("roruathai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E23 });
-            aglMap->emplace("rparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24AD });
-            aglMap->emplace("rrabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09DC });
-            aglMap->emplace("rradeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0931 });
-            aglMap->emplace("rragurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A5C });
-            aglMap->emplace("rreharabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0691 });
-            aglMap->emplace("rrehfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB8D });
-            aglMap->emplace("rrvocalicbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09E0 });
-            aglMap->emplace("rrvocalicdeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0960 });
-            aglMap->emplace("rrvocalicgujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AE0 });
-            aglMap->emplace("rrvocalicvowelsignbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09C4 });
-            aglMap->emplace("rrvocalicvowelsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0944 });
-            aglMap->emplace("rrvocalicvowelsigngujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AC4 });
-            aglMap->emplace("rsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6F1 });
-            aglMap->emplace("rtblock"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2590 });
-            aglMap->emplace("rturned"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0279 });
-            aglMap->emplace("rturnedsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02B4 });
-            aglMap->emplace("ruhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x308B });
-            aglMap->emplace("rukatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30EB });
-            aglMap->emplace("rukatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF99 });
-            aglMap->emplace("rupeemarkbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09F2 });
-            aglMap->emplace("rupeesignbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09F3 });
-            aglMap->emplace("rupiah"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6DD });
-            aglMap->emplace("ruthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E24 });
-            aglMap->emplace("rvocalicbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x098B });
-            aglMap->emplace("rvocalicdeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x090B });
-            aglMap->emplace("rvocalicgujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A8B });
-            aglMap->emplace("rvocalicvowelsignbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09C3 });
-            aglMap->emplace("rvocalicvowelsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0943 });
-            aglMap->emplace("rvocalicvowelsigngujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AC3 });
-            aglMap->emplace("s"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0073 });
-            aglMap->emplace("sabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09B8 });
-            aglMap->emplace("sacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x015B });
-            aglMap->emplace("sacutedotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E65 });
-            aglMap->emplace("sadarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0635 });
-            aglMap->emplace("sadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0938 });
-            aglMap->emplace("sadfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEBA });
-            aglMap->emplace("sadinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEBB });
-            aglMap->emplace("sadmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEBC });
-            aglMap->emplace("sagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AB8 });
-            aglMap->emplace("sagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A38 });
-            aglMap->emplace("sahiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3055 });
-            aglMap->emplace("sakatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30B5 });
-            aglMap->emplace("sakatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF7B });
-            aglMap->emplace("sallallahoualayhewasallamarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFDFA });
-            aglMap->emplace("samekh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E1 });
-            aglMap->emplace("samekhdagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB41 });
-            aglMap->emplace("samekhdageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB41 });
-            aglMap->emplace("samekhhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E1 });
-            aglMap->emplace("saraaathai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E32 });
-            aglMap->emplace("saraaethai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E41 });
-            aglMap->emplace("saraaimaimalaithai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E44 });
-            aglMap->emplace("saraaimaimuanthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E43 });
-            aglMap->emplace("saraamthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E33 });
-            aglMap->emplace("saraathai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E30 });
-            aglMap->emplace("saraethai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E40 });
-            aglMap->emplace("saraiileftthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF886 });
-            aglMap->emplace("saraiithai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E35 });
-            aglMap->emplace("saraileftthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF885 });
-            aglMap->emplace("saraithai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E34 });
-            aglMap->emplace("saraothai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E42 });
-            aglMap->emplace("saraueeleftthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF888 });
-            aglMap->emplace("saraueethai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E37 });
-            aglMap->emplace("saraueleftthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF887 });
-            aglMap->emplace("sarauethai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E36 });
-            aglMap->emplace("sarauthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E38 });
-            aglMap->emplace("sarauuthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E39 });
-            aglMap->emplace("sbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3119 });
-            aglMap->emplace("scaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0161 });
-            aglMap->emplace("scarondotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E67 });
-            aglMap->emplace("scedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x015F });
-            aglMap->emplace("schwa"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0259 });
-            aglMap->emplace("schwacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04D9 });
-            aglMap->emplace("schwadieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04DB });
-            aglMap->emplace("schwahook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x025A });
-            aglMap->emplace("scircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24E2 });
-            aglMap->emplace("scircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x015D });
-            aglMap->emplace("scommaaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0219 });
-            aglMap->emplace("sdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E61 });
-            aglMap->emplace("sdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E63 });
-            aglMap->emplace("sdotbelowdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E69 });
-            aglMap->emplace("seagullbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x033C });
-            aglMap->emplace("second"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2033 });
-            aglMap->emplace("secondtonechinese"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02CA });
-            aglMap->emplace("section"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00A7 });
-            aglMap->emplace("seenarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0633 });
-            aglMap->emplace("seenfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEB2 });
-            aglMap->emplace("seeninitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEB3 });
-            aglMap->emplace("seenmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEB4 });
-            aglMap->emplace("segol"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B6 });
-            aglMap->emplace("segol13"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B6 });
-            aglMap->emplace("segol1f"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B6 });
-            aglMap->emplace("segol2c"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B6 });
-            aglMap->emplace("segolhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B6 });
-            aglMap->emplace("segolnarrowhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B6 });
-            aglMap->emplace("segolquarterhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B6 });
-            aglMap->emplace("segoltahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0592 });
-            aglMap->emplace("segolwidehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B6 });
-            aglMap->emplace("seharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x057D });
-            aglMap->emplace("sehiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x305B });
-            aglMap->emplace("sekatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30BB });
-            aglMap->emplace("sekatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF7E });
-            aglMap->emplace("semicolon"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x003B });
-            aglMap->emplace("semicolonarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x061B });
-            aglMap->emplace("semicolonmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF1B });
-            aglMap->emplace("semicolonsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE54 });
-            aglMap->emplace("semivoicedmarkkana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x309C });
-            aglMap->emplace("semivoicedmarkkanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF9F });
-            aglMap->emplace("sentisquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3322 });
-            aglMap->emplace("sentosquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3323 });
-            aglMap->emplace("seven"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0037 });
-            aglMap->emplace("sevenarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0667 });
-            aglMap->emplace("sevenbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09ED });
-            aglMap->emplace("sevencircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2466 });
-            aglMap->emplace("sevencircleinversesansserif"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2790 });
-            aglMap->emplace("sevendeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x096D });
-            aglMap->emplace("seveneighths"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x215E });
-            aglMap->emplace("sevengujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AED });
-            aglMap->emplace("sevengurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A6D });
-            aglMap->emplace("sevenhackarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0667 });
-            aglMap->emplace("sevenhangzhou"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3027 });
-            aglMap->emplace("sevenideographicparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3226 });
-            aglMap->emplace("seveninferior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2087 });
-            aglMap->emplace("sevenmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF17 });
-            aglMap->emplace("sevenoldstyle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF737 });
-            aglMap->emplace("sevenparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x247A });
-            aglMap->emplace("sevenperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x248E });
-            aglMap->emplace("sevenpersian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06F7 });
-            aglMap->emplace("sevenroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2176 });
-            aglMap->emplace("sevensuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2077 });
-            aglMap->emplace("seventeencircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2470 });
-            aglMap->emplace("seventeenparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2484 });
-            aglMap->emplace("seventeenperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2498 });
-            aglMap->emplace("seventhai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E57 });
-            aglMap->emplace("sfthyphen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00AD });
-            aglMap->emplace("shaarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0577 });
-            aglMap->emplace("shabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09B6 });
-            aglMap->emplace("shacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0448 });
-            aglMap->emplace("shaddaarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0651 });
-            aglMap->emplace("shaddadammaarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC61 });
-            aglMap->emplace("shaddadammatanarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC5E });
-            aglMap->emplace("shaddafathaarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC60 });
-            aglMap->emplace("shaddafathatanarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 79 });
-            aglMap->emplace("shaddakasraarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC62 });
-            aglMap->emplace("shaddakasratanarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC5F });
-            aglMap->emplace("shade"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2592 });
-            aglMap->emplace("shadedark"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2593 });
-            aglMap->emplace("shadelight"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2591 });
-            aglMap->emplace("shademedium"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2592 });
-            aglMap->emplace("shadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0936 });
-            aglMap->emplace("shagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AB6 });
-            aglMap->emplace("shagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A36 });
-            aglMap->emplace("shalshelethebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0593 });
-            aglMap->emplace("shbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3115 });
-            aglMap->emplace("shchacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0449 });
-            aglMap->emplace("sheenarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0634 });
-            aglMap->emplace("sheenfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEB6 });
-            aglMap->emplace("sheeninitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEB7 });
-            aglMap->emplace("sheenmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEB8 });
-            aglMap->emplace("sheicoptic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03E3 });
-            aglMap->emplace("sheqel"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x20AA });
-            aglMap->emplace("sheqelhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x20AA });
-            aglMap->emplace("sheva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B0 });
-            aglMap->emplace("sheva115"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B0 });
-            aglMap->emplace("sheva15"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B0 });
-            aglMap->emplace("sheva22"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B0 });
-            aglMap->emplace("sheva2e"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B0 });
-            aglMap->emplace("shevahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B0 });
-            aglMap->emplace("shevanarrowhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B0 });
-            aglMap->emplace("shevaquarterhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B0 });
-            aglMap->emplace("shevawidehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B0 });
-            aglMap->emplace("shhacyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04BB });
-            aglMap->emplace("shimacoptic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03ED });
-            aglMap->emplace("shin"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E9 });
-            aglMap->emplace("shindagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB49 });
-            aglMap->emplace("shindageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB49 });
-            aglMap->emplace("shindageshshindot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB2C });
-            aglMap->emplace("shindageshshindothebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB2C });
-            aglMap->emplace("shindageshsindot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB2D });
-            aglMap->emplace("shindageshsindothebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB2D });
-            aglMap->emplace("shindothebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05C1 });
-            aglMap->emplace("shinhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E9 });
-            aglMap->emplace("shinshindot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB2A });
-            aglMap->emplace("shinshindothebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB2A });
-            aglMap->emplace("shinsindot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB2B });
-            aglMap->emplace("shinsindothebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB2B });
-            aglMap->emplace("shook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0282 });
-            aglMap->emplace("sigma"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03C3 });
-            aglMap->emplace("sigma1"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03C2 });
-            aglMap->emplace("sigmafinal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03C2 });
-            aglMap->emplace("sigmalunatesymbolgreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03F2 });
-            aglMap->emplace("sihiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3057 });
-            aglMap->emplace("sikatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30B7 });
-            aglMap->emplace("sikatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF7C });
-            aglMap->emplace("siluqhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BD });
-            aglMap->emplace("siluqlefthebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05BD });
-            aglMap->emplace("similar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x223C });
-            aglMap->emplace("sindothebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05C2 });
-            aglMap->emplace("siosacirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3274 });
-            aglMap->emplace("siosaparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3214 });
-            aglMap->emplace("sioscieuckorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x317E });
-            aglMap->emplace("sioscirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3266 });
-            aglMap->emplace("sioskiyeokkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x317A });
-            aglMap->emplace("sioskorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3145 });
-            aglMap->emplace("siosnieunkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x317B });
-            aglMap->emplace("siosparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3206 });
-            aglMap->emplace("siospieupkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x317D });
-            aglMap->emplace("siostikeutkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x317C });
-            aglMap->emplace("six"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0036 });
-            aglMap->emplace("sixarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0666 });
-            aglMap->emplace("sixbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09EC });
-            aglMap->emplace("sixcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2465 });
-            aglMap->emplace("sixcircleinversesansserif"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x278F });
-            aglMap->emplace("sixdeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x096C });
-            aglMap->emplace("sixgujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AEC });
-            aglMap->emplace("sixgurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A6C });
-            aglMap->emplace("sixhackarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0666 });
-            aglMap->emplace("sixhangzhou"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3026 });
-            aglMap->emplace("sixideographicparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3225 });
-            aglMap->emplace("sixinferior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2086 });
-            aglMap->emplace("sixmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF16 });
-            aglMap->emplace("sixoldstyle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF736 });
-            aglMap->emplace("sixparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2479 });
-            aglMap->emplace("sixperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x248D });
-            aglMap->emplace("sixpersian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06F6 });
-            aglMap->emplace("sixroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2175 });
-            aglMap->emplace("sixsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2076 });
-            aglMap->emplace("sixteencircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x246F });
-            aglMap->emplace("sixteencurrencydenominatorbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09F9 });
-            aglMap->emplace("sixteenparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2483 });
-            aglMap->emplace("sixteenperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2497 });
-            aglMap->emplace("sixthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E56 });
-            aglMap->emplace("slash"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x002F });
-            aglMap->emplace("slashmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF0F });
-            aglMap->emplace("slong"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x017F });
-            aglMap->emplace("slongdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E9B });
-            aglMap->emplace("smileface"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x263A });
-            aglMap->emplace("smonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF53 });
-            aglMap->emplace("sofpasuqhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05C3 });
-            aglMap->emplace("softhyphen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00AD });
-            aglMap->emplace("softsigncyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x044C });
-            aglMap->emplace("sohiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x305D });
-            aglMap->emplace("sokatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30BD });
-            aglMap->emplace("sokatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF7F });
-            aglMap->emplace("soliduslongoverlaycmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0338 });
-            aglMap->emplace("solidusshortoverlaycmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0337 });
-            aglMap->emplace("sorusithai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E29 });
-            aglMap->emplace("sosalathai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E28 });
-            aglMap->emplace("sosothai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E0B });
-            aglMap->emplace("sosuathai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E2A });
-            aglMap->emplace("space"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0020 });
-            aglMap->emplace("spacehackarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0020 });
-            aglMap->emplace("spade"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2660 });
-            aglMap->emplace("spadesuitblack"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2660 });
-            aglMap->emplace("spadesuitwhite"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2664 });
-            aglMap->emplace("sparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24AE });
-            aglMap->emplace("squarebelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x033B });
-            aglMap->emplace("squarecc"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33C4 });
-            aglMap->emplace("squarecm"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x339D });
-            aglMap->emplace("squarediagonalcrosshatchfill"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25A9 });
-            aglMap->emplace("squarehorizontalfill"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25A4 });
-            aglMap->emplace("squarekg"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x338F });
-            aglMap->emplace("squarekm"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x339E });
-            aglMap->emplace("squarekmcapital"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33CE });
-            aglMap->emplace("squareln"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33D1 });
-            aglMap->emplace("squarelog"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33D2 });
-            aglMap->emplace("squaremg"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x338E });
-            aglMap->emplace("squaremil"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33D5 });
-            aglMap->emplace("squaremm"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x339C });
-            aglMap->emplace("squaremsquared"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33A1 });
-            aglMap->emplace("squareorthogonalcrosshatchfill"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25A6 });
-            aglMap->emplace("squareupperlefttolowerrightfill"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25A7 });
-            aglMap->emplace("squareupperrighttolowerleftfill"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25A8 });
-            aglMap->emplace("squareverticalfill"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25A5 });
-            aglMap->emplace("squarewhitewithsmallblack"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25A3 });
-            aglMap->emplace("srsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33DB });
-            aglMap->emplace("ssabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09B7 });
-            aglMap->emplace("ssadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0937 });
-            aglMap->emplace("ssagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AB7 });
-            aglMap->emplace("ssangcieuckorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3149 });
-            aglMap->emplace("ssanghieuhkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3185 });
-            aglMap->emplace("ssangieungkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3180 });
-            aglMap->emplace("ssangkiyeokkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3132 });
-            aglMap->emplace("ssangnieunkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3165 });
-            aglMap->emplace("ssangpieupkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3143 });
-            aglMap->emplace("ssangsioskorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3146 });
-            aglMap->emplace("ssangtikeutkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3138 });
-            aglMap->emplace("ssuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6F2 });
-            aglMap->emplace("sterling"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00A3 });
-            aglMap->emplace("sterlingmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFFE1 });
-            aglMap->emplace("strokelongoverlaycmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0336 });
-            aglMap->emplace("strokeshortoverlaycmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0335 });
-            aglMap->emplace("subset"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2282 });
-            aglMap->emplace("subsetnotequal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x228A });
-            aglMap->emplace("subsetorequal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2286 });
-            aglMap->emplace("succeeds"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x227B });
-            aglMap->emplace("suchthat"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x220B });
-            aglMap->emplace("suhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3059 });
-            aglMap->emplace("sukatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30B9 });
-            aglMap->emplace("sukatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF7D });
-            aglMap->emplace("sukunarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0652 });
-            aglMap->emplace("summation"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2211 });
-            aglMap->emplace("sun"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x263C });
-            aglMap->emplace("superset"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2283 });
-            aglMap->emplace("supersetnotequal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x228B });
-            aglMap->emplace("supersetorequal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2287 });
-            aglMap->emplace("svsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33DC });
-            aglMap->emplace("syouwaerasquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x337C });
-            aglMap->emplace("t"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0074 });
-            aglMap->emplace("tabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09A4 });
-            aglMap->emplace("tackdown"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x22A4 });
-            aglMap->emplace("tackleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x22A3 });
-            aglMap->emplace("tadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0924 });
-            aglMap->emplace("tagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AA4 });
-            aglMap->emplace("tagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A24 });
-            aglMap->emplace("taharabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0637 });
-            aglMap->emplace("tahfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEC2 });
-            aglMap->emplace("tahinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEC3 });
-            aglMap->emplace("tahiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x305F });
-            aglMap->emplace("tahmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEC4 });
-            aglMap->emplace("taisyouerasquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x337D });
-            aglMap->emplace("takatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30BF });
-            aglMap->emplace("takatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF80 });
-            aglMap->emplace("tatweelarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0640 });
-            aglMap->emplace("tau"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03C4 });
-            aglMap->emplace("tav"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05EA });
-            aglMap->emplace("tavdages"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB4A });
-            aglMap->emplace("tavdagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB4A });
-            aglMap->emplace("tavdageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB4A });
-            aglMap->emplace("tavhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05EA });
-            aglMap->emplace("tbar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0167 });
-            aglMap->emplace("tbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x310A });
-            aglMap->emplace("tcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0165 });
-            aglMap->emplace("tccurl"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02A8 });
-            aglMap->emplace("tcedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0163 });
-            aglMap->emplace("tcheharabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0686 });
-            aglMap->emplace("tchehfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB7B });
-            aglMap->emplace("tchehinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB7C });
-            aglMap->emplace("tchehmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB7D });
-            aglMap->emplace("tchehmeeminitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 2, 80 });
-            aglMap->emplace("tcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24E3 });
-            aglMap->emplace("tcircumflexbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E71 });
-            aglMap->emplace("tcommaaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0163 });
-            aglMap->emplace("tdieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E97 });
-            aglMap->emplace("tdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E6B });
-            aglMap->emplace("tdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E6D });
-            aglMap->emplace("tecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0442 });
-            aglMap->emplace("tedescendercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04AD });
-            aglMap->emplace("teharabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x062A });
-            aglMap->emplace("tehfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE96 });
-            aglMap->emplace("tehhahinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFCA2 });
-            aglMap->emplace("tehhahisolatedarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC0C });
-            aglMap->emplace("tehinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE97 });
-            aglMap->emplace("tehiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3066 });
-            aglMap->emplace("tehjeeminitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFCA1 });
-            aglMap->emplace("tehjeemisolatedarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC0B });
-            aglMap->emplace("tehmarbutaarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0629 });
-            aglMap->emplace("tehmarbutafinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE94 });
-            aglMap->emplace("tehmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE98 });
-            aglMap->emplace("tehmeeminitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFCA4 });
-            aglMap->emplace("tehmeemisolatedarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC0E });
-            aglMap->emplace("tehnoonfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC73 });
-            aglMap->emplace("tekatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30C6 });
-            aglMap->emplace("tekatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF83 });
-            aglMap->emplace("telephone"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2121 });
-            aglMap->emplace("telephoneblack"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x260E });
-            aglMap->emplace("telishagedolahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05A0 });
-            aglMap->emplace("telishaqetanahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05A9 });
-            aglMap->emplace("tencircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2469 });
-            aglMap->emplace("tenideographicparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3229 });
-            aglMap->emplace("tenparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x247D });
-            aglMap->emplace("tenperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2491 });
-            aglMap->emplace("tenroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2179 });
-            aglMap->emplace("tesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02A7 });
-            aglMap->emplace("tet"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D8 });
-            aglMap->emplace("tetdagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB38 });
-            aglMap->emplace("tetdageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB38 });
-            aglMap->emplace("tethebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D8 });
-            aglMap->emplace("tetsecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04B5 });
-            aglMap->emplace("tevirhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x059B });
-            aglMap->emplace("tevirlefthebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x059B });
-            aglMap->emplace("thabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09A5 });
-            aglMap->emplace("thadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0925 });
-            aglMap->emplace("thagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AA5 });
-            aglMap->emplace("thagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A25 });
-            aglMap->emplace("thalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0630 });
-            aglMap->emplace("thalfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEAC });
-            aglMap->emplace("thanthakhatlowleftthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF898 });
-            aglMap->emplace("thanthakhatlowrightthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF897 });
-            aglMap->emplace("thanthakhatthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E4C });
-            aglMap->emplace("thanthakhatupperleftthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF896 });
-            aglMap->emplace("theharabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x062B });
-            aglMap->emplace("thehfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE9A });
-            aglMap->emplace("thehinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE9B });
-            aglMap->emplace("thehmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE9C });
-            aglMap->emplace("thereexists"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2203 });
-            aglMap->emplace("therefore"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2234 });
-            aglMap->emplace("theta"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03B8 });
-            aglMap->emplace("theta1"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03D1 });
-            aglMap->emplace("thetasymbolgreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03D1 });
-            aglMap->emplace("thieuthacirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3279 });
-            aglMap->emplace("thieuthaparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3219 });
-            aglMap->emplace("thieuthcirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x326B });
-            aglMap->emplace("thieuthkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x314C });
-            aglMap->emplace("thieuthparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x320B });
-            aglMap->emplace("thirteencircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x246C });
-            aglMap->emplace("thirteenparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2480 });
-            aglMap->emplace("thirteenperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2494 });
-            aglMap->emplace("thonangmonthothai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E11 });
-            aglMap->emplace("thook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01AD });
-            aglMap->emplace("thophuthaothai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E12 });
-            aglMap->emplace("thorn"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00FE });
-            aglMap->emplace("thothahanthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E17 });
-            aglMap->emplace("thothanthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E10 });
-            aglMap->emplace("thothongthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E18 });
-            aglMap->emplace("thothungthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E16 });
-            aglMap->emplace("thousandcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0482 });
-            aglMap->emplace("thousandsseparatorarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x066C });
-            aglMap->emplace("thousandsseparatorpersian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x066C });
-            aglMap->emplace("three"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0033 });
-            aglMap->emplace("threearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0663 });
-            aglMap->emplace("threebengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09E9 });
-            aglMap->emplace("threecircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2462 });
-            aglMap->emplace("threecircleinversesansserif"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x278C });
-            aglMap->emplace("threedeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0969 });
-            aglMap->emplace("threeeighths"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x215C });
-            aglMap->emplace("threegujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AE9 });
-            aglMap->emplace("threegurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A69 });
-            aglMap->emplace("threehackarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0663 });
-            aglMap->emplace("threehangzhou"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3023 });
-            aglMap->emplace("threeideographicparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3222 });
-            aglMap->emplace("threeinferior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2083 });
-            aglMap->emplace("threemonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF13 });
-            aglMap->emplace("threenumeratorbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09F6 });
-            aglMap->emplace("threeoldstyle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF733 });
-            aglMap->emplace("threeparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2476 });
-            aglMap->emplace("threeperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x248A });
-            aglMap->emplace("threepersian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06F3 });
-            aglMap->emplace("threequarters"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00BE });
-            aglMap->emplace("threequartersemdash"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6DE });
-            aglMap->emplace("threeroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2172 });
-            aglMap->emplace("threesuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00B3 });
-            aglMap->emplace("threethai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E53 });
-            aglMap->emplace("thzsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3394 });
-            aglMap->emplace("tihiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3061 });
-            aglMap->emplace("tikatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30C1 });
-            aglMap->emplace("tikatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF81 });
-            aglMap->emplace("tikeutacirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3270 });
-            aglMap->emplace("tikeutaparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3210 });
-            aglMap->emplace("tikeutcirclekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3262 });
-            aglMap->emplace("tikeutkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3137 });
-            aglMap->emplace("tikeutparenkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3202 });
-            aglMap->emplace("tilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02DC });
-            aglMap->emplace("tildebelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0330 });
-            aglMap->emplace("tildecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0303 });
-            aglMap->emplace("tildecomb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0303 });
-            aglMap->emplace("tildedoublecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0360 });
-            aglMap->emplace("tildeoperator"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x223C });
-            aglMap->emplace("tildeoverlaycmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0334 });
-            aglMap->emplace("tildeverticalcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x033E });
-            aglMap->emplace("timescircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2297 });
-            aglMap->emplace("tipehahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0596 });
-            aglMap->emplace("tipehalefthebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0596 });
-            aglMap->emplace("tippigurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A70 });
-            aglMap->emplace("titlocyrilliccmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0483 });
-            aglMap->emplace("tiwnarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x057F });
-            aglMap->emplace("tlinebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E6F });
-            aglMap->emplace("tmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF54 });
-            aglMap->emplace("toarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0569 });
-            aglMap->emplace("tohiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3068 });
-            aglMap->emplace("tokatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30C8 });
-            aglMap->emplace("tokatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF84 });
-            aglMap->emplace("tonebarextrahighmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02E5 });
-            aglMap->emplace("tonebarextralowmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02E9 });
-            aglMap->emplace("tonebarhighmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02E6 });
-            aglMap->emplace("tonebarlowmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02E8 });
-            aglMap->emplace("tonebarmidmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02E7 });
-            aglMap->emplace("tonefive"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01BD });
-            aglMap->emplace("tonesix"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0185 });
-            aglMap->emplace("tonetwo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01A8 });
-            aglMap->emplace("tonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0384 });
-            aglMap->emplace("tonsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3327 });
-            aglMap->emplace("topatakthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E0F });
-            aglMap->emplace("tortoiseshellbracketleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3014 });
-            aglMap->emplace("tortoiseshellbracketleftsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE5D });
-            aglMap->emplace("tortoiseshellbracketleftvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE39 });
-            aglMap->emplace("tortoiseshellbracketright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3015 });
-            aglMap->emplace("tortoiseshellbracketrightsmall"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE5E });
-            aglMap->emplace("tortoiseshellbracketrightvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE3A });
-            aglMap->emplace("totaothai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E15 });
-            aglMap->emplace("tpalatalhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01AB });
-            aglMap->emplace("tparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24AF });
-            aglMap->emplace("trademark"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2122 });
-            aglMap->emplace("trademarksans"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF8EA });
-            aglMap->emplace("trademarkserif"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6DB });
-            aglMap->emplace("tretroflexhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0288 });
-            aglMap->emplace("triagdn"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25BC });
-            aglMap->emplace("triaglf"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25C4 });
-            aglMap->emplace("triagrt"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25BA });
-            aglMap->emplace("triagup"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25B2 });
-            aglMap->emplace("ts"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02A6 });
-            aglMap->emplace("tsadi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E6 });
-            aglMap->emplace("tsadidagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB46 });
-            aglMap->emplace("tsadidageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB46 });
-            aglMap->emplace("tsadihebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05E6 });
-            aglMap->emplace("tsecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0446 });
-            aglMap->emplace("tsere"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B5 });
-            aglMap->emplace("tsere12"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B5 });
-            aglMap->emplace("tsere1e"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B5 });
-            aglMap->emplace("tsere2b"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B5 });
-            aglMap->emplace("tserehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B5 });
-            aglMap->emplace("tserenarrowhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B5 });
-            aglMap->emplace("tserequarterhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B5 });
-            aglMap->emplace("tserewidehebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05B5 });
-            aglMap->emplace("tshecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x045B });
-            aglMap->emplace("tsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF6F3 });
-            aglMap->emplace("ttabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x099F });
-            aglMap->emplace("ttadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x091F });
-            aglMap->emplace("ttagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A9F });
-            aglMap->emplace("ttagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A1F });
-            aglMap->emplace("tteharabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0679 });
-            aglMap->emplace("ttehfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB67 });
-            aglMap->emplace("ttehinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB68 });
-            aglMap->emplace("ttehmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB69 });
-            aglMap->emplace("tthabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09A0 });
-            aglMap->emplace("tthadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0920 });
-            aglMap->emplace("tthagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AA0 });
-            aglMap->emplace("tthagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A20 });
-            aglMap->emplace("tturned"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0287 });
-            aglMap->emplace("tuhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3064 });
-            aglMap->emplace("tukatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30C4 });
-            aglMap->emplace("tukatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF82 });
-            aglMap->emplace("tusmallhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3063 });
-            aglMap->emplace("tusmallkatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30C3 });
-            aglMap->emplace("tusmallkatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF6F });
-            aglMap->emplace("twelvecircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x246B });
-            aglMap->emplace("twelveparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x247F });
-            aglMap->emplace("twelveperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2493 });
-            aglMap->emplace("twelveroman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x217B });
-            aglMap->emplace("twentycircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2473 });
-            aglMap->emplace("twentyhangzhou"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x5344 });
-            aglMap->emplace("twentyparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2487 });
-            aglMap->emplace("twentyperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x249B });
-            aglMap->emplace("two"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0032 });
-            aglMap->emplace("twoarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0662 });
-            aglMap->emplace("twobengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09E8 });
-            aglMap->emplace("twocircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2461 });
-            aglMap->emplace("twocircleinversesansserif"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x278B });
-            aglMap->emplace("twodeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0968 });
-            aglMap->emplace("twodotenleader"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2025 });
-            aglMap->emplace("twodotleader"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2025 });
-            aglMap->emplace("twodotleadervertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE30 });
-            aglMap->emplace("twogujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AE8 });
-            aglMap->emplace("twogurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A68 });
-            aglMap->emplace("twohackarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0662 });
-            aglMap->emplace("twohangzhou"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3022 });
-            aglMap->emplace("twoideographicparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3221 });
-            aglMap->emplace("twoinferior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2082 });
-            aglMap->emplace("twomonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF12 });
-            aglMap->emplace("twonumeratorbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09F5 });
-            aglMap->emplace("twooldstyle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF732 });
-            aglMap->emplace("twoparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2475 });
-            aglMap->emplace("twoperiod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2489 });
-            aglMap->emplace("twopersian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06F2 });
-            aglMap->emplace("tworoman"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2171 });
-            aglMap->emplace("twostroke"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01BB });
-            aglMap->emplace("twosuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00B2 });
-            aglMap->emplace("twothai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E52 });
-            aglMap->emplace("twothirds"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2154 });
-            aglMap->emplace("u"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0075 });
-            aglMap->emplace("uacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00FA });
-            aglMap->emplace("ubar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0289 });
-            aglMap->emplace("ubengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0989 });
-            aglMap->emplace("ubopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3128 });
-            aglMap->emplace("ubreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x016D });
-            aglMap->emplace("ucaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01D4 });
-            aglMap->emplace("ucircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24E4 });
-            aglMap->emplace("ucircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00FB });
-            aglMap->emplace("ucircumflexbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E77 });
-            aglMap->emplace("ucyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0443 });
-            aglMap->emplace("udattadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0951 });
-            aglMap->emplace("udblacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0171 });
-            aglMap->emplace("udblgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0215 });
-            aglMap->emplace("udeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0909 });
-            aglMap->emplace("udieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00FC });
-            aglMap->emplace("udieresisacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01D8 });
-            aglMap->emplace("udieresisbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E73 });
-            aglMap->emplace("udieresiscaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01DA });
-            aglMap->emplace("udieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04F1 });
-            aglMap->emplace("udieresisgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01DC });
-            aglMap->emplace("udieresismacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01D6 });
-            aglMap->emplace("udotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EE5 });
-            aglMap->emplace("ugrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00F9 });
-            aglMap->emplace("ugujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A89 });
-            aglMap->emplace("ugurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A09 });
-            aglMap->emplace("uhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3046 });
-            aglMap->emplace("uhookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EE7 });
-            aglMap->emplace("uhorn"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01B0 });
-            aglMap->emplace("uhornacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EE9 });
-            aglMap->emplace("uhorndotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EF1 });
-            aglMap->emplace("uhorngrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EEB });
-            aglMap->emplace("uhornhookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EED });
-            aglMap->emplace("uhorntilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EEF });
-            aglMap->emplace("uhungarumlaut"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0171 });
-            aglMap->emplace("uhungarumlautcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04F3 });
-            aglMap->emplace("uinvertedbreve"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0217 });
-            aglMap->emplace("ukatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30A6 });
-            aglMap->emplace("ukatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF73 });
-            aglMap->emplace("ukcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0479 });
-            aglMap->emplace("ukorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x315C });
-            aglMap->emplace("umacron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x016B });
-            aglMap->emplace("umacroncyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04EF });
-            aglMap->emplace("umacrondieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E7B });
-            aglMap->emplace("umatragurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A41 });
-            aglMap->emplace("umonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF55 });
-            aglMap->emplace("underscore"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x005F });
-            aglMap->emplace("underscoredbl"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2017 });
-            aglMap->emplace("underscoremonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF3F });
-            aglMap->emplace("underscorevertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE33 });
-            aglMap->emplace("underscorewavy"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE4F });
-            aglMap->emplace("union"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x222A });
-            aglMap->emplace("universal"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2200 });
-            aglMap->emplace("uogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0173 });
-            aglMap->emplace("uparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24B0 });
-            aglMap->emplace("upblock"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2580 });
-            aglMap->emplace("upperdothebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05C4 });
-            aglMap->emplace("upsilon"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03C5 });
-            aglMap->emplace("upsilondieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03CB });
-            aglMap->emplace("upsilondieresistonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03B0 });
-            aglMap->emplace("upsilonlatin"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x028A });
-            aglMap->emplace("upsilontonos"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03CD });
-            aglMap->emplace("uptackbelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x031D });
-            aglMap->emplace("uptackmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02D4 });
-            aglMap->emplace("uragurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A73 });
-            aglMap->emplace("uring"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x016F });
-            aglMap->emplace("ushortcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x045E });
-            aglMap->emplace("usmallhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3045 });
-            aglMap->emplace("usmallkatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30A5 });
-            aglMap->emplace("usmallkatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF69 });
-            aglMap->emplace("ustraightcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04AF });
-            aglMap->emplace("ustraightstrokecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04B1 });
-            aglMap->emplace("utilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0169 });
-            aglMap->emplace("utildeacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E79 });
-            aglMap->emplace("utildebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E75 });
-            aglMap->emplace("uubengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x098A });
-            aglMap->emplace("uudeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x090A });
-            aglMap->emplace("uugujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A8A });
-            aglMap->emplace("uugurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A0A });
-            aglMap->emplace("uumatragurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A42 });
-            aglMap->emplace("uuvowelsignbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09C2 });
-            aglMap->emplace("uuvowelsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0942 });
-            aglMap->emplace("uuvowelsigngujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AC2 });
-            aglMap->emplace("uvowelsignbengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09C1 });
-            aglMap->emplace("uvowelsigndeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0941 });
-            aglMap->emplace("uvowelsigngujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AC1 });
-            aglMap->emplace("v"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0076 });
-            aglMap->emplace("vadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0935 });
-            aglMap->emplace("vagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AB5 });
-            aglMap->emplace("vagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A35 });
-            aglMap->emplace("vakatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30F7 });
-            aglMap->emplace("vav"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D5 });
-            aglMap->emplace("vavdagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB35 });
-            aglMap->emplace("vavdagesh65"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB35 });
-            aglMap->emplace("vavdageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB35 });
-            aglMap->emplace("vavhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D5 });
-            aglMap->emplace("vavholam"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB4B });
-            aglMap->emplace("vavholamhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB4B });
-            aglMap->emplace("vavvavhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05F0 });
-            aglMap->emplace("vavyodhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05F1 });
-            aglMap->emplace("vcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24E5 });
-            aglMap->emplace("vdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E7F });
-            aglMap->emplace("vecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0432 });
-            aglMap->emplace("veharabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06A4 });
-            aglMap->emplace("vehfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB6B });
-            aglMap->emplace("vehinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB6C });
-            aglMap->emplace("vehmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB6D });
-            aglMap->emplace("vekatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30F9 });
-            aglMap->emplace("venus"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2640 });
-            aglMap->emplace("verticalbar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x007C });
-            aglMap->emplace("verticallineabovecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x030D });
-            aglMap->emplace("verticallinebelowcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0329 });
-            aglMap->emplace("verticallinelowmod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02CC });
-            aglMap->emplace("verticallinemod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02C8 });
-            aglMap->emplace("vewarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x057E });
-            aglMap->emplace("vhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x028B });
-            aglMap->emplace("vikatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30F8 });
-            aglMap->emplace("viramabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09CD });
-            aglMap->emplace("viramadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x094D });
-            aglMap->emplace("viramagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0ACD });
-            aglMap->emplace("visargabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0983 });
-            aglMap->emplace("visargadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0903 });
-            aglMap->emplace("visargagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A83 });
-            aglMap->emplace("vmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF56 });
-            aglMap->emplace("voarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0578 });
-            aglMap->emplace("voicediterationhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x309E });
-            aglMap->emplace("voicediterationkatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30FE });
-            aglMap->emplace("voicedmarkkana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x309B });
-            aglMap->emplace("voicedmarkkanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF9E });
-            aglMap->emplace("vokatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30FA });
-            aglMap->emplace("vparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24B1 });
-            aglMap->emplace("vtilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E7D });
-            aglMap->emplace("vturned"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x028C });
-            aglMap->emplace("vuhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3094 });
-            aglMap->emplace("vukatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30F4 });
-            aglMap->emplace("w"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0077 });
-            aglMap->emplace("wacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E83 });
-            aglMap->emplace("waekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3159 });
-            aglMap->emplace("wahiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x308F });
-            aglMap->emplace("wakatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30EF });
-            aglMap->emplace("wakatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF9C });
-            aglMap->emplace("wakorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3158 });
-            aglMap->emplace("wasmallhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x308E });
-            aglMap->emplace("wasmallkatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30EE });
-            aglMap->emplace("wattosquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3357 });
-            aglMap->emplace("wavedash"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x301C });
-            aglMap->emplace("wavyunderscorevertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE34 });
-            aglMap->emplace("wawarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0648 });
-            aglMap->emplace("wawfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEEE });
-            aglMap->emplace("wawhamzaabovearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0624 });
-            aglMap->emplace("wawhamzaabovefinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE86 });
-            aglMap->emplace("wbsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x33DD });
-            aglMap->emplace("wcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24E6 });
-            aglMap->emplace("wcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0175 });
-            aglMap->emplace("wdieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E85 });
-            aglMap->emplace("wdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E87 });
-            aglMap->emplace("wdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E89 });
-            aglMap->emplace("wehiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3091 });
-            aglMap->emplace("weierstrass"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2118 });
-            aglMap->emplace("wekatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30F1 });
-            aglMap->emplace("wekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x315E });
-            aglMap->emplace("weokorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x315D });
-            aglMap->emplace("wgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E81 });
-            aglMap->emplace("whitebullet"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25E6 });
-            aglMap->emplace("whitecircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25CB });
-            aglMap->emplace("whitecircleinverse"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25D9 });
-            aglMap->emplace("whitecornerbracketleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x300E });
-            aglMap->emplace("whitecornerbracketleftvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE43 });
-            aglMap->emplace("whitecornerbracketright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x300F });
-            aglMap->emplace("whitecornerbracketrightvertical"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE44 });
-            aglMap->emplace("whitediamond"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25C7 });
-            aglMap->emplace("whitediamondcontainingblacksmalldiamond"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25C8 });
-            aglMap->emplace("whitedownpointingsmalltriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25BF });
-            aglMap->emplace("whitedownpointingtriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25BD });
-            aglMap->emplace("whiteleftpointingsmalltriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25C3 });
-            aglMap->emplace("whiteleftpointingtriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25C1 });
-            aglMap->emplace("whitelenticularbracketleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3016 });
-            aglMap->emplace("whitelenticularbracketright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3017 });
-            aglMap->emplace("whiterightpointingsmalltriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25B9 });
-            aglMap->emplace("whiterightpointingtriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25B7 });
-            aglMap->emplace("whitesmallsquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25AB });
-            aglMap->emplace("whitesmilingface"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x263A });
-            aglMap->emplace("whitesquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25A1 });
-            aglMap->emplace("whitestar"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2606 });
-            aglMap->emplace("whitetelephone"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x260F });
-            aglMap->emplace("whitetortoiseshellbracketleft"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3018 });
-            aglMap->emplace("whitetortoiseshellbracketright"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3019 });
-            aglMap->emplace("whiteuppointingsmalltriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25B5 });
-            aglMap->emplace("whiteuppointingtriangle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x25B3 });
-            aglMap->emplace("wihiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3090 });
-            aglMap->emplace("wikatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30F0 });
-            aglMap->emplace("wikorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x315F });
-            aglMap->emplace("wmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF57 });
-            aglMap->emplace("wohiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3092 });
-            aglMap->emplace("wokatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30F2 });
-            aglMap->emplace("wokatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF66 });
-            aglMap->emplace("won"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x20A9 });
-            aglMap->emplace("wonmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFFE6 });
-            aglMap->emplace("wowaenthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E27 });
-            aglMap->emplace("wparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24B2 });
-            aglMap->emplace("wring"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E98 });
-            aglMap->emplace("wsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02B7 });
-            aglMap->emplace("wturned"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x028D });
-            aglMap->emplace("wynn"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01BF });
-            aglMap->emplace("x"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0078 });
-            aglMap->emplace("xabovecmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x033D });
-            aglMap->emplace("xbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3112 });
-            aglMap->emplace("xcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24E7 });
-            aglMap->emplace("xdieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E8D });
-            aglMap->emplace("xdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E8B });
-            aglMap->emplace("xeharmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x056D });
-            aglMap->emplace("xi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03BE });
-            aglMap->emplace("xmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF58 });
-            aglMap->emplace("xparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24B3 });
-            aglMap->emplace("xsuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02E3 });
-            aglMap->emplace("y"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0079 });
-            aglMap->emplace("yaadosquare"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x334E });
-            aglMap->emplace("yabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09AF });
-            aglMap->emplace("yacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00FD });
-            aglMap->emplace("yadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x092F });
-            aglMap->emplace("yaekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3152 });
-            aglMap->emplace("yagujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AAF });
-            aglMap->emplace("yagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A2F });
-            aglMap->emplace("yahiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3084 });
-            aglMap->emplace("yakatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30E4 });
-            aglMap->emplace("yakatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF94 });
-            aglMap->emplace("yakorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3151 });
-            aglMap->emplace("yamakkanthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E4E });
-            aglMap->emplace("yasmallhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3083 });
-            aglMap->emplace("yasmallkatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30E3 });
-            aglMap->emplace("yasmallkatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF6C });
-            aglMap->emplace("yatcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0463 });
-            aglMap->emplace("ycircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24E8 });
-            aglMap->emplace("ycircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0177 });
-            aglMap->emplace("ydieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00FF });
-            aglMap->emplace("ydotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E8F });
-            aglMap->emplace("ydotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EF5 });
-            aglMap->emplace("yeharabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x064A });
-            aglMap->emplace("yehbarreearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06D2 });
-            aglMap->emplace("yehbarreefinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFBAF });
-            aglMap->emplace("yehfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEF2 });
-            aglMap->emplace("yehhamzaabovearabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0626 });
-            aglMap->emplace("yehhamzaabovefinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE8A });
-            aglMap->emplace("yehhamzaaboveinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE8B });
-            aglMap->emplace("yehhamzaabovemedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFE8C });
-            aglMap->emplace("yehinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEF3 });
-            aglMap->emplace("yehmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEF4 });
-            aglMap->emplace("yehmeeminitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFCDD });
-            aglMap->emplace("yehmeemisolatedarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC58 });
-            aglMap->emplace("yehnoonfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFC94 });
-            aglMap->emplace("yehthreedotsbelowarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06D1 });
-            aglMap->emplace("yekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3156 });
-            aglMap->emplace("yen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x00A5 });
-            aglMap->emplace("yenmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFFE5 });
-            aglMap->emplace("yeokorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3155 });
-            aglMap->emplace("yeorinhieuhkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3186 });
-            aglMap->emplace("yerahbenyomohebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05AA });
-            aglMap->emplace("yerahbenyomolefthebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05AA });
-            aglMap->emplace("yericyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x044B });
-            aglMap->emplace("yerudieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04F9 });
-            aglMap->emplace("yesieungkorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3181 });
-            aglMap->emplace("yesieungpansioskorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3183 });
-            aglMap->emplace("yesieungsioskorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3182 });
-            aglMap->emplace("yetivhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x059A });
-            aglMap->emplace("ygrave"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EF3 });
-            aglMap->emplace("yhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01B4 });
-            aglMap->emplace("yhookabove"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EF7 });
-            aglMap->emplace("yiarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0575 });
-            aglMap->emplace("yicyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0457 });
-            aglMap->emplace("yikorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3162 });
-            aglMap->emplace("yinyang"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x262F });
-            aglMap->emplace("yiwnarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0582 });
-            aglMap->emplace("ymonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF59 });
-            aglMap->emplace("yod"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D9 });
-            aglMap->emplace("yoddagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB39 });
-            aglMap->emplace("yoddageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB39 });
-            aglMap->emplace("yodhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D9 });
-            aglMap->emplace("yodyodhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05F2 });
-            aglMap->emplace("yodyodpatahhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB1F });
-            aglMap->emplace("yohiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3088 });
-            aglMap->emplace("yoikorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3189 });
-            aglMap->emplace("yokatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30E8 });
-            aglMap->emplace("yokatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF96 });
-            aglMap->emplace("yokorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x315B });
-            aglMap->emplace("yosmallhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3087 });
-            aglMap->emplace("yosmallkatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30E7 });
-            aglMap->emplace("yosmallkatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF6E });
-            aglMap->emplace("yotgreek"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03F3 });
-            aglMap->emplace("yoyaekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3188 });
-            aglMap->emplace("yoyakorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3187 });
-            aglMap->emplace("yoyakthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E22 });
-            aglMap->emplace("yoyingthai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E0D });
-            aglMap->emplace("yparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24B4 });
-            aglMap->emplace("ypogegrammeni"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x037A });
-            aglMap->emplace("ypogegrammenigreekcmb"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0345 });
-            aglMap->emplace("yr"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01A6 });
-            aglMap->emplace("yring"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E99 });
-            aglMap->emplace("ysuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x02B8 });
-            aglMap->emplace("ytilde"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1EF9 });
-            aglMap->emplace("yturned"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x028E });
-            aglMap->emplace("yuhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3086 });
-            aglMap->emplace("yuikorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x318C });
-            aglMap->emplace("yukatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30E6 });
-            aglMap->emplace("yukatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF95 });
-            aglMap->emplace("yukorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3160 });
-            aglMap->emplace("yusbigcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x046B });
-            aglMap->emplace("yusbigiotifiedcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x046D });
-            aglMap->emplace("yuslittlecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0467 });
-            aglMap->emplace("yuslittleiotifiedcyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0469 });
-            aglMap->emplace("yusmallhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3085 });
-            aglMap->emplace("yusmallkatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30E5 });
-            aglMap->emplace("yusmallkatakanahalfwidth"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF6D });
-            aglMap->emplace("yuyekorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x318B });
-            aglMap->emplace("yuyeokorean"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x318A });
-            aglMap->emplace("yyabengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09DF });
-            aglMap->emplace("yyadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x095F });
-            aglMap->emplace("z"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x007A });
-            aglMap->emplace("zaarmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0566 });
-            aglMap->emplace("zacute"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x017A });
-            aglMap->emplace("zadeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x095B });
-            aglMap->emplace("zagurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A5B });
-            aglMap->emplace("zaharabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0638 });
-            aglMap->emplace("zahfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEC6 });
-            aglMap->emplace("zahinitialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEC7 });
-            aglMap->emplace("zahiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3056 });
-            aglMap->emplace("zahmedialarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEC8 });
-            aglMap->emplace("zainarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0632 });
-            aglMap->emplace("zainfinalarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEB0 });
-            aglMap->emplace("zakatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30B6 });
-            aglMap->emplace("zaqefgadolhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0595 });
-            aglMap->emplace("zaqefqatanhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0594 });
-            aglMap->emplace("zarqahebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0598 });
-            aglMap->emplace("zayin"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D6 });
-            aglMap->emplace("zayindagesh"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB36 });
-            aglMap->emplace("zayindageshhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFB36 });
-            aglMap->emplace("zayinhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05D6 });
-            aglMap->emplace("zbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3117 });
-            aglMap->emplace("zcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x017E });
-            aglMap->emplace("zcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24E9 });
-            aglMap->emplace("zcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E91 });
-            aglMap->emplace("zcurl"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0291 });
-            aglMap->emplace("zdot"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x017C });
-            aglMap->emplace("zdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x017C });
-            aglMap->emplace("zdotbelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E93 });
-            aglMap->emplace("zecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0437 });
-            aglMap->emplace("zedescendercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0499 });
-            aglMap->emplace("zedieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04DF });
-            aglMap->emplace("zehiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x305C });
-            aglMap->emplace("zekatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30BC });
-            aglMap->emplace("zero"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0030 });
-            aglMap->emplace("zeroarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0660 });
-            aglMap->emplace("zerobengali"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x09E6 });
-            aglMap->emplace("zerodeva"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0966 });
-            aglMap->emplace("zerogujarati"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0AE6 });
-            aglMap->emplace("zerogurmukhi"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0A66 });
-            aglMap->emplace("zerohackarabic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0660 });
-            aglMap->emplace("zeroinferior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2080 });
-            aglMap->emplace("zeromonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF10 });
-            aglMap->emplace("zerooldstyle"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xF730 });
-            aglMap->emplace("zeropersian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x06F0 });
-            aglMap->emplace("zerosuperior"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x2070 });
-            aglMap->emplace("zerothai"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0E50 });
-            aglMap->emplace("zerowidthjoiner"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFEFF });
-            aglMap->emplace("zerowidthnonjoiner"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x200C });
-            aglMap->emplace("zerowidthspace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x200B });
-            aglMap->emplace("zeta"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x03B6 });
-            aglMap->emplace("zhbopomofo"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3113 });
-            aglMap->emplace("zhearmenian"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x056A });
-            aglMap->emplace("zhebrevecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04C2 });
-            aglMap->emplace("zhecyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0436 });
-            aglMap->emplace("zhedescendercyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0497 });
-            aglMap->emplace("zhedieresiscyrillic"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x04DD });
-            aglMap->emplace("zihiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x3058 });
-            aglMap->emplace("zikatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30B8 });
-            aglMap->emplace("zinorhebrew"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x05AE });
-            aglMap->emplace("zlinebelow"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x1E95 });
-            aglMap->emplace("zmonospace"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0xFF5A });
-            aglMap->emplace("zohiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x305E });
-            aglMap->emplace("zokatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30BE });
-            aglMap->emplace("zparen"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x24B5 });
-            aglMap->emplace("zretroflexhook"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x0290 });
-            aglMap->emplace("zstroke"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x01B6 });
-            aglMap->emplace("zuhiragana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x305A });
-            aglMap->emplace("zukatakana"_n, AGLMapping{ AGLMapType::AdobeGlyphList, 1, 0x30BA });
-            aglMap->emplace("A"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0041 });
-            aglMap->emplace("AE"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00C6 });
-            aglMap->emplace("AEacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x01FC });
-            aglMap->emplace("Aacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00C1 });
-            aglMap->emplace("Abreve"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0102 });
-            aglMap->emplace("Acircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00C2 });
-            aglMap->emplace("Adieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00C4 });
-            aglMap->emplace("Agrave"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00C0 });
-            aglMap->emplace("Alpha"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0391 });
-            aglMap->emplace("Alphatonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0386 });
-            aglMap->emplace("Amacron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0100 });
-            aglMap->emplace("Aogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0104 });
-            aglMap->emplace("Aring"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00C5 });
-            aglMap->emplace("Aringacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x01FA });
-            aglMap->emplace("Atilde"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00C3 });
-            aglMap->emplace("B"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0042 });
-            aglMap->emplace("Beta"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0392 });
-            aglMap->emplace("C"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0043 });
-            aglMap->emplace("Cacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0106 });
-            aglMap->emplace("Ccaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x010C });
-            aglMap->emplace("Ccedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00C7 });
-            aglMap->emplace("Ccircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0108 });
-            aglMap->emplace("Cdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x010A });
-            aglMap->emplace("Chi"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03A7 });
-            aglMap->emplace("D"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0044 });
-            aglMap->emplace("Dcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x010E });
-            aglMap->emplace("Dcroat"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0110 });
-            aglMap->emplace("Delta"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2206 });
-            aglMap->emplace("E"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0045 });
-            aglMap->emplace("Eacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00C9 });
-            aglMap->emplace("Ebreve"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0114 });
-            aglMap->emplace("Ecaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x011A });
-            aglMap->emplace("Ecircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00CA });
-            aglMap->emplace("Edieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00CB });
-            aglMap->emplace("Edotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0116 });
-            aglMap->emplace("Egrave"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00C8 });
-            aglMap->emplace("Emacron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0112 });
-            aglMap->emplace("Eng"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x014A });
-            aglMap->emplace("Eogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0118 });
-            aglMap->emplace("Epsilon"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0395 });
-            aglMap->emplace("Epsilontonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0388 });
-            aglMap->emplace("Eta"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0397 });
-            aglMap->emplace("Etatonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0389 });
-            aglMap->emplace("Eth"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00D0 });
-            aglMap->emplace("Euro"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x20AC });
-            aglMap->emplace("F"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0046 });
-            aglMap->emplace("G"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0047 });
-            aglMap->emplace("Gamma"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0393 });
-            aglMap->emplace("Gbreve"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x011E });
-            aglMap->emplace("Gcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x01E6 });
-            aglMap->emplace("Gcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x011C });
-            aglMap->emplace("Gdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0120 });
-            aglMap->emplace("H"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0048 });
-            aglMap->emplace("H18533"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x25CF });
-            aglMap->emplace("H18543"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x25AA });
-            aglMap->emplace("H18551"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x25AB });
-            aglMap->emplace("H22073"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x25A1 });
-            aglMap->emplace("Hbar"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0126 });
-            aglMap->emplace("Hcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0124 });
-            aglMap->emplace("I"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0049 });
-            aglMap->emplace("IJ"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0132 });
-            aglMap->emplace("Iacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00CD });
-            aglMap->emplace("Ibreve"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x012C });
-            aglMap->emplace("Icircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00CE });
-            aglMap->emplace("Idieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00CF });
-            aglMap->emplace("Idotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0130 });
-            aglMap->emplace("Ifraktur"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2111 });
-            aglMap->emplace("Igrave"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00CC });
-            aglMap->emplace("Imacron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x012A });
-            aglMap->emplace("Iogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x012E });
-            aglMap->emplace("Iota"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0399 });
-            aglMap->emplace("Iotadieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03AA });
-            aglMap->emplace("Iotatonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x038A });
-            aglMap->emplace("Itilde"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0128 });
-            aglMap->emplace("J"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x004A });
-            aglMap->emplace("Jcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0134 });
-            aglMap->emplace("K"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x004B });
-            aglMap->emplace("Kappa"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x039A });
-            aglMap->emplace("L"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x004C });
-            aglMap->emplace("Lacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0139 });
-            aglMap->emplace("Lambda"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x039B });
-            aglMap->emplace("Lcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x013D });
-            aglMap->emplace("Ldot"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x013F });
-            aglMap->emplace("Lslash"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0141 });
-            aglMap->emplace("M"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x004D });
-            aglMap->emplace("Mu"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x039C });
-            aglMap->emplace("N"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x004E });
-            aglMap->emplace("Nacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0143 });
-            aglMap->emplace("Ncaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0147 });
-            aglMap->emplace("Ntilde"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00D1 });
-            aglMap->emplace("Nu"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x039D });
-            aglMap->emplace("O"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x004F });
-            aglMap->emplace("OE"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0152 });
-            aglMap->emplace("Oacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00D3 });
-            aglMap->emplace("Obreve"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x014E });
-            aglMap->emplace("Ocircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00D4 });
-            aglMap->emplace("Odieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00D6 });
-            aglMap->emplace("Ograve"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00D2 });
-            aglMap->emplace("Ohorn"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x01A0 });
-            aglMap->emplace("Ohungarumlaut"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0150 });
-            aglMap->emplace("Omacron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x014C });
-            aglMap->emplace("Omega"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2126 });
-            aglMap->emplace("Omegatonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x038F });
-            aglMap->emplace("Omicron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x039F });
-            aglMap->emplace("Omicrontonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x038C });
-            aglMap->emplace("Oslash"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00D8 });
-            aglMap->emplace("Oslashacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x01FE });
-            aglMap->emplace("Otilde"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00D5 });
-            aglMap->emplace("P"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0050 });
-            aglMap->emplace("Phi"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03A6 });
-            aglMap->emplace("Pi"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03A0 });
-            aglMap->emplace("Psi"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03A8 });
-            aglMap->emplace("Q"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0051 });
-            aglMap->emplace("R"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0052 });
-            aglMap->emplace("Racute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0154 });
-            aglMap->emplace("Rcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0158 });
-            aglMap->emplace("Rfraktur"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x211C });
-            aglMap->emplace("Rho"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03A1 });
-            aglMap->emplace("S"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0053 });
-            aglMap->emplace("SF010000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x250C });
-            aglMap->emplace("SF020000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2514 });
-            aglMap->emplace("SF030000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2510 });
-            aglMap->emplace("SF040000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2518 });
-            aglMap->emplace("SF050000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x253C });
-            aglMap->emplace("SF060000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x252C });
-            aglMap->emplace("SF070000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2534 });
-            aglMap->emplace("SF080000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x251C });
-            aglMap->emplace("SF090000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2524 });
-            aglMap->emplace("SF100000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2500 });
-            aglMap->emplace("SF110000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2502 });
-            aglMap->emplace("SF190000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2561 });
-            aglMap->emplace("SF200000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2562 });
-            aglMap->emplace("SF210000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2556 });
-            aglMap->emplace("SF220000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2555 });
-            aglMap->emplace("SF230000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2563 });
-            aglMap->emplace("SF240000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2551 });
-            aglMap->emplace("SF250000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2557 });
-            aglMap->emplace("SF260000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x255D });
-            aglMap->emplace("SF270000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x255C });
-            aglMap->emplace("SF280000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x255B });
-            aglMap->emplace("SF360000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x255E });
-            aglMap->emplace("SF370000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x255F });
-            aglMap->emplace("SF380000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x255A });
-            aglMap->emplace("SF390000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2554 });
-            aglMap->emplace("SF400000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2569 });
-            aglMap->emplace("SF410000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2566 });
-            aglMap->emplace("SF420000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2560 });
-            aglMap->emplace("SF430000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2550 });
-            aglMap->emplace("SF440000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x256C });
-            aglMap->emplace("SF450000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2567 });
-            aglMap->emplace("SF460000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2568 });
-            aglMap->emplace("SF470000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2564 });
-            aglMap->emplace("SF480000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2565 });
-            aglMap->emplace("SF490000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2559 });
-            aglMap->emplace("SF500000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2558 });
-            aglMap->emplace("SF510000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2552 });
-            aglMap->emplace("SF520000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2553 });
-            aglMap->emplace("SF530000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x256B });
-            aglMap->emplace("SF540000"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x256A });
-            aglMap->emplace("Sacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x015A });
-            aglMap->emplace("Scaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0160 });
-            aglMap->emplace("Scedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x015E });
-            aglMap->emplace("Scircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x015C });
-            aglMap->emplace("Sigma"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03A3 });
-            aglMap->emplace("T"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0054 });
-            aglMap->emplace("Tau"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03A4 });
-            aglMap->emplace("Tbar"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0166 });
-            aglMap->emplace("Tcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0164 });
-            aglMap->emplace("Theta"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0398 });
-            aglMap->emplace("Thorn"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00DE });
-            aglMap->emplace("U"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0055 });
-            aglMap->emplace("Uacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00DA });
-            aglMap->emplace("Ubreve"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x016C });
-            aglMap->emplace("Ucircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00DB });
-            aglMap->emplace("Udieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00DC });
-            aglMap->emplace("Ugrave"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00D9 });
-            aglMap->emplace("Uhorn"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x01AF });
-            aglMap->emplace("Uhungarumlaut"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0170 });
-            aglMap->emplace("Umacron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x016A });
-            aglMap->emplace("Uogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0172 });
-            aglMap->emplace("Upsilon"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03A5 });
-            aglMap->emplace("Upsilon1"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03D2 });
-            aglMap->emplace("Upsilondieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03AB });
-            aglMap->emplace("Upsilontonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x038E });
-            aglMap->emplace("Uring"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x016E });
-            aglMap->emplace("Utilde"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0168 });
-            aglMap->emplace("V"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0056 });
-            aglMap->emplace("W"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0057 });
-            aglMap->emplace("Wacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x1E82 });
-            aglMap->emplace("Wcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0174 });
-            aglMap->emplace("Wdieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x1E84 });
-            aglMap->emplace("Wgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x1E80 });
-            aglMap->emplace("X"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0058 });
-            aglMap->emplace("Xi"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x039E });
-            aglMap->emplace("Y"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0059 });
-            aglMap->emplace("Yacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00DD });
-            aglMap->emplace("Ycircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0176 });
-            aglMap->emplace("Ydieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0178 });
-            aglMap->emplace("Ygrave"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x1EF2 });
-            aglMap->emplace("Z"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x005A });
-            aglMap->emplace("Zacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0179 });
-            aglMap->emplace("Zcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x017D });
-            aglMap->emplace("Zdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x017B });
-            aglMap->emplace("Zeta"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0396 });
-            aglMap->emplace("a"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0061 });
-            aglMap->emplace("aacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00E1 });
-            aglMap->emplace("abreve"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0103 });
-            aglMap->emplace("acircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00E2 });
-            aglMap->emplace("acute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00B4 });
-            aglMap->emplace("acutecomb"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0301 });
-            aglMap->emplace("adieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00E4 });
-            aglMap->emplace("ae"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00E6 });
-            aglMap->emplace("aeacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x01FD });
-            aglMap->emplace("agrave"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00E0 });
-            aglMap->emplace("aleph"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2135 });
-            aglMap->emplace("alpha"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03B1 });
-            aglMap->emplace("alphatonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03AC });
-            aglMap->emplace("amacron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0101 });
-            aglMap->emplace("ampersand"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0026 });
-            aglMap->emplace("angle"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2220 });
-            aglMap->emplace("angleleft"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2329 });
-            aglMap->emplace("angleright"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x232A });
-            aglMap->emplace("anoteleia"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0387 });
-            aglMap->emplace("aogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0105 });
-            aglMap->emplace("approxequal"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2248 });
-            aglMap->emplace("aring"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00E5 });
-            aglMap->emplace("aringacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x01FB });
-            aglMap->emplace("arrowboth"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2194 });
-            aglMap->emplace("arrowdblboth"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x21D4 });
-            aglMap->emplace("arrowdbldown"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x21D3 });
-            aglMap->emplace("arrowdblleft"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x21D0 });
-            aglMap->emplace("arrowdblright"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x21D2 });
-            aglMap->emplace("arrowdblup"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x21D1 });
-            aglMap->emplace("arrowdown"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2193 });
-            aglMap->emplace("arrowleft"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2190 });
-            aglMap->emplace("arrowright"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2192 });
-            aglMap->emplace("arrowup"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2191 });
-            aglMap->emplace("arrowupdn"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2195 });
-            aglMap->emplace("arrowupdnbse"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x21A8 });
-            aglMap->emplace("asciicircum"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x005E });
-            aglMap->emplace("asciitilde"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x007E });
-            aglMap->emplace("asterisk"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x002A });
-            aglMap->emplace("asteriskmath"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2217 });
-            aglMap->emplace("at"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0040 });
-            aglMap->emplace("atilde"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00E3 });
-            aglMap->emplace("b"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0062 });
-            aglMap->emplace("backslash"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x005C });
-            aglMap->emplace("bar"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x007C });
-            aglMap->emplace("beta"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03B2 });
-            aglMap->emplace("block"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2588 });
-            aglMap->emplace("braceleft"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x007B });
-            aglMap->emplace("braceright"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x007D });
-            aglMap->emplace("bracketleft"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x005B });
-            aglMap->emplace("bracketright"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x005D });
-            aglMap->emplace("breve"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x02D8 });
-            aglMap->emplace("brokenbar"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00A6 });
-            aglMap->emplace("bullet"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2022 });
-            aglMap->emplace("c"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0063 });
-            aglMap->emplace("cacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0107 });
-            aglMap->emplace("caron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x02C7 });
-            aglMap->emplace("carriagereturn"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x21B5 });
-            aglMap->emplace("ccaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x010D });
-            aglMap->emplace("ccedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00E7 });
-            aglMap->emplace("ccircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0109 });
-            aglMap->emplace("cdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x010B });
-            aglMap->emplace("cedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00B8 });
-            aglMap->emplace("cent"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00A2 });
-            aglMap->emplace("chi"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03C7 });
-            aglMap->emplace("circle"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x25CB });
-            aglMap->emplace("circlemultiply"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2297 });
-            aglMap->emplace("circleplus"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2295 });
-            aglMap->emplace("circumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x02C6 });
-            aglMap->emplace("club"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2663 });
-            aglMap->emplace("colon"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x003A });
-            aglMap->emplace("colonmonetary"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x20A1 });
-            aglMap->emplace("comma"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x002C });
-            aglMap->emplace("congruent"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2245 });
-            aglMap->emplace("copyright"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00A9 });
-            aglMap->emplace("currency"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00A4 });
-            aglMap->emplace("d"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0064 });
-            aglMap->emplace("dagger"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2020 });
-            aglMap->emplace("daggerdbl"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2021 });
-            aglMap->emplace("dcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x010F });
-            aglMap->emplace("dcroat"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0111 });
-            aglMap->emplace("degree"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00B0 });
-            aglMap->emplace("delta"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03B4 });
-            aglMap->emplace("diamond"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2666 });
-            aglMap->emplace("dieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00A8 });
-            aglMap->emplace("dieresistonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0385 });
-            aglMap->emplace("divide"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00F7 });
-            aglMap->emplace("dkshade"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2593 });
-            aglMap->emplace("dnblock"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2584 });
-            aglMap->emplace("dollar"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0024 });
-            aglMap->emplace("dong"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x20AB });
-            aglMap->emplace("dotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x02D9 });
-            aglMap->emplace("dotbelowcomb"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0323 });
-            aglMap->emplace("dotlessi"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0131 });
-            aglMap->emplace("dotmath"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x22C5 });
-            aglMap->emplace("e"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0065 });
-            aglMap->emplace("eacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00E9 });
-            aglMap->emplace("ebreve"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0115 });
-            aglMap->emplace("ecaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x011B });
-            aglMap->emplace("ecircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00EA });
-            aglMap->emplace("edieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00EB });
-            aglMap->emplace("edotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0117 });
-            aglMap->emplace("egrave"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00E8 });
-            aglMap->emplace("eight"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0038 });
-            aglMap->emplace("element"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2208 });
-            aglMap->emplace("ellipsis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2026 });
-            aglMap->emplace("emacron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0113 });
-            aglMap->emplace("emdash"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2014 });
-            aglMap->emplace("emptyset"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2205 });
-            aglMap->emplace("endash"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2013 });
-            aglMap->emplace("eng"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x014B });
-            aglMap->emplace("eogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0119 });
-            aglMap->emplace("epsilon"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03B5 });
-            aglMap->emplace("epsilontonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03AD });
-            aglMap->emplace("equal"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x003D });
-            aglMap->emplace("equivalence"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2261 });
-            aglMap->emplace("estimated"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x212E });
-            aglMap->emplace("eta"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03B7 });
-            aglMap->emplace("etatonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03AE });
-            aglMap->emplace("eth"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00F0 });
-            aglMap->emplace("exclam"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0021 });
-            aglMap->emplace("exclamdbl"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x203C });
-            aglMap->emplace("exclamdown"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00A1 });
-            aglMap->emplace("existential"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2203 });
-            aglMap->emplace("f"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0066 });
-            aglMap->emplace("female"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2640 });
-            aglMap->emplace("figuredash"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2012 });
-            aglMap->emplace("filledbox"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x25A0 });
-            aglMap->emplace("filledrect"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x25AC });
-            aglMap->emplace("five"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0035 });
-            aglMap->emplace("fiveeighths"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x215D });
-            aglMap->emplace("florin"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0192 });
-            aglMap->emplace("four"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0034 });
-            aglMap->emplace("fraction"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2044 });
-            aglMap->emplace("franc"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x20A3 });
-            aglMap->emplace("g"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0067 });
-            aglMap->emplace("gamma"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03B3 });
-            aglMap->emplace("gbreve"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x011F });
-            aglMap->emplace("gcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x01E7 });
-            aglMap->emplace("gcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x011D });
-            aglMap->emplace("gdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0121 });
-            aglMap->emplace("germandbls"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00DF });
-            aglMap->emplace("gradient"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2207 });
-            aglMap->emplace("grave"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0060 });
-            aglMap->emplace("gravecomb"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0300 });
-            aglMap->emplace("greater"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x003E });
-            aglMap->emplace("greaterequal"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2265 });
-            aglMap->emplace("guillemotleft"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00AB });
-            aglMap->emplace("guillemotright"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00BB });
-            aglMap->emplace("guilsinglleft"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2039 });
-            aglMap->emplace("guilsinglright"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x203A });
-            aglMap->emplace("h"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0068 });
-            aglMap->emplace("hbar"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0127 });
-            aglMap->emplace("hcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0125 });
-            aglMap->emplace("heart"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2665 });
-            aglMap->emplace("hookabovecomb"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0309 });
-            aglMap->emplace("house"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2302 });
-            aglMap->emplace("hungarumlaut"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x02DD });
-            aglMap->emplace("hyphen"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x002D });
-            aglMap->emplace("i"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0069 });
-            aglMap->emplace("iacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00ED });
-            aglMap->emplace("ibreve"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x012D });
-            aglMap->emplace("icircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00EE });
-            aglMap->emplace("idieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00EF });
-            aglMap->emplace("igrave"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00EC });
-            aglMap->emplace("ij"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0133 });
-            aglMap->emplace("imacron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x012B });
-            aglMap->emplace("infinity"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x221E });
-            aglMap->emplace("integral"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x222B });
-            aglMap->emplace("integralbt"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2321 });
-            aglMap->emplace("integraltp"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2320 });
-            aglMap->emplace("intersection"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2229 });
-            aglMap->emplace("invbullet"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x25D8 });
-            aglMap->emplace("invcircle"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x25D9 });
-            aglMap->emplace("invsmileface"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x263B });
-            aglMap->emplace("iogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x012F });
-            aglMap->emplace("iota"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03B9 });
-            aglMap->emplace("iotadieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03CA });
-            aglMap->emplace("iotadieresistonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0390 });
-            aglMap->emplace("iotatonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03AF });
-            aglMap->emplace("itilde"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0129 });
-            aglMap->emplace("j"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x006A });
-            aglMap->emplace("jcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0135 });
-            aglMap->emplace("k"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x006B });
-            aglMap->emplace("kappa"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03BA });
-            aglMap->emplace("kgreenlandic"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0138 });
-            aglMap->emplace("l"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x006C });
-            aglMap->emplace("lacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x013A });
-            aglMap->emplace("lambda"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03BB });
-            aglMap->emplace("lcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x013E });
-            aglMap->emplace("ldot"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0140 });
-            aglMap->emplace("less"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x003C });
-            aglMap->emplace("lessequal"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2264 });
-            aglMap->emplace("lfblock"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x258C });
-            aglMap->emplace("lira"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x20A4 });
-            aglMap->emplace("logicaland"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2227 });
-            aglMap->emplace("logicalnot"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00AC });
-            aglMap->emplace("logicalor"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2228 });
-            aglMap->emplace("longs"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x017F });
-            aglMap->emplace("lozenge"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x25CA });
-            aglMap->emplace("lslash"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0142 });
-            aglMap->emplace("ltshade"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2591 });
-            aglMap->emplace("m"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x006D });
-            aglMap->emplace("macron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00AF });
-            aglMap->emplace("male"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2642 });
-            aglMap->emplace("minus"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2212 });
-            aglMap->emplace("minute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2032 });
-            aglMap->emplace("mu"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00B5 });
-            aglMap->emplace("multiply"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00D7 });
-            aglMap->emplace("musicalnote"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x266A });
-            aglMap->emplace("musicalnotedbl"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x266B });
-            aglMap->emplace("n"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x006E });
-            aglMap->emplace("nacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0144 });
-            aglMap->emplace("napostrophe"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0149 });
-            aglMap->emplace("ncaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0148 });
-            aglMap->emplace("nine"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0039 });
-            aglMap->emplace("notelement"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2209 });
-            aglMap->emplace("notequal"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2260 });
-            aglMap->emplace("notsubset"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2284 });
-            aglMap->emplace("ntilde"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00F1 });
-            aglMap->emplace("nu"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03BD });
-            aglMap->emplace("numbersign"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0023 });
-            aglMap->emplace("o"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x006F });
-            aglMap->emplace("oacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00F3 });
-            aglMap->emplace("obreve"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x014F });
-            aglMap->emplace("ocircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00F4 });
-            aglMap->emplace("odieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00F6 });
-            aglMap->emplace("oe"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0153 });
-            aglMap->emplace("ogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x02DB });
-            aglMap->emplace("ograve"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00F2 });
-            aglMap->emplace("ohorn"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x01A1 });
-            aglMap->emplace("ohungarumlaut"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0151 });
-            aglMap->emplace("omacron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x014D });
-            aglMap->emplace("omega"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03C9 });
-            aglMap->emplace("omega1"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03D6 });
-            aglMap->emplace("omegatonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03CE });
-            aglMap->emplace("omicron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03BF });
-            aglMap->emplace("omicrontonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03CC });
-            aglMap->emplace("one"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0031 });
-            aglMap->emplace("onedotenleader"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2024 });
-            aglMap->emplace("oneeighth"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x215B });
-            aglMap->emplace("onehalf"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00BD });
-            aglMap->emplace("onequarter"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00BC });
-            aglMap->emplace("onethird"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2153 });
-            aglMap->emplace("openbullet"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x25E6 });
-            aglMap->emplace("ordfeminine"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00AA });
-            aglMap->emplace("ordmasculine"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00BA });
-            aglMap->emplace("orthogonal"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x221F });
-            aglMap->emplace("oslash"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00F8 });
-            aglMap->emplace("oslashacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x01FF });
-            aglMap->emplace("otilde"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00F5 });
-            aglMap->emplace("p"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0070 });
-            aglMap->emplace("paragraph"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00B6 });
-            aglMap->emplace("parenleft"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0028 });
-            aglMap->emplace("parenright"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0029 });
-            aglMap->emplace("partialdiff"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2202 });
-            aglMap->emplace("percent"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0025 });
-            aglMap->emplace("period"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x002E });
-            aglMap->emplace("periodcentered"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00B7 });
-            aglMap->emplace("perpendicular"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x22A5 });
-            aglMap->emplace("perthousand"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2030 });
-            aglMap->emplace("peseta"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x20A7 });
-            aglMap->emplace("phi"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03C6 });
-            aglMap->emplace("phi1"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03D5 });
-            aglMap->emplace("pi"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03C0 });
-            aglMap->emplace("plus"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x002B });
-            aglMap->emplace("plusminus"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00B1 });
-            aglMap->emplace("prescription"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x211E });
-            aglMap->emplace("product"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x220F });
-            aglMap->emplace("propersubset"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2282 });
-            aglMap->emplace("propersuperset"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2283 });
-            aglMap->emplace("proportional"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x221D });
-            aglMap->emplace("psi"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03C8 });
-            aglMap->emplace("q"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0071 });
-            aglMap->emplace("question"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x003F });
-            aglMap->emplace("questiondown"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00BF });
-            aglMap->emplace("quotedbl"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0022 });
-            aglMap->emplace("quotedblbase"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x201E });
-            aglMap->emplace("quotedblleft"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x201C });
-            aglMap->emplace("quotedblright"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x201D });
-            aglMap->emplace("quoteleft"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2018 });
-            aglMap->emplace("quotereversed"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x201B });
-            aglMap->emplace("quoteright"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2019 });
-            aglMap->emplace("quotesinglbase"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x201A });
-            aglMap->emplace("quotesingle"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0027 });
-            aglMap->emplace("r"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0072 });
-            aglMap->emplace("racute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0155 });
-            aglMap->emplace("radical"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x221A });
-            aglMap->emplace("rcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0159 });
-            aglMap->emplace("reflexsubset"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2286 });
-            aglMap->emplace("reflexsuperset"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2287 });
-            aglMap->emplace("registered"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00AE });
-            aglMap->emplace("revlogicalnot"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2310 });
-            aglMap->emplace("rho"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03C1 });
-            aglMap->emplace("ring"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x02DA });
-            aglMap->emplace("rtblock"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2590 });
-            aglMap->emplace("s"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0073 });
-            aglMap->emplace("sacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x015B });
-            aglMap->emplace("scaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0161 });
-            aglMap->emplace("scedilla"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x015F });
-            aglMap->emplace("scircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x015D });
-            aglMap->emplace("second"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2033 });
-            aglMap->emplace("section"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00A7 });
-            aglMap->emplace("semicolon"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x003B });
-            aglMap->emplace("seven"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0037 });
-            aglMap->emplace("seveneighths"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x215E });
-            aglMap->emplace("shade"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2592 });
-            aglMap->emplace("sigma"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03C3 });
-            aglMap->emplace("sigma1"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03C2 });
-            aglMap->emplace("similar"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x223C });
-            aglMap->emplace("six"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0036 });
-            aglMap->emplace("slash"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x002F });
-            aglMap->emplace("smileface"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x263A });
-            aglMap->emplace("space"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0020 });
-            aglMap->emplace("spade"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2660 });
-            aglMap->emplace("sterling"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00A3 });
-            aglMap->emplace("suchthat"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x220B });
-            aglMap->emplace("summation"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2211 });
-            aglMap->emplace("sun"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x263C });
-            aglMap->emplace("t"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0074 });
-            aglMap->emplace("tau"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03C4 });
-            aglMap->emplace("tbar"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0167 });
-            aglMap->emplace("tcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0165 });
-            aglMap->emplace("therefore"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2234 });
-            aglMap->emplace("theta"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03B8 });
-            aglMap->emplace("theta1"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03D1 });
-            aglMap->emplace("thorn"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00FE });
-            aglMap->emplace("three"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0033 });
-            aglMap->emplace("threeeighths"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x215C });
-            aglMap->emplace("threequarters"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00BE });
-            aglMap->emplace("tilde"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x02DC });
-            aglMap->emplace("tildecomb"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0303 });
-            aglMap->emplace("tonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0384 });
-            aglMap->emplace("trademark"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2122 });
-            aglMap->emplace("triagdn"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x25BC });
-            aglMap->emplace("triaglf"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x25C4 });
-            aglMap->emplace("triagrt"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x25BA });
-            aglMap->emplace("triagup"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x25B2 });
-            aglMap->emplace("two"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0032 });
-            aglMap->emplace("twodotenleader"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2025 });
-            aglMap->emplace("twothirds"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2154 });
-            aglMap->emplace("u"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0075 });
-            aglMap->emplace("uacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00FA });
-            aglMap->emplace("ubreve"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x016D });
-            aglMap->emplace("ucircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00FB });
-            aglMap->emplace("udieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00FC });
-            aglMap->emplace("ugrave"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00F9 });
-            aglMap->emplace("uhorn"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x01B0 });
-            aglMap->emplace("uhungarumlaut"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0171 });
-            aglMap->emplace("umacron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x016B });
-            aglMap->emplace("underscore"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x005F });
-            aglMap->emplace("underscoredbl"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2017 });
-            aglMap->emplace("union"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x222A });
-            aglMap->emplace("universal"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2200 });
-            aglMap->emplace("uogonek"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0173 });
-            aglMap->emplace("upblock"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2580 });
-            aglMap->emplace("upsilon"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03C5 });
-            aglMap->emplace("upsilondieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03CB });
-            aglMap->emplace("upsilondieresistonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03B0 });
-            aglMap->emplace("upsilontonos"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03CD });
-            aglMap->emplace("uring"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x016F });
-            aglMap->emplace("utilde"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0169 });
-            aglMap->emplace("v"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0076 });
-            aglMap->emplace("w"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0077 });
-            aglMap->emplace("wacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x1E83 });
-            aglMap->emplace("wcircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0175 });
-            aglMap->emplace("wdieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x1E85 });
-            aglMap->emplace("weierstrass"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x2118 });
-            aglMap->emplace("wgrave"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x1E81 });
-            aglMap->emplace("x"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0078 });
-            aglMap->emplace("xi"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03BE });
-            aglMap->emplace("y"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0079 });
-            aglMap->emplace("yacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00FD });
-            aglMap->emplace("ycircumflex"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0177 });
-            aglMap->emplace("ydieresis"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00FF });
-            aglMap->emplace("yen"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x00A5 });
-            aglMap->emplace("ygrave"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x1EF3 });
-            aglMap->emplace("z"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x007A });
-            aglMap->emplace("zacute"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x017A });
-            aglMap->emplace("zcaron"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x017E });
-            aglMap->emplace("zdotaccent"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x017C });
-            aglMap->emplace("zero"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x0030 });
-            aglMap->emplace("zeta"_n, AGLMapping{ AGLMapType::AdobeGlyphListNewFonts, 1, 0x03B6 });
-            aglMap->emplace("a100"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x275E });
-            aglMap->emplace("a101"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2761 });
-            aglMap->emplace("a102"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2762 });
-            aglMap->emplace("a103"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2763 });
-            aglMap->emplace("a104"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2764 });
-            aglMap->emplace("a105"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2710 });
-            aglMap->emplace("a106"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2765 });
-            aglMap->emplace("a107"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2766 });
-            aglMap->emplace("a108"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2767 });
-            aglMap->emplace("a109"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2660 });
-            aglMap->emplace("a10"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2721 });
-            aglMap->emplace("a110"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2665 });
-            aglMap->emplace("a111"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2666 });
-            aglMap->emplace("a112"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2663 });
-            aglMap->emplace("a117"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2709 });
-            aglMap->emplace("a118"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2708 });
-            aglMap->emplace("a119"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2707 });
-            aglMap->emplace("a11"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x261B });
-            aglMap->emplace("a120"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2460 });
-            aglMap->emplace("a121"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2461 });
-            aglMap->emplace("a122"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2462 });
-            aglMap->emplace("a123"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2463 });
-            aglMap->emplace("a124"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2464 });
-            aglMap->emplace("a125"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2465 });
-            aglMap->emplace("a126"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2466 });
-            aglMap->emplace("a127"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2467 });
-            aglMap->emplace("a128"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2468 });
-            aglMap->emplace("a129"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2469 });
-            aglMap->emplace("a12"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x261E });
-            aglMap->emplace("a130"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2776 });
-            aglMap->emplace("a131"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2777 });
-            aglMap->emplace("a132"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2778 });
-            aglMap->emplace("a133"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2779 });
-            aglMap->emplace("a134"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x277A });
-            aglMap->emplace("a135"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x277B });
-            aglMap->emplace("a136"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x277C });
-            aglMap->emplace("a137"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x277D });
-            aglMap->emplace("a138"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x277E });
-            aglMap->emplace("a139"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x277F });
-            aglMap->emplace("a13"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x270C });
-            aglMap->emplace("a140"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2780 });
-            aglMap->emplace("a141"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2781 });
-            aglMap->emplace("a142"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2782 });
-            aglMap->emplace("a143"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2783 });
-            aglMap->emplace("a144"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2784 });
-            aglMap->emplace("a145"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2785 });
-            aglMap->emplace("a146"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2786 });
-            aglMap->emplace("a147"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2787 });
-            aglMap->emplace("a148"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2788 });
-            aglMap->emplace("a149"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2789 });
-            aglMap->emplace("a14"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x270D });
-            aglMap->emplace("a150"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x278A });
-            aglMap->emplace("a151"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x278B });
-            aglMap->emplace("a152"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x278C });
-            aglMap->emplace("a153"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x278D });
-            aglMap->emplace("a154"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x278E });
-            aglMap->emplace("a155"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x278F });
-            aglMap->emplace("a156"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2790 });
-            aglMap->emplace("a157"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2791 });
-            aglMap->emplace("a158"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2792 });
-            aglMap->emplace("a159"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2793 });
-            aglMap->emplace("a15"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x270E });
-            aglMap->emplace("a160"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2794 });
-            aglMap->emplace("a161"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2192 });
-            aglMap->emplace("a162"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27A3 });
-            aglMap->emplace("a163"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2194 });
-            aglMap->emplace("a164"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2195 });
-            aglMap->emplace("a165"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2799 });
-            aglMap->emplace("a166"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x279B });
-            aglMap->emplace("a167"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x279C });
-            aglMap->emplace("a168"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x279D });
-            aglMap->emplace("a169"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x279E });
-            aglMap->emplace("a16"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x270F });
-            aglMap->emplace("a170"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x279F });
-            aglMap->emplace("a171"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27A0 });
-            aglMap->emplace("a172"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27A1 });
-            aglMap->emplace("a173"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27A2 });
-            aglMap->emplace("a174"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27A4 });
-            aglMap->emplace("a175"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27A5 });
-            aglMap->emplace("a176"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27A6 });
-            aglMap->emplace("a177"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27A7 });
-            aglMap->emplace("a178"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27A8 });
-            aglMap->emplace("a179"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27A9 });
-            aglMap->emplace("a17"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2711 });
-            aglMap->emplace("a180"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27AB });
-            aglMap->emplace("a181"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27AD });
-            aglMap->emplace("a182"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27AF });
-            aglMap->emplace("a183"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27B2 });
-            aglMap->emplace("a184"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27B3 });
-            aglMap->emplace("a185"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27B5 });
-            aglMap->emplace("a186"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27B8 });
-            aglMap->emplace("a187"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27BA });
-            aglMap->emplace("a188"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27BB });
-            aglMap->emplace("a189"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27BC });
-            aglMap->emplace("a18"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2712 });
-            aglMap->emplace("a190"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27BD });
-            aglMap->emplace("a191"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27BE });
-            aglMap->emplace("a192"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x279A });
-            aglMap->emplace("a193"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27AA });
-            aglMap->emplace("a194"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27B6 });
-            aglMap->emplace("a195"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27B9 });
-            aglMap->emplace("a196"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2798 });
-            aglMap->emplace("a197"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27B4 });
-            aglMap->emplace("a198"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27B7 });
-            aglMap->emplace("a199"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27AC });
-            aglMap->emplace("a19"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2713 });
-            aglMap->emplace("a1"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2701 });
-            aglMap->emplace("a200"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27AE });
-            aglMap->emplace("a201"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x27B1 });
-            aglMap->emplace("a202"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2703 });
-            aglMap->emplace("a203"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2750 });
-            aglMap->emplace("a204"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2752 });
-            aglMap->emplace("a205"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x276E });
-            aglMap->emplace("a206"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2770 });
-            aglMap->emplace("a20"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2714 });
-            aglMap->emplace("a21"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2715 });
-            aglMap->emplace("a22"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2716 });
-            aglMap->emplace("a23"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2717 });
-            aglMap->emplace("a24"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2718 });
-            aglMap->emplace("a25"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2719 });
-            aglMap->emplace("a26"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x271A });
-            aglMap->emplace("a27"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x271B });
-            aglMap->emplace("a28"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x271C });
-            aglMap->emplace("a29"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2722 });
-            aglMap->emplace("a2"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2702 });
-            aglMap->emplace("a30"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2723 });
-            aglMap->emplace("a31"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2724 });
-            aglMap->emplace("a32"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2725 });
-            aglMap->emplace("a33"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2726 });
-            aglMap->emplace("a34"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2727 });
-            aglMap->emplace("a35"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2605 });
-            aglMap->emplace("a36"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2729 });
-            aglMap->emplace("a37"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x272A });
-            aglMap->emplace("a38"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x272B });
-            aglMap->emplace("a39"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x272C });
-            aglMap->emplace("a3"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2704 });
-            aglMap->emplace("a40"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x272D });
-            aglMap->emplace("a41"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x272E });
-            aglMap->emplace("a42"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x272F });
-            aglMap->emplace("a43"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2730 });
-            aglMap->emplace("a44"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2731 });
-            aglMap->emplace("a45"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2732 });
-            aglMap->emplace("a46"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2733 });
-            aglMap->emplace("a47"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2734 });
-            aglMap->emplace("a48"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2735 });
-            aglMap->emplace("a49"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2736 });
-            aglMap->emplace("a4"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x260E });
-            aglMap->emplace("a50"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2737 });
-            aglMap->emplace("a51"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2738 });
-            aglMap->emplace("a52"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2739 });
-            aglMap->emplace("a53"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x273A });
-            aglMap->emplace("a54"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x273B });
-            aglMap->emplace("a55"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x273C });
-            aglMap->emplace("a56"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x273D });
-            aglMap->emplace("a57"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x273E });
-            aglMap->emplace("a58"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x273F });
-            aglMap->emplace("a59"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2740 });
-            aglMap->emplace("a5"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2706 });
-            aglMap->emplace("a60"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2741 });
-            aglMap->emplace("a61"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2742 });
-            aglMap->emplace("a62"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2743 });
-            aglMap->emplace("a63"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2744 });
-            aglMap->emplace("a64"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2745 });
-            aglMap->emplace("a65"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2746 });
-            aglMap->emplace("a66"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2747 });
-            aglMap->emplace("a67"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2748 });
-            aglMap->emplace("a68"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2749 });
-            aglMap->emplace("a69"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x274A });
-            aglMap->emplace("a6"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x271D });
-            aglMap->emplace("a70"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x274B });
-            aglMap->emplace("a71"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x25CF });
-            aglMap->emplace("a72"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x274D });
-            aglMap->emplace("a73"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x25A0 });
-            aglMap->emplace("a74"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x274F });
-            aglMap->emplace("a75"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2751 });
-            aglMap->emplace("a76"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x25B2 });
-            aglMap->emplace("a77"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x25BC });
-            aglMap->emplace("a78"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x25C6 });
-            aglMap->emplace("a79"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2756 });
-            aglMap->emplace("a7"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x271E });
-            aglMap->emplace("a81"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x25D7 });
-            aglMap->emplace("a82"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2758 });
-            aglMap->emplace("a83"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2759 });
-            aglMap->emplace("a84"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x275A });
-            aglMap->emplace("a85"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x276F });
-            aglMap->emplace("a86"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2771 });
-            aglMap->emplace("a87"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2772 });
-            aglMap->emplace("a88"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2773 });
-            aglMap->emplace("a89"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2768 });
-            aglMap->emplace("a8"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x271F });
-            aglMap->emplace("a90"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2769 });
-            aglMap->emplace("a91"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x276C });
-            aglMap->emplace("a92"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x276D });
-            aglMap->emplace("a93"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x276A });
-            aglMap->emplace("a94"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x276B });
-            aglMap->emplace("a95"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2774 });
-            aglMap->emplace("a96"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2775 });
-            aglMap->emplace("a97"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x275B });
-            aglMap->emplace("a98"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x275C });
-            aglMap->emplace("a99"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x275D });
-            aglMap->emplace("a9"_n, AGLMapping{ AGLMapType::ZapfDingbatsGlyphList, 1, 0x2720 });
 
-            unique_ptr<vector<AGLLigatureInfo>> ligatures(new vector<AGLLigatureInfo>());
-            ligatures->emplace_back(aglMap->find("dalethatafpatah")->first, initializer_list<codepoint> { 0x05D3, 0x05B2 });
-            ligatures->emplace_back(aglMap->find("dalethatafpatahhebrew")->first, initializer_list<codepoint> { 0x05D3, 0x05B2 });
-            ligatures->emplace_back(aglMap->find("dalethatafsegol")->first, initializer_list<codepoint> { 0x05D3, 0x05B1 });
-            ligatures->emplace_back(aglMap->find("dalethatafsegolhebrew")->first, initializer_list<codepoint> { 0x05D3, 0x05B1 });
-            ligatures->emplace_back(aglMap->find("dalethiriq")->first, initializer_list<codepoint> { 0x05D3, 0x05B4 });
-            ligatures->emplace_back(aglMap->find("dalethiriqhebrew")->first, initializer_list<codepoint> { 0x05D3, 0x05B4 });
-            ligatures->emplace_back(aglMap->find("daletholam")->first, initializer_list<codepoint> { 0x05D3, 0x05B9 });
-            ligatures->emplace_back(aglMap->find("daletholamhebrew")->first, initializer_list<codepoint> { 0x05D3, 0x05B9 });
-            ligatures->emplace_back(aglMap->find("daletpatah")->first, initializer_list<codepoint> { 0x05D3, 0x05B7 });
-            ligatures->emplace_back(aglMap->find("daletpatahhebrew")->first, initializer_list<codepoint> { 0x05D3, 0x05B7 });
-            ligatures->emplace_back(aglMap->find("daletqamats")->first, initializer_list<codepoint> { 0x05D3, 0x05B8 });
-            ligatures->emplace_back(aglMap->find("daletqamatshebrew")->first, initializer_list<codepoint> { 0x05D3, 0x05B8 });
-            ligatures->emplace_back(aglMap->find("daletqubuts")->first, initializer_list<codepoint> { 0x05D3, 0x05BB });
-            ligatures->emplace_back(aglMap->find("daletqubutshebrew")->first, initializer_list<codepoint> { 0x05D3, 0x05BB });
-            ligatures->emplace_back(aglMap->find("daletsegol")->first, initializer_list<codepoint> { 0x05D3, 0x05B6 });
-            ligatures->emplace_back(aglMap->find("daletsegolhebrew")->first, initializer_list<codepoint> { 0x05D3, 0x05B6 });
-            ligatures->emplace_back(aglMap->find("daletsheva")->first, initializer_list<codepoint> { 0x05D3, 0x05B0 });
-            ligatures->emplace_back(aglMap->find("daletshevahebrew")->first, initializer_list<codepoint> { 0x05D3, 0x05B0 });
-            ligatures->emplace_back(aglMap->find("dalettsere")->first, initializer_list<codepoint> { 0x05D3, 0x05B5 });
-            ligatures->emplace_back(aglMap->find("dalettserehebrew")->first, initializer_list<codepoint> { 0x05D3, 0x05B5 });
-            ligatures->emplace_back(aglMap->find("finalkafqamats")->first, initializer_list<codepoint> { 0x05DA, 0x05B8 });
-            ligatures->emplace_back(aglMap->find("finalkafqamatshebrew")->first, initializer_list<codepoint> { 0x05DA, 0x05B8 });
-            ligatures->emplace_back(aglMap->find("finalkafsheva")->first, initializer_list<codepoint> { 0x05DA, 0x05B0 });
-            ligatures->emplace_back(aglMap->find("finalkafshevahebrew")->first, initializer_list<codepoint> { 0x05DA, 0x05B0 });
-            ligatures->emplace_back(aglMap->find("hamzadammaarabic")->first, initializer_list<codepoint> { 0x0621, 0x064F });
-            ligatures->emplace_back(aglMap->find("hamzadammatanarabic")->first, initializer_list<codepoint> { 0x0621, 0x064C });
-            ligatures->emplace_back(aglMap->find("hamzafathaarabic")->first, initializer_list<codepoint> { 0x0621, 0x064E });
-            ligatures->emplace_back(aglMap->find("hamzafathatanarabic")->first, initializer_list<codepoint> { 0x0621, 0x064B });
-            ligatures->emplace_back(aglMap->find("hamzalowkasraarabic")->first, initializer_list<codepoint> { 0x0621, 0x0650 });
-            ligatures->emplace_back(aglMap->find("hamzalowkasratanarabic")->first, initializer_list<codepoint> { 0x0621, 0x064D });
-            ligatures->emplace_back(aglMap->find("hamzasukunarabic")->first, initializer_list<codepoint> { 0x0621, 0x0652 });
-            ligatures->emplace_back(aglMap->find("lamedholam")->first, initializer_list<codepoint> { 0x05DC, 0x05B9 });
-            ligatures->emplace_back(aglMap->find("lamedholamdagesh")->first, initializer_list<codepoint> { 0x05DC, 0x05B9, 0x05BC });
-            ligatures->emplace_back(aglMap->find("lamedholamdageshhebrew")->first, initializer_list<codepoint> { 0x05DC, 0x05B9, 0x05BC });
-            ligatures->emplace_back(aglMap->find("lamedholamhebrew")->first, initializer_list<codepoint> { 0x05DC, 0x05B9 });
-            ligatures->emplace_back(aglMap->find("lammeemjeeminitialarabic")->first, initializer_list<codepoint> { 0xFEDF, 0xFEE4, 0xFEA0 });
-            ligatures->emplace_back(aglMap->find("lammeemkhahinitialarabic")->first, initializer_list<codepoint> { 0xFEDF, 0xFEE4, 0xFEA8 });
-            ligatures->emplace_back(aglMap->find("noonhehinitialarabic")->first, initializer_list<codepoint> { 0xFEE7, 0xFEEC });
-            ligatures->emplace_back(aglMap->find("qofhatafpatah")->first, initializer_list<codepoint> { 0x05E7, 0x05B2 });
-            ligatures->emplace_back(aglMap->find("qofhatafpatahhebrew")->first, initializer_list<codepoint> { 0x05E7, 0x05B2 });
-            ligatures->emplace_back(aglMap->find("qofhatafsegol")->first, initializer_list<codepoint> { 0x05E7, 0x05B1 });
-            ligatures->emplace_back(aglMap->find("qofhatafsegolhebrew")->first, initializer_list<codepoint> { 0x05E7, 0x05B1 });
-            ligatures->emplace_back(aglMap->find("qofhiriq")->first, initializer_list<codepoint> { 0x05E7, 0x05B4 });
-            ligatures->emplace_back(aglMap->find("qofhiriqhebrew")->first, initializer_list<codepoint> { 0x05E7, 0x05B4 });
-            ligatures->emplace_back(aglMap->find("qofholam")->first, initializer_list<codepoint> { 0x05E7, 0x05B9 });
-            ligatures->emplace_back(aglMap->find("qofholamhebrew")->first, initializer_list<codepoint> { 0x05E7, 0x05B9 });
-            ligatures->emplace_back(aglMap->find("qofpatah")->first, initializer_list<codepoint> { 0x05E7, 0x05B7 });
-            ligatures->emplace_back(aglMap->find("qofpatahhebrew")->first, initializer_list<codepoint> { 0x05E7, 0x05B7 });
-            ligatures->emplace_back(aglMap->find("qofqamats")->first, initializer_list<codepoint> { 0x05E7, 0x05B8 });
-            ligatures->emplace_back(aglMap->find("qofqamatshebrew")->first, initializer_list<codepoint> { 0x05E7, 0x05B8 });
-            ligatures->emplace_back(aglMap->find("qofqubuts")->first, initializer_list<codepoint> { 0x05E7, 0x05BB });
-            ligatures->emplace_back(aglMap->find("qofqubutshebrew")->first, initializer_list<codepoint> { 0x05E7, 0x05BB });
-            ligatures->emplace_back(aglMap->find("qofsegol")->first, initializer_list<codepoint> { 0x05E7, 0x05B6 });
-            ligatures->emplace_back(aglMap->find("qofsegolhebrew")->first, initializer_list<codepoint> { 0x05E7, 0x05B6 });
-            ligatures->emplace_back(aglMap->find("qofsheva")->first, initializer_list<codepoint> { 0x05E7, 0x05B0 });
-            ligatures->emplace_back(aglMap->find("qofshevahebrew")->first, initializer_list<codepoint> { 0x05E7, 0x05B0 });
-            ligatures->emplace_back(aglMap->find("qoftsere")->first, initializer_list<codepoint> { 0x05E7, 0x05B5 });
-            ligatures->emplace_back(aglMap->find("qoftserehebrew")->first, initializer_list<codepoint> { 0x05E7, 0x05B5 });
-            ligatures->emplace_back(aglMap->find("rehyehaleflamarabic")->first, initializer_list<codepoint> { 0x0631, 0xFEF3, 0xFE8E, 0x0644 });
-            ligatures->emplace_back(aglMap->find("reshhatafpatah")->first, initializer_list<codepoint> { 0x05E8, 0x05B2 });
-            ligatures->emplace_back(aglMap->find("reshhatafpatahhebrew")->first, initializer_list<codepoint> { 0x05E8, 0x05B2 });
-            ligatures->emplace_back(aglMap->find("reshhatafsegol")->first, initializer_list<codepoint> { 0x05E8, 0x05B1 });
-            ligatures->emplace_back(aglMap->find("reshhatafsegolhebrew")->first, initializer_list<codepoint> { 0x05E8, 0x05B1 });
-            ligatures->emplace_back(aglMap->find("reshhiriq")->first, initializer_list<codepoint> { 0x05E8, 0x05B4 });
-            ligatures->emplace_back(aglMap->find("reshhiriqhebrew")->first, initializer_list<codepoint> { 0x05E8, 0x05B4 });
-            ligatures->emplace_back(aglMap->find("reshholam")->first, initializer_list<codepoint> { 0x05E8, 0x05B9 });
-            ligatures->emplace_back(aglMap->find("reshholamhebrew")->first, initializer_list<codepoint> { 0x05E8, 0x05B9 });
-            ligatures->emplace_back(aglMap->find("reshpatah")->first, initializer_list<codepoint> { 0x05E8, 0x05B7 });
-            ligatures->emplace_back(aglMap->find("reshpatahhebrew")->first, initializer_list<codepoint> { 0x05E8, 0x05B7 });
-            ligatures->emplace_back(aglMap->find("reshqamats")->first, initializer_list<codepoint> { 0x05E8, 0x05B8 });
-            ligatures->emplace_back(aglMap->find("reshqamatshebrew")->first, initializer_list<codepoint> { 0x05E8, 0x05B8 });
-            ligatures->emplace_back(aglMap->find("reshqubuts")->first, initializer_list<codepoint> { 0x05E8, 0x05BB });
-            ligatures->emplace_back(aglMap->find("reshqubutshebrew")->first, initializer_list<codepoint> { 0x05E8, 0x05BB });
-            ligatures->emplace_back(aglMap->find("reshsegol")->first, initializer_list<codepoint> { 0x05E8, 0x05B6 });
-            ligatures->emplace_back(aglMap->find("reshsegolhebrew")->first, initializer_list<codepoint> { 0x05E8, 0x05B6 });
-            ligatures->emplace_back(aglMap->find("reshsheva")->first, initializer_list<codepoint> { 0x05E8, 0x05B0 });
-            ligatures->emplace_back(aglMap->find("reshshevahebrew")->first, initializer_list<codepoint> { 0x05E8, 0x05B0 });
-            ligatures->emplace_back(aglMap->find("reshtsere")->first, initializer_list<codepoint> { 0x05E8, 0x05B5 });
-            ligatures->emplace_back(aglMap->find("reshtserehebrew")->first, initializer_list<codepoint> { 0x05E8, 0x05B5 });
-            ligatures->emplace_back(aglMap->find("shaddafathatanarabic")->first, initializer_list<codepoint> { 0x0651, 0x064B });
-            ligatures->emplace_back(aglMap->find("tchehmeeminitialarabic")->first, initializer_list<codepoint> { 0xFB7C, 0xFEE4 });
+            unique_ptr<PdfNameHashMap<AGLMapping>> aglMap(new PdfNameHashMap<AGLMapping>());
+            unique_ptr<vector<AglLigatureInfo>> ligatures(new vector<AglLigatureInfo>());
+
+            auto filter = PdfFilterFactory::Create(PdfFilterType::FlateDecode);
+            charbuff serialized;
+            filter->DecodeTo(serialized, CompressedMaps);
+
+            SpanStreamDevice stream(serialized);
+
+            // Read AGL map
+            uint16_t size;
+            uint16_t temp;
+            utls::ReadUInt16BE(stream, size);
+            string_view name;
+            AGLMapping mapping;
+            for (unsigned short i = 0; i < size; i++)
+            {
+                utls::ReadUInt16BE(stream, temp);
+                name = s_aglNames[temp];
+                mapping.Type = (AGLMapType)stream.ReadChar();
+                mapping.CodePointCount = (unsigned char)stream.ReadChar();
+                utls::ReadUInt16BE(stream, temp);
+                mapping.Code = temp;
+                aglMap->emplace(PdfName(*name.data(), name.size()), mapping);
+            }
+
+            // Read AGL ligatures
+            vector<char32_t> codepoints;
+            codepoints.reserve(4);
+            unsigned char cpSize;
+            utls::ReadUInt16BE(stream, size);
+            for (unsigned short i1 = 0; i1 < size; i1++)
+            {
+                utls::ReadUInt16BE(stream, temp);
+                name = s_aglNames[temp];
+                cpSize = (unsigned char)stream.ReadChar();
+                codepoints.clear();
+                for (unsigned char i2 = 0; i2 < cpSize; i2++)
+                {
+                    utls::ReadUInt16BE(stream, temp);
+                    codepoints.push_back(temp);
+                }
+                ligatures->emplace_back(aglMap->find(name)->first, codepoints);
+            }
 
             s_aglMap = std::move(aglMap);
             s_ligatures = std::move(ligatures);
