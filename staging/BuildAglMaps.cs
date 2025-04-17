@@ -1,22 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
+using System.Reflection.Emit;
 using System.Text;
 
-var builder = new StringBuilder();
-var ligatures = new List<Ligature>();
+var mappings = new OrderedDictionary<string, AglMapping>();
+var ligatures = new List<AglLigature>();
 
-foo(@"D:\glyphlist.txt", AGLType.AdobeGlyphList);
-foo(@"D:\aglfn.txt", AGLType.AdobeGlyphListNewFonts);
-foo(@"D:\zapfdingbats.txt", AGLType.ZapfDingbatsGlyphList);
+foo(@"D:\glyphlist.txt", AglType.AdobeGlyphList);
+foo(@"D:\aglfn.txt", AglType.AdobeGlyphListNewFonts);
+foo(@"D:\zapfdingbats.txt", AglType.ZapfDingbatsGlyphList);
+
+var builder = new StringBuilder();
+foreach (var mapping in mappings)
+{
+    builder.AppendLine($"s_aglList.emplace_back(\"{mapping.Key}\"_n, AglMapping{{ (AglType){((int)mapping.Value.Type).ToString()}, {mapping.Value.CodePointCount}, {mapping.Value.CodeStr}}});");
+}
 
 File.WriteAllText(@"D:\initagl.txt", builder.ToString());
 
 builder.Clear();
-
 foreach (var ligature in ligatures)
 {
-    builder.Append($"ligatures->emplace_back(aglMap->find(\"{ligature.Name}\")->first, initializer_list<codepoint>{{");
+    builder.Append($"s_ligatures.emplace_back(s_aglMap[\"{ligature.Name}\"], initializer_list<codepoint>{{");
     bool first = true;
     for (int i = 0; i < ligature.Codes.Length; i++)
     {
@@ -33,7 +40,7 @@ foreach (var ligature in ligatures)
 
 File.WriteAllText(@"D:\ligatures.txt", builder.ToString());
 
-void foo(string filepath, AGLType type)
+void foo(string filepath, AglType type)
 {
     using (var stream = new FileStream(filepath, FileMode.Open))
     using (var reader = new StreamReader(stream))
@@ -49,14 +56,14 @@ void foo(string filepath, AGLType type)
             string charName;
             switch (type)
             {
-                case AGLType.AdobeGlyphList:
-                case AGLType.ZapfDingbatsGlyphList:
+                case AglType.AdobeGlyphList:
+                case AglType.ZapfDingbatsGlyphList:
                 {
                     codeStr = splitted[1];
                     charName = splitted[0];
                     break;
                 }
-                case AGLType.AdobeGlyphListNewFonts:
+                case AglType.AdobeGlyphListNewFonts:
                 {
                     codeStr = splitted[0];
                     charName = splitted[1];
@@ -67,18 +74,26 @@ void foo(string filepath, AGLType type)
             }
 
             var codes = readCodes(codeStr);
-            string code;
+            string codeOrIndex;
             if (codes.Length == 1)
             {
-                code = $"0x{codes[0].ToString("X4")}";
+                codeOrIndex = $"0x{codes[0].ToString("X4")}";
             }
             else
             {
-                code = ligatures.Count.ToString();
-                ligatures.Add(new Ligature() { Codes = codes, Name = charName });
+                codeOrIndex = ligatures.Count.ToString();
+                ligatures.Add(new AglLigature() { Codes = codes, Name = charName });
             }
 
-            builder.AppendLine($"aglMap->emplace(\"{charName}\"_n, AGLMapping{{ AGLMapType::{type.ToString()}, {codes.Length}, {code}}});");
+            if (mappings.TryGetValue(charName, out var mapping))
+            {
+                mapping.Type |= type;
+            }
+            else
+            {
+                mapping = new AglMapping() { Type = type, CodePointCount = codes.Length, CodeStr = codeOrIndex };
+                mappings.Add(charName, mapping);
+            }
         }
     }
 }
@@ -93,15 +108,23 @@ ushort[] readCodes(string codeStr)
     return ret;
 }
 
-struct Ligature
+class AglMapping
 {
-    public string Name;
-    public ushort[] Codes;
+    public AglType Type;
+    public int CodePointCount;
+    public string CodeStr = null!;
 }
 
-enum AGLType
+class AglLigature
+{
+    public string Name = null!;
+    public ushort[] Codes = null!;
+}
+
+[Flags]
+enum AglType
 {
     AdobeGlyphList = 1,
-    AdobeGlyphListNewFonts,
-    ZapfDingbatsGlyphList,
+    AdobeGlyphListNewFonts = 2,
+    ZapfDingbatsGlyphList = 4,
 }
