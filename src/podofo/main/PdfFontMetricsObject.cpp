@@ -16,6 +16,7 @@
 #include "PdfVariant.h"
 
 #include "PdfDifferenceEncoding.h"
+#include "PdfPredefinedEncoding.h"
 #include "PdfEncodingMapFactory.h"
 
 using namespace PoDoFo;
@@ -744,11 +745,11 @@ PdfCIDToGIDMapConstPtr PdfDifferenceEncoding::getIntrinsicCIDToGIDMapType1(const
 
     // Iterate all the codes of the encoding
     CIDToGIDMap map;
-    auto& limits = m_baseEncoding->GetLimits();
     const PdfName* name;
     CodePointSpan codePoints;
     FT_UInt index;
     // NOTE: It's safe to assume the base encoding is a one byte encoding
+    auto& limits = m_baseEncoding->GetLimits();
     unsigned code = std::min(limits.FirstChar.Code, 0xFFU);
     unsigned last = std::min(limits.LastChar.Code, 0xFFU);
     for (; code <= last; code++)
@@ -759,7 +760,8 @@ PdfCIDToGIDMapConstPtr PdfDifferenceEncoding::getIntrinsicCIDToGIDMapType1(const
             // NOTE: 9.6.5.2 does not mention about querying the AGL, but
             // all predefined encodings characater names are also present in the AGL
             if (!m_baseEncoding->TryGetCodePoints(PdfCharCode(code), codePoints)
-                || !PdfDifferenceEncoding::TryGetCharNameFromCodePoints(codePoints, name))
+                || codePoints.GetSize() != 1
+                || !PdfPredefinedEncoding::TryGetCharNameFromCodePoint(*codePoints, name))
             {
                 // It may happen the code is not found even in the base encoding,
                 // just add an identity mapping
@@ -809,11 +811,8 @@ PdfCIDToGIDMapConstPtr PdfDifferenceEncoding::getIntrinsicCIDToGIDMapTrueType(co
         }
     }
 
-    CIDToGIDMap map;
-
-    auto& limits = m_baseEncoding->GetLimits();
-
     // Iterate all the codes of the encoding
+    CIDToGIDMap map;
     const PdfName* name;
     CodePointSpan codePoints;
     unique_ptr<unordered_map<string_view, unsigned>> fontPostMap;
@@ -821,6 +820,7 @@ PdfCIDToGIDMapConstPtr PdfDifferenceEncoding::getIntrinsicCIDToGIDMapTrueType(co
     PdfCharCode charCode;
     FT_UInt index;
     // NOTE: It's safe to assume the base encoding is a one byte encoding
+    auto& limits = m_baseEncoding->GetLimits();
     unsigned code = std::min(limits.FirstChar.Code, 0xFFU);
     unsigned last = std::min(limits.LastChar.Code, 0xFFU);
     for (; code <= last; code++)
@@ -854,18 +854,20 @@ PdfCIDToGIDMapConstPtr PdfDifferenceEncoding::getIntrinsicCIDToGIDMapTrueType(co
         }
 
     TryPost:
+        if (name == nullptr)
+        {
+            if (codePoints.GetSize() != 1 || !PdfPredefinedEncoding::TryGetCharNameFromCodePoint(*codePoints, name))
+                goto Identity;
+        }
+
         // "In any of these cases, if the glyph name cannot be mapped as specified,
         // the glyph name shall be looked up in the font program’s "post" table
         // (if one is present) and the associated glyph description shall be used
         if (fontPostMap == nullptr)
             fontPostMap.reset(new unordered_map<string_view, unsigned>(FT::GetPostMap(face)));
 
-        if (name == nullptr
-            || !PdfDifferenceEncoding::TryGetCharNameFromCodePoints(codePoints, name)
-            || (found = fontPostMap->find(*name)) == fontPostMap->end())
-        {
+        if ((found = fontPostMap->find(*name)) == fontPostMap->end())
             goto Identity;
-        }
 
         map[code] = found->second;
     }

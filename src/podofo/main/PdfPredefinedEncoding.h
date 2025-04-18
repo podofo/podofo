@@ -34,6 +34,12 @@ namespace PoDoFo
 
         PdfPredefinedEncodingType GetPredefinedEncodingType() const override;
 
+    public:
+        /** Try get a latin text character name from a codepoint,
+         * as listed by ISO 32000-2:2020 Table D.1 "Latin-text encodings"
+         */
+        static bool TryGetCharNameFromCodePoint(char32_t codepoint, const PdfName*& name);
+
     protected:
         void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override;
     };

@@ -7,6 +7,7 @@
 - PdfEncodingMapFactory: Evaluate prefix methods with Get
 
 ### After 1.0
+- PdfDifferenceList: Validate insertion for the public Add methods (like for example enforce "Adobe Glyph List For New Fonts")
 - Optimize compilation SALSprep
 - Optimize small allocations in tryGetCodePointsFromCharNameLigatures(),
   tryGetCodePointsFromUnicodeHexLigatures() in PdfDifferenceEncoding.cpp

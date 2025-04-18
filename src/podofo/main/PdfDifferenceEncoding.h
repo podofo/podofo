@@ -154,14 +154,6 @@ public:
      */
     static bool TryGetCodePointsFromCharName(const std::string_view& name, CodePointSpan& codepoints);
 
-    /** Try to convert unicode code points to a standard character name
-     *
-     * \param codepoints a unicode code points span
-     *   See https://github.com/adobe-type-tools/agl-aglfn/ for known names
-     * \param name the returned unicode character name
-     */
-    static bool TryGetCharNameFromCodePoints(const codepointview& codepoints, const PdfName*& name);
-
     /**
      * Get read-only access to the object containing the actual
      * differences.
