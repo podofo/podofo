@@ -52,8 +52,8 @@ namespace
 
 static unique_ptr<const PdfNameHashMap<AglMapping>> s_aglMap;
 static unique_ptr<const vector<AglLigatureInfo>> s_ligatures;
-static unique_ptr<const unordered_map<unsigned short, const PdfName*>> s_reverseLatinCharMap;
 
+static const PdfName* getFromReverseAGLFNMap(unsigned short);
 static void ensureAglMapInitialized();
 static CodePointSpan fetchCodePoints(const AglMapping& mapping);
 static bool tryGetCodePointsFromCharNameLigatures(string_view charName, size_t componentDelim, CodePointSpan& codepoints);
@@ -66,19 +66,42 @@ PdfDifferenceList::PdfDifferenceList() { }
 
 void PdfDifferenceList::AddDifference(unsigned char code, char32_t codePoint)
 {
-    addDifference(code, codePoint, PdfName(utls::Format("u{:04X}", (uint32_t)codePoint)));
+    const PdfName* found;
+    if (codePoint > 0xFFFFU || (found = getFromReverseAGLFNMap((unsigned short)codePoint)) == nullptr)
+        addDifference(code, codepointview(&codePoint, 1), PdfName(utls::Format("u{:04X}", (uint32_t)codePoint)));
+    else
+        addDifference(code, codepointview(&codePoint, 1), *found);
 }
 
-void PdfDifferenceList::AddDifference(unsigned char code, const string_view& name)
+void PdfDifferenceList::AddDifference(unsigned char code, const codepointview& codepoints)
 {
-    ensureAglMapInitialized();
+    if (codepoints.size() == 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "Invalid empty code point span");
 
-    CodePointSpan codepoints;
-    const PdfName* actualName;
-    if (!PdfDifferenceEncoding::TryGetCodePointsFromCharName(name, codepoints, actualName))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncoding, "Invalid character name \"{}\"", name);
+    if (codepoints.size() == 1)
+    {
+        AddDifference(code, codepoints[0]);
+        return;
+    }
 
-    addDifference(code, codepoints, actualName == nullptr ? PdfName(name) : *actualName);
+    string composed;
+    unsigned i = 0;
+    const PdfName* found;
+    while (true)
+    {
+        if (codepoints[i] > 0xFFFFU || (found = getFromReverseAGLFNMap((unsigned short)codepoints[i])) == nullptr)
+            composed.append(utls::Format("u{:04X}", (uint32_t)codepoints[i]));
+        else
+            composed.append(*found);
+
+        if (++i == codepoints.size())
+            break;
+
+        // "Split the remaining string into a sequence of components, using underscore (U+005F LOW LINE) as the delimiter"
+        composed.push_back('_');
+    }
+
+    addDifference(code, codepoints, composed);
 }
 
 void PdfDifferenceList::AddDifference(unsigned char code, const string_view& name, bool explicitNames)
@@ -88,12 +111,17 @@ void PdfDifferenceList::AddDifference(unsigned char code, const string_view& nam
     CodePointSpan codepoints;
     const PdfName* actualName;
     if (explicitNames || !PdfDifferenceEncoding::TryGetCodePointsFromCharName(name, codepoints, actualName))
-        addDifference(code, code, name);
+    {
+        char32_t cp = code;
+        addDifference(code, codepointview(&cp, 1), name);
+    }
     else
+    {
         addDifference(code, codepoints, actualName == nullptr ? PdfName(name) : *actualName);
+    }
 }
 
-void PdfDifferenceList::addDifference(unsigned char code, const CodePointSpan& codepoints, const PdfName& name)
+void PdfDifferenceList::addDifference(unsigned char code, const codepointview& codepoints, const PdfName& name)
 {
     PdfDifferenceMapping diff;
     diff.Code = code;
@@ -5023,6 +5051,30 @@ static string_view s_aglNames[] = {
     "a9"sv,
 };
 
+const PdfName* getFromReverseAGLFNMap(unsigned short codepoint)
+{
+    static struct Init
+    {
+        Init()
+        {
+            ensureAglMapInitialized();
+            for (auto& pair : *s_aglMap)
+            {
+                // NOTE: Chars here consists of a single code point
+                if ((pair.second.Type & AglMapType::AdobeGlyphListNewFonts) != AglMapType::None)
+                    m_reverseAGLFNMap[pair.second.Code] = &pair.first;
+            }
+        }
+        unordered_map<unsigned short, const PdfName*> m_reverseAGLFNMap;
+    } s_init;
+
+    auto found = s_init.m_reverseAGLFNMap.find(codepoint);
+    if (found == s_init.m_reverseAGLFNMap.end())
+        return nullptr;
+
+    return found->second;
+}
+
 void ensureAglMapInitialized()
 {
     static struct Init
@@ -6312,16 +6364,15 @@ bool PdfPredefinedEncoding::TryGetCharNameFromCodePoint(char32_t codepoint, cons
     {
         Init()
         {
-            unordered_map<unsigned short, const PdfName*> reverseLatinCharMap;
             for (auto& pair : *s_aglMap)
             {
                 // NOTE: Chars here consists of a single code point
                 if ((pair.second.Type & AglMapType::LatinTextEncodings) != AglMapType::None)
                     reverseLatinCharMap[pair.second.Code] = &pair.first;
             }
-
-            s_reverseLatinCharMap.reset(new unordered_map<unsigned short, const PdfName*>(std::move(reverseLatinCharMap)));
         }
+
+        unordered_map<unsigned short, const PdfName*> reverseLatinCharMap;
     } s_init;
 
     if (codepoint > 0xFFFFU)
@@ -6331,8 +6382,8 @@ bool PdfPredefinedEncoding::TryGetCharNameFromCodePoint(char32_t codepoint, cons
         return false;
     }
 
-    auto found = s_reverseLatinCharMap->find((unsigned short)codepoint);
-    if (found == s_reverseLatinCharMap->end())
+    auto found = s_init.reverseLatinCharMap.find((unsigned short)codepoint);
+    if (found == s_init.reverseLatinCharMap.end())
         goto NotFound;
 
     name = found->second;

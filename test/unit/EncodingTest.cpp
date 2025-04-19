@@ -37,11 +37,11 @@ TEST_CASE("TestDifferences")
     REQUIRE(difference.GetCount() == 0);
 
     // Adding 0 should work
-    difference.AddDifference(0, "A");
+    difference.AddDifference(0, u'A');
     REQUIRE(difference.GetCount() == 1);
 
     // Adding 255 should work
-    difference.AddDifference(255, "B");
+    difference.AddDifference(255, u'B');
     REQUIRE(difference.GetCount() == 2);
 
     // Convert to array
@@ -66,7 +66,7 @@ TEST_CASE("TestDifferences")
     expected.Add(static_cast<int64_t>(255));
     expected.Add(PdfName("X"));
 
-    difference.AddDifference(255, "X");
+    difference.AddDifference(255, u'X');
 
     difference.ToArray(data);
 
@@ -89,11 +89,11 @@ TEST_CASE("TestDifferences")
     expected.Add(static_cast<int64_t>(255));
     expected.Add(PdfName("X"));
 
-    difference.AddDifference(1, "B");
-    difference.AddDifference(2, "C");
-    difference.AddDifference(4, "D");
-    difference.AddDifference(5, "E");
-    difference.AddDifference(9, "F");
+    difference.AddDifference(1, u'B');
+    difference.AddDifference(2, u'C');
+    difference.AddDifference(4, u'D');
+    difference.AddDifference(5, u'E');
+    difference.AddDifference(9, u'F');
 
     difference.ToArray(data);
 
@@ -122,11 +122,11 @@ TEST_CASE("TestDifferences")
 void PdfEncodingTest::TestDifferencesObject()
 {
     PdfDifferenceList differences;
-    differences.AddDifference(1, "B");
-    differences.AddDifference(2, "C");
-    differences.AddDifference(4, "D");
-    differences.AddDifference(5, "E");
-    differences.AddDifference(9, "F");
+    differences.AddDifference(1, 'B');
+    differences.AddDifference(2, 'C');
+    differences.AddDifference(4, 'D');
+    differences.AddDifference(5, 'E');
+    differences.AddDifference(9, 'F');
 
     PdfDifferenceEncoding encoding(PdfEncodingMapFactory::MacRomanEncodingInstance(), std::move(differences));
 
@@ -164,9 +164,9 @@ TEST_CASE("TestDifferencesEncoding")
 {
     // Create a differences encoding where A and B are exchanged
     PdfDifferenceList differences;
-    differences.AddDifference((unsigned char)'A', "B");
-    differences.AddDifference((unsigned char)'B', "A");
-    differences.AddDifference((unsigned char)'C', "D");
+    differences.AddDifference((unsigned char)'A', 'B');
+    differences.AddDifference((unsigned char)'B', 'A');
+    differences.AddDifference((unsigned char)'C', 'D');
 
     PdfMemDocument doc;
 
@@ -194,8 +194,8 @@ TEST_CASE("TestGetCharCode")
     outofRangeHelper(macRomanEncoding);
 
     PdfDifferenceList differences;
-    differences.AddDifference((unsigned char)'A', "B");
-    differences.AddDifference((unsigned char)'B', "A");
+    differences.AddDifference((unsigned char)'A', 'B');
+    differences.AddDifference((unsigned char)'B', 'A');
     PdfEncoding differenceEncoding(std::make_shared<PdfDifferenceEncoding>(PdfEncodingMapFactory::WinAnsiEncodingInstance(), std::move(differences)));
     outofRangeHelper(differenceEncoding);
 }

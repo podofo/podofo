@@ -39,23 +39,25 @@ public:
     PdfDifferenceList(const PdfDifferenceList& rhs) = default;
     PdfDifferenceList& operator=(const PdfDifferenceList& rhs) = default;
 
-    /** Add a difference to the object.
+    /** Add a difference to the encoding
      *
-     *  \param code code unit of the difference (0 to 255 are legal values)
-     *  \param codePoint actual unicode value for code; can be 0
+     * The added name is determined by the "Adobe Glyph List for New Fonts"
+     * https://github.com/adobe-type-tools/agl-aglfn/blob/master/aglfn.txt
+     * \param code code unit of the difference (0 to 255 are legal values)
+     * \param codePoint actual unicode code point
      *
-     *  \see AddDifference if you know the name of the code point
-     *       use the overload below which is faster
      */
     void AddDifference(unsigned char code, char32_t codePoint);
 
-    /** Add a difference to the object.
+    /** Add a difference to the encoding
      *
-     * \param name unicode code point of the difference (0 to 255 are legal values)
-     * \param name name of the different code point or .notdef if none
-     *   See https://github.com/adobe-type-tools/agl-aglfn/ for know names
+     * The added name is determined by the "Adobe Glyph List for New Fonts"
+     * https://github.com/adobe-type-tools/agl-aglfn/blob/master/aglfn.txt
+     *  \param code code unit of the difference (0 to 255 are legal values)
+     *  \param codePoints a span of unicode code points
+     *
      */
-    void AddDifference(unsigned char code, const std::string_view& name);
+    void AddDifference(unsigned char code, const codepointview& codePoints);
 
     /** Get the mapped code point from a char code
      *
@@ -91,7 +93,7 @@ private:
      */
     void AddDifference(unsigned char code, const std::string_view& name, bool explicitNames);
 
-    void addDifference(unsigned char code, const CodePointSpan& codepoints, const PdfName& name);
+    void addDifference(unsigned char code, const codepointview& codepoints, const PdfName& name);
 
     struct DifferenceComparatorPredicate
     {
