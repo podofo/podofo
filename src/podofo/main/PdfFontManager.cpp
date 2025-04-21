@@ -214,11 +214,11 @@ PdfFont& PdfFontManager::GetOrCreateFont(const string_view& fontPath, unsigned f
     if (found != m_cachedPaths.end())
         return *found->second;
 
-    auto font = PdfFontMetrics::Create(fontPath, faceIndex);
-    if (font == nullptr)
+    auto metrics = PdfFontMetrics::Create(fontPath, faceIndex);
+    if (metrics == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Invalid or unsupported font");
 
-    auto& ret = getOrCreateFontHashed(std::move(font), params);
+    auto& ret = getOrCreateFontHashed(std::move(metrics), params);
     m_cachedPaths[descriptor] = &ret;
     return ret;
 }
@@ -228,9 +228,9 @@ PdfFont& PdfFontManager::GetOrCreateFontFromBuffer(const bufferview& buffer, con
     return GetOrCreateFontFromBuffer(buffer, 0, createParams);
 }
 
-PdfFont& PdfFontManager::GetOrCreateFont(const PdfFontMetricsConstPtr& metrics, const PdfFontCreateParams& params)
+PdfFont& PdfFontManager::GetOrCreateFont(PdfFontMetricsConstPtr metrics, const PdfFontCreateParams& params)
 {
-    return getOrCreateFontHashed(metrics, params);
+    return getOrCreateFontHashed(std::move(metrics), params);
 }
 
 PdfFont* PdfFontManager::GetCachedFont(const PdfReference& ref)
@@ -247,7 +247,7 @@ PdfFont& PdfFontManager::GetOrCreateFontFromBuffer(const bufferview& buffer, uns
     return getOrCreateFontHashed(PdfFontMetrics::CreateFromBuffer(buffer, faceIndex), params);
 }
 
-PdfFont& PdfFontManager::getOrCreateFontHashed(const PdfFontMetricsConstPtr& metrics, const PdfFontCreateParams& params)
+PdfFont& PdfFontManager::getOrCreateFontHashed(PdfFontMetricsConstPtr&& metrics, const PdfFontCreateParams& params)
 {
     // TODO: Create a map indexed only on the hash of the font data
     // and search on that. Then remove the following
@@ -260,7 +260,7 @@ PdfFont& PdfFontManager::getOrCreateFontHashed(const PdfFontMetricsConstPtr& met
     if (fonts.size() != 0)
         return *fonts[0];
 
-    auto newfont = PdfFont::Create(*m_doc, metrics, params);
+    auto newfont = PdfFont::Create(*m_doc, std::move(metrics), params);
     return *addImported(fonts, std::move(newfont));
 }
 

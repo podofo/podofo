@@ -27,7 +27,7 @@ namespace PoDoFo {
         const PdfField& GetField() const;
         PdfField& GetField();
     private:
-        void SetField(const std::shared_ptr<PdfField>& field);
+        void SetField(std::shared_ptr<PdfField>&& field);
         const std::shared_ptr<PdfField>& GetFieldPtr() { return m_Field; }
     private:
         void initField();

@@ -34,6 +34,7 @@ struct PODOFO_API PdfTokenizerOptions final
  */
 class PODOFO_API PdfTokenizer
 {
+    friend class PdfPostScriptTokenizer;
     PODOFO_PRIVATE_FRIEND(class PdfParserObject);
 
 public:
@@ -41,7 +42,7 @@ public:
 
 public:
     PdfTokenizer(const PdfTokenizerOptions& options = { });
-    PdfTokenizer(const std::shared_ptr<charbuff>& buffer, const PdfTokenizerOptions& options = { });
+    PdfTokenizer(std::shared_ptr<charbuff> buffer, const PdfTokenizerOptions& options = { });
 
     /** Reads the next token from the current file position
      *  ignoring all comments.
@@ -190,6 +191,7 @@ protected:
     PdfLiteralDataType DetermineDataType(InputStreamDevice& device, const std::string_view& token, PdfTokenType tokenType, PdfVariant& variant);
 
 private:
+    PdfTokenizer(std::in_place_t, std::shared_ptr<charbuff>&& buffer, const PdfTokenizerOptions& options);
     bool tryReadDataType(InputStreamDevice& device, PdfLiteralDataType dataType, PdfVariant& variant, const PdfStatefulEncrypt* encrypt);
 
 private:

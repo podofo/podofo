@@ -83,10 +83,10 @@ class PODOFO_API PdfContentStreamReader final
 public:
     PdfContentStreamReader(const PdfCanvas& canvas, nullable<const PdfContentReaderArgs&> args = { });
 
-    PdfContentStreamReader(const std::shared_ptr<InputStreamDevice>& device, nullable<const PdfContentReaderArgs&> args = { });
+    PdfContentStreamReader(std::shared_ptr<InputStreamDevice> device, nullable<const PdfContentReaderArgs&> args = { });
 
 private:
-    PdfContentStreamReader(const std::shared_ptr<InputStreamDevice>& device, const PdfCanvas* canvas,
+    PdfContentStreamReader(std::shared_ptr<InputStreamDevice>&& device, const PdfCanvas* canvas,
         nullable<const PdfContentReaderArgs&> args);
 
 public:

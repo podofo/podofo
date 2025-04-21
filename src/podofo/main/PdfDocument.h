@@ -158,19 +158,19 @@ public:
 
     std::unique_ptr<PdfDestination> CreateDestination();
 
-    std::unique_ptr<PdfColorSpace> CreateColorSpace(const PdfColorSpaceFilterPtr& filter);
+    std::unique_ptr<PdfColorSpace> CreateColorSpace(PdfColorSpaceFilterPtr filter);
 
-    std::unique_ptr<PdfFunction> CreateFunction(const PdfFunctionDefinitionPtr& definition);
+    std::unique_ptr<PdfFunction> CreateFunction(PdfFunctionDefinitionPtr definition);
 
-    std::unique_ptr<PdfUncolouredTilingPattern> CreateTilingPattern(const std::shared_ptr<PdfUncolouredTilingPatternDefinition> &definition);
+    std::unique_ptr<PdfUncolouredTilingPattern> CreateTilingPattern(std::shared_ptr<PdfUncolouredTilingPatternDefinition> definition);
 
-    std::unique_ptr<PdfColouredTilingPattern> CreateTilingPattern(const std::shared_ptr<PdfColouredTilingPatternDefinition>& definition);
+    std::unique_ptr<PdfColouredTilingPattern> CreateTilingPattern(std::shared_ptr<PdfColouredTilingPatternDefinition> definition);
 
-    std::unique_ptr<PdfShadingPattern> CreateShadingPattern(const PdfShadingPatternDefinitionPtr& definition);
+    std::unique_ptr<PdfShadingPattern> CreateShadingPattern(PdfShadingPatternDefinitionPtr definition);
 
-    std::unique_ptr<PdfShadingDictionary> CreateShadingDictionary(const PdfShadingDefinitionPtr& definition);
+    std::unique_ptr<PdfShadingDictionary> CreateShadingDictionary(PdfShadingDefinitionPtr definition);
 
-    std::unique_ptr<PdfExtGState> CreateExtGState(const PdfExtGStateDefinitionPtr& definition);
+    std::unique_ptr<PdfExtGState> CreateExtGState(PdfExtGStateDefinitionPtr definition);
 
     template <typename Taction>
     std::unique_ptr<Taction> CreateAction();

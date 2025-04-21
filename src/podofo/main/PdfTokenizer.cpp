@@ -24,14 +24,19 @@ static void readHexString(InputStreamDevice& device, charbuff& buffer);
 static bool isOctalChar(char ch);
 
 PdfTokenizer::PdfTokenizer(const PdfTokenizerOptions& options)
-    : PdfTokenizer(std::make_shared<charbuff>(BufferSize), options)
+    : PdfTokenizer(std::in_place, std::make_shared<charbuff>(BufferSize), options)
 {
 }
 
-PdfTokenizer::PdfTokenizer(const shared_ptr<charbuff>& buffer, const PdfTokenizerOptions& options)
-    : m_buffer(buffer), m_options(options)
+PdfTokenizer::PdfTokenizer(shared_ptr<charbuff> buffer, const PdfTokenizerOptions& options)
+    : PdfTokenizer(std::in_place, std::move(buffer), options)
 {
-    if (buffer == nullptr)
+}
+
+PdfTokenizer::PdfTokenizer(std::in_place_t, shared_ptr<charbuff>&& buffer, const PdfTokenizerOptions& options)
+    : m_buffer(std::move(buffer)), m_options(options)
+{
+    if (m_buffer == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 }
 

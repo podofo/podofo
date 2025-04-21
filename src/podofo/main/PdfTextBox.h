@@ -34,9 +34,9 @@ namespace PoDoFo
         };
 
     private:
-        PdfTextBox(PdfAcroForm& acroform, const std::shared_ptr<PdfField>& parent);
+        PdfTextBox(PdfAcroForm& acroform, std::shared_ptr<PdfField>&& parent);
 
-        PdfTextBox(PdfAnnotationWidget& widget, const std::shared_ptr<PdfField>& parent);
+        PdfTextBox(PdfAnnotationWidget& widget, std::shared_ptr<PdfField>&& parent);
 
         PdfTextBox(PdfObject& obj, PdfAcroForm* acroform);
 

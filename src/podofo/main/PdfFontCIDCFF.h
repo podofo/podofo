@@ -26,7 +26,7 @@ private:
      *         deleted along with the font.
      *  \param encoding the encoding of this font
      */
-    PdfFontCIDCFF(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+    PdfFontCIDCFF(PdfDocument& doc, PdfFontMetricsConstPtr&& metrics,
         const PdfEncoding& encoding);
 
 public:

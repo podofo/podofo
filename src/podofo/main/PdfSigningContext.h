@@ -77,7 +77,7 @@ namespace PoDoFo
 
         /** Configure a signer on the specific signature field
          */
-        PdfSignerId AddSigner(const PdfSignature& signature, const std::shared_ptr<PdfSigner>& signer);
+        PdfSignerId AddSigner(const PdfSignature& signature, std::shared_ptr<PdfSigner> signer);
 
         /** Start a blocking event-driven signing procedure
          */
@@ -86,7 +86,7 @@ namespace PoDoFo
         /** Start a deferred (aka "async") signing procedure
          * \param results instance where intermediate results will be stored
          */
-        void StartSigning(PdfMemDocument& doc, const std::shared_ptr<StreamDevice>& device, PdfSigningResults& results,
+        void StartSigning(PdfMemDocument& doc, std::shared_ptr<StreamDevice> device, PdfSigningResults& results,
             PdfSaveOptions saveOptions = PdfSaveOptions::None);
 
         /** Finish a deferred (aka "async") signing procedure
@@ -116,7 +116,7 @@ namespace PoDoFo
 
     private:
         PdfSignerId addSigner(const PdfSignature& signature, PdfSigner* signer,
-            const std::shared_ptr<PdfSigner>& storage);
+            std::shared_ptr<PdfSigner>&& storage);
         void ensureNotStarted() const;
         std::unordered_map<PdfSignerId, SignatureCtx> prepareSignatureContexts(PdfDocument& doc, bool deferredSigning);
         void saveDocForSigning(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions saveOptions);

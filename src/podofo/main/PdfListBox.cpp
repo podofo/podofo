@@ -10,14 +10,14 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfListBox::PdfListBox(PdfAcroForm& acroform, const shared_ptr<PdfField>& parent)
-    : PdChoiceField(acroform, PdfFieldType::ListBox, parent)
+PdfListBox::PdfListBox(PdfAcroForm& acroform, shared_ptr<PdfField>&& parent)
+    : PdChoiceField(acroform, PdfFieldType::ListBox, std::move(parent))
 {
     this->SetFieldFlag(static_cast<int>(PdfListField_Combo), false);
 }
 
-PdfListBox::PdfListBox(PdfAnnotationWidget& widget, const shared_ptr<PdfField>& parent)
-    : PdChoiceField(widget, PdfFieldType::ListBox, parent)
+PdfListBox::PdfListBox(PdfAnnotationWidget& widget, shared_ptr<PdfField>&& parent)
+    : PdChoiceField(widget, PdfFieldType::ListBox, std::move(parent))
 {
     this->SetFieldFlag(static_cast<int>(PdfListField_Combo), false);
 }

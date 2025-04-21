@@ -10,13 +10,13 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfRadioButton::PdfRadioButton(PdfAcroForm& acroform, const shared_ptr<PdfField>& parent)
-    : PdfToggleButton(acroform, PdfFieldType::RadioButton, parent)
+PdfRadioButton::PdfRadioButton(PdfAcroForm& acroform, shared_ptr<PdfField>&& parent)
+    : PdfToggleButton(acroform, PdfFieldType::RadioButton, std::move(parent))
 {
 }
 
-PdfRadioButton::PdfRadioButton(PdfAnnotationWidget& widget, const shared_ptr<PdfField>& parent)
-    : PdfToggleButton(widget, PdfFieldType::RadioButton, parent)
+PdfRadioButton::PdfRadioButton(PdfAnnotationWidget& widget, shared_ptr<PdfField>&& parent)
+    : PdfToggleButton(widget, PdfFieldType::RadioButton, std::move(parent))
 {
 }
 

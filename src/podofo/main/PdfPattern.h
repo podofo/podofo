@@ -67,7 +67,7 @@ namespace PoDoFo
         friend class PdfDocument;
 
     private:
-        PdfColouredTilingPattern(PdfDocument& doc, std::shared_ptr<PdfColouredTilingPatternDefinition> definition);
+        PdfColouredTilingPattern(PdfDocument& doc, std::shared_ptr<PdfColouredTilingPatternDefinition>&& definition);
 
     public:
         const PdfColouredTilingPatternDefinition& GetDefinition() const;
@@ -79,7 +79,7 @@ namespace PoDoFo
         friend class PdfDocument;
 
     private:
-        PdfUncolouredTilingPattern(PdfDocument& doc, std::shared_ptr<PdfUncolouredTilingPatternDefinition> definition);
+        PdfUncolouredTilingPattern(PdfDocument& doc, std::shared_ptr<PdfUncolouredTilingPatternDefinition>&& definition);
 
     public:
         const PdfUncolouredTilingPatternDefinition& GetDefinition() const;
@@ -91,7 +91,7 @@ namespace PoDoFo
         friend class PdfDocument;
 
     private:
-        PdfShadingPattern(PdfDocument& doc, PdfShadingPatternDefinitionPtr definition);
+        PdfShadingPattern(PdfDocument& doc, PdfShadingPatternDefinitionPtr&& definition);
 
     public:
         const PdfShadingPatternDefinition& GetDefinition() const;
@@ -103,7 +103,7 @@ namespace PoDoFo
         friend class PdfDocument;
 
     private:
-        PdfShadingDictionary(PdfDocument& doc, PdfShadingDefinitionPtr definition);
+        PdfShadingDictionary(PdfDocument& doc, PdfShadingDefinitionPtr&& definition);
 
     public:
         const PdfShadingDefinition& GetDefinition() const { return *m_Definition; }

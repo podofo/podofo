@@ -180,7 +180,8 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfDictionary& fontDict, co
         parsedLimits.MaxCodeSize = utls::GetCharCodeSize(parsedLimits.LastChar.Code);
     }
 
-    return PdfEncoding::Create(parsedLimits, encoding, toUnicode, cidToGidMap);
+    return PdfEncoding::Create(parsedLimits, std::move(encoding),
+        std::move(toUnicode), std::move(cidToGidMap));
 }
 
 PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(const PdfObject& obj,

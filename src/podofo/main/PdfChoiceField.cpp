@@ -14,14 +14,14 @@ using namespace std;
 using namespace PoDoFo;
 
 PdChoiceField::PdChoiceField(PdfAcroForm& acroform, PdfFieldType fieldType,
-        const shared_ptr<PdfField>& parent)
-    : PdfField(acroform, fieldType, parent)
+        shared_ptr<PdfField>&& parent)
+    : PdfField(acroform, fieldType, std::move(parent))
 {
 }
 
 PdChoiceField::PdChoiceField(PdfAnnotationWidget& widget, PdfFieldType fieldType,
-        const shared_ptr<PdfField>& parent)
-    : PdfField(widget, fieldType, parent)
+        shared_ptr<PdfField>&& parent)
+    : PdfField(widget, fieldType, std::move(parent))
 {
 }
 

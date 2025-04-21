@@ -31,7 +31,7 @@ private:
      *  \param parent parent document
      *
      */
-    PdfExtGState(PdfDocument& doc, const PdfExtGStateDefinitionPtr& filter);
+    PdfExtGState(PdfDocument& doc, PdfExtGStateDefinitionPtr&& filter);
 
 public:
     const PdfExtGStateDefinition& GetDefinition() const { return *m_Definition; }

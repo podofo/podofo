@@ -15,8 +15,8 @@ static PdfTokenizerOptions getPostScriptOptions(PdfPostScriptLanguageLevel level
 PdfPostScriptTokenizer::PdfPostScriptTokenizer(PdfPostScriptLanguageLevel level)
     : PdfTokenizer(getPostScriptOptions(level)) { }
 
-PdfPostScriptTokenizer::PdfPostScriptTokenizer(const shared_ptr<charbuff>& buffer, PdfPostScriptLanguageLevel level)
-    : PdfTokenizer(buffer, getPostScriptOptions(level)) { }
+PdfPostScriptTokenizer::PdfPostScriptTokenizer(shared_ptr<charbuff> buffer, PdfPostScriptLanguageLevel level)
+    : PdfTokenizer(std::in_place, std::move(buffer), getPostScriptOptions(level)) {}
 
 void PdfPostScriptTokenizer::ReadNextVariant(InputStreamDevice& device, PdfVariant& variant)
 {

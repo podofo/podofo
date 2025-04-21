@@ -18,8 +18,8 @@ using namespace PoDoFo;
 // NOTE: TrueType fonts subsetting is supported only
 // in PdfFontCIDTrueType through conversion
 
-PdfFontTrueType::PdfFontTrueType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-    const PdfEncoding& encoding) :
-    PdfFontSimple(doc, PdfFontType::TrueType, metrics, encoding)
+PdfFontTrueType::PdfFontTrueType(PdfDocument& doc, PdfFontMetricsConstPtr&& metrics,
+        const PdfEncoding& encoding) :
+    PdfFontSimple(doc, PdfFontType::TrueType, std::move(metrics), encoding)
 {
 }

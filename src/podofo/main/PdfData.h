@@ -36,7 +36,7 @@ public:
      *                    the current position in the stream
      *
      */
-    PdfData(charbuff&& data, const std::shared_ptr<size_t>& writeBeacon = { });
+    PdfData(charbuff&& data, std::shared_ptr<size_t> writeBeacon = { });
 
     /**
      * Create a new PdfData object with valid PdfData
@@ -48,7 +48,7 @@ public:
      *                    the current position in the stream
      *
      */
-    explicit PdfData(const bufferview& data, const std::shared_ptr<size_t>& writeBeacon = { });
+    PdfData(const bufferview& data, std::shared_ptr<size_t> writeBeacon = { });
 
     void Write(OutputStream& stream, PdfWriteFlags writeMode,
         const PdfStatefulEncrypt* encrypt, charbuff& buffer) const;

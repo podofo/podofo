@@ -26,10 +26,10 @@ namespace PoDoFo
 
     private:
         PdChoiceField(PdfAcroForm& acroform, PdfFieldType fieldType,
-            const std::shared_ptr<PdfField>& parent);
+            std::shared_ptr<PdfField>&& parent);
 
         PdChoiceField(PdfAnnotationWidget& widget, PdfFieldType fieldType,
-            const std::shared_ptr<PdfField>& parent);
+            std::shared_ptr<PdfField>&& parent);
 
         PdChoiceField(PdfObject& obj, PdfAcroForm* acroform, PdfFieldType fieldType);
 

@@ -12,8 +12,8 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfFunction::PdfFunction(PdfDocument& doc, const PdfFunctionDefinitionPtr& definition)
-    : PdfDictionaryElement(doc), m_Definition(definition)
+PdfFunction::PdfFunction(PdfDocument& doc, PdfFunctionDefinitionPtr&& definition)
+    : PdfDictionaryElement(doc), m_Definition(std::move(definition))
 {
     m_Definition->FillExportDictionary(GetDictionary());
 }

@@ -24,7 +24,7 @@ private:
     /** A copy constructor that does deep copy of PdfEncrypt as well
      */
     PdfEncryptSession(const PdfEncrypt& encrypt, const PdfEncryptContext& context);
-    PdfEncryptSession(const std::shared_ptr<PdfEncrypt>& encrypt);
+    PdfEncryptSession(std::shared_ptr<PdfEncrypt>&& encrypt);
     PdfEncryptSession(const PdfEncryptSession&) = default;
 
 public:

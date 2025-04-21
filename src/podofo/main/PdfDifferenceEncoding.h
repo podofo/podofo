@@ -125,7 +125,7 @@ public:
      *  \param difference the differences in this encoding
      *  \param baseEncoding the base encoding of this font
      */
-    PdfDifferenceEncoding(const PdfEncodingMapConstPtr& baseEncoding,
+    PdfDifferenceEncoding(PdfEncodingMapConstPtr baseEncoding,
         PdfDifferenceList differences);
 
     ~PdfDifferenceEncoding();

@@ -194,14 +194,15 @@ unsigned PdfDifferenceList::GetCount() const
     return (unsigned)m_differences.size();
 }
 
-PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfEncodingMapConstPtr& baseEncoding,
+PdfDifferenceEncoding::PdfDifferenceEncoding(PdfEncodingMapConstPtr baseEncoding,
         PdfDifferenceList differences) :
     PdfEncodingMapOneByte({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }),
-    m_baseEncoding(baseEncoding),
+    m_baseEncoding(std::move(baseEncoding)),
     m_differences(std::move(differences)),
     m_reverseMap(nullptr)
 {
-    if (baseEncoding == nullptr)
+    // CHECK-ME: Validate base encoding
+    if (m_baseEncoding == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Base encoding must be non null");
 }
 

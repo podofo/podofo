@@ -19,9 +19,9 @@ namespace PoDoFo
         friend class PdfField;
 
     private:
-        PdfPushButton(PdfAcroForm& acroform, const std::shared_ptr<PdfField>& parent);
+        PdfPushButton(PdfAcroForm& acroform, std::shared_ptr<PdfField>&& parent);
 
-        PdfPushButton(PdfAnnotationWidget& widget, const std::shared_ptr<PdfField>& parent);
+        PdfPushButton(PdfAnnotationWidget& widget, std::shared_ptr<PdfField>&& parent);
 
         PdfPushButton(PdfObject& obj, PdfAcroForm* acroform);
 

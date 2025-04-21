@@ -64,8 +64,8 @@ public:
      *                  created document.
      *  \param opts additional save options for writing the pdf
      */
-    PdfStreamedDocument(const std::shared_ptr<OutputStreamDevice>& device, PdfVersion version = PdfVersionDefault,
-        const std::shared_ptr<PdfEncrypt>& encrypt = nullptr, PdfSaveOptions opts = PdfSaveOptions::None);
+    PdfStreamedDocument(std::shared_ptr<OutputStreamDevice> device, PdfVersion version = PdfVersionDefault,
+        std::shared_ptr<PdfEncrypt> encrypt = nullptr, PdfSaveOptions opts = PdfSaveOptions::None);
 
     /** Create a new PdfStreamedDocument.
      *  All data is written to a file immediately.
@@ -80,7 +80,7 @@ public:
      *  \param opts additional options for writing the pdf
      */
     PdfStreamedDocument(const std::string_view& filename, PdfVersion version = PdfVersionDefault,
-        const std::shared_ptr<PdfEncrypt>& encrypt = nullptr, PdfSaveOptions opts = PdfSaveOptions::None);
+        std::shared_ptr<PdfEncrypt> encrypt = nullptr, PdfSaveOptions opts = PdfSaveOptions::None);
 
     ~PdfStreamedDocument();
 

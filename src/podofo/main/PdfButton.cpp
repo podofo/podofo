@@ -12,14 +12,14 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfButton::PdfButton(PdfAcroForm& acroform, PdfFieldType fieldType,
-        const shared_ptr<PdfField>& parent)
-    : PdfField(acroform, fieldType, parent)
+        shared_ptr<PdfField>&& parent)
+    : PdfField(acroform, fieldType, std::move(parent))
 {
 }
 
 PdfButton::PdfButton(PdfAnnotationWidget& widget, PdfFieldType fieldType,
-        const shared_ptr<PdfField>& parent)
-    : PdfField(widget, fieldType, parent)
+        shared_ptr<PdfField>&& parent)
+    : PdfField(widget, fieldType, std::move(parent))
 {
 }
 
@@ -68,14 +68,14 @@ nullable<const PdfString&> PdfButton::GetCaption() const
 }
 
 PdfToggleButton::PdfToggleButton(PdfAcroForm& acroform, PdfFieldType fieldType,
-    const shared_ptr<PdfField>& parent)
-    : PdfButton(acroform, fieldType, parent)
+        shared_ptr<PdfField>&& parent)
+    : PdfButton(acroform, fieldType, std::move(parent))
 {
 }
 
 PdfToggleButton::PdfToggleButton(PdfAnnotationWidget& widget, PdfFieldType fieldType,
-    const shared_ptr<PdfField>& parent)
-    : PdfButton(widget, fieldType, parent)
+        shared_ptr<PdfField>&& parent)
+    : PdfButton(widget, fieldType, std::move(parent))
 {
 }
 

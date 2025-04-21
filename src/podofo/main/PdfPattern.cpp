@@ -90,7 +90,7 @@ shared_ptr<const PdfTilingPatternDefinition> PdfTilingPattern::GetDefinitionPtr(
     return std::static_pointer_cast<const PdfTilingPatternDefinition>(m_Definition);
 }
 
-PdfShadingPattern::PdfShadingPattern(PdfDocument& doc, PdfShadingPatternDefinitionPtr definition)
+PdfShadingPattern::PdfShadingPattern(PdfDocument& doc, PdfShadingPatternDefinitionPtr&& definition)
     : PdfPattern(doc, std::move(definition)) { }
 
 const PdfShadingPatternDefinition& PdfShadingPattern::GetDefinition() const
@@ -103,7 +103,7 @@ shared_ptr<const PdfShadingPatternDefinition> PdfShadingPattern::GetDefinitionPt
     return std::static_pointer_cast<const PdfShadingPatternDefinition>(m_Definition);
 }
 
-PdfColouredTilingPattern::PdfColouredTilingPattern(PdfDocument& doc, shared_ptr<PdfColouredTilingPatternDefinition> definition)
+PdfColouredTilingPattern::PdfColouredTilingPattern(PdfDocument& doc, shared_ptr<PdfColouredTilingPatternDefinition>&& definition)
     : PdfTilingPattern(doc, std::move(definition))
 {
 }
@@ -118,7 +118,7 @@ shared_ptr<const PdfColouredTilingPatternDefinition> PdfColouredTilingPattern::G
     return std::static_pointer_cast<const PdfColouredTilingPatternDefinition>(m_Definition);
 }
 
-PdfUncolouredTilingPattern::PdfUncolouredTilingPattern(PdfDocument& doc, shared_ptr<PdfUncolouredTilingPatternDefinition> definition)
+PdfUncolouredTilingPattern::PdfUncolouredTilingPattern(PdfDocument& doc, shared_ptr<PdfUncolouredTilingPatternDefinition>&& definition)
     : PdfTilingPattern(doc, std::move(definition))
 {
 }
@@ -133,7 +133,7 @@ shared_ptr<const PdfUncolouredTilingPatternDefinition> PdfUncolouredTilingPatter
     return std::static_pointer_cast<const PdfUncolouredTilingPatternDefinition>(m_Definition);
 }
 
-PdfShadingDictionary::PdfShadingDictionary(PdfDocument& doc, PdfShadingDefinitionPtr definition)
+PdfShadingDictionary::PdfShadingDictionary(PdfDocument& doc, PdfShadingDefinitionPtr&& definition)
     : PdfDictionaryElement(doc), m_Definition(std::move(definition))
 {
     if (m_Definition == nullptr)

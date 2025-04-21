@@ -760,42 +760,42 @@ unique_ptr<PdfDestination> PdfDocument::CreateDestination()
     return unique_ptr<PdfDestination>(new PdfDestination(*this));
 }
 
-unique_ptr<PdfColorSpace> PdfDocument::CreateColorSpace(const PdfColorSpaceFilterPtr& filter)
+unique_ptr<PdfColorSpace> PdfDocument::CreateColorSpace(PdfColorSpaceFilterPtr filter)
 {
     if (filter->IsTrivial())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Only non trivial color spaces can be constructed through document");
 
-    return unique_ptr<PdfColorSpace>(new PdfColorSpace(*this, filter));
+    return unique_ptr<PdfColorSpace>(new PdfColorSpace(*this, std::move(filter)));
 }
 
-unique_ptr<PdfFunction> PdfDocument::CreateFunction(const PdfFunctionDefinitionPtr& definition)
+unique_ptr<PdfFunction> PdfDocument::CreateFunction(PdfFunctionDefinitionPtr definition)
 {
-    return unique_ptr<PdfFunction>(new PdfFunction(*this, definition));
+    return unique_ptr<PdfFunction>(new PdfFunction(*this, std::move(definition)));
 }
 
-unique_ptr<PdfUncolouredTilingPattern> PdfDocument::CreateTilingPattern(const shared_ptr<PdfUncolouredTilingPatternDefinition>& definition)
+unique_ptr<PdfUncolouredTilingPattern> PdfDocument::CreateTilingPattern(shared_ptr<PdfUncolouredTilingPatternDefinition> definition)
 {
-    return unique_ptr<PdfUncolouredTilingPattern>(new PdfUncolouredTilingPattern(*this, definition));
+    return unique_ptr<PdfUncolouredTilingPattern>(new PdfUncolouredTilingPattern(*this, std::move(definition)));
 }
 
-unique_ptr<PdfColouredTilingPattern> PdfDocument::CreateTilingPattern(const shared_ptr<PdfColouredTilingPatternDefinition>& definition)
+unique_ptr<PdfColouredTilingPattern> PdfDocument::CreateTilingPattern(shared_ptr<PdfColouredTilingPatternDefinition> definition)
 {
-    return unique_ptr<PdfColouredTilingPattern>(new PdfColouredTilingPattern(*this, definition));
+    return unique_ptr<PdfColouredTilingPattern>(new PdfColouredTilingPattern(*this, std::move(definition)));
 }
 
-unique_ptr<PdfShadingPattern> PdfDocument::CreateShadingPattern(const PdfShadingPatternDefinitionPtr& definition)
+unique_ptr<PdfShadingPattern> PdfDocument::CreateShadingPattern(PdfShadingPatternDefinitionPtr definition)
 {
-    return unique_ptr<PdfShadingPattern>(new PdfShadingPattern(*this, definition));
+    return unique_ptr<PdfShadingPattern>(new PdfShadingPattern(*this, std::move(definition)));
 }
 
-unique_ptr<PdfShadingDictionary> PdfDocument::CreateShadingDictionary(const PdfShadingDefinitionPtr& definition)
+unique_ptr<PdfShadingDictionary> PdfDocument::CreateShadingDictionary(PdfShadingDefinitionPtr definition)
 {
-    return unique_ptr<PdfShadingDictionary>(new PdfShadingDictionary(*this, definition));
+    return unique_ptr<PdfShadingDictionary>(new PdfShadingDictionary(*this, std::move(definition)));
 }
 
-unique_ptr<PdfExtGState> PdfDocument::CreateExtGState(const PdfExtGStateDefinitionPtr& definition)
+unique_ptr<PdfExtGState> PdfDocument::CreateExtGState(PdfExtGStateDefinitionPtr definition)
 {
-    return unique_ptr<PdfExtGState>(new PdfExtGState(*this, definition));
+    return unique_ptr<PdfExtGState>(new PdfExtGState(*this, std::move(definition)));
 }
 
 unique_ptr<PdfAction> PdfDocument::CreateAction(PdfActionType type)

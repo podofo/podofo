@@ -22,8 +22,8 @@ using namespace PoDoFo;
 
 // NOTE: Type 1 fonts subsetting is supported only
 // in PdfFontCIDCFF through conversion
-PdfFontType1::PdfFontType1(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+PdfFontType1::PdfFontType1(PdfDocument& doc, PdfFontMetricsConstPtr&& metrics,
     const PdfEncoding& encoding) :
-    PdfFontSimple(doc, PdfFontType::Type1, metrics, encoding)
+    PdfFontSimple(doc, PdfFontType::Type1, std::move(metrics), encoding)
 {
 }

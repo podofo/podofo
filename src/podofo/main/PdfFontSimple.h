@@ -35,7 +35,7 @@ private:
      *
      */
     PdfFontSimple(PdfDocument& doc, PdfFontType type,
-        const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding);
+        PdfFontMetricsConstPtr&& metrics, const PdfEncoding& encoding);
 
 protected:
     void embedFont() override final;

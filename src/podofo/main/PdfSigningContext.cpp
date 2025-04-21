@@ -29,7 +29,7 @@ PdfSigningContext::PdfSigningContext()
 {
 }
 
-PdfSignerId PdfSigningContext::AddSigner(const PdfSignature& signature, const shared_ptr<PdfSigner>& signer)
+PdfSignerId PdfSigningContext::AddSigner(const PdfSignature& signature, shared_ptr<PdfSigner> signer)
 {
     ensureNotStarted();
     if (m_signers.size() != 0)
@@ -38,7 +38,7 @@ PdfSignerId PdfSigningContext::AddSigner(const PdfSignature& signature, const sh
             "or signing the same field with multiple signers is currently not implemented");
     }
 
-    return addSigner(signature, signer.get(), signer);
+    return addSigner(signature, signer.get(), std::move(signer));
 }
 
 void PdfSigningContext::AddSignerUnsafe(const PdfSignature& signature, PdfSigner& signer)
@@ -46,20 +46,23 @@ void PdfSigningContext::AddSignerUnsafe(const PdfSignature& signature, PdfSigner
     (void)addSigner(signature, &signer, nullptr);
 }
 
-void PdfSigningContext::StartSigning(PdfMemDocument& doc, const shared_ptr<StreamDevice>& device,
+void PdfSigningContext::StartSigning(PdfMemDocument& doc, shared_ptr<StreamDevice> device,
     PdfSigningResults& results, PdfSaveOptions saveOptions)
 {
+    if (device == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The output device must be not null");
+
     ensureNotStarted();
     if (m_signers.size() == 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "No signers were configured");
 
     m_doc = &doc;
-    m_device = device;
+    m_device = std::move(device);
 
     charbuff tmpbuff;
     m_contexts = prepareSignatureContexts(doc, true);
-    saveDocForSigning(doc, *device, saveOptions);
-    appendDataForSigning(m_contexts, *device, &results.Intermediate, tmpbuff);
+    saveDocForSigning(doc, *m_device, saveOptions);
+    appendDataForSigning(m_contexts, *m_device, &results.Intermediate, tmpbuff);
 }
 
 void PdfSigningContext::FinishSigning(const PdfSigningResults& processedResults)
@@ -89,7 +92,8 @@ void PdfSigningContext::Sign(PdfMemDocument& doc, StreamDevice& device, PdfSaveO
     computeSignatures(contexts, doc, device, nullptr, tmpbuff);
 }
 
-PdfSignerId PdfSigningContext::addSigner(const PdfSignature& signature, PdfSigner* signer, const shared_ptr<PdfSigner>& storage)
+PdfSignerId PdfSigningContext::addSigner(const PdfSignature& signature, PdfSigner* signer,
+    shared_ptr<PdfSigner>&& storage)
 {
     auto reference = signature.GetObject().GetIndirectReference();
     auto found = m_signers.find(reference);
@@ -113,7 +117,7 @@ PdfSignerId PdfSigningContext::addSigner(const PdfSignature& signature, PdfSigne
 
     auto signedIdx = (unsigned)attrs->Signers.size();
     attrs->Signers.push_back(signer);
-    attrs->SignersStorage.push_back(storage);
+    attrs->SignersStorage.push_back(std::move(storage));
     return PdfSignerId(reference, signedIdx);
 }
 

@@ -18,10 +18,10 @@ namespace PoDoFo
 
     private:
         PdfButton(PdfAcroForm& acroform, PdfFieldType fieldType,
-            const std::shared_ptr<PdfField>& parent);
+            std::shared_ptr<PdfField>&& parent);
 
         PdfButton(PdfAnnotationWidget& widget, PdfFieldType fieldType,
-            const std::shared_ptr<PdfField>& parent);
+            std::shared_ptr<PdfField>&& parent);
 
         PdfButton(PdfObject& obj, PdfAcroForm* acroform, PdfFieldType fieldType);
 
@@ -60,10 +60,10 @@ namespace PoDoFo
 
     private:
         PdfToggleButton(PdfAcroForm& acroform, PdfFieldType fieldType,
-            const std::shared_ptr<PdfField>& parent);
+            std::shared_ptr<PdfField>&& parent);
 
         PdfToggleButton(PdfAnnotationWidget& widget, PdfFieldType fieldType,
-            const std::shared_ptr<PdfField>& parent);
+            std::shared_ptr<PdfField>&& parent);
 
         PdfToggleButton(PdfObject& obj, PdfAcroForm* acroform, PdfFieldType fieldType);
 

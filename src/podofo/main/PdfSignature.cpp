@@ -15,7 +15,6 @@
 #include "PdfDictionary.h"
 #include "PdfData.h"
 
-#include "PdfDocument.h"
 #include "PdfXObject.h"
 #include "PdfPage.h"
 
@@ -23,15 +22,15 @@ using namespace std;
 using namespace PoDoFo;
 using namespace chromium::base;
 
-PdfSignature::PdfSignature(PdfAcroForm& acroform, const shared_ptr<PdfField>& parent) :
-    PdfField(acroform, PdfFieldType::Signature, parent),
+PdfSignature::PdfSignature(PdfAcroForm& acroform, shared_ptr<PdfField>&& parent) :
+    PdfField(acroform, PdfFieldType::Signature, std::move(parent)),
     m_ValueObj(nullptr)
 {
     init(acroform);
 }
 
-PdfSignature::PdfSignature(PdfAnnotationWidget& widget, const shared_ptr<PdfField>& parent) :
-    PdfField(widget, PdfFieldType::Signature, parent),
+PdfSignature::PdfSignature(PdfAnnotationWidget& widget, shared_ptr<PdfField>&& parent) :
+    PdfField(widget, PdfFieldType::Signature, std::move(parent)),
     m_ValueObj(nullptr)
 {
     init(widget.GetDocument().GetOrCreateAcroForm());

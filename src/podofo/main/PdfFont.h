@@ -60,13 +60,13 @@ private:
      *         deleted along with the font.
      *  \param encoding the encoding of this font
      */
-    PdfFont(PdfDocument& doc, PdfFontType type, const PdfFontMetricsConstPtr& metrics,
+    PdfFont(PdfDocument& doc, PdfFontType type, PdfFontMetricsConstPtr&& metrics,
         const PdfEncoding& encoding);
 
     /** Create a PdfFont based on an existing PdfObject
      * To be used only by PdfFontObject!
      */
-    PdfFont(PdfObject& obj, PdfFontType type, const PdfFontMetricsConstPtr& metrics,
+    PdfFont(PdfObject& obj, PdfFontType type, PdfFontMetricsConstPtr&& metrics,
         const PdfEncoding& encoding);
 
 public:
@@ -96,7 +96,7 @@ private:
      * \remarks to be called by PdfFontManager
      * \returns a new PdfFont object or nullptr
      */
-    static std::unique_ptr<PdfFont> Create(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+    static std::unique_ptr<PdfFont> Create(PdfDocument& doc, PdfFontMetricsConstPtr&& metrics,
         const PdfFontCreateParams& createParams, bool isProxy = false);
 
     /**
@@ -444,8 +444,8 @@ private:
     void embedFontFileData(PdfObject& descriptor, const PdfName& fontFileName,
         const std::function<void(PdfDictionary& dict)>& dictWriter, const bufferview& data);
 
-    static std::unique_ptr<PdfFont> createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-        const PdfEncoding& encoding, PdfFontFileType type, bool preferNonCID);
+    static std::unique_ptr<PdfFont> createFontForType(PdfDocument& doc, PdfFontMetricsConstPtr&& metrics,
+        const PdfEncoding& encoding, bool preferNonCID);
 
     void initSpaceDescriptors();
 

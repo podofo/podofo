@@ -34,29 +34,29 @@ using namespace PoDoFo;
 static double getGlyphLength(double glyphLength, const PdfTextState& state, bool ignoreCharSpacing);
 static string_view toString(PdfFontStretch stretch);
 
-PdfFont::PdfFont(PdfDocument& doc, PdfFontType type, const PdfFontMetricsConstPtr& metrics,
+PdfFont::PdfFont(PdfDocument& doc, PdfFontType type, PdfFontMetricsConstPtr&& metrics,
         const PdfEncoding& encoding) :
     PdfDictionaryElement(doc, "Font"_n),
     m_Type(type),
     m_WordSpacingLengthRaw(-1),
     m_SpaceCharLengthRaw(-1),
-    m_Metrics(metrics)
+    m_Metrics(std::move(metrics))
 {
-    if (metrics == nullptr)
+    if (m_Metrics == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Metrics must me not null");
 
     this->initBase(encoding);
 }
 
-PdfFont::PdfFont(PdfObject& obj, PdfFontType type, const PdfFontMetricsConstPtr& metrics,
+PdfFont::PdfFont(PdfObject& obj, PdfFontType type, PdfFontMetricsConstPtr&& metrics,
         const PdfEncoding& encoding) :
     PdfDictionaryElement(obj),
     m_Type(type),
     m_WordSpacingLengthRaw(-1),
     m_SpaceCharLengthRaw(-1),
-    m_Metrics(metrics)
+    m_Metrics(std::move(metrics))
 {
-    if (metrics == nullptr)
+    if (m_Metrics == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Metrics must me not null");
 
     this->initBase(encoding);
@@ -121,11 +121,11 @@ bool PdfFont::TryCreateProxyFont(PdfFontCreateFlags initFlags, PdfFont*& proxyFo
     else
     {
         shared_ptr<PdfCMapEncoding> toUnicode = newMetrics->CreateToUnicodeMap(m_Encoding->GetLimits());
-        params.Encoding = PdfEncoding::Create(*m_Encoding, toUnicode);
+        params.Encoding = PdfEncoding::Create(*m_Encoding, std::move(toUnicode));
     }
 
     params.Flags = initFlags;
-    auto newFont = PdfFont::Create(GetDocument(), newMetrics, params, true);
+    auto newFont = PdfFont::Create(GetDocument(), std::move(newMetrics), params, true);
     if (newFont == nullptr)
     {
         proxyFont = nullptr;

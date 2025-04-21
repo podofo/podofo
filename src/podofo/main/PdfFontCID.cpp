@@ -42,8 +42,8 @@ private:
 };
 
 PdfFontCID::PdfFontCID(PdfDocument& doc, PdfFontType type,
-        const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding) :
-    PdfFont(doc, type, metrics, encoding),
+        PdfFontMetricsConstPtr&& metrics, const PdfEncoding& encoding) :
+    PdfFont(doc, type, std::move(metrics), encoding),
     m_descendantFont(nullptr),
     m_descriptor(nullptr)
 {

@@ -65,24 +65,24 @@ namespace PoDoFo
          * encoding will be constructed instead
          */
         PdfEncoding();
-        PdfEncoding(const PdfEncodingMapConstPtr& encoding, const PdfToUnicodeMapConstPtr& toUnicode = nullptr);
+        PdfEncoding(PdfEncodingMapConstPtr encoding, PdfToUnicodeMapConstPtr toUnicode = nullptr);
         PdfEncoding(const PdfEncoding&) = default;
 
     private:
-        PdfEncoding(unsigned id, const PdfEncodingMapConstPtr& encoding,
-            const PdfEncodingMapConstPtr& toUnicode);
+        PdfEncoding(unsigned id, PdfEncodingMapConstPtr&& encoding,
+            PdfEncodingMapConstPtr&& toUnicode);
         PdfEncoding(unsigned id, bool isObjectLoaded, const PdfEncodingLimits& limits, PdfFont* font,
-            const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode,
-            const PdfCIDToGIDMapConstPtr& cidToGidMap);
+            PdfEncodingMapConstPtr&& encoding, PdfEncodingMapConstPtr&& toUnicode,
+            PdfCIDToGIDMapConstPtr&& cidToGidMap);
 
         /** Create an encoding from object parsed information
          */
-        static PdfEncoding Create(const PdfEncodingLimits& parsedLimits, const PdfEncodingMapConstPtr& encoding,
-            const PdfEncodingMapConstPtr& toUnicode, const PdfCIDToGIDMapConstPtr& cidToGidMap);
+        static PdfEncoding Create(const PdfEncodingLimits& parsedLimits, PdfEncodingMapConstPtr&& encoding,
+            PdfEncodingMapConstPtr&& toUnicode, PdfCIDToGIDMapConstPtr&& cidToGidMap);
 
         /** Create a proxy encoding with a supplied /ToUnicode map
          */
-        static PdfEncoding Create(const PdfEncoding& ref, const PdfToUnicodeMapConstPtr& toUnicode);
+        static PdfEncoding Create(const PdfEncoding& ref, PdfToUnicodeMapConstPtr&& toUnicode);
 
         /** Encoding shim that mocks an wrap existing encoding. Used by PdfFont
          */

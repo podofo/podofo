@@ -116,7 +116,7 @@ namespace PoDoFo
          * To re-use the object, create a PdfColorSpace element from a
          * document with PdfDocument::CreateColorSpace(filter)
          */
-        PdfColorSpaceInitializer(const PdfColorSpaceFilterPtr& filter);
+        PdfColorSpaceInitializer(PdfColorSpaceFilterPtr&& filter);
 
     public:
         bool IsNull() const;

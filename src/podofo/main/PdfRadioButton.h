@@ -19,9 +19,9 @@ namespace PoDoFo
         friend class PdfField;
 
     private:
-        PdfRadioButton(PdfAcroForm& acroform, const std::shared_ptr<PdfField>& parent);
+        PdfRadioButton(PdfAcroForm& acroform, std::shared_ptr<PdfField>&& parent);
 
-        PdfRadioButton(PdfAnnotationWidget& widget, const std::shared_ptr<PdfField>& parent);
+        PdfRadioButton(PdfAnnotationWidget& widget, std::shared_ptr<PdfField>&& parent);
 
         PdfRadioButton(PdfObject& obj, PdfAcroForm* acroform);
 

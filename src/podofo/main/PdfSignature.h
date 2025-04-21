@@ -43,9 +43,9 @@ class PODOFO_API PdfSignature final : public PdfField
     friend class PdfSigningContext;
 
 private:
-    PdfSignature(PdfAcroForm& acroform, const std::shared_ptr<PdfField>& parent);
+    PdfSignature(PdfAcroForm& acroform, std::shared_ptr<PdfField>&& parent);
 
-    PdfSignature(PdfAnnotationWidget& widget, const std::shared_ptr<PdfField>& parent);
+    PdfSignature(PdfAnnotationWidget& widget, std::shared_ptr<PdfField>&& parent);
 
     PdfSignature(PdfObject& obj, PdfAcroForm* acroform);
 

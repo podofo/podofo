@@ -56,10 +56,10 @@ protected:
 
 private:
     PdfField(PdfAcroForm& acroform, PdfFieldType fieldType,
-        const std::shared_ptr<PdfField>& parent);
+        std::shared_ptr<PdfField>&& parent);
 
     PdfField(PdfAnnotationWidget& widget, PdfFieldType fieldType,
-        const std::shared_ptr<PdfField>& parent);
+        std::shared_ptr<PdfField>&& parent);
 
     PdfField(PdfObject& obj, PdfAcroForm* acroform, PdfFieldType fieldType);
 
@@ -279,7 +279,7 @@ private:
     // To be called by PdfFieldChildrenCollectionBase
     std::unique_ptr<PdfField> CreateChild();
     std::unique_ptr<PdfField> CreateChild(PdfPage& page, const Rect& rect);
-    void SetParent(const std::shared_ptr<PdfField>& parent) { m_Parent = parent; }
+    void SetParent(std::shared_ptr<PdfField>&& parent);
 
 private:
     PdfField(const PdfField& rhs) = delete;
@@ -287,10 +287,10 @@ private:
 
 private:
     static std::unique_ptr<PdfField> createField(PdfAnnotationWidget& widget,
-        PdfFieldType type, const std::shared_ptr<PdfField>& parent, bool insertInAcroform);
+        PdfFieldType type, std::shared_ptr<PdfField>&& parent, bool insertInAcroform);
 
     static std::unique_ptr<PdfField> createField(PdfAcroForm& acroform, PdfFieldType type,
-        const std::shared_ptr<PdfField>& parent);
+        std::shared_ptr<PdfField>&& parent);
 
     static void linkFieldObjectToParent(const std::shared_ptr<PdfField>& field, PdfField& parentField,
         const std::vector<std::string>& parentKeys, bool setParent, bool moveKeysToParent);

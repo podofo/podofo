@@ -43,7 +43,7 @@ public:
      */
     PdfMemDocument();
 
-    PdfMemDocument(const std::shared_ptr<InputStreamDevice>& device, const std::string_view& password = { });
+    PdfMemDocument(std::shared_ptr<InputStreamDevice> device, const std::string_view& password = { });
 
     /** Construct a copy of the given document
      */
@@ -74,7 +74,7 @@ public:
      *
      *  \see WriteUpdate, Load, LoadFromBuffer
      */
-    void Load(const std::shared_ptr<InputStreamDevice>& device, const std::string_view& password = { });
+    void Load(std::shared_ptr<InputStreamDevice> device, const std::string_view& password = { });
 
     /** Save the complete document to a file
      *
@@ -165,7 +165,7 @@ private:
     PdfMemDocument(bool empty);
 
 private:
-    void loadFromDevice(const std::shared_ptr<InputStreamDevice>& device, const std::string_view& password);
+    void loadFromDevice(std::shared_ptr<InputStreamDevice>&& device, const std::string_view& password);
 
     /** Internal method to load all objects from a PdfParser object.
      *  The objects will be removed from the parser and are now

@@ -21,9 +21,9 @@ PdfAnnotationWidget::PdfAnnotationWidget(PdfObject& obj)
 {
 }
 
-void PdfAnnotationWidget::SetField(const shared_ptr<PdfField>& field)
+void PdfAnnotationWidget::SetField(shared_ptr<PdfField>&& field)
 {
-    m_Field = field;
+    m_Field = std::move(field);
 }
 
 const PdfField& PdfAnnotationWidget::GetField() const

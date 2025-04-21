@@ -15,8 +15,8 @@ PdfEncryptSession::PdfEncryptSession(const PdfEncrypt& encrypt, const PdfEncrypt
 {
 }
 
-PdfEncryptSession::PdfEncryptSession(const shared_ptr<PdfEncrypt>& encrypt)
-    : m_Encrypt(encrypt)
+PdfEncryptSession::PdfEncryptSession(shared_ptr<PdfEncrypt>&& encrypt)
+    : m_Encrypt(std::move(encrypt))
 {
-    PODOFO_ASSERT(encrypt != nullptr);
+    PODOFO_ASSERT(m_Encrypt != nullptr);
 }

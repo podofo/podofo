@@ -11,9 +11,9 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfFontCIDCFF::PdfFontCIDCFF(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+PdfFontCIDCFF::PdfFontCIDCFF(PdfDocument& doc, PdfFontMetricsConstPtr&& metrics,
         const PdfEncoding& encoding)
-    : PdfFontCID(doc, PdfFontType::CIDCFF, metrics, encoding) { }
+    : PdfFontCID(doc, PdfFontType::CIDCFF, std::move(metrics), encoding) { }
 
 bool PdfFontCIDCFF::SupportsSubsetting() const
 {

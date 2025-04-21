@@ -28,13 +28,13 @@ PdfMemDocument::PdfMemDocument(bool empty) :
 {
 }
 
-PdfMemDocument::PdfMemDocument(const shared_ptr<InputStreamDevice>& device, const string_view& password)
+PdfMemDocument::PdfMemDocument(shared_ptr<InputStreamDevice> device, const string_view& password)
     : PdfMemDocument(true)
 {
     if (device == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    loadFromDevice(device, password);
+    loadFromDevice(std::move(device), password);
 }
 
 PdfMemDocument::PdfMemDocument(const PdfMemDocument& rhs) :
@@ -105,24 +105,24 @@ void PdfMemDocument::LoadFromBuffer(const bufferview& buffer, const string_view&
     Load(device, password);
 }
 
-void PdfMemDocument::Load(const shared_ptr<InputStreamDevice>& device, const string_view& password)
+void PdfMemDocument::Load(shared_ptr<InputStreamDevice> device, const string_view& password)
 {
     if (device == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     this->Clear();
-    loadFromDevice(device, password);
+    loadFromDevice(std::move(device), password);
 }
 
-void PdfMemDocument::loadFromDevice(const shared_ptr<InputStreamDevice>& device, const string_view& password)
+void PdfMemDocument::loadFromDevice(shared_ptr<InputStreamDevice>&& device, const string_view& password)
 {
-    m_device = device;
+    m_device = std::move(device);
 
     // Call parse file instead of using the constructor
     // so that m_Parser is initialized for encrypted documents
     PdfParser parser(PdfDocument::GetObjects());
     parser.SetPassword(password);
-    parser.Parse(*device, true);
+    parser.Parse(*m_device, true);
     initFromParser(parser);
 }
 

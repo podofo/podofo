@@ -89,7 +89,7 @@ public:
     PdfFont& GetOrCreateFontFromBuffer(const bufferview& buffer,
         const PdfFontCreateParams& params = { });
 
-    PdfFont& GetOrCreateFont(const PdfFontMetricsConstPtr& metrics,
+    PdfFont& GetOrCreateFont(PdfFontMetricsConstPtr metrics,
         const PdfFontCreateParams& params = { });
 
     /** Try getting the font from the cached font map
@@ -213,7 +213,7 @@ private:
     PdfFont* getImportedFont(const std::string_view& pattern,
         const PdfFontSearchParams& searchParams, const PdfFontCreateParams& createParams);
     PdfFont* addImported(std::vector<PdfFont*>& fonts, std::unique_ptr<PdfFont>&& font);
-    PdfFont& getOrCreateFontHashed(const PdfFontMetricsConstPtr& metrics, const PdfFontCreateParams& params);
+    PdfFont& getOrCreateFontHashed(PdfFontMetricsConstPtr&& metrics, const PdfFontCreateParams& params);
 
 #if defined(_WIN32) && defined(PODOFO_HAVE_WIN32GDI)
     static std::unique_ptr<charbuff> getWin32FontData(const std::string_view& fontName,

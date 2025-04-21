@@ -12,18 +12,18 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfStreamedDocument::PdfStreamedDocument(const shared_ptr<OutputStreamDevice>& device, PdfVersion version,
-        const shared_ptr<PdfEncrypt>& encrypt, PdfSaveOptions opts) :
-    m_Device(device),
-    m_Encrypt(encrypt)
+PdfStreamedDocument::PdfStreamedDocument(shared_ptr<OutputStreamDevice> device, PdfVersion version,
+        shared_ptr<PdfEncrypt> encrypt, PdfSaveOptions opts) :
+    m_Device(std::move(device)),
+    m_Encrypt(std::move(encrypt))
 {
     init(version, opts);
 }
 
 PdfStreamedDocument::PdfStreamedDocument(const string_view& filename, PdfVersion version,
-        const shared_ptr<PdfEncrypt>& encrypt, PdfSaveOptions opts) :
+        shared_ptr<PdfEncrypt> encrypt, PdfSaveOptions opts) :
     m_Device(new FileStreamDevice(filename, FileMode::Create)),
-    m_Encrypt(encrypt)
+    m_Encrypt(std::move(encrypt))
 {
     init(version, opts);
 }

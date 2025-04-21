@@ -152,10 +152,10 @@ namespace PoDoFo
             : m_buff(std::move(buff)), m_view(*m_buff) { }
         datahandle_t(std::unique_ptr<charbuff_t<>>&& buff)
             : m_buff(std::move(buff)), m_view(*m_buff) { }
-        datahandle_t(const std::shared_ptr<const charbuff_t<>>& buff)
-            : m_buff(buff), m_view(*m_buff) { }
-        datahandle_t(const std::shared_ptr<charbuff_t<>>& buff)
-            : m_buff(buff), m_view(*m_buff) { }
+        datahandle_t(std::shared_ptr<const charbuff_t<>> buff)
+            : m_buff(std::move(buff)), m_view(*m_buff) { }
+        datahandle_t(std::shared_ptr<charbuff_t<>> buff)
+            : m_buff(std::move(buff)), m_view(*m_buff) { }
     public:
         const bufferview& view() const { return m_view; }
     private:

@@ -17,7 +17,7 @@ namespace PoDoFo
         friend class PdfDocument;
 
     private:
-        PdfFunction(PdfDocument& doc, const PdfFunctionDefinitionPtr& definition);
+        PdfFunction(PdfDocument& doc, PdfFunctionDefinitionPtr&& definition);
 
     public:
         const PdfFunctionDefinition& GetDefinition() const { return *m_Definition; }

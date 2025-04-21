@@ -19,9 +19,9 @@ namespace PoDoFo
         friend class PdfField;
 
     private:
-        PdfCheckBox(PdfAcroForm& acroform, const std::shared_ptr<PdfField>& parent);
+        PdfCheckBox(PdfAcroForm& acroform, std::shared_ptr<PdfField>&& parent);
 
-        PdfCheckBox(PdfAnnotationWidget& widget, const std::shared_ptr<PdfField>& parent);
+        PdfCheckBox(PdfAnnotationWidget& widget, std::shared_ptr<PdfField>&& parent);
 
         PdfCheckBox(PdfObject& obj, PdfAcroForm* acroform);
 

@@ -41,7 +41,7 @@ public:
      *  \param writeMode additional options for writing the pdf
      */
     PdfImmediateWriter(PdfIndirectObjectList& objects, const PdfObject& trailer, OutputStreamDevice& device,
-        PdfVersion version = PdfVersion::V1_5, const std::shared_ptr<PdfEncrypt>& encrypt = nullptr,
+        PdfVersion version = PdfVersion::V1_5, std::shared_ptr<PdfEncrypt> encrypt = nullptr,
         PdfSaveOptions opts = PdfSaveOptions::None);
 
     ~PdfImmediateWriter();

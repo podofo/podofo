@@ -11,14 +11,14 @@ using namespace std;
 using namespace PoDoFo;
 
 
-PdfComboBox::PdfComboBox(PdfAcroForm& acroform, const shared_ptr<PdfField>& parent)
-    : PdChoiceField(acroform, PdfFieldType::ComboBox, parent)
+PdfComboBox::PdfComboBox(PdfAcroForm& acroform, shared_ptr<PdfField>&& parent)
+    : PdChoiceField(acroform, PdfFieldType::ComboBox, std::move(parent))
 {
     this->SetFieldFlag(static_cast<int>(PdfListField_Combo), true);
 }
 
-PdfComboBox::PdfComboBox(PdfAnnotationWidget& widget, const shared_ptr<PdfField>& parent)
-    : PdChoiceField(widget, PdfFieldType::ComboBox, parent)
+PdfComboBox::PdfComboBox(PdfAnnotationWidget& widget, shared_ptr<PdfField>&& parent)
+    : PdChoiceField(widget, PdfFieldType::ComboBox, std::move(parent))
 {
     this->SetFieldFlag(static_cast<int>(PdfListField_Combo), true);
 }

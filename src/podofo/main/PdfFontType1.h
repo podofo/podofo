@@ -34,7 +34,7 @@ private:
      *  \param encoding the encoding of this font
      *
      */
-    PdfFontType1(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+    PdfFontType1(PdfDocument& doc, PdfFontMetricsConstPtr&& metrics,
         const PdfEncoding& encoding);
 };
 

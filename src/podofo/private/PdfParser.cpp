@@ -627,10 +627,10 @@ void PdfParser::ReadObjects(InputStreamDevice& device)
                 "The encryption entry in the trailer is neither an object nor a reference");
         }
 
-        m_Encrypt.reset(new PdfEncryptSession(encrypt));
+        m_Encrypt.reset(new PdfEncryptSession(std::move(encrypt)));
 
         // Generate encryption keys
-        encrypt->Authenticate(m_Password, this->getDocumentId(), m_Encrypt->GetContext());
+        m_Encrypt->GetEncrypt().Authenticate(m_Password, this->getDocumentId(), m_Encrypt->GetContext());
         if (m_Encrypt->GetContext().GetAuthResult() == PdfAuthResult::Failed)
         {
             // authentication failed so we need a password from the user.

@@ -24,7 +24,7 @@ namespace PoDoFo
     class PdfDynamicEncodingMap : public PdfEncodingMapBase
     {
     public:
-        PdfDynamicEncodingMap(const shared_ptr<PdfCharCodeMap>& map);
+        PdfDynamicEncodingMap(shared_ptr<PdfCharCodeMap> map);
 
         void AppendCodeSpaceRange(OutputStream& stream, charbuff& temp) const override;
     };
@@ -38,38 +38,39 @@ PdfEncoding::PdfEncoding()
 {
 }
 
-PdfEncoding::PdfEncoding(const PdfEncodingMapConstPtr& encoding, const PdfToUnicodeMapConstPtr& toUnicode)
-    : PdfEncoding(GetNextId(), encoding, toUnicode)
+PdfEncoding::PdfEncoding(PdfEncodingMapConstPtr encoding, PdfToUnicodeMapConstPtr toUnicode)
+    : PdfEncoding(GetNextId(), std::move(encoding), std::move(toUnicode))
 {
-    if (toUnicode != nullptr && toUnicode->GetType() != PdfEncodingMapType::CMap)
+    if (m_ToUnicode != nullptr && m_ToUnicode->GetType() != PdfEncodingMapType::CMap)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The encoding map must be CMap type");
 }
 
-PdfEncoding::PdfEncoding(unsigned id, const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode)
-    : m_Id(id), m_IsObjectLoaded(false), m_Font(nullptr), m_Encoding(encoding), m_ToUnicode(toUnicode)
+PdfEncoding::PdfEncoding(unsigned id, PdfEncodingMapConstPtr&& encoding, PdfEncodingMapConstPtr&& toUnicode)
+    : m_Id(id), m_IsObjectLoaded(false), m_Font(nullptr), m_Encoding(std::move(encoding)), m_ToUnicode(std::move(toUnicode))
 {
-    if (encoding == nullptr)
+    if (m_Encoding == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Main encoding must be not null");
 }
 
 PdfEncoding::PdfEncoding(unsigned id, bool isObjectLoaded, const PdfEncodingLimits& limits, PdfFont* font,
-        const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode,
-        const PdfCIDToGIDMapConstPtr& cidToGidMap) :
+        PdfEncodingMapConstPtr&& encoding, PdfEncodingMapConstPtr&& toUnicode,
+        PdfCIDToGIDMapConstPtr&& cidToGidMap) :
     m_Id(id), m_IsObjectLoaded(isObjectLoaded), m_ParsedLimits(limits), m_Font(font),
-    m_Encoding(encoding), m_ToUnicode(toUnicode), m_CIDToGIDMap(cidToGidMap)
+    m_Encoding(std::move(encoding)), m_ToUnicode(std::move(toUnicode)), m_CIDToGIDMap(std::move(cidToGidMap))
 {
 }
 
-PdfEncoding PdfEncoding::Create(const PdfEncoding& ref, const PdfToUnicodeMapConstPtr& toUnicode)
+PdfEncoding PdfEncoding::Create(const PdfEncoding& ref, PdfToUnicodeMapConstPtr&& toUnicode)
 {
     return PdfEncoding(GetNextId(), ref.IsObjectLoaded(), ref.GetLimits(),
-        nullptr, ref.GetEncodingMapPtr(), toUnicode, nullptr);
+        nullptr, ref.GetEncodingMapPtr(), std::move(toUnicode), nullptr);
 }
 
-PdfEncoding PdfEncoding::Create(const PdfEncodingLimits& parsedLimits, const PdfEncodingMapConstPtr& encoding,
-    const PdfEncodingMapConstPtr& toUnicode, const PdfCIDToGIDMapConstPtr& cidToGidMap)
+PdfEncoding PdfEncoding::Create(const PdfEncodingLimits& parsedLimits, PdfEncodingMapConstPtr&& encoding,
+    PdfEncodingMapConstPtr&& toUnicode, PdfCIDToGIDMapConstPtr&& cidToGidMap)
 {
-    return PdfEncoding(GetNextId(), true, parsedLimits, nullptr, encoding, toUnicode, cidToGidMap);
+    return PdfEncoding(GetNextId(), true, parsedLimits, nullptr,
+        std::move(encoding), std::move(toUnicode), std::move(cidToGidMap));
 }
 
 unique_ptr<PdfEncoding> PdfEncoding::CreateSchim(const PdfEncoding& encoding, PdfFont& font)
@@ -710,8 +711,9 @@ bool PdfStringScanContext::TryScan(PdfCID& cid, string& utf8str, CodePointSpan& 
     return success;
 }
 
-PdfDynamicEncodingMap::PdfDynamicEncodingMap(const shared_ptr<PdfCharCodeMap>& map)
-    : PdfEncodingMapBase(map, PdfEncodingMapType::CMap) { }
+PdfDynamicEncodingMap::PdfDynamicEncodingMap(shared_ptr<PdfCharCodeMap> map)
+    : PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap) {
+}
 
 void PdfDynamicEncodingMap::AppendCodeSpaceRange(OutputStream& stream, charbuff& temp) const
 {

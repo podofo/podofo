@@ -19,7 +19,7 @@ class PODOFO_API PdfColorSpace final : public PdfElement
     friend class PdfDocument;
 
 private:
-    PdfColorSpace(PdfDocument& doc, const PdfColorSpaceFilterPtr& filter);
+    PdfColorSpace(PdfDocument& doc, PdfColorSpaceFilterPtr&& filter);
 
     PdfColorSpace(const PdfColorSpace&) = default;
 

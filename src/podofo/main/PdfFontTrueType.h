@@ -38,7 +38,7 @@ private:
      *  \param embed if true the font will get embedded.
      *
      */
-    PdfFontTrueType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+    PdfFontTrueType(PdfDocument& doc, PdfFontMetricsConstPtr&& metrics,
         const PdfEncoding& encoding);
 };
 

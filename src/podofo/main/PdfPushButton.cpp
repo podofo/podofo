@@ -11,14 +11,14 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfPushButton::PdfPushButton(PdfAcroForm& acroform, const shared_ptr<PdfField>& parent)
-    : PdfButton(acroform, PdfFieldType::PushButton, parent)
+PdfPushButton::PdfPushButton(PdfAcroForm& acroform, shared_ptr<PdfField>&& parent)
+    : PdfButton(acroform, PdfFieldType::PushButton, std::move(parent))
 {
     init();
 }
 
-PdfPushButton::PdfPushButton(PdfAnnotationWidget& widget, const shared_ptr<PdfField>& parent)
-    : PdfButton(widget, PdfFieldType::PushButton, parent)
+PdfPushButton::PdfPushButton(PdfAnnotationWidget& widget, shared_ptr<PdfField>&& parent)
+    : PdfButton(widget, PdfFieldType::PushButton, std::move(parent))
 {
     init();
 }

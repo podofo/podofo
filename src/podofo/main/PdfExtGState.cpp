@@ -12,30 +12,30 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfExtGState::PdfExtGState(PdfDocument& doc, const PdfExtGStateDefinitionPtr& definition)
-    : PdfDictionaryElement(doc, "ExtGState"_n), m_Definition(definition)
+PdfExtGState::PdfExtGState(PdfDocument& doc, PdfExtGStateDefinitionPtr&& definition)
+    : PdfDictionaryElement(doc, "ExtGState"_n), m_Definition(std::move(definition))
 {
-    if (definition == nullptr)
+    if (m_Definition == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The definition must be non null");
 
-    if (definition->NonStrokingAlpha != nullptr)
-        GetDictionary().AddKey("ca"_n, *definition->NonStrokingAlpha);
+    if (m_Definition->NonStrokingAlpha != nullptr)
+        GetDictionary().AddKey("ca"_n, *m_Definition->NonStrokingAlpha);
 
-    if (definition->StrokingAlpha != nullptr)
-        GetDictionary().AddKey("CA"_n, *definition->StrokingAlpha);
+    if (m_Definition->StrokingAlpha != nullptr)
+        GetDictionary().AddKey("CA"_n, *m_Definition->StrokingAlpha);
 
-    if (definition->BlendMode != nullptr)
-        GetDictionary().AddKey("BM"_n, PdfName(PoDoFo::ToString(*definition->BlendMode)));
+    if (m_Definition->BlendMode != nullptr)
+        GetDictionary().AddKey("BM"_n, PdfName(PoDoFo::ToString(*m_Definition->BlendMode)));
 
-    if (definition->RenderingIntent != nullptr)
-        GetDictionary().AddKey("RI"_n, PdfName(PoDoFo::ToString(*definition->RenderingIntent)));
+    if (m_Definition->RenderingIntent != nullptr)
+        GetDictionary().AddKey("RI"_n, PdfName(PoDoFo::ToString(*m_Definition->RenderingIntent)));
 
-    if ((definition->OverprintControl & PdfOverprintEnablement::NonStroking) != PdfOverprintEnablement::None)
+    if ((m_Definition->OverprintControl & PdfOverprintEnablement::NonStroking) != PdfOverprintEnablement::None)
         GetDictionary().AddKey("op"_n, true);
 
-    if ((definition->OverprintControl & PdfOverprintEnablement::Stroking) != PdfOverprintEnablement::None)
+    if ((m_Definition->OverprintControl & PdfOverprintEnablement::Stroking) != PdfOverprintEnablement::None)
         GetDictionary().AddKey("OP"_n, true);
 
-    if (definition->NonZeroOverprintMode != nullptr)
-        GetDictionary().AddKey("OPM"_n, PdfVariant(static_cast<int64_t>(*definition->NonZeroOverprintMode ? 1 : 0)));
+    if (m_Definition->NonZeroOverprintMode != nullptr)
+        GetDictionary().AddKey("OPM"_n, PdfVariant(static_cast<int64_t>(*m_Definition->NonZeroOverprintMode ? 1 : 0)));
 }

@@ -11,13 +11,13 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfCheckBox::PdfCheckBox(PdfAcroForm& acroform, const shared_ptr<PdfField>& parent)
-    : PdfToggleButton(acroform, PdfFieldType::CheckBox, parent)
+PdfCheckBox::PdfCheckBox(PdfAcroForm& acroform, shared_ptr<PdfField>&& parent)
+    : PdfToggleButton(acroform, PdfFieldType::CheckBox, std::move(parent))
 {
 }
 
-PdfCheckBox::PdfCheckBox(PdfAnnotationWidget& widget, const shared_ptr<PdfField>& parent)
-    : PdfToggleButton(widget, PdfFieldType::CheckBox, parent)
+PdfCheckBox::PdfCheckBox(PdfAnnotationWidget& widget, shared_ptr<PdfField>&& parent)
+    : PdfToggleButton(widget, PdfFieldType::CheckBox, std::move(parent))
 {
 }
 

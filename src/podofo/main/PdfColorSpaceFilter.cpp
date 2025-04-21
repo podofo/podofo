@@ -789,7 +789,7 @@ bool PdfColorSpaceFilterFactory::TryCreateFromObject(const PdfObject& obj, PdfCo
                 if (lookup.size() < baseColorSpace->GetColorComponentCount() * ((unsigned)maxIndex + 1))
                     goto InvalidIndexed;        // Table has invalid lookup map size
 
-                colorSpace.reset(new PdfColorSpaceFilterIndexed(baseColorSpace, (unsigned)maxIndex + 1, std::move(lookup)));
+                colorSpace.reset(new PdfColorSpaceFilterIndexed(std::move(baseColorSpace), (unsigned)maxIndex + 1, std::move(lookup)));
                 return true;
 
             InvalidIndexed:
@@ -901,13 +901,13 @@ PdfColorSpaceInitializer::PdfColorSpaceInitializer()
 {
 }
 
-PdfColorSpaceInitializer::PdfColorSpaceInitializer(const PdfColorSpaceFilterPtr& filter)
-    : m_Filter(filter)
+PdfColorSpaceInitializer::PdfColorSpaceInitializer(PdfColorSpaceFilterPtr&& filter)
+    : m_Filter(std::move(filter))
 {
-    if (filter == nullptr)
+    if (m_Filter == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The input filter must not be nullptr");
 
-    switch (filter->GetType())
+    switch (m_Filter->GetType())
     {
         case PdfColorSpaceType::DeviceRGB:
             m_ExpVar = "DeviceRGB"_n;

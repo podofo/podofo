@@ -420,10 +420,10 @@ void PdfEncodingMapBase::AppendToUnicodeEntries(OutputStream& stream, charbuff& 
     }
 }
 
-PdfEncodingMapBase::PdfEncodingMapBase(const shared_ptr<PdfCharCodeMap>& map, PdfEncodingMapType type)
-    : PdfEncodingMap(type), m_charMap(map)
+PdfEncodingMapBase::PdfEncodingMapBase(shared_ptr<PdfCharCodeMap>&& map, PdfEncodingMapType type)
+    : PdfEncodingMap(type), m_charMap(std::move(map))
 {
-    if (map == nullptr)
+    if (m_charMap == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Map must be not null");
 }
 

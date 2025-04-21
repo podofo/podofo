@@ -11,14 +11,14 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfTextBox::PdfTextBox(PdfAcroForm& acroform, const shared_ptr<PdfField>& parent)
-    : PdfField(acroform, PdfFieldType::TextBox, parent)
+PdfTextBox::PdfTextBox(PdfAcroForm& acroform, shared_ptr<PdfField>&& parent)
+    : PdfField(acroform, PdfFieldType::TextBox, std::move(parent))
 {
     init();
 }
 
-PdfTextBox::PdfTextBox(PdfAnnotationWidget& widget, const shared_ptr<PdfField>& parent)
-    : PdfField(widget, PdfFieldType::TextBox, parent)
+PdfTextBox::PdfTextBox(PdfAnnotationWidget& widget, shared_ptr<PdfField>&& parent)
+    : PdfField(widget, PdfFieldType::TextBox, std::move(parent))
 {
     init();
 }

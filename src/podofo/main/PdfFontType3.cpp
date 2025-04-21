@@ -15,8 +15,8 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfFontType3::PdfFontType3(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-    const PdfEncoding& encoding)
-    : PdfFontSimple(doc, PdfFontType::Type3, metrics, encoding)
+PdfFontType3::PdfFontType3(PdfDocument& doc, PdfFontMetricsConstPtr&& metrics,
+        const PdfEncoding& encoding)
+    : PdfFontSimple(doc, PdfFontType::Type3, std::move(metrics), encoding)
 {
 }

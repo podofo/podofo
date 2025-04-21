@@ -243,7 +243,7 @@ public:
     const PdfEncodingLimits& GetLimits() const override;
 
 private:
-    PdfEncodingMapBase(const std::shared_ptr<PdfCharCodeMap>& map, PdfEncodingMapType type);
+    PdfEncodingMapBase(std::shared_ptr<PdfCharCodeMap>&& map, PdfEncodingMapType type);
 
 private:
     std::shared_ptr<PdfCharCodeMap> m_charMap;

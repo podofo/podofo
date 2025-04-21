@@ -20,11 +20,11 @@ PdfContentStreamReader::PdfContentStreamReader(const PdfCanvas& canvas,
     PdfContentStreamReader(std::make_shared<PdfCanvasInputDevice>(canvas),
         &canvas, args) { }
 
-PdfContentStreamReader::PdfContentStreamReader(const shared_ptr<InputStreamDevice>& device,
+PdfContentStreamReader::PdfContentStreamReader(shared_ptr<InputStreamDevice> device,
         nullable<const PdfContentReaderArgs&> args) :
-    PdfContentStreamReader(device, nullptr, args) { }
+    PdfContentStreamReader(std::move(device), nullptr, args) { }
 
-PdfContentStreamReader::PdfContentStreamReader(const shared_ptr<InputStreamDevice>& device,
+PdfContentStreamReader::PdfContentStreamReader(shared_ptr<InputStreamDevice>&& device,
     const PdfCanvas* canvas, nullable<const PdfContentReaderArgs&> args) :
     m_args(args.has_value() ? *args : PdfContentReaderArgs()),
     m_buffer(std::make_shared<charbuff>(PdfTokenizer::BufferSize)),
@@ -35,7 +35,7 @@ PdfContentStreamReader::PdfContentStreamReader(const shared_ptr<InputStreamDevic
     if (device == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Device must be non null");
 
-    m_inputs.push_back({ nullptr, device, canvas });
+    m_inputs.push_back({ nullptr, std::move(device), canvas });
 }
 
 bool PdfContentStreamReader::TryReadNext(PdfContent& content)

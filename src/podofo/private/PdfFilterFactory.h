@@ -45,7 +45,7 @@ public:
      *
      *  \see PdfFilterFactory::CreateFilterList
      */
-    static std::unique_ptr<OutputStream> CreateEncodeStream(const std::shared_ptr<OutputStream>& stream,
+    static std::unique_ptr<OutputStream> CreateEncodeStream(std::shared_ptr<OutputStream> stream,
         const PdfFilterList& filters);
 
     /** Create an InputStream that applies a list of filters
@@ -59,7 +59,7 @@ public:
      *
      *  \see PdfFilterFactory::CreateFilterList
      */
-    static std::unique_ptr<InputStream> CreateDecodeStream(const std::shared_ptr<InputStream>& stream,
+    static std::unique_ptr<InputStream> CreateDecodeStream(std::shared_ptr<InputStream> stream,
         const PdfFilterList& filters, const std::vector<const PdfDictionary*>& decodeParms);
 
     /** The passed PdfObject has to be a dictionary with a Filters key,

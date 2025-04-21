@@ -33,7 +33,7 @@ public:
     /**
      * \param buffer a shareable internal/temporary buffer. It's not the buffer where the contents will be read!
      */
-    PdfPostScriptTokenizer(const std::shared_ptr<charbuff>& buffer,
+    PdfPostScriptTokenizer(std::shared_ptr<charbuff> buffer,
         PdfPostScriptLanguageLevel level = PdfPostScriptLanguageLevel::L2);
 public:
     bool TryReadNext(InputStreamDevice& device, PdfPostScriptTokenType& tokenType, std::string_view& keyword, PdfVariant& variant);

@@ -11,8 +11,8 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfColorSpace::PdfColorSpace(PdfDocument& doc, const PdfColorSpaceFilterPtr& filter)
-    : PdfElement(getExportObject(doc, filter.get())), m_Filter(filter)
+PdfColorSpace::PdfColorSpace(PdfDocument& doc, PdfColorSpaceFilterPtr&& filter)
+    : PdfElement(getExportObject(doc, filter.get())), m_Filter(std::move(filter))
 {
 }
 

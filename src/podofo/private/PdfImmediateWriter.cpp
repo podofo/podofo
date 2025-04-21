@@ -16,7 +16,7 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const PdfObject& trailer,
-        OutputStreamDevice& device, PdfVersion version, const shared_ptr<PdfEncrypt>& encrypt, PdfSaveOptions opts) :
+        OutputStreamDevice& device, PdfVersion version, shared_ptr<PdfEncrypt> encrypt, PdfSaveOptions opts) :
     PdfWriter(objects, trailer),
     m_Device(&device),
     m_OpenStream(false)
@@ -36,9 +36,9 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
     // Setup encryption
     if (encrypt != nullptr)
     {
-        m_encrypt.reset(new PdfEncryptSession(encrypt));
+        m_encrypt.reset(new PdfEncryptSession(std::move(encrypt)));
         this->SetEncrypt(*m_encrypt);
-        encrypt->EnsureEncryptionInitialized(GetIdentifier(), m_encrypt->GetContext());
+        m_encrypt->GetEncrypt().EnsureEncryptionInitialized(GetIdentifier(), m_encrypt->GetContext());
     }
 
     // Start with writing the header

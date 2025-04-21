@@ -24,43 +24,42 @@
 using namespace std;
 using namespace PoDoFo;
 
-unique_ptr<PdfFont> PdfFont::Create(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+unique_ptr<PdfFont> PdfFont::Create(PdfDocument& doc, PdfFontMetricsConstPtr&& metrics,
     const PdfFontCreateParams& createParams, bool isProxy)
 {
     bool embeddingEnabled = (createParams.Flags & PdfFontCreateFlags::DontEmbed) == PdfFontCreateFlags::None;
     bool subsettingEnabled = (createParams.Flags & PdfFontCreateFlags::DontSubset) == PdfFontCreateFlags::None;
     bool preferNonCid = (createParams.Flags & PdfFontCreateFlags::PreferNonCID) != PdfFontCreateFlags::None;
 
-    auto font = createFontForType(doc, metrics, createParams.Encoding,
-        metrics->GetFontFileType(), preferNonCid);
+    auto font = createFontForType(doc, std::move(metrics), createParams.Encoding, preferNonCid);
     if (font != nullptr)
         font->InitImported(embeddingEnabled, subsettingEnabled, isProxy);
 
     return font;
 }
 
-unique_ptr<PdfFont> PdfFont::createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-    const PdfEncoding& encoding, PdfFontFileType type, bool preferNonCID)
+unique_ptr<PdfFont> PdfFont::createFontForType(PdfDocument& doc, PdfFontMetricsConstPtr&& metrics,
+    const PdfEncoding& encoding, bool preferNonCID)
 {
     PdfFont* font = nullptr;
-    switch (type)
+    switch (metrics->GetFontFileType())
     {
         case PdfFontFileType::TrueType:
             if (preferNonCID && !encoding.HasCIDMapping())
-                font = new PdfFontTrueType(doc, metrics, encoding);
+                font = new PdfFontTrueType(doc, std::move(metrics), encoding);
             else
-                font = new PdfFontCIDTrueType(doc, metrics, encoding);
+                font = new PdfFontCIDTrueType(doc, std::move(metrics), encoding);
             break;
         case PdfFontFileType::Type1:
-            font = new PdfFontType1(doc, metrics, encoding);
+            font = new PdfFontType1(doc, std::move(metrics), encoding);
             break;
         case PdfFontFileType::Type1CFF:
         case PdfFontFileType::CIDKeyedCFF:
         case PdfFontFileType::OpenTypeCFF:
-            font = new PdfFontCIDCFF(doc, metrics, encoding);
+            font = new PdfFontCIDCFF(doc, std::move(metrics), encoding);
             break;
         case PdfFontFileType::Type3:
-            font = new PdfFontType3(doc, metrics, encoding);
+            font = new PdfFontType3(doc, std::move(metrics), encoding);
             break;
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Unsupported font at this context");
@@ -164,7 +163,7 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
         goto Fail;
     }
 
-    font = PdfFontObject::Create(obj, metrics, encoding);
+    font = PdfFontObject::Create(obj, std::move(metrics), encoding);
     return true;
 }
 
@@ -187,9 +186,9 @@ unique_ptr<PdfFont> PdfFont::CreateStandard14(PdfDocument& doc, PdfStandard14Fon
     PdfFontMetricsConstPtr metrics = PdfFontMetricsStandard14::Create(std14Font);
     unique_ptr<PdfFont> font;
     if (preferNonCid && !createParams.Encoding.HasCIDMapping())
-        font.reset(new PdfFontType1(doc, metrics, createParams.Encoding));
+        font.reset(new PdfFontType1(doc, std::move(metrics), createParams.Encoding));
     else
-        font.reset(new PdfFontCIDCFF(doc, metrics, createParams.Encoding));
+        font.reset(new PdfFontCIDCFF(doc, std::move(metrics), createParams.Encoding));
 
     if (font != nullptr)
         font->InitImported(embeddingEnabled, subsettingEnabled, false);

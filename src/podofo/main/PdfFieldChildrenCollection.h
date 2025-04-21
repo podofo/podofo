@@ -104,7 +104,7 @@ namespace PoDoFo
 
     private:
         // To be called by PdfField
-        PdfField& AddChild(const std::shared_ptr<PdfField>& field);
+        PdfField& AddChild(std::shared_ptr<PdfField> field);
     private:
         PdfArray* getKidsArray() const;
         void initFields();

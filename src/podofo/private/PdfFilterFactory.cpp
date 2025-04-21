@@ -28,10 +28,10 @@ private:
         m_filter->EndEncode();
     }
 public:
-    PdfFilteredEncodeStream(const shared_ptr<OutputStream>& outputStream, PdfFilterType filterType)
-        : m_OutputStream(outputStream)
+    PdfFilteredEncodeStream(shared_ptr<OutputStream>&& outputStream, PdfFilterType filterType)
+        : m_OutputStream(std::move(outputStream))
     {
-        init(*outputStream, filterType);
+        init(*m_OutputStream, filterType);
     }
 protected:
     void writeBuffer(const char* buffer, size_t len) override
@@ -112,9 +112,9 @@ private:
 class PdfBufferedDecodeStream : public InputStream, private OutputStream
 {
 public:
-    PdfBufferedDecodeStream(const shared_ptr<InputStream>& inputStream, const PdfFilterList& filters,
+    PdfBufferedDecodeStream(shared_ptr<InputStream>&& inputStream, const PdfFilterList& filters,
         const vector<const PdfDictionary*>& decodeParms)
-        : m_inputEof(false), m_inputStream(inputStream), m_offset(0)
+        : m_inputEof(false), m_inputStream(std::move(inputStream)), m_offset(0)
     {
         PODOFO_INVARIANT(filters.size() != 0);
         int i = (int)filters.size() - 1;
@@ -211,13 +211,13 @@ bool PdfFilterFactory::TryCreate(PdfFilterType filterType, unique_ptr<PdfFilter>
     }
 }
 
-unique_ptr<OutputStream> PdfFilterFactory::CreateEncodeStream(const shared_ptr<OutputStream>& stream,
+unique_ptr<OutputStream> PdfFilterFactory::CreateEncodeStream(shared_ptr<OutputStream> stream,
     const PdfFilterList& filters)
 {
     PODOFO_RAISE_LOGIC_IF(!filters.size(), "Cannot create an EncodeStream from an empty list of filters");
 
     PdfFilterList::const_iterator it = filters.begin();
-    unique_ptr<OutputStream> filter(new PdfFilteredEncodeStream(stream, *it));
+    unique_ptr<OutputStream> filter(new PdfFilteredEncodeStream(std::move(stream), *it));
     it++;
 
     while (it != filters.end())
@@ -229,12 +229,12 @@ unique_ptr<OutputStream> PdfFilterFactory::CreateEncodeStream(const shared_ptr<O
     return filter;
 }
 
-unique_ptr<InputStream> PdfFilterFactory::CreateDecodeStream(const shared_ptr<InputStream>& stream,
+unique_ptr<InputStream> PdfFilterFactory::CreateDecodeStream(shared_ptr<InputStream> stream,
     const PdfFilterList& filters, const std::vector<const PdfDictionary*>& decodeParms)
 {
     PODOFO_RAISE_LOGIC_IF(stream == nullptr, "Cannot create an DecodeStream from an empty stream");
     PODOFO_RAISE_LOGIC_IF(filters.size() == 0, "Cannot create an DecodeStream from an empty list of filters");
-    return std::make_unique<PdfBufferedDecodeStream>(stream, filters, decodeParms);
+    return std::make_unique<PdfBufferedDecodeStream>(std::move(stream), filters, decodeParms);
 }
 
 PdfFilterList PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj_)
