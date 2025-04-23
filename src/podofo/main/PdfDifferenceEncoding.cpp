@@ -8,7 +8,7 @@
 #include "PdfDifferenceEncoding.h"
 
 #include <utf8cpp/utf8.h>
-#include <podofo/private/PdfEncodingCommonPrivate.h>
+#include <podofo/private/PdfEncodingPrivate.h>
 #include <podofo/private/PdfFilterFactory.h>
 
 #include "PdfArray.h"

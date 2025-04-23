@@ -9,7 +9,7 @@
 #include <random>
 #include <algorithm>
 
-#include <podofo/private/PdfEncodingCommonPrivate.h>
+#include <podofo/private/PdfEncodingPrivate.h>
 
 using namespace std;
 using namespace PoDoFo;
