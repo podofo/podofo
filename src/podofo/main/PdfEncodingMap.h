@@ -149,10 +149,6 @@ protected:
      */
     virtual int GetWModeRaw() const;
 
-    static void AppendUTF16CodeTo(OutputStream& stream, char32_t codePoint, std::u16string& u16tmp);
-
-    static void AppendUTF16CodeTo(OutputStream& stream, const unicodeview& codePoints, std::u16string& u16tmp);
-
 protected:
     virtual void AppendCodeSpaceRange(OutputStream& stream, charbuff& temp) const;
 

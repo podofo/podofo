@@ -12,6 +12,9 @@
 
 namespace PoDoFo
 {
+    class PdfCharCodeMap;
+    class OutputStream;
+
     // Known encoding IDs
     constexpr unsigned NullEncodingId             = 0;
     constexpr unsigned WinAnsiEncodingId          = 11;
@@ -53,6 +56,18 @@ namespace PoDoFo
         const std::string_view::iterator& end, PdfCharCode& codeUnit);
     void PushMappingReverseMap(CodePointMapNode*& root, const codepointview& codePoints, const PdfCharCode& codeUnit);
     void DeleteNodeReverseMap(CodePointMapNode* node);
+
+    /**
+     * Low level serialization commodities
+     */
+
+    void AppendCodeSpaceRangeTo(OutputStream& stream, const PdfCharCodeMap& charMap, charbuff& temp);
+    void AppendCIDMappingEntriesTo(OutputStream& stream, const PdfCharCodeMap& charMap, charbuff& temp);
+    void AppendToUnicodeEntriesTo(OutputStream& stream, const PdfCharCodeMap& charMap, charbuff& temp);
+    void WriteCIDMapping(OutputStream& stream, const PdfCharCode& unit, unsigned cid, charbuff& temp);
+    void WriteCIDRange(OutputStream& stream, const PdfCharCode& srcCodeLo, const PdfCharCode& srcCodeHi, unsigned dstCidLo, charbuff& temp);
+    void AppendUTF16CodeTo(OutputStream& stream, char32_t codePoint, std::u16string& u16tmp);
+    void AppendUTF16CodeTo(OutputStream& stream, const unicodeview& codePoints, std::u16string& u16tmp);
 }
 
 #endif // PDF_ENCODING_PRIVATE_H

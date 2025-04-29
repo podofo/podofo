@@ -10,6 +10,8 @@
 
 #include <utf8cpp/utf8.h>
 
+#include <podofo/main/PdfCharCodeMap.h>
+
 using namespace std;
 using namespace PoDoFo;
 
@@ -374,6 +376,115 @@ void PoDoFo::ConvertPdfDocEncodingToUTF8(string_view view, string& u8str, bool& 
     }
 }
 
+void PoDoFo::AppendCIDMappingEntriesTo(OutputStream& stream, const PdfCharCodeMap& charMap, charbuff& temp)
+{
+    auto& mappings = charMap.GetMappings();
+    if (mappings.size() != 0)
+    {
+        // Sort the keys, so the output will be deterministic
+        set<PdfCharCode> ordered;
+        std::for_each(mappings.begin(), mappings.end(), [&ordered](auto& pair) {
+            ordered.insert(pair.first);
+            });
+
+        utls::FormatTo(temp, mappings.size());
+        stream.Write(temp);
+        stream.Write(" begincidchar\n");
+        for (auto& code : ordered)
+        {
+            // We assume the cid to be in the single element
+            PoDoFo::WriteCIDMapping(stream, code, *mappings.at(code), temp);
+        }
+        stream.Write("endcidchar\n");
+    }
+
+    auto& ranges = charMap.GetRanges();
+    if (ranges.size() != 0)
+    {
+        utls::FormatTo(temp, ranges.size());
+        stream.Write(temp);
+        stream.Write(" begincidrange\n");
+        for (auto& range : ranges)
+        {
+            // We assume the cid to be in the single element
+            PoDoFo::WriteCIDRange(stream, range.SrcCodeLo, range.GetSrcCodeHi(),
+                *range.DstCodeLo, temp);
+        }
+        stream.Write("endcidrange\n");
+    }
+}
+
+void PoDoFo::AppendCodeSpaceRangeTo(OutputStream& stream, const PdfCharCodeMap& charMap, charbuff& temp)
+{
+    // Iterate mappings to create ranges of different code sizes
+    auto ranges = charMap.GetCodeSpaceRanges();
+    stream.Write(std::to_string(ranges.size()));
+    stream.Write(" begincodespacerange\n");
+
+    bool first = true;
+    for (auto& range : ranges)
+    {
+        if (first)
+            first = false;
+        else
+            stream.Write("\n");
+
+        range.GetSrcCodeLo().WriteHexTo(temp);
+        stream.Write(temp);
+        range.GetSrcCodeHi().WriteHexTo(temp);
+        stream.Write(temp);
+    }
+
+    stream.Write("\nendcodespacerange\n");
+}
+
+void PoDoFo::AppendToUnicodeEntriesTo(OutputStream& stream, const PdfCharCodeMap& charMap, charbuff& temp)
+{
+    u16string u16temp;
+
+    auto& mappings = charMap.GetMappings();
+    if (mappings.size() != 0)
+    {
+        // Sort the keys, so the output will be deterministic
+        set<PdfCharCode> ordered;
+        std::for_each(mappings.begin(), mappings.end(), [&ordered](auto& pair) {
+            ordered.insert(pair.first);
+            });
+
+        utls::FormatTo(temp, mappings.size());
+        stream.Write(temp);
+        stream.Write(" beginbfchar\n");
+
+        for (auto& code : ordered)
+        {
+            code.WriteHexTo(temp);
+            stream.Write(temp);
+            stream.Write(" ");
+            PoDoFo::AppendUTF16CodeTo(stream, mappings.at(code), u16temp);
+            stream.Write("\n");
+        }
+        stream.Write("endbfchar\n");
+    }
+
+    auto& ranges = charMap.GetRanges();
+    if (ranges.size() != 0)
+    {
+        utls::FormatTo(temp, ranges.size());
+        stream.Write(temp);
+        stream.Write(" beginbfrange\n");
+        for (auto& range : ranges)
+        {
+            range.SrcCodeLo.WriteHexTo(temp);
+            stream.Write(temp);
+            range.GetSrcCodeHi().WriteHexTo(temp);
+            stream.Write(temp);
+            stream.Write(" ");
+            PoDoFo::AppendUTF16CodeTo(stream, range.DstCodeLo, u16temp);
+            stream.Write("\n");
+        }
+        stream.Write("endbfrange\n");
+    }
+}
 
 bool PoDoFo::TryGetCodeReverseMap(const CodePointMapNode* node, const codepointview& codePoints, PdfCharCode& codeUnit)
 {
@@ -494,6 +605,61 @@ void PoDoFo::DeleteNodeReverseMap(CodePointMapNode* node)
     DeleteNodeReverseMap(node->Left);
     DeleteNodeReverseMap(node->Right);
     delete node;
+}
+
+void PoDoFo::AppendUTF16CodeTo(OutputStream& stream, char32_t codePoint, u16string& u16tmp)
+{
+    return AppendUTF16CodeTo(stream, unicodeview(&codePoint, 1), u16tmp);
+}
+
+void PoDoFo::AppendUTF16CodeTo(OutputStream& stream, const unicodeview& codePoints, u16string& u16tmp)
+{
+    char hexbuf[2];
+
+    stream.Write("<");
+    bool first = true;
+    for (unsigned i = 0; i < codePoints.size(); i++)
+    {
+        if (first)
+            first = false;
+        else
+            stream.Write(" "); // Separate each character in the ligatures
+
+        char32_t cp = codePoints[i];
+        utls::WriteUtf16BETo(u16tmp, cp);
+
+        auto data = (const char*)u16tmp.data();
+        size_t size = u16tmp.size() * sizeof(char16_t);
+        for (unsigned l = 0; l < size; l++)
+        {
+            // Append hex codes of the converted utf16 string
+            utls::WriteCharHexTo(hexbuf, data[l]);
+            stream.Write(hexbuf, std::size(hexbuf));
+        }
+    }
+    stream.Write(">");
+}
+
+void PoDoFo::WriteCIDMapping(OutputStream& stream, const PdfCharCode& unit, unsigned cid, charbuff& temp)
+{
+    unit.WriteHexTo(temp);
+    stream.Write(temp);
+    stream.Write(" ");
+    utls::FormatTo(temp, cid);
+    stream.Write(temp);
+    stream.Write("\n");
+}
+
+void PoDoFo::WriteCIDRange(OutputStream& stream, const PdfCharCode& srcCodeLo, const PdfCharCode& srcCodeHi, unsigned dstCidLo, charbuff& temp)
+{
+    srcCodeLo.WriteHexTo(temp);
+    stream.Write(temp);
+    srcCodeHi.WriteHexTo(temp);
+    stream.Write(temp);
+    stream.Write(" ");
+    utls::FormatTo(temp, dstCidLo);
+    stream.Write(temp);
+    stream.Write("\n");
 }
 
 CodePointMapNode* findOrAddNode(CodePointMapNode*& node, codepoint codePoint)

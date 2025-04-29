@@ -9,6 +9,8 @@
 
 #include <utf8cpp/utf8.h>
 
+#include <podofo/private/PdfEncodingPrivate.h>
+
 #include "PdfDictionary.h"
 #include "PdfFont.h"
 
@@ -110,7 +112,7 @@ void PdfIdentityEncoding::AppendToUnicodeEntries(OutputStream& stream, charbuff&
     m_Limits.LastChar.WriteHexTo(temp);
     stream.Write(temp);
     stream.Write(" ");
-    PdfEncodingMap::AppendUTF16CodeTo(stream, m_Limits.FirstChar.Code, u16temp);
+    PoDoFo::AppendUTF16CodeTo(stream, m_Limits.FirstChar.Code, u16temp);
     stream.Write("\nendbfrange\n");
 }
 
