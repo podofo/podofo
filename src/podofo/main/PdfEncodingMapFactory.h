@@ -40,59 +40,73 @@ public:
      *
      *  \see Win1250EncodingInstance
      */
-    static PdfBuiltInEncodingConstPtr WinAnsiEncodingInstance();
+    static PdfBuiltInEncodingConstPtr GetWinAnsiEncodingInstancePtr();
+    static const PdfBuiltInEncoding& GetWinAnsiEncodingInstance();
 
     /** Singleton method which returns a global instance
      *  of MacRomanEncoding.
      *
      *  \returns global instance of MacRomanEncoding
      */
-    static PdfBuiltInEncodingConstPtr MacRomanEncodingInstance();
+    static PdfBuiltInEncodingConstPtr GetMacRomanEncodingInstancePtr();
+    static const PdfBuiltInEncoding& GetMacRomanEncodingInstance();
 
     /** Singleton method which returns a global instance
      *  of MacExpertEncoding.
      *
      *  \returns global instance of MacExpertEncoding
      */
-    static PdfBuiltInEncodingConstPtr MacExpertEncodingInstance();
+    static PdfBuiltInEncodingConstPtr GetMacExpertEncodingInstancePtr();
+    static const PdfBuiltInEncoding& GetMacExpertEncodingInstance();
 
     /** Singleton method which returns a global instance
-     *  of Horizontal IndentityEncoding
+     *  of the 2 bytes /Identity-H horizontal identity encoding
      *
      *  \returns global instance of Horizontal IdentityEncoding
      */
-    static PdfEncodingMapConstPtr TwoBytesHorizontalIdentityEncodingInstance();
+    static PdfEncodingMapConstPtr GetHorizontalIdentityEncodingInstancePtr();
+    static const PdfEncodingMap& GetHorizontalIdentityEncodingInstance();
 
     /** Singleton method which returns a global instance
-     *  of Vertical IndentityEncoding
+     *  of the 2 bytes /Identity-V vertical identity encoding
      *
      *  \returns global instance of Vertical IdentityEncoding
      */
-    static PdfEncodingMapConstPtr TwoBytesVerticalIdentityEncodingInstance();
+    static PdfEncodingMapConstPtr GetVerticalIdentityEncodingInstancePtr();
+    static const PdfEncodingMap& GetVerticalIdentityEncodingInstance();
 
     /** Return the encoding map for the given standard font type or nullptr for unknown
      */
-    static PdfEncodingMapConstPtr GetStandard14FontEncodingMap(PdfStandard14FontType stdFont);
+    static PdfEncodingMapConstPtr GetStandard14FontEncodingInstancePtr(PdfStandard14FontType stdFont);
+    static const PdfEncodingMap& GetStandard14FontEncodingInstance(PdfStandard14FontType stdFont);
 
     /** Get a predefined CMap
      * \returns The found map or nullptr if absent 
      */
-    static PdfCMapEncodingConstPtr GetPredefinedCMap(const std::string_view& cmapName);
+    static PdfCMapEncodingConstPtr GetPredefinedCMapInstancePtr(const std::string_view& cmapName);
+    static const PdfCMapEncoding& GetPredefinedCMapInstance(const std::string_view& cmapName);
+private:
+    // The following encodings are for internal use only
+
+    static const PdfBuiltInEncodingConstPtr& GetStandardEncodingInstancePtr();
+
+    static const PdfBuiltInEncodingConstPtr& GetSymbolEncodingInstancePtr();
+
+    static const PdfBuiltInEncodingConstPtr& GetZapfDingbatsEncodingInstancePtr();
+
+    static const PdfBuiltInEncodingConstPtr& GetAppleLatin1EncodingInstancePtr();
+
+    static const PdfEncodingMapConstPtr& GetNullEncodingInstancePtr();
 
 private:
     PdfEncodingMapFactory() = delete;
 
-    // The following encodings are for internal use only
-
-    static PdfBuiltInEncodingConstPtr StandardEncodingInstance();
-
-    static PdfBuiltInEncodingConstPtr SymbolEncodingInstance();
-
-    static PdfBuiltInEncodingConstPtr ZapfDingbatsEncodingInstance();
-
-    static PdfBuiltInEncodingConstPtr AppleLatin1EncodingInstance();
-
-    static PdfEncodingMapConstPtr GetNullEncodingMap();
+    static const PdfBuiltInEncodingConstPtr& getWinAnsiEncodingInstancePtr();
+    static const PdfBuiltInEncodingConstPtr& getMacRomanEncodingInstancePtr();
+    static const PdfBuiltInEncodingConstPtr& getMacExpertEncodingInstancePtr();
+    static const PdfEncodingMapConstPtr& getHorizontalIdentityEncodingInstancePtr();
+    static const PdfEncodingMapConstPtr& getVerticalIdentityEncodingInstancePtr();
+    static const PdfBuiltInEncodingConstPtr& getStandard14FontEncodingInstancePtr(PdfStandard14FontType stdFont);
 };
 
 }

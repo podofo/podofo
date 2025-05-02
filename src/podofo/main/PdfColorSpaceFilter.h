@@ -370,34 +370,34 @@ namespace PoDoFo
 
         /** True if the filter is trivial like /DeviceRGB, /DeviceGray or /DeviceCMYK
          */
-        static PdfColorSpaceFilterPtr GetTrivialFilter(PdfColorSpaceType type);
-        static PdfColorSpaceFilterPtr GetTrivialFilter(PdfColorSpaceType type, PdfName& exportName);
+        static PdfColorSpaceFilterPtr GetTrivialFilterPtr(PdfColorSpaceType type);
+        static PdfColorSpaceFilterPtr GetTrivialFilterPtr(PdfColorSpaceType type, PdfName& exportName);
 
         /** Singleton method which returns a global instance
          *  of /DeviceGray color space
          */
-        static PdfColorSpaceFilterPtr GetDeviceGrayInstace();
+        static PdfColorSpaceFilterPtr GetDeviceGrayInstancePtr();
 
         /** Singleton method which returns a global instance
          *  of /DeviceRGB color space
          */
-        static PdfColorSpaceFilterPtr GetDeviceRGBInstace();
+        static PdfColorSpaceFilterPtr GetDeviceRGBInstancePtr();
 
         /** Singleton method which returns a global instance
          *  of /DeviceCMYK color space
          */
-        static PdfColorSpaceFilterPtr GetDeviceCMYKInstace();
+        static PdfColorSpaceFilterPtr GetDeviceCMYKInstancePtr();
 
     private:
         /** Singleton method which returns a global instance
          *  of Unknown color space
          */
-        static PdfColorSpaceFilterPtr GetUnkownInstance();
+        static PdfColorSpaceFilterPtr GetUnkownInstancePtr();
 
         /** Singleton method which returns a global instance
          *  of parameter less Pattern color space
          */
-        static PdfColorSpaceFilterPtr GetParameterLessPatternInstance();
+        static PdfColorSpaceFilterPtr GetParameterLessPatternInstancePtr();
     };
 }
 

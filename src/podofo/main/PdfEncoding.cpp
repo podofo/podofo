@@ -34,7 +34,7 @@ static PdfCharCode fetchFallbackCharCode(string_view::iterator& it, const string
 static void pushCodeRangeSize(vector<unsigned char>& codeRangeSizes, unsigned char codeRangeSize);
 
 PdfEncoding::PdfEncoding()
-    : PdfEncoding(NullEncodingId, PdfEncodingMapFactory::GetNullEncodingMap(), nullptr)
+    : PdfEncoding(NullEncodingId, shared_ptr(PdfEncodingMapFactory::GetNullEncodingInstancePtr()), nullptr)
 {
 }
 

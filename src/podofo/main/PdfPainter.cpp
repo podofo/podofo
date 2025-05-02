@@ -1158,7 +1158,7 @@ void PdfGraphicsStateWrapper::SetStrokingColorSpace(PdfColorSpaceInitializer&& c
 void PdfGraphicsStateWrapper::SetNonStrokingColor(const PdfColor& color)
 {
     if (m_state->NonStrokingColorSpaceFilter->GetType() != color.GetColorSpace())
-        m_state->NonStrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetTrivialFilter(color.GetColorSpace());
+        m_state->NonStrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetTrivialFilterPtr(color.GetColorSpace());
 
     if (m_state->NonStrokingColor == color.GetRawColor())
         return;
@@ -1170,7 +1170,7 @@ void PdfGraphicsStateWrapper::SetNonStrokingColor(const PdfColor& color)
 void PdfGraphicsStateWrapper::SetStrokingColor(const PdfColor& color)
 {
     if (m_state->StrokingColorSpaceFilter->GetType() != color.GetColorSpace())
-        m_state->StrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetTrivialFilter(color.GetColorSpace());
+        m_state->StrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetTrivialFilterPtr(color.GetColorSpace());
 
     if (m_state->StrokingColor == color.GetRawColor())
         return;
@@ -1246,7 +1246,7 @@ void PdfGraphicsStateWrapper::SetStrokingPattern(const PdfPattern& pattern)
     if (m_state->StrokingColorSpaceFilter->GetType() != PdfColorSpaceType::Pattern
         || static_cast<const PdfColorSpaceFilterPattern&>(*m_state->StrokingColorSpaceFilter).GetUnderlyingColorSpace().GetType() != PdfColorSpaceType::Unknown)
     {
-        m_state->StrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetParameterLessPatternInstance();
+        m_state->StrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetParameterLessPatternInstancePtr();
         m_painter->SetStrokingColorSpace("Pattern"_n);
     }
 
@@ -1263,7 +1263,7 @@ void PdfGraphicsStateWrapper::SetNonStrokingPattern(const PdfPattern& pattern)
     if (m_state->NonStrokingColorSpaceFilter->GetType() != PdfColorSpaceType::Pattern
         || static_cast<const PdfColorSpaceFilterPattern&>(*m_state->NonStrokingColorSpaceFilter).GetUnderlyingColorSpace().GetType() != PdfColorSpaceType::Unknown)
     {
-        m_state->NonStrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetParameterLessPatternInstance();
+        m_state->NonStrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetParameterLessPatternInstancePtr();
         m_painter->SetNonStrokingColorSpace("Pattern"_n);
     }
 

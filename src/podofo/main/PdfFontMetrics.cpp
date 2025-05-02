@@ -501,7 +501,7 @@ PdfEncodingMapConstPtr PdfFontMetrics::getImplicitEncoding(bool tryFetchCidToGid
     // 1) The implicit encoding of a standard 14 font
     if (IsStandard14FontMetrics(std14Font))
     {
-        return PdfEncodingMapFactory::GetStandard14FontEncodingMap(std14Font);
+        return PdfEncodingMapFactory::GetStandard14FontEncodingInstancePtr(std14Font);
     }
     else if (IsType1Kind())
     {
@@ -535,7 +535,7 @@ PdfEncodingMapConstPtr PdfFontMetrics::getImplicitEncoding(bool tryFetchCidToGid
 
     // As a last chance, try check if the font name is actually a Standard14
     if (PdfFont::IsStandard14Font(GetFontName(), std14Font))
-        return PdfEncodingMapFactory::GetStandard14FontEncodingMap(std14Font);
+        return PdfEncodingMapFactory::GetStandard14FontEncodingInstancePtr(std14Font);
 
     return nullptr;
 }

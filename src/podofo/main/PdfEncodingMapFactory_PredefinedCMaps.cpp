@@ -15,7 +15,7 @@ static void buildMappings(const string_view& serialized, CodeUnitMap& mappings, 
 
 namespace
 {
-    using MapGetter = std::add_pointer<PdfCMapEncodingConstPtr()>::type;
+    using MapGetter = std::add_pointer<const PdfCMapEncodingConstPtr&()>::type;
 }
 
 namespace PoDoFo
@@ -23,7 +23,7 @@ namespace PoDoFo
     class PdfCMapEncodingFactory
     {
     public:
-        static PdfCMapEncodingConstPtr Get_B5pc_H()
+        static const PdfCMapEncodingConstPtr& Get_B5pc_H()
         {
             static constexpr const char serialized[] =
 "\170\234\055\326\151\114\124\127\024\007\360\063\177\021\005\134"
@@ -130,7 +130,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_B5pc_V()
+        static const PdfCMapEncodingConstPtr& Get_B5pc_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\306\041\016\100\140\000\005\340\347\115\160\041\247"
@@ -156,7 +156,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_CNS_EUC_H()
+        static const PdfCMapEncodingConstPtr& Get_CNS_EUC_H()
         {
             static constexpr const char serialized[] =
 "\170\234\115\327\171\214\225\365\025\306\361\167\236\231\101\106"
@@ -282,7 +282,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_CNS_EUC_V()
+        static const PdfCMapEncodingConstPtr& Get_CNS_EUC_V()
         {
             static constexpr const char serialized[] =
 "\170\234\115\327\175\220\126\145\035\306\361\303\265\273\310\206"
@@ -418,7 +418,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_ETen_B5_H()
+        static const PdfCMapEncodingConstPtr& Get_ETen_B5_H()
         {
             static constexpr const char serialized[] =
 "\170\234\055\326\173\120\125\125\024\307\361\315\327\047\276\105"
@@ -527,7 +527,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_ETen_B5_V()
+        static const PdfCMapEncodingConstPtr& Get_ETen_B5_V()
         {
             static constexpr const char serialized[] =
 "\170\234\143\140\141\132\370\230\221\201\301\324\237\151\241\067"
@@ -553,7 +553,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_ETenms_B5_H()
+        static const PdfCMapEncodingConstPtr& Get_ETenms_B5_H()
         {
             static constexpr const char serialized[] =
 "\170\234\143\140\140\140\144\124\140\210\147\144\000\062\000\003"
@@ -575,7 +575,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_ETenms_B5_V()
+        static const PdfCMapEncodingConstPtr& Get_ETenms_B5_V()
         {
             static constexpr const char serialized[] =
 "\170\234\143\140\143\132\350\315\310\300\140\352\307\264\060\006"
@@ -603,7 +603,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_HKscs_B5_H()
+        static const PdfCMapEncodingConstPtr& Get_HKscs_B5_H()
         {
             static constexpr const char serialized[] =
 "\170\234\055\232\167\200\123\305\366\307\357\176\124\024\305\206"
@@ -1025,7 +1025,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_HKscs_B5_V()
+        static const PdfCMapEncodingConstPtr& Get_HKscs_B5_V()
         {
             static constexpr const char serialized[] =
 "\170\234\143\140\141\132\370\230\221\201\301\324\237\151\241\067"
@@ -1051,7 +1051,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniCNS_UCS2_H()
+        static const PdfCMapEncodingConstPtr& Get_UniCNS_UCS2_H()
         {
             static constexpr const char serialized[] =
 "\170\234\034\335\167\134\334\365\341\307\161\170\061\102\010\063"
@@ -6129,7 +6129,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniCNS_UCS2_V()
+        static const PdfCMapEncodingConstPtr& Get_UniCNS_UCS2_V()
         {
             static constexpr const char serialized[] =
 "\170\234\143\140\143\372\037\315\310\300\300\320\306\244\040\014"
@@ -6155,7 +6155,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniCNS_UTF16_H()
+        static const PdfCMapEncodingConstPtr& Get_UniCNS_UTF16_H()
         {
             static constexpr const char serialized[] =
 "\170\234\044\335\171\100\224\165\342\307\161\370\060\042\042\250"
@@ -11988,7 +11988,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniCNS_UTF16_V()
+        static const PdfCMapEncodingConstPtr& Get_UniCNS_UTF16_V()
         {
             static constexpr const char serialized[] =
 "\170\234\143\140\143\372\037\315\310\300\300\320\306\244\040\014"
@@ -12014,7 +12014,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_GB_EUC_H()
+        static const PdfCMapEncodingConstPtr& Get_GB_EUC_H()
         {
             static constexpr const char serialized[] =
 "\170\234\065\322\133\114\316\161\034\307\361\337\377\375\044\074"
@@ -12063,7 +12063,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_GB_EUC_V()
+        static const PdfCMapEncodingConstPtr& Get_GB_EUC_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\311\111\016\001\001\024\204\341\347\217\265\130\212"
@@ -12091,7 +12091,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_GBK_EUC_H()
+        static const PdfCMapEncodingConstPtr& Get_GBK_EUC_H()
         {
             static constexpr const char serialized[] =
 "\170\234\064\234\165\100\326\327\372\300\331\147\235\167\165\357"
@@ -13389,7 +13389,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_GBK_EUC_V()
+        static const PdfCMapEncodingConstPtr& Get_GBK_EUC_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\311\111\016\001\001\024\204\341\347\217\265\130\212"
@@ -13417,7 +13417,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_GBK2K_H()
+        static const PdfCMapEncodingConstPtr& Get_GBK2K_H()
         {
             static constexpr const char serialized[] =
 "\170\234\054\235\167\100\227\325\367\307\351\225\355\275\367\147"
@@ -15145,7 +15145,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_GBK2K_V()
+        static const PdfCMapEncodingConstPtr& Get_GBK2K_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\316\273\056\304\101\024\307\361\361\215\132\055\056"
@@ -15179,7 +15179,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_GBKp_EUC_H()
+        static const PdfCMapEncodingConstPtr& Get_GBKp_EUC_H()
         {
             static constexpr const char serialized[] =
 "\170\234\054\234\165\100\226\327\032\300\331\157\235\167\165\357"
@@ -16477,7 +16477,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_GBKp_EUC_V()
+        static const PdfCMapEncodingConstPtr& Get_GBKp_EUC_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\311\111\016\001\001\024\204\341\347\217\265\130\212"
@@ -16505,7 +16505,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_GBpc_EUC_H()
+        static const PdfCMapEncodingConstPtr& Get_GBpc_EUC_H()
         {
             static constexpr const char serialized[] =
 "\170\234\055\315\111\110\225\141\034\205\361\367\173\256\131\335"
@@ -16554,7 +16554,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_GBpc_EUC_V()
+        static const PdfCMapEncodingConstPtr& Get_GBpc_EUC_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\311\111\016\001\001\024\204\341\347\217\265\130\212"
@@ -16582,7 +16582,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniGB_UCS2_H()
+        static const PdfCMapEncodingConstPtr& Get_UniGB_UCS2_H()
         {
             static constexpr const char serialized[] =
 "\170\234\054\334\167\174\034\305\375\377\161\371\145\265\123\075"
@@ -20928,7 +20928,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniGB_UCS2_V()
+        static const PdfCMapEncodingConstPtr& Get_UniGB_UCS2_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\315\273\012\302\100\024\004\320\233\051\144\013\221"
@@ -20957,7 +20957,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniGB_UTF16_H()
+        static const PdfCMapEncodingConstPtr& Get_UniGB_UTF16_H()
         {
             static constexpr const char serialized[] =
 "\170\234\054\335\167\140\033\365\375\377\161\347\031\171\310\123"
@@ -25404,7 +25404,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniGB_UTF16_V()
+        static const PdfCMapEncodingConstPtr& Get_UniGB_UTF16_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\215\273\012\302\120\020\005\157\246\220\133\210\050"
@@ -25433,7 +25433,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_83pv_RKSJ_H()
+        static const PdfCMapEncodingConstPtr& Get_83pv_RKSJ_H()
         {
             static constexpr const char serialized[] =
 "\170\234\075\225\157\114\225\125\034\307\317\363\275\050\312\037"
@@ -25526,7 +25526,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_90ms_RKSJ_H()
+        static const PdfCMapEncodingConstPtr& Get_90ms_RKSJ_H()
         {
             static constexpr const char serialized[] =
 "\170\234\075\324\177\114\125\145\034\307\361\347\276\271\012\002"
@@ -25604,7 +25604,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_90ms_RKSJ_V()
+        static const PdfCMapEncodingConstPtr& Get_90ms_RKSJ_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\320\113\113\120\121\024\305\361\343\277\042\242\020"
@@ -25649,7 +25649,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_90msp_RKSJ_H()
+        static const PdfCMapEncodingConstPtr& Get_90msp_RKSJ_H()
         {
             static constexpr const char serialized[] =
 "\170\234\075\324\155\114\225\165\030\307\361\377\371\202\202\200"
@@ -25727,7 +25727,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_90msp_RKSJ_V()
+        static const PdfCMapEncodingConstPtr& Get_90msp_RKSJ_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\320\113\113\120\121\024\305\361\343\277\042\242\020"
@@ -25772,7 +25772,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_90pv_RKSJ_H()
+        static const PdfCMapEncodingConstPtr& Get_90pv_RKSJ_H()
         {
             static constexpr const char serialized[] =
 "\170\234\055\224\173\214\224\325\035\206\277\171\166\271\310\042"
@@ -25877,7 +25877,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_Add_RKSJ_H()
+        static const PdfCMapEncodingConstPtr& Get_Add_RKSJ_H()
         {
             static constexpr const char serialized[] =
 "\170\234\055\227\171\140\224\325\325\207\137\036\040\373\102\330"
@@ -26114,7 +26114,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_Add_RKSJ_V()
+        static const PdfCMapEncodingConstPtr& Get_Add_RKSJ_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\316\333\052\204\121\030\207\361\345\101\222\042\163"
@@ -26153,7 +26153,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_EUC_H()
+        static const PdfCMapEncodingConstPtr& Get_EUC_H()
         {
             static constexpr const char serialized[] =
 "\170\234\055\323\111\110\325\121\024\200\361\353\347\153\362\225"
@@ -26210,7 +26210,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_EUC_V()
+        static const PdfCMapEncodingConstPtr& Get_EUC_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\312\273\016\101\121\020\106\341\261\204\007\220\150"
@@ -26239,7 +26239,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_Ext_RKSJ_H()
+        static const PdfCMapEncodingConstPtr& Get_Ext_RKSJ_H()
         {
             static constexpr const char serialized[] =
 "\170\234\045\230\167\140\224\125\326\207\337\074\246\227\031\002"
@@ -26488,7 +26488,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_Ext_RKSJ_V()
+        static const PdfCMapEncodingConstPtr& Get_Ext_RKSJ_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\312\271\056\205\001\020\305\361\271\177\104\053\242"
@@ -26522,7 +26522,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_H()
+        static const PdfCMapEncodingConstPtr& Get_H()
         {
             static constexpr const char serialized[] =
 "\170\234\055\323\115\110\324\101\030\200\361\351\161\053\163\115"
@@ -26578,7 +26578,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniJIS_UCS2_H()
+        static const PdfCMapEncodingConstPtr& Get_UniJIS_UCS2_H()
         {
             static constexpr const char serialized[] =
 "\170\234\054\335\167\174\034\305\375\377\161\351\145\235\256\111"
@@ -29164,7 +29164,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniJIS_UCS2_HW_H()
+        static const PdfCMapEncodingConstPtr& Get_UniJIS_UCS2_HW_H()
         {
             static constexpr const char serialized[] =
 "\170\234\143\140\142\142\210\141\144\140\120\342\147\142\130\012"
@@ -29187,7 +29187,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniJIS_UCS2_HW_V()
+        static const PdfCMapEncodingConstPtr& Get_UniJIS_UCS2_HW_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\324\131\214\025\105\024\306\361\236\077\313\260\011"
@@ -29267,7 +29267,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniJIS_UCS2_V()
+        static const PdfCMapEncodingConstPtr& Get_UniJIS_UCS2_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\324\131\214\025\105\024\306\361\346\317\062\154\202"
@@ -29346,7 +29346,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniJIS_UTF16_H()
+        static const PdfCMapEncodingConstPtr& Get_UniJIS_UTF16_H()
         {
             static constexpr const char serialized[] =
 "\170\234\054\335\167\100\024\167\376\377\361\335\047\275\257\040"
@@ -33682,7 +33682,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniJIS_UTF16_V()
+        static const PdfCMapEncodingConstPtr& Get_UniJIS_UTF16_V()
         {
             static constexpr const char serialized[] =
 "\170\234\055\325\167\214\025\125\024\307\361\307\227\245\043\110"
@@ -33769,7 +33769,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_V()
+        static const PdfCMapEncodingConstPtr& Get_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\312\273\016\101\121\020\106\341\261\204\007\220\150"
@@ -33799,7 +33799,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_KSC_EUC_H()
+        static const PdfCMapEncodingConstPtr& Get_KSC_EUC_H()
         {
             static constexpr const char serialized[] =
 "\170\234\055\227\171\164\025\325\035\307\157\276\040\002\102\362"
@@ -33974,7 +33974,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_KSC_EUC_V()
+        static const PdfCMapEncodingConstPtr& Get_KSC_EUC_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\311\061\016\202\000\024\203\341\132\011\203\361\016"
@@ -34001,7 +34001,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_KSCms_UHC_H()
+        static const PdfCMapEncodingConstPtr& Get_KSCms_UHC_H()
         {
             static constexpr const char serialized[] =
 "\170\234\055\227\171\170\124\105\272\306\017\077\020\004\224\164"
@@ -34237,7 +34237,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_KSCms_UHC_HW_H()
+        static const PdfCMapEncodingConstPtr& Get_KSCms_UHC_HW_H()
         {
             static constexpr const char serialized[] =
 "\170\234\055\227\171\170\124\105\272\306\017\077\120\026\225\164"
@@ -34473,7 +34473,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_KSCms_UHC_HW_V()
+        static const PdfCMapEncodingConstPtr& Get_KSCms_UHC_HW_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\311\061\016\202\000\024\203\341\132\011\203\361\016"
@@ -34500,7 +34500,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_KSCms_UHC_V()
+        static const PdfCMapEncodingConstPtr& Get_KSCms_UHC_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\311\061\016\202\000\024\203\341\132\011\203\361\016"
@@ -34527,7 +34527,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_KSCpc_EUC_H()
+        static const PdfCMapEncodingConstPtr& Get_KSCpc_EUC_H()
         {
             static constexpr const char serialized[] =
 "\170\234\055\227\171\164\025\325\035\307\157\276\040\002\102\362"
@@ -34718,7 +34718,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniKS_UCS2_H()
+        static const PdfCMapEncodingConstPtr& Get_UniKS_UCS2_H()
         {
             static constexpr const char serialized[] =
 "\170\234\034\335\167\174\025\125\372\307\361\313\107\040\241\334"
@@ -37362,7 +37362,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniKS_UCS2_V()
+        static const PdfCMapEncodingConstPtr& Get_UniKS_UCS2_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\310\315\012\101\121\030\106\341\157\057\305\011\231"
@@ -37390,7 +37390,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniKS_UTF16_H()
+        static const PdfCMapEncodingConstPtr& Get_UniKS_UTF16_H()
         {
             static constexpr const char serialized[] =
 "\170\234\054\335\167\174\025\125\376\377\361\233\027\004\010\160"
@@ -40085,7 +40085,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_UniKS_UTF16_V()
+        static const PdfCMapEncodingConstPtr& Get_UniKS_UTF16_V()
         {
             static constexpr const char serialized[] =
 "\170\234\045\310\315\012\101\121\030\106\341\157\057\305\011\231"
@@ -40113,7 +40113,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_Adobe_CNS1_UCS2()
+        static const PdfCMapEncodingConstPtr& Get_Adobe_CNS1_UCS2()
         {
             static constexpr const char serialized[] =
 "\170\234\054\334\167\174\033\365\375\307\161\371\255\073\311\066"
@@ -45638,7 +45638,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_Adobe_GB1_UCS2()
+        static const PdfCMapEncodingConstPtr& Get_Adobe_GB1_UCS2()
         {
             static constexpr const char serialized[] =
 "\170\234\044\235\171\174\034\145\375\307\323\317\316\316\316\316"
@@ -50111,7 +50111,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_Adobe_Japan1_UCS2()
+        static const PdfCMapEncodingConstPtr& Get_Adobe_Japan1_UCS2()
         {
             static constexpr const char serialized[] =
 "\170\234\164\335\167\174\133\325\375\377\161\351\145\335\053\107"
@@ -56004,7 +56004,7 @@ namespace PoDoFo
             return init.map;
         }
 
-        static PdfCMapEncodingConstPtr Get_Adobe_Korea1_UCS2()
+        static const PdfCMapEncodingConstPtr& Get_Adobe_Korea1_UCS2()
         {
             static constexpr const char serialized[] =
 "\170\234\154\335\171\170\124\345\375\377\377\341\145\146\237\263"
@@ -58967,13 +58967,22 @@ static unordered_map<string_view, MapGetter> s_PredefinedCMaps = {
     { "Adobe-Korea1-UCS2", &PdfCMapEncodingFactory::Get_Adobe_Korea1_UCS2 },
 };
 
-PdfCMapEncodingConstPtr PdfEncodingMapFactory::GetPredefinedCMap(const string_view& cmapName)
+PdfCMapEncodingConstPtr PdfEncodingMapFactory::GetPredefinedCMapInstancePtr(const string_view& cmapName)
 {
     auto found = s_PredefinedCMaps.find(cmapName);
     if (found == s_PredefinedCMaps.end())
         return nullptr;
     else
         return found->second();
+}
+
+const PdfCMapEncoding& PdfEncodingMapFactory::GetPredefinedCMapInstance(const string_view& cmapName)
+{
+    auto found = s_PredefinedCMaps.find(cmapName);
+    if (found == s_PredefinedCMaps.end())
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncoding, "Could not find a cmap with a CMap name {}", cmapName);
+
+    return *found->second();
 }
 
 unsigned readCode(InputStream& stream, unsigned char codeSize)

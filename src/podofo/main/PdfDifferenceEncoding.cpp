@@ -243,13 +243,13 @@ bool PdfDifferenceEncoding::TryCreateFromObject(const PdfObject& obj,
     {
         const PdfName& baseEncodingName = baseEncodingObj->GetName();
         if (baseEncodingName == "WinAnsiEncoding")
-            baseEncoding = PdfEncodingMapFactory::WinAnsiEncodingInstance();
+            baseEncoding = PdfEncodingMapFactory::GetWinAnsiEncodingInstancePtr();
         else if (baseEncodingName == "MacRomanEncoding")
-            baseEncoding = PdfEncodingMapFactory::MacRomanEncodingInstance();
+            baseEncoding = PdfEncodingMapFactory::GetMacRomanEncodingInstancePtr();
         else if (baseEncodingName == "MacExpertEncoding")
-            baseEncoding = PdfEncodingMapFactory::MacExpertEncodingInstance();
+            baseEncoding = PdfEncodingMapFactory::GetMacExpertEncodingInstancePtr();
         else if (baseEncodingName == "StandardEncoding")
-            baseEncoding = PdfEncodingMapFactory::StandardEncodingInstance();
+            baseEncoding = PdfEncodingMapFactory::GetStandardEncodingInstancePtr();
         else
         {
             PoDoFo::LogMessage(PdfLogSeverity::Warning, "Invalid /BaseEncoding {}", baseEncodingName.GetString());
@@ -264,7 +264,7 @@ bool PdfDifferenceEncoding::TryCreateFromObject(const PdfObject& obj,
         if (baseEncoding == nullptr)
         {
             // Assume StandardEncoding in case nothing else works
-            baseEncoding = PdfEncodingMapFactory::StandardEncodingInstance();
+            baseEncoding = PdfEncodingMapFactory::GetStandardEncodingInstancePtr();
         }
     }
 

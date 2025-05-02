@@ -498,7 +498,7 @@ bool PdfFontMetricsFreetype::tryBuildFallbackUnicodeMap()
         unordered_map<unsigned, unsigned> codeToGIDmap;
         collectCharCodeToGIDMap(m_Face, false, codeToGIDmap);
         m_fallbackUnicodeMap.reset(new unordered_map<uint32_t, unsigned>());
-        auto encoding = PdfEncodingMapFactory::MacRomanEncodingInstance();
+        auto encoding = PdfEncodingMapFactory::GetMacRomanEncodingInstancePtr();
         encoding->CreateUnicodeToGIDMap(codeToGIDmap, *m_fallbackUnicodeMap);
         return true;
     }
@@ -508,7 +508,7 @@ bool PdfFontMetricsFreetype::tryBuildFallbackUnicodeMap()
         unordered_map<unsigned, unsigned> codeToGIDmap;
         collectCharCodeToGIDMap(m_Face, false, codeToGIDmap);
         m_fallbackUnicodeMap.reset(new unordered_map<uint32_t, unsigned>());
-        auto encoding = PdfEncodingMapFactory::AppleLatin1EncodingInstance();
+        auto encoding = PdfEncodingMapFactory::GetAppleLatin1EncodingInstancePtr();
         encoding->CreateUnicodeToGIDMap(codeToGIDmap, *m_fallbackUnicodeMap);
         return true;
     }
@@ -518,7 +518,7 @@ bool PdfFontMetricsFreetype::tryBuildFallbackUnicodeMap()
         unordered_map<unsigned, unsigned> codeToGIDmap;
         collectCharCodeToGIDMap(m_Face, false, codeToGIDmap);
         m_fallbackUnicodeMap.reset(new unordered_map<uint32_t, unsigned>());
-        auto encoding = PdfEncodingMapFactory::StandardEncodingInstance();
+        auto encoding = PdfEncodingMapFactory::GetStandardEncodingInstancePtr();
         encoding->CreateUnicodeToGIDMap(codeToGIDmap, *m_fallbackUnicodeMap);
         return true;
     }
@@ -528,7 +528,7 @@ bool PdfFontMetricsFreetype::tryBuildFallbackUnicodeMap()
         unordered_map<unsigned, unsigned> codeToGIDmap;
         collectCharCodeToGIDMap(m_Face, false, codeToGIDmap);
         m_fallbackUnicodeMap.reset(new unordered_map<uint32_t, unsigned>());
-        auto encoding = PdfEncodingMapFactory::MacExpertEncodingInstance();
+        auto encoding = PdfEncodingMapFactory::GetMacExpertEncodingInstancePtr();
         encoding->CreateUnicodeToGIDMap(codeToGIDmap, *m_fallbackUnicodeMap);
         return true;
     }

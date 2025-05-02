@@ -803,7 +803,7 @@ PdfCIDToGIDMapConstPtr PdfDifferenceEncoding::getIntrinsicCIDToGIDMapTrueType(co
             // If no (3, 1) subtable is present but a (1, 0) subtable
             // (Macintosh Roman) is present: A character code shall be
             // first mapped to a glyph name using the table described above.
-            inverseUnicodeMap = PdfEncodingMapFactory::MacRomanEncodingInstance().get();
+            inverseUnicodeMap = PdfEncodingMapFactory::GetMacRomanEncodingInstancePtr().get();
         }
         else
         {

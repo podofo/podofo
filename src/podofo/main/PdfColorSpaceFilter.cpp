@@ -521,7 +521,7 @@ const PdfColorRaw& PdfColorSpaceFilterSeparation::GetAlternateColor() const
 
 const PdfColorSpaceFilter& PdfColorSpaceFilterSeparation::GetColorSpace() const
 {
-    return *PdfColorSpaceFilterFactory::GetTrivialFilter(m_AlternateColor.GetColorSpace());
+    return *PdfColorSpaceFilterFactory::GetTrivialFilterPtr(m_AlternateColor.GetColorSpace());
 }
 
 PdfColorSpaceFilterLab::PdfColorSpaceFilterLab(const array<double, 3>& whitePoint,
@@ -691,7 +691,7 @@ PdfColorSpaceFilterPattern::PdfColorSpaceFilterPattern(PdfColorSpaceFilterPtr&& 
     : m_UnderlyingColorSpace(alternateColorSpace)
 {
     if (m_UnderlyingColorSpace == nullptr)
-        m_UnderlyingColorSpace = PdfColorSpaceFilterFactory::GetUnkownInstance();
+        m_UnderlyingColorSpace = PdfColorSpaceFilterFactory::GetUnkownInstancePtr();
 }
 
 PdfColorSpaceType PdfColorSpaceFilterPattern::GetType() const
@@ -811,17 +811,17 @@ bool PdfColorSpaceFilterFactory::TryCreateFromObject(const PdfObject& obj, PdfCo
         {
             case PdfColorSpaceType::DeviceGray:
             {
-                colorSpace = GetDeviceGrayInstace();
+                colorSpace = GetDeviceGrayInstancePtr();
                 return true;
             }
             case PdfColorSpaceType::DeviceRGB:
             {
-                colorSpace = GetDeviceRGBInstace();
+                colorSpace = GetDeviceRGBInstancePtr();
                 return true;
             }
             case PdfColorSpaceType::DeviceCMYK:
             {
-                colorSpace = GetDeviceCMYKInstace();
+                colorSpace = GetDeviceCMYKInstancePtr();
                 return true;
             }
             default:
@@ -833,64 +833,64 @@ bool PdfColorSpaceFilterFactory::TryCreateFromObject(const PdfObject& obj, PdfCo
     }
 }
 
-PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetTrivialFilter(PdfColorSpaceType type)
+PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetTrivialFilterPtr(PdfColorSpaceType type)
 {
     switch (type)
     {
         case PdfColorSpaceType::DeviceRGB:
-            return GetDeviceRGBInstace();
+            return GetDeviceRGBInstancePtr();
         case PdfColorSpaceType::DeviceGray:
-            return GetDeviceGrayInstace();
+            return GetDeviceGrayInstancePtr();
         case PdfColorSpaceType::DeviceCMYK:
-            return GetDeviceCMYKInstace();
+            return GetDeviceCMYKInstancePtr();
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "The given color space type is not trivial");
     }
 }
 
-PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetTrivialFilter(PdfColorSpaceType type, PdfName& exportName)
+PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetTrivialFilterPtr(PdfColorSpaceType type, PdfName& exportName)
 {
     switch (type)
     {
         case PdfColorSpaceType::DeviceRGB:
             exportName = "DeviceRGB";
-            return GetDeviceRGBInstace();
+            return GetDeviceRGBInstancePtr();
         case PdfColorSpaceType::DeviceGray:
             exportName = "DeviceGray";
-            return GetDeviceGrayInstace();
+            return GetDeviceGrayInstancePtr();
         case PdfColorSpaceType::DeviceCMYK:
             exportName = "DeviceCMYK";
-            return GetDeviceCMYKInstace();
+            return GetDeviceCMYKInstancePtr();
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "The given color space type is not trivial");
     }
 }
 
-PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetUnkownInstance()
+PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetUnkownInstancePtr()
 {
     static shared_ptr<PdfColorSpaceFilterUnkown> s_unknown(new PdfColorSpaceFilterUnkown());
     return s_unknown;
 }
 
-PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetDeviceGrayInstace()
+PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetDeviceGrayInstancePtr()
 {
     static shared_ptr<PdfColorSpaceDeviceGray> s_deviceGray(new PdfColorSpaceDeviceGray());
     return s_deviceGray;
 }
 
-PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetDeviceRGBInstace()
+PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetDeviceRGBInstancePtr()
 {
     static shared_ptr<PdfColorSpaceFilterDeviceRGB> s_deviceRGB(new PdfColorSpaceFilterDeviceRGB());
     return s_deviceRGB;
 }
 
-PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetDeviceCMYKInstace()
+PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetDeviceCMYKInstancePtr()
 {
     static shared_ptr<PdfColorSpaceFilterDeviceCMYK> s_deviceCMYK(new PdfColorSpaceFilterDeviceCMYK());
     return s_deviceCMYK;
 }
 
-PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetParameterLessPatternInstance()
+PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetParameterLessPatternInstancePtr()
 {
     static PdfColorSpaceFilterPtr s_parameterLessPatternInstance(new PdfColorSpaceFilterPattern(nullptr));
     return s_parameterLessPatternInstance;
@@ -934,15 +934,15 @@ PdfColorSpaceInitializer::PdfColorSpaceInitializer(PdfColorSpaceType colorSpace)
     switch (colorSpace)
     {
         case PdfColorSpaceType::DeviceRGB:
-            m_Filter = PdfColorSpaceFilterFactory::GetDeviceRGBInstace();
+            m_Filter = PdfColorSpaceFilterFactory::GetDeviceRGBInstancePtr();
             m_ExpVar = "DeviceRGB"_n;
             break;
         case PdfColorSpaceType::DeviceGray:
-            m_Filter = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
+            m_Filter = PdfColorSpaceFilterFactory::GetDeviceGrayInstancePtr();
             m_ExpVar = "DeviceGray"_n;
             break;
         case PdfColorSpaceType::DeviceCMYK:
-            m_Filter = PdfColorSpaceFilterFactory::GetDeviceCMYKInstace();
+            m_Filter = PdfColorSpaceFilterFactory::GetDeviceCMYKInstancePtr();
             m_ExpVar = "DeviceCMYK"_n;
             break;
         default:

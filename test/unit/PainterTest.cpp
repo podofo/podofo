@@ -223,7 +223,7 @@ TEST_CASE("TestPainter4")
     auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
 
     PdfFontCreateParams params;
-    params.Encoding = PdfEncoding(PdfEncodingMapFactory::WinAnsiEncodingInstance());
+    params.Encoding = PdfEncoding(PdfEncodingMapFactory::GetWinAnsiEncodingInstancePtr());
     auto& font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica, params);
 
     PdfPainter painter;
@@ -386,7 +386,7 @@ TEST_CASE("TestPainter5")
     auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
 
     PdfFontCreateParams params;
-    params.Encoding = PdfEncoding(PdfEncodingMapFactory::WinAnsiEncodingInstance());
+    params.Encoding = PdfEncoding(PdfEncodingMapFactory::GetWinAnsiEncodingInstancePtr());
     auto& font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica, params);
 
     PdfPainter painter;
@@ -423,7 +423,7 @@ TEST_CASE("TestPainter6")
     auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
 
     PdfFontCreateParams params;
-    params.Encoding = PdfEncoding(PdfEncodingMapFactory::WinAnsiEncodingInstance());
+    params.Encoding = PdfEncoding(PdfEncodingMapFactory::GetWinAnsiEncodingInstancePtr());
 
     PdfPainter painter;
     painter.SetCanvas(page);

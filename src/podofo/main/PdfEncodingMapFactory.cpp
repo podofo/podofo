@@ -28,67 +28,127 @@ namespace PoDoFo
     };
 }
 
-PdfBuiltInEncodingConstPtr PdfEncodingMapFactory::WinAnsiEncodingInstance()
+PdfBuiltInEncodingConstPtr PdfEncodingMapFactory::GetWinAnsiEncodingInstancePtr()
 {
-    static shared_ptr<PdfWinAnsiEncoding> s_istance(new PdfWinAnsiEncoding());
-    return s_istance;
+    return getWinAnsiEncodingInstancePtr();
 }
 
-PdfBuiltInEncodingConstPtr PdfEncodingMapFactory::MacRomanEncodingInstance()
+const PdfBuiltInEncoding& PdfEncodingMapFactory::GetWinAnsiEncodingInstance()
 {
-    static shared_ptr<PdfMacRomanEncoding> s_istance(new PdfMacRomanEncoding());
-    return s_istance;
+    return *getWinAnsiEncodingInstancePtr();
 }
 
-PdfBuiltInEncodingConstPtr PdfEncodingMapFactory::MacExpertEncodingInstance()
+PdfBuiltInEncodingConstPtr PdfEncodingMapFactory::GetMacRomanEncodingInstancePtr()
 {
-    static shared_ptr<PdfMacExpertEncoding> s_istance(new PdfMacExpertEncoding());
-    return s_istance;
+    return getMacRomanEncodingInstancePtr();
 }
 
-PdfEncodingMapConstPtr PdfEncodingMapFactory::TwoBytesHorizontalIdentityEncodingInstance()
+const PdfBuiltInEncoding& PdfEncodingMapFactory::GetMacRomanEncodingInstance()
 {
-    static shared_ptr<PdfIdentityEncoding> s_istance(new PdfIdentityEncoding(PdfIdentityOrientation::Horizontal));
-    return s_istance;
+    return *getMacRomanEncodingInstancePtr();
 }
 
-PdfEncodingMapConstPtr PdfEncodingMapFactory::TwoBytesVerticalIdentityEncodingInstance()
+PdfBuiltInEncodingConstPtr PdfEncodingMapFactory::GetMacExpertEncodingInstancePtr()
 {
-    static shared_ptr<PdfIdentityEncoding> s_istance(new PdfIdentityEncoding(PdfIdentityOrientation::Vertical));
-    return s_istance;
+    return getMacExpertEncodingInstancePtr();
 }
 
-PdfEncodingMapConstPtr PdfEncodingMapFactory::GetNullEncodingMap()
+const PdfBuiltInEncoding& PdfEncodingMapFactory::GetMacExpertEncodingInstance()
+{
+    return *getMacExpertEncodingInstancePtr();
+}
+
+PdfEncodingMapConstPtr PdfEncodingMapFactory::GetHorizontalIdentityEncodingInstancePtr()
+{
+    return getHorizontalIdentityEncodingInstancePtr();
+}
+
+const PdfEncodingMap& PdfEncodingMapFactory::GetHorizontalIdentityEncodingInstance()
+{
+    return *getHorizontalIdentityEncodingInstancePtr();
+}
+
+PdfEncodingMapConstPtr PdfEncodingMapFactory::GetVerticalIdentityEncodingInstancePtr()
+{
+    return getVerticalIdentityEncodingInstancePtr();
+}
+
+const PdfEncodingMap& PdfEncodingMapFactory::GetVerticalIdentityEncodingInstance()
+{
+    return *getVerticalIdentityEncodingInstancePtr();
+}
+
+const PdfEncodingMapConstPtr& PdfEncodingMapFactory::GetNullEncodingInstancePtr()
 {
     static PdfEncodingMapConstPtr s_instance(new PdfNullEncodingMap());
     return s_instance;
 }
 
-PdfBuiltInEncodingConstPtr PdfEncodingMapFactory::StandardEncodingInstance()
+const PdfBuiltInEncodingConstPtr& PdfEncodingMapFactory::GetStandardEncodingInstancePtr()
 {
-    static shared_ptr<PdfStandardEncoding> s_istance(new PdfStandardEncoding());
-    return s_istance;
+    static PdfBuiltInEncodingConstPtr s_instance(new PdfStandardEncoding());
+    return s_instance;
 }
 
-PdfBuiltInEncodingConstPtr PdfEncodingMapFactory::AppleLatin1EncodingInstance()
+const PdfBuiltInEncodingConstPtr& PdfEncodingMapFactory::GetAppleLatin1EncodingInstancePtr()
 {
-    static shared_ptr<AppleLatin1Encoding> s_istance(new AppleLatin1Encoding());
-    return s_istance;
+    static PdfBuiltInEncodingConstPtr s_instance(new AppleLatin1Encoding());
+    return s_instance;
 }
 
-PdfBuiltInEncodingConstPtr PdfEncodingMapFactory::SymbolEncodingInstance()
+const PdfBuiltInEncodingConstPtr& PdfEncodingMapFactory::GetSymbolEncodingInstancePtr()
 {
-    static shared_ptr<PdfSymbolEncoding> s_istance(new PdfSymbolEncoding());
-    return s_istance;
+    static PdfBuiltInEncodingConstPtr s_instance(new PdfSymbolEncoding());
+    return s_instance;
 }
 
-PdfBuiltInEncodingConstPtr PdfEncodingMapFactory::ZapfDingbatsEncodingInstance()
+const PdfBuiltInEncodingConstPtr& PdfEncodingMapFactory::GetZapfDingbatsEncodingInstancePtr()
 {
-    static shared_ptr<PdfZapfDingbatsEncoding> s_istance(new PdfZapfDingbatsEncoding());
-    return s_istance;
+    static PdfBuiltInEncodingConstPtr s_instance(new PdfZapfDingbatsEncoding());
+    return s_instance;
 }
 
-PdfEncodingMapConstPtr PdfEncodingMapFactory::GetStandard14FontEncodingMap(PdfStandard14FontType stdFont)
+PdfEncodingMapConstPtr PdfEncodingMapFactory::GetStandard14FontEncodingInstancePtr(PdfStandard14FontType stdFont)
+{
+    return getStandard14FontEncodingInstancePtr(stdFont);
+}
+
+const PdfEncodingMap& PdfEncodingMapFactory::GetStandard14FontEncodingInstance(PdfStandard14FontType stdFont)
+{
+    return *getStandard14FontEncodingInstancePtr(stdFont);
+}
+
+const PdfBuiltInEncodingConstPtr& PdfEncodingMapFactory::getWinAnsiEncodingInstancePtr()
+{
+    static PdfBuiltInEncodingConstPtr s_instance(new PdfWinAnsiEncoding());
+    return s_instance;
+}
+
+const PdfBuiltInEncodingConstPtr& PdfEncodingMapFactory::getMacRomanEncodingInstancePtr()
+{
+    static PdfBuiltInEncodingConstPtr s_instance(new PdfMacRomanEncoding());
+    return s_instance;
+}
+
+const PdfBuiltInEncodingConstPtr& PdfEncodingMapFactory::getMacExpertEncodingInstancePtr()
+{
+    static PdfBuiltInEncodingConstPtr s_instance(new PdfMacExpertEncoding());
+    return s_instance;
+}
+
+const PdfEncodingMapConstPtr& PdfEncodingMapFactory::getHorizontalIdentityEncodingInstancePtr()
+{
+    static PdfEncodingMapConstPtr s_instance(new PdfIdentityEncoding(PdfIdentityOrientation::Horizontal));
+    return s_instance;
+}
+
+const PdfEncodingMapConstPtr& PdfEncodingMapFactory::getVerticalIdentityEncodingInstancePtr()
+{
+    static PdfEncodingMapConstPtr s_instance(new PdfIdentityEncoding(PdfIdentityOrientation::Vertical));
+    return s_instance;
+}
+
+const PdfBuiltInEncodingConstPtr& PdfEncodingMapFactory::getStandard14FontEncodingInstancePtr(PdfStandard14FontType stdFont)
 {
     switch (stdFont)
     {
@@ -104,11 +164,11 @@ PdfEncodingMapConstPtr PdfEncodingMapFactory::GetStandard14FontEncodingMap(PdfSt
         case PdfStandard14FontType::CourierOblique:
         case PdfStandard14FontType::CourierBold:
         case PdfStandard14FontType::CourierBoldOblique:
-            return StandardEncodingInstance();
+            return GetStandardEncodingInstancePtr();
         case PdfStandard14FontType::Symbol:
-            return SymbolEncodingInstance();
+            return GetSymbolEncodingInstancePtr();
         case PdfStandard14FontType::ZapfDingbats:
-            return ZapfDingbatsEncodingInstance();
+            return GetZapfDingbatsEncodingInstancePtr();
         case PdfStandard14FontType::Unknown:
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Invalid Standard14 font type");

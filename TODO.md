@@ -3,7 +3,6 @@
 - Check performances of PdfContentStreamReader
 - Handle \r alone after "stream" for all filters
 - Improve the API for stopping extracting text as suggested [here](https://github.com/podofo/podofo/pull/239#issuecomment-2736664534)
-- PdfEncodingMapFactory: Evaluate prefix methods with Get
 
 ### After 1.0
 - PdfDifferenceList: Validate insertion for the public Add methods (like for example enforce "Adobe Glyph List For New Fonts")

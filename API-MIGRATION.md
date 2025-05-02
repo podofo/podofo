@@ -1,4 +1,11 @@
 ## 0.10.1 -> 1.0.0
+- `PdfEncodingMapFactory`:
+  * `WinAnsiEncodingInstance()` renamed to `GetWinAnsiEncodingInstancePt()`
+  * `MacRomanEncodingInstance()` renamed to `GetPtrMacRomanEncodingInstancePtr()`
+  * `MacExpertEncodingInstance()` renamed to `GetMacExpertEncodingInstancePtr()`
+  * `TwoBytesHorizontalIdentityEncodingInstance()` renamed to `GetHorizontalIdentityEncodingInstancePtr()`
+  * `TwoBytesVerticalIdentityEncodingInstance()` renamed to `GetVerticalIdentityEncodingInstancePtr()`
+  * `GetStandard14FontEncodingMap()` renamed to `GetStandard14FontEncodingInstancePtr()`
 - `PdfDifferenceEncoding`:
   * Inverted parameters in constructor
   * `NameToCodePoint()`: Renamed to `TryGetCodePointsFromCharName()`, changed the semantics and now it returns a `CodePointSpan` instead of `char32_t`

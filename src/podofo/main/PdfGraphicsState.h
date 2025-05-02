@@ -25,8 +25,8 @@ namespace PoDoFo
         std::string RenderingIntent;
         PdfColorRaw NonStrokingColor{ };
         PdfColorRaw StrokingColor{ };
-        PdfColorSpaceFilterPtr NonStrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
-        PdfColorSpaceFilterPtr StrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetDeviceGrayInstace();
+        PdfColorSpaceFilterPtr NonStrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetDeviceGrayInstancePtr();
+        PdfColorSpaceFilterPtr StrokingColorSpaceFilter = PdfColorSpaceFilterFactory::GetDeviceGrayInstancePtr();
         PdfPatternDefinitionPtr NonStrokingPattern;
         PdfPatternDefinitionPtr StrokingPattern;
         PdfShadingDefinitionPtr Shading;

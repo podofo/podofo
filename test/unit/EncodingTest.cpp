@@ -128,7 +128,7 @@ void PdfEncodingTest::TestDifferencesObject()
     differences.AddDifference(5, 'E');
     differences.AddDifference(9, 'F');
 
-    PdfDifferenceEncoding encoding(PdfEncodingMapFactory::MacRomanEncodingInstance(), std::move(differences));
+    PdfDifferenceEncoding encoding(PdfEncodingMapFactory::GetMacRomanEncodingInstancePtr(), std::move(differences));
 
     // Check for encoding key
     PdfMemDocument doc;
@@ -171,7 +171,7 @@ TEST_CASE("TestDifferencesEncoding")
     PdfMemDocument doc;
 
     PdfFontCreateParams params;
-    params.Encoding = PdfEncoding(std::make_shared<PdfDifferenceEncoding>(PdfEncodingMapFactory::WinAnsiEncodingInstance(), std::move(differences)));
+    params.Encoding = PdfEncoding(std::make_shared<PdfDifferenceEncoding>(PdfEncodingMapFactory::GetWinAnsiEncodingInstancePtr(), std::move(differences)));
     auto& font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica, params);
 
     charbuff encoded;
@@ -196,7 +196,7 @@ TEST_CASE("TestGetCharCode")
     PdfDifferenceList differences;
     differences.AddDifference((unsigned char)'A', 'B');
     differences.AddDifference((unsigned char)'B', 'A');
-    PdfEncoding differenceEncoding(std::make_shared<PdfDifferenceEncoding>(PdfEncodingMapFactory::WinAnsiEncodingInstance(), std::move(differences)));
+    PdfEncoding differenceEncoding(std::make_shared<PdfDifferenceEncoding>(PdfEncodingMapFactory::GetWinAnsiEncodingInstancePtr(), std::move(differences)));
     outofRangeHelper(differenceEncoding);
 }
 

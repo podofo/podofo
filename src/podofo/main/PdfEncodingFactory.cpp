@@ -151,7 +151,7 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfDictionary& fontDict, co
             toUnicodeMapName.push_back('-');
             toUnicodeMapName.append(predefinedCIDMap->GetCIDSystemInfo().Ordering.GetString());
             toUnicodeMapName.append("-UCS2");
-            auto toUnicodeMap = PdfEncodingMapFactory::GetPredefinedCMap(toUnicodeMapName);
+            auto toUnicodeMap = PdfEncodingMapFactory::GetPredefinedCMapInstancePtr(toUnicodeMapName);
             if (toUnicodeMap == nullptr)
             {
                 PoDoFo::LogMessage(PdfLogSeverity::Warning, "A ToUnicode map with name {} was not found", toUnicodeMapName);
@@ -192,32 +192,32 @@ PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(const PdfObject& ob
     if (obj.TryGetName(name))
     {
         if (*name == "WinAnsiEncoding")
-            return PdfEncodingMapFactory::WinAnsiEncodingInstance();
+            return PdfEncodingMapFactory::GetWinAnsiEncodingInstancePtr();
         else if (*name == "MacRomanEncoding")
-            return PdfEncodingMapFactory::MacRomanEncodingInstance();
+            return PdfEncodingMapFactory::GetMacRomanEncodingInstancePtr();
         else if (*name == "MacExpertEncoding")
-            return PdfEncodingMapFactory::MacExpertEncodingInstance();
+            return PdfEncodingMapFactory::GetMacExpertEncodingInstancePtr();
 
         // TABLE 5.15 Predefined CJK CMap names: the generip H-V identifies
         // are mappings for 2-byte CID. "It maps 2-byte character codes ranging
         // from 0 to 65,535 to the same 2 - byte CID value, interpreted high
         // order byte first"
         else if (*name == "Identity-H")
-            return PdfEncodingMapFactory::TwoBytesHorizontalIdentityEncodingInstance();
+            return PdfEncodingMapFactory::GetHorizontalIdentityEncodingInstancePtr();
         else if (*name == "Identity-V")
-            return PdfEncodingMapFactory::TwoBytesVerticalIdentityEncodingInstance();
+            return PdfEncodingMapFactory::GetVerticalIdentityEncodingInstancePtr();
         else
-            return PdfEncodingMapFactory::GetPredefinedCMap(*name);
+            return PdfEncodingMapFactory::GetPredefinedCMapInstancePtr(*name);
     }
     else if (obj.TryGetDictionary(dict))
     {
         if (dict->TryFindKeyAs("CMapName", name))
         {
             if (*name == "Identity-H")
-                return PdfEncodingMapFactory::TwoBytesHorizontalIdentityEncodingInstance();
+                return PdfEncodingMapFactory::GetHorizontalIdentityEncodingInstancePtr();
 
             if (*name == "Identity-V")
-                return PdfEncodingMapFactory::TwoBytesVerticalIdentityEncodingInstance();
+                return PdfEncodingMapFactory::GetVerticalIdentityEncodingInstancePtr();
         }
 
         unique_ptr<PdfEncodingMap> cmapEnc;
@@ -234,15 +234,15 @@ PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(const PdfObject& ob
 
 PdfEncoding PdfEncodingFactory::CreateWinAnsiEncoding()
 {
-    return PdfEncoding(WinAnsiEncodingId, PdfEncodingMapFactory::WinAnsiEncodingInstance(), nullptr);
+    return PdfEncoding(WinAnsiEncodingId, PdfEncodingMapFactory::GetWinAnsiEncodingInstancePtr(), nullptr);
 }
 
 PdfEncoding PdfEncodingFactory::CreateMacRomanEncoding()
 {
-    return PdfEncoding(MacRomanEncodingId, PdfEncodingMapFactory::MacRomanEncodingInstance(), nullptr);
+    return PdfEncoding(MacRomanEncodingId, PdfEncodingMapFactory::GetMacRomanEncodingInstancePtr(), nullptr);
 }
 
 PdfEncoding PdfEncodingFactory::CreateMacExpertEncoding()
 {
-    return PdfEncoding(MacExpertEncodingId, PdfEncodingMapFactory::MacExpertEncodingInstance(), nullptr);
+    return PdfEncoding(MacExpertEncodingId, PdfEncodingMapFactory::GetMacExpertEncodingInstancePtr(), nullptr);
 }
