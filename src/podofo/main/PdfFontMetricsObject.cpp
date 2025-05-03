@@ -132,9 +132,9 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         if (widths != nullptr)
         {
             auto& arrWidths = widths->GetArray();
-            m_Widths.reserve(arrWidths.size());
-            for (auto& width : arrWidths)
-                m_Widths.push_back(width.GetReal() * m_Matrix[0]);
+            m_Widths.resize(arrWidths.size());
+            for (unsigned i = 0; i < arrWidths.GetSize(); i++)
+                m_Widths[i] = arrWidths[i].GetReal() * m_Matrix[0];
         }
     }
     else if (subType == "CIDFontType0" || subType == "CIDFontType2")
