@@ -172,7 +172,7 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfDictionary& fontDict, co
     if (lastCharObj != nullptr)
         parsedLimits.LastChar = PdfCharCode(static_cast<unsigned>(lastCharObj->GetNumber()));
 
-    if (parsedLimits.LastChar.Code > parsedLimits.FirstChar.Code)
+    if (parsedLimits.LastChar.Code >= parsedLimits.FirstChar.Code)
     {
         // If found valid /FirstChar and /LastChar, valorize
         //  also the code size limits
