@@ -141,10 +141,9 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         if (widthsObj != nullptr)
         {
             auto& arrWidths = widthsObj->GetArray();
-            vector<double> widths;
-            widths.reserve(arrWidths.size());
-            for (auto& width : arrWidths)
-                widths.push_back(width.GetReal() * m_Matrix[0]);
+            vector<double> widths(arrWidths.size());
+            for (unsigned i = 0; i < arrWidths.GetSize(); i++)
+                widths[i] = arrWidths[i].GetReal() * m_Matrix[0];
 
             SetParsedWidths(std::make_shared<vector<double>>(std::move(widths)));
         }
