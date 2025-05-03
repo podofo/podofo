@@ -325,10 +325,10 @@ const PdfEncodingLimits& PdfEncodingMapBase::GetLimits() const
     return m_charMap->GetLimits();
 }
 
-PdfEncodingMapOneByte::PdfEncodingMapOneByte(const PdfEncodingLimits& limits)
+PdfEncodingMapSimple::PdfEncodingMapSimple(const PdfEncodingLimits& limits)
     : PdfEncodingMap(PdfEncodingMapType::Simple), m_Limits(limits) { }
 
-void PdfEncodingMapOneByte::AppendToUnicodeEntries(OutputStream& stream, charbuff& temp) const
+void PdfEncodingMapSimple::AppendToUnicodeEntries(OutputStream& stream, charbuff& temp) const
 {
     auto& limits = GetLimits();
     PODOFO_ASSERT(limits.MaxCodeSize == 1);
@@ -359,7 +359,7 @@ void PdfEncodingMapOneByte::AppendToUnicodeEntries(OutputStream& stream, charbuf
     stream.Write("endbfrange\n");
 }
 
-void PdfEncodingMapOneByte::AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const
+void PdfEncodingMapSimple::AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const
 {
     auto& limits = GetLimits();
     PODOFO_ASSERT(limits.MaxCodeSize == 1);
@@ -404,7 +404,7 @@ void PdfEncodingMapOneByte::AppendCIDMappingEntries(OutputStream& stream, const 
     stream.Write("endcidchar\n");
 }
 
-const PdfEncodingLimits& PdfEncodingMapOneByte::GetLimits() const
+const PdfEncodingLimits& PdfEncodingMapSimple::GetLimits() const
 {
     return m_Limits;
 }
@@ -451,7 +451,7 @@ void PdfNullEncodingMap::AppendCIDMappingEntries(OutputStream& stream, const Pdf
 }
 
 PdfBuiltInEncoding::PdfBuiltInEncoding(const PdfName& name)
-    : PdfEncodingMapOneByte({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }), m_Name(name)
+    : PdfEncodingMapSimple({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }), m_Name(name)
 {
 }
 

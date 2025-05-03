@@ -20,6 +20,7 @@ class PODOFO_API PdfEncodingMapFactory final
     friend class PdfEncodingFactory;
     friend class PdfDifferenceEncoding;
     friend class PdfFontMetricsFreetype;
+    friend class PdfFontMetrics;
 
 public:
     /** Try to parse a CMap encoding from an object

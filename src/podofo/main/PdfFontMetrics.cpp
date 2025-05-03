@@ -17,9 +17,16 @@
 #include "PdfFont.h"
 #include "PdfIdentityEncoding.h"
 #include "PdfFontMetricsFreetype.h"
+#include "PdfDifferenceEncoding.h"
+#include "PdfPredefinedEncoding.h"
 
 using namespace std;
 using namespace PoDoFo;
+
+static PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapType1(FT_Face face, const PdfEncodingMap& baseEncodings,
+    const PdfDifferenceList* differences);
+static PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapTrueType(FT_Face face, const PdfEncodingMap& baseEncodings,
+    const PdfDifferenceList* differences);
 
 // Default matrix: thousands of PDF units
 static Matrix s_DefaultMatrix = { 1e-3, 0.0, 0.0, 1e-3, 0, 0 };
@@ -257,8 +264,60 @@ void PdfFontMetrics::SetParsedWidths(GlyphMetricsListConstPtr&& parsedWidths)
 
 PdfCIDToGIDMapConstPtr PdfFontMetrics::GetBuiltinCIDToGIDMap() const
 {
-    // By default assume there's no map available
-    return nullptr;
+    FT_Face face;
+    if (GetFontFileType() != PdfFontFileType::TrueType
+        || (face = GetFaceHandle()) == nullptr
+        || face->num_charmaps == 0)
+    {
+        return nullptr;
+    }
+
+    CIDToGIDMap map;
+
+    // ISO 32000-2:2020 "9.6.5.4 Encodings for TrueType fonts"
+    // "A TrueType font program’s built-in encoding maps directly
+    // from character codes to glyph descriptions by means of an
+    // internal data structure called a 'cmap' "
+    FT_Error rc;
+    FT_ULong code;
+    FT_UInt index;
+
+    if (FT_Select_Charmap(face, FT_ENCODING_MS_SYMBOL) == 0)
+    {
+        code = FT_Get_First_Char(face, &index);
+        while (index != 0)
+        {
+            // "If the font contains a (3, 0) subtable, the range of character
+            // codes shall be one of these: 0x0000 - 0x00FF,
+            // 0xF000 - 0xF0FF, 0xF100 - 0xF1FF, or 0xF200 - 0xF2FF"
+            // NOTE: we just take the first byte
+            map.insert({ (unsigned)(code & 0xFF), index });
+            code = FT_Get_Next_Char(face, code, &index);
+        }
+    }
+    else
+    {
+        // "Otherwise, if the font contains a (1, 0) subtable, single bytes
+        // from the string shall be used to look  up the associated glyph
+        // descriptions from the subtable"
+        if (FT_Select_Charmap(face, FT_ENCODING_APPLE_ROMAN) != 0)
+        {
+            // "If a character cannot be mapped in any of the ways described previously,
+            // a PDF processor may supply a mapping of its choosing"
+            // NOTE: We just pick the first cmap
+            rc = FT_Set_Charmap(face, face->charmaps[0]);
+            CHECK_FT_RC(rc, FT_Set_Charmap);
+        }
+
+        code = FT_Get_First_Char(face, &index);
+        while (index != 0)
+        {
+            map.insert({ (unsigned)code, index });
+            code = FT_Get_Next_Char(face, code, &index);
+        }
+    }
+
+    return PdfCIDToGIDMapConstPtr(new PdfCIDToGIDMap(std::move(map)));
 }
 
 void PdfFontMetrics::initFamilyFontNameSafe()
@@ -483,18 +542,18 @@ PdfFontType PdfFontMetrics::GetFontType() const
     return PdfFontType::Unknown;
 }
 
-PdfEncodingMapConstPtr PdfFontMetrics::GetImplicitEncoding(PdfCIDToGIDMapConstPtr& cidToGidMap) const
+PdfEncodingMapConstPtr PdfFontMetrics::GetDefaultEncoding(PdfCIDToGIDMapConstPtr& cidToGidMap) const
 {
-    return getImplicitEncoding(true, cidToGidMap);
+    return getDefaultEncoding(true, cidToGidMap);
 }
 
-PdfEncodingMapConstPtr PdfFontMetrics::GetImplicitEncoding() const
+PdfEncodingMapConstPtr PdfFontMetrics::GetDefaultEncoding() const
 {
     PdfCIDToGIDMapConstPtr discard;
-    return getImplicitEncoding(false, discard);
+    return getDefaultEncoding(false, discard);
 }
 
-PdfEncodingMapConstPtr PdfFontMetrics::getImplicitEncoding(bool tryFetchCidToGidMap, PdfCIDToGIDMapConstPtr& cidToGidMap) const
+PdfEncodingMapConstPtr PdfFontMetrics::getDefaultEncoding(bool tryFetchCidToGidMap, PdfCIDToGIDMapConstPtr& cidToGidMap) const
 {
     PdfStandard14FontType std14Font;
     // Implicit base encoding can be :
@@ -506,15 +565,21 @@ PdfEncodingMapConstPtr PdfFontMetrics::getImplicitEncoding(bool tryFetchCidToGid
     else if (IsType1Kind())
     {
         // 2.1) An encoding stored in the font program (Type1)
-        // ISO 32000-1:2008 9.6.6.2 "Encodings for Type 1 Fonts"
+        // ISO 32000-2:2020 9.6.5.2 "Encodings for Type 1 Fonts"
         auto face = GetFaceHandle();
         if (face != nullptr)
-            return getFontType1ImplicitEncoding(face);
+        {
+            auto ret = getFontType1BuiltInEncoding(face);
+            if (tryFetchCidToGidMap)
+                cidToGidMap = getIntrinsicCIDToGIDMapType1(face, *ret, nullptr);
+
+            return ret;
+        }
     }
     else if (IsTrueTypeKind() && tryFetchCidToGidMap)
     {
         // 2.2) An encoding stored in the font program (TrueType)
-        // ISO 32000-1:2008 9.6.6.4 "Encodings for TrueType Fonts"
+        // ISO 32000-2:2020 9.6.5.4 "Encodings for TrueType Fonts"
         // NOTE: We just take the inferred builtin CID to GID map and we create
         // a identity encoding of the maximum code size. It should always be 1
         // anyway
@@ -601,3 +666,183 @@ FT_Face PdfFontMetricsBase::GetFaceHandle() const
     return m_Face;
 }
 
+PdfCIDToGIDMapConstPtr PdfEncodingMapSimple::GetIntrinsicCIDToGIDMap(const PdfDictionary& fontDict, const PdfFontMetrics& metrics) const
+{
+    (void)fontDict;
+    const PdfEncodingMap* baseEncoding;
+    const PdfDifferenceList* differences;
+    switch (metrics.GetFontFileType())
+    {
+        case PdfFontFileType::Type1:
+        case PdfFontFileType::Type1CFF:
+        {
+            auto face = metrics.GetFaceHandle();
+            if (face == nullptr)
+                return nullptr;
+
+            GetBaseEncoding(baseEncoding, differences);
+            return getIntrinsicCIDToGIDMapType1(face, *baseEncoding, differences);
+        }
+        case PdfFontFileType::TrueType:
+        {
+            auto face = metrics.GetFaceHandle();
+            if (face == nullptr)
+                return nullptr;
+
+            GetBaseEncoding(baseEncoding, differences);
+            return getIntrinsicCIDToGIDMapTrueType(face, *baseEncoding, differences);
+        }
+        case PdfFontFileType::Type3:
+        {
+            // CHECK-ME: ISO 32000-2:2020 "9.6.5.3 Encodings for Type 3 fonts"
+            return nullptr;
+        }
+        default:
+        {
+            // Nothing to do
+            return nullptr;
+        }
+    }
+}
+
+void PdfEncodingMapSimple::GetBaseEncoding(const PdfEncodingMap*& baseEncoding, const PdfDifferenceList*& differences) const
+{
+    baseEncoding = this;
+    differences = nullptr;
+}
+
+// ISO 32000-2:2020 "9.6.5.2 Encodings for Type 1 fonts"
+PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapType1(FT_Face face, const PdfEncodingMap& baseEncodings,
+    const PdfDifferenceList* differences)
+{
+    // Iterate all the codes of the encoding
+    CIDToGIDMap map;
+    const PdfName* name;
+    CodePointSpan codePoints;
+    FT_UInt index;
+    // NOTE: It's safe to assume the base encoding is a one byte encoding
+    auto& limits = baseEncodings.GetLimits();
+    unsigned code = std::min(limits.FirstChar.Code, 0xFFU);
+    unsigned last = std::min(limits.LastChar.Code, 0xFFU);
+    for (; code <= last; code++)
+    {
+        // If there's a difference, use that instead
+        if (differences == nullptr || !differences->TryGetMappedName((unsigned char)code, name, codePoints))
+        {
+            // NOTE: 9.6.5.2 does not mention about querying the AGL, but
+            // all predefined encodings characater names are also present in the AGL
+            if (!baseEncodings.TryGetCodePoints(PdfCharCode(code), codePoints)
+                || codePoints.GetSize() != 1
+                || !PdfPredefinedEncoding::TryGetCharNameFromCodePoint(*codePoints, name))
+            {
+                // It may happen the code is not found even in the base encoding,
+                // just add an identity mapping
+            Identity:
+                map[code] = code;
+                continue;
+            }
+        }
+
+        // "A Type 1 font program’s glyph descriptions are keyed by glyph names, not by character codes"
+        index = FT_Get_Name_Index(face, name->GetString().data());
+        if (index == 0)
+            goto Identity;
+
+        map[code] = index;
+    }
+
+    if (map.size() == 0)
+        return nullptr;
+
+    return PdfCIDToGIDMapConstPtr(new PdfCIDToGIDMap(std::move(map)));
+}
+
+// ISO 32000-2:2020 "9.6.5.4 Encodings for TrueType fonts"
+PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapTrueType(FT_Face face, const PdfEncodingMap & baseEncodings,
+    const PdfDifferenceList* differences)
+{
+    // "If a (3, 1) 'cmap' subtable (Microsoft Unicode) is present:
+    // A character code shall be first mapped to a glyph name using
+    // the table described above"
+    const PdfEncodingMap* inverseUnicodeMap = nullptr;
+    if (FT_Select_Charmap(face, FT_ENCODING_MS_SYMBOL) != 0)
+    {
+        if (FT_Select_Charmap(face, FT_ENCODING_APPLE_ROMAN) == 0)
+        {
+            // If no (3, 1) subtable is present but a (1, 0) subtable
+            // (Macintosh Roman) is present: A character code shall be
+            // first mapped to a glyph name using the table described above.
+            inverseUnicodeMap = &PdfEncodingMapFactory::GetMacRomanEncodingInstance();
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
+
+    // Iterate all the codes of the encoding
+    CIDToGIDMap map;
+    const PdfName* name = nullptr;
+    CodePointSpan codePoints;
+    unique_ptr<unordered_map<string_view, unsigned>> fontPostMap;
+    unordered_map<string_view, unsigned>::const_iterator found;
+    PdfCharCode charCode;
+    FT_UInt index;
+    // NOTE: It's safe to assume the base encoding is a one byte encoding
+    auto& limits = baseEncodings.GetLimits();
+    unsigned code = std::min(limits.FirstChar.Code, 0xFFU);
+    unsigned last = std::min(limits.LastChar.Code, 0xFFU);
+    for (; code <= last; code++)
+    {
+        // If there's a difference, use that instead
+        if (differences == nullptr || !differences->TryGetMappedName((unsigned char)code, name, codePoints))
+        {
+            if (!baseEncodings.TryGetCodePoints(PdfCharCode(code), codePoints))
+            {
+                // It may happen the code is not found even in the base encoding,
+                // just add an identity mapping
+            Identity:
+                map[code] = code;
+                continue;
+            }
+        }
+
+        if (codePoints.GetSize() != 1)
+            goto TryPost;
+
+        // "Finally, the Unicode value shall be mapped to a glyph description according to the (x, y) subtable"
+        if (inverseUnicodeMap == nullptr || !inverseUnicodeMap->TryGetCharCode(codePoints, charCode))
+            index = FT_Get_Char_Index(face, *codePoints);
+        else
+            index = FT_Get_Char_Index(face, charCode.Code);
+
+        if (index != 0)
+        {
+            map[code] = index;
+            continue;
+        }
+
+    TryPost:
+        if (name == nullptr)
+        {
+            if (codePoints.GetSize() != 1 || !PdfPredefinedEncoding::TryGetCharNameFromCodePoint(*codePoints, name))
+                goto Identity;
+        }
+
+        // "In any of these cases, if the glyph name cannot be mapped as specified,
+        // the glyph name shall be looked up in the font program’s "post" table
+        // (if one is present) and the associated glyph description shall be used
+        if (fontPostMap == nullptr)
+            fontPostMap.reset(new unordered_map<string_view, unsigned>(FT::GetPostMap(face)));
+
+        if ((found = fontPostMap->find(*name)) == fontPostMap->end())
+            goto Identity;
+
+        map[code] = found->second;
+    }
+
+    if (map.size() == 0)
+        return nullptr;
+
+    return PdfCIDToGIDMapConstPtr(new PdfCIDToGIDMap(std::move(map)));
+}

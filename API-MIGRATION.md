@@ -231,7 +231,8 @@ and use move semantics on the stream
 - `PdfACtion` hierarchy: make all hierarchy constructors internals and leave classes final
 - `PdfField` hierarchy: make all hierarchy leave classes final
 - `PdfDataProvider`, `PdfDataContainer`: Make the classes internal
-- `PdfEncodingMap`, `PdfEncodingMapOneByte`, `PdfBuiltInEncoding`, `PdfPredefinedEncoding`, `PdfEncodingMapBase`: make the constructors internal
+- `PdfEncodingMapOneByte` renamed to `PdfEncodingMapSimple`
+- `PdfEncodingMap`, `PdfEncodingMapSimple`, `PdfBuiltInEncoding`, `PdfPredefinedEncoding`, `PdfEncodingMapBase`: make the constructors internal
 - `PdfEncodingMap`:
   * Removed `IsBuiltinEncoding`. No replacement, it just told if the font was built-in in Type1 font program. For now it's not expected to be useful
   * `TryGetCodePoints()`, `TryGetNextCodePoints` now takes `CodePointSpan` instead of vector<codepoint>

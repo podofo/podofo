@@ -40,6 +40,7 @@ class PODOFO_API PdfFontMetrics
     friend class PdfFontMetricsBase;
     friend class PdfFontMetricsFreetype;
     friend class PdfEncodingFactory;
+    friend class PdfEncodingMapSimple;
     friend class PdfDifferenceEncoding;
     PODOFO_PRIVATE_FRIEND(class FontTrueTypeSubset);
 
@@ -363,10 +364,6 @@ protected:
 
     void SetParsedWidths(GlyphMetricsListConstPtr&& parsedWidths);
 
-    /** Get a built-in CID to GID map, such as when no /Encoding is defined
-     */
-    virtual PdfCIDToGIDMapConstPtr GetBuiltinCIDToGIDMap() const;
-
 private:
     static std::unique_ptr<const PdfFontMetrics> CreateFromFile(const std::string_view& filepath, unsigned faceIndex,
         const PdfFontMetrics* metrics, bool skipNormalization);
@@ -382,14 +379,18 @@ private:
     std::unique_ptr<const PdfFontMetrics> CreateMergedMetrics(bool skipNormalization) const;
 
     /** Get an implicit encoding, such as the one of standard14 fonts,
-     * or the built-in encoding of a Type1 font, if available
+     * or the built-in encoding of a Type1/TrueType font
      */
-    PdfEncodingMapConstPtr GetImplicitEncoding(PdfCIDToGIDMapConstPtr& cidToGidMap) const;
-    PdfEncodingMapConstPtr GetImplicitEncoding() const;
+    PdfEncodingMapConstPtr GetDefaultEncoding(PdfCIDToGIDMapConstPtr& cidToGidMap) const;
+    PdfEncodingMapConstPtr GetDefaultEncoding() const;
 
-    static PdfEncodingMapConstPtr getFontType1ImplicitEncoding(FT_Face face);
+    /** Get a built-in CID to GID map, such as when no /Encoding is defined
+     */
+    PdfCIDToGIDMapConstPtr GetBuiltinCIDToGIDMap() const;
+
+    PdfEncodingMapConstPtr getFontType1BuiltInEncoding(FT_Face face) const;
     void initFamilyFontNameSafe();
-    PdfEncodingMapConstPtr getImplicitEncoding(bool tryFetchCidToGidMap, PdfCIDToGIDMapConstPtr& cidToGidMap) const;
+    PdfEncodingMapConstPtr getDefaultEncoding(bool tryFetchCidToGidMap, PdfCIDToGIDMapConstPtr& cidToGidMap) const;
 
 private:
     PdfFontMetrics(const PdfFontMetrics& rhs) = delete;

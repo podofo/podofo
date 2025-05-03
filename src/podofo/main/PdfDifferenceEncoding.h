@@ -114,7 +114,7 @@ private:
  *  on either the fonts encoding or a predefined encoding
  *  and defines differences to this base encoding.
  */
-class PODOFO_API PdfDifferenceEncoding final : public PdfEncodingMapOneByte
+class PODOFO_API PdfDifferenceEncoding final : public PdfEncodingMapSimple
 {
     friend class PdfDifferenceList;
 
@@ -165,7 +165,7 @@ public:
     const PdfDifferenceList& GetDifferences() const { return m_differences; }
 
 protected:
-    PdfCIDToGIDMapConstPtr GetIntrinsicCIDToGIDMap(const PdfDictionary& fontDict, const PdfFontMetrics& metrics) const override;
+    void GetBaseEncoding(const PdfEncodingMap*& baseEncoding, const PdfDifferenceList*& differences) const;
 
     void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override;
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
@@ -177,8 +177,6 @@ protected:
 private:
     static bool TryGetCodePointsFromCharName(std::string_view charName, CodePointSpan& codepoints, const PdfName*& actualName);
 
-    PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapType1(const PdfFontMetrics& metrics) const;
-    PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapTrueType(const PdfFontMetrics& metrics) const;
     void buildReverseMap();
 
 private:

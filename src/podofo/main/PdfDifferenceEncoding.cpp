@@ -196,7 +196,7 @@ unsigned PdfDifferenceList::GetCount() const
 
 PdfDifferenceEncoding::PdfDifferenceEncoding(PdfEncodingMapConstPtr baseEncoding,
         PdfDifferenceList differences) :
-    PdfEncodingMapOneByte({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }),
+    PdfEncodingMapSimple({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }),
     m_baseEncoding(std::move(baseEncoding)),
     m_differences(std::move(differences)),
     m_reverseMap(nullptr)
@@ -260,7 +260,7 @@ bool PdfDifferenceEncoding::TryCreateFromObject(const PdfObject& obj,
 
     if (baseEncoding == nullptr)
     {
-        baseEncoding = metrics.GetImplicitEncoding();
+        baseEncoding = metrics.GetDefaultEncoding();
         if (baseEncoding == nullptr)
         {
             // Assume StandardEncoding in case nothing else works
@@ -295,31 +295,10 @@ bool PdfDifferenceEncoding::TryCreateFromObject(const PdfObject& obj,
     return true;
 }
 
-PdfCIDToGIDMapConstPtr PdfDifferenceEncoding::GetIntrinsicCIDToGIDMap(const PdfDictionary& fontDict, const PdfFontMetrics& metrics) const
+void PdfDifferenceEncoding::GetBaseEncoding(const PdfEncodingMap*& baseEncoding, const PdfDifferenceList*& differences) const
 {
-    (void)fontDict;
-    switch (metrics.GetFontFileType())
-    {
-        case PdfFontFileType::Type1:
-        case PdfFontFileType::Type1CFF:
-        {
-            return getIntrinsicCIDToGIDMapType1(metrics);
-        }
-        case PdfFontFileType::TrueType:
-        {
-            return getIntrinsicCIDToGIDMapTrueType(metrics);
-        }
-        case PdfFontFileType::Type3:
-        {
-            // CHECK-ME: ISO 32000-2:2020 "9.6.5.3 Encodings for Type 3 fonts"
-            return nullptr;
-        }
-        default:
-        {
-            // Nothing to do
-            return nullptr;
-        }
-    }
+    baseEncoding = m_baseEncoding.get();
+    differences = &m_differences;
 }
 
 void PdfDifferenceEncoding::getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const

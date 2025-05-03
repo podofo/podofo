@@ -18,6 +18,7 @@ class PdfIndirectObjectList;
 class PdfFont;
 class PdfFontMetrics;
 class PdfEncodingFactory;
+class PdfDifferenceList;
 
 /** 
  * A PdfEncodingMap is a low level interface to convert
@@ -31,7 +32,7 @@ class PODOFO_API PdfEncodingMap
 {
     friend class PdfEncoding;
     friend class PdfEncodingMapBase;
-    friend class PdfEncodingMapOneByte;
+    friend class PdfEncodingMapSimple;
     friend class PdfDifferenceEncoding;
     friend class PdfNullEncodingMap;
     friend class PdfIdentityEncoding;
@@ -212,10 +213,8 @@ private:
  */
 class PODOFO_API PdfEncodingMapBase : public PdfEncodingMap
 {
-    friend class PdfDynamicEncodingMap;
-
-protected:
-    PdfEncodingMapBase(PdfCharCodeMap&& map, PdfEncodingMapType type);
+    friend class PdfCMapEncoding;
+    PODOFO_PRIVATE_FRIEND(class PdfDynamicEncodingMap);
 
 protected:
     bool tryGetNextCharCode(std::string_view::iterator& it,
@@ -239,6 +238,7 @@ public:
     const PdfEncodingLimits& GetLimits() const override;
 
 private:
+    PdfEncodingMapBase(PdfCharCodeMap&& map, PdfEncodingMapType type);
     PdfEncodingMapBase(std::shared_ptr<PdfCharCodeMap>&& map, PdfEncodingMapType type);
 
 private:
@@ -246,17 +246,18 @@ private:
 };
 
 /**
- * PdfEncodingMap used by encodings like PdfBuiltInEncoding
+ * PdfEncodingMap used by legacy encodings like PdfBuiltInEncoding
  * or PdfDifferenceEncoding that can define all their charset
  * with a single one byte range
  */
-class PODOFO_API PdfEncodingMapOneByte : public PdfEncodingMap
+class PODOFO_API PdfEncodingMapSimple : public PdfEncodingMap
 {
     friend class PdfBuiltInEncoding;
     friend class PdfDifferenceEncoding;
+    PODOFO_PRIVATE_FRIEND(class PdfFontBuiltinType1Encoding);
 
 private:
-    PdfEncodingMapOneByte(const PdfEncodingLimits& limits);
+    PdfEncodingMapSimple(const PdfEncodingLimits& limits);
 
 protected:
     void AppendToUnicodeEntries(OutputStream& stream, charbuff& temp) const override;
@@ -264,6 +265,10 @@ protected:
     void AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const override;
 
     const PdfEncodingLimits& GetLimits() const override;
+
+    PdfCIDToGIDMapConstPtr GetIntrinsicCIDToGIDMap(const PdfDictionary& fontDict, const PdfFontMetrics& metrics) const override;
+
+    virtual void GetBaseEncoding(const PdfEncodingMap*& baseEncoding, const PdfDifferenceList*& differences) const;
 
 private:
     PdfEncodingLimits m_Limits;
@@ -273,7 +278,7 @@ private:
  * A common base class for built-in encodings which are
  * known by name.
  */
-class PODOFO_API PdfBuiltInEncoding : public PdfEncodingMapOneByte
+class PODOFO_API PdfBuiltInEncoding : public PdfEncodingMapSimple
 {
     friend class PdfFontMetricsFreetype;
     friend class PdfPredefinedEncoding;

@@ -79,7 +79,7 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfDictionary& fontDict, co
             if (encoding == nullptr)
             {
                 // See condition ISO 32000-2:2020 "When the font has no Encoding entry..."
-                encoding = metrics.GetImplicitEncoding(cidToGidMap);
+                encoding = metrics.GetDefaultEncoding(cidToGidMap);
             }
             else
             {

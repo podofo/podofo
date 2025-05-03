@@ -105,8 +105,6 @@ protected:
 
     PdfFontType GetFontType() const override;
 
-    PdfCIDToGIDMapConstPtr GetBuiltinCIDToGIDMap() const override;
-
     bool getIsBoldHint() const override;
 
     bool getIsItalicHint() const override;
