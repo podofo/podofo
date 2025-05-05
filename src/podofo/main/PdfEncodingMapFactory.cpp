@@ -58,6 +58,16 @@ const PdfBuiltInEncoding& PdfEncodingMapFactory::GetMacExpertEncodingInstance()
     return *getMacExpertEncodingInstancePtr();
 }
 
+PdfBuiltInEncodingConstPtr PdfEncodingMapFactory::GetStandardEncodingInstancePtr()
+{
+    return getStandardEncodingInstancePtr();
+}
+
+const PdfBuiltInEncoding& PdfEncodingMapFactory::GetStandardEncodingInstance()
+{
+    return *getStandardEncodingInstancePtr();
+}
+
 PdfEncodingMapConstPtr PdfEncodingMapFactory::GetHorizontalIdentityEncodingInstancePtr()
 {
     return getHorizontalIdentityEncodingInstancePtr();
@@ -81,12 +91,6 @@ const PdfEncodingMap& PdfEncodingMapFactory::GetVerticalIdentityEncodingInstance
 const PdfEncodingMapConstPtr& PdfEncodingMapFactory::GetNullEncodingInstancePtr()
 {
     static PdfEncodingMapConstPtr s_instance(new PdfNullEncodingMap());
-    return s_instance;
-}
-
-const PdfBuiltInEncodingConstPtr& PdfEncodingMapFactory::GetStandardEncodingInstancePtr()
-{
-    static PdfBuiltInEncodingConstPtr s_instance(new PdfStandardEncoding());
     return s_instance;
 }
 
@@ -136,6 +140,12 @@ const PdfBuiltInEncodingConstPtr& PdfEncodingMapFactory::getMacExpertEncodingIns
     return s_instance;
 }
 
+const PdfBuiltInEncodingConstPtr& PdfEncodingMapFactory::getStandardEncodingInstancePtr()
+{
+    static PdfBuiltInEncodingConstPtr s_instance(new PdfStandardEncoding());
+    return s_instance;
+}
+
 const PdfEncodingMapConstPtr& PdfEncodingMapFactory::getHorizontalIdentityEncodingInstancePtr()
 {
     static PdfEncodingMapConstPtr s_instance(new PdfIdentityEncoding(PdfIdentityOrientation::Horizontal));
@@ -164,7 +174,7 @@ const PdfBuiltInEncodingConstPtr& PdfEncodingMapFactory::getStandard14FontEncodi
         case PdfStandard14FontType::CourierOblique:
         case PdfStandard14FontType::CourierBold:
         case PdfStandard14FontType::CourierBoldOblique:
-            return GetStandardEncodingInstancePtr();
+            return getStandardEncodingInstancePtr();
         case PdfStandard14FontType::Symbol:
             return GetSymbolEncodingInstancePtr();
         case PdfStandard14FontType::ZapfDingbats:

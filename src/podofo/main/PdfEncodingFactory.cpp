@@ -78,16 +78,17 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfDictionary& fontDict, co
             PdfEncodingMapConstPtr implicitEncoding;
             if (encoding == nullptr)
             {
-                // See condition ISO 32000-2:2020 "When the font has no Encoding entry..."
+                // See condition ISO 32000-2:2020 9.6.5.4 Encodings for TrueType fonts
+                // "When the font has no Encoding entry..."
                 encoding = metrics.GetDefaultEncoding(cidToGidMap);
             }
             else
             {
-                if (type == PdfFontType::TrueType && (metrics.GetFlags() & PdfFontDescriptorFlags::Symbolic) != PdfFontDescriptorFlags::None)
+                if (metrics.GetFontFileType() == PdfFontFileType::TrueType && (metrics.GetFlags() & PdfFontDescriptorFlags::Symbolic) != PdfFontDescriptorFlags::None)
                 {
-                    // or the font descriptor’s Symbolic flag is set (in which case the Encoding entry is ignored)"
+                    // "...or the font descriptor’s Symbolic flag is set (in which case the Encoding entry is ignored)"
                     // NOTE: The encoding entry is "ignored" for glyph selecting
-                    cidToGidMap = metrics.GetBuiltinCIDToGIDMap();
+                    cidToGidMap = metrics.GetTrueTypeBuiltinCIDToGIDMap();
                 }
                 else
                 {

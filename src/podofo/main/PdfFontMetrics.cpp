@@ -262,11 +262,11 @@ void PdfFontMetrics::SetParsedWidths(GlyphMetricsListConstPtr&& parsedWidths)
     m_ParsedWidths = std::move(parsedWidths);
 }
 
-PdfCIDToGIDMapConstPtr PdfFontMetrics::GetBuiltinCIDToGIDMap() const
+PdfCIDToGIDMapConstPtr PdfFontMetrics::GetTrueTypeBuiltinCIDToGIDMap() const
 {
+    PODOFO_ASSERT(GetFontFileType() == PdfFontFileType::TrueType);
     FT_Face face;
-    if (GetFontFileType() != PdfFontFileType::TrueType
-        || (face = GetFaceHandle()) == nullptr
+    if ((face = GetFaceHandle()) == nullptr
         || face->num_charmaps == 0)
     {
         return nullptr;
@@ -579,13 +579,16 @@ PdfEncodingMapConstPtr PdfFontMetrics::getDefaultEncoding(bool tryFetchCidToGidM
     else if (IsTrueTypeKind() && tryFetchCidToGidMap)
     {
         // 2.2) An encoding stored in the font program (TrueType)
-        // ISO 32000-2:2020 9.6.5.4 "Encodings for TrueType Fonts"
-        // NOTE: We just take the inferred builtin CID to GID map and we create
-        // a identity encoding of the maximum code size. It should always be 1
-        // anyway
-        cidToGidMap = GetBuiltinCIDToGIDMap();
+        // ISO 32000-2:2020 9.6.5.4 Encodings for TrueType Fonts
+        // "When the font has no Encoding entry..."
+        cidToGidMap = GetTrueTypeBuiltinCIDToGIDMap();
         if (cidToGidMap != nullptr)
         {
+            // NOTE: We just take the inferred builtin CID to GID map and we create
+            // a identity encoding of the maximum code size. It should always be 1
+            // anyway
+            // CHECK-ME: Is this really correct?
+
             // Find the maximum CID code size
             unsigned maxCID = 0;
             for (auto& pair : *cidToGidMap)
@@ -690,7 +693,19 @@ PdfCIDToGIDMapConstPtr PdfEncodingMapSimple::GetIntrinsicCIDToGIDMap(const PdfDi
                 return nullptr;
 
             GetBaseEncoding(baseEncoding, differences);
-            return getIntrinsicCIDToGIDMapTrueType(face, *baseEncoding, differences);
+            // ISO 32000-2:2020 9.6.5.4 Encodings for TrueType fonts:
+            // "If the font has a named Encoding entry of either MacRomanEncoding or
+            // WinAnsiEncoding, or if the font descriptor’s Nonsymbolic flag is set,
+            // the PDF processor shall create a table that maps from character codes
+            // to glyph names"
+            if (typeid(baseEncoding) == typeid(PdfWinAnsiEncoding) 
+                || typeid(baseEncoding) == typeid(PdfMacRomanEncoding)
+                || (metrics.GetFlags() & PdfFontDescriptorFlags::NonSymbolic) != PdfFontDescriptorFlags::None)
+            {
+                return getIntrinsicCIDToGIDMapTrueType(face, *baseEncoding, differences);
+            }
+
+            return nullptr;
         }
         case PdfFontFileType::Type3:
         {
@@ -788,6 +803,7 @@ PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapTrueType(FT_Face face, const PdfEn
     unordered_map<string_view, unsigned>::const_iterator found;
     PdfCharCode charCode;
     FT_UInt index;
+    auto& standardEncoding = PdfEncodingMapFactory::GetStandardEncodingInstance();
     // NOTE: It's safe to assume the base encoding is a one byte encoding
     auto& limits = baseEncodings.GetLimits();
     unsigned code = std::min(limits.FirstChar.Code, 0xFFU);
@@ -797,7 +813,12 @@ PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapTrueType(FT_Face face, const PdfEn
         // If there's a difference, use that instead
         if (differences == nullptr || !differences->TryGetMappedName((unsigned char)code, name, codePoints))
         {
-            if (!baseEncodings.TryGetCodePoints(PdfCharCode(code), codePoints))
+            // "...the table shall be initialised with the entries from the
+            // dictionary’s BaseEncoding entry. (...) Finally, any undefined
+            // entries in the table shall be filled using StandardEncoding"
+            charCode = PdfCharCode(code, 1);
+            if (!(baseEncodings.TryGetCodePoints(charCode, codePoints)
+                || standardEncoding.TryGetCodePoints(charCode, codePoints)))
             {
                 // It may happen the code is not found even in the base encoding,
                 // just add an identity mapping

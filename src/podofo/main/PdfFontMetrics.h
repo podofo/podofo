@@ -384,9 +384,9 @@ private:
     PdfEncodingMapConstPtr GetDefaultEncoding(PdfCIDToGIDMapConstPtr& cidToGidMap) const;
     PdfEncodingMapConstPtr GetDefaultEncoding() const;
 
-    /** Get a built-in CID to GID map, such as when no /Encoding is defined
+    /** Get a built-in CID to GID map for /TrueType fonts, such as when no /Encoding is defined
      */
-    PdfCIDToGIDMapConstPtr GetBuiltinCIDToGIDMap() const;
+    PdfCIDToGIDMapConstPtr GetTrueTypeBuiltinCIDToGIDMap() const;
 
     PdfEncodingMapConstPtr getFontType1BuiltInEncoding(FT_Face face) const;
     void initFamilyFontNameSafe();

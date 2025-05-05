@@ -1,9 +1,12 @@
 ## Version 1.0.0-beta
 
 - Added support for Type1, CFF and OpenType CFF font subsetting
+- Implemented full "Adobe Glyph List" specification (https://github.com/adobe-type-tools/agl-specification) for text extraction and glyph selection
+- Implemented full Type1, TrueType font glyph selection
 - Many fixes in TrueType legacy subsetting
 - Added high-level signing API, see `PdfSignerCMS` and [`TestSignature1`](https://github.com/podofo/podofo/blob/edbcb16a5b18cb20f1d0da1724639cee13608436/test/unit/SignatureTest.cpp#L37) test case
 - Added support for signing encrypted documents
+- Added support for preserving encryption among savings
 - Removed Libidn dependency, default to AESV3R6 encryption
 - Added support for predefined CMap(s) for improved CJK text extraction
 - Added raw rectangle corners retrieval in `PdfAnnotation`, `PdfPage`

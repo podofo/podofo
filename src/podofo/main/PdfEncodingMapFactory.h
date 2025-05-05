@@ -61,6 +61,14 @@ public:
     static const PdfBuiltInEncoding& GetMacExpertEncodingInstance();
 
     /** Singleton method which returns a global instance
+     *  of StandardEncdoing.
+     *
+     *  \returns global instance of StandardEncdoing
+     */
+    static PdfBuiltInEncodingConstPtr GetStandardEncodingInstancePtr();
+    static const PdfBuiltInEncoding& GetStandardEncodingInstance();
+
+    /** Singleton method which returns a global instance
      *  of the 2 bytes /Identity-H horizontal identity encoding
      *
      *  \returns global instance of Horizontal IdentityEncoding
@@ -89,8 +97,6 @@ public:
 private:
     // The following encodings are for internal use only
 
-    static const PdfBuiltInEncodingConstPtr& GetStandardEncodingInstancePtr();
-
     static const PdfBuiltInEncodingConstPtr& GetSymbolEncodingInstancePtr();
 
     static const PdfBuiltInEncodingConstPtr& GetZapfDingbatsEncodingInstancePtr();
@@ -105,6 +111,7 @@ private:
     static const PdfBuiltInEncodingConstPtr& getWinAnsiEncodingInstancePtr();
     static const PdfBuiltInEncodingConstPtr& getMacRomanEncodingInstancePtr();
     static const PdfBuiltInEncodingConstPtr& getMacExpertEncodingInstancePtr();
+    static const PdfBuiltInEncodingConstPtr& getStandardEncodingInstancePtr();
     static const PdfEncodingMapConstPtr& getHorizontalIdentityEncodingInstancePtr();
     static const PdfEncodingMapConstPtr& getVerticalIdentityEncodingInstancePtr();
     static const PdfBuiltInEncodingConstPtr& getStandard14FontEncodingInstancePtr(PdfStandard14FontType stdFont);
