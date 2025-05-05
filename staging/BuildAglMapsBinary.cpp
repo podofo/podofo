@@ -4333,7 +4333,7 @@ void loadMaps()
     s_aglList.emplace_back("yuyeokorean"_n, AglMapping{ (AglType)1, 1, 0x318A });
     s_aglList.emplace_back("yyabengali"_n, AglMapping{ (AglType)1, 1, 0x09DF });
     s_aglList.emplace_back("yyadeva"_n, AglMapping{ (AglType)1, 1, 0x095F });
-    s_aglList.emplace_back("z"_n, AglMapping{ (AglType)3, 1, 0x007A });
+    s_aglList.emplace_back("z"_n, AglMapping{ (AglType)11, 1, 0x007A });
     s_aglList.emplace_back("zaarmenian"_n, AglMapping{ (AglType)1, 1, 0x0566 });
     s_aglList.emplace_back("zacute"_n, AglMapping{ (AglType)3, 1, 0x017A });
     s_aglList.emplace_back("zadeva"_n, AglMapping{ (AglType)1, 1, 0x095B });

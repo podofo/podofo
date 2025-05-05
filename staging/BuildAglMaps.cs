@@ -233,6 +233,7 @@ var latinChars = new string[] {
     "yacute",
     "ydieresis",
     "yen",
+    "z",
     "zcaron",
     "zero",
 };

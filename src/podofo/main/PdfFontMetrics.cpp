@@ -746,7 +746,7 @@ PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapType1(FT_Face face, const PdfEncod
         {
             // NOTE: 9.6.5.2 does not mention about querying the AGL, but
             // all predefined encodings characater names are also present in the AGL
-            if (!baseEncodings.TryGetCodePoints(PdfCharCode(code), codePoints)
+            if (!baseEncodings.TryGetCodePoints(PdfCharCode(code, 1), codePoints)
                 || codePoints.GetSize() != 1
                 || !PdfPredefinedEncoding::TryGetCharNameFromCodePoint(*codePoints, name))
             {
