@@ -735,11 +735,9 @@ PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapType1(FT_Face face, const PdfEncod
     const PdfName* name;
     CodePointSpan codePoints;
     FT_UInt index;
-    // NOTE: It's safe to assume the base encoding is a one byte encoding
-    auto& limits = baseEncodings.GetLimits();
-    unsigned code = std::min(limits.FirstChar.Code, 0xFFU);
-    unsigned last = std::min(limits.LastChar.Code, 0xFFU);
-    for (; code <= last; code++)
+    // NOTE:  It's safe to assume the base encoding is a one byte encoding.
+    // Iterate all the range, as the base econding may be narrow
+    for (unsigned code = 0; code <= 0xFFU; code++)
     {
         // If there's a difference, use that instead
         if (differences == nullptr || !differences->TryGetMappedName((unsigned char)code, name, codePoints))
@@ -804,11 +802,9 @@ PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapTrueType(FT_Face face, const PdfEn
     PdfCharCode charCode;
     FT_UInt index;
     auto& standardEncoding = PdfEncodingMapFactory::GetStandardEncodingInstance();
-    // NOTE: It's safe to assume the base encoding is a one byte encoding
-    auto& limits = baseEncodings.GetLimits();
-    unsigned code = std::min(limits.FirstChar.Code, 0xFFU);
-    unsigned last = std::min(limits.LastChar.Code, 0xFFU);
-    for (; code <= last; code++)
+    // NOTE:  It's safe to assume the base encoding is a one byte encoding.
+    // Iterate all the range, as the base econding may be narrow
+    for (unsigned code = 0; code <= 0xFFU; code++)
     {
         // If there's a difference, use that instead
         if (differences == nullptr || !differences->TryGetMappedName((unsigned char)code, name, codePoints))
