@@ -129,7 +129,7 @@ static void buildMappings(const string_view& serialized, CodeUnitMap& mappings, 
 
 namespace
 {
-    using MapGetter = std::add_pointer<PdfCMapEncodingConstPtr()>::type;
+    using MapGetter = std::add_pointer<const PdfCMapEncodingConstPtr&()>::type;
 }
 )");
 
@@ -160,6 +160,15 @@ PdfCMapEncodingConstPtr PdfEncodingMapFactory::GetPredefinedCMap(const string_vi
         return nullptr;
     else
         return found->second();
+}
+
+const PdfCMapEncoding& PdfEncodingMapFactory::GetPredefinedCMapInstance(const string_view& cmapName)
+{
+    auto found = s_PredefinedCMaps.find(cmapName);
+    if (found == s_PredefinedCMaps.end())
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncoding, "Could not find a cmap with a CMap name {}", cmapName);
+
+    return *found->second();
 }
 
 unsigned readCode(InputStream& stream, unsigned char codeSize)
@@ -348,7 +357,7 @@ void write(const PdfCharCodeMap& map)
 
 void write(const PdfCMapEncoding& encoding, Context& context)
 {
-    s_Stream->Write("        static PdfCMapEncodingConstPtr ");
+    s_Stream->Write("        static const PdfCMapEncodingConstPtr& ");
     auto& info = encoding.GetCIDSystemInfo();
     auto& map = encoding.GetCharMap();
     auto& limits = encoding.GetLimits();
