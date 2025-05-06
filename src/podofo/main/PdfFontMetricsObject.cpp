@@ -642,10 +642,10 @@ Corners PdfFontMetricsObject::getBBox(const PdfObject& obj)
 {
     auto& arr = obj.GetArray();
     return Corners(
-        arr[0].GetNumberLenient() * m_Matrix[0],
-        arr[1].GetNumberLenient() * m_Matrix[3],
-        arr[2].GetNumberLenient() * m_Matrix[0],
-        arr[3].GetNumberLenient() * m_Matrix[3]
+        arr[0].GetReal() * m_Matrix[0],
+        arr[1].GetReal() * m_Matrix[3],
+        arr[2].GetReal() * m_Matrix[0],
+        arr[3].GetReal() * m_Matrix[3]
     );
 }
 
