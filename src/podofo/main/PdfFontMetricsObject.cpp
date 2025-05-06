@@ -77,6 +77,14 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             m_FontFileType = PdfFontFileType::Type3;
         }
 
+        const PdfObject* fontmatrix = nullptr;
+        if (m_FontType == PdfFontType::Type3 && (fontmatrix = font.GetDictionary().FindKey("FontMatrix")) != nullptr)
+        {
+            // Type3 fonts have a custom /FontMatrix
+            auto& fontmatrixArr = fontmatrix->GetArray();
+            m_Matrix = Matrix::FromArray(fontmatrixArr);
+        }
+
         if (descriptor == nullptr)
         {
             if (m_FontType == PdfFontType::Type3)
@@ -119,14 +127,6 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
                 m_FontFileObject = descriptor->GetDictionary().FindKey("FontFile3");
 
             missingWidthRaw = descriptor->GetDictionary().FindKeyAsSafe<double>("MissingWidth", 0);
-        }
-
-        const PdfObject* fontmatrix = nullptr;
-        if (m_FontType == PdfFontType::Type3 && (fontmatrix = font.GetDictionary().FindKey("FontMatrix")) != nullptr)
-        {
-            // Type3 fonts have a custom /FontMatrix
-            auto& fontmatrixArr = fontmatrix->GetArray();
-            m_Matrix = Matrix::FromArray(fontmatrixArr);
         }
 
         // Set the default width accordingly to possibly existing
