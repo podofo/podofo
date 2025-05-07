@@ -122,7 +122,7 @@ void PdfDocument::append(const PdfDocument& doc, bool appendAll)
         m_Objects.PushObject(newObj);
         *newObj = *obj;
 
-        PoDoFo::LogMessage(PdfLogSeverity::Information, "Fixing references in {} {} R by {}",
+        PoDoFo::LogMessage(PdfLogSeverity::Debug, "Fixing references in {} {} R by {}",
             newObj->GetIndirectReference().ObjectNumber(), newObj->GetIndirectReference().GenerationNumber(), difference);
         fixObjectReferences(*newObj, difference);
     }
@@ -210,7 +210,7 @@ void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc,
         m_Objects.PushObject(newObj);
         *newObj = *obj;
 
-        PoDoFo::LogMessage(PdfLogSeverity::Information, "Fixing references in {} {} R by {}",
+        PoDoFo::LogMessage(PdfLogSeverity::Debug, "Fixing references in {} {} R by {}",
             newObj->GetIndirectReference().ObjectNumber(), newObj->GetIndirectReference().GenerationNumber(), difference);
         fixObjectReferences(*newObj, difference);
     }
