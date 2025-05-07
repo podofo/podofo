@@ -50,6 +50,9 @@ PdfXMPPacket::~PdfXMPPacket()
 
 unique_ptr<PdfXMPPacket> PdfXMPPacket::Create(const string_view& xmpview)
 {
+    if (xmpview.size() == 0)
+        return nullptr;
+
     auto doc = xmlReadMemory(xmpview.data(), (int)xmpview.size(), nullptr, nullptr, XML_PARSE_NOBLANKS);
     xmlNodePtr xmpmeta;
     if (doc == nullptr
