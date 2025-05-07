@@ -15,12 +15,22 @@
 #include "PdfObject.h"
 #include "PdfVariant.h"
 
+namespace PoDoFo
+{
+    struct PdfFontMetricsObject::Type3FontData
+    {
+        unsigned GlyphCount;
+        const PdfObject* CharProcsObj;
+    };
+}
+
 using namespace PoDoFo;
 using namespace std;
 
 static PdfFontStretch stretchFromString(const string_view& str);
 
-PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObject* descriptor) :
+PdfFontMetricsObject::PdfFontMetricsObject(const PdfDictionary& fontDict,
+        const PdfReference& fontRef, const PdfDictionary* descriptorDict) :
     m_SubsetPrefixLength(0),
     m_IsItalicHint(false),
     m_IsBoldHint(false),
@@ -28,12 +38,13 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     m_BBox{ },
     m_DefaultWidth(0),
     m_FontFileObject(nullptr),
+    m_Type3FontData(nullptr),
     m_Length1(0),
     m_Length2(0),
     m_Length3(0)
 {
     const PdfObject* obj;
-    const PdfName& subType = font.GetDictionary().MustFindKey("Subtype").GetName();
+    const PdfName& subType = fontDict.MustFindKey("Subtype").GetName();
     bool isSimpleFont;
     if (subType == "Type1")
     {
@@ -75,27 +86,35 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         {
             // Type3 fonts don't have a /FontFile entry
             m_FontFileType = PdfFontFileType::Type3;
+            m_Type3FontData = new Type3FontData{ };
         }
 
         const PdfObject* fontmatrix = nullptr;
-        if (m_FontType == PdfFontType::Type3 && (fontmatrix = font.GetDictionary().FindKey("FontMatrix")) != nullptr)
+        if (m_FontType == PdfFontType::Type3 && (fontmatrix = fontDict.FindKey("FontMatrix")) != nullptr)
         {
             // Type3 fonts have a custom /FontMatrix
             auto& fontmatrixArr = fontmatrix->GetArray();
             m_Matrix = Matrix::FromArray(fontmatrixArr);
         }
 
-        if (descriptor == nullptr)
+        if (descriptorDict == nullptr)
         {
             if (m_FontType == PdfFontType::Type3)
             {
-                if ((obj = font.GetDictionary().FindKey("Name")) != nullptr)
+                if ((obj = fontDict.FindKey("Name")) != nullptr)
                     m_FontNameRaw = obj->GetName().GetString();
 
-                if ((obj = font.GetDictionary().FindKey("FontBBox")) != nullptr)
+                if ((obj = fontDict.FindKey("FontBBox")) != nullptr)
                 {
                     m_BBox = getBBox(*obj);
                     m_HasBBox = true;
+                }
+
+                auto charProcs = fontDict.FindKeyAsSafe<const PdfDictionary*>("CharProcs");
+                if (charProcs != nullptr)
+                {
+                    m_Type3FontData->GlyphCount = charProcs->GetSize();
+                    m_Type3FontData->CharProcsObj = charProcs->GetOwner();
                 }
             }
             else
@@ -105,10 +124,10 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         }
         else
         {
-            if ((obj = descriptor->GetDictionary().FindKey("FontName")) != nullptr)
+            if ((obj = descriptorDict->FindKey("FontName")) != nullptr)
                 m_FontNameRaw = obj->GetName().GetString();
 
-            if ((obj = descriptor->GetDictionary().FindKey("FontBBox")) != nullptr)
+            if ((obj = descriptorDict->FindKey("FontBBox")) != nullptr)
             {
                 m_BBox = getBBox(*obj);
                 m_HasBBox = true;
@@ -116,24 +135,24 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
 
             if (m_FontType == PdfFontType::Type1)
             {
-                m_FontFileObject = descriptor->GetDictionary().FindKey("FontFile");
+                m_FontFileObject = descriptorDict->FindKey("FontFile");
             }
             else if (m_FontType == PdfFontType::TrueType)
             {
-                m_FontFileObject = descriptor->GetDictionary().FindKey("FontFile2");
+                m_FontFileObject = descriptorDict->FindKey("FontFile2");
             }
 
             if (m_FontType != PdfFontType::Type3 && m_FontFileObject == nullptr)
-                m_FontFileObject = descriptor->GetDictionary().FindKey("FontFile3");
+                m_FontFileObject = descriptorDict->FindKey("FontFile3");
 
-            missingWidthRaw = descriptor->GetDictionary().FindKeyAsSafe<double>("MissingWidth", 0);
+            missingWidthRaw = descriptorDict->FindKeyAsSafe<double>("MissingWidth", 0);
         }
 
         // Set the default width accordingly to possibly existing
         // /MissingWidth and /FontMatrix
         m_DefaultWidth = missingWidthRaw * m_Matrix[0];
 
-        auto widthsObj = font.GetDictionary().FindKey("Widths");
+        auto widthsObj = fontDict.FindKey("Widths");
         if (widthsObj != nullptr)
         {
             auto& arrWidths = widthsObj->GetArray();
@@ -146,13 +165,13 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     }
     else
     {
-        if (descriptor == nullptr)
+        if (descriptorDict == nullptr)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Missing descriptor for CID ont");
 
-        if ((obj = descriptor->GetDictionary().FindKey("FontName")) != nullptr)
+        if ((obj = descriptorDict->FindKey("FontName")) != nullptr)
             m_FontNameRaw = obj->GetName().GetString();
 
-        if ((obj = descriptor->GetDictionary().FindKey("FontBBox")) != nullptr)
+        if ((obj = descriptorDict->FindKey("FontBBox")) != nullptr)
         {
             m_BBox = getBBox(*obj);
             m_HasBBox = true;
@@ -160,15 +179,15 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
 
         if (m_FontType == PdfFontType::CIDCFF)
         {
-            m_FontFileObject = descriptor->GetDictionary().FindKey("FontFile3");
+            m_FontFileObject = descriptorDict->FindKey("FontFile3");
             if (m_FontFileObject == nullptr)
-                m_FontFileObject = descriptor->GetDictionary().FindKey("FontFile");
+                m_FontFileObject = descriptorDict->FindKey("FontFile");
         }
         else if (m_FontType == PdfFontType::CIDTrueType)
         {
-            m_FontFileObject = descriptor->GetDictionary().FindKey("FontFile2");
+            m_FontFileObject = descriptorDict->FindKey("FontFile2");
             if (m_FontFileObject == nullptr)
-                m_FontFileObject = descriptor->GetDictionary().FindKey("FontFile3");
+                m_FontFileObject = descriptorDict->FindKey("FontFile3");
         }
 
         if (m_FontFileObject != nullptr)
@@ -178,8 +197,8 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             m_Length3 = (unsigned)m_FontFileObject->GetDictionary().FindKeyAsSafe<int64_t>("Length3", 0);
         }
 
-        m_DefaultWidth = font.GetDictionary().FindKeyAsSafe<double>("DW", 1000.0) * m_Matrix[0];
-        auto widthsObj = font.GetDictionary().FindKey("W");
+        m_DefaultWidth = fontDict.FindKeyAsSafe<double>("DW", 1000.0) * m_Matrix[0];
+        auto widthsObj = fontDict.FindKey("W");
         if (widthsObj != nullptr)
         {
             // "W" array format is described in Pdf 32000:2008 "9.7.4.3
@@ -228,7 +247,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         }
     }
 
-    if (descriptor == nullptr)
+    if (descriptorDict == nullptr)
     {
         // Add some sensible defaults
         m_FontFamilyName.clear();
@@ -248,8 +267,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     }
     else
     {
-        auto& dict = descriptor->GetDictionary();
-        auto fontFamilyObj = dict.FindKey("FontFamily");
+        auto fontFamilyObj = descriptorDict->FindKey("FontFamily");
         if (fontFamilyObj != nullptr)
         {
             const PdfString* str;
@@ -264,7 +282,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
                     m_FontFamilyName = name->GetString();
             }
         }
-        auto stretchObj = dict.FindKey("FontStretch");
+        auto stretchObj = descriptorDict->FindKey("FontStretch");
         if (stretchObj == nullptr)
         {
             m_FontStretch = PdfFontStretch::Unknown;
@@ -282,31 +300,31 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         }
 
         int64_t num;
-        if (dict.TryFindKeyAs("Flags", num))
+        if (descriptorDict->TryFindKeyAs("Flags", num))
             m_Flags = (PdfFontDescriptorFlags)num;
 
-        if (!dict.TryFindKeyAs("ItalicAngle", m_ItalicAngle))
+        if (!descriptorDict->TryFindKeyAs("ItalicAngle", m_ItalicAngle))
             m_ItalicAngle = numeric_limits<double>::quiet_NaN();
 
-        if (dict.TryFindKeyAs("Ascent", m_Ascent))
+        if (descriptorDict->TryFindKeyAs("Ascent", m_Ascent))
             m_Ascent *= m_Matrix[3];
         else
             m_Ascent = numeric_limits<double>::quiet_NaN();
 
         // ISO 32000-2:2020 "The value shall be a negative number"
-        if (dict.TryFindKeyAs("Descent", m_Descent) && m_Descent < 0)
+        if (descriptorDict->TryFindKeyAs("Descent", m_Descent) && m_Descent < 0)
             m_Descent *= m_Matrix[3];
         else
             m_Descent = numeric_limits<double>::quiet_NaN();
 
-        if (dict.TryFindKeyAs("CapHeight", m_CapHeight))
+        if (descriptorDict->TryFindKeyAs("CapHeight", m_CapHeight))
             m_CapHeight *= m_Matrix[3];
         else
             m_CapHeight = numeric_limits<double>::quiet_NaN();
 
         // ISO 32000-2:2020 "The value shall be a negative number"
         // NOTE: StemV is measured horizzontally, StemH vertically
-        if (dict.TryFindKeyAs("StemV", m_StemV) && m_StemV >= 0)
+        if (descriptorDict->TryFindKeyAs("StemV", m_StemV) && m_StemV >= 0)
             m_StemV *= m_Matrix[0];
         else
             m_StemV = numeric_limits<double>::quiet_NaN();
@@ -316,19 +334,19 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         // NOTE2: Found a document with "/FontWeight 400.0"
         // which is parsed correctly by Adobe Acrobat so just
         // read the value as double
-        m_Weight = static_cast<short>(dict.FindKeyAsSafe<double>("FontWeight", -1));
-        m_Leading = dict.FindKeyAsSafe<double>("Leading", -1) * m_Matrix[3];
-        m_XHeight = dict.FindKeyAsSafe<double>("XHeight", -1) * m_Matrix[3];
-        m_StemH = dict.FindKeyAsSafe<double>("StemH", -1) * m_Matrix[3];
-        m_AvgWidth = dict.FindKeyAsSafe<double>("AvgWidth", -1) * m_Matrix[0];
-        m_MaxWidth = dict.FindKeyAsSafe<double>("MaxWidth", -1) * m_Matrix[0];
+        m_Weight = static_cast<short>(descriptorDict->FindKeyAsSafe<double>("FontWeight", -1));
+        m_Leading = descriptorDict->FindKeyAsSafe<double>("Leading", -1) * m_Matrix[3];
+        m_XHeight = descriptorDict->FindKeyAsSafe<double>("XHeight", -1) * m_Matrix[3];
+        m_StemH = descriptorDict->FindKeyAsSafe<double>("StemH", -1) * m_Matrix[3];
+        m_AvgWidth = descriptorDict->FindKeyAsSafe<double>("AvgWidth", -1) * m_Matrix[0];
+        m_MaxWidth = descriptorDict->FindKeyAsSafe<double>("MaxWidth", -1) * m_Matrix[0];
     }
 
     // According to ISO 32000-2:2020, /FontName "shall be the
     // same as the value of /BaseFont in the font or CIDFont
     // dictionary that refers to this font descriptor".
     // We prioritize /BaseFont, over /FontName
-    if ((obj = font.GetDictionary().FindKey("BaseFont")) != nullptr)
+    if ((obj = fontDict.FindKey("BaseFont")) != nullptr)
         m_FontName = obj->GetName().GetString();
 
     if (m_FontName.empty())
@@ -339,8 +357,8 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             {
                 // Set a fallback name
                 m_FontName = utls::Format("Font{}_{}",
-                    font.GetIndirectReference().ObjectNumber(),
-                    font.GetIndirectReference().GenerationNumber());
+                    fontRef.ObjectNumber(),
+                    fontRef.GenerationNumber());
             }
             else
             {
@@ -413,14 +431,39 @@ PdfFontFileType PdfFontMetricsObject::GetFontFileType() const
     return type;
 }
 
-unique_ptr<const PdfFontMetricsObject> PdfFontMetricsObject::Create(const PdfObject& font, const PdfObject* descriptor)
+void PdfFontMetricsObject::ExportType3GlyphData(PdfDictionary& fontDict) const
 {
-    return unique_ptr<const PdfFontMetricsObject>(new PdfFontMetricsObject(font, descriptor));
+    if (m_FontFileType != PdfFontFileType::Type3 || m_Type3FontData->CharProcsObj == nullptr)
+        return;
+
+    auto& charProcs = fontDict.GetOwner()->MustGetDocument().GetObjects().CreateDictionaryObject();
+    charProcs = *m_Type3FontData->CharProcsObj;
+    fontDict.AddKeyIndirect("CharProcs"_n, charProcs);
+}
+
+unsigned PdfFontMetricsObject::GetGlyphCountFontProgram() const
+{
+    if (m_FontFileType == PdfFontFileType::Type3)
+        return m_Type3FontData->GlyphCount;
+
+    return PdfFontMetricsBase::GetGlyphCountFontProgram();
+}
+
+unique_ptr<const PdfFontMetricsObject> PdfFontMetricsObject::Create(const PdfObject& font, const PdfDictionary* descriptorDict)
+{
+    return unique_ptr<const PdfFontMetricsObject>(new PdfFontMetricsObject(font.GetDictionary(), font.GetIndirectReference(), descriptorDict));
+}
+
+PdfFontMetricsObject::~PdfFontMetricsObject()
+{
+    delete m_Type3FontData;
 }
 
 unique_ptr<const PdfFontMetricsObject> PdfFontMetricsObject::Create(const PdfObject& font)
 {
-    return unique_ptr<const PdfFontMetricsObject>(new PdfFontMetricsObject(font, font.GetDictionary().FindKey("FontDescriptor")));
+    return unique_ptr<const PdfFontMetricsObject>(new PdfFontMetricsObject(
+        font.GetDictionary(), font.GetIndirectReference(),
+        font.GetDictionary().FindKeyAsSafe<const PdfDictionary*>("FontDescriptor")));
 }
 
 bool PdfFontMetricsObject::HasUnicodeMapping() const

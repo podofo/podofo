@@ -38,12 +38,12 @@ protected:
     void initImported() override;
 
 protected:
-    PdfObject& GetDescendantFont() { return *m_descendantFont; }
-    PdfObject& GetDescriptor() { return *m_descriptor; }
+    PdfObject& GetDescendantFont() { return *m_DescendantFont; }
+    PdfObject& GetDescriptor() { return *m_Descriptor; }
 
 private:
-    PdfObject* m_descendantFont;
-    PdfObject* m_descriptor;
+    PdfObject* m_DescendantFont;
+    PdfObject* m_Descriptor;
 };
 
 };

@@ -81,11 +81,11 @@ bool PdfFont::TryCreateProxyFont(PdfFontCreateFlags initFlags, PdfFont*& proxyFo
     auto& metrics = GetMetrics();
     // No need to normalize the font if embedding is not enabled
     bool skipNormalization = (initFlags & PdfFontCreateFlags::DontEmbed) != PdfFontCreateFlags::None;
-    PdfFontMetricsConstPtr newMetrics;
+    PdfFontMetricsConstPtr proxyMetrics;
     PdfStandard14FontType std14Font = PdfStandard14FontType::Unknown;
     if (metrics.HasFontFileData() && !m_Metrics->IsStandard14FontMetrics(std14Font))
     {
-        newMetrics = metrics.CreateMergedMetrics(skipNormalization);
+        proxyMetrics = metrics.CreateMergedMetrics(skipNormalization);
     }
     else
     {
@@ -95,20 +95,28 @@ bool PdfFont::TryCreateProxyFont(PdfFontCreateFlags initFlags, PdfFont*& proxyFo
         {
             auto parsedMetrics = metrics.GetParsedWidths();
             if (parsedMetrics == nullptr)
-                newMetrics = PdfFontMetricsStandard14::GetInstance(std14Font);
+                proxyMetrics = PdfFontMetricsStandard14::GetInstance(std14Font);
             else
-                newMetrics = PdfFontMetricsStandard14::Create(std14Font, std::move(parsedMetrics));
+                proxyMetrics = PdfFontMetricsStandard14::Create(std14Font, std::move(parsedMetrics));
         }
         else
         {
-            PdfFontSearchParams params;
-            params.Style = metrics.GetStyle();
-            params.FontFamilyPattern = metrics.GeFontFamilyNameSafe();
-            newMetrics = PdfFontManager::SearchFontMetrics(metrics.GetPostScriptNameRough(), params, metrics, skipNormalization);
-            if (newMetrics == nullptr)
+            if (m_Metrics->GetFontFileType() == PdfFontFileType::Type3)
             {
-                proxyFont = nullptr;
-                return false;
+                // We just re-use the same metrics
+                proxyMetrics = m_Metrics;
+            }
+            else
+            {
+                PdfFontSearchParams params;
+                params.Style = metrics.GetStyle();
+                params.FontFamilyPattern = metrics.GeFontFamilyNameSafe();
+                proxyMetrics = PdfFontManager::SearchFontMetrics(metrics.GetPostScriptNameRough(), params, metrics, skipNormalization);
+                if (proxyMetrics == nullptr)
+                {
+                    proxyFont = nullptr;
+                    return false;
+                }
             }
         }
     }
@@ -120,12 +128,12 @@ bool PdfFont::TryCreateProxyFont(PdfFontCreateFlags initFlags, PdfFont*& proxyFo
     }
     else
     {
-        shared_ptr<PdfCMapEncoding> toUnicode = newMetrics->CreateToUnicodeMap(m_Encoding->GetLimits());
+        shared_ptr<PdfCMapEncoding> toUnicode = proxyMetrics->CreateToUnicodeMap(m_Encoding->GetLimits());
         params.Encoding = PdfEncoding::Create(*m_Encoding, std::move(toUnicode));
     }
 
     params.Flags = initFlags;
-    auto newFont = PdfFont::Create(GetDocument(), std::move(newMetrics), params, true);
+    auto newFont = PdfFont::Create(GetDocument(), std::move(proxyMetrics), params, true);
     if (newFont == nullptr)
     {
         proxyFont = nullptr;
@@ -420,6 +428,7 @@ void PdfFont::GetBoundingBox(PdfArray& arr) const
 {
     auto& matrix = m_Metrics->GetMatrix();
     arr.Clear();
+    arr.Reserve(4);
     auto bbox = m_Metrics->GetBoundingBox();
     arr.Add(PdfObject(bbox.X1 / matrix[0]));
     arr.Add(PdfObject(bbox.Y1 / matrix[3]));
@@ -427,7 +436,7 @@ void PdfFont::GetBoundingBox(PdfArray& arr) const
     arr.Add(PdfObject(bbox.Y2 / matrix[3]));
 }
 
-void PdfFont::FillDescriptor(PdfDictionary& dict) const
+void PdfFont::WriteDescriptors(PdfDictionary& fontDict, PdfDictionary& descriptorDict) const
 {
     // Optional values
     int weight;
@@ -440,43 +449,54 @@ void PdfFont::FillDescriptor(PdfDictionary& dict) const
     double defaultWidth;
     PdfFontStretch stretch;
 
-    dict.AddKey("FontName"_n, PdfName(this->GetName()));
+    descriptorDict.AddKey("FontName"_n, PdfName(this->GetName()));
     if ((familyName = m_Metrics->GetFontFamilyName()).length() != 0)
-        dict.AddKey("FontFamily"_n, PdfString(familyName));
+        descriptorDict.AddKey("FontFamily"_n, PdfString(familyName));
     if ((stretch = m_Metrics->GetFontStretch()) != PdfFontStretch::Unknown)
-        dict.AddKey("FontStretch"_n, PdfName(toString(stretch)));
-    dict.AddKey("Flags"_n, static_cast<int64_t>(m_Metrics->GetFlags()));
-    dict.AddKey("ItalicAngle"_n, static_cast<int64_t>(std::round(m_Metrics->GetItalicAngle())));
+        descriptorDict.AddKey("FontStretch"_n, PdfName(toString(stretch)));
+    descriptorDict.AddKey("Flags"_n, static_cast<int64_t>(m_Metrics->GetFlags()));
+    descriptorDict.AddKey("ItalicAngle"_n, static_cast<int64_t>(std::round(m_Metrics->GetItalicAngle())));
 
     auto& matrix = m_Metrics->GetMatrix();
     if (GetType() == PdfFontType::Type3)
     {
         // ISO 32000-1:2008 "should be used for Type 3 fonts in Tagged PDF documents"
-        dict.AddKey("FontWeight"_n, static_cast<int64_t>(m_Metrics->GetWeight()));
+        descriptorDict.AddKey("FontWeight"_n, static_cast<int64_t>(m_Metrics->GetWeight()));
+
+        PdfArray arr;
+        arr.Reserve(6);
+
+        for (unsigned i = 0; i < 6; i++)
+            arr.Add(PdfObject(matrix[i]));
+
+        fontDict.AddKey("FontMatrix"_n, std::move(arr));
+
+        GetBoundingBox(arr);
+        fontDict.AddKey("FontBBox"_n, std::move(arr));
     }
     else
     {
         if ((weight = m_Metrics->GetWeightRaw()) > 0)
-            dict.AddKey("FontWeight"_n, static_cast<int64_t>(weight));
+            descriptorDict.AddKey("FontWeight"_n, static_cast<int64_t>(weight));
 
         PdfArray bbox;
         GetBoundingBox(bbox);
 
         // The following entries are all optional in /Type3 fonts
-        dict.AddKey("FontBBox"_n, std::move(bbox));
-        dict.AddKey("Ascent"_n, static_cast<int64_t>(std::round(m_Metrics->GetAscent() / matrix[3])));
-        dict.AddKey("Descent"_n, static_cast<int64_t>(std::round(m_Metrics->GetDescent() / matrix[3])));
-        dict.AddKey("CapHeight"_n, static_cast<int64_t>(std::round(m_Metrics->GetCapHeight() / matrix[3])));
+        descriptorDict.AddKey("FontBBox"_n, std::move(bbox));
+        descriptorDict.AddKey("Ascent"_n, static_cast<int64_t>(std::round(m_Metrics->GetAscent() / matrix[3])));
+        descriptorDict.AddKey("Descent"_n, static_cast<int64_t>(std::round(m_Metrics->GetDescent() / matrix[3])));
+        descriptorDict.AddKey("CapHeight"_n, static_cast<int64_t>(std::round(m_Metrics->GetCapHeight() / matrix[3])));
         // NOTE: StemV is measured horizontally
-        dict.AddKey("StemV"_n, static_cast<int64_t>(std::round(m_Metrics->GetStemV() / matrix[0])));
+        descriptorDict.AddKey("StemV"_n, static_cast<int64_t>(std::round(m_Metrics->GetStemV() / matrix[0])));
 
         if ((xHeight = m_Metrics->GetXHeightRaw()) > 0)
-            dict.AddKey("XHeight"_n, static_cast<int64_t>(std::round(xHeight / matrix[3])));
+            descriptorDict.AddKey("XHeight"_n, static_cast<int64_t>(std::round(xHeight / matrix[3])));
 
         if ((stemH = m_Metrics->GetStemHRaw()) > 0)
         {
             // NOTE: StemH is measured vertically
-            dict.AddKey("StemH"_n, static_cast<int64_t>(std::round(stemH / matrix[3])));
+            descriptorDict.AddKey("StemH"_n, static_cast<int64_t>(std::round(stemH / matrix[3])));
         }
 
         if (!IsCIDFont())
@@ -486,49 +506,56 @@ void PdfFont::FillDescriptor(PdfDictionary& dict) const
             // in the CIDFont dictionary instead. See 9.7.4.3 Glyph
             // Metrics in CIDFonts in ISO 32000-1:2008
             if ((defaultWidth = m_Metrics->GetDefaultWidthRaw()) > 0)
-                dict.AddKey("MissingWidth"_n, static_cast<int64_t>(std::round(defaultWidth / matrix[0])));
+                descriptorDict.AddKey("MissingWidth"_n, static_cast<int64_t>(std::round(defaultWidth / matrix[0])));
         }
     }
 
     if ((leading = m_Metrics->GetLeadingRaw()) > 0)
-        dict.AddKey("Leading"_n, static_cast<int64_t>(std::round(leading / matrix[3])));
+        descriptorDict.AddKey("Leading"_n, static_cast<int64_t>(std::round(leading / matrix[3])));
     if ((avgWidth = m_Metrics->GetAvgWidthRaw()) > 0)
-        dict.AddKey("AvgWidth"_n, static_cast<int64_t>(std::round(avgWidth / matrix[0])));
+        descriptorDict.AddKey("AvgWidth"_n, static_cast<int64_t>(std::round(avgWidth / matrix[0])));
     if ((maxWidth = m_Metrics->GetMaxWidthRaw()) > 0)
-        dict.AddKey("MaxWidth"_n, static_cast<int64_t>(std::round(maxWidth / matrix[0])));
+        descriptorDict.AddKey("MaxWidth"_n, static_cast<int64_t>(std::round(maxWidth / matrix[0])));
 }
 
-void PdfFont::EmbedFontFile(PdfObject& descriptor)
+void PdfFont::EmbedFontProgram(PdfDictionary& font, PdfDictionary& descriptor) const
 {
-    auto fontdata = m_Metrics->GetOrLoadFontFileData();
-    if (fontdata.empty())
-        PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
-
-    switch (m_Metrics->GetFontFileType())
+    if (GetType() == PdfFontType::Type3)
     {
-        case PdfFontFileType::Type1:
-            EmbedFontFileType1(descriptor, fontdata, m_Metrics->GetFontFileLength1(), m_Metrics->GetFontFileLength2(), m_Metrics->GetFontFileLength3());
-            break;
-        case PdfFontFileType::Type1CFF:
-            EmbedFontFileCFF(descriptor, fontdata, false);
-            break;
-        case PdfFontFileType::CIDKeyedCFF:
-            EmbedFontFileCFF(descriptor, fontdata, true);
-            break;
-        case PdfFontFileType::TrueType:
-            EmbedFontFileTrueType(descriptor, fontdata);
-            break;
-        case PdfFontFileType::OpenTypeCFF:
-            EmbedFontFileOpenType(descriptor, fontdata);
-            break;
-        default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported font type embedding");
+        m_Metrics->ExportType3GlyphData(font);
+    }
+    else
+    {
+        auto fontdata = m_Metrics->GetOrLoadFontFileData();
+        if (fontdata.empty())
+            PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
+
+        switch (m_Metrics->GetFontFileType())
+        {
+            case PdfFontFileType::Type1:
+                EmbedFontFileType1(descriptor, fontdata, m_Metrics->GetFontFileLength1(), m_Metrics->GetFontFileLength2(), m_Metrics->GetFontFileLength3());
+                break;
+            case PdfFontFileType::Type1CFF:
+                EmbedFontFileCFF(descriptor, fontdata, false);
+                break;
+            case PdfFontFileType::CIDKeyedCFF:
+                EmbedFontFileCFF(descriptor, fontdata, true);
+                break;
+            case PdfFontFileType::TrueType:
+                EmbedFontFileTrueType(descriptor, fontdata);
+                break;
+            case PdfFontFileType::OpenTypeCFF:
+                EmbedFontFileOpenType(descriptor, fontdata);
+                break;
+            default:
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported font type embedding");
+        }
     }
 }
 
-void PdfFont::EmbedFontFileType1(PdfObject& descriptor, const bufferview& data, unsigned length1, unsigned length2, unsigned length3)
+void PdfFont::EmbedFontFileType1(PdfDictionary& descriptorDict, const bufferview& data, unsigned length1, unsigned length2, unsigned length3) const
 {
-    embedFontFileData(descriptor, "FontFile"_n, [length1, length2, length3](PdfDictionary& dict)
+    embedFontFileData(descriptorDict, "FontFile"_n, [length1, length2, length3](PdfDictionary& dict)
     {
         dict.AddKey("Length1"_n, static_cast<int64_t>(length1));
         dict.AddKey("Length2"_n, static_cast<int64_t>(length2));
@@ -536,9 +563,9 @@ void PdfFont::EmbedFontFileType1(PdfObject& descriptor, const bufferview& data, 
     }, data);
 }
 
-void PdfFont::EmbedFontFileCFF(PdfObject& descriptor, const bufferview& data, bool cidKeyed)
+void PdfFont::EmbedFontFileCFF(PdfDictionary& descriptorDict, const bufferview& data, bool cidKeyed) const
 {
-    embedFontFileData(descriptor, "FontFile3"_n, [&](PdfDictionary& dict)
+    embedFontFileData(descriptorDict, "FontFile3"_n, [&](PdfDictionary& dict)
     {
         PdfName subtype;
         if (cidKeyed)
@@ -550,7 +577,7 @@ void PdfFont::EmbedFontFileCFF(PdfObject& descriptor, const bufferview& data, bo
     }, data);
 }
 
-void PdfFont::EmbedFontFileTrueType(PdfObject& descriptor, const bufferview& data)
+void PdfFont::EmbedFontFileTrueType(PdfDictionary& descriptor, const bufferview& data) const
 {
     embedFontFileData(descriptor, "FontFile2"_n, [&data](PdfDictionary& dict)
     {
@@ -558,7 +585,7 @@ void PdfFont::EmbedFontFileTrueType(PdfObject& descriptor, const bufferview& dat
     }, data);
 }
 
-void PdfFont::EmbedFontFileOpenType(PdfObject& descriptor, const bufferview& data)
+void PdfFont::EmbedFontFileOpenType(PdfDictionary& descriptor, const bufferview& data) const
 {
     embedFontFileData(descriptor, "FontFile3"_n, [](PdfDictionary& dict)
     {
@@ -566,11 +593,11 @@ void PdfFont::EmbedFontFileOpenType(PdfObject& descriptor, const bufferview& dat
     }, data);
 }
 
-void PdfFont::embedFontFileData(PdfObject& descriptor, const PdfName& fontFileName,
-    const function<void(PdfDictionary& dict)>& dictWriter, const bufferview& data)
+void PdfFont::embedFontFileData(PdfDictionary& descriptor, const PdfName& fontFileName,
+    const function<void(PdfDictionary& dict)>& dictWriter, const bufferview& data) const
 {
     auto& contents = GetDocument().GetObjects().CreateDictionaryObject();
-    descriptor.GetDictionary().AddKeyIndirect(fontFileName, contents);
+    descriptor.AddKeyIndirect(fontFileName, contents);
     // NOTE: Access to directory is mediated by functor to not crash
     // operations when using PdfStreamedDocument. Do not remove it
     dictWriter(contents.GetDictionary());

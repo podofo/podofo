@@ -44,8 +44,8 @@ private:
 PdfFontCID::PdfFontCID(PdfDocument& doc, PdfFontType type,
         PdfFontMetricsConstPtr&& metrics, const PdfEncoding& encoding) :
     PdfFont(doc, type, std::move(metrics), encoding),
-    m_descendantFont(nullptr),
-    m_descriptor(nullptr)
+    m_DescendantFont(nullptr),
+    m_Descriptor(nullptr)
 {
 }
 
@@ -63,10 +63,10 @@ void PdfFontCID::initImported()
     this->GetDictionary().AddKey("BaseFont"_n, PdfName(this->GetName()));
 
     // The descendant font is a CIDFont:
-    m_descendantFont = &this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("Font"_n);
+    m_DescendantFont = &this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("Font"_n);
 
     // The DecendantFonts, should be an indirect object:
-    arr.Add(m_descendantFont->GetIndirectReference());
+    arr.Add(m_DescendantFont->GetIndirectReference());
     this->GetDictionary().AddKey("DescendantFonts"_n, std::move(arr));
 
     // Setting the /DescendantFonts
@@ -80,30 +80,30 @@ void PdfFontCID::initImported()
         case PdfFontType::CIDTrueType:
             subtype = "CIDFontType2"_n;
             // CIDToGIDMap is required for CIDFontType2 with embedded font program
-            m_descendantFont->GetDictionary().AddKey("CIDToGIDMap"_n, "Identity"_n);
+            m_DescendantFont->GetDictionary().AddKey("CIDToGIDMap"_n, "Identity"_n);
             break;
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
     }
-    m_descendantFont->GetDictionary().AddKey("Subtype"_n, subtype);
+    m_DescendantFont->GetDictionary().AddKey("Subtype"_n, subtype);
 
     // Same base font as the owner font:
-    m_descendantFont->GetDictionary().AddKey("BaseFont"_n, PdfName(this->GetName()));
+    m_DescendantFont->GetDictionary().AddKey("BaseFont"_n, PdfName(this->GetName()));
 
     // The FontDescriptor, should be an indirect object:
-    auto& descriptorObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("FontDescriptor"_n);
-    m_descendantFont->GetDictionary().AddKeyIndirect("FontDescriptor"_n, descriptorObj);
-    FillDescriptor(descriptorObj.GetDictionary());
-    m_descriptor = &descriptorObj;
+    auto& descriptorObj = this->GetDocument().GetObjects().CreateDictionaryObject("FontDescriptor"_n);
+    m_DescendantFont->GetDictionary().AddKeyIndirect("FontDescriptor"_n, descriptorObj);
+    WriteDescriptors(GetDictionary(), descriptorObj.GetDictionary());
+    m_Descriptor = &descriptorObj;
 }
 
 void PdfFontCID::embedFont()
 {
-    PODOFO_ASSERT(m_descriptor != nullptr);
+    PODOFO_ASSERT(m_Descriptor != nullptr);
     auto infos = GetCharGIDInfos();
-    createWidths(m_descendantFont->GetDictionary(), infos);
+    createWidths(m_DescendantFont->GetDictionary(), infos);
     m_Encoding->ExportToFont(*this, GetCIDSystemInfo());
-    EmbedFontFile(*m_descriptor);
+    EmbedFontProgram(GetDictionary(), m_Descriptor->GetDictionary());
 }
 
 void PdfFontCID::embedFontSubset()
@@ -152,7 +152,7 @@ void PdfFontCID::embedFontSubset()
 
 PdfObject* PdfFontCID::getDescendantFontObject()
 {
-    return m_descendantFont;
+    return m_DescendantFont;
 }
 
 void PdfFontCID::createWidths(PdfDictionary& fontDict, const cspan<PdfCharGIDInfo>& infos)

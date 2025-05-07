@@ -355,6 +355,7 @@ protected:
 
     virtual unsigned GetGlyphCountFontProgram() const;
     virtual bool TryGetGlyphWidthFontProgram(unsigned gid, double& width) const;
+    virtual void ExportType3GlyphData(PdfDictionary& fontDict) const;
 
     bool HasParsedWidths() const;
 

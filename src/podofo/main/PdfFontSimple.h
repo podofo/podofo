@@ -44,7 +44,6 @@ protected:
 
 private:
     void getWidthsArray(PdfArray& widths) const;
-    void getFontMatrixArray(PdfArray& fontMatrix) const;
 
 protected:
     PdfObject* m_Descriptor;

@@ -344,12 +344,12 @@ public:
     PdfObject& GetDescendantFontObject();
 
 protected:
-    void EmbedFontFile(PdfObject& descriptor);
-    void EmbedFontFileType1(PdfObject& descriptor, const bufferview& data,
-        unsigned length1, unsigned length2, unsigned length3);
-    void EmbedFontFileCFF(PdfObject& descriptor, const bufferview& data, bool cidKeyed);
-    void EmbedFontFileTrueType(PdfObject& descriptor, const bufferview& data);
-    void EmbedFontFileOpenType(PdfObject& descriptor, const bufferview& data);
+    void EmbedFontProgram(PdfDictionary& font, PdfDictionary& descriptor) const;
+    void EmbedFontFileType1(PdfDictionary& descriptor, const bufferview& data,
+        unsigned length1, unsigned length2, unsigned length3) const;
+    void EmbedFontFileCFF(PdfDictionary& descriptor, const bufferview& data, bool cidKeyed) const;
+    void EmbedFontFileTrueType(PdfDictionary& descriptor, const bufferview& data) const;
+    void EmbedFontFileOpenType(PdfDictionary& descriptor, const bufferview& data) const;
 
     /** Try to map the CID to a glyph ID using the /FirstChar, /LastChar limits
      */
@@ -363,7 +363,7 @@ protected:
 
     /** Fill the /FontDescriptor object dictionary
      */
-    void FillDescriptor(PdfDictionary& dict) const;
+    void WriteDescriptors(PdfDictionary& fontDict, PdfDictionary& descriptorDict) const;
 
     /** Try getting a map that can be used to produce a replacement CID /Encoding object
      * \remarks needed when exporting substitute fonts
@@ -441,8 +441,8 @@ private:
 
     double getStringLength(const std::vector<PdfCID>& cids, const PdfTextState& state) const;
 
-    void embedFontFileData(PdfObject& descriptor, const PdfName& fontFileName,
-        const std::function<void(PdfDictionary& dict)>& dictWriter, const bufferview& data);
+    void embedFontFileData(PdfDictionary& descriptor, const PdfName& fontFileName,
+        const std::function<void(PdfDictionary& dict)>& dictWriter, const bufferview& data) const;
 
     static std::unique_ptr<PdfFont> createFontForType(PdfDocument& doc, PdfFontMetricsConstPtr&& metrics,
         const PdfEncoding& encoding, bool preferNonCID);

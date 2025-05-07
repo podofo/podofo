@@ -611,6 +611,9 @@ PdfEncodingMapConstPtr PdfFontMetrics::getDefaultEncoding(bool tryFetchCidToGidM
 unsigned PdfFontMetrics::GetGlyphCountFontProgram() const
 {
     auto face = GetFaceHandle();
+    if (face == nullptr)
+        return 0;
+
     return (unsigned)face->num_glyphs;
 }
 
@@ -626,6 +629,12 @@ bool PdfFontMetrics::TryGetGlyphWidthFontProgram(unsigned gid, double& width) co
     // zero return code is success!
     width = face->glyph->metrics.horiAdvance / (double)face->units_per_EM;
     return true;
+}
+
+void PdfFontMetrics::ExportType3GlyphData(PdfDictionary& fontDict) const
+{
+    (void)fontDict;
+    // Do nothing by default
 }
 
 bool PdfFontMetrics::HasParsedWidths() const

@@ -26,5 +26,5 @@ void PdfFontCIDTrueType::embedFontFileSubset(const vector<PdfCharGIDInfo>& infos
     (void)cidInfo;
     charbuff buffer;
     FontTrueTypeSubset::BuildFont(GetMetrics(), infos, buffer);
-    EmbedFontFileTrueType(GetDescriptor(), buffer);
+    EmbedFontFileTrueType(GetDescriptor().GetDictionary(), buffer);
 }

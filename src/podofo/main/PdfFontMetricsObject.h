@@ -29,9 +29,11 @@ private:
      *  \param obj an existing font descriptor object
      *  \param pEncoding a PdfEncoding which will NOT be owned by PdfFontMetricsObject
      */
-    PdfFontMetricsObject(const PdfObject& font, const PdfObject* descriptor);
+    PdfFontMetricsObject(const PdfDictionary& fontDict, const PdfReference& fontRef, const PdfDictionary* descriptorDict);
 
 public:
+    ~PdfFontMetricsObject();
+
     static std::unique_ptr<const PdfFontMetricsObject> Create(const PdfObject& font);
 
     bool HasUnicodeMapping() const override;
@@ -101,6 +103,10 @@ public:
     bool IsObjectLoaded() const override;
 
 protected:
+    void ExportType3GlyphData(PdfDictionary& fontDict) const override;
+
+    unsigned GetGlyphCountFontProgram() const override;
+
     std::string_view GetBaseFontName() const override;
 
     PdfFontType GetFontType() const override;
@@ -112,13 +118,15 @@ protected:
     datahandle getFontFileDataHandle() const override;
 
 private:
-    static std::unique_ptr<const PdfFontMetricsObject> Create(const PdfObject& font, const PdfObject* descriptor);
+    static std::unique_ptr<const PdfFontMetricsObject> Create(const PdfObject& font, const PdfDictionary* descriptor);
 
     void processFontName();
 
     Corners getBBox(const PdfObject& obj);
 
 private:
+    struct Type3FontData;
+
     std::shared_ptr<charbuff> m_Data;
     PdfCIDToGIDMapConstPtr m_CIDToGIDMap;
     Matrix m_Matrix;
@@ -150,6 +158,7 @@ private:
 
     const PdfObject* m_FontFileObject;
     PdfFontType m_FontType;
+    Type3FontData* m_Type3FontData;
     nullable<PdfFontFileType> m_FontFileType;
 
     unsigned m_Length1;

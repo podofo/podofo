@@ -25,5 +25,5 @@ void PdfFontCIDCFF::embedFontFileSubset(const vector<PdfCharGIDInfo>& infos,
 {
     charbuff buffer;
     PoDoFo::SubsetFontCFF(GetMetrics(), infos, cidInfo, buffer);
-    EmbedFontFileCFF(GetDescriptor(), buffer, true);
+    EmbedFontFileCFF(GetDescriptor().GetDictionary(), buffer, true);
 }

@@ -107,11 +107,11 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
             goto Fail;
         }
 
-        const PdfObject* descriptorObj = nullptr;
+        const PdfDictionary* descriptorObj = nullptr;
         if (arr->size() != 0)
         {
             descendantObj = &arr->MustFindAt(0);
-            descriptorObj = descendantObj->GetDictionary().FindKey("FontDescriptor");
+            descriptorObj = descendantObj->GetDictionary().FindKeyAsSafe<const PdfDictionary*>("FontDescriptor");
         }
 
         if (descendantObj != nullptr)
@@ -119,7 +119,7 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
     }
     else if (*name == "Type1")
     {
-        auto descriptorObj = dict->FindKey("FontDescriptor");
+        auto descriptorObj = dict->FindKeyAsSafe<const PdfDictionary*>("FontDescriptor");
 
         // Handle missing FontDescriptor for the 14 standard fonts
         if (descriptorObj == nullptr)
@@ -143,11 +143,11 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
     }
     else if (*name == "Type3")
     {
-        metrics = PdfFontMetricsObject::Create(obj, dict->FindKey("FontDescriptor"));
+        metrics = PdfFontMetricsObject::Create(obj, dict->FindKeyAsSafe<const PdfDictionary*>("FontDescriptor"));
     }
     else if (*name == "TrueType")
     {
-        metrics = PdfFontMetricsObject::Create(obj, dict->FindKey("FontDescriptor"));
+        metrics = PdfFontMetricsObject::Create(obj, dict->FindKeyAsSafe<const PdfDictionary*>("FontDescriptor"));
     }
 
     if (metrics == nullptr)
