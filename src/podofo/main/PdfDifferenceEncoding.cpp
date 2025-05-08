@@ -104,13 +104,13 @@ void PdfDifferenceList::AddDifference(unsigned char code, const codepointview& c
     addDifference(code, codepoints, composed);
 }
 
-void PdfDifferenceList::AddDifference(unsigned char code, const string_view& name, bool explicitNames)
+void PdfDifferenceList::AddDifference(unsigned char code, const string_view& name)
 {
     // In type3 fonts, glyph names are explicit keys from the font's CharProcs
     // dictionary, therefore they have no meaning
     CodePointSpan codepoints;
     const PdfName* actualName;
-    if (explicitNames || !PdfDifferenceEncoding::TryGetCodePointsFromCharName(name, codepoints, actualName))
+    if (!PdfDifferenceEncoding::TryGetCodePointsFromCharName(name, codepoints, actualName))
     {
         char32_t cp = code;
         addDifference(code, codepointview(&cp, 1), name);
@@ -232,10 +232,6 @@ bool PdfDifferenceEncoding::TryCreateFromObject(const PdfObject& obj,
         return false;
     }
 
-    bool explicitNames = false;
-    if (metrics.GetFontFileType() == PdfFontFileType::Type3)
-        explicitNames = true;
-
     // See Table 5.11 PdfRefence 1.7.
     PdfEncodingMapConstPtr baseEncoding;
     auto baseEncodingObj = dict->FindKey("BaseEncoding");
@@ -283,7 +279,7 @@ bool PdfDifferenceEncoding::TryCreateFromObject(const PdfObject& obj,
             }
             else if (diff.IsName())
             {
-                difference.AddDifference(static_cast<unsigned char>(curCode), diff.GetName(), explicitNames);
+                difference.AddDifference(static_cast<unsigned char>(curCode), diff.GetName());
                 curCode++;
             }
         }
