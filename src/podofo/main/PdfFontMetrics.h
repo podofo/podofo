@@ -35,6 +35,7 @@ using PdfFontMetricsConstPtr = std::shared_ptr<const PdfFontMetrics>;
 class PODOFO_API PdfFontMetrics
 {
     friend class PdfFont;
+    friend class PdfFontSimple;
     friend class PdfFontObject;
     friend class PdfFontManager;
     friend class PdfFontMetricsBase;
@@ -355,7 +356,7 @@ protected:
 
     virtual unsigned GetGlyphCountFontProgram() const;
     virtual bool TryGetGlyphWidthFontProgram(unsigned gid, double& width) const;
-    virtual void ExportType3GlyphData(PdfDictionary& fontDict) const;
+    virtual void ExportType3GlyphData(PdfDictionary& fontDict, cspan<std::string_view> glyphs) const;
 
     bool HasParsedWidths() const;
 

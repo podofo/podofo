@@ -31,7 +31,7 @@ METHOD_AS_TEST_CASE(PdfEncodingTest::TestDifferencesObject, "TestDifferencesObje
 
 TEST_CASE("TestDifferences")
 {
-    PdfDifferenceList difference;
+    PdfDifferenceMap difference;
 
     // Newly created encoding should be empty
     REQUIRE(difference.GetCount() == 0);
@@ -121,7 +121,7 @@ TEST_CASE("TestDifferences")
 
 void PdfEncodingTest::TestDifferencesObject()
 {
-    PdfDifferenceList differences;
+    PdfDifferenceMap differences;
     differences.AddDifference(1, 'B');
     differences.AddDifference(2, 'C');
     differences.AddDifference(4, 'D');
@@ -163,7 +163,7 @@ void PdfEncodingTest::TestDifferencesObject()
 TEST_CASE("TestDifferencesEncoding")
 {
     // Create a differences encoding where A and B are exchanged
-    PdfDifferenceList differences;
+    PdfDifferenceMap differences;
     differences.AddDifference((unsigned char)'A', 'B');
     differences.AddDifference((unsigned char)'B', 'A');
     differences.AddDifference((unsigned char)'C', 'D');
@@ -193,7 +193,7 @@ TEST_CASE("TestGetCharCode")
     INFO("MacRomanEncoding");
     outofRangeHelper(macRomanEncoding);
 
-    PdfDifferenceList differences;
+    PdfDifferenceMap differences;
     differences.AddDifference((unsigned char)'A', 'B');
     differences.AddDifference((unsigned char)'B', 'A');
     PdfEncoding differenceEncoding(std::make_shared<PdfDifferenceEncoding>(PdfEncodingMapFactory::GetWinAnsiEncodingInstancePtr(), std::move(differences)));

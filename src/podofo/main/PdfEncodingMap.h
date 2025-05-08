@@ -18,7 +18,7 @@ class PdfIndirectObjectList;
 class PdfFont;
 class PdfFontMetrics;
 class PdfEncodingFactory;
-class PdfDifferenceList;
+class PdfDifferenceMap;
 
 /** 
  * A PdfEncodingMap is a low level interface to convert
@@ -268,7 +268,7 @@ protected:
 
     PdfCIDToGIDMapConstPtr GetIntrinsicCIDToGIDMap(const PdfDictionary& fontDict, const PdfFontMetrics& metrics) const override;
 
-    virtual void GetBaseEncoding(const PdfEncodingMap*& baseEncoding, const PdfDifferenceList*& differences) const;
+    virtual void GetBaseEncoding(const PdfEncodingMap*& baseEncoding, const PdfDifferenceMap*& differences) const;
 
 private:
     PdfEncodingLimits m_Limits;

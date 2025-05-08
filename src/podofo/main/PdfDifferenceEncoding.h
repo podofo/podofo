@@ -15,7 +15,7 @@ namespace PoDoFo {
 class PdfFontMetrics;
 struct CodePointMapNode;
 
-struct PdfDifferenceMapping
+struct PODOFO_API PdfDifferenceMapping final
 {
     PdfName Name;
     unsigned char Code = 0;
@@ -25,7 +25,7 @@ struct PdfDifferenceMapping
 /** A helper class for PdfDifferenceEncoding that
  *  can be used to create a differences array.
  */
-class PODOFO_API PdfDifferenceList final
+class PODOFO_API PdfDifferenceMap final
 {
     friend class PdfDifferenceEncoding;
 public:
@@ -34,10 +34,10 @@ public:
 public:
     /** Create a PdfEncodingDifference object.
      */
-    PdfDifferenceList();
+    PdfDifferenceMap();
 
-    PdfDifferenceList(const PdfDifferenceList& rhs) = default;
-    PdfDifferenceList& operator=(const PdfDifferenceList& rhs) = default;
+    PdfDifferenceMap(const PdfDifferenceMap& rhs) = default;
+    PdfDifferenceMap& operator=(const PdfDifferenceMap& rhs) = default;
 
     /** Add a difference to the encoding
      *
@@ -116,7 +116,7 @@ private:
  */
 class PODOFO_API PdfDifferenceEncoding final : public PdfEncodingMapSimple
 {
-    friend class PdfDifferenceList;
+    friend class PdfDifferenceMap;
 
 public:
     /** Create a new PdfDifferenceEncoding which is based on
@@ -126,7 +126,7 @@ public:
      *  \param baseEncoding the base encoding of this font
      */
     PdfDifferenceEncoding(PdfEncodingMapConstPtr baseEncoding,
-        PdfDifferenceList differences);
+        PdfDifferenceMap differences);
 
     ~PdfDifferenceEncoding();
 
@@ -162,10 +162,10 @@ public:
      *
      * \returns the container with the actual differences
      */
-    const PdfDifferenceList& GetDifferences() const { return m_differences; }
+    const PdfDifferenceMap& GetDifferences() const { return m_differences; }
 
 protected:
-    void GetBaseEncoding(const PdfEncodingMap*& baseEncoding, const PdfDifferenceList*& differences) const;
+    void GetBaseEncoding(const PdfEncodingMap*& baseEncoding, const PdfDifferenceMap*& differences) const;
 
     void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override;
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
@@ -181,7 +181,7 @@ private:
 
 private:
     PdfEncodingMapConstPtr m_baseEncoding;
-    PdfDifferenceList m_differences;
+    PdfDifferenceMap m_differences;
     CodePointMapNode* m_reverseMap;
 };
 

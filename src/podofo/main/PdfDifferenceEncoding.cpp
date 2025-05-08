@@ -62,9 +62,9 @@ static bool tryFetchCodePoints(string_view charName, CodePointSpan& codepoints, 
 
 ENABLE_BITMASK_OPERATORS(AglMapType);
 
-PdfDifferenceList::PdfDifferenceList() { }
+PdfDifferenceMap::PdfDifferenceMap() { }
 
-void PdfDifferenceList::AddDifference(unsigned char code, char32_t codePoint)
+void PdfDifferenceMap::AddDifference(unsigned char code, char32_t codePoint)
 {
     const PdfName* found;
     if (codePoint > 0xFFFFU || (found = getFromReverseAGLFNMap((unsigned short)codePoint)) == nullptr)
@@ -73,7 +73,7 @@ void PdfDifferenceList::AddDifference(unsigned char code, char32_t codePoint)
         addDifference(code, codepointview(&codePoint, 1), *found);
 }
 
-void PdfDifferenceList::AddDifference(unsigned char code, const codepointview& codepoints)
+void PdfDifferenceMap::AddDifference(unsigned char code, const codepointview& codepoints)
 {
     if (codepoints.size() == 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "Invalid empty code point span");
@@ -104,7 +104,7 @@ void PdfDifferenceList::AddDifference(unsigned char code, const codepointview& c
     addDifference(code, codepoints, composed);
 }
 
-void PdfDifferenceList::AddDifference(unsigned char code, const string_view& name)
+void PdfDifferenceMap::AddDifference(unsigned char code, const string_view& name)
 {
     // In type3 fonts, glyph names are explicit keys from the font's CharProcs
     // dictionary, therefore they have no meaning
@@ -121,7 +121,7 @@ void PdfDifferenceList::AddDifference(unsigned char code, const string_view& nam
     }
 }
 
-void PdfDifferenceList::addDifference(unsigned char code, const codepointview& codepoints, const PdfName& name)
+void PdfDifferenceMap::addDifference(unsigned char code, const codepointview& codepoints, const PdfName& name)
 {
     PdfDifferenceMapping diff;
     diff.Code = code;
@@ -142,13 +142,13 @@ void PdfDifferenceList::addDifference(unsigned char code, const codepointview& c
     }
 }
 
-bool PdfDifferenceList::TryGetMappedName(unsigned char code, const PdfName*& name) const
+bool PdfDifferenceMap::TryGetMappedName(unsigned char code, const PdfName*& name) const
 {
     CodePointSpan codePoints;
     return TryGetMappedName(code, name, codePoints);
 }
 
-bool PdfDifferenceList::TryGetMappedName(unsigned char code, const PdfName*& name, CodePointSpan& codePoints) const
+bool PdfDifferenceMap::TryGetMappedName(unsigned char code, const PdfName*& name, CodePointSpan& codePoints) const
 {
     PdfDifferenceMapping diff;
     diff.Code = code;
@@ -168,7 +168,7 @@ bool PdfDifferenceList::TryGetMappedName(unsigned char code, const PdfName*& nam
     return false;
 }
 
-void PdfDifferenceList::ToArray(PdfArray& arr) const
+void PdfDifferenceMap::ToArray(PdfArray& arr) const
 {
     int64_t lastCode = -2;
     arr.Clear();
@@ -189,13 +189,13 @@ void PdfDifferenceList::ToArray(PdfArray& arr) const
     }
 }
 
-unsigned PdfDifferenceList::GetCount() const
+unsigned PdfDifferenceMap::GetCount() const
 {
     return (unsigned)m_differences.size();
 }
 
 PdfDifferenceEncoding::PdfDifferenceEncoding(PdfEncodingMapConstPtr baseEncoding,
-        PdfDifferenceList differences) :
+    PdfDifferenceMap differences) :
     PdfEncodingMapSimple({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }),
     m_baseEncoding(std::move(baseEncoding)),
     m_differences(std::move(differences)),
@@ -265,7 +265,7 @@ bool PdfDifferenceEncoding::TryCreateFromObject(const PdfObject& obj,
     }
 
     // Read the differences key
-    PdfDifferenceList difference;
+    PdfDifferenceMap difference;
     auto differencesObj = dict->FindKey("Differences");
     if (differencesObj != nullptr)
     {
@@ -291,7 +291,7 @@ bool PdfDifferenceEncoding::TryCreateFromObject(const PdfObject& obj,
     return true;
 }
 
-void PdfDifferenceEncoding::GetBaseEncoding(const PdfEncodingMap*& baseEncoding, const PdfDifferenceList*& differences) const
+void PdfDifferenceEncoding::GetBaseEncoding(const PdfEncodingMap*& baseEncoding, const PdfDifferenceMap*& differences) const
 {
     baseEncoding = m_baseEncoding.get();
     differences = &m_differences;

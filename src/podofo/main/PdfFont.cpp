@@ -518,38 +518,31 @@ void PdfFont::WriteDescriptors(PdfDictionary& fontDict, PdfDictionary& descripto
         descriptorDict.AddKey("MaxWidth"_n, static_cast<int64_t>(std::round(maxWidth / matrix[0])));
 }
 
-void PdfFont::EmbedFontProgram(PdfDictionary& font, PdfDictionary& descriptor) const
+void PdfFont::EmbedFontFile(PdfDictionary& descriptor) const
 {
-    if (GetType() == PdfFontType::Type3)
-    {
-        m_Metrics->ExportType3GlyphData(font);
-    }
-    else
-    {
-        auto fontdata = m_Metrics->GetOrLoadFontFileData();
-        if (fontdata.empty())
-            PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
+    auto fontdata = m_Metrics->GetOrLoadFontFileData();
+    if (fontdata.empty())
+        PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
 
-        switch (m_Metrics->GetFontFileType())
-        {
-            case PdfFontFileType::Type1:
-                EmbedFontFileType1(descriptor, fontdata, m_Metrics->GetFontFileLength1(), m_Metrics->GetFontFileLength2(), m_Metrics->GetFontFileLength3());
-                break;
-            case PdfFontFileType::Type1CFF:
-                EmbedFontFileCFF(descriptor, fontdata, false);
-                break;
-            case PdfFontFileType::CIDKeyedCFF:
-                EmbedFontFileCFF(descriptor, fontdata, true);
-                break;
-            case PdfFontFileType::TrueType:
-                EmbedFontFileTrueType(descriptor, fontdata);
-                break;
-            case PdfFontFileType::OpenTypeCFF:
-                EmbedFontFileOpenType(descriptor, fontdata);
-                break;
-            default:
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported font type embedding");
-        }
+    switch (m_Metrics->GetFontFileType())
+    {
+        case PdfFontFileType::Type1:
+            EmbedFontFileType1(descriptor, fontdata, m_Metrics->GetFontFileLength1(), m_Metrics->GetFontFileLength2(), m_Metrics->GetFontFileLength3());
+            break;
+        case PdfFontFileType::Type1CFF:
+            EmbedFontFileCFF(descriptor, fontdata, false);
+            break;
+        case PdfFontFileType::CIDKeyedCFF:
+            EmbedFontFileCFF(descriptor, fontdata, true);
+            break;
+        case PdfFontFileType::TrueType:
+            EmbedFontFileTrueType(descriptor, fontdata);
+            break;
+        case PdfFontFileType::OpenTypeCFF:
+            EmbedFontFileOpenType(descriptor, fontdata);
+            break;
+        default:
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported font type embedding");
     }
 }
 
@@ -1008,7 +1001,7 @@ bool PdfFont::tryMapCIDToGIDUnicode(unsigned cid, unsigned& gid) const
     }
 }
 
-vector<PdfCharGIDInfo> PdfFont::GetCharGIDInfos()
+vector<PdfCharGIDInfo> PdfFont::GetCharGIDInfos() const
 {
     vector<PdfCharGIDInfo> ret;
     if (m_subsetCIDMap == nullptr)

@@ -431,13 +431,29 @@ PdfFontFileType PdfFontMetricsObject::GetFontFileType() const
     return type;
 }
 
-void PdfFontMetricsObject::ExportType3GlyphData(PdfDictionary& fontDict) const
+void PdfFontMetricsObject::ExportType3GlyphData(PdfDictionary& fontDict, cspan<std::string_view> glyphs) const
 {
     if (m_FontFileType != PdfFontFileType::Type3 || m_Type3FontData->CharProcsObj == nullptr)
         return;
 
     auto& charProcs = fontDict.GetOwner()->MustGetDocument().GetObjects().CreateDictionaryObject();
-    charProcs = *m_Type3FontData->CharProcsObj;
+    if (glyphs.size() == 0)
+    {
+        charProcs = *m_Type3FontData->CharProcsObj;
+    }
+    else
+    {
+        auto& srcCharProcs = m_Type3FontData->CharProcsObj->GetDictionary();
+        auto& dstCharProcs = charProcs.GetDictionary();
+        for (unsigned i = 0; i < glyphs.size(); i++)
+        {
+            auto obj = srcCharProcs.FindKey(glyphs[i]);
+            if (obj->GetStream() == nullptr)
+                continue;
+
+            dstCharProcs.AddKeyIndirect(glyphs[i], *obj);
+        }
+    }
     fontDict.AddKeyIndirect("CharProcs"_n, charProcs);
 }
 

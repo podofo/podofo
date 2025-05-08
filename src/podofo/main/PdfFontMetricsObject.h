@@ -103,7 +103,7 @@ public:
     bool IsObjectLoaded() const override;
 
 protected:
-    void ExportType3GlyphData(PdfDictionary& fontDict) const override;
+    void ExportType3GlyphData(PdfDictionary& fontDict, cspan<std::string_view> glyphs) const override;
 
     unsigned GetGlyphCountFontProgram() const override;
 

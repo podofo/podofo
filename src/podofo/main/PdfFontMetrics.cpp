@@ -24,9 +24,9 @@ using namespace std;
 using namespace PoDoFo;
 
 static PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapType1(FT_Face face, const PdfEncodingMap& baseEncodings,
-    const PdfDifferenceList* differences);
+    const PdfDifferenceMap* differences);
 static PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapTrueType(FT_Face face, const PdfEncodingMap& baseEncodings,
-    const PdfDifferenceList* differences);
+    const PdfDifferenceMap* differences);
 
 // Default matrix: thousands of PDF units
 static Matrix s_DefaultMatrix = { 1e-3, 0.0, 0.0, 1e-3, 0, 0 };
@@ -631,9 +631,10 @@ bool PdfFontMetrics::TryGetGlyphWidthFontProgram(unsigned gid, double& width) co
     return true;
 }
 
-void PdfFontMetrics::ExportType3GlyphData(PdfDictionary& fontDict) const
+void PdfFontMetrics::ExportType3GlyphData(PdfDictionary& fontDict, cspan<string_view> glyphs) const
 {
     (void)fontDict;
+    (void)glyphs;
     // Do nothing by default
 }
 
@@ -682,7 +683,7 @@ PdfCIDToGIDMapConstPtr PdfEncodingMapSimple::GetIntrinsicCIDToGIDMap(const PdfDi
 {
     (void)fontDict;
     const PdfEncodingMap* baseEncoding;
-    const PdfDifferenceList* differences;
+    const PdfDifferenceMap* differences;
     switch (metrics.GetFontFileType())
     {
         case PdfFontFileType::Type1:
@@ -729,7 +730,7 @@ PdfCIDToGIDMapConstPtr PdfEncodingMapSimple::GetIntrinsicCIDToGIDMap(const PdfDi
     }
 }
 
-void PdfEncodingMapSimple::GetBaseEncoding(const PdfEncodingMap*& baseEncoding, const PdfDifferenceList*& differences) const
+void PdfEncodingMapSimple::GetBaseEncoding(const PdfEncodingMap*& baseEncoding, const PdfDifferenceMap*& differences) const
 {
     baseEncoding = this;
     differences = nullptr;
@@ -737,7 +738,7 @@ void PdfEncodingMapSimple::GetBaseEncoding(const PdfEncodingMap*& baseEncoding, 
 
 // ISO 32000-2:2020 "9.6.5.2 Encodings for Type 1 fonts"
 PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapType1(FT_Face face, const PdfEncodingMap& baseEncodings,
-    const PdfDifferenceList* differences)
+    const PdfDifferenceMap* differences)
 {
     // Iterate all the codes of the encoding
     CIDToGIDMap map;
@@ -781,7 +782,7 @@ PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapType1(FT_Face face, const PdfEncod
 
 // ISO 32000-2:2020 "9.6.5.4 Encodings for TrueType fonts"
 PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapTrueType(FT_Face face, const PdfEncodingMap & baseEncodings,
-    const PdfDifferenceList* differences)
+    const PdfDifferenceMap* differences)
 {
     // "If a (3, 1) 'cmap' subtable (Microsoft Unicode) is present:
     // A character code shall be first mapped to a glyph name using

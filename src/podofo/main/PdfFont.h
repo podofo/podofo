@@ -344,7 +344,7 @@ public:
     PdfObject& GetDescendantFontObject();
 
 protected:
-    void EmbedFontProgram(PdfDictionary& font, PdfDictionary& descriptor) const;
+    void EmbedFontFile(PdfDictionary& descriptor) const;
     void EmbedFontFileType1(PdfDictionary& descriptor, const bufferview& data,
         unsigned length1, unsigned length2, unsigned length3) const;
     void EmbedFontFileCFF(PdfDictionary& descriptor, const bufferview& data, bool cidKeyed) const;
@@ -374,7 +374,7 @@ protected:
 
     /** Get an ordered list of CID/GID info entries
      */
-    std::vector<PdfCharGIDInfo> GetCharGIDInfos();
+    std::vector<PdfCharGIDInfo> GetCharGIDInfos() const;
 
     virtual PdfObject* getDescendantFontObject();
 

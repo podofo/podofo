@@ -8,6 +8,7 @@
 #include "PdfFontSimple.h"
 
 #include "PdfDocument.h"
+#include "PdfDifferenceEncoding.h"
 
 using namespace std;
 using namespace PoDoFo;
@@ -87,5 +88,32 @@ void PdfFontSimple::embedFont()
     auto& widthsObj = GetDocument().GetObjects().CreateObject(std::move(arr));
     dict.AddKeyIndirect("Widths"_n, widthsObj);
 
-    EmbedFontProgram(GetDictionary(), m_Descriptor->GetDictionary());
+    if (GetType() == PdfFontType::Type3)
+    {
+        auto diffEncoding = dynamic_cast<const PdfDifferenceEncoding*>(&m_Encoding->GetEncodingMap());
+        if (diffEncoding == nullptr)
+        {
+            m_Metrics->ExportType3GlyphData(GetDictionary(), { });
+        }
+        else
+        {
+            auto cidInfos = GetCharGIDInfos();
+            vector<string_view> glyphs;
+            cidInfos.reserve(cidInfos.size());
+            const PdfName* name;
+            for (unsigned i = 0; i < cidInfos.size(); i++)
+            {
+                if (!diffEncoding->GetDifferences().TryGetMappedName(cidInfos[i].Cid, name))
+                    continue;
+
+                glyphs.push_back(name->GetString());
+            }
+
+            m_Metrics->ExportType3GlyphData(GetDictionary(), glyphs);
+        }
+    }
+    else
+    {
+        EmbedFontFile(m_Descriptor->GetDictionary());
+    }
 }

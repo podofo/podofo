@@ -103,7 +103,7 @@ void PdfFontCID::embedFont()
     auto infos = GetCharGIDInfos();
     createWidths(m_DescendantFont->GetDictionary(), infos);
     m_Encoding->ExportToFont(*this, GetCIDSystemInfo());
-    EmbedFontProgram(GetDictionary(), m_Descriptor->GetDictionary());
+    EmbedFontFile(m_Descriptor->GetDictionary());
 }
 
 void PdfFontCID::embedFontSubset()

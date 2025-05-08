@@ -11,6 +11,7 @@
   * `NameToCodePoint()`: Renamed to `TryGetCodePointsFromCharName()`, changed the semantics and now it returns a `CodePointSpan` instead of `char32_t`
   * `CodePointToName()`: Removed. It's not so simple to have an inverse map from code points to AGL name: there are multiple AGL lists and in the same AGL list there are ambiguous mappings. You can find a safest alternative in `PdfPredefinedEncodingType::TryGetCharNameFromCodePoint()` but it supports a smaller character set
 - `PdfDifferenceList`:
+  * Renamed to `PdfDifferenceMap`
   * `TryGetMappedName` now returns a `CodePointSpan` instead of `char32_t` in the overload
   * `AddDifference`: Removed overload with name. Use `PdfDifferenceEncoding::TryGetCodePointsFromCharName()` first if you need a replacement
 - `Object<T>`: Renamed to `ObjectAdapter<T>`
