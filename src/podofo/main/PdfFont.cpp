@@ -1036,7 +1036,7 @@ vector<PdfCharGIDInfo> PdfFont::GetCharGIDInfos() const
         {
             for (auto& pair : *m_subsetCIDMap)
             {
-                ret[i] = { pair.second.Gid.Id, pair.first, pair.second.Gid };
+                ret[i] = { pair.first, pair.first, pair.second.Gid };
                 i++;
             }
         }
