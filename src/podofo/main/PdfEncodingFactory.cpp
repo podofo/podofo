@@ -137,7 +137,7 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfDictionary& fontDict, co
         else
         {
             // As a fallback, create an identity encoding of the size size of the /ToUnicode mapping
-            encoding = std::make_shared<PdfIdentityEncoding>(toUnicode->GetLimits().MaxCodeSize);
+            encoding = PdfEncodingMapConstPtr(new PdfIdentityEncoding(PdfEncodingMapType::Indeterminate, toUnicode->GetLimits().MaxCodeSize));
         }
     }
     else
@@ -165,20 +165,24 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfDictionary& fontDict, co
     }
 
     PdfEncodingLimits parsedLimits;
-    auto firstCharObj = fontDict.FindKey("FirstChar");
-    if (firstCharObj != nullptr)
-        parsedLimits.FirstChar = PdfCharCode(static_cast<unsigned>(firstCharObj->GetNumber()));
-
-    auto lastCharObj = fontDict.FindKey("LastChar");
-    if (lastCharObj != nullptr)
-        parsedLimits.LastChar = PdfCharCode(static_cast<unsigned>(lastCharObj->GetNumber()));
-
-    if (parsedLimits.LastChar.Code >= parsedLimits.FirstChar.Code)
+    if (encoding->GetType() != PdfEncodingMapType::CMap)
     {
-        // If found valid /FirstChar and /LastChar, valorize
-        //  also the code size limits
-        parsedLimits.MinCodeSize = utls::GetCharCodeSize(parsedLimits.FirstChar.Code);
-        parsedLimits.MaxCodeSize = utls::GetCharCodeSize(parsedLimits.LastChar.Code);
+        // Try read limits /FirstChar and /LastChar for simple encodings
+
+        int64_t num;
+        if (fontDict.TryFindKeyAs("FirstChar", num))
+            parsedLimits.FirstChar = PdfCharCode((unsigned)std::clamp(num, 0LL, 255LL), 1);
+
+        if (fontDict.TryFindKeyAs("LastChar", num))
+            parsedLimits.LastChar = PdfCharCode((unsigned)std::clamp(num, 0LL, 255LL), 1);
+
+        if (parsedLimits.LastChar.Code >= parsedLimits.FirstChar.Code)
+        {
+            // If found valid /FirstChar and /LastChar, valorize
+            //  also the code size limits
+            parsedLimits.MinCodeSize = utls::GetCharCodeSize(parsedLimits.FirstChar.Code);
+            parsedLimits.MaxCodeSize = utls::GetCharCodeSize(parsedLimits.LastChar.Code);
+        }
     }
 
     return PdfEncoding::Create(parsedLimits, std::move(encoding),

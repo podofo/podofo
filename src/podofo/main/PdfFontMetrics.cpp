@@ -597,7 +597,7 @@ PdfEncodingMapConstPtr PdfFontMetrics::getDefaultEncoding(bool tryFetchCidToGidM
                     maxCID = pair.first;
             }
 
-            return std::make_shared<PdfIdentityEncoding>(utls::GetCharCodeSize(maxCID));
+            return PdfEncodingMapConstPtr(new PdfIdentityEncoding(PdfEncodingMapType::Simple, utls::GetCharCodeSize(maxCID)));
         }
     }
 

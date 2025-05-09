@@ -249,7 +249,7 @@ void PdfEncodingTest::TestToUnicodeParse()
     auto& toUnicodeObj = doc.GetObjects().CreateDictionaryObject();
     toUnicodeObj.GetOrCreateStream().SetData(toUnicode);
 
-    PdfEncoding encoding(std::make_shared<PdfIdentityEncoding>(2), PdfEncodingMapFactory::ParseCMapEncoding(toUnicodeObj));
+    PdfEncoding encoding(PdfEncodingMapConstPtr(new PdfIdentityEncoding(PdfEncodingMapType::Indeterminate, 2)), PdfEncodingMapFactory::ParseCMapEncoding(toUnicodeObj));
 
     auto utf8str = encoding.ConvertToUtf8(PdfString::FromRaw(encodedStr));
     REQUIRE(utf8str == expected);
@@ -282,7 +282,7 @@ void PdfEncodingTest::TestToUnicodeParse()
             auto& invalidObject = invalidList.CreateDictionaryObject();
             invalidObject.GetOrCreateStream().SetData(bufferview(toUnicodeInvalidTests[i], char_traits<char>::length(toUnicodeInvalidTests[i])));
 
-            PdfEncoding encodingTestInvalid(std::make_shared<PdfIdentityEncoding>(2), PdfEncodingMapFactory::ParseCMapEncoding(invalidObject));
+            PdfEncoding encodingTestInvalid(PdfEncodingMapConstPtr(new PdfIdentityEncoding(PdfEncodingMapType::Indeterminate, 2)), PdfEncodingMapFactory::ParseCMapEncoding(invalidObject));
 
             auto unicodeStringTestInvalid = encodingTestInvalid.ConvertToUtf8(PdfString::FromRaw(encodedStr));
 

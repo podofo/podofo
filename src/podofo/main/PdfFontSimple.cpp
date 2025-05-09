@@ -59,10 +59,6 @@ void PdfFontSimple::initImported()
 
     m_Encoding->ExportToFont(*this);
 
-    // CHECK-ME: Should this be moved to encoding->ExportToFont() ?
-    dict.AddKey("FirstChar"_n, PdfVariant(static_cast<int64_t>(m_Encoding->GetFirstChar().Code)));
-    dict.AddKey("LastChar"_n, PdfVariant(static_cast<int64_t>(m_Encoding->GetLastChar().Code)));
-
     if (!GetMetrics().IsStandard14FontMetrics() || IsEmbeddingEnabled())
     {
         // NOTE: Non Standard14 fonts need at least the metrics
@@ -113,7 +109,7 @@ void PdfFontSimple::embedFontSubset()
         for (unsigned i = 0; i < cidInfos.size(); i++)
         {
             auto& cidInfo = cidInfos[i];
-            if (!diffEncoding->GetDifferences().TryGetMappedName(cidInfo.OrigCid, name))
+            if (!diffEncoding->GetDifferences().TryGetMappedName((unsigned char)cidInfo.OrigCid, name))
                 continue;
 
             widths[cidInfo.Gid.MetricsId] = m_Metrics->GetGlyphWidth(cidInfo.Gid.MetricsId) / matrix[0];
@@ -123,7 +119,7 @@ void PdfFontSimple::embedFontSubset()
         m_Metrics->ExportType3GlyphData(GetDictionary(), glyphs);
 
         PdfArray arr;
-        arr.Reserve(widths.size());
+        arr.reserve(widths.size());
         for (unsigned i = 0; i < widths.size(); i++)
             arr.Add(PdfObject(static_cast<int64_t>(std::round(widths[i]))));
 

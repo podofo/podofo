@@ -380,10 +380,13 @@ void PdfEncoding::exportToFont(PdfFont& font, const PdfCIDSystemInfo* cidInfo) c
             fontDict.AddKeyIndirect("Encoding"_n, cmapObj);
         }
     }
-    else
+    else // Simple font
     {
         if (!tryExportEncodingTo(fontDict, false))
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The encoding should supply an export object");
+
+        fontDict.AddKey("FirstChar"_n, PdfVariant(static_cast<int64_t>(GetFirstChar().Code)));
+        fontDict.AddKey("LastChar"_n, PdfVariant(static_cast<int64_t>(GetLastChar().Code)));
     }
 
     auto& cmapObj = fontDict.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();

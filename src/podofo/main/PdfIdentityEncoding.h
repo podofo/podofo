@@ -30,20 +30,25 @@ enum class PdfIdentityOrientation : uint8_t
 class PODOFO_API PdfIdentityEncoding final : public PdfEncodingMap
 {
     friend class PdfEncodingMapFactory;
+    friend class PdfEncodingFactory;
+    friend class PdfFontMetrics;
+    PODOFO_PRIVATE_FRIEND(class PdfEncodingTest);
 
-public:
+private:
     /**
      *  Create a new PdfIdentityEncoding.
      *
      *  \param codeSpaceSize size of the codespace size
      */
-    PdfIdentityEncoding(unsigned char codeSpaceSize);
+    PdfIdentityEncoding(PdfEncodingMapType type, unsigned char codeSpaceSize);
 
     /**
      *  Create a standard 2 bytes CID PdfIdentityEncoding
      */
     PdfIdentityEncoding(PdfIdentityOrientation orientation);
 
+    PdfIdentityEncoding(PdfEncodingMapType type, const PdfEncodingLimits& limits,
+        PdfIdentityOrientation orientation);
 protected:
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
     bool tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, CodePointSpan& codePoints) const override;
@@ -55,10 +60,6 @@ public:
     const PdfEncodingLimits& GetLimits() const override;
 
     PdfPredefinedEncodingType GetPredefinedEncodingType() const override;
-
-private:
-    PdfIdentityEncoding(PdfEncodingMapType type, const PdfEncodingLimits& limits,
-        PdfIdentityOrientation orientation);
 
 private:
     PdfEncodingLimits m_Limits;

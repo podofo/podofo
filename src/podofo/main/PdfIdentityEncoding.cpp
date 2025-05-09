@@ -19,25 +19,24 @@ using namespace PoDoFo;
 
 static PdfEncodingLimits getLimits(unsigned char codeSpaceSize);
 
-PdfIdentityEncoding::PdfIdentityEncoding(unsigned char codeSpaceSize)
-    : PdfIdentityEncoding(PdfEncodingMapType::Indeterminate,
-        getLimits(codeSpaceSize), PdfIdentityOrientation::Unkwnown) { }
-
-// PdfIdentityEncoding represents either Identity-H/Identity-V
-// predefined CMap names
-PdfIdentityEncoding::PdfIdentityEncoding(PdfEncodingMapType type,
-        const PdfEncodingLimits& limits, PdfIdentityOrientation orientation) :
-    PdfEncodingMap(type),
-    m_Limits(limits),
-    m_orientation(orientation)
-{
-}
+PdfIdentityEncoding::PdfIdentityEncoding(PdfEncodingMapType type, unsigned char codeSpaceSize)
+    : PdfIdentityEncoding(type, getLimits(codeSpaceSize), PdfIdentityOrientation::Unkwnown) { }
 
 PdfIdentityEncoding::PdfIdentityEncoding(PdfIdentityOrientation orientation)
     : PdfIdentityEncoding(PdfEncodingMapType::CMap, getLimits(2), orientation)
 {
     if (orientation == PdfIdentityOrientation::Unkwnown)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported orientation");
+}
+
+// PdfIdentityEncoding represents either Identity-H/Identity-V
+// predefined CMap names
+PdfIdentityEncoding::PdfIdentityEncoding(PdfEncodingMapType type,
+    const PdfEncodingLimits& limits, PdfIdentityOrientation orientation) :
+    PdfEncodingMap(type),
+    m_Limits(limits),
+    m_orientation(orientation)
+{
 }
 
 bool PdfIdentityEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const
