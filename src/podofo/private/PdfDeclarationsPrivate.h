@@ -250,7 +250,13 @@ namespace utls
         void Exit();
     };
 
-    /** Normalize the coordiante so the first corner is left-bottom, and the second right-top
+    // https://stackoverflow.com/a/14369745/213871
+    inline double RoundTo(double value, double precision)
+    {
+        return std::round(value / precision) * precision;
+    }
+
+    /** Normalize the coordinate so the first corner is left-bottom, and the second right-top
      */
     void NormalizeCoordinates(double& x1, double& y1, double& x2, double& y2);
 

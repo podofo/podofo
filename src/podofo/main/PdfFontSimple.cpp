@@ -31,7 +31,7 @@ void PdfFontSimple::getWidthsArray(PdfArray& arr) const
     {
         (void)GetEncoding().TryGetCIDId(PdfCharCode(code), gid);
         // NOTE: In non CID-keyed fonts char codes are equivalent to CID
-        arr.Add(PdfObject(static_cast<int64_t>(std::round(GetCIDWidth(code) / matrix[0]))));
+        arr.Add(PdfObject(GetCIDWidth(code) / matrix[0]));
     }
 }
 
@@ -125,7 +125,7 @@ void PdfFontSimple::embedFontSubset()
         PdfArray arr;
         arr.reserve(widths.size());
         for (unsigned i = 0; i < widths.size(); i++)
-            arr.Add(PdfObject(static_cast<int64_t>(std::round(widths[i]))));
+            arr.Add(PdfObject(widths[i]));
 
         auto& widthsObj = GetDocument().GetObjects().CreateObject(std::move(arr));
         GetDictionary().AddKeyIndirect("Widths"_n, widthsObj);
