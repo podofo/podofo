@@ -86,7 +86,8 @@ namespace PoDoFo
      */
     struct PODOFO_API PdfCharGIDInfo
     {
-        unsigned Cid = 0;           ///< The identifier of the character
+        unsigned Cid = 0;           ///< The new assigned identifier of the character
+        unsigned OrigCid = 0;       ///< The original identifier of the character
         PdfGID Gid;                 ///< The identifier of the glyph in font program and PDF metrics
     };
 

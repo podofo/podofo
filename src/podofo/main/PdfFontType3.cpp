@@ -20,3 +20,8 @@ PdfFontType3::PdfFontType3(PdfDocument& doc, PdfFontMetricsConstPtr&& metrics,
     : PdfFontSimple(doc, PdfFontType::Type3, std::move(metrics), encoding)
 {
 }
+
+bool PdfFontType3::SupportsSubsetting() const
+{
+    return true;
+}

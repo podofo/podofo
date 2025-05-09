@@ -39,6 +39,9 @@ private:
      */
     PdfFontType3(PdfDocument& doc, PdfFontMetricsConstPtr&& metrics,
         const PdfEncoding& encoding);
+
+public:
+    bool SupportsSubsetting() const override;
 };
 
 };

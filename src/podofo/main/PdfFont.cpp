@@ -979,7 +979,7 @@ bool PdfFont::tryMapCIDToGIDLoadedMetrics(unsigned cid, unsigned& gid) const
 
 bool PdfFont::tryMapCIDToGIDUnicode(unsigned cid, unsigned& gid) const
 {
-    if (m_Encoding->IsSimpleEncoding() && m_Metrics->HasUnicodeMapping())
+    if (m_Type != PdfFontType::Type3 && m_Encoding->IsSimpleEncoding() && m_Metrics->HasUnicodeMapping())
     {
         // Simple encodings must retrieve the gid from the
         // metrics using the mapped unicode code point
@@ -1007,17 +1007,17 @@ vector<PdfCharGIDInfo> PdfFont::GetCharGIDInfos() const
     if (m_subsetCIDMap == nullptr)
     {
         PODOFO_ASSERT(!IsSubsettingEnabled());
-        // Create an idenity cid/gid map
+        // Create an identity cid/gid map
         unsigned gidCount = GetMetrics().GetGlyphCount();
         ret.resize(gidCount);
         for (unsigned i = 0; i < gidCount; i++)
-            ret[i] = { i, PdfGID(i) };
+            ret[i] = { i, i, PdfGID(i) };
     }
     else
     {
         if (m_subsetCIDMap->size() == 0)
         {
-            ret.push_back({ 0, PdfGID(0)});
+            ret.push_back({ 0, 0, PdfGID(0)});
             return ret;
         }
 
@@ -1028,7 +1028,7 @@ vector<PdfCharGIDInfo> PdfFont::GetCharGIDInfos() const
             for (auto& pair : *m_subsetCIDMap)
             {
                 // Reserve CID 0 and start numbering CIDS from 1
-                ret[i] = { i + 1, pair.second.Gid };
+                ret[i] = { i + 1, pair.first, pair.second.Gid };
                 i++;
             }
         }
@@ -1036,7 +1036,7 @@ vector<PdfCharGIDInfo> PdfFont::GetCharGIDInfos() const
         {
             for (auto& pair : *m_subsetCIDMap)
             {
-                ret[i] = { pair.second.Gid.Id, pair.second.Gid };
+                ret[i] = { pair.second.Gid.Id, pair.first, pair.second.Gid };
                 i++;
             }
         }

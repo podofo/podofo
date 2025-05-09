@@ -21,22 +21,18 @@ PdfFontSimple::PdfFontSimple(PdfDocument& doc, PdfFontType type,
 
 void PdfFontSimple::getWidthsArray(PdfArray& arr) const
 {
-    vector<double> widths;
     unsigned gid;
-    for (unsigned code = GetEncoding().GetFirstChar().Code, last = GetEncoding().GetLastChar().Code;
-        code <= last; code++)
+    auto& matrix = m_Metrics->GetMatrix();
+    unsigned code = GetEncoding().GetFirstChar().Code;
+    unsigned last = GetEncoding().GetLastChar().Code;
+    arr.Clear();
+    arr.reserve(last - code + 1);
+    for (; code <= last; code++)
     {
         (void)GetEncoding().TryGetCIDId(PdfCharCode(code), gid);
         // NOTE: In non CID-keyed fonts char codes are equivalent to CID
-        widths.push_back(GetCIDWidth(code));
+        arr.Add(PdfObject(static_cast<int64_t>(std::round(GetCIDWidth(code) / matrix[0]))));
     }
-
-    arr.Clear();
-    arr.reserve(widths.size());
-
-    auto matrix = m_Metrics->GetMatrix();
-    for (unsigned i = 0; i < widths.size(); i++)
-        arr.Add(PdfObject(static_cast<int64_t>(std::round(widths[i] / matrix[0]))));
 }
 
 void PdfFontSimple::initImported()
@@ -57,9 +53,15 @@ void PdfFontSimple::initImported()
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 
-    this->GetDictionary().AddKey("Subtype"_n, subType);
-    this->GetDictionary().AddKey("BaseFont"_n, PdfName(GetName()));
+    auto& dict = GetDictionary();
+    dict.AddKey("Subtype"_n, subType);
+    dict.AddKey("BaseFont"_n, PdfName(GetName()));
+
     m_Encoding->ExportToFont(*this);
+
+    // CHECK-ME: Should this be moved to encoding->ExportToFont() ?
+    dict.AddKey("FirstChar"_n, PdfVariant(static_cast<int64_t>(m_Encoding->GetFirstChar().Code)));
+    dict.AddKey("LastChar"_n, PdfVariant(static_cast<int64_t>(m_Encoding->GetLastChar().Code)));
 
     if (!GetMetrics().IsStandard14FontMetrics() || IsEmbeddingEnabled())
     {
@@ -67,8 +69,8 @@ void PdfFontSimple::initImported()
         // descriptor. Instead Standard14 fonts don't need any
         // metrics descriptor if the font is not embedded
         auto& descriptorObj = GetDocument().GetObjects().CreateDictionaryObject("FontDescriptor"_n);
-        this->GetDictionary().AddKeyIndirect("FontDescriptor"_n, descriptorObj);
-        WriteDescriptors(GetDictionary(), descriptorObj.GetDictionary());
+        dict.AddKeyIndirect("FontDescriptor"_n, descriptorObj);
+        WriteDescriptors(dict, descriptorObj.GetDictionary());
         m_Descriptor = &descriptorObj;
     }
 }
@@ -76,44 +78,56 @@ void PdfFontSimple::initImported()
 void PdfFontSimple::embedFont()
 {
     PODOFO_ASSERT(m_Descriptor != nullptr);
-    auto& dict = GetDictionary();
-    dict.AddKey("FirstChar"_n, PdfVariant(static_cast<int64_t>(m_Encoding->GetFirstChar().Code)));
-    dict.AddKey("LastChar"_n, PdfVariant(static_cast<int64_t>(m_Encoding->GetLastChar().Code)));
-
-    m_Encoding->ExportToFont(*this);
-
     PdfArray arr;
     this->getWidthsArray(arr);
 
     auto& widthsObj = GetDocument().GetObjects().CreateObject(std::move(arr));
-    dict.AddKeyIndirect("Widths"_n, widthsObj);
+    GetDictionary().AddKeyIndirect("Widths"_n, widthsObj);
 
     if (GetType() == PdfFontType::Type3)
+        m_Metrics->ExportType3GlyphData(GetDictionary(), { });
+    else
+        EmbedFontFile(m_Descriptor->GetDictionary());
+}
+
+void PdfFontSimple::embedFontSubset()
+{
+    // NOTE: For now it's supported only for Type 3 fonts
+    PODOFO_ASSERT(GetType() == PdfFontType::Type3);
+
+    auto& matrix = m_Metrics->GetMatrix();
+    auto diffEncoding = dynamic_cast<const PdfDifferenceEncoding*>(&m_Encoding->GetEncodingMap());
+    if (diffEncoding == nullptr)
     {
-        auto diffEncoding = dynamic_cast<const PdfDifferenceEncoding*>(&m_Encoding->GetEncodingMap());
-        if (diffEncoding == nullptr)
-        {
-            m_Metrics->ExportType3GlyphData(GetDictionary(), { });
-        }
-        else
-        {
-            auto cidInfos = GetCharGIDInfos();
-            vector<string_view> glyphs;
-            cidInfos.reserve(cidInfos.size());
-            const PdfName* name;
-            for (unsigned i = 0; i < cidInfos.size(); i++)
-            {
-                if (!diffEncoding->GetDifferences().TryGetMappedName(cidInfos[i].Cid, name))
-                    continue;
-
-                glyphs.push_back(name->GetString());
-            }
-
-            m_Metrics->ExportType3GlyphData(GetDictionary(), glyphs);
-        }
+        m_Metrics->ExportType3GlyphData(GetDictionary(), { });
     }
     else
     {
-        EmbedFontFile(m_Descriptor->GetDictionary());
+        auto cidInfos = GetCharGIDInfos();
+        unsigned first = GetEncoding().GetFirstChar().Code;
+        unsigned last = GetEncoding().GetLastChar().Code;
+
+        vector<string_view> glyphs;
+        vector<double> widths(last - first + 1);
+        const PdfName* name;
+        for (unsigned i = 0; i < cidInfos.size(); i++)
+        {
+            auto& cidInfo = cidInfos[i];
+            if (!diffEncoding->GetDifferences().TryGetMappedName(cidInfo.OrigCid, name))
+                continue;
+
+            widths[cidInfo.Gid.MetricsId] = m_Metrics->GetGlyphWidth(cidInfo.Gid.MetricsId) / matrix[0];
+            glyphs.push_back(name->GetString());
+        }
+
+        m_Metrics->ExportType3GlyphData(GetDictionary(), glyphs);
+
+        PdfArray arr;
+        arr.Reserve(widths.size());
+        for (unsigned i = 0; i < widths.size(); i++)
+            arr.Add(PdfObject(static_cast<int64_t>(std::round(widths[i]))));
+
+        auto& widthsObj = GetDocument().GetObjects().CreateObject(std::move(arr));
+        GetDictionary().AddKeyIndirect("Widths"_n, widthsObj);
     }
 }

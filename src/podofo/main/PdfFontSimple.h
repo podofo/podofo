@@ -40,6 +40,8 @@ private:
 protected:
     void embedFont() override final;
 
+    void embedFontSubset() override final;
+
     void initImported() override;
 
 private:

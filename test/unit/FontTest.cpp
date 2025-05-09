@@ -100,7 +100,7 @@ TEST_CASE("TestSubsetCFFDegenerate")
     auto metrics = PdfFontMetrics::CreateFromBuffer(font1);
 
     vector<PdfCharGIDInfo> subsetInfos;
-    subsetInfos.push_back({ 1, PdfGID(0, 0)});
+    subsetInfos.push_back({ 1, 1, PdfGID(0, 0)});
 
     PdfCIDSystemInfo cidInfo;
     cidInfo.Registry = PdfString("Adobe");

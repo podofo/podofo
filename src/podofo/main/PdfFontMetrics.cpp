@@ -643,6 +643,14 @@ bool PdfFontMetrics::HasParsedWidths() const
     return m_ParsedWidths != nullptr;
 }
 
+unsigned PdfFontMetrics::GetParsedWidthsCount() const
+{
+    if (m_ParsedWidths == nullptr)
+        return 0;
+
+    return (unsigned)m_ParsedWidths->size();
+}
+
 PdfFontMetricsBase::PdfFontMetricsBase()
     : m_dataInit(false), m_faceInit(false), m_Face(nullptr) { }
 
@@ -720,7 +728,7 @@ PdfCIDToGIDMapConstPtr PdfEncodingMapSimple::GetIntrinsicCIDToGIDMap(const PdfDi
         case PdfFontFileType::Type3:
         {
             // CHECK-ME: ISO 32000-2:2020 "9.6.5.3 Encodings for Type 3 fonts"
-            return nullptr;
+            return PdfCIDToGIDMapConstPtr();
         }
         default:
         {

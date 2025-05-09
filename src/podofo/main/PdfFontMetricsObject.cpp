@@ -19,7 +19,6 @@ namespace PoDoFo
 {
     struct PdfFontMetricsObject::Type3FontData
     {
-        unsigned GlyphCount;
         const PdfObject* CharProcsObj;
     };
 }
@@ -112,10 +111,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfDictionary& fontDict,
 
                 auto charProcs = fontDict.FindKeyAsSafe<const PdfDictionary*>("CharProcs");
                 if (charProcs != nullptr)
-                {
-                    m_Type3FontData->GlyphCount = charProcs->GetSize();
                     m_Type3FontData->CharProcsObj = charProcs->GetOwner();
-                }
             }
             else
             {
@@ -436,7 +432,8 @@ void PdfFontMetricsObject::ExportType3GlyphData(PdfDictionary& fontDict, cspan<s
     if (m_FontFileType != PdfFontFileType::Type3 || m_Type3FontData->CharProcsObj == nullptr)
         return;
 
-    auto& charProcs = fontDict.GetOwner()->MustGetDocument().GetObjects().CreateDictionaryObject();
+    auto& objects = fontDict.GetOwner()->MustGetDocument().GetObjects();
+    auto& charProcs = objects.CreateDictionaryObject();
     if (glyphs.size() == 0)
     {
         charProcs = *m_Type3FontData->CharProcsObj;
@@ -449,7 +446,12 @@ void PdfFontMetricsObject::ExportType3GlyphData(PdfDictionary& fontDict, cspan<s
         {
             auto obj = srcCharProcs.FindKey(glyphs[i]);
             if (obj->GetStream() == nullptr)
-                continue;
+            {
+                // Create a object with a dummy stream
+                auto& newObject = objects.CreateDictionaryObject();
+                newObject.ForceCreateStream();
+                obj = &newObject;
+            }
 
             dstCharProcs.AddKeyIndirect(glyphs[i], *obj);
         }
@@ -460,7 +462,7 @@ void PdfFontMetricsObject::ExportType3GlyphData(PdfDictionary& fontDict, cspan<s
 unsigned PdfFontMetricsObject::GetGlyphCountFontProgram() const
 {
     if (m_FontFileType == PdfFontFileType::Type3)
-        return m_Type3FontData->GlyphCount;
+        return GetParsedWidthsCount();
 
     return PdfFontMetricsBase::GetGlyphCountFontProgram();
 }

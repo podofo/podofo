@@ -360,6 +360,8 @@ protected:
 
     bool HasParsedWidths() const;
 
+    unsigned GetParsedWidthsCount() const;
+
     /** Retrieve the parsed width from a /W or /Widths entry, if available
      */
     GlyphMetricsListConstPtr GetParsedWidths() const { return m_ParsedWidths; }
