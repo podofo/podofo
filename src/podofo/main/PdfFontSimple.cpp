@@ -40,7 +40,7 @@ void PdfFontSimple::getWidthsArray(PdfArray& arr) const
 
     auto matrix = m_Metrics->GetMatrix();
     for (unsigned i = 0; i < widths.size(); i++)
-        arr.Add(PdfObject(static_cast<int64_t>(std::round(widths[i] / matrix[0]))));
+        arr.Add(PdfObject(widths[i] / matrix[0]));
 }
 
 void PdfFontSimple::getFontMatrixArray(PdfArray& fontMatrix) const
