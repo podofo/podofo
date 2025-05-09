@@ -168,7 +168,8 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfDictionary& fontDict, co
     if (encoding->GetType() != PdfEncodingMapType::CMap)
     {
         // Try read limits /FirstChar and /LastChar for simple encodings
-
+        // NOTE: Simple fonts are ;imited to one-byte encodings, hence
+        // read values can be clamped to [0, 255]
         int64_t num;
         if (fontDict.TryFindKeyAs("FirstChar", num))
             parsedLimits.FirstChar = PdfCharCode((unsigned)std::clamp(num, 0LL, 255LL), 1);

@@ -112,7 +112,11 @@ void PdfFontSimple::embedFontSubset()
             if (!diffEncoding->GetDifferences().TryGetMappedName((unsigned char)cidInfo.OrigCid, name))
                 continue;
 
-            widths[cidInfo.Gid.MetricsId] = m_Metrics->GetGlyphWidth(cidInfo.Gid.MetricsId) / matrix[0];
+            // Check for overflows before insertion. Missing widths are already handled
+            // by default value (/MissingWidth in the descriptor)
+            if (cidInfo.OrigCid - first < widths.size())
+                widths[cidInfo.OrigCid - first] = m_Metrics->GetGlyphWidth(cidInfo.Gid.MetricsId) / matrix[0];
+
             glyphs.push_back(name->GetString());
         }
 

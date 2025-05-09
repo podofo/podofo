@@ -462,7 +462,20 @@ void PdfFontMetricsObject::ExportType3GlyphData(PdfDictionary& fontDict, cspan<s
 unsigned PdfFontMetricsObject::GetGlyphCountFontProgram() const
 {
     if (m_FontFileType == PdfFontFileType::Type3)
-        return GetParsedWidthsCount();
+    {
+        // This is interesting. /Type3 fonts:
+        // - Don't have a /FontFile data where glyphs can can be read from;
+        // - Glyphs are not random accessed by index but by glyph name
+        // This means that we are in a situation similar to CID keyed fonts,
+        // where we can't really random access glyphs in the storage.
+        // Because glyph count from this instance will be mostly accessed
+        // for metrics reading, which is allowed to span out of ranges
+        // with default values, wel'll arbitrarily return the maximum possible
+        // glyph count for Type3 fonts, which is limited to one-byte encodings.
+        // Cross validation for glyphs data consitency will be performed at
+        // a later stage
+        return 255U;
+    }
 
     return PdfFontMetricsBase::GetGlyphCountFontProgram();
 }

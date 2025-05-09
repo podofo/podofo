@@ -857,10 +857,11 @@ void PdfFont::AddSubsetCIDs(const PdfString& encodedStr)
     vector<PdfCID> cids;
     PdfGID gid;
     (void)m_Encoding->TryConvertToCIDs(encodedStr, cids);
+    unsigned glyphCount = m_Metrics->GetGlyphCount();
     for (unsigned i = 0; i < cids.size(); i++)
     {
         auto& cid = cids[i];
-        if (!TryMapCIDToGID(cid.Id, gid) || gid.Id >= m_Metrics->GetGlyphCount())
+        if (!TryMapCIDToGID(cid.Id, gid) || gid.Id >= glyphCount)
         {
             // Assume the font will always contain at least one glyph
             // and add a mapping to CID 0 for the char code
