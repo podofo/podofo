@@ -73,7 +73,12 @@ namespace PoDoFo
     };
 
     /**
-     * MacRomanEncoding 
+     * MacRomanEncoding
+     * 
+     * The encoding here also defines the entries specified in
+     * ISO 32000-2:2020 "Table 113 — Additional entries in Mac OS Roman
+     * encoding not in MacRomanEncoding", other than the ones specified
+     * in "Table D.2 — Latin character set and encodings"
      */
     class PODOFO_API PdfMacRomanEncoding final : public PdfPredefinedEncoding
     {

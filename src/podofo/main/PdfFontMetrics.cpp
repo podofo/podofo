@@ -796,13 +796,20 @@ PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapTrueType(FT_Face face, const PdfEn
     // A character code shall be first mapped to a glyph name using
     // the table described above"
     const PdfEncodingMap* inverseUnicodeMap = nullptr;
-    if (FT_Select_Charmap(face, FT_ENCODING_MS_SYMBOL) != 0)
+    if (FT_Select_Charmap(face, FT_ENCODING_UNICODE) != 0)
     {
         if (FT_Select_Charmap(face, FT_ENCODING_APPLE_ROMAN) == 0)
         {
             // If no (3, 1) subtable is present but a (1, 0) subtable
             // (Macintosh Roman) is present: A character code shall be
             // first mapped to a glyph name using the table described above.
+            // The glyph name shall then be mapped back to a character code
+            // according to the standard encoding used on Mac OS.
+            // NOTE: the so called "standard Roman encoding" differs from
+            // /MacRomanEncoding defining some more entries as specified in
+            // "Table 113 — Additional entries in Mac OS Roman encoding not
+            // in MacRomanEncoding". Our PdfMacRomanEncoding defines those
+            // as well
             inverseUnicodeMap = &PdfEncodingMapFactory::GetMacRomanEncodingInstance();
         }
         else
