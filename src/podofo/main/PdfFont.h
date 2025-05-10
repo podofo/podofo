@@ -357,7 +357,7 @@ protected:
 
     /** Map the CID to a glyph ID in the font metrics using an Unicode map
      */
-    bool tryMapCIDToGIDUnicode(unsigned cid, unsigned& gid) const;
+    bool tryMapCIDToGIDNormal(unsigned cid, unsigned& gid) const;
 
     void GetBoundingBox(PdfArray& arr) const;
 

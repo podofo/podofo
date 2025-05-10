@@ -906,13 +906,13 @@ PdfObject& PdfFont::GetDescendantFontObject()
 bool PdfFont::TryMapCIDToGID(unsigned cid, PdfGID& gid) const
 {
     // Retrieve first the font program GID first
-    bool unicodeLookup = false;
+    bool normalLookup = false;
     if (m_fontProgCIDToGIDMap == nullptr)
     {
-        if (!tryMapCIDToGIDUnicode(cid, gid.Id))
+        if (!tryMapCIDToGIDNormal(cid, gid.Id))
             goto Fail;
 
-        unicodeLookup = true;
+        normalLookup = true;
     }
     else
     {
@@ -923,9 +923,9 @@ bool PdfFont::TryMapCIDToGID(unsigned cid, PdfGID& gid) const
     // Secondly, retrieve PDF metrics Id
     if (!tryMapCIDToGIDLoadedMetrics(cid, gid.MetricsId))
     {
-        if (unicodeLookup) // The unicode lookup just happened, no need to repeat it
+        if (normalLookup) // The normal lookup just happened, no need to repeat it
             gid.MetricsId = gid.Id;
-        else if (!tryMapCIDToGIDUnicode(cid, gid.MetricsId))
+        else if (!tryMapCIDToGIDNormal(cid, gid.MetricsId))
             goto Fail;
     }
 
@@ -945,14 +945,14 @@ bool PdfFont::TryMapCIDToGID(unsigned cid, PdfGlyphAccess access, unsigned& gid)
             if (tryMapCIDToGIDLoadedMetrics(cid, gid))
                 return true;
             else
-                return tryMapCIDToGIDUnicode(cid, gid);
+                return tryMapCIDToGIDNormal(cid, gid);
         }
         case PdfGlyphAccess::FontProgram:
         {
             if (m_fontProgCIDToGIDMap != nullptr)
                 return m_fontProgCIDToGIDMap->TryMapCIDToGID(cid, gid);
 
-            return tryMapCIDToGIDUnicode(cid, gid);
+            return tryMapCIDToGIDNormal(cid, gid);
         }
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
@@ -978,12 +978,12 @@ bool PdfFont::tryMapCIDToGIDLoadedMetrics(unsigned cid, unsigned& gid) const
     return true;
 }
 
-bool PdfFont::tryMapCIDToGIDUnicode(unsigned cid, unsigned& gid) const
+bool PdfFont::tryMapCIDToGIDNormal(unsigned cid, unsigned& gid) const
 {
-    if (m_Type != PdfFontType::Type3 && m_Encoding->IsSimpleEncoding() && m_Metrics->HasUnicodeMapping())
+    if (m_Encoding->IsSimpleEncoding() && m_Metrics->HasUnicodeMapping())
     {
-        // Simple encodings must retrieve the gid from the
-        // metrics using the mapped unicode code point
+        // For simple fonts, try map CID to GID using the unicode
+        // map from metrics, if available
         char32_t mappedCodePoint = m_Encoding->GetCodePoint(cid);
         if (mappedCodePoint == U'\0'
             || !m_Metrics->TryGetGID(mappedCodePoint, gid))
