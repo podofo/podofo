@@ -47,13 +47,6 @@ struct PODOFO_API PdfImageInfo final
     PdfImageOrientation Orientation = PdfImageOrientation::TopLeft;
 };
 
-/** Non PDF specific image metadata descriptors fetched from image codecs
- */
-struct PODOFO_API PdfImageMetadata final
-{
-    PdfImageOrientation Orientation = PdfImageOrientation::Unknown;
-};
-
 enum class PdfImageLoadFlags
 {
     None = 0,
@@ -95,7 +88,7 @@ public:
     charbuff GetDecodedCopy(PdfPixelFormat format);
 
     /** Set a softmask for this image.
-     *  \param pSoftmask a PdfImage pointer to the image, which is to be set as softmask, must be 8-Bit-Grayscale
+     *  \param softmask a PdfImage pointer to the image, which is to be set as softmask, must be 8-Bit-Grayscale
      *
      */
     void SetSoftMask(const PdfImage& softmask);
@@ -140,16 +133,16 @@ public:
     /** Load the image data from bytes
      * \param params parameters like index to be fed to multi image/page
      *   formats (eg. TIFF)
-     * \returns image non PDF specific image metadata
+     * \returns image the information used to load the image, retrieved from codecs or inferred
      */
-    PdfImageMetadata Load(const std::string_view& filepath, const PdfImageLoadParams& params = { });
+    PdfImageInfo Load(const std::string_view& filepath, const PdfImageLoadParams& params = { });
 
     /** Load the image data from bytes
      * \param params parameters like index to be fed to multi image/page
      *   formats (eg. TIFF)
-     * \returns image non PDF specific image metadata 
+     * \returns image the information used to load the image, retrieved from codecs or inferred
      */
-    PdfImageMetadata LoadFromBuffer(const bufferview& buffer, const PdfImageLoadParams& params = { });
+    PdfImageInfo LoadFromBuffer(const bufferview& buffer, const PdfImageLoadParams& params = { });
 
     void ExportTo(charbuff& buff, PdfExportFormat format, PdfArray args = {}) const;
 
@@ -198,7 +191,7 @@ private:
      */
     PdfImage(PdfObject& obj);
 
-    unsigned getBufferSize(PdfPixelFormat format) const;
+    void setDataRaw(InputStream& stream, const PdfImageInfo& info, PdfImageLoadFlags flags);
 
 #ifdef PODOFO_HAVE_JPEG_LIB
     void loadFromJpegInfo(jpeg_decompress_struct& ctx, PdfImageInfo& info);
@@ -206,44 +199,46 @@ private:
     /** Load the image data from a JPEG file
      *  \param filename
      */
-    void loadFromJpeg(const std::string_view& filename);
+    void loadFromJpeg(const std::string_view& filename, PdfImageInfo& info);
 
     /** Load the image data from JPEG bytes
      *  \param data JPEG bytes
      *  \param len number of bytes
      */
-    void loadFromJpegData(const unsigned char* data, size_t len);
+    void loadFromJpegData(const unsigned char* data, size_t len, PdfImageInfo& info);
 #endif // PODOFO_HAVE_JPEG_LIB
 
 #ifdef PODOFO_HAVE_TIFF_LIB
-    void loadFromTiffHandle(void* handle, const PdfImageLoadParams& params, PdfImageMetadata& metadata);
+    void loadFromTiffHandle(void* handle, const PdfImageLoadParams& params, charbuff& buffer, PdfImageInfo& info);
     /** Load the image data from a TIFF file
      *  \param filename
      */
-    void loadFromTiff(const std::string_view& filename, const PdfImageLoadParams& params, PdfImageMetadata& metadata);
+    void loadFromTiff(const std::string_view& filename, const PdfImageLoadParams& params, charbuff& buffer, PdfImageInfo& info);
 
     /** Load the image data from TIFF bytes
      *  \param data TIFF bytes
      *  \param len number of bytes
      */
-    void loadFromTiffData(const unsigned char* data, size_t len, const PdfImageLoadParams& params, PdfImageMetadata& metadata);
+    void loadFromTiffData(const unsigned char* data, size_t len, const PdfImageLoadParams& params, charbuff& buffer, PdfImageInfo& info);
 #endif // PODOFO_HAVE_TIFF_LIB
 
 #ifdef PODOFO_HAVE_PNG_LIB
-    void loadFromPngHandle(FILE* stream);
+    void loadFromPngHandle(FILE* stream, charbuff& buffer, PdfImageInfo& info);
     /** Load the image data from a PNG file
      *  \param filename
      */
-    void loadFromPng(const std::string_view& filename);
+    void loadFromPng(const std::string_view& filename, charbuff& buffer, PdfImageInfo& info);
 
     /** Load the image data from PNG bytes
      *  \param data PNG bytes
      *  \param len number of bytes
      */
-    void loadFromPngData(const unsigned char* data, size_t len);
+    void loadFromPngData(const unsigned char* data, size_t len, charbuff& buffer, PdfImageInfo& info);
 
-    static void loadFromPngContent(PdfImage& image, png_struct_def* png, png_info_def* info);
+    void loadFromPngContent(png_struct_def* png, png_info_def* pngInfo, charbuff& buffer, PdfImageInfo& info);
 #endif // PODOFO_HAVE_PNG_LIB
+
+    unsigned getBufferSize(PdfPixelFormat format) const;
 
     std::unique_ptr<PdfXObjectForm> getTransformation(PdfImageOrientation orientation);
 
