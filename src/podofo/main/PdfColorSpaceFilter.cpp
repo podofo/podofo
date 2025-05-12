@@ -993,6 +993,14 @@ bool PdfColorSpaceInitializer::IsNull() const
     return m_Filter == nullptr;
 }
 
+const PdfColorSpaceFilter& PdfColorSpaceInitializer::GetFilter() const
+{
+    if (m_Filter == nullptr)
+        return *PdfColorSpaceFilterFactory::GetUnkownInstancePtr();
+    else
+        return *m_Filter;
+}
+
 PdfColorSpaceFilterPtr PdfColorSpaceInitializer::Take(PdfVariant& expObj)
 {
     expObj = std::move(m_ExpVar);

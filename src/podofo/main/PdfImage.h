@@ -87,6 +87,11 @@ public:
 
     charbuff GetDecodedCopy(PdfPixelFormat format);
 
+    /** Try read image info, when available as read from internal image codecs
+     * (eg. the actual color space of a /DCTDecode image)
+     */
+    bool TryFetchRawImageInfo(PdfImageInfo& info);
+
     /** Set a softmask for this image.
      *  \param softmask a PdfImage pointer to the image, which is to be set as softmask, must be 8-Bit-Grayscale
      *
@@ -246,7 +251,7 @@ private:
     PdfColorSpaceFilterPtr m_ColorSpace;
     unsigned m_Width;
     unsigned m_Height;
-    unsigned m_BitsPerComponent;
+    unsigned char m_BitsPerComponent;
     std::unique_ptr<PdfXObjectForm> m_Transformation;
 };
 

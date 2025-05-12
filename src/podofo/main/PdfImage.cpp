@@ -57,6 +57,7 @@ static void createPngContext(png_structp& png, png_infop& pnginfo);
 
 static void fetchPDFScanLineRGB(unsigned char* dstScanLine,
     unsigned width, const unsigned char* srcScanLine, PdfPixelFormat srcPixelFormat);
+static void invalidateImageInfo(PdfImageInfo& info);
 
 PdfImage::PdfImage(PdfDocument& doc)
     : PdfXObject(doc, PdfXObjectType::Image), m_ColorSpace(PdfColorSpaceFilterFactory::GetUnkownInstancePtr()), m_Width(0), m_Height(0), m_BitsPerComponent(0)
@@ -201,6 +202,95 @@ charbuff PdfImage::GetDecodedCopy(PdfPixelFormat format)
     return buffer;
 }
 
+bool PdfImage::TryFetchRawImageInfo(PdfImageInfo& info)
+{
+    invalidateImageInfo(info);
+    auto stream = GetObject().GetStream();
+    if (stream == nullptr)
+        return false;
+
+    auto input = stream->GetInputStream();
+    info.Filters = input.GetMediaFilters();
+
+    charbuff imageData;
+    ContainerStreamDevice device(imageData);
+    input.CopyTo(device);
+
+    if (info.Filters->size() == 0)
+    {
+    Unwrapped:
+        // All the info is available in the PDF object
+        info.Width = m_Width;
+        info.Height = m_Height;
+        info.BitsPerComponent = m_BitsPerComponent;
+        info.ColorSpace = PdfColorSpaceInitializer(shared_ptr(m_ColorSpace));
+        return true;
+    }
+    else
+    {
+        switch ((*info.Filters)[0])
+        {
+            case PdfFilterType::DCTDecode:
+            {
+#ifdef PODOFO_HAVE_JPEG_LIB
+                jpeg_decompress_struct ctx;
+
+                JpegErrorHandler jerr;
+                try
+                {
+                    InitJpegDecompressContext(ctx, jerr);
+
+                    PoDoFo::jpeg_memory_src(&ctx, reinterpret_cast<JOCTET*>(imageData.data()), imageData.size());
+
+                    if (jpeg_read_header(&ctx, TRUE) <= 0)
+                        return false;
+
+                    info.Width = ctx.image_width;
+                    info.Height = ctx.image_height;
+                    info.BitsPerComponent = 8; // CHECK-ME
+                    switch (ctx.out_color_space)
+                    {
+                        case JCS_CMYK:
+                            info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceCMYKInstancePtr();
+                            break;
+                        case JCS_BG_RGB: // CHECK-ME
+                        case JCS_RGB:
+                            info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceRGBInstancePtr();
+                            break;
+                        case JCS_GRAYSCALE:
+                            info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceGrayInstancePtr();
+                            break;
+                        default:
+                            // Do nothing, it's null by default
+                            break;
+                    }
+                }
+                catch (...)
+                {
+                    jpeg_destroy_decompress(&ctx);
+                    throw;
+                }
+
+                jpeg_destroy_decompress(&ctx);
+#else
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Missing jpeg support");
+#endif
+                return true;
+            }
+            case PdfFilterType::CCITTFaxDecode:
+            {
+                // Tiff like images are unwrapped, so all the info is
+                // available in the PDF object
+                goto Unwrapped;
+            }
+            case PdfFilterType::JBIG2Decode:
+            case PdfFilterType::JPXDecode:
+            default:
+                return false;
+        }
+    }
+}
+
 const PdfXObjectForm* PdfImage::GetForm() const
 {
     return m_Transformation.get();
@@ -209,9 +299,9 @@ const PdfXObjectForm* PdfImage::GetForm() const
 PdfImage::PdfImage(PdfObject& obj)
     : PdfXObject(obj, PdfXObjectType::Image)
 {
-    m_Width = static_cast<unsigned>(this->GetDictionary().FindKeyAsSafe<int64_t>("Width"));
-    m_Height = static_cast<unsigned>(this->GetDictionary().FindKeyAsSafe<int64_t>("Height"));
-    m_BitsPerComponent = static_cast<unsigned>(this->GetDictionary().FindKeyAsSafe<int64_t>("BitsPerComponent"));
+    m_Width = static_cast<unsigned short>(this->GetDictionary().FindKeyAsSafe<int64_t>("Width"));
+    m_Height = static_cast<unsigned short>(this->GetDictionary().FindKeyAsSafe<int64_t>("Height"));
+    m_BitsPerComponent = static_cast<unsigned char>(this->GetDictionary().FindKeyAsSafe<int64_t>("BitsPerComponent"));
 
     auto csObj = GetDictionary().FindKey("ColorSpace");
     if (csObj == nullptr || !PdfColorSpaceFilterFactory::TryCreateFromObject(*csObj, m_ColorSpace))
@@ -313,7 +403,7 @@ void PdfImage::setDataRaw(InputStream& stream, const PdfImageInfo& info, PdfImag
     if (info.ColorSpace.IsNull())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Missing color space");
 
-    m_ColorSpace = info.ColorSpace.GetFilter();
+    m_ColorSpace = info.ColorSpace.GetFilterPtr();
     m_Width = info.Width;
     m_Height = info.Height;
     m_BitsPerComponent = info.BitsPerComponent;
@@ -1371,4 +1461,15 @@ void fetchPDFScanLineRGB(unsigned char* dstScanLine, unsigned width, const unsig
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedPixelFormat, "Unsupported pixel format");
     }
+}
+
+void invalidateImageInfo(PdfImageInfo& info)
+{
+    info.Width = 0;
+    info.Height = 0;
+    info.Filters = nullptr;
+    info.BitsPerComponent = 0;
+    info.ColorSpace = { };
+    info.DecodeArray.clear();
+    info.Orientation = PdfImageOrientation::Unknown;
 }

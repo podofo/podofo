@@ -121,10 +121,15 @@ namespace PoDoFo
     public:
         bool IsNull() const;
 
+        /** Get the filter for this initializer
+         * \remarks If null, it returns the Unknown filter instance
+         */
+        const PdfColorSpaceFilter& GetFilter() const;
+
         PdfColorSpaceInitializer& operator=(const PdfColorSpaceInitializer&) = default;
 
     private:
-        const PdfColorSpaceFilterPtr& GetFilter() const { return m_Filter; }
+        const PdfColorSpaceFilterPtr& GetFilterPtr() const { return m_Filter; }
         PdfColorSpaceFilterPtr Take(PdfVariant& expObj);
         PdfVariant GetExportObject(PdfIndirectObjectList& objects) const;
 
@@ -364,6 +369,7 @@ namespace PoDoFo
         friend class PdfImage;
         friend class PdfColorSpaceFilterPattern;
         friend class PdfGraphicsStateWrapper;
+        friend class PdfColorSpaceInitializer;
 
     public:
         static bool TryCreateFromObject(const PdfObject& obj, PdfColorSpaceFilterPtr& colorSpace);

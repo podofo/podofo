@@ -1137,7 +1137,7 @@ void PdfGraphicsStateWrapper::SetRenderingIntent(const string_view& intent)
 
 void PdfGraphicsStateWrapper::SetNonStrokingColorSpace(PdfColorSpaceInitializer&& colorSpace)
 {
-    if (m_state->NonStrokingColorSpaceFilter == colorSpace.GetFilter())
+    if (m_state->NonStrokingColorSpaceFilter == colorSpace.GetFilterPtr())
         return;
 
     PdfVariant expVar;
@@ -1147,7 +1147,7 @@ void PdfGraphicsStateWrapper::SetNonStrokingColorSpace(PdfColorSpaceInitializer&
 
 void PdfGraphicsStateWrapper::SetStrokingColorSpace(PdfColorSpaceInitializer&& colorSpace)
 {
-    if (m_state->StrokingColorSpaceFilter == colorSpace.GetFilter())
+    if (m_state->StrokingColorSpaceFilter == colorSpace.GetFilterPtr())
         return;
 
     PdfVariant expVar;
