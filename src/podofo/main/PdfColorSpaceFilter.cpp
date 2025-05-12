@@ -866,36 +866,65 @@ PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetTrivialFilterPtr(PdfColorS
     }
 }
 
-PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetUnkownInstancePtr()
-{
-    static shared_ptr<PdfColorSpaceFilterUnkown> s_unknown(new PdfColorSpaceFilterUnkown());
-    return s_unknown;
-}
-
 PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetDeviceGrayInstancePtr()
 {
-    static shared_ptr<PdfColorSpaceDeviceGray> s_deviceGray(new PdfColorSpaceDeviceGray());
-    return s_deviceGray;
+    return getDeviceGrayInstancePtr();
+}
+
+const PdfColorSpaceFilter& PdfColorSpaceFilterFactory::GetDeviceGrayInstance()
+{
+    return *getDeviceGrayInstancePtr();
 }
 
 PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetDeviceRGBInstancePtr()
 {
-    static shared_ptr<PdfColorSpaceFilterDeviceRGB> s_deviceRGB(new PdfColorSpaceFilterDeviceRGB());
-    return s_deviceRGB;
+    return getDeviceRGBInstancePtr();
+}
+
+const PdfColorSpaceFilter& PdfColorSpaceFilterFactory::GetDeviceRGBInstance()
+{
+    return *getDeviceRGBInstancePtr();
 }
 
 PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetDeviceCMYKInstancePtr()
 {
-    static shared_ptr<PdfColorSpaceFilterDeviceCMYK> s_deviceCMYK(new PdfColorSpaceFilterDeviceCMYK());
-    return s_deviceCMYK;
+    return getDeviceCMYKInstancePtr();
 }
 
-PdfColorSpaceFilterPtr PdfColorSpaceFilterFactory::GetParameterLessPatternInstancePtr()
+const PdfColorSpaceFilter& PdfColorSpaceFilterFactory::GetDeviceCMYKInstance()
+{
+    return *getDeviceCMYKInstancePtr();
+}
+
+const PdfColorSpaceFilterPtr& PdfColorSpaceFilterFactory::GetUnkownInstancePtr()
+{
+    static PdfColorSpaceFilterPtr s_unknown(new PdfColorSpaceFilterUnkown());
+    return s_unknown;
+}
+
+const PdfColorSpaceFilterPtr& PdfColorSpaceFilterFactory::GetParameterLessPatternInstancePtr()
 {
     static PdfColorSpaceFilterPtr s_parameterLessPatternInstance(new PdfColorSpaceFilterPattern(nullptr));
     return s_parameterLessPatternInstance;
 }
 
+const PdfColorSpaceFilterPtr& PdfColorSpaceFilterFactory::getDeviceGrayInstancePtr()
+{
+    static PdfColorSpaceFilterPtr s_deviceGray(new PdfColorSpaceDeviceGray());
+    return s_deviceGray;
+}
+
+const PdfColorSpaceFilterPtr& PdfColorSpaceFilterFactory::getDeviceRGBInstancePtr()
+{
+    static PdfColorSpaceFilterPtr s_deviceRGB(new PdfColorSpaceFilterDeviceRGB());
+    return s_deviceRGB;
+}
+
+const PdfColorSpaceFilterPtr& PdfColorSpaceFilterFactory::getDeviceCMYKInstancePtr()
+{
+    static PdfColorSpaceFilterPtr s_deviceCMYK(new PdfColorSpaceFilterDeviceCMYK());
+    return s_deviceCMYK;
+}
 
 PdfColorSpaceInitializer::PdfColorSpaceInitializer()
 {
