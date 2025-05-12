@@ -253,7 +253,11 @@ bool PdfImage::TryFetchRawImageInfo(PdfImageInfo& info)
                         case JCS_CMYK:
                             info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceCMYKInstancePtr();
                             break;
-                        case JCS_BG_RGB: // CHECK-ME
+#if !defined(LIBJPEG_TURBO_VERSION)
+                        // CHECK-ME: I think It should imply /DeviceRGB as during
+                        // the decode the destination pixel format is enforced
+                        case JCS_BG_RGB: // Only defined in older libjpeg
+#endif
                         case JCS_RGB:
                             info.ColorSpace = PdfColorSpaceFilterFactory::GetDeviceRGBInstancePtr();
                             break;
