@@ -131,6 +131,13 @@ void PdfField::initChildren()
         m_Children.reset(new PdfFieldChildrenCollectionBase(*this));
 }
 
+void PdfField::ensurePDFUACompliance(const string_view& fieldName)
+{
+    // Set the /TU key
+    SetAlternateName(PdfString(string(getFieldTypeDisplayName()).append(" ").append(fieldName)));
+    PoDoFo::CreateObjectStructElement(*this, MustGetWidget().MustGetPage(), "Form"_n);
+}
+
 unique_ptr<PdfField> PdfField::createChildField(PdfPage* page, const Rect& rect)
 {
     if (m_Widget == nullptr && m_AcroForm == nullptr)
@@ -191,11 +198,13 @@ PdfField& PdfField::Create(const string_view& name,
     {
         newField = createField(widget, type, nullptr, true);
         newField->setName(name);
+        if (doc.GetMetadata().GetPdfUALevel() != PdfUALevel::Unknown)
+            newField->ensurePDFUACompliance(name);
     }
     else
     {
         // Prepare keys to remove that will stay on the parent
-        const vector<string> parentKeys{ "FT", "Ff", "T", "V", "Opt" };
+        constexpr string_view parentKeys[] = { "FT"sv, "Ff"sv, "T"sv, "TU"sv, "V"sv, "Opt"sv };
         if (!candidateParent->GetChildren().HasKidsArray())
         {
             PODOFO_INVARIANT(acroForm != null);
@@ -228,6 +237,8 @@ unique_ptr<PdfField> PdfField::Create(const string_view& name,
     CHECK_FIELD_NAME(name);
     auto ret = createField(acroform, type, nullptr);
     ret->setName(name);
+    if (acroform.GetDocument().GetMetadata().GetPdfUALevel() != PdfUALevel::Unknown)
+        ret->ensurePDFUACompliance(name);
     return ret;
 }
 
@@ -349,6 +360,29 @@ PdfField* PdfField::getParentTyped(PdfFieldType type) const
     }
 
     return parent;
+}
+
+string_view PdfField::getFieldTypeDisplayName() const
+{
+    switch (m_FieldType)
+    {
+        case PdfFieldType::PushButton:
+            return "Push-button"sv;
+        case PdfFieldType::CheckBox:
+            return "Check box"sv;
+        case PdfFieldType::RadioButton:
+            return "Radio button"sv;
+        case PdfFieldType::TextBox:
+            return "Text box"sv;
+        case PdfFieldType::ComboBox:
+            return "Combo box"sv;
+        case PdfFieldType::ListBox:
+            return "List box"sv;
+        case PdfFieldType::Signature:
+            return "Signature"sv;
+        default:
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
 }
 
 bool PdfField::tryCreateField(PdfObject& obj, PdfFieldType type,
@@ -795,7 +829,7 @@ void PdfField::SetValidateAction(const PdfAction& action)
 
 // Link field and parent creating /P key and adding the field to /Kids
 void PdfField::linkFieldObjectToParent(const shared_ptr<PdfField>& field, PdfField& parentField,
-    const vector<string>& parentKeys, bool setParent, bool moveKeysToParent)
+    cspan<std::string_view> parentKeys, bool setParent, bool moveKeysToParent)
 {
     auto& fieldDict = field->GetDictionary();
     if (moveKeysToParent)

@@ -147,6 +147,7 @@ namespace PoDoFo
     class OutputStream;
     class InputStream;
     class PdfPage;
+    class PdfDictionaryElement;
 
     constexpr double DEG2RAD = std::numbers::pi / 180;
     constexpr double RAD2DEG = 180 / std::numbers::pi;
@@ -174,6 +175,8 @@ namespace PoDoFo
      * Get the end index of a subset prefix (eg. "AAAAAA+")
      */
     unsigned char GetSubsetPrefixLength(const std::string_view& fontName);
+
+    void CreateObjectStructElement(PdfDictionaryElement& elem, PdfPage& page, const PdfName& elementType);
 
     std::vector<std::string> ToPdfKeywordsList(const std::string_view& str);
     std::string ToPdfKeywordsString(const cspan<std::string>&keywords);

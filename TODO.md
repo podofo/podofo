@@ -5,6 +5,7 @@
 - Improve the API for stopping extracting text as suggested [here](https://github.com/podofo/podofo/pull/239#issuecomment-2736664534)
 
 ### After 1.0
+- Cleanup PdfTreeNode
 - Add subsetting of PdfDifferenceEncoding
 - PdfDifferenceList: Validate insertion for the public Add methods (like for example enforce "Adobe Glyph List For New Fonts")
 - Optimize compilation SALSprep

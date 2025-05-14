@@ -22,7 +22,11 @@
 #include <strings.h>
 #endif
 
+#include "PdfTreeNode.h"
+
 #include <podofo/main/PdfCommon.h>
+#include <podofo/main/PdfElement.h>
+#include <podofo/main/PdfDocument.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -665,6 +669,73 @@ string PoDoFo::ToPdfKeywordsString(const cspan<string>& keywords)
     }
 
     return ret;
+}
+
+void PoDoFo::CreateObjectStructElement(PdfDictionaryElement& elem, PdfPage& page, const PdfName& elementType)
+{
+    PdfDictionary* dict;
+    auto structTreeObj = elem.GetDocument().GetCatalog().GetStructTreeRootObject();
+    if (structTreeObj == nullptr || !structTreeObj->TryGetDictionary(dict))
+        return;
+
+    // Try to find a /Document struct element
+    auto kArr = dict->FindKeyAsSafe<PdfArray*>("K");
+    if (kArr == nullptr)
+        return;
+
+    PdfDictionary* elemDict = nullptr;
+    const PdfName* name;
+    bool foundDocumentObj = false;
+    for (unsigned i = 0; i < kArr->GetSize(); i++)
+    {
+        if (kArr->TryFindAtAs(i, elemDict)
+            && elemDict->TryFindKeyAs("S", name)
+            && *name == "Document")
+        {
+            foundDocumentObj = true;
+            break;
+        }
+    }
+
+    if (!foundDocumentObj)
+        return;
+
+    kArr = elemDict->FindKeyAsSafe<PdfArray*>("K");
+    if (kArr == nullptr)
+    {
+        kArr = &elem.GetDocument().GetObjects().CreateArrayObject().GetArray();
+        elemDict->AddKeyIndirect("K"_n, *kArr->GetOwner());
+    }
+
+    // Create a struct element for the field
+    auto& fieldStructDict = elem.GetDocument().GetObjects().CreateDictionaryObject().GetDictionary();
+    kArr->AddIndirect(*fieldStructDict.GetOwner());
+    fieldStructDict.AddKey("S"_n, elementType);
+    fieldStructDict.AddKeyIndirect("P"_n, *elemDict->GetOwner());
+    elemDict = &fieldStructDict.AddKey("K", PdfDictionary()).GetDictionary();
+    elemDict->AddKey("Type"_n, PdfName("OBJR"));
+    elemDict->AddKeyIndirect("Pg"_n, page.GetObject());
+    elemDict->AddKeyIndirect("Obj"_n, elem.GetObject());
+
+    auto parentTreeDict = dict->FindKeyAsSafe<PdfDictionary*>("ParentTree");
+    if (parentTreeDict == nullptr)
+    {
+        parentTreeDict = &elem.GetDocument().GetObjects().CreateDictionaryObject().GetDictionary();
+        dict->AddKeyIndirect("ParentTree"_n, *parentTreeDict->GetOwner());
+    }
+
+    //  Determine the struct element key
+    PdfNumberTreeNode node(nullptr, *parentTreeDict->GetOwner());
+    int64_t structParentKey;
+    auto last = node.GetLast();
+    if (last == node.end())
+        structParentKey = 0;
+    else
+        structParentKey = last->first + 1;
+
+    // Set the struct element key id in the field and in the struct root tree
+    node.AddValue(structParentKey, *fieldStructDict.GetOwner());
+    elem.GetDictionary().AddKey("StructParent"_n, PdfObject(structParentKey));
 }
 
 const locale& utls::GetInvariantLocale()

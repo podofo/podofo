@@ -293,11 +293,12 @@ private:
         std::shared_ptr<PdfField>&& parent);
 
     static void linkFieldObjectToParent(const std::shared_ptr<PdfField>& field, PdfField& parentField,
-        const std::vector<std::string>& parentKeys, bool setParent, bool moveKeysToParent);
+        cspan<std::string_view> parentKeys, bool setParent, bool moveKeysToParent);
 
     void init();
     void initParent();
     void initChildren();
+    void ensurePDFUACompliance(const std::string_view& fieldName);
     void setName(const PdfString& name);
     void addAlternativeAction(const PdfName& name, const PdfAction& action);
     static bool tryCreateField(PdfObject& obj, PdfFieldType type,
@@ -306,6 +307,7 @@ private:
     static PdfFieldType getFieldType(const PdfObject& obj);
     std::shared_ptr<PdfField> GetPtr();
     PdfField* getParentTyped(PdfFieldType type) const;
+    std::string_view getFieldTypeDisplayName() const;
 
 private:
     PdfAnnotationWidget* m_Widget;

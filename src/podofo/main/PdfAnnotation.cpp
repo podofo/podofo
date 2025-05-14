@@ -7,6 +7,9 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 
 #include "PdfAnnotation.h"
+
+#include <podofo/private/PdfDrawingOperations.h>
+
 #include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
@@ -15,8 +18,6 @@
 #include "PdfAnnotationWidget.h"
 #include "PdfAnnotation_Types.h"
 #include "PdfMath.h"
-
-#include <podofo/private/PdfDrawingOperations.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -41,6 +42,14 @@ PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const R
     // Default set print flag
     auto flags = GetFlags();
     SetFlags(flags | PdfAnnotationFlags::Print);
+
+    if (annotType != PdfAnnotationType::Widget && GetDocument().GetMetadata().GetPdfUALevel() != PdfUALevel::Unknown)
+    {
+        // Ensure PDF/UA compliance. NOTE: /Widget annotations wants
+        // a /Form structure element
+        SetContents(PdfString(string(PoDoFo::ToString(annotType)).append(" annotation")));
+        PoDoFo::CreateObjectStructElement(*this, page, "Annot"_n);
+    }
 }
 
 PdfAnnotation::PdfAnnotation(PdfObject& obj, PdfAnnotationType annotType)
