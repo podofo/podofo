@@ -10,131 +10,131 @@
 namespace PoDoFo
 {
     template <typename TKey>
+    struct PdfTreeKeyAccess
+    {
+        using TLookup = void*;
+
+        static bool TryGetKey(const PdfObject& obj, TLookup key)
+        {
+            (void)obj;
+            (void)key;
+            static_assert(always_false<TKey>, "Unsupported type");
+            return false;
+        }
+
+        static bool Equals(const PdfObject& obj, TLookup key)
+        {
+            (void)obj;
+            (void)key;
+            static_assert(always_false<TKey>, "Unsupported type");
+            return false;
+        }
+
+        static bool GreaterThan(const PdfObject& obj, TLookup key)
+        {
+            (void)obj;
+            (void)key;
+            static_assert(always_false<TKey>, "Unsupported type");
+            return false;
+        }
+
+        static bool LessThan(const PdfObject& obj, TLookup key)
+        {
+            (void)obj;
+            (void)key;
+            static_assert(always_false<TKey>, "Unsupported type");
+            return false;
+        }
+
+        static PdfName GetKeyStoreName()
+        {
+            static_assert(always_false<TKey>, "Unsupported type");
+            return { };
+        }
+
+        static std::string_view GetKeyStoreNameStr()
+        {
+            static_assert(always_false<TKey>, "Unsupported type");
+            return { };
+        }
+    };
+
+    template <>
+    struct PdfTreeKeyAccess<PdfString>
+    {
+        using TLookup = std::string_view;
+
+        static bool TryGetKey(const PdfObject& obj, PdfString& key)
+        {
+            return obj.TryGetString(key);
+        }
+
+        static bool Equals(const PdfObject& obj, std::string_view key)
+        {
+            return obj.GetString().GetString() == key;
+        }
+
+        static bool GreaterThan(const PdfObject& obj, std::string_view key)
+        {
+            return obj.GetString().GetString() > key;
+        }
+
+        static bool LessThan(const PdfObject& obj, std::string_view key)
+        {
+            return obj.GetString().GetString() < key;
+        }
+
+        static PdfName GetKeyStoreName()
+        {
+            return "Names"_n;
+        }
+
+        static std::string_view GetKeyStoreNameStr()
+        {
+            return "Names";
+        }
+    };
+
+    template <>
+    struct PdfTreeKeyAccess<int64_t>
+    {
+        using TLookup = std::int64_t;
+
+        static bool TryGetKey(const PdfObject& obj, int64_t& key)
+        {
+            return obj.TryGetNumber(key);
+        }
+
+        static bool Equals(const PdfObject& obj, int64_t key)
+        {
+            return obj.GetNumber() == key;
+        }
+
+        static bool GreaterThan(const PdfObject& obj, int64_t key)
+        {
+            return obj.GetNumber() > key;
+        }
+
+        static bool LessThan(const PdfObject& obj, int64_t key)
+        {
+            return obj.GetNumber() < key;
+        }
+
+        static PdfName GetKeyStoreName()
+        {
+            return "Nums"_n;
+        }
+
+        static std::string_view GetKeyStoreNameStr()
+        {
+            return "Nums";
+        }
+    };
+
+    template <typename TKey>
     class PdfTreeNode : PdfDictionaryElement
     {
         static constexpr unsigned BalanceTreeMax = 65;
-
-        template <typename TKey2>
-        struct KeyAccess
-        {
-            using TLookup = void*;
-
-            static bool TryGetKey(const PdfObject& obj, PdfString& key)
-            {
-                (void)obj;
-                (void)key;
-                static_assert(always_false<TKey2>, "Unsupported type");
-                return false;
-            }
-
-            static bool Equals(const PdfObject& obj, TLookup key)
-            {
-                (void)obj;
-                (void)key;
-                static_assert(always_false<TKey2>, "Unsupported type");
-                return false;
-            }
-
-            static bool GreaterThan(const PdfObject& obj, TLookup key)
-            {
-                (void)obj;
-                (void)key;
-                static_assert(always_false<TKey2>, "Unsupported type");
-                return false;
-            }
-
-            static bool LessThan(const PdfObject& obj, TLookup key)
-            {
-                (void)obj;
-                (void)key;
-                static_assert(always_false<TKey2>, "Unsupported type");
-                return false;
-            }
-
-            static PdfName GetKeyStoreName()
-            {
-                static_assert(always_false<TKey2>, "Unsupported type");
-                return { };
-            }
-
-            static std::string_view GetKeyStoreNameStr()
-            {
-                static_assert(always_false<TKey2>, "Unsupported type");
-                return { };
-            }
-        };
-
-        template <>
-        struct KeyAccess<PdfString>
-        {
-            using TLookup = std::string_view;
-
-            static bool TryGetKey(const PdfObject& obj, PdfString& key)
-            {
-                return obj.TryGetString(key);
-            }
-
-            static bool Equals(const PdfObject& obj, std::string_view key)
-            {
-                return obj.GetString().GetString() == key;
-            }
-
-            static bool GreaterThan(const PdfObject& obj, std::string_view key)
-            {
-                return obj.GetString().GetString() > key;
-            }
-
-            static bool LessThan(const PdfObject& obj, std::string_view key)
-            {
-                return obj.GetString().GetString() < key;
-            }
-
-            static PdfName GetKeyStoreName()
-            {
-                return "Names"_n;
-            }
-
-            static std::string_view GetKeyStoreNameStr()
-            {
-                return "Names";
-            }
-        };
-
-        template <>
-        struct KeyAccess<int64_t>
-        {
-            using TLookup = std::int64_t;
-
-            static bool TryGetKey(const PdfObject& obj, int64_t& key)
-            {
-                return obj.TryGetNumber(key);
-            }
-
-            static bool Equals(const PdfObject& obj, int64_t key)
-            {
-                return obj.GetNumber() == key;
-            }
-
-            static bool GreaterThan(const PdfObject& obj, int64_t key)
-            {
-                return obj.GetNumber() > key;
-            }
-
-            static bool LessThan(const PdfObject& obj, int64_t key)
-            {
-                return obj.GetNumber() < key;
-            }
-
-            static PdfName GetKeyStoreName()
-            {
-                return "Nums"_n;
-            }
-
-            static std::string_view GetKeyStoreNameStr()
-            {
-                return "Nums";
-            }
-        };
 
     public:
         PdfTreeNode(PdfTreeNode* parent, PdfObject& obj)
@@ -143,7 +143,7 @@ namespace PoDoFo
             m_HasKids = GetDictionary().HasKey("Kids");
         }
 
-        PdfObject* GetValue(typename KeyAccess<TKey>::TLookup key);
+        PdfObject* GetValue(typename PdfTreeKeyAccess<TKey>::TLookup key);
 
         bool AddValue(const TKey& key, const PdfObject& value);
 
@@ -204,13 +204,13 @@ namespace PoDoFo
 
         bool rebalance();
 
-        static PdfObject* getKeyValue(PdfObject& obj, typename KeyAccess<TKey>::TLookup key, const PdfIndirectObjectList& objects);
+        static PdfObject* getKeyValue(PdfObject& obj, typename PdfTreeKeyAccess<TKey>::TLookup key, const PdfIndirectObjectList& objects);
 
         static iterator getLeftMost(PdfDictionary& dict);
 
         static iterator getRightMost(PdfDictionary& dict);
 
-        static PdfNameLimits checkLimits(const PdfObject& obj, typename KeyAccess<TKey>::TLookup key);
+        static PdfNameLimits checkLimits(const PdfObject& obj, typename PdfTreeKeyAccess<TKey>::TLookup key);
 
     private:
         PdfTreeNode* m_Parent;
@@ -218,7 +218,7 @@ namespace PoDoFo
     };
 
     template<typename TKey>
-    PdfObject* PdfTreeNode<TKey>::GetValue(typename KeyAccess<TKey>::TLookup key)
+    PdfObject* PdfTreeNode<TKey>::GetValue(typename PdfTreeKeyAccess<TKey>::TLookup key)
     {
         return getKeyValue(GetObject(), key, GetDocument().GetObjects());
     }
@@ -283,14 +283,14 @@ namespace PoDoFo
             bool rebalance = false;
             PdfArray limits;
 
-            auto namesObj = GetDictionary().FindKey(KeyAccess<TKey>::GetKeyStoreNameStr());
+            auto namesObj = GetDictionary().FindKey(PdfTreeKeyAccess<TKey>::GetKeyStoreNameStr());
             if (namesObj != nullptr)
             {
                 auto& arr = namesObj->GetArray();
                 PdfArray::iterator it = arr.begin();
                 while (it != arr.end())
                 {
-                    if (KeyAccess<TKey>::Equals(*it, key))
+                    if (PdfTreeKeyAccess<TKey>::Equals(*it, key))
                     {
                         // no need to write the key as it is anyways the same
                         it++;
@@ -298,7 +298,7 @@ namespace PoDoFo
                         *it = value.GetIndirectReference();
                         break;
                     }
-                    else if (KeyAccess<TKey>::GreaterThan(*it, key))
+                    else if (PdfTreeKeyAccess<TKey>::GreaterThan(*it, key))
                     {
                         it = arr.insert(it, value.GetIndirectReference()); // arr.insert invalidates the iterator
                         it = arr.insert(it, key);
@@ -330,7 +330,7 @@ namespace PoDoFo
 
                 // create a child object
                 auto& child = GetDocument().GetObjects().CreateDictionaryObject();
-                child.GetDictionary().AddKey(KeyAccess<TKey>::GetKeyStoreName(), arr);
+                child.GetDictionary().AddKey(PdfTreeKeyAccess<TKey>::GetKeyStoreName(), arr);
                 child.GetDictionary().AddKey("Limits"_n, limits);
 
                 PdfArray kids;
@@ -404,7 +404,7 @@ namespace PoDoFo
         }
         else // has "Names
         {
-            auto namesObj = GetDictionary().FindKey(KeyAccess<TKey>::GetKeyStoreNameStr());
+            auto namesObj = GetDictionary().FindKey(PdfTreeKeyAccess<TKey>::GetKeyStoreNameStr());
             if (namesObj != nullptr && namesObj->IsArray())
             {
                 auto& namesArr = namesObj->GetArray();
@@ -430,8 +430,8 @@ namespace PoDoFo
     {
         PdfArray& arr = m_HasKids
             ? GetDictionary().MustFindKey("Kids").GetArray()
-            : GetDictionary().MustFindKey(KeyAccess<TKey>::GetKeyStoreNameStr()).GetArray();
-        PdfName key = m_HasKids ? "Kids"_n : KeyAccess<TKey>::GetKeyStoreName();
+            : GetDictionary().MustFindKey(PdfTreeKeyAccess<TKey>::GetKeyStoreNameStr()).GetArray();
+        PdfName key = m_HasKids ? "Kids"_n : PdfTreeKeyAccess<TKey>::GetKeyStoreName();
         const unsigned arrLength = m_HasKids ? BalanceTreeMax : BalanceTreeMax * 2;
 
         if (arr.size() > arrLength)
@@ -448,7 +448,7 @@ namespace PoDoFo
             {
                 m_HasKids = true;
                 child1 = &GetDocument().GetObjects().CreateDictionaryObject();
-                GetDictionary().RemoveKey(KeyAccess<TKey>::GetKeyStoreNameStr());
+                GetDictionary().RemoveKey(PdfTreeKeyAccess<TKey>::GetKeyStoreNameStr());
             }
             else
             {
@@ -509,17 +509,17 @@ namespace PoDoFo
     // \returns PdfNameLimits::After if the key is greater than the specified range
     // \returns PdfNameLimits::Before if the key is smalelr than the specified range
     template <typename TKey>
-    typename PdfTreeNode<TKey>::PdfNameLimits PdfTreeNode<TKey>::checkLimits(const PdfObject& obj, typename KeyAccess<TKey>::TLookup key)
+    typename PdfTreeNode<TKey>::PdfNameLimits PdfTreeNode<TKey>::checkLimits(const PdfObject& obj, typename PdfTreeKeyAccess<TKey>::TLookup key)
     {
         auto limitsObj = obj.GetDictionary().FindKey("Limits");
         if (limitsObj != nullptr)
         {
             auto& limits = limitsObj->GetArray();
 
-            if (KeyAccess<TKey>::GreaterThan(limits[0], key))
+            if (PdfTreeKeyAccess<TKey>::GreaterThan(limits[0], key))
                 return PdfNameLimits::Before;
 
-            if (KeyAccess<TKey>::LessThan(limits[1], key))
+            if (PdfTreeKeyAccess<TKey>::LessThan(limits[1], key))
                 return PdfNameLimits::After;
         }
         else
@@ -537,7 +537,7 @@ namespace PoDoFo
     // \param key the key to find a value for
     // \return the value for the key or nullptr if it was not found
     template <typename TKey>
-    PdfObject* PdfTreeNode<TKey>::getKeyValue(PdfObject& obj, typename KeyAccess<TKey>::TLookup key, const PdfIndirectObjectList& objects)
+    PdfObject* PdfTreeNode<TKey>::getKeyValue(PdfObject& obj, typename PdfTreeKeyAccess<TKey>::TLookup key, const PdfIndirectObjectList& objects)
     {
         if (checkLimits(obj, key) != PdfNameLimits::Inside)
             return nullptr;
@@ -570,7 +570,7 @@ namespace PoDoFo
         else
         {
             PdfArray* namesArr;
-            if (obj.GetDictionary().TryFindKeyAs(KeyAccess<TKey>::GetKeyStoreNameStr(), namesArr))
+            if (obj.GetDictionary().TryFindKeyAs(PdfTreeKeyAccess<TKey>::GetKeyStoreNameStr(), namesArr))
             {
                 PdfArray::iterator it = namesArr->begin();
 
@@ -578,7 +578,7 @@ namespace PoDoFo
                 // so we loop in sets of two - getting each pair
                 while (it != namesArr->end())
                 {
-                    if (KeyAccess<TKey>::Equals(*it, key))
+                    if (PdfTreeKeyAccess<TKey>::Equals(*it, key))
                     {
                         it++;
                         if (it->IsReference())
@@ -601,13 +601,13 @@ namespace PoDoFo
         auto kidsArr = dict.FindKeyAsSafe<PdfArray*>("Kids");
         if (kidsArr == nullptr)
         {
-            auto valuesArr = dict.FindKeyAsSafe<PdfArray*>(KeyAccess<TKey>::GetKeyStoreNameStr());
+            auto valuesArr = dict.FindKeyAsSafe<PdfArray*>(PdfTreeKeyAccess<TKey>::GetKeyStoreNameStr());
             TKey key;
             PdfObject* obj;
             if (valuesArr == nullptr
                 || valuesArr->GetSize() <= 1
                 || (obj = valuesArr->FindAt(0)) == nullptr
-                || !KeyAccess<TKey>::TryGetKey(*obj, key)
+                || !PdfTreeKeyAccess<TKey>::TryGetKey(*obj, key)
                 || (obj = valuesArr->FindAt(1)) == nullptr)
             {
                 return iterator();
@@ -635,14 +635,14 @@ namespace PoDoFo
         unsigned size;
         if (kidsArr == nullptr)
         {
-            auto valuesArr = dict.FindKeyAsSafe<PdfArray*>(KeyAccess<TKey>::GetKeyStoreNameStr());
+            auto valuesArr = dict.FindKeyAsSafe<PdfArray*>(PdfTreeKeyAccess<TKey>::GetKeyStoreNameStr());
             TKey key;
             PdfObject* obj;
             if (valuesArr == nullptr
                 || (size = valuesArr->GetSize()) == 0
                 || size % 2 == 1
                 || (obj = valuesArr->FindAt(size - 2)) == nullptr
-                || !KeyAccess<TKey>::TryGetKey(*obj, key)
+                || !PdfTreeKeyAccess<TKey>::TryGetKey(*obj, key)
                 || (obj = valuesArr->FindAt(size - 1)) == nullptr)
             {
                 return iterator();
