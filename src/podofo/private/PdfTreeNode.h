@@ -14,7 +14,7 @@ namespace PoDoFo
     {
         static constexpr unsigned BalanceTreeMax = 65;
 
-        template <typename TKey>
+        template <typename TKey2>
         struct KeyAccess
         {
             using TLookup = void*;
@@ -23,7 +23,7 @@ namespace PoDoFo
             {
                 (void)obj;
                 (void)key;
-                static_assert(always_false<TKey>, "Unsupported type");
+                static_assert(always_false<TKey2>, "Unsupported type");
                 return false;
             }
 
@@ -31,7 +31,7 @@ namespace PoDoFo
             {
                 (void)obj;
                 (void)key;
-                static_assert(always_false<TKey>, "Unsupported type");
+                static_assert(always_false<TKey2>, "Unsupported type");
                 return false;
             }
 
@@ -39,7 +39,7 @@ namespace PoDoFo
             {
                 (void)obj;
                 (void)key;
-                static_assert(always_false<TKey>, "Unsupported type");
+                static_assert(always_false<TKey2>, "Unsupported type");
                 return false;
             }
 
@@ -47,19 +47,19 @@ namespace PoDoFo
             {
                 (void)obj;
                 (void)key;
-                static_assert(always_false<TKey>, "Unsupported type");
+                static_assert(always_false<TKey2>, "Unsupported type");
                 return false;
             }
 
             static PdfName GetKeyStoreName()
             {
-                static_assert(always_false<TKey>, "Unsupported type");
+                static_assert(always_false<TKey2>, "Unsupported type");
                 return { };
             }
 
             static std::string_view GetKeyStoreNameStr()
             {
-                static_assert(always_false<TKey>, "Unsupported type");
+                static_assert(always_false<TKey2>, "Unsupported type");
                 return { };
             }
         };
