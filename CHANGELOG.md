@@ -1,9 +1,15 @@
 ## Version 1.0.0-beta
 
 - Added support for Type1, CFF and OpenType CFF font subsetting
+- Added support for Type3 font subsetting (no encoding subsetting, yet)
 - Implemented full "Adobe Glyph List" specification (https://github.com/adobe-type-tools/agl-specification) for text extraction and glyph selection
 - Implemented full Type1, TrueType font glyph selection
 - Many fixes in TrueType legacy subsetting
+- Added support for PDF/UA preserving when adding annotations/form fields
+- Improved PDF/A preserving (eg. when PDF/UA level is set as well in the XMP metadata)
+- Added support for automatically rotating imported images drawn on a `PdfPainter`
+  when a orientation is detected in the source image codec metadata. Currently supported
+  on Tiff images only (Jpeg exif metadata support pending)
 - Added high-level signing API, see `PdfSignerCMS` and [`TestSignature1`](https://github.com/podofo/podofo/blob/edbcb16a5b18cb20f1d0da1724639cee13608436/test/unit/SignatureTest.cpp#L37) test case
 - Added support for signing encrypted documents
 - Added support for preserving encryption among savings
