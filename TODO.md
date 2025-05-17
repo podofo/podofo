@@ -1,8 +1,8 @@
 ### 1.0
 
 - Check performances of PdfContentStreamReader
-- Handle \r alone after "stream" for all filters
 - Improve the API for stopping extracting text as suggested [here](https://github.com/podofo/podofo/pull/239#issuecomment-2736664534)
+- Fix issue reported in https://www.mail-archive.com/podofo-users@lists.sourceforge.net/msg04995.html
 
 ### After 1.0
 - Cleanup PdfTreeNode

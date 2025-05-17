@@ -206,18 +206,18 @@ void PdfParserObject::parseStream()
             // "The keyword stream that follows the stream dictionary shall be
             // followed by an end-of-line marker consisting of either a CARRIAGE
             // RETURN and a LINE FEED or just a LINE FEED, and not by a CARRIAGE
-            // RETURN alone"
+            // RETURN alone". Still, all implementations drop a single carriage return
+            // followed by a non-newline character, see the discussion in
+            // https://github.com/qpdf/qpdf/discussions/1413
             case '\r':
-                streamOffset = m_device->GetPosition();
                 (void)m_device->ReadChar();
+                streamOffset = m_device->GetPosition();
                 if (!m_device->Peek(ch))
                     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Unexpected EOF when reading stream");
 
                 if (ch == '\n')
-                {
-                    (void)m_device->ReadChar();
-                    streamOffset = m_device->GetPosition();
-                }
+                    streamOffset++;
+
                 goto ReadStream;
             case '\n':
                 (void)m_device->ReadChar();
