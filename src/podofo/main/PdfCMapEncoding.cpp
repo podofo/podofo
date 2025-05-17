@@ -367,10 +367,14 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
                     {
                         if (*name == "CMapName")
                         {
-                            if (var->IsName())
-                                cmapName = var->GetName();
-                            else if (var->IsString())
-                                cmapName = var->GetString().GetString();
+                            // /CMapName may be a string as well (https://github.com/podofo/podofo/issues/249)
+                            // NOTE: String charset in theory may be  wider than names,
+                            // as a fail-safe strategy let's create the name with an
+                            // unevaluated raw buffer
+                            if (var->TryGetName(name))
+                                cmapName = *name;
+                            else if (var->TryGetString(str))
+                                cmapName = PdfName(charbuff(str->GetString()));
                         }
                         else if (*name == "Registry" && var->TryGetString(str))
                             info.Registry = *str;
