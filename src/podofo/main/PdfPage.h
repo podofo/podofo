@@ -33,12 +33,20 @@ struct PODOFO_API PdfTextEntry final
     nullable<Rect> BoundingBox;
 };
 
+/** A structure with status progress attributes of certain operations
+ */
+struct PODOFO_API AbortCheckInfo final
+{
+    unsigned ReadCount = 0;
+};
+
 struct PODOFO_API PdfTextExtractParams final
 {
     nullable<Rect> ClipRect;
     PdfTextExtractFlags Flags = PdfTextExtractFlags::None;
 
-    std::function<bool(int read_cnt)> AbortCheck = nullptr;
+    ///< A callback to early interrupt text extraction
+    std::function<bool(const AbortCheckInfo& info)> AbortCheck = nullptr;
 };
 
 template <typename TField>

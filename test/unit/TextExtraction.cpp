@@ -85,8 +85,8 @@ TEST_CASE("TextExtraction4")
     vector<PdfTextEntry> entries;
     bool abort = false;
     PdfTextExtractParams params = {};
-    params.AbortCheck = [&](int read_cnt) {
-        abort = read_cnt > 2;
+    params.AbortCheck = [&](const AbortCheckInfo& info) {
+        abort = info.ReadCount > 2;
         return abort;
     };
     page.ExtractTextTo(entries, params);
