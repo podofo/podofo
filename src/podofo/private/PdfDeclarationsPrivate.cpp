@@ -1,3 +1,4 @@
+#include "PdfDeclarationsPrivate.h"
 /**
  * SPDX-FileCopyrightText: (C) 2005 Dominik Seichter <domseichter@web.de>
  * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
@@ -159,6 +160,19 @@ const PdfName& PoDoFo::GetPdfVersionName(PdfVersion version)
             return s_PdfVersions[8].Name;
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+}
+
+bool PoDoFo::IsAccessibiltyProfile(PdfALevel pdfaLevel)
+{
+    switch (pdfaLevel)
+    {
+        case PdfALevel::L1A:
+        case PdfALevel::L2A:
+        case PdfALevel::L3A:
+            return true;
+        default:
+            return false;
     }
 }
 
@@ -679,26 +693,35 @@ void PoDoFo::CreateObjectStructElement(PdfDictionaryElement& elem, PdfPage& page
         return;
 
     // Try to find a /Document struct element
-    auto kArr = dict->FindKeyAsSafe<PdfArray*>("K");
-    if (kArr == nullptr)
-        return;
-
     PdfDictionary* elemDict = nullptr;
     const PdfName* name;
-    bool foundDocumentObj = false;
-    for (unsigned i = 0; i < kArr->GetSize(); i++)
+    auto kArr = dict->FindKeyAsSafe<PdfArray*>("K");
+    if (kArr == nullptr)
     {
-        if (kArr->TryFindAtAs(i, elemDict)
-            && elemDict->TryFindKeyAs("S", name)
-            && *name == "Document")
+        if (!dict->TryFindKeyAs("K", elemDict)
+            || !elemDict->TryFindKeyAs("S", name)
+            || *name != "Document")
         {
-            foundDocumentObj = true;
-            break;
+            return;
         }
     }
+    else
+    {
+        bool foundDocumentObj = false;
+        for (unsigned i = 0; i < kArr->GetSize(); i++)
+        {
+            if (kArr->TryFindAtAs(i, elemDict)
+                && elemDict->TryFindKeyAs("S", name)
+                && *name == "Document")
+            {
+                foundDocumentObj = true;
+                break;
+            }
+        }
 
-    if (!foundDocumentObj)
-        return;
+        if (!foundDocumentObj)
+            return;
+    }
 
     kArr = elemDict->FindKeyAsSafe<PdfArray*>("K");
     if (kArr == nullptr)

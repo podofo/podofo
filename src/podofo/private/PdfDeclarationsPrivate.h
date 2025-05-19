@@ -161,6 +161,8 @@ namespace PoDoFo
 
     const PdfName& GetPdfVersionName(PdfVersion version);
 
+    bool IsAccessibiltyProfile(PdfALevel pdfaLevel);
+
     /** Normalize base font name, removing known bold/italic/subset prefixes/suffixes
      */
     std::string ExtractBaseFontName(const std::string_view& fontName, bool skipTrimSubset = false);

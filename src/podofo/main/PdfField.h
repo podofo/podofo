@@ -298,7 +298,7 @@ private:
     void init();
     void initParent();
     void initChildren();
-    void ensurePDFUACompliance(const std::string_view& fieldName);
+    void ensureAccessibilityIfNeeded(const std::string_view& fieldName);
     void setName(const PdfString& name);
     void addAlternativeAction(const PdfName& name, const PdfAction& action);
     static bool tryCreateField(PdfObject& obj, PdfFieldType type,

@@ -43,7 +43,9 @@ PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const R
     auto flags = GetFlags();
     SetFlags(flags | PdfAnnotationFlags::Print);
 
-    if (annotType != PdfAnnotationType::Widget && GetDocument().GetMetadata().GetPdfUALevel() != PdfUALevel::Unknown)
+    if (annotType != PdfAnnotationType::Widget
+        && (GetDocument().GetMetadata().GetPdfUALevel() != PdfUALevel::Unknown
+        || PoDoFo::IsAccessibiltyProfile(GetDocument().GetMetadata().GetPdfALevel())))
     {
         // Ensure PDF/UA compliance. NOTE: /Widget annotations wants
         // a /Form structure element

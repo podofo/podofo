@@ -131,8 +131,14 @@ void PdfField::initChildren()
         m_Children.reset(new PdfFieldChildrenCollectionBase(*this));
 }
 
-void PdfField::ensurePDFUACompliance(const string_view& fieldName)
+void PdfField::ensureAccessibilityIfNeeded(const string_view& fieldName)
 {
+    if (GetDocument().GetMetadata().GetPdfUALevel() == PdfUALevel::Unknown
+        && !PoDoFo::IsAccessibiltyProfile(GetDocument().GetMetadata().GetPdfALevel()))
+    {
+        return;
+    }
+
     // Set the /TU key
     SetAlternateName(PdfString(string(getFieldTypeDisplayName()).append(" ").append(fieldName)));
     PoDoFo::CreateObjectStructElement(*this, MustGetWidget().MustGetPage(), "Form"_n);
@@ -198,8 +204,7 @@ PdfField& PdfField::Create(const string_view& name,
     {
         newField = createField(widget, type, nullptr, true);
         newField->setName(name);
-        if (doc.GetMetadata().GetPdfUALevel() != PdfUALevel::Unknown)
-            newField->ensurePDFUACompliance(name);
+        newField->ensureAccessibilityIfNeeded(name);
     }
     else
     {
@@ -237,8 +242,7 @@ unique_ptr<PdfField> PdfField::Create(const string_view& name,
     CHECK_FIELD_NAME(name);
     auto ret = createField(acroform, type, nullptr);
     ret->setName(name);
-    if (acroform.GetDocument().GetMetadata().GetPdfUALevel() != PdfUALevel::Unknown)
-        ret->ensurePDFUACompliance(name);
+    ret->ensureAccessibilityIfNeeded(name);
     return ret;
 }
 
