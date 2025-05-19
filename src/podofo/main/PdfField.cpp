@@ -141,7 +141,9 @@ void PdfField::ensureAccessibilityIfNeeded(const string_view& fieldName)
 
     // Set the /TU key
     SetAlternateName(PdfString(string(getFieldTypeDisplayName()).append(" ").append(fieldName)));
-    PoDoFo::CreateObjectStructElement(*this, MustGetWidget().MustGetPage(), "Form"_n);
+    auto widget = GetWidget();
+    if (widget != nullptr)
+        PoDoFo::CreateObjectStructElement(*this, widget->MustGetPage(), "Form"_n);
 }
 
 unique_ptr<PdfField> PdfField::createChildField(PdfPage* page, const Rect& rect)
