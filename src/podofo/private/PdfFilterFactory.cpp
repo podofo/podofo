@@ -57,19 +57,24 @@ private:
 public:
     PdfFilteredDecodeStream(OutputStream& outputStream, const PdfFilterType filterType,
         const PdfDictionary* decodeParms)
-        : m_FilterFailed(false)
     {
         init(outputStream, filterType, decodeParms);
     }
 
     PdfFilteredDecodeStream(unique_ptr<OutputStream> outputStream, const PdfFilterType filterType,
         const PdfDictionary* decodeParms)
-        : m_OutputStream(std::move(outputStream)), m_FilterFailed(false)
+        : m_OutputStream(std::move(outputStream))
     {
         if (m_OutputStream == nullptr)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Output stream must be not null");
 
         init(*m_OutputStream, filterType, decodeParms);
+    }
+
+    ~PdfFilteredDecodeStream()
+    {
+        if (m_filter != nullptr)
+            m_filter->EndDecode();
     }
 
 protected:
@@ -82,7 +87,7 @@ protected:
         catch (PdfError& e)
         {
             PODOFO_PUSH_FRAME(e);
-            m_FilterFailed = true;
+            m_filter = nullptr;
             throw;
         }
     }
@@ -90,14 +95,16 @@ protected:
     {
         try
         {
-            if (!m_FilterFailed)
+            if (m_filter != nullptr)
                 m_filter->EndDecode();
+
+            m_filter = nullptr;
         }
         catch (PdfError& e)
         {
             PODOFO_PUSH_FRAME_INFO(e, "PdfFilter::EndDecode() failed in filter of type {}",
                 PoDoFo::FilterToName(m_filter->GetType()));
-            m_FilterFailed = true;
+            m_filter = nullptr;
             throw;
         }
     }
@@ -105,7 +112,6 @@ protected:
 private:
     shared_ptr<OutputStream> m_OutputStream;
     unique_ptr<PdfFilter> m_filter;
-    bool m_FilterFailed;
 };
 
 // An InputStream class that will actually perform the decoding
