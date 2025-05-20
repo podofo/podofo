@@ -94,15 +94,16 @@ PdfEncodingMapConstPtr PdfFontMetrics::getFontType1BuiltInEncoding(FT_Face face)
         code = FT_Get_First_Char(face, &index);
         while (index != 0)
         {
-            code = FT_Get_Next_Char(face, code, &index);
             rc = FT_Get_Glyph_Name(face, (FT_UInt)index, buffer, std::size(buffer));
             if (rc != 0 || !PdfDifferenceEncoding::TryGetCodePointsFromCharName(
                 (const char*)buffer, codepoints))
             {
-                continue;
+                goto Continue;
             }
 
             codeMap.PushMapping(PdfCharCode(code, 1), codepoints);
+        Continue:
+            code = FT_Get_Next_Char(face, code, &index);
         }
 
         return PdfEncodingMapConstPtr(new PdfFontBuiltinType1Encoding(std::move(codeMap)));
