@@ -212,10 +212,6 @@ bool PdfImage::TryFetchRawImageInfo(PdfImageInfo& info)
     auto input = stream->GetInputStream();
     info.Filters = input.GetMediaFilters();
 
-    charbuff imageData;
-    ContainerStreamDevice device(imageData);
-    input.CopyTo(device);
-
     if (info.Filters->size() == 0)
     {
     Unwrapped:
@@ -232,6 +228,10 @@ bool PdfImage::TryFetchRawImageInfo(PdfImageInfo& info)
         {
             case PdfFilterType::DCTDecode:
             {
+                charbuff imageData;
+                ContainerStreamDevice device(imageData);
+                input.CopyTo(device);
+
 #ifdef PODOFO_HAVE_JPEG_LIB
                 jpeg_decompress_struct ctx;
 
