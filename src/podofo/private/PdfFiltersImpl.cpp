@@ -31,23 +31,37 @@ class PdfPredictorDecoder
 public:
     PdfPredictorDecoder(const PdfDictionary& decodeParms)
     {
-        m_Predictor = static_cast<int>(decodeParms.FindKeyAsSafe<int64_t>("Predictor", 1));
-        m_Colors = static_cast<int>(decodeParms.FindKeyAsSafe<int64_t>("Colors", 1));
-        m_BitsPerComponent = static_cast<int>(decodeParms.FindKeyAsSafe<int64_t>("BitsPerComponent", 8));
-        m_ColumnCount = static_cast<int>(decodeParms.FindKeyAsSafe<int64_t>("Columns", 1));
-        m_EarlyChange = static_cast<int>(decodeParms.FindKeyAsSafe<int64_t>("EarlyChange", 1));
-
         // check that input values are in range (CVE-2018-20797)
         // ISO 32000-2008 specifies these values as all 1 or greater
-        // negative values for m_nColumns / m_nColors / m_nBPC result in huge podofo_calloc
-        if (m_ColumnCount < 1
-            || m_BitsPerComponent < 1
-            || m_Colors < 1
-            || (m_BytesPerPixel = (m_BitsPerComponent * m_Colors) >> 3) < 1)
-        {
-            PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
-        }
+        // Negative values for Columns / Colors / BitsPerComponent result in huge alloc
 
+        int64_t num = decodeParms.FindKeyAsSafe<int64_t>("Predictor", 1);
+        if (num < 1)
+        {
+        OutOfRange:
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Image parameters are out of range");
+        }
+        m_Predictor = (unsigned)num;
+
+        num = decodeParms.FindKeyAsSafe<int64_t>("Colors", 1);
+        if (num < 1)
+            goto OutOfRange;
+        m_Colors = (unsigned)num;
+
+        num = decodeParms.FindKeyAsSafe<int64_t>("BitsPerComponent", 8);
+        if (num < 1)
+            goto OutOfRange;
+        m_BitsPerComponent = (unsigned)num;
+
+        num = decodeParms.FindKeyAsSafe<int64_t>("Columns", 1);
+        if (num < 1)
+            goto OutOfRange;
+        m_ColumnCount = (unsigned)num;
+
+        num = decodeParms.FindKeyAsSafe<int64_t>("EarlyChange", 1);
+        m_EarlyChange = num < 1 ? 1 : (unsigned)num;
+
+        m_BytesPerPixel = (m_BitsPerComponent * m_Colors) / 8;
         if (m_Predictor >= 10)
         {
             m_NextByteIsPredictor = true;
@@ -60,7 +74,7 @@ public:
         }
 
         m_CurrRowIndex = 0;
-        m_Rows = (m_ColumnCount * m_Colors * m_BitsPerComponent) >> 3;
+        m_Rows = (m_ColumnCount * m_Colors * m_BitsPerComponent) / 8;
 
         // check for multiplication overflow on buffer sizes (e.g. if m_nBPC=2 and m_nColors=SIZE_MAX/2+1)
         if (utls::DoesMultiplicationOverflow(m_BitsPerComponent, m_Colors)
@@ -97,20 +111,18 @@ public:
             }
             else
             {
+                if (m_BitsPerComponent != 8)
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidPredictor, "Predictors with bits per component othern than 8 are not implemented");
+
+                PODOFO_ASSERT(m_BytesPerPixel != 0);
                 switch (m_CurrPredictor)
                 {
                     case 2: // Tiff Predictor
                     {
-                        if (m_BitsPerComponent == 8)
-                        {   // Same as png sub
-                            char prev = (m_CurrRowIndex - m_BytesPerPixel < 0
-                                ? 0 : m_Prev[m_CurrRowIndex - m_BytesPerPixel]);
-                            m_Prev[m_CurrRowIndex] = *buffer + prev;
-                            break;
-                        }
-
-                        // TODO: implement tiff predictor for other than 8 BPC
-                        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidPredictor, "tiff predictors other than 8 BPC are not implemented");
+                        // Same as png sub
+                        char prev = ((int)m_CurrRowIndex - (int)m_BytesPerPixel < 0
+                            ? 0 : m_Prev[m_CurrRowIndex - m_BytesPerPixel]);
+                        m_Prev[m_CurrRowIndex] = *buffer + prev;
                         break;
                     }
                     case 10: // png none
@@ -120,7 +132,7 @@ public:
                     }
                     case 11: // png sub
                     {
-                        char prev = (m_CurrRowIndex - m_BytesPerPixel < 0
+                        char prev = ((int)m_CurrRowIndex - (int)m_BytesPerPixel < 0
                             ? 0 : m_Prev[m_CurrRowIndex - m_BytesPerPixel]);
                         m_Prev[m_CurrRowIndex] = *buffer + prev;
                         break;
@@ -132,14 +144,14 @@ public:
                     }
                     case 13: // png average
                     {
-                        int prev = (m_CurrRowIndex - m_BytesPerPixel < 0
+                        int prev = ((int)m_CurrRowIndex - (int)m_BytesPerPixel < 0
                             ? 0 : m_Prev[m_CurrRowIndex - m_BytesPerPixel]);
                         m_Prev[m_CurrRowIndex] = (char)((prev + m_Prev[m_CurrRowIndex]) >> 1) + *buffer;
                         break;
                     }
                     case 14: // png paeth
                     {
-                        int nLeftByteIndex = m_CurrRowIndex - m_BytesPerPixel;
+                        int nLeftByteIndex = (int)m_CurrRowIndex - (int)m_BytesPerPixel;
 
                         int a = nLeftByteIndex < 0 ? 0 : static_cast<unsigned char>(m_Prev[nLeftByteIndex]);
                         int b = static_cast<unsigned char>(m_Prev[m_CurrRowIndex]);
@@ -201,16 +213,16 @@ public:
     }
 
 private:
-    int m_Predictor;
-    int m_Colors;
-    int m_BitsPerComponent;
-    int m_ColumnCount;
-    int m_EarlyChange;
-    int m_BytesPerPixel;     // Bytes per pixel
+    unsigned m_Predictor;
+    unsigned m_Colors;
+    unsigned m_BitsPerComponent;
+    unsigned m_ColumnCount;
+    unsigned m_EarlyChange;
+    unsigned m_BytesPerPixel;     // Bytes per pixel
 
-    int m_CurrPredictor;
-    int m_CurrRowIndex;
-    int m_Rows;
+    unsigned m_CurrPredictor;
+    unsigned m_CurrRowIndex;
+    unsigned m_Rows;
 
     bool m_NextByteIsPredictor;
 
