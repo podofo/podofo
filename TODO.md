@@ -1,6 +1,5 @@
 ### 1.0
 
-- Check performances of PdfContentStreamReader
 - Fix issue reported in https://www.mail-archive.com/podofo-users@lists.sourceforge.net/msg04995.html
 
 ### After 1.0

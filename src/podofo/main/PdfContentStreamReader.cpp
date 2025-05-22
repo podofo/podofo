@@ -51,7 +51,7 @@ bool PdfContentStreamReader::TryReadNext(PdfContent& content)
         {
             if (m_args.InlineImageHandler == nullptr)
             {
-                if (!tryReadInlineImgData(content.InlineImageData))
+                if (!tryReadInlineImgData(content.Data.InlineImageData))
                     goto PopDevice;
 
                 content.Type = PdfContentType::ImageData;
@@ -61,7 +61,7 @@ bool PdfContentStreamReader::TryReadNext(PdfContent& content)
             }
             else
             {
-                bool eof = !m_args.InlineImageHandler(content.InlineImageDictionary, *m_inputs.back().Device);
+                bool eof = !m_args.InlineImageHandler(content.Data.InlineImageDictionary, *m_inputs.back().Device);
                 m_readingInlineImgData = false;
 
                 // Try to consume the EI end image operator
@@ -71,7 +71,7 @@ bool PdfContentStreamReader::TryReadNext(PdfContent& content)
                     goto PopDevice;
                 }
 
-                if (content.Operator != PdfOperator::EI)
+                if (content.Data.Operator != PdfOperator::EI)
                 {
                     content.Warnings = PdfContentWarnings::MissingEndImage;
                     goto HandleContent;
@@ -86,7 +86,6 @@ bool PdfContentStreamReader::TryReadNext(PdfContent& content)
 
     HandleContent:
         afterReadClear(content);
-        handleWarnings();
         return true;
 
     PopDevice:
@@ -98,7 +97,7 @@ bool PdfContentStreamReader::TryReadNext(PdfContent& content)
         // Unless the device stack is empty, popping a devices
         // means that we finished processing an XObject form
         content.Type = PdfContentType::EndFormXObject;
-        if (content.Stack.GetSize() != 0)
+        if (content.Data.Stack.GetSize() != 0)
             content.Warnings |= PdfContentWarnings::SpuriousStackContent;
 
         goto HandleContent;
@@ -115,7 +114,7 @@ bool PdfContentStreamReader::tryReadNextContent(PdfContent& content)
 {
     while (true)
     {
-        bool gotToken = m_tokenizer.TryReadNext(*m_inputs.back().Device, m_temp.PsType, content.Keyword, m_temp.Variant);
+        bool gotToken = m_tokenizer.TryReadNext(*m_inputs.back().Device, m_temp.PsType, content.Data.Keyword, m_temp.Variant);
         if (!gotToken)
         {
             content.Type = PdfContentType::Unknown;
@@ -126,17 +125,17 @@ bool PdfContentStreamReader::tryReadNextContent(PdfContent& content)
         {
             case PdfPostScriptTokenType::Keyword:
             {
-                if (!TryConvertTo(content.Keyword, content.Operator))
+                if (!TryConvertTo(content.Data.Keyword, content.Data.Operator))
                 {
                     content.Type = PdfContentType::UnexpectedKeyword;
                     return true;
                 }
 
-                int operandCount = PoDoFo::GetOperandCount(content.Operator);
-                if (operandCount != -1 && content.Stack.GetSize() != (unsigned)operandCount)
+                int operandCount = PoDoFo::GetOperandCount(content.Data.Operator);
+                if (operandCount != -1 && content.Data.Stack.GetSize() != (unsigned)operandCount)
                 {
-                    if (content.Stack.GetSize() < (unsigned)operandCount)
-                        content.Warnings |= PdfContentWarnings::InvalidOperator;
+                    if (content.Data.Stack.GetSize() < (unsigned)operandCount)
+                        content.Errors |= PdfContentErrors::InvalidOperator;
                     else // Stack.GetSize() > operandCount
                         content.Warnings |= PdfContentWarnings::SpuriousStackContent;
                 }
@@ -149,7 +148,7 @@ bool PdfContentStreamReader::tryReadNextContent(PdfContent& content)
             }
             case PdfPostScriptTokenType::Variant:
             {
-                content.Stack.Push(std::move(m_temp.Variant));
+                content.Data.Stack.Push(std::move(m_temp.Variant));
                 continue;
             }
             case PdfPostScriptTokenType::ProcedureEnter:
@@ -168,8 +167,10 @@ bool PdfContentStreamReader::tryReadNextContent(PdfContent& content)
 
 void PdfContentStreamReader::beforeReadReset(PdfContent& content)
 {
-    content.Stack.Clear();
+    content.Data.Stack.Clear();
     content.Warnings = PdfContentWarnings::None;
+    content.Errors = PdfContentErrors::None;
+    content.ThrowOnWarnings = (m_args.Flags & PdfContentReaderFlags::ThrowOnWarnings) != PdfContentReaderFlags::None;
 }
 
 void PdfContentStreamReader::afterReadClear(PdfContent& content)
@@ -179,58 +180,58 @@ void PdfContentStreamReader::afterReadClear(PdfContent& content)
     {
         case PdfContentType::Operator:
         {
-            content.InlineImageDictionary.Clear();
-            content.InlineImageData.clear();
-            content.XObject = nullptr;
-            content.Name = nullptr;
+            content.Data.InlineImageDictionary.Clear();
+            content.Data.InlineImageData.clear();
+            content.Data.XObject = nullptr;
+            content.Data.Name = nullptr;
             break;
         }
         case PdfContentType::ImageDictionary:
         {
-            content.Operator = PdfOperator::Unknown;
-            content.Keyword = string_view();
-            content.InlineImageData.clear();
-            content.XObject = nullptr;
-            content.Name = nullptr;
+            content.Data.Operator = PdfOperator::Unknown;
+            content.Data.Keyword = string_view();
+            content.Data.InlineImageData.clear();
+            content.Data.XObject = nullptr;
+            content.Data.Name = nullptr;
             break;
         }
         case PdfContentType::ImageData:
         {
-            content.Operator = PdfOperator::Unknown;
-            content.Keyword = string_view();
-            content.InlineImageDictionary.Clear();
-            content.XObject = nullptr;
-            content.Name = nullptr;
+            content.Data.Operator = PdfOperator::Unknown;
+            content.Data.Keyword = string_view();
+            content.Data.InlineImageDictionary.Clear();
+            content.Data.XObject = nullptr;
+            content.Data.Name = nullptr;
             break;
         }
         case PdfContentType::DoXObject:
         case PdfContentType::BeginFormXObject:
         {
-            content.Operator = PdfOperator::Unknown;
-            content.Keyword = string_view();
-            content.InlineImageDictionary.Clear();
-            content.InlineImageData.clear();
+            content.Data.Operator = PdfOperator::Unknown;
+            content.Data.Keyword = string_view();
+            content.Data.InlineImageDictionary.Clear();
+            content.Data.InlineImageData.clear();
             break;
         }
         case PdfContentType::UnexpectedKeyword:
         {
-            content.Operator = PdfOperator::Unknown;
-            content.InlineImageDictionary.Clear();
-            content.InlineImageData.clear();
-            content.XObject = nullptr;
-            content.Name = nullptr;
+            content.Data.Operator = PdfOperator::Unknown;
+            content.Data.InlineImageDictionary.Clear();
+            content.Data.InlineImageData.clear();
+            content.Data.XObject = nullptr;
+            content.Data.Name = nullptr;
             break;
         }
         case PdfContentType::Unknown:
         case PdfContentType::EndFormXObject:
         {
             // Used when it is reached the EOF
-            content.Operator = PdfOperator::Unknown;
-            content.Keyword = string_view();
-            content.InlineImageDictionary.Clear();
-            content.InlineImageData.clear();
-            content.XObject = nullptr;
-            content.Name = nullptr;
+            content.Data.Operator = PdfOperator::Unknown;
+            content.Data.Keyword = string_view();
+            content.Data.InlineImageDictionary.Clear();
+            content.Data.InlineImageData.clear();
+            content.Data.XObject = nullptr;
+            content.Data.Name = nullptr;
             break;
         }
         default:
@@ -246,7 +247,7 @@ bool PdfContentStreamReader::tryHandleOperator(PdfContent& content, bool& eof)
 {
     // By default it's not handled
     eof = false;
-    switch (content.Operator)
+    switch (content.Data.Operator)
     {
         case PdfOperator::Do:
         {
@@ -316,7 +317,7 @@ bool PdfContentStreamReader::tryReadInlineImgDict(PdfContent& content)
         }
 
         if (m_tokenizer.TryReadNextVariant(*m_inputs.back().Device, m_temp.Variant))
-            content.InlineImageDictionary.AddKey(m_temp.Name, std::move(m_temp.Variant));
+            content.Data.InlineImageDictionary.AddKey(m_temp.Name, std::move(m_temp.Variant));
         else
             return false;
     }
@@ -330,10 +331,10 @@ bool PdfContentStreamReader::tryHandleXObject(PdfContent& content)
     PdfXObjectType detectedType;
     bool followFormXObjecs = (m_args.Flags & PdfContentReaderFlags::SkipFollowFormXObjects) == PdfContentReaderFlags::None;
     bool handleXObjects = (m_args.Flags & PdfContentReaderFlags::SkipHandleNonFormXObjects) == PdfContentReaderFlags::None;
-    if (content.Stack.GetSize() != 1
-        || !content.Stack[0].TryGetName(content.Name)
+    if (content.Data.Stack.GetSize() != 1
+        || !content.Data.Stack[0].TryGetName(content.Data.Name)
         || (resources = m_inputs.back().Canvas->GetResources()) == nullptr
-        || (xobjraw = resources->GetResource(PdfResourceType::XObject, *content.Name)) == nullptr)
+        || (xobjraw = resources->GetResource(PdfResourceType::XObject, *content.Data.Name)) == nullptr)
     {
         goto InvalidXObj;
     }
@@ -341,8 +342,8 @@ bool PdfContentStreamReader::tryHandleXObject(PdfContent& content)
     if (handleXObjects)
     {
         // Try to handle any XObject type
-        content.XObject = PdfXObject::CreateFromObject(*xobjraw, PdfXObjectType::Unknown, detectedType);
-        if (content.XObject == nullptr)
+        content.Data.XObject = PdfXObject::CreateFromObject(*xobjraw, PdfXObjectType::Unknown, detectedType);
+        if (content.Data.XObject == nullptr)
             goto InvalidXObj;
     }
     else
@@ -350,8 +351,8 @@ bool PdfContentStreamReader::tryHandleXObject(PdfContent& content)
         PODOFO_ASSERT(followFormXObjecs);
 
         // Limit handling to Form XObjects only
-        content.XObject = PdfXObject::CreateFromObject(*xobjraw, PdfXObjectType::Form, detectedType);
-        if (content.XObject == nullptr)
+        content.Data.XObject = PdfXObject::CreateFromObject(*xobjraw, PdfXObjectType::Form, detectedType);
+        if (content.Data.XObject == nullptr)
         {
             if (detectedType == PdfXObjectType::Unknown)
             {
@@ -367,7 +368,7 @@ bool PdfContentStreamReader::tryHandleXObject(PdfContent& content)
         }
     }
 
-    if (followFormXObjecs && content.XObject->GetType() == PdfXObjectType::Form)
+    if (followFormXObjecs && content.Data.XObject->GetType() == PdfXObjectType::Form)
     {
         // Select the Form XObject for next input source
         content.Type = PdfContentType::BeginFormXObject;
@@ -379,9 +380,9 @@ bool PdfContentStreamReader::tryHandleXObject(PdfContent& content)
         }
 
         m_inputs.push_back({
-            content.XObject,
-            std::make_shared<PdfCanvasInputDevice>(static_cast<const PdfXObjectForm&>(*content.XObject)),
-            dynamic_cast<const PdfCanvas*>(content.XObject.get()) });
+            content.Data.XObject,
+            std::make_shared<PdfCanvasInputDevice>(static_cast<const PdfXObjectForm&>(*content.Data.XObject)),
+            dynamic_cast<const PdfCanvas*>(content.Data.XObject.get()) });
     }
     else
     {
@@ -392,7 +393,7 @@ bool PdfContentStreamReader::tryHandleXObject(PdfContent& content)
     return true;
 
 InvalidXObj:
-    content.Warnings |= PdfContentWarnings::InvalidXObject;
+    content.Errors |= PdfContentErrors::InvalidXObject;
     if (handleXObjects)
     {
         content.Type = PdfContentType::DoXObject;
@@ -474,12 +475,6 @@ bool PdfContentStreamReader::tryReadInlineImgData(charbuff& data)
     return false;
 }
 
-void PdfContentStreamReader::handleWarnings()
-{
-    if ((m_args.Flags & PdfContentReaderFlags::ThrowOnWarnings) != PdfContentReaderFlags::None)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidContentStream, "Unsupported PostScript content");
-}
-
 bool PdfContentStreamReader::isCalledRecursively(const PdfObject* xobj)
 {
     // Determines if the given object is called recursively
@@ -490,4 +485,76 @@ bool PdfContentStreamReader::isCalledRecursively(const PdfObject* xobj)
     }
 
     return false;
+}
+
+PdfContent::PdfContent() :
+    Type(PdfContentType::Unknown),
+    ThrowOnWarnings(false),
+    Warnings(PdfContentWarnings::None),
+    Errors(PdfContentErrors::None)
+{
+}
+
+bool PdfContent::HasWarnings() const
+{
+    return Warnings != PdfContentWarnings::None;
+}
+
+bool PdfContent::HasErrors() const
+{
+    return Errors != PdfContentErrors::None;
+}
+
+const PdfVariantStack& PdfContent::GetStack() const
+{
+    return Data.Stack;
+}
+
+const string_view& PdfContent::GetKeyword() const
+{
+    return Data.Keyword;
+}
+
+PdfOperator PdfContent::GetOperator() const
+{
+    checkAccess(PdfContentType::Operator);
+    return Data.Operator;
+}
+
+const PdfDictionary& PdfContent::GetInlineImageDictionary() const
+{
+    checkAccess(PdfContentType::ImageDictionary);
+    return Data.InlineImageDictionary;
+}
+
+const charbuff& PdfContent::GetInlineImageData() const
+{
+    checkAccess(PdfContentType::ImageData);
+    return Data.InlineImageData;
+}
+
+const shared_ptr<const PdfXObject>& PdfContent::GetXObject() const
+{
+    if (!(Type == PdfContentType::DoXObject || Type == PdfContentType::BeginFormXObject))
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Invalid access for this content");
+
+    if (Errors != PdfContentErrors::None)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidContentStream, "Errors present while accessing this content");
+
+    if (Warnings != PdfContentWarnings::None && ThrowOnWarnings)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidContentStream, "Warnings present while accessing this content");
+
+    return Data.XObject;
+}
+
+void PdfContent::checkAccess(PdfContentType type) const
+{
+    if (Type != type)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Invalid access for this content");
+
+    if (Errors != PdfContentErrors::None)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidContentStream, "Errors present while accessing this content");
+
+    if (Warnings != PdfContentWarnings::None && ThrowOnWarnings)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidContentStream, "Warnings present while accessing this content");
 }

@@ -30,30 +30,80 @@ enum class PdfContentType : uint8_t
     UnexpectedKeyword, ///< An unexpected keyword that can be a custom operator or invalid PostScript content   
 };
 
-enum class PdfContentWarnings
+enum class PdfContentWarnings : uint16_t
+{
+    None = 0,
+    SpuriousStackContent = 1,           ///< Operand count for the operator are more than necessary
+    RecursiveXObject = 2,               ///< Recursive XObject call detected. Applies to DoXObject
+    InvalidImageDictionaryContent = 4,  ///< Found invalid content while reading inline image dictionary. Applies to ImageDictionary
+    MissingEndImage = 8,                ///< Missing end inline image EI operator
+};
+
+enum class PdfContentErrors : uint16_t
 {
     None = 0,
     InvalidOperator = 1,                ///< Unknown operator or insufficient operand count. Applies to Operator
-    SpuriousStackContent = 2,           ///< Operand count for the operator are more than necessary
-    InvalidXObject = 4,                 ///< Invalid or not found XObject
-    RecursiveXObject = 8,               ///< Recursive XObject call detected. Applies to DoXObject
-    InvalidImageDictionaryContent = 16, ///< Found invalid content while reading inline image dictionary. Applies to ImageDictionary
-    MissingEndImage = 32,               ///< Missing end inline image EI operator
+    InvalidXObject = 2,                 ///< Invalid or not found XObject
 };
 
 /** Content as read from content streams
  */
-struct PODOFO_API PdfContent final
+class PODOFO_API PdfContent final
 {
-    PdfContentType Type = PdfContentType::Unknown;
-    PdfContentWarnings Warnings = PdfContentWarnings::None;
-    PdfVariantStack Stack;
-    PdfOperator Operator = PdfOperator::Unknown;
-    std::string_view Keyword;
-    PdfDictionary InlineImageDictionary;
-    charbuff InlineImageData;
-    const PdfName* Name = nullptr;
-    std::shared_ptr<const PdfXObject> XObject;
+    friend class PdfContentStreamReader;
+public:
+    PdfContent();
+public:
+    struct Data
+    {
+        PdfVariantStack Stack;
+        PdfOperator Operator = PdfOperator::Unknown;
+        std::string_view Keyword;
+        PdfDictionary InlineImageDictionary;
+        charbuff InlineImageData;
+        const PdfName* Name = nullptr;
+        std::shared_ptr<const PdfXObject> XObject;
+    };
+
+    const PdfVariantStack& GetStack() const;
+    PdfOperator GetOperator() const;
+    const std::string_view& GetKeyword() const;
+    const PdfDictionary& GetInlineImageDictionary() const;
+    const charbuff& GetInlineImageData() const;
+    const std::shared_ptr<const PdfXObject>& GetXObject() const;
+
+    bool HasWarnings() const;
+    bool HasErrors() const;
+
+    PdfContentType GetType() const { return Type; }
+    PdfContentWarnings GetWarnings() const { return Warnings; }
+    PdfContentErrors GetErrors() const { return Errors; }
+
+    /** Unchecked access to content data 
+     */
+    const Data& operator*() const { return Data; }
+
+    /** Unchecked and mutable access to content data
+     */
+    Data& operator*() { return Data; }
+
+    /** Unchecked access to content data
+     */
+    const Data* operator->() const { return &Data; }
+
+    /** Unchecked and mutable access to content data
+     */
+    Data* operator->() { return &Data; }
+
+private:
+    void checkAccess(PdfContentType type) const;
+
+private:
+    PdfContentType Type;
+    bool ThrowOnWarnings;
+    PdfContentWarnings Warnings;
+    PdfContentErrors Errors;
+    struct Data Data;
 };
 
 enum class PdfContentReaderFlags
@@ -107,8 +157,6 @@ private:
 
     bool tryHandleXObject(PdfContent& content);
 
-    void handleWarnings();
-
     bool isCalledRecursively(const PdfObject* xobj);
 
 private:
@@ -142,5 +190,6 @@ private:
 
 ENABLE_BITMASK_OPERATORS(PoDoFo::PdfContentReaderFlags);
 ENABLE_BITMASK_OPERATORS(PoDoFo::PdfContentWarnings);
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfContentErrors);
 
 #endif // PDF_CONTENT_READER_H

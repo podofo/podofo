@@ -215,28 +215,28 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                 break;
         }
 
-        switch (content.Type)
+        switch (content.GetType())
         {
             case PdfContentType::Operator:
             {
-                if (content.Warnings != PdfContentWarnings::None)
+                if (content.HasErrors())
                 {
                     // Ignore invalid operators
                     continue;
                 }
 
                 // T_l TL: Set the text leading, T_l
-                switch (content.Operator)
+                switch (content->Operator)
                 {
                     case PdfOperator::TL:
                     {
-                        context.States.Current->T_l = content.Stack[0].GetReal();
+                        context.States.Current->T_l = content->Stack[0].GetReal();
                         break;
                     }
                     case PdfOperator::cm:
                     {
                         double a, b, c, d, e, f;
-                        read(content.Stack, a, b, c, d, e, f);
+                        read(content->Stack, a, b, c, d, e, f);
                         context.cm_Operator(a, b, c, d, e, f);
                         break;
                     }
@@ -247,19 +247,19 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                     case PdfOperator::TD:
                     case PdfOperator::Tm:
                     {
-                        if (content.Operator == PdfOperator::Td || content.Operator == PdfOperator::TD)
+                        if (content->Operator == PdfOperator::Td || content->Operator == PdfOperator::TD)
                         {
                             double tx, ty;
-                            read(content.Stack, tx, ty);
+                            read(content->Stack, tx, ty);
                             context.TdTD_Operator(tx, ty);
 
-                            if (content.Operator == PdfOperator::TD)
+                            if (content->Operator == PdfOperator::TD)
                                 context.States.Current->T_l = -ty;
                         }
-                        else if (content.Operator == PdfOperator::Tm)
+                        else if (content->Operator == PdfOperator::Tm)
                         {
                             double a, b, c, d, e, f;
-                            read(content.Stack, a, b, c, d, e, f);
+                            read(content->Stack, a, b, c, d, e, f);
                             context.Tm_Operator(a, b, c, d, e, f);
                         }
                         else
@@ -294,8 +294,8 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                     // font size Tf : Set the text font, T_f
                     case PdfOperator::Tf:
                     {
-                        double fontSize = content.Stack[0].GetReal();
-                        auto& fontName = content.Stack[1].GetName();
+                        double fontSize = content->Stack[0].GetReal();
+                        auto& fontName = content->Stack[1].GetName();
                         context.Tf_Operator(fontName, fontSize);
                         break;
                     }
@@ -310,12 +310,12 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                     {
                         ASSERT(context.BlockOpen, "No text block open");
 
-                        auto& str = content.Stack[0].GetString();
-                        if (content.Operator == PdfOperator::DoubleQuote)
+                        auto& str = content->Stack[0].GetString();
+                        if (content->Operator == PdfOperator::DoubleQuote)
                         {
                             // Operator " arguments: aw ac string "
-                            context.States.Current->PdfState.CharSpacing = content.Stack[1].GetReal();
-                            context.States.Current->PdfState.WordSpacing = content.Stack[2].GetReal();
+                            context.States.Current->PdfState.CharSpacing = content->Stack[1].GetReal();
+                            context.States.Current->PdfState.WordSpacing = content->Stack[2].GetReal();
                         }
 
                         if (decodeString(str, *context.States.Current, decoded, lengths, positions)
@@ -325,8 +325,8 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                                 std::move(lengths), std::move(positions)), true);
                         }
 
-                        if (content.Operator == PdfOperator::Quote
-                            || content.Operator == PdfOperator::DoubleQuote)
+                        if (content->Operator == PdfOperator::Quote
+                            || content->Operator == PdfOperator::DoubleQuote)
                         {
                             context.TStar_Operator();
                         }
@@ -338,7 +338,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                     {
                         ASSERT(context.BlockOpen, "No text block open");
 
-                        auto& array = content.Stack[0].GetArray();
+                        auto& array = content->Stack[0].GetArray();
                         for (unsigned i = 0; i < array.GetSize(); i++)
                         {
                             const PdfString* str;
@@ -374,12 +374,12 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                     // Tc : word spacing
                     case PdfOperator::Tc:
                     {
-                        context.States.Current->PdfState.CharSpacing = content.Stack[0].GetReal();
+                        context.States.Current->PdfState.CharSpacing = content->Stack[0].GetReal();
                         break;
                     }
                     case PdfOperator::Tw:
                     {
-                        context.States.Current->PdfState.WordSpacing = content.Stack[0].GetReal();
+                        context.States.Current->PdfState.WordSpacing = content->Stack[0].GetReal();
                         break;
                     }
                     // q : Save the current graphics state
@@ -415,7 +415,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
             case PdfContentType::BeginFormXObject:
             {
                 context.XObjectStateIndices.push_back({
-                    (const PdfXObjectForm*)content.XObject.get(),
+                    (const PdfXObjectForm*)content->XObject.get(),
                     context.States.GetSize()
                     });
                 context.States.Push();

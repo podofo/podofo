@@ -1,4 +1,8 @@
 ## 0.10.1 -> 1.0.0
+- `PdfContent`: the class is now generally not internally accessible as it was before.
+  You can now get content fields with safe getters, or you can directly access them
+  with `operator*` and `operator->` overloads, possibly after checking the type,
+  errors and warnings with `GetType()`, `GetErrors()` and `GetWarnings()`
 - `PdfEncodingMapFactory`:
   * `WinAnsiEncodingInstance()` renamed to `GetWinAnsiEncodingInstancePt()`
   * `MacRomanEncodingInstance()` renamed to `GetPtrMacRomanEncodingInstancePtr()`
