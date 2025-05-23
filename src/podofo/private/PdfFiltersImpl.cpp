@@ -70,7 +70,7 @@ public:
         else
         {
             m_NextByteIsPredictor = false;
-            m_CurrPredictor = m_Predictor;
+            m_CurrPredictor = (int)m_Predictor;
         }
 
         m_CurrRowIndex = 0;
@@ -220,7 +220,7 @@ private:
     unsigned m_EarlyChange;
     unsigned m_BytesPerPixel;     // Bytes per pixel
 
-    unsigned m_CurrPredictor;
+    int m_CurrPredictor;
     unsigned m_CurrRowIndex;
     unsigned m_Rows;
 
