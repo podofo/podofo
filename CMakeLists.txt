@@ -249,18 +249,6 @@ if(LCMS2_FOUND)
     list(APPEND PODOFO_HEADERS_DEPENDS ${LCMS2_INCLUDE_DIR})
 endif()
 
-# Create the config file. It'll be appended to as the subdirs run though
-# then dependency information will be written to it at the end of the
-# build.
-file(WRITE
-    "${PROJECT_BINARY_DIR}/podofoConfig.cmake"
-    "# CMake module for podofo\n"
-)
-file(APPEND
-    "${PROJECT_BINARY_DIR}/podofoConfig.cmake"
-    "set(PODOFO_INCLUDES ${PROJECT_SOURCE_DIR}/src)\n"
-)
-
 function(add_source subdir subdir_path dstsources dstheaders)
     file(GLOB_RECURSE source_files "${subdir_path}/[^.]*")
     # Set visual studio source group

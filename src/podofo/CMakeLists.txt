@@ -157,14 +157,3 @@ if(PODOFO_BUILD_STATIC)
 else()
     set(PODOFO_CFLAGS "" CACHE INTERNAL "Extra flags required when linking to podofo")
 endif()
-
-# Write the cflags and depend target to the config file
-# CHECK-ME: Is this useful at all?
-file(APPEND
-    "${PROJECT_BINARY_DIR}/podofoConfig.cmake"
-    "set(PODOFO_CFLAGS ${PODOFO_CFLAGS})\n"
-)
-file(APPEND
-    "${PROJECT_BINARY_DIR}/podofoConfig.cmake"
-    "set(PODOFO_LIBRARIES ${PODOFO_LIBRARIES})\n"
-)
