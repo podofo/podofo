@@ -303,7 +303,8 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevi
                 {
                     // Don't consume the token
                     this->EnqueueToken(token, tokenType);
-                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidNumber, token);
+                    PoDoFo::LogMessage(PdfLogSeverity::Warning, "Invalid real while parsing content");
+                    return PdfLiteralDataType::Unknown;
                 }
 
                 new(&variant.m_Real)PdfVariant::PrimitiveMember(val);
@@ -316,7 +317,8 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevi
                 {
                     // Don't consume the token
                     this->EnqueueToken(token, tokenType);
-                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidNumber, token);
+                    PoDoFo::LogMessage(PdfLogSeverity::Warning, "Invalid number while parsing content");
+                    return PdfLiteralDataType::Unknown;
                 }
 
                 if (!m_options.ReadReferences)
