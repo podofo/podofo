@@ -1,7 +1,3 @@
-### 1.0
-
-- Fix issue reported in https://www.mail-archive.com/podofo-users@lists.sourceforge.net/msg04995.html
-
 ### After 1.0
 - Cleanup PdfTreeNode
 - Add subsetting of PdfDifferenceEncoding

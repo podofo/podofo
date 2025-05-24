@@ -2761,6 +2761,20 @@ TEST_CASE("TestManyTrailer")
     FAIL("Should fail with stack overflow");
 }
 
+TEST_CASE("TestManyTrailerXRefStream")
+{
+    try
+    {
+        PdfMemDocument doc;
+        doc.Load(TestUtils::GetTestInputFilePath("EmptyXRefStream225Trailer.pdf"));
+    }
+    catch (PdfError&)
+    {
+        return;
+    }
+    FAIL("Should fail with stack overflow");
+}
+
 TEST_CASE("TestXRefPDF10")
 {
     // Test ability to read an XRef stream with an older version PDF

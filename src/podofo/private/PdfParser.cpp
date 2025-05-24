@@ -550,24 +550,10 @@ void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset,
 
         if (!skipFollowPrevious)
         {
-            try
-            {
-
-                // PDFs that have been through multiple PDF tools may have a mix of xref tables (ISO 32000-1 7.5.4) 
-                // and XRefStm streams (ISO 32000-1 7.5.8.1) and in the Prev chain, 
-                // so call ReadXRefContents (which deals with both) instead of ReadXRefStreamContents 
-                ReadXRefContents(device, previousOffset, false);
-            }
-            catch (PdfError& e)
-            {
-                // Be forgiving, the error happens when an entry in XRef
-                // stream points to a wrong place (offset) in the PDF file.
-                if (e != PdfErrorCode::InvalidNumber)
-                {
-                    PODOFO_PUSH_FRAME(e);
-                    throw;
-                }
-            }
+            // PDFs that have been through multiple PDF tools may have a mix of xref tables (ISO 32000-1 7.5.4) 
+            // and XRefStm streams (ISO 32000-1 7.5.8.1) and in the Prev chain, 
+            // so call ReadXRefContents (which deals with both) instead of ReadXRefStreamContents 
+            ReadXRefContents(device, previousOffset, false);
         }
     }
 }
