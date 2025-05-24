@@ -257,8 +257,10 @@ function(add_source subdir subdir_path dstsources dstheaders)
     list(APPEND ${dstsources} ${source_files})
     set(${dstsources} ${${dstsources}} PARENT_SCOPE)
 
+    # Identity the headers and do some cleanup
     set(headers_files ${source_files})
     list(FILTER headers_files EXCLUDE REGEX "\.cpp$")
+    list(FILTER headers_files EXCLUDE REGEX "\.in$")
     list(APPEND ${dstheaders} ${headers_files})
     set(${dstheaders} ${${dstheaders}} PARENT_SCOPE)
 endfunction()

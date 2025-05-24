@@ -3,13 +3,13 @@ if(NOT PODOFO_MAIN_CMAKELISTS_READ)
 endif()
 
 # Generate our configure file
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/podofo_config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/podofo/podofo_config.h")
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/auxiliary/podofo_config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/podofo/auxiliary/podofo_config.h")
 
 # NOTE: HAS_UNCAUGHT_EXCEPTIONS is needed for <date/date.h>
 add_compile_definitions(HAS_UNCAUGHT_EXCEPTIONS=1 UTF8PROC_STATIC)
 
 set(PODOFO_INCLUDE_DIRS
-    "${CMAKE_CURRENT_BINARY_DIR}/podofo"
+    "${CMAKE_CURRENT_BINARY_DIR}/podofo/auxiliary"
     "${PROJECT_SOURCE_DIR}/src"
     "${PROJECT_SOURCE_DIR}/3rdparty"
     CACHE INTERNAL "podofo include directories"
@@ -28,7 +28,7 @@ if (MSVC)
 endif()
 
 set(PODOFO_BASE_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/podofo.h")
-set(PODOFO_CONFIG_HEADER "${CMAKE_CURRENT_BINARY_DIR}/podofo/podofo_config.h")
+set(PODOFO_CONFIG_HEADER "${CMAKE_CURRENT_BINARY_DIR}/podofo/auxiliary/podofo_config.h")
 
 set(PODOFO_HEADERS ${PODOFO_BASE_HEADER} ${PODOFO_CONFIG_HEADER})
 set(PODOFO_SOURCES ${PODOFO_HEADERS})
@@ -55,6 +55,9 @@ if(NOT PODOFO_HAVE_FONTCONFIG)
     list(REMOVE_ITEM PODOFO_SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/main/PdfFontConfigWrapper.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/main/PdfFontConfigWrapper.cpp"
+    )
+    list(REMOVE_ITEM PODOFO_HEADERS
+        "${CMAKE_CURRENT_SOURCE_DIR}/main/PdfFontConfigWrapper.h"
     )
 endif()
 
