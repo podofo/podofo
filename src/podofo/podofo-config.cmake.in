@@ -1,0 +1,5 @@
+@PACKAGE_INIT@
+
+include ("${CMAKE_CURRENT_LIST_DIR}/podofo-targets.cmake")
+
+add_library(podofo::podofo ALIAS podofo::@PODOFO_TARGET@)

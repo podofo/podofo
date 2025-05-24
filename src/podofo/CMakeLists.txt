@@ -129,11 +129,11 @@ install(TARGETS ${PODOFO_LIBRARIES}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-install(EXPORT podofo-targets DESTINATION "share/cmake/podofo")
+install(EXPORT podofo-targets DESTINATION "share/cmake/podofo" NAMESPACE podofo::)
 
 # See https://cmake.org/cmake/help/latest/guide/tutorial/Adding%20Export%20Configuration.html
 include(CMakePackageConfigHelpers)
-configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/podofo-config.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/podofo-config.cmake"
   INSTALL_DESTINATION "share/cmake/podofo"
   NO_SET_AND_CHECK_MACRO
