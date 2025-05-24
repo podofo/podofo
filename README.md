@@ -63,7 +63,7 @@ PoDoFo tools are licensed under the [GPL 2.0](https://spdx.org/licenses/GPL-2.0-
 
 ## Development quickstart
 
-PoDoFo is known to compile through a multitude of package managers (including `apt-get`, [brew](https://brew.sh/), [vcpkg](https://vcpkg.io/), [Conan](https://conan.io/)), and has public continuous integration working in [Ubuntu Linux](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml), [MacOS](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml) and
+PoDoFo is known to compile through a multitude of package managers (including [APT](https://en.wikipedia.org/wiki/APT_(software)), [brew](https://brew.sh/), [vcpkg](https://vcpkg.io/), [Conan](https://conan.io/)), and has public continuous integration working in [Ubuntu Linux](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml), [MacOS](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml) and
 [Windows](https://github.com/podofo/podofo/blob/master/.github/workflows/build-win.yml), bootstrapping the CMake project, building and testing the library. It's highly recommended to build PoDoFo using such package managers. 
 
 There's also a playground area in the repository where you can have
@@ -74,12 +74,12 @@ Have a look to the [Readme](https://github.com/podofo/podofo/tree/master/playgro
 
 > **Warning**: PoDoFo is known to be working in cross-compilation toolchains (eg. Android/iOS development), but support may not provided in such scenarios. If you decide to manually build dependencies you are assumed to know how to identity possible library clashes/mismatches and how to deal with compilation/linking problems that can arise in your system.
 
-### Build with apt-get
+### Build with APT
 
 From the source root run:
 
 ```
-sudo apt-get install -y libfontconfig1-dev libfreetype-dev libxml2-dev libssl-dev libjpeg-dev libpng-dev libtiff-dev
+sudo apt install -y libfontconfig1-dev libfreetype-dev libxml2-dev libssl-dev libjpeg-dev libpng-dev libtiff-dev
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Debug ..
@@ -124,6 +124,32 @@ mkdir build
 cd build
 cmake -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake -DCMAKE_BUILD_TYPE=Debug ..
 cmake --build . --config Debug
+```
+
+### Consume PoDoFo from package managers with CMake
+
+Starting with version 1.0, PoDoFo has a quite advanced CMake integration and can be consumed
+as a [CMake package](https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html).
+As soon as it's correctly integrated in your favorite package manager (APT, vcpkg, Conan,
+...), you will be able to locate PoDoFo and compile your application with the following
+`CMakeLists.txt`:
+
+```
+cmake_minimum_required(VERSION 3.23)
+
+project(PoDoFoSample)
+
+set(CMAKE_CXX_STANDARD 17)
+
+# If you are not using a package manager and/or you
+# are installing PoDoFo to a non-standard path
+#list(APPEND CMAKE_PREFIX_PATH "/path/to/podofo_install_dir")
+
+find_package(PoDoFo 1.0.0 REQUIRED)
+message(STATUS "Found PoDoFo: ${PoDoFo_VERSION}")
+
+add_executable(helloworld main.cpp)
+target_link_libraries(helloworld podofo::podofo)
 ```
 
 ### CMake switches
