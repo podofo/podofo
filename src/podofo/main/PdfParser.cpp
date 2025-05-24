@@ -542,25 +542,12 @@ void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset,
     size_t previousOffset;
     if (xrefObjTrailer->TryGetPreviousOffset(previousOffset) && previousOffset != offset)
     {
-        try
-        {
-            m_IncrementalUpdateCount++;
+        m_IncrementalUpdateCount++;
 
-            // PDFs that have been through multiple PDF tools may have a mix of xref tables (ISO 32000-1 7.5.4) 
-            // and XRefStm streams (ISO 32000-1 7.5.8.1) and in the Prev chain, 
-            // so call ReadXRefContents (which deals with both) instead of ReadXRefStreamContents 
-            ReadXRefContents(device, previousOffset, readOnlyTrailer);
-        }
-        catch (PdfError& e)
-        {
-            // Be forgiving, the error happens when an entry in XRef
-            // stream points to a wrong place (offset) in the PDF file.
-            if (e != PdfErrorCode::NoNumber)
-            {
-                PODOFO_PUSH_FRAME(e);
-                throw e;
-            }
-        }
+        // PDFs that have been through multiple PDF tools may have a mix of xref tables (ISO 32000-1 7.5.4)
+        // and XRefStm streams (ISO 32000-1 7.5.8.1) and in the Prev chain,
+        // so call ReadXRefContents (which deals with both) instead of ReadXRefStreamContents
+        ReadXRefContents(device, previousOffset, readOnlyTrailer);
     }
 }
 

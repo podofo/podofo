@@ -2722,6 +2722,20 @@ TEST_CASE("TestManyTrailer")
     FAIL("Should fail with stack overflow");
 }
 
+TEST_CASE("TestManyTrailerXRefStream")
+{
+    try
+    {
+        PdfMemDocument doc;
+        doc.Load(TestUtils::GetTestInputFilePath("EmptyXRefStream225Trailer.pdf"));
+    }
+    catch (PdfError&)
+    {
+        return;
+    }
+    FAIL("Should fail with stack overflow");
+}
+
 string generateXRefEntries(size_t count)
 {
     string strXRefEntries;
