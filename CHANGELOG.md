@@ -1,5 +1,13 @@
 ## Version 0.10.5
-- Fix #191, #197, #201, #212, #233
+- Fix #191, #197, #201, #212, #233, #241, #251, #252, #253
+- PdfParser: Fixed stack overflow parsing documents with many XRef stream updates
+- PdfFont: Fixed GetBoundingBox() retrival
+- PdfFontMetricsObject: Fixed reading /FontBBox
+- PdfEncodingFactory: Fixed parsing of limits with /FirstChar equals to /LastChar
+- PdfFontMetricsStandard14: Fixed parsing /Widths
+- PdfMetadata: Fixed missing init ensure for SetAuthor()
+- PdfTokenizer: Fixed character escaping when reading strings
+- PdfPageCollection: Fix memory leak in RemovePageAt
 - Compilation and linking fixes in various conditions
 - PdfFontManager: Fixed GetOrCreateFontFromBuffer stealing memory
 - PdfPageCollection: Disable copy/assignment
