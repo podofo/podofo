@@ -165,7 +165,7 @@ public:
     const PdfDifferenceMap& GetDifferences() const { return m_differences; }
 
 protected:
-    void GetBaseEncoding(const PdfEncodingMap*& baseEncoding, const PdfDifferenceMap*& differences) const;
+    void GetBaseEncoding(const PdfEncodingMap*& baseEncoding, const PdfDifferenceMap*& differences) const override;
 
     void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override;
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
