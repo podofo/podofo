@@ -176,7 +176,7 @@ TEST_CASE("TestEncryptedStringsEscaped")
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("TestEncryptedStringsEscaped.pdf"), "userpass");
 
-    REQUIRE(*doc.GetMetadata().GetTitle() == "Test title");
+    REQUIRE(doc.GetMetadata().GetTitle()->GetString() == "Test title");
 
     // This has a escaped `\r` character that shall be ignored. This currently works in Pdf.js but
     // not on Adobe. It's a rare edge case anyway
@@ -185,11 +185,11 @@ TEST_CASE("TestEncryptedStringsEscaped")
     doc.Load(TestUtils::GetTestInputFilePath("TestEncryptedStringsEscaped2.pdf"), "userpass");
 
     // Next title has a escaped `\0`
-    REQUIRE(*doc.GetMetadata().GetTitle() == "Test title 2");
+    REQUIRE(doc.GetMetadata().GetTitle()->GetString() == "Test title 2");
 
     // Next producer has a escaped `\n` character that shall be ignored. This
     // works also in Adobe
-    REQUIRE(*doc.GetMetadata().GetProducer() == "PoDoFo - https://github.com/podofo/podofo");
+    REQUIRE(doc.GetMetadata().GetProducer()->GetString() == "PoDoFo - https://github.com/podofo/podofo");
 }
 
 void TestWriteEscapeSequences(const string_view& str, const string_view& expected)

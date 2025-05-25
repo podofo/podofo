@@ -72,6 +72,9 @@ PdfDocument::~PdfDocument()
 void PdfDocument::Clear() 
 {
     m_FontManager.Clear();
+    m_Metadata.Invalidate();
+    m_TrailerObj = nullptr;
+    m_Trailer = nullptr;
     m_Catalog = nullptr;
     m_Info = nullptr;
     m_Pages = nullptr;
