@@ -139,7 +139,9 @@ cmake_minimum_required(VERSION 3.23)
 
 project(PoDoFoSample)
 
-set(CMAKE_CXX_STANDARD 17)
+# PoDoFo public header requires at least C++17,
+# but it can be used with higher standards
+set(CMAKE_CXX_STANDARD 23)
 
 # If you are not using a package manager and/or you
 # are installing PoDoFo to a non-standard path
