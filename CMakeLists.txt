@@ -33,8 +33,6 @@ include(TestBigEndian)
 include(CheckTypeSize)
 include(GNUInstallDirs)
 
-set(CMAKE_CXX_STANDARD 17)
-
 # Load modules from our source tree too
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules" "${CMAKE_CURRENT_BINARY_DIR}")
 
@@ -100,26 +98,26 @@ if(WIN32)
     list(APPEND PLATFORM_SYSTEM_LIBRARIES kernel32 user32 gdi32 winspool comdlg32 advapi32 shell32 ole32 oleaut32 uuid ws2_32 Crypt32)
 endif()
 
+# Set minimum required standard C++17, but also enforce it
+# with compiler options as CMAKE_CXX_STANDARD (or any other
+# CMake construct) won't really do it.
+# See https://discourse.cmake.org/t/how-to-limit-maximum-cxx-standard-to-prevent-accidental-c-17-or-above-code/9862/2
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS ON)
 if (MSVC)
     # Set the compiler less permissive and add some warnings
-    # /w34388: 'expression': signed/unsigned mismatch
-    # /w34389: 'operator': signed/unsigned mismatch
     # /we4287: unsigned/negative constant mismatch
-    # /w34100: unreferenced formal parameter
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive- /we4287 /W4 /Zc:__cplusplus")
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/std:c++17> $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus> /permissive- /utf-8 /we4287 /W4)
 
     # Microsoft deprecate certain POSIX functions that we use.
     # for now, turn off these warnings.
     add_compile_definitions(_CRT_SECURE_NO_DEPRECATE)
 else()
-    message("Using gcc/clang specific compiler options")
-
     # By default hide symbols on gcc/clang
-    add_compile_options(-fvisibility=hidden)
-
     # TODO: Remove -Wno-format-truncation after porting the
     # code to std::fmt as it will be unuseful
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Woverloaded-virtual -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wreorder -Wno-format-truncation -Wno-unknown-pragmas -Wno-unknown-warning-option")
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-std=gnu++17> $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual> $<$<COMPILE_LANGUAGE:CXX>:-Wreorder> -fvisibility=hidden -Wall -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wno-format-truncation -Wno-unknown-pragmas -Wno-unknown-warning-option)
 
     # Note that we do not need debug definitions here. Set
     # -DCMAKE_BUILD_TYPE=debug or (if you want an optimised
