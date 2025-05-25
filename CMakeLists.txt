@@ -25,10 +25,6 @@ set(PODOFO_VERSION "${PODOFO_VERSION_MAJOR}.${PODOFO_VERSION_MINOR}.${PODOFO_VER
 set(PODOFO_SOVERSION "3")
 
 set(DOXYGEN_PROJECT_NUMBER "${PODOFO_VERSION}")
-if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-    # Enforce a version suffix if not doing a Release build
-    set(DOXYGEN_PROJECT_NUMBER "${DOXYGEN_PROJECT_NUMBER}-dev")
-endif()
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
