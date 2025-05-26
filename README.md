@@ -235,6 +235,21 @@ at the [issue](https://github.com/podofo/podofo/issues) tracker.
 
 ## FAQ
 
+**Q: PoDoFo compilation requires a CMake version higher than what is present in my system, can you lower the requirement?**
+
+**A:** No, CMake 2.23 introduced a functionality that makes it very easy to create [CMake packages](https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html) that
+is too conventient to ignore. In Windows it's easy to upgrade the CMake version to latest, while in MacOs it's the same thanks to the official KitWare installer or `brew`.
+In a linux system it's also quite easy to install an upgraded parallel CMake installation. Just run the following script:
+
+```
+export CMAKE_VERSION=3.31.7 \
+    && wget -nv https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-Linux-x86_64.sh \
+    && chmod +x cmake-${CMAKE_VERSION}-Linux-x86_64.sh \
+    && ./cmake-${CMAKE_VERSION}-Linux-x86_64.sh --prefix=/usr/local --skip-license \
+    && rm cmake-${CMAKE_VERSION}-Linux-x86_64.sh \
+    && cmake --version
+```
+
 **Q: How do I sign a document?**
 
 **A:** PoDoFo HEAD now supplies a high level signing procedure which is very powerful
