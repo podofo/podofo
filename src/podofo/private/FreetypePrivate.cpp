@@ -202,7 +202,7 @@ unordered_map<string_view, unsigned> FT::GetPostMap(FT_Face face)
     char buffer[64];
     for (FT_Long i = 0; i < face->num_glyphs; i++)
     {
-        rc = FT_Get_Glyph_Name(face, (FT_UInt)i, buffer, std::size(buffer));
+        rc = FT_Get_Glyph_Name(face, (FT_UInt)i, buffer, (FT_UInt)std::size(buffer));
         if (rc != 0)
             continue;
 

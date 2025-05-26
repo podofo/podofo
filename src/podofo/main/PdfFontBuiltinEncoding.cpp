@@ -94,7 +94,7 @@ PdfEncodingMapConstPtr PdfFontMetrics::getFontType1BuiltInEncoding(FT_Face face)
         code = FT_Get_First_Char(face, &index);
         while (index != 0)
         {
-            rc = FT_Get_Glyph_Name(face, (FT_UInt)index, buffer, std::size(buffer));
+            rc = FT_Get_Glyph_Name(face, index, buffer, (FT_UInt)std::size(buffer));
             if (rc != 0 || !PdfDifferenceEncoding::TryGetCodePointsFromCharName(
                 (const char*)buffer, codepoints))
             {
