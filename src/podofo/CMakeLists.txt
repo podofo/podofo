@@ -93,27 +93,22 @@ if(PODOFO_BUILD_SHARED)
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "podofo"
     )
-
-    # Create a pkg-config file for linking against shared library
-    # if pkg-config is available on the system.
-    # Add a version to the file name corresponding to the API compatibility.
-    find_program(PKG_CONFIG_FOUND pkg-config)
-    if(PKG_CONFIG_FOUND)
-        message("Pkg-config found, creating a pkg-config file for linking against shared library.")
-        configure_file(
-            "libpodofo.pc.in"
-            "${PROJECT_BINARY_DIR}/libpodofo.pc"
-            @ONLY)
-        install(
-            FILES "${PROJECT_BINARY_DIR}/libpodofo.pc"
-            DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
-    else()
-        message("Pkg-config not found. No pkg-config file will be created.")
-    endif()
-
     set(PODOFO_TARGET podofo_shared)
     set(PODOFO_LIBRARIES podofo_shared
         CACHE INTERNAL "Which podofo library variant to depend on")
+endif()
+
+# Create a pkg-config file.
+# Add a version to the file name corresponding to the API compatibility.
+find_program(PKG_CONFIG_FOUND pkg-config pkgconf)
+if(PKG_CONFIG_FOUND)
+    configure_file(
+        "libpodofo.pc.in"
+        "${PROJECT_BINARY_DIR}/libpodofo.pc"
+        @ONLY)
+    install(
+        FILES "${PROJECT_BINARY_DIR}/libpodofo.pc"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 endif()
 
 # Configure the "headers" file set that will be exported with install(TARGETS)
