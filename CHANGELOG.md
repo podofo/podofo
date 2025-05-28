@@ -15,6 +15,7 @@
 - Added support for preserving encryption among savings
 - Removed Libidn dependency, default to AESV3R6 encryption
 - Added support for predefined CMap(s) for improved CJK text extraction
+- Added much better CMake [integration](https://github.com/podofo/podofo?tab=readme-ov-file#consume-podofo-from-package-managers-with-cmake)
 - Added raw rectangle corners retrieval in `PdfAnnotation`, `PdfPage`
 - `PdfDocument`: Added `GetFieldsIterator()`
 - `PdfPage`: Added `GetFieldsIterator()`
