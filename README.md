@@ -5,8 +5,8 @@
 3.  [Licensing](#licensing)
 4.  [Development quickstart](#development-quickstart)
 5.  [Doxygen Documentation](#doxygen-documentation)
-6.  [String encoding and buffer conventions](#string-encoding-and-buffer-conventions)
-7.  [API Stability](#api-stability)
+6.  [Software life cycle and API stability](#software-life-cycle-and-api-stability)
+7.  [String encoding and buffer conventions](#string-encoding-and-buffer-conventions)
 8.  [PoDoFo tools](#podofo-tools)
 9.  [TODO](#todo)
 10.  [FAQ](#faq)
@@ -204,6 +204,10 @@ Open a terminal or command prompt and run the following command:
     cd build/doxygen/documentation
     open index.html
     ```
+## Software life cycle and API stability
+
+Refer to the main article in the [Wiki](https://github.com/podofo/podofo/wiki/PoDoFo-releases-life-cycle-and-API-stability). 
+At this [page](https://github.com/podofo/podofo/blob/master/API-MIGRATION.md) you can find an incomplete guide on migrating 0.9.8 code to 0.10.x, and from 0.10.x to 1.0.
 
 ## String encoding and buffer conventions
 
@@ -212,10 +216,6 @@ to hold UTF-8 encoded string content. `PdfString` and `PdfName` constructors
 accept UTF-8 encoded strings by default (`PdfName` accept only characters in the
 `PdfDocEncoding` char set, though). `charbuff` abd `bufferview`
 instead represent a generic octet buffer.
-
-## API migration
-
-PoDoFo has an unstable API that is the result of an extensive API review of PoDoFo 0.9.x. At this [link](https://github.com/podofo/podofo/wiki/PoDoFo-API-migration-guide/#098---0100) you can find an incomplete guide on migrating 0.9.8 code to 0.10.0. It is expected PoDoFo will converge to a stable API as soon as the review process is completed. See [API Stability](https://github.com/podofo/podofo/wiki/API-Stability) for more details.
 
 ## PoDoFo Tools
 
