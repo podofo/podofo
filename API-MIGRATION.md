@@ -1,4 +1,6 @@
 ## 0.10.1 -> 1.0.0
+- `PdfFontConfigWrapper`: Put `GetFcConfig()` and the constructor with `FcConfig*`
+  argument under guard by the `PODOFO_3RDPARTY_INTEROP_ENABLED` macro
 - `PdfXMPPacket`: `GetDoc()`, `GetOrCreateDescription()`, `GetDescription()`
   are now guarded by `PODOFO_3RDPARTY_INTEROP_ENABLED` macro
 - `PdfContent`: the class is now generally not internally accessible as it was before.

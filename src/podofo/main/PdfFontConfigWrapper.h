@@ -47,10 +47,14 @@ public:
      */
     PdfFontConfigWrapper(const std::string_view& configStr);
 
+#if PODOFO_3RDPARTY_INTEROP_ENABLED
     /**
      * Create a new FontConfigWrapper and initialize the fontconfig library.
      */
     PdfFontConfigWrapper(FcConfig* fcConfig = nullptr);
+
+    FcConfig* GetFcConfig();
+#endif // PODOFO_3RDPARTY_INTEROP_ENABLED
 
     ~PdfFontConfigWrapper();
 
@@ -70,8 +74,6 @@ public:
         unsigned& faceIndex);
 
     void AddFontDirectory(const std::string_view& path);
-
-    FcConfig* GetFcConfig();
 
 private:
     PdfFontConfigWrapper(const PdfFontConfigWrapper& rhs) = delete;
