@@ -34,6 +34,11 @@
 #undef PODOFO_PRIVATE_FRIEND
 #define PODOFO_PRIVATE_FRIEND(identifier) friend identifier
 
+// Redefine PODOFO_3RDPARTY_API_ENABLED to enable 3rd party
+// API interoperability
+#undef PODOFO_3RDPARTY_INTEROP_ENABLED
+#define PODOFO_3RDPARTY_INTEROP_ENABLED 1
+
 #include <podofo/auxiliary/Rect.h>
 #include <podofo/optional/PdfConvert.h>
 #include <podofo/optional/PdfUtils.h>

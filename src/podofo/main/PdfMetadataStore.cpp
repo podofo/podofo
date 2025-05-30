@@ -41,3 +41,20 @@ void PdfMetadataStore::SetMetadata(PdfAdditionalMetadata prop, const PdfString* 
         (*m_additionalMetadata)[prop] = *value;
     }
 }
+
+void PdfMetadataStore::Reset()
+{
+    Title = nullptr;
+    Author = nullptr;
+    Subject = nullptr;
+    Keywords = nullptr;
+    Creator = nullptr;
+    Producer = nullptr;
+    CreationDate = nullptr;
+    ModDate = nullptr;
+    Trapped = nullptr;
+    Version = PdfVersion::Unknown;
+    PdfaLevel = PdfALevel::Unknown;
+    PdfuaLevel = PdfUALevel::Unknown;
+    m_additionalMetadata.reset();
+}

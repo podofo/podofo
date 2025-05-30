@@ -17,8 +17,8 @@ static void TestNormalizeXMP(string_view filename)
     string sourceXmp;
     TestUtils::ReadTestInputFile(string(filename) + ".xml", sourceXmp);
 
-    unique_ptr<PdfXMPPacket> packet;
-    auto metadata = PoDoFo::GetXMPMetadata(sourceXmp, packet);
+    auto packet = PdfXMPPacket::Create(sourceXmp);
+    auto metadata = packet->GetMetadata();
     auto normalizedXmp = packet->ToString();
 
     string expectedXmp;
@@ -32,8 +32,8 @@ TEST_CASE("TestAdditionalXMPMetatadata")
     string sourceXmp;
     TestUtils::ReadTestInputFile("TestXMP5.xml", sourceXmp);
 
-    unique_ptr<PdfXMPPacket> packet;
-    auto metadata = PoDoFo::GetXMPMetadata(sourceXmp, packet);
+    auto packet = PdfXMPPacket::Create(sourceXmp);
+    auto metadata = packet->GetMetadata();
 
     REQUIRE(metadata.PdfaLevel == PdfALevel::L1B);
     REQUIRE(metadata.PdfuaLevel == PdfUALevel::L1);

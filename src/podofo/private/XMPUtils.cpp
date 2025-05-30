@@ -94,20 +94,8 @@ static nullable<PdfString> getElementText(xmlNodePtr elem);
 static void addExtension(xmlDocPtr doc, xmlNodePtr description, string_view extension);
 static xmlNodePtr getOrCreateExtensionBag(xmlDocPtr doc, xmlNodePtr description);
 
-PdfMetadataStore PoDoFo::GetXMPMetadata(const string_view& xmpview, unique_ptr<PdfXMPPacket>& packet)
+void PoDoFo::GetXMPMetadata(xmlNodePtr description, PdfMetadataStore& metadata)
 {
-    utls::InitXml();
-
-    PdfMetadataStore metadata;
-    xmlNodePtr description;
-    packet = PdfXMPPacket::Create(xmpview);
-    if (packet == nullptr || (description = packet->GetDescription()) == nullptr)
-    {
-        // The the XMP metadata is missing or has insufficient data
-        // to determine a PDF/A level
-        return metadata;
-    }
-
     xmlNodePtr childElement = nullptr;
     nullable<PdfString> text;
 
@@ -201,27 +189,9 @@ PdfMetadataStore PoDoFo::GetXMPMetadata(const string_view& xmpview, unique_ptr<P
         if (childElement != nullptr)
             metadata.SetMetadata(PdfAdditionalMetadata::PdfUAIdRev, getElementText(childElement));
     }
-
-    return metadata;
 }
 
-void PoDoFo::CreateXMPMetadata(unique_ptr<PdfXMPPacket>& packet)
-{
-    utls::InitXml();
-    if (packet == nullptr)
-        packet.reset(new PdfXMPPacket());
-}
-
-void PoDoFo::UpdateOrCreateXMPMetadata(unique_ptr<PdfXMPPacket>& packet, const PdfMetadataStore& metatata)
-{
-    utls::InitXml();
-    if (packet == nullptr)
-        packet.reset(new PdfXMPPacket());
-
-    setXMPMetadata(packet->GetDoc(), packet->GetOrCreateDescription(), metatata);
-}
-
-void setXMPMetadata(xmlDocPtr doc, xmlNodePtr description, const PdfMetadataStore& metatata)
+void PoDoFo::SetXMPMetadata(xmlDocPtr doc, xmlNodePtr description, const PdfMetadataStore& metadata)
 {
     removeXMPProperty(description, XMPMetadataKind::PDFVersion);
     removeXMPProperty(description, XMPMetadataKind::Title);
@@ -242,33 +212,33 @@ void setXMPMetadata(xmlDocPtr doc, xmlNodePtr description, const PdfMetadataStor
     removeXMPProperty(description, XMPMetadataKind::PdfUAIdAmd);
     removeXMPProperty(description, XMPMetadataKind::PdfUAIdCorr);
     removeXMPProperty(description, XMPMetadataKind::PdfUAIdRev);
-    if (metatata.Title.has_value())
-        addXMPProperty(doc, description, XMPMetadataKind::Title, metatata.Title->GetString());
-    if (metatata.Author.has_value())
-        addXMPProperty(doc, description, XMPMetadataKind::Author, metatata.Author->GetString());
-    if (metatata.Subject.has_value())
-        addXMPProperty(doc, description, XMPMetadataKind::Subject, metatata.Subject->GetString());
-    if (metatata.Keywords.has_value())
-        addXMPProperty(doc, description, XMPMetadataKind::Keywords, metatata.Keywords->GetString());
-    if (metatata.Creator.has_value())
-        addXMPProperty(doc, description, XMPMetadataKind::Creator, metatata.Creator->GetString());
-    if (metatata.Producer.has_value())
-        addXMPProperty(doc, description, XMPMetadataKind::Producer, metatata.Producer->GetString());
-    if (metatata.CreationDate.has_value())
-        addXMPProperty(doc, description, XMPMetadataKind::CreationDate, metatata.CreationDate->ToStringW3C().GetString());
-    if (metatata.ModDate.has_value())
-        addXMPProperty(doc, description, XMPMetadataKind::ModDate, metatata.ModDate->ToStringW3C().GetString());
+    if (metadata.Title.has_value())
+        addXMPProperty(doc, description, XMPMetadataKind::Title, metadata.Title->GetString());
+    if (metadata.Author.has_value())
+        addXMPProperty(doc, description, XMPMetadataKind::Author, metadata.Author->GetString());
+    if (metadata.Subject.has_value())
+        addXMPProperty(doc, description, XMPMetadataKind::Subject, metadata.Subject->GetString());
+    if (metadata.Keywords.has_value())
+        addXMPProperty(doc, description, XMPMetadataKind::Keywords, metadata.Keywords->GetString());
+    if (metadata.Creator.has_value())
+        addXMPProperty(doc, description, XMPMetadataKind::Creator, metadata.Creator->GetString());
+    if (metadata.Producer.has_value())
+        addXMPProperty(doc, description, XMPMetadataKind::Producer, metadata.Producer->GetString());
+    if (metadata.CreationDate.has_value())
+        addXMPProperty(doc, description, XMPMetadataKind::CreationDate, metadata.CreationDate->ToStringW3C().GetString());
+    if (metadata.ModDate.has_value())
+        addXMPProperty(doc, description, XMPMetadataKind::ModDate, metadata.ModDate->ToStringW3C().GetString());
 
     // NOTE: Ignore setting PDFVersion (which is better set by
     // the %PDF-X.Y header) and Trapped (which is deprecated in PDF 2.0)
 
-    if (metatata.PdfaLevel != PdfALevel::Unknown)
+    if (metadata.PdfaLevel != PdfALevel::Unknown)
     {
         // Set actual PdfA level
         string partStr;
         string conformanceStr;
         string revision;
-        getPdfALevelComponents(metatata.PdfaLevel, partStr, conformanceStr, revision);
+        getPdfALevelComponents(metadata.PdfaLevel, partStr, conformanceStr, revision);
         addXMPProperty(doc, description, XMPMetadataKind::PdfAIdPart, partStr);
         if (conformanceStr.length() != 0)
             addXMPProperty(doc, description, XMPMetadataKind::PdfAIdConformance, conformanceStr);
@@ -276,10 +246,10 @@ void setXMPMetadata(xmlDocPtr doc, xmlNodePtr description, const PdfMetadataStor
             addXMPProperty(doc, description, XMPMetadataKind::PdfAIdRev, revision);
     }
 
-    if (metatata.PdfuaLevel != PdfUALevel::Unknown)
+    if (metadata.PdfuaLevel != PdfUALevel::Unknown)
     {
-        if (metatata.PdfaLevel != PdfALevel::Unknown
-            && metatata.PdfaLevel < PdfALevel::L4)
+        if (metadata.PdfaLevel != PdfALevel::Unknown
+            && metadata.PdfaLevel < PdfALevel::L4)
         {
             // PDF/A up to 3 needs extensions schema for external properties
             addExtension(doc, description, PdfUAIdSchema);
@@ -288,13 +258,13 @@ void setXMPMetadata(xmlDocPtr doc, xmlNodePtr description, const PdfMetadataStor
         // Set actual PdfUA version
         string partStr;
         string revision;
-        getPdfUALevelComponents(metatata.PdfuaLevel, partStr, revision);
+        getPdfUALevelComponents(metadata.PdfuaLevel, partStr, revision);
         addXMPProperty(doc, description, XMPMetadataKind::PdfUAIdPart, partStr);
         if (revision.length() != 0)
             addXMPProperty(doc, description, XMPMetadataKind::PdfUAIdRev, revision);
     }
 
-    auto additionalMetadata = metatata.GetAdditionalMetadata();
+    auto additionalMetadata = metadata.GetAdditionalMetadata();
     if (additionalMetadata != nullptr)
     {
         for (auto& pair : *additionalMetadata)

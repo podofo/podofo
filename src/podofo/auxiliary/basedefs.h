@@ -100,8 +100,18 @@
     #define PODOFO_DEPRECATED
 #endif
 
-// Specify the friend identifier is defined in private symbols only
+/** Specify the friend identifier is defined in private symbols only
+ */
 #define PODOFO_PRIVATE_FRIEND(identifier)
+
+#ifndef PODOFO_3RDPARTY_INTEROP_ENABLED
+/** Define if interoperability with 3rd party APIs (such as
+ * libraries like libxml2, Fontconfig) is enabled. Caution
+ * is needed, as linkage of internally used structures
+ * and user consumed must be the same
+ */
+#define PODOFO_3RDPARTY_INTEROP_ENABLED 0
+#endif // PODOFO_3RDPARTY_INTEROP_ENABLED
 
 // Include some useful compatibility defines
 #include "basecompat.h"

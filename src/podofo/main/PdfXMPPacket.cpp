@@ -37,6 +37,7 @@ static unordered_map<string, XMPListType> s_knownListNodes = {
 PdfXMPPacket::PdfXMPPacket()
     : m_Description(nullptr)
 {
+    utls::InitXml();
     m_Doc = createXMPDoc(m_XMPMeta);
 }
 
@@ -53,6 +54,7 @@ unique_ptr<PdfXMPPacket> PdfXMPPacket::Create(const string_view& xmpview)
     if (xmpview.size() == 0)
         return nullptr;
 
+    utls::InitXml();
     auto doc = xmlReadMemory(xmpview.data(), (int)xmpview.size(), nullptr, nullptr, XML_PARSE_NOBLANKS);
     xmlNodePtr xmpmeta;
     if (doc == nullptr
@@ -67,6 +69,30 @@ unique_ptr<PdfXMPPacket> PdfXMPPacket::Create(const string_view& xmpview)
     return ret;
 }
 
+PdfMetadataStore PdfXMPPacket::GetMetadata() const
+{
+    if (m_Description == nullptr)
+    {
+        // The the XMP metadata is missing or has insufficient data
+        // to determine a PDF/A level
+        return { };
+    }
+
+    PdfMetadataStore metadata;
+    PoDoFo::GetXMPMetadata(m_Description, metadata);
+    return metadata;
+}
+
+void PdfXMPPacket::GetMetadata(PdfMetadataStore& metadata) const
+{
+    metadata.Reset();
+    PoDoFo::GetXMPMetadata(m_Description, metadata);
+}
+
+void PdfXMPPacket::SetMetadata(const PdfMetadataStore& metadata)
+{
+    PoDoFo::SetXMPMetadata(m_Doc, GetOrCreateDescription(), metadata);
+}
 
 xmlNodePtr PdfXMPPacket::GetOrCreateDescription()
 {

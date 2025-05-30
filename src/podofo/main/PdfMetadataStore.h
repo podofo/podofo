@@ -7,12 +7,12 @@
 #ifndef PDF_METADATA_STORE
 #define PDF_METADATA_STORE
 
-#include <podofo/main/PdfString.h>
-#include <podofo/main/PdfDate.h>
+#include "PdfString.h"
+#include "PdfDate.h"
 
 namespace PoDoFo
 {
-    class PdfMetadataStore final
+    class PODOFO_API PdfMetadataStore final
     {
     public:
         PdfMetadataStore();
@@ -32,6 +32,8 @@ namespace PoDoFo
     public:
         const PdfString* GetMetadata(PdfAdditionalMetadata prop) const;
         void SetMetadata(PdfAdditionalMetadata prop, const PdfString* value);
+        void Reset();
+    public:
         const std::unordered_map<PdfAdditionalMetadata, PdfString>* GetAdditionalMetadata() const { return m_additionalMetadata.get(); }
     private:
         std::unique_ptr<std::unordered_map<PdfAdditionalMetadata, PdfString>> m_additionalMetadata;
@@ -49,6 +51,5 @@ namespace std
         }
     };
 }
-
 
 #endif // PDF_METADATA_STORE

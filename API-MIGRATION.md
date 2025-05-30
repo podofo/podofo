@@ -1,4 +1,6 @@
 ## 0.10.1 -> 1.0.0
+- `PdfXMPPacket`: `GetDoc()`, `GetOrCreateDescription()`, `GetDescription()`
+  are now guarded by `PODOFO_3RDPARTY_INTEROP_ENABLED` macro
 - `PdfContent`: the class is now generally not internally accessible as it was before.
   You can now get content fields with safe getters, or you can directly access them
   with `operator*` and `operator->` overloads, possibly after checking the type,

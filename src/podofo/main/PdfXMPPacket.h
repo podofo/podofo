@@ -7,7 +7,7 @@
 #ifndef PDF_XMP_PACKET
 #define PDF_XMP_PACKET
 
-#include "PdfDeclarations.h"
+#include "PdfMetadataStore.h"
 
 extern "C"
 {
@@ -29,13 +29,17 @@ namespace PoDoFo
         static std::unique_ptr<PdfXMPPacket> Create(const std::string_view& xmpview);
 
     public:
+        PdfMetadataStore GetMetadata() const;
+        void GetMetadata(PdfMetadataStore& metadata) const;
+        void SetMetadata(const PdfMetadataStore& metadata);
         void ToString(std::string& str) const;
         std::string ToString() const;
 
-    public:
+#if PODOFO_3RDPARTY_INTEROP_ENABLED
         xmlDocPtr GetDoc() { return m_Doc; }
         xmlNodePtr GetOrCreateDescription();
         xmlNodePtr GetDescription() const { return m_Description; }
+#endif // PODOFO_3RDPARTY_INTEROP_ENABLED
 
     public:
         PdfXMPPacket& operator=(const PdfXMPPacket&) = delete;

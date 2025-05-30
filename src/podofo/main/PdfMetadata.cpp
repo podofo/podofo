@@ -8,7 +8,6 @@
 #include "PdfMetadata.h"
 
 #include <podofo/private/XMPUtils.h>
-#include <podofo/private/PdfMetadataStore.h>
 
 #include "PdfDocument.h"
 #include "PdfDictionary.h"
@@ -250,7 +249,8 @@ void PdfMetadata::SetPdfALevel(PdfALevel level)
     {
         // The PDF/A level can be set only in XMP,
         // metadata let's ensure it exists
-        CreateXMPMetadata(m_packet);
+        if (m_packet == nullptr)
+            m_packet.reset(new PdfXMPPacket());
     }
 
     m_metadata->PdfaLevel = level;
@@ -273,7 +273,8 @@ void PdfMetadata::SetPdfUALevel(PdfUALevel level)
     {
         // The PDF/UA level can be set only in XMP,
         // metadata let's ensure it exists
-        CreateXMPMetadata(m_packet);
+        if (m_packet == nullptr)
+            m_packet.reset(new PdfXMPPacket());
     }
 
     m_metadata->PdfuaLevel = level;
@@ -325,7 +326,7 @@ unique_ptr<PdfXMPPacket> PdfMetadata::TakeXMPPacket()
     if (!m_xmpSynced)
     {
         // If the XMP packet is not synced, do it now
-        PoDoFo::UpdateOrCreateXMPMetadata(m_packet, *m_metadata);
+        m_packet->SetMetadata(*m_metadata);
     }
 
     invalidate();
@@ -391,9 +392,10 @@ void PdfMetadata::ensureInitialized()
         m_metadata->ModDate = info->GetModDate();
     }
     auto metadataValue = m_doc->GetCatalog().GetMetadataStreamValue();
-    auto xmpMetadata = PoDoFo::GetXMPMetadata(metadataValue, m_packet);
+    m_packet = PdfXMPPacket::Create(metadataValue);
     if (m_packet != nullptr)
     {
+        auto xmpMetadata = m_packet->GetMetadata();
         if (m_metadata->Title == nullptr)
             m_metadata->Title = xmpMetadata.Title;
         if (m_metadata->Author == nullptr)
@@ -420,10 +422,10 @@ void PdfMetadata::ensureInitialized()
 
 void PdfMetadata::syncXMPMetadata(bool resetXMPPacket)
 {
-    if (resetXMPPacket)
-        m_packet.reset();
+    if (m_packet == nullptr || resetXMPPacket)
+        m_packet.reset(new PdfXMPPacket());
 
-    PoDoFo::UpdateOrCreateXMPMetadata(m_packet, *m_metadata);
+    m_packet->SetMetadata(*m_metadata);
     m_doc->GetCatalog().SetMetadataStreamValue(m_packet->ToString());
     m_xmpSynced = true;
 }
