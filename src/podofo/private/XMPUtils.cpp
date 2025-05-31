@@ -82,7 +82,6 @@ constexpr string_view PdfUAIdSchema = R"(<rdf:li rdf:parseType="Resource">
    </pdfaSchema:property>
 </rdf:li>)";
 
-static void setXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, const PdfMetadataStore& metatata);
 static void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
     XMPMetadataKind property, const string_view& value);
 static void removeXMPProperty(xmlNodePtr description, XMPMetadataKind property);
