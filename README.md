@@ -235,7 +235,7 @@ at the [issue](https://github.com/podofo/podofo/issues) tracker.
 
 ## FAQ
 
-**Q: PoDoFo compilation requires a CMake version higher than what is present in my system, can you lower the requirement?**
+**Q: PoDoFo compilation requires a CMake version higher than what is present in my system, can you lower the requirement?<a id='faq-cmake'></a>**
 
 **A:** No, CMake 2.23 introduced a functionality that makes it very easy to create [CMake packages](https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html) that
 is too conventient to ignore. In Windows it's easy to upgrade the CMake version to latest, while in MacOs it's the same thanks to the official KitWare installer or `brew`.
@@ -250,7 +250,7 @@ export CMAKE_VERSION=3.31.7 \
     && cmake --version
 ```
 
-**Q: How do I sign a document?**
+**Q: How do I sign a document?<a id='faq-sign'></a>**
 
 **A:** PoDoFo HEAD now supplies a high level signing procedure which is very powerful
 and that allows to sign a document without having to supply a *CMS* structure manually.
@@ -275,9 +275,9 @@ PoDoFo::SignDocument(doc, *inputOutput, signer, signature);
 There's also a support for external signing services and/or signing the document
 in memory buffers. See the various signing examples in the unit [tests](https://github.com/podofo/podofo/blob/master/test/unit/SignatureTest.cpp).
 
-**Q: Can I still use an event based procedure to sign the document?**
+**Q: Can I still use an event based procedure to sign the document?<a id='faq-sign-event-based'></a>**
 
-Yes, the old low level procedure hasn't changed and it's still available.
+**A:** Yes, the old low level procedure hasn't changed and it's still available.
 To describe the procedure briefly, one has to fully Implement a `PdfSigner`,
 retrieve or create a `PdfSignature` field, create an output device (see next question)
 and use `PoDoFo::SignDocument(doc, device, signer, signature)`. When signing,
@@ -295,7 +295,7 @@ is not altered) or not accordingly to the value of `PdfSigner::SkipBufferClear()
 **Q: `PdfMemDocument::SaveUpdate()` or `PoDoFo::SignDocument()` write only a
 partial file: why there's no mechanism to seamlessly handle the incremental
 update as it was in PoDoFo 0.9.x? What should be done to correctly update/sign
-the document?**
+the document?<a id='faq-manual-update'></a>**
 
 **A:** The previous mechanism in PoDoFo 0.9.x required enablement of document
 for incremental updates, which is a decision step which I believe should be
@@ -340,7 +340,7 @@ doc.SaveUpdate(*inputOutput);
 
 Signing documents can be done with same technique, read the other questions for more examples.
 
-**Q: Can I sign a document a second time?**
+**Q: Can I sign a document a second time?<a id='faq-sign-second'></a>**
 
 **A:** Yes, this is tested, but to make sure this will work you'll to re-parse the document a second time,
 as re-using the already loaded document is still untested (this may change later). For example you can
