@@ -31,6 +31,8 @@ struct PODOFO_API PdfTextEntry final
     double Y = -1;
     double Length = -1;
     nullable<Rect> BoundingBox;
+    std::string FontName; 
+    double FontSize = -1; 
 };
 
 /** A structure with status progress attributes of certain operations

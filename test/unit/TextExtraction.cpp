@@ -93,3 +93,15 @@ TEST_CASE("TextExtraction4")
 
     REQUIRE(abort);
 }
+
+TEST_CASE("TextExtraction5")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TextExtraction2.pdf"));
+    auto& page = doc.GetPages().GetPageAt(0);
+    vector<PdfTextEntry> entries;
+    page.ExtractTextTo(entries);
+    REQUIRE(entries[0].Text == "Test text");
+    REQUIRE(entries[0].FontName == "Helvetica"); 
+    REQUIRE(entries[0].FontSize == 12.0);
+}

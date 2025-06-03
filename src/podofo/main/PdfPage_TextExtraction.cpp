@@ -566,6 +566,12 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
     unsigned lowerIndex = 0;
     unsigned upperIndexLimit = (unsigned)glyphAddresses.size();
     auto textState = firstStr.State;
+    std::string fontName;
+    double fontSize = -1;
+    if (textState.PdfState.Font)
+        fontName = textState.PdfState.Font->GetName();
+    fontSize = textState.PdfState.FontSize;
+
     if (pattern.length() != 0)
     {
         PODOFO_INVARIANT(utls::IsValidUtf8String(pattern));
@@ -657,14 +663,14 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
     if (rotation == nullptr || options.RawCoordinates)
     {
         textEntries.push_back(PdfTextEntry{ str, pageIndex,
-            strPosition.X, strPosition.Y, strLength, bbox });
+            strPosition.X, strPosition.Y, strLength, bbox, fontName, fontSize });
     }
     else
     {
         Vector2 rawp(strPosition.X, strPosition.Y);
         auto p_1 = rawp * (*rotation);
         textEntries.push_back(PdfTextEntry{ str, pageIndex,
-            p_1.X, p_1.Y, strLength, bbox });
+            p_1.X, p_1.Y, strLength, bbox, fontName, fontSize });
     }
 
     chunks.clear();
