@@ -8,5 +8,5 @@ Description: A C++ library to work with the PDF file format
 Version: @PODOFO_VERSION@
 Requires.private: @PODOFO_PKGCONFIG_REQUIRES_PRIVATE@
 Libs: -L${libdir} -lpodofo
-Libs.private: -lpodofo_private -lpodofo_3rdparty
+Libs.private: @PODOFO_PACKAGE_CONFIG_LIBS@
 Cflags: -I${includedir}
