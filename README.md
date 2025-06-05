@@ -54,7 +54,7 @@ It is regularly tested with the following IDE/toolchains versions:
 * XCode 13.3
 * NDK r23b
 
-GCC 8.x support [broke](https://github.com/podofo/podofo/issues/116) recently, but it could be reinstanced.
+GCC 8.1 support [broke](https://github.com/podofo/podofo/issues/116), but it could be reinstanced.
 
 ## Licensing
 
