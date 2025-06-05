@@ -54,6 +54,8 @@ It is regularly tested with the following IDE/toolchains versions:
 * XCode 13.3
 * NDK r23b
 
+GCC 8.1 support [broke](https://github.com/podofo/podofo/issues/116), but it could be reinstanced.
+
 ## Licensing
 
 PoDoFo library is licensed under the [LGPL 2.0](https://spdx.org/licenses/LGPL-2.0-or-later.html) or later terms.
