@@ -23,6 +23,7 @@ x86/
 .DS_Store
 __pycache__/
 *.code-workspace
+vcpkg/
 
 # Doxygen
 documentation/
