@@ -15,7 +15,7 @@ TEST_CASE("TextExtraction1")
 {
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("TextExtraction1.pdf"));
-    auto& page = doc.GetPages().GetPageAt(0);
+    auto &page = doc.GetPages().GetPageAt(0);
     vector<PdfTextEntry> entries;
     page.ExtractTextTo(entries);
 
@@ -38,7 +38,7 @@ TEST_CASE("TextExtraction2")
     // Extraction with inline fonts
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("TextExtraction2.pdf"));
-    auto& page = doc.GetPages().GetPageAt(0);
+    auto &page = doc.GetPages().GetPageAt(0);
     vector<PdfTextEntry> entries;
     page.ExtractTextTo(entries);
     REQUIRE(entries[0].Text == "Test text");
@@ -50,7 +50,7 @@ TEST_CASE("TextExtraction3")
 {
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("TextExtractionPredefinedCmap.pdf"));
-    auto& page = doc.GetPages().GetPageAt(0);
+    auto &page = doc.GetPages().GetPageAt(0);
     vector<PdfTextEntry> entries;
     page.ExtractTextTo(entries);
 
@@ -81,11 +81,12 @@ TEST_CASE("TextExtraction4")
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("TextExtraction1.pdf"));
 
-    auto& page = doc.GetPages().GetPageAt(0);
+    auto &page = doc.GetPages().GetPageAt(0);
     vector<PdfTextEntry> entries;
     bool abort = false;
     PdfTextExtractParams params = {};
-    params.AbortCheck = [&](const AbortCheckInfo& info) {
+    params.AbortCheck = [&](const AbortCheckInfo &info)
+    {
         abort = info.ReadCount > 2;
         return abort;
     };
@@ -98,10 +99,29 @@ TEST_CASE("TextExtraction5")
 {
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("TextExtraction2.pdf"));
-    auto& page = doc.GetPages().GetPageAt(0);
+    auto &page = doc.GetPages().GetPageAt(0);
     vector<PdfTextEntry> entries;
     page.ExtractTextTo(entries);
     REQUIRE(entries[0].Text == "Test text");
-    REQUIRE(entries[0].FontName == "Helvetica"); 
+    REQUIRE(entries[0].FontName == "Helvetica");
     REQUIRE(entries[0].FontSize == 12.0);
+}
+
+TEST_CASE("TestExtraction6")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TextExtraction1.pdf"));
+    auto &page = doc.GetPages().GetPageAt(0);
+    vector<PdfTextEntry> entries;
+    page.ExtractTextTo(entries);
+
+    PdfTextEntry first = entries[0];
+    REQUIRE(first.Text == "MATLAB");
+    REQUIRE(first.FontName == "Georgia-Bold");
+    REQUIRE(first.FontSize == 8.4416);
+
+    PdfTextEntry second = entries[1];
+    REQUIRE(second.Text.find(R"((an abbreviation of "matrix laboratory"))") != std::string::npos);
+    REQUIRE(second.FontName == "Georgia");
+    REQUIRE(second.FontSize == 8.4416);
 }

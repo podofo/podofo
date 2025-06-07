@@ -30,8 +30,9 @@ constexpr double SAME_LINE_THRESHOLD = 0.01;
 constexpr double SEPARATION_EPSILON = 0.0000001;
 // Inferred empirically on Adobe Acrobat Pro
 constexpr unsigned HARD_SEPARATION_SPACING_MULTIPLIER = 6;
-#define ASSERT(condition, message, ...) if (!condition)\
-    PoDoFo::LogMessage(PdfLogSeverity::Warning, message, ##__VA_ARGS__);
+#define ASSERT(condition, message, ...) \
+    if (!condition)                     \
+        PoDoFo::LogMessage(PdfLogSeverity::Warning, message, ##__VA_ARGS__);
 
 static constexpr float NaN = numeric_limits<float>::quiet_NaN();
 
@@ -45,11 +46,11 @@ struct TextState
         PdfState.FontSize = -1;
     }
 
-    Matrix T_rm;  // Current T_rm
-    Matrix CTM;   // Current CTM
-    Matrix T_m;   // Current T_m
-    Matrix T_lm;  // Current T_lm
-    double T_l = 0;             // Leading text Tl
+    Matrix T_rm;    // Current T_rm
+    Matrix CTM;     // Current CTM
+    Matrix T_m;     // Current T_m
+    Matrix T_lm;    // Current T_lm
+    double T_l = 0; // Leading text Tl
     PdfTextState PdfState;
     Vector2 WordSpacingVectorRaw;
     Vector2 SpaceCharVectorRaw;
@@ -60,13 +61,14 @@ struct TextState
     void ComputeT_rm();
     double GetWordSpacingLength() const;
     double GetSpaceCharLength() const;
-    void ScanString(const PdfString& encodedStr, string& decoded, vector<double>& lengths, vector<unsigned>& positions);
+    void ScanString(const PdfString &encodedStr, string &decoded, vector<double> &lengths, vector<unsigned> &positions);
 };
 
 class StatefulString
 {
 public:
-    StatefulString(string&& str, const TextState& state, vector<double>&& rawLengths, vector<unsigned>&& positions);
+    StatefulString(string &&str, const TextState &state, vector<double> &&rawLengths, vector<unsigned> &&positions);
+
 public:
     bool BeginsWithWhiteSpace() const;
     bool EndsWithWhiteSpace() const;
@@ -74,8 +76,10 @@ public:
     StatefulString GetTrimmedEnd() const;
     double GetLengthRaw() const;
     double GetLength() const;
+
 private:
-    vector<double> computeLengths(const vector<double>& rawLengths);
+    vector<double> computeLengths(const vector<double> &rawLengths);
+
 public:
     const string String;
     const TextState State;
@@ -107,7 +111,7 @@ using TextStateStack = StateStack<TextState>;
 
 struct XObjectState
 {
-    const PdfXObjectForm* Form;
+    const PdfXObjectForm *Form;
     unsigned TextStateIndex;
 };
 
@@ -115,7 +119,8 @@ struct ExtractionContext
 {
 public:
     ExtractionContext(vector<PdfTextEntry> &entries, const PdfPage &page, const string_view &pattern,
-        PdfTextExtractFlags flags, const nullable<Rect> &clipRect);
+                      PdfTextExtractFlags flags, const nullable<Rect> &clipRect);
+
 public:
     void BeginText();
     void EndText();
@@ -125,19 +130,23 @@ public:
     void TdTD_Operator(double tx, double ty);
     void AdvanceSpace(double ty);
     void TStar_Operator();
+
 public:
     void PushString(const StatefulString &str, bool pushchunk = false);
     void TryPushChunk();
     void TryAddLastEntry();
+
 private:
-    bool areChunksSpaced(double& distance);
+    bool areChunksSpaced(double &distance);
     void pushChunk();
     void addEntry();
-    void tryAddEntry(const StatefulString& currStr);
-    const PdfCanvas& getActualCanvas();
-    const StatefulString& getPreviouString() const;
+    void tryAddEntry(const StatefulString &currStr);
+    const PdfCanvas &getActualCanvas();
+    const StatefulString &getPreviouString() const;
+
 private:
-    const PdfPage& m_page;
+    const PdfPage &m_page;
+
 public:
     const int PageIndex;
     const string Pattern;
@@ -149,8 +158,8 @@ public:
     StringChunkList Chunks;
     TextStateStack States;
     vector<XObjectState> XObjectStateIndices;
-    double CurrentEntryT_rm_y = NaN;    // Tracks line changing
-    Vector2 PrevChunkT_rm_Pos;          // Tracks space separation
+    double CurrentEntryT_rm_y = NaN; // Tracks line changing
+    Vector2 PrevChunkT_rm_Pos;       // Tracks space separation
     bool BlockOpen = false;
 };
 
@@ -161,7 +170,7 @@ struct GlyphAddress
 };
 
 static bool decodeString(const PdfString &str, TextState &state, string &decoded,
-    vector<double> &lengths, vector<unsigned>& positions);
+                         vector<double> &lengths, vector<unsigned> &positions);
 static bool areEqual(double lhs, double rhs);
 static bool isWhiteSpaceChunk(const StringChunk &chunk);
 static void splitChunkBySpaces(vector<StringChunkPtr> &splittedChunks, const StringChunk &chunk);
@@ -169,31 +178,31 @@ static void splitStringBySpaces(vector<StatefulString> &separatedStrings, const 
 static void trimSpacesBegin(StringChunk &chunk);
 static void trimSpacesEnd(StringChunk &chunk);
 static void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &strings,
-    const string_view &pattern, const EntryOptions &options, const nullable<Rect> &clipRect,
-    int pageIndex, const Matrix* rotation);
+                     const string_view &pattern, const EntryOptions &options, const nullable<Rect> &clipRect,
+                     int pageIndex, const Matrix *rotation);
 static void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &strings,
-    const string_view &pattern, const EntryOptions& options, const nullable<Rect> &clipRect,
-    int pageIndex, const Matrix* rotation);
-static void processChunks(const StringChunkList& chunks, string& destString,
-    vector<unsigned>& positions, vector<const StatefulString*>& strings,
-    vector<GlyphAddress>& glyphAddresses);
-static double computeLength(const vector<const StatefulString*>& strings, const vector<GlyphAddress>& glyphAddresses,
-    unsigned lowerIndex, unsigned upperIndex);
-static bool isMatchWholeWordSubstring(const string_view& str, const string_view& pattern, size_t& matchPos);
-static Rect computeBoundingBox(const TextState& textState, double boxWidth);
-static void read(const PdfVariantStack& stack, double &tx, double &ty);
-static void read(const PdfVariantStack& stack, double &a, double &b, double &c, double &d, double &e, double &f);
-static void getSubstringIndices(const vector<unsigned>& positions, unsigned lowerPos, unsigned upperLimitPos,
-    unsigned& lowerIndex, unsigned& upperLimitIndex);
+                          const string_view &pattern, const EntryOptions &options, const nullable<Rect> &clipRect,
+                          int pageIndex, const Matrix *rotation);
+static void processChunks(const StringChunkList &chunks, string &destString,
+                          vector<unsigned> &positions, vector<const StatefulString *> &strings,
+                          vector<GlyphAddress> &glyphAddresses);
+static double computeLength(const vector<const StatefulString *> &strings, const vector<GlyphAddress> &glyphAddresses,
+                            unsigned lowerIndex, unsigned upperIndex);
+static bool isMatchWholeWordSubstring(const string_view &str, const string_view &pattern, size_t &matchPos);
+static Rect computeBoundingBox(const TextState &textState, double boxWidth);
+static void read(const PdfVariantStack &stack, double &tx, double &ty);
+static void read(const PdfVariantStack &stack, double &a, double &b, double &c, double &d, double &e, double &f);
+static void getSubstringIndices(const vector<unsigned> &positions, unsigned lowerPos, unsigned upperLimitPos,
+                                unsigned &lowerIndex, unsigned &upperLimitIndex);
 static EntryOptions optionsFromFlags(PdfTextExtractFlags flags);
 
-void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const PdfTextExtractParams& params) const
+void PdfPage::ExtractTextTo(vector<PdfTextEntry> &entries, const PdfTextExtractParams &params) const
 {
-    ExtractTextTo(entries, { }, params);
+    ExtractTextTo(entries, {}, params);
 }
 
-void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pattern,
-    const PdfTextExtractParams& params) const
+void PdfPage::ExtractTextTo(vector<PdfTextEntry> &entries, const string_view &pattern,
+                            const PdfTextExtractParams &params) const
 {
     ExtractionContext context(entries, *this, pattern, params.Flags, params.ClipRect);
 
@@ -217,227 +226,223 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
 
         switch (content.GetType())
         {
-            case PdfContentType::Operator:
+        case PdfContentType::Operator:
+        {
+            if (content.HasErrors())
             {
-                if (content.HasErrors())
+                // Ignore invalid operators
+                continue;
+            }
+
+            // T_l TL: Set the text leading, T_l
+            switch (content->Operator)
+            {
+            case PdfOperator::TL:
+            {
+                context.States.Current->T_l = content->Stack[0].GetReal();
+                break;
+            }
+            case PdfOperator::cm:
+            {
+                double a, b, c, d, e, f;
+                read(content->Stack, a, b, c, d, e, f);
+                context.cm_Operator(a, b, c, d, e, f);
+                break;
+            }
+            // t_x t_y Td     : Move to the start of the next line
+            // t_x t_y TD     : Move to the start of the next line
+            // a b c d e f Tm : Set the text matrix, T_m , and the text line matrix, T_lm
+            case PdfOperator::Td:
+            case PdfOperator::TD:
+            case PdfOperator::Tm:
+            {
+                if (content->Operator == PdfOperator::Td || content->Operator == PdfOperator::TD)
                 {
-                    // Ignore invalid operators
-                    continue;
+                    double tx, ty;
+                    read(content->Stack, tx, ty);
+                    context.TdTD_Operator(tx, ty);
+
+                    if (content->Operator == PdfOperator::TD)
+                        context.States.Current->T_l = -ty;
+                }
+                else if (content->Operator == PdfOperator::Tm)
+                {
+                    double a, b, c, d, e, f;
+                    read(content->Stack, a, b, c, d, e, f);
+                    context.Tm_Operator(a, b, c, d, e, f);
+                }
+                else
+                {
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid flow");
                 }
 
-                // T_l TL: Set the text leading, T_l
-                switch (content->Operator)
+                break;
+            }
+            // T*: Move to the start of the next line
+            case PdfOperator::T_Star:
+            {
+                // NOTE: Errata for the PDF Reference, sixth edition, version 1.7
+                // Section 5.3, Text Objects:
+                // This operator has the same effect as the code
+                //    0 -Tl Td
+                context.TStar_Operator();
+                break;
+            }
+            // BT: Begin a text object
+            case PdfOperator::BT:
+            {
+                context.BeginText();
+                break;
+            }
+            // ET: End a text object
+            case PdfOperator::ET:
+            {
+                context.EndText();
+                break;
+            }
+            // font size Tf : Set the text font, T_f
+            case PdfOperator::Tf:
+            {
+                double fontSize = content->Stack[0].GetReal();
+                auto &fontName = content->Stack[1].GetName();
+                context.Tf_Operator(fontName, fontSize);
+                break;
+            }
+            // string Tj : Show a text string
+            // string '  : Move to the next line and show a text string
+            // a_w a_c " : Move to the next line and show a text string,
+            //             using a_w as the word spacing and a_c as the
+            //             character spacing
+            case PdfOperator::Tj:
+            case PdfOperator::Quote:
+            case PdfOperator::DoubleQuote:
+            {
+                ASSERT(context.BlockOpen, "No text block open");
+
+                auto &str = content->Stack[0].GetString();
+                if (content->Operator == PdfOperator::DoubleQuote)
                 {
-                    case PdfOperator::TL:
-                    {
-                        context.States.Current->T_l = content->Stack[0].GetReal();
-                        break;
-                    }
-                    case PdfOperator::cm:
-                    {
-                        double a, b, c, d, e, f;
-                        read(content->Stack, a, b, c, d, e, f);
-                        context.cm_Operator(a, b, c, d, e, f);
-                        break;
-                    }
-                    // t_x t_y Td     : Move to the start of the next line
-                    // t_x t_y TD     : Move to the start of the next line
-                    // a b c d e f Tm : Set the text matrix, T_m , and the text line matrix, T_lm
-                    case PdfOperator::Td:
-                    case PdfOperator::TD:
-                    case PdfOperator::Tm:
-                    {
-                        if (content->Operator == PdfOperator::Td || content->Operator == PdfOperator::TD)
-                        {
-                            double tx, ty;
-                            read(content->Stack, tx, ty);
-                            context.TdTD_Operator(tx, ty);
+                    // Operator " arguments: aw ac string "
+                    context.States.Current->PdfState.CharSpacing = content->Stack[1].GetReal();
+                    context.States.Current->PdfState.WordSpacing = content->Stack[2].GetReal();
+                }
 
-                            if (content->Operator == PdfOperator::TD)
-                                context.States.Current->T_l = -ty;
-                        }
-                        else if (content->Operator == PdfOperator::Tm)
-                        {
-                            double a, b, c, d, e, f;
-                            read(content->Stack, a, b, c, d, e, f);
-                            context.Tm_Operator(a, b, c, d, e, f);
-                        }
-                        else
-                        {
-                            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid flow");
-                        }
+                if (decodeString(str, *context.States.Current, decoded, lengths, positions) && decoded.length() != 0)
+                {
+                    context.PushString(StatefulString(std::move(decoded), *context.States.Current,
+                                                      std::move(lengths), std::move(positions)),
+                                       true);
+                }
 
-                        break;
-                    }
-                    // T*: Move to the start of the next line
-                    case PdfOperator::T_Star:
-                    {
-                        // NOTE: Errata for the PDF Reference, sixth edition, version 1.7
-                        // Section 5.3, Text Objects:
-                        // This operator has the same effect as the code
-                        //    0 -Tl Td
-                        context.TStar_Operator();
-                        break;
-                    }
-                    // BT: Begin a text object
-                    case PdfOperator::BT:
-                    {
-                        context.BeginText();
-                        break;
-                    }
-                    // ET: End a text object
-                    case PdfOperator::ET:
-                    {
-                        context.EndText();
-                        break;
-                    }
-                    // font size Tf : Set the text font, T_f
-                    case PdfOperator::Tf:
-                    {
-                        double fontSize = content->Stack[0].GetReal();
-                        auto& fontName = content->Stack[1].GetName();
-                        context.Tf_Operator(fontName, fontSize);
-                        break;
-                    }
-                    // string Tj : Show a text string
-                    // string '  : Move to the next line and show a text string
-                    // a_w a_c " : Move to the next line and show a text string,
-                    //             using a_w as the word spacing and a_c as the
-                    //             character spacing
-                    case PdfOperator::Tj:
-                    case PdfOperator::Quote:
-                    case PdfOperator::DoubleQuote:
-                    {
-                        ASSERT(context.BlockOpen, "No text block open");
+                if (content->Operator == PdfOperator::Quote || content->Operator == PdfOperator::DoubleQuote)
+                {
+                    context.TStar_Operator();
+                }
 
-                        auto& str = content->Stack[0].GetString();
-                        if (content->Operator == PdfOperator::DoubleQuote)
-                        {
-                            // Operator " arguments: aw ac string "
-                            context.States.Current->PdfState.CharSpacing = content->Stack[1].GetReal();
-                            context.States.Current->PdfState.WordSpacing = content->Stack[2].GetReal();
-                        }
+                break;
+            }
+            // array TJ : Show one or more text strings
+            case PdfOperator::TJ:
+            {
+                ASSERT(context.BlockOpen, "No text block open");
 
-                        if (decodeString(str, *context.States.Current, decoded, lengths, positions)
-                            && decoded.length() != 0)
+                auto &array = content->Stack[0].GetArray();
+                for (unsigned i = 0; i < array.GetSize(); i++)
+                {
+                    const PdfString *str;
+                    double real;
+                    auto &obj = array[i];
+                    if (obj.TryGetString(str))
+                    {
+                        if (decodeString(*str, *context.States.Current, decoded, lengths, positions) && decoded.length() != 0)
                         {
                             context.PushString(StatefulString(std::move(decoded), *context.States.Current,
-                                std::move(lengths), std::move(positions)), true);
+                                                              std::move(lengths), std::move(positions)));
                         }
-
-                        if (content->Operator == PdfOperator::Quote
-                            || content->Operator == PdfOperator::DoubleQuote)
-                        {
-                            context.TStar_Operator();
-                        }
-
-                        break;
                     }
-                    // array TJ : Show one or more text strings
-                    case PdfOperator::TJ:
+                    else if (obj.TryGetReal(real))
                     {
-                        ASSERT(context.BlockOpen, "No text block open");
-
-                        auto& array = content->Stack[0].GetArray();
-                        for (unsigned i = 0; i < array.GetSize(); i++)
-                        {
-                            const PdfString* str;
-                            double real;
-                            auto& obj = array[i];
-                            if (obj.TryGetString(str))
-                            {
-                                if (decodeString(*str, *context.States.Current, decoded, lengths, positions)
-                                    && decoded.length() != 0)
-                                {
-                                    context.PushString(StatefulString(std::move(decoded), *context.States.Current,
-                                        std::move(lengths), std::move(positions)));
-                                }
-                            }
-                            else if (obj.TryGetReal(real))
-                            {
-                                // pg. 408, Pdf Reference 1.7: "The number is expressed in thousandths of a unit
-                                // of text space. [...] This amount is subtracted from from the current horizontal or
-                                // vertical coordinate, depending on the writing mode"
-                                // It must be scaled by the font size
-                                double space = (-real / 1000) * context.States.Current->PdfState.FontSize;
-                                context.AdvanceSpace(space);
-                            }
-                            else
-                            {
-                                PoDoFo::LogMessage(PdfLogSeverity::Warning, "Invalid array object type {}", obj.GetDataTypeString());
-                            }
-                        }
-
-                        context.TryPushChunk();
-                        break;
+                        // pg. 408, Pdf Reference 1.7: "The number is expressed in thousandths of a unit
+                        // of text space. [...] This amount is subtracted from from the current horizontal or
+                        // vertical coordinate, depending on the writing mode"
+                        // It must be scaled by the font size
+                        double space = (-real / 1000) * context.States.Current->PdfState.FontSize;
+                        context.AdvanceSpace(space);
                     }
-                    // Tc : word spacing
-                    case PdfOperator::Tc:
+                    else
                     {
-                        context.States.Current->PdfState.CharSpacing = content->Stack[0].GetReal();
-                        break;
-                    }
-                    case PdfOperator::Tw:
-                    {
-                        context.States.Current->PdfState.WordSpacing = content->Stack[0].GetReal();
-                        break;
-                    }
-                    // q : Save the current graphics state
-                    case PdfOperator::q:
-                    {
-                        ASSERT(!context.BlockOpen, "Text block must be not open");
-                        context.States.Push();
-                        break;
-                    }
-                    // Q : Restore the graphics state by removing
-                    // the most recently saved state from the stack
-                    case PdfOperator::Q:
-                    {
-                        ASSERT(!context.BlockOpen, "Text block must be not open");
-                        ASSERT(context.States.PopLenient(), "Save/restore must be balanced");
-                        break;
-                    }
-                    default:
-                    {
-                        // Ignore all the other operators
-                        break;
+                        PoDoFo::LogMessage(PdfLogSeverity::Warning, "Invalid array object type {}", obj.GetDataTypeString());
                     }
                 }
 
+                context.TryPushChunk();
                 break;
             }
-            case PdfContentType::ImageDictionary:
-            case PdfContentType::ImageData:
+            // Tc : word spacing
+            case PdfOperator::Tc:
             {
-                // Ignore image data token
+                context.States.Current->PdfState.CharSpacing = content->Stack[0].GetReal();
                 break;
             }
-            case PdfContentType::BeginFormXObject:
+            case PdfOperator::Tw:
             {
-                context.XObjectStateIndices.push_back({
-                    (const PdfXObjectForm*)content->XObject.get(),
-                    context.States.GetSize()
-                    });
+                context.States.Current->PdfState.WordSpacing = content->Stack[0].GetReal();
+                break;
+            }
+            // q : Save the current graphics state
+            case PdfOperator::q:
+            {
+                ASSERT(!context.BlockOpen, "Text block must be not open");
                 context.States.Push();
-
                 break;
             }
-            case PdfContentType::EndFormXObject:
+            // Q : Restore the graphics state by removing
+            // the most recently saved state from the stack
+            case PdfOperator::Q:
             {
-                PODOFO_ASSERT(context.XObjectStateIndices.size() != 0);
-                context.States.Pop(context.States.GetSize() - context.XObjectStateIndices.back().TextStateIndex);
-                context.XObjectStateIndices.pop_back();
-                break;
-            }
-            case PdfContentType::DoXObject:
-            {
-                // Ignore handling of non Form XObjects
+                ASSERT(!context.BlockOpen, "Text block must be not open");
+                ASSERT(context.States.PopLenient(), "Save/restore must be balanced");
                 break;
             }
             default:
             {
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Unsupported PdfContentType");
+                // Ignore all the other operators
+                break;
             }
+            }
+
+            break;
+        }
+        case PdfContentType::ImageDictionary:
+        case PdfContentType::ImageData:
+        {
+            // Ignore image data token
+            break;
+        }
+        case PdfContentType::BeginFormXObject:
+        {
+            context.XObjectStateIndices.push_back({(const PdfXObjectForm *)content->XObject.get(),
+                                                   context.States.GetSize()});
+            context.States.Push();
+
+            break;
+        }
+        case PdfContentType::EndFormXObject:
+        {
+            PODOFO_ASSERT(context.XObjectStateIndices.size() != 0);
+            context.States.Pop(context.States.GetSize() - context.XObjectStateIndices.back().TextStateIndex);
+            context.XObjectStateIndices.pop_back();
+            break;
+        }
+        case PdfContentType::DoXObject:
+        {
+            // Ignore handling of non Form XObjects
+            break;
+        }
+        default:
+        {
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Unsupported PdfContentType");
+        }
         }
     }
 
@@ -447,7 +452,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
 }
 
 void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, const string_view &pattern,
-    const EntryOptions &options, const nullable<Rect> &clipRect, int pageIndex, const Matrix* rotation)
+              const EntryOptions &options, const nullable<Rect> &clipRect, int pageIndex, const Matrix *rotation)
 {
     if (options.TokenizeWords)
     {
@@ -498,21 +503,21 @@ void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, const 
             }
         }
 
-        for (auto& batch : batches)
+        for (auto &batch : batches)
         {
             addEntryChunk(textEntries, *batch, pattern, options,
-                clipRect, pageIndex, rotation);
+                          clipRect, pageIndex, rotation);
         }
     }
     else
     {
         addEntryChunk(textEntries, chunks, pattern, options,
-            clipRect, pageIndex, rotation);
+                      clipRect, pageIndex, rotation);
     }
 }
 
 void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, const string_view &pattern,
-    const EntryOptions& options, const nullable<Rect> &clipRect, int pageIndex, const Matrix* rotation)
+                   const EntryOptions &options, const nullable<Rect> &clipRect, int pageIndex, const Matrix *rotation)
 {
     if (options.TrimSpaces)
     {
@@ -560,7 +565,7 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
 
     string str;
     vector<unsigned> positions;
-    vector<const StatefulString*> strings;
+    vector<const StatefulString *> strings;
     vector<GlyphAddress> glyphAddresses;
     processChunks(chunks, str, positions, strings, glyphAddresses);
     unsigned lowerIndex = 0;
@@ -612,7 +617,7 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
                 if (match)
                 {
                     getSubstringIndices(positions, (unsigned)pos, (unsigned)(pos + pattern.size()),
-                        lowerIndex, upperIndexLimit);
+                                        lowerIndex, upperIndexLimit);
 
                     // Assign actual found matched substring
                     if (pos != 0 || str.size() != pattern.size())
@@ -662,27 +667,27 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
     auto strPosition = textState.T_rm.GetTranslationVector();
     if (rotation == nullptr || options.RawCoordinates)
     {
-        textEntries.push_back(PdfTextEntry{ str, pageIndex,
-            strPosition.X, strPosition.Y, strLength, bbox, fontName, fontSize });
+        textEntries.push_back(PdfTextEntry{str, pageIndex,
+                                           strPosition.X, strPosition.Y, strLength, bbox, fontName, fontSize});
     }
     else
     {
         Vector2 rawp(strPosition.X, strPosition.Y);
         auto p_1 = rawp * (*rotation);
-        textEntries.push_back(PdfTextEntry{ str, pageIndex,
-            p_1.X, p_1.Y, strLength, bbox, fontName, fontSize });
+        textEntries.push_back(PdfTextEntry{str, pageIndex,
+                                           p_1.X, p_1.Y, strLength, bbox, fontName, fontSize});
     }
 
     chunks.clear();
 }
 
-void read(const PdfVariantStack& tokens, double & tx, double & ty)
+void read(const PdfVariantStack &tokens, double &tx, double &ty)
 {
     ty = tokens[0].GetReal();
     tx = tokens[1].GetReal();
 }
 
-void read(const PdfVariantStack& tokens, double & a, double & b, double & c, double & d, double & e, double & f)
+void read(const PdfVariantStack &tokens, double &a, double &b, double &c, double &d, double &e, double &f)
 {
     f = tokens[0].GetReal();
     e = tokens[1].GetReal();
@@ -693,7 +698,7 @@ void read(const PdfVariantStack& tokens, double & a, double & b, double & c, dou
 }
 
 bool decodeString(const PdfString &str, TextState &state, string &decoded,
-    vector<double>& lengths, vector<unsigned>& positions)
+                  vector<double> &lengths, vector<unsigned> &positions)
 {
     if (state.PdfState.Font == nullptr)
     {
@@ -720,15 +725,14 @@ bool decodeString(const PdfString &str, TextState &state, string &decoded,
     return true;
 }
 
-StatefulString::StatefulString(string&& str, const TextState& state,
-        vector<double>&& lengths, vector<unsigned>&& positions) :
-    String(std::move(str)),
-    State(state),
-    RawLengths(std::move(lengths)),
-    Lengths(computeLengths(RawLengths)),
-    StringPositions(std::move(positions)),
-    Position(state.T_rm.GetTranslationVector()),
-    IsWhiteSpace(utls::IsStringEmptyOrWhiteSpace(String))
+StatefulString::StatefulString(string &&str, const TextState &state,
+                               vector<double> &&lengths, vector<unsigned> &&positions) : String(std::move(str)),
+                                                                                         State(state),
+                                                                                         RawLengths(std::move(lengths)),
+                                                                                         Lengths(computeLengths(RawLengths)),
+                                                                                         StringPositions(std::move(positions)),
+                                                                                         Position(state.T_rm.GetTranslationVector()),
+                                                                                         IsWhiteSpace(utls::IsStringEmptyOrWhiteSpace(String))
 {
     PODOFO_ASSERT(String.length() != 0);
     PODOFO_ASSERT(RawLengths.size() != 0);
@@ -780,13 +784,13 @@ StatefulString StatefulString::GetTrimmedBegin() const
 
     // After, rewrite the string without spaces
     return StatefulString(str.substr(trimmedLen), state,
-        { RawLengths.begin() + lowerIndex, RawLengths.end() },
-        std::move(positions));
+                          {RawLengths.begin() + lowerIndex, RawLengths.end()},
+                          std::move(positions));
 }
 
 bool StatefulString::BeginsWithWhiteSpace() const
 {
-    auto& str = String;
+    auto &str = String;
     auto it = str.begin();
     auto end = str.end();
     while (it != end)
@@ -802,7 +806,7 @@ bool StatefulString::BeginsWithWhiteSpace() const
 bool StatefulString::EndsWithWhiteSpace() const
 {
     bool isPrevWhiteSpace = false;
-    auto& str = String;
+    auto &str = String;
     auto it = str.begin();
     auto end = str.end();
     while (it != end)
@@ -830,8 +834,8 @@ StatefulString StatefulString::GetTrimmedEnd() const
         }
     }
     return StatefulString(std::move(trimmedStr), State,
-        { Lengths.begin(), Lengths.begin() + positionIndexLimit },
-        { StringPositions.begin(), StringPositions.begin() + positionIndexLimit });
+                          {Lengths.begin(), Lengths.begin() + positionIndexLimit},
+                          {StringPositions.begin(), StringPositions.begin() + positionIndexLimit});
 }
 
 double StatefulString::GetLengthRaw() const
@@ -852,7 +856,7 @@ double StatefulString::GetLength() const
     return length;
 }
 
-vector<double> StatefulString::computeLengths(const vector<double>& rawLengths)
+vector<double> StatefulString::computeLengths(const vector<double> &rawLengths)
 {
     // NOTE: the lengths are transformed accordingly to text state but
     // are not CTM transformed
@@ -864,14 +868,13 @@ vector<double> StatefulString::computeLengths(const vector<double>& rawLengths)
     return ret;
 }
 
-ExtractionContext::ExtractionContext(vector<PdfTextEntry>& entries, const PdfPage& page, const string_view& pattern,
-    PdfTextExtractFlags flags , const nullable<Rect>& clipRect) :
-    m_page(page),
-    PageIndex(page.GetPageNumber() - 1),
-    Pattern(pattern),
-    Options(optionsFromFlags(flags)),
-    ClipRect(clipRect),
-    Entries(entries)
+ExtractionContext::ExtractionContext(vector<PdfTextEntry> &entries, const PdfPage &page, const string_view &pattern,
+                                     PdfTextExtractFlags flags, const nullable<Rect> &clipRect) : m_page(page),
+                                                                                                  PageIndex(page.GetPageNumber() - 1),
+                                                                                                  Pattern(pattern),
+                                                                                                  Options(optionsFromFlags(flags)),
+                                                                                                  ClipRect(clipRect),
+                                                                                                  Entries(entries)
 {
     if (Options.ExtractSubstring && pattern.empty())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Unsupported ExtractSubstring flag with empty pattern");
@@ -1011,7 +1014,7 @@ void ExtractionContext::TryAddLastEntry()
         addEntry();
 }
 
-const PdfCanvas& ExtractionContext::getActualCanvas()
+const PdfCanvas &ExtractionContext::getActualCanvas()
 {
     if (XObjectStateIndices.size() == 0)
         return m_page;
@@ -1019,9 +1022,9 @@ const PdfCanvas& ExtractionContext::getActualCanvas()
     return *XObjectStateIndices.back().Form;
 }
 
-const StatefulString& ExtractionContext::getPreviouString() const
+const StatefulString &ExtractionContext::getPreviouString() const
 {
-    const StatefulString* prevString;
+    const StatefulString *prevString;
     if (Chunk->size() > 0)
     {
         prevString = &Chunk->back();
@@ -1040,9 +1043,49 @@ void ExtractionContext::addEntry()
     ::addEntry(Entries, Chunks, Pattern, Options, ClipRect, PageIndex, Rotation.get());
 }
 
-void ExtractionContext::tryAddEntry(const StatefulString& currStr)
+void ExtractionContext::tryAddEntry(const StatefulString &currStr)
 {
     PODOFO_INVARIANT(Chunk != nullptr);
+
+    const StatefulString *prevStr = nullptr;
+
+    if (Chunk->size() > 0)
+    {
+        // Compare with last string in current chunk
+        prevStr = &Chunk->back();
+    }
+    else if (Chunks.size() > 0 && Chunks.back()->size() > 0)
+    {
+        // Compare with last string in previous chunk
+        prevStr = &Chunks.back()->back();
+    }
+
+    if (prevStr != nullptr)
+    {
+        auto previousStyle = prevStr->State.PdfState.Font->GetMetrics().GetStyle();
+        auto currentStyle = currStr.State.PdfState.Font->GetMetrics().GetStyle();
+
+        std::cout << "Previous style: " << static_cast<int>(previousStyle)
+                  << ", Current style: " << static_cast<int>(currentStyle) << std::endl;
+
+        float prev_weight = prevStr->State.PdfState.Font->GetMetrics().GetWeight();
+        float curr_weight = currStr.State.PdfState.Font->GetMetrics().GetWeight();
+
+        std::cout << "Previous font weight: " << prev_weight << std::endl;
+        std::cout << "Current font weight: " << curr_weight << std::endl;
+        std::cout << "Font objects same? " << (prevStr->State.PdfState.Font == currStr.State.PdfState.Font) << std::endl;
+
+        bool fontChanged = (prevStr->State.PdfState.Font != currStr.State.PdfState.Font) ||
+                           !areEqual(prevStr->State.PdfState.FontSize, currStr.State.PdfState.FontSize);
+
+        if (fontChanged)
+        {
+            std::cout << "Font change detected - splitting chunk!" << std::endl;
+            TryPushChunk();
+            addEntry();
+        }
+    }
+
     if (Chunks.size() > 0 || Chunk->size() > 0)
     {
         if (areEqual(States.Current->T_rm.Get<Ty>(), CurrentEntryT_rm_y))
@@ -1050,9 +1093,8 @@ void ExtractionContext::tryAddEntry(const StatefulString& currStr)
             double distance;
             if (areChunksSpaced(distance))
             {
-                if (Options.TokenizeWords
-                    || distance + SEPARATION_EPSILON >
-                        States.Current->CharSpaceLength * HARD_SEPARATION_SPACING_MULTIPLIER)
+                if (Options.TokenizeWords || distance + SEPARATION_EPSILON >
+                                                 States.Current->CharSpaceLength * HARD_SEPARATION_SPACING_MULTIPLIER)
                 {
                     // Current entry is space separated and either we
                     //  tokenize words, or it's an hard entry separation
@@ -1062,9 +1104,9 @@ void ExtractionContext::tryAddEntry(const StatefulString& currStr)
                 else
                 {
                     // Add "fake" space
-                    auto& prevString = getPreviouString();
+                    auto &prevString = getPreviouString();
                     if (!(prevString.EndsWithWhiteSpace() || currStr.BeginsWithWhiteSpace()))
-                        Chunk->push_back(StatefulString(" ", prevString.State, { distance }, { 0 }));
+                        Chunk->push_back(StatefulString(" ", prevString.State, {distance}, {0}));
                 }
             }
         }
@@ -1077,7 +1119,7 @@ void ExtractionContext::tryAddEntry(const StatefulString& currStr)
     }
 }
 
-bool ExtractionContext::areChunksSpaced(double& distance)
+bool ExtractionContext::areChunksSpaced(double &distance)
 {
     // TODO
     // 1) Handle the word spacing Tw state
@@ -1092,7 +1134,7 @@ bool ExtractionContext::areChunksSpaced(double& distance)
     bool spaced = distance + SEPARATION_EPSILON >= States.Current->WordSpacingLength;
     if (dot1 < 0 && spaced)
     {
-        auto& prevString = getPreviouString();
+        auto &prevString = getPreviouString();
         auto prev_init = prevString.Position - PrevChunkT_rm_Pos;
         double dot2 = prev_init.Dot(Vector2(1, 0));
         return dot1 < dot2;
@@ -1145,7 +1187,8 @@ void splitStringBySpaces(vector<StatefulString> &separatedStrings, const Statefu
     unsigned lowerPosIndex;
     unsigned upperPosLimIndex;
 
-    auto pushString = [&]() {
+    auto pushString = [&]()
+    {
         getSubstringIndices(str.StringPositions, lowerPos, upperPosLim, lowerPosIndex, upperPosLimIndex);
         double length = 0;
         for (unsigned i = lowerPosIndex; i < upperPosLimIndex; i++)
@@ -1157,8 +1200,8 @@ void splitStringBySpaces(vector<StatefulString> &separatedStrings, const Statefu
             positions[i] -= lowerPos;
 
         separatedStrings.push_back(StatefulString(std::move(separatedStr), state,
-            { str.Lengths.begin() + lowerPosIndex, str.Lengths.begin() + upperPosLimIndex },
-            std::move(positions)));
+                                                  {str.Lengths.begin() + lowerPosIndex, str.Lengths.begin() + upperPosLimIndex},
+                                                  std::move(positions)));
         lowerPos = previousPos;
         upperPosLim = (unsigned)str.String.length();
 
@@ -1275,28 +1318,28 @@ double TextState::GetSpaceCharLength() const
     return PdfState.Font->GetSpaceCharLength(PdfState);
 }
 
-void TextState::ScanString(const PdfString& encodedStr, string& decoded, vector<double>& lengths, vector<unsigned>& positions)
+void TextState::ScanString(const PdfString &encodedStr, string &decoded, vector<double> &lengths, vector<unsigned> &positions)
 {
     (void)PdfState.Font->TryScanEncodedString(encodedStr, PdfState, decoded, lengths, positions);
 }
 
 // Concatenate all strings, lengths and string positions
-void processChunks(const StringChunkList& chunks, string& destString,
-    vector<unsigned>& positions, vector<const StatefulString*>& strings,
-    vector<GlyphAddress>& glyphAddresses)
+void processChunks(const StringChunkList &chunks, string &destString,
+                   vector<unsigned> &positions, vector<const StatefulString *> &strings,
+                   vector<GlyphAddress> &glyphAddresses)
 {
     unsigned offsetPosition = 0;
     unsigned stringIndex;
-    for (auto& chunk : chunks)
+    for (auto &chunk : chunks)
     {
-        for (auto& str : *chunk)
+        for (auto &str : *chunk)
         {
             destString.append(str.String.data(), str.String.length());
             stringIndex = (unsigned)strings.size();
             strings.push_back(&str);
             for (unsigned i = 0; i < str.StringPositions.size(); i++)
             {
-                glyphAddresses.push_back(GlyphAddress{ stringIndex, i });
+                glyphAddresses.push_back(GlyphAddress{stringIndex, i});
                 positions.push_back(offsetPosition + str.StringPositions[i]);
             }
 
@@ -1306,12 +1349,12 @@ void processChunks(const StringChunkList& chunks, string& destString,
 }
 
 // TODO: Handle vertical scripts
-double computeLength(const vector<const StatefulString*>& strings, const vector<GlyphAddress>& glyphAddresses,
-    unsigned lowerIndex, unsigned upperIndex)
+double computeLength(const vector<const StatefulString *> &strings, const vector<GlyphAddress> &glyphAddresses,
+                     unsigned lowerIndex, unsigned upperIndex)
 {
     PODOFO_ASSERT(lowerIndex <= upperIndex);
-    auto& fromAddr = glyphAddresses[lowerIndex];
-    auto& toAddr = glyphAddresses[upperIndex];
+    auto &fromAddr = glyphAddresses[lowerIndex];
+    auto &toAddr = glyphAddresses[upperIndex];
     if (fromAddr.StringIndex == toAddr.StringIndex)
     {
         // NOTE: Include the last glyph
@@ -1343,7 +1386,7 @@ double computeLength(const vector<const StatefulString*>& strings, const vector<
 
 // Verify if the string matches the pattern and verify
 // presence of delimiters for whole word match
-bool isMatchWholeWordSubstring(const string_view& str, const string_view& pattern, size_t& matchPos)
+bool isMatchWholeWordSubstring(const string_view &str, const string_view &pattern, size_t &matchPos)
 {
     bool prevDelimiter;
     auto found = str.find(pattern);
@@ -1383,7 +1426,7 @@ NoMatch:
     return false;
 }
 
-Rect computeBoundingBox(const TextState& textState, double boxWidth)
+Rect computeBoundingBox(const TextState &textState, double boxWidth)
 {
     // NOTE: This is very inaccurate
     // TODO1: Handle multiple text/pdf states
@@ -1391,23 +1434,21 @@ Rect computeBoundingBox(const TextState& textState, double boxWidth)
     // TODO3: Handle vertical scripts
     double descend = 0;
     double ascent = 0;
-    auto& pdfState = textState.PdfState;
+    auto &pdfState = textState.PdfState;
     auto font = pdfState.Font;
     auto transform = textState.T_rm.GetScalingRotation();
     if (font != nullptr)
     {
-        descend = (Vector2(0, font->GetMetrics().GetDescent() * pdfState.FontSize * pdfState.FontScale)
-            * transform).GetLength();
-        ascent = (Vector2(0, font->GetMetrics().GetAscent() * pdfState.FontSize * pdfState.FontScale)
-            * transform).GetLength();
+        descend = (Vector2(0, font->GetMetrics().GetDescent() * pdfState.FontSize * pdfState.FontScale) * transform).GetLength();
+        ascent = (Vector2(0, font->GetMetrics().GetAscent() * pdfState.FontSize * pdfState.FontScale) * transform).GetLength();
     }
 
     auto position = textState.T_rm.GetTranslationVector();
     return Rect(position.X, position.Y - descend, boxWidth, descend + ascent);
 }
 
-void getSubstringIndices(const vector<unsigned>& positions, unsigned lowerPos, unsigned upperPosLim,
-    unsigned& lowerPosIndex, unsigned& upperPosLimIndex)
+void getSubstringIndices(const vector<unsigned> &positions, unsigned lowerPos, unsigned upperPosLim,
+                         unsigned &lowerPosIndex, unsigned &upperPosLimIndex)
 {
     // CHECK-ME: Evaluate optimize with bisection as positions is sorted
     lowerPosIndex = std::numeric_limits<unsigned>::max();
