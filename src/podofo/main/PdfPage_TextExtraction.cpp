@@ -1065,15 +1065,8 @@ void ExtractionContext::tryAddEntry(const StatefulString &currStr)
         auto previousStyle = prevStr->State.PdfState.Font->GetMetrics().GetStyle();
         auto currentStyle = currStr.State.PdfState.Font->GetMetrics().GetStyle();
 
-        std::cout << "Previous style: " << static_cast<int>(previousStyle)
-                  << ", Current style: " << static_cast<int>(currentStyle) << std::endl;
-
         float prev_weight = prevStr->State.PdfState.Font->GetMetrics().GetWeight();
         float curr_weight = currStr.State.PdfState.Font->GetMetrics().GetWeight();
-
-        std::cout << "Previous font weight: " << prev_weight << std::endl;
-        std::cout << "Current font weight: " << curr_weight << std::endl;
-        std::cout << "Font objects same? " << (prevStr->State.PdfState.Font == currStr.State.PdfState.Font) << std::endl;
 
         bool fontChanged = (prevStr->State.PdfState.Font != currStr.State.PdfState.Font) ||
                            !areEqual(prevStr->State.PdfState.FontSize, currStr.State.PdfState.FontSize);
