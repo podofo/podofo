@@ -1,28 +1,44 @@
 # PoDoFo [![build-linux](https://github.com/podofo/podofo/actions/workflows/build-linux.yml/badge.svg)](https://github.com/podofo/podofo/actions/workflows/build-linux.yml) [![build-mac](https://github.com/podofo/podofo/actions/workflows/build-mac.yml/badge.svg)](https://github.com/podofo/podofo/actions/workflows/build-mac.yml) [![build-win](https://github.com/podofo/podofo/actions/workflows/build-win.yml/badge.svg)](https://github.com/podofo/podofo/actions/workflows/build-win.yml)
 
 1.  [What is PoDoFo?](#what-is-podofo)
-2.  [Requirements](#requirements)
-3.  [Licensing](#licensing)
-4.  [Development quickstart](#development-quickstart)
-5.  [Doxygen Documentation](#doxygen-documentation)
-6.  [Software life cycle and API stability](#software-life-cycle-and-api-stability)
-7.  [String encoding and buffer conventions](#string-encoding-and-buffer-conventions)
-8.  [PoDoFo tools](#podofo-tools)
-9.  [TODO](#todo)
-10.  [FAQ](#faq)
-11.  [No warranty](#no-warranty)
-12.  [Contributions](#contributions)
-13.  [Authors](#authors)
+2.  [Features](#features)
+3.  [Requirements](#requirements)
+4.  [Licensing](#licensing)
+5.  [Development quickstart](#development-quickstart)
+6.  [Doxygen Documentation](#doxygen-documentation)
+7.  [Software life cycle and API stability](#software-life-cycle-and-api-stability)
+8.  [String encoding and buffer conventions](#string-encoding-and-buffer-conventions)
+9.  [PoDoFo tools](#podofo-tools)
+10.  [TODO](#todo)
+11.  [FAQ](#faq)
+12.  [No warranty](#no-warranty)
+13.  [Contributions](#contributions)
+14.  [Authors](#authors)
 
 ## What is PoDoFo?
 
 PoDoFo is a free portable C++ library to work with the PDF file format.
 
-PoDoFo provides classes to parse a PDF file and modify its content
-into memory. The changes can be written back to disk easily.
-Besides PDF parsing PoDoFo also provides facilities to create your
-own PDF files from scratch. It currently does not
-support rendering PDF content.
+PoDoFo provides classes to parse a PDF file and modify its content, allowing to write
+it back to disk easily. Besides PDF parsing and manipulation PoDoFo also provides
+facilities to create your own PDF files from scratch.
+
+## Features
+
+PoDoFo has a modern and user-friendly C++17 API that features:
+
+- PDF parsing with high-level entity inspection (annotations, form fields and others)
+- PDF writing with support for incremental updates
+- PDF signing with PAdES-B compliance and support for asynchronous/deferred signing
+- Text drawing with automatic CID encoding generation and font subsetting
+- Full-featured low-level Unicode text extraction
+- Advanced CJK language support (text extraction and automatic multi-byte encoding)
+- PDF/A compliance preservation (e.g., font embedding, simultaneous PDF/A and PDF/UA compliance)
+- PDF/UA compliance preservation (e.g., when adding annotations/form fields)
+- Deferred font file data embedding
+
+PoDoFo  does not support rendering PDF content yet. Text writing
+is also limited as it currently does not perform proper text shaping/kerning.
 
 ## Requirements
 
