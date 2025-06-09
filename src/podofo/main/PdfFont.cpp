@@ -628,7 +628,11 @@ void PdfFont::initSpaceDescriptors()
     // We arbitrarily take a fraction of the read or inferred
     // char space to determine the word spacing length. The
     // factor proved to work well with a consistent tests corpus
-    constexpr int WORD_SPACING_FRACTIONAL_FACTOR = 6;
+    // NOTE: This is very different from what Adobe Acrobat does,
+    // but there's no reference heuristic to look at, every
+    // implementation does something different
+    // https://github.com/pdf-association/pdf-issues/issues/564
+    constexpr double WORD_SPACING_FRACTIONAL_FACTOR = 5.3;
     m_WordSpacingLengthRaw = m_SpaceCharLengthRaw / WORD_SPACING_FRACTIONAL_FACTOR;
 }
 
