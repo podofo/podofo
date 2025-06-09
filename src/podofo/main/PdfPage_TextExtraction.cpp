@@ -420,6 +420,10 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                     });
                 context.States.Push();
 
+                // The form XObject matrix concatenates to
+                // the CTM like a 'cm' operator
+                auto& matrix = content->XObject->GetMatrix();
+                context.cm_Operator(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
                 break;
             }
             case PdfContentType::EndFormXObject:
