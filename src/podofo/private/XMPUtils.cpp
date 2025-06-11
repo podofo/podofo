@@ -54,32 +54,41 @@ enum class PdfANamespaceKind : uint8_t
 };
 
 // Coming from: https://pdfa.org/resource/xmp-extension-schema-templates/
-constexpr string_view PdfUAIdSchema = R"(<rdf:li rdf:parseType="Resource">
-   <pdfaSchema:namespaceURI>http://www.aiim.org/pdfua/ns/id/</pdfaSchema:namespaceURI>
-   <pdfaSchema:prefix>pdfuaid</pdfaSchema:prefix>
-   <pdfaSchema:schema>PDF/UA ID Schema</pdfaSchema:schema>
-   <pdfaSchema:property>
+// This snippet is normalized accordingly to ISO 16684-2:2014
+constexpr string_view PdfUAIdSchema = R"(<rdf:li>
+  <rdf:Description>
+    <pdfaSchema:namespaceURI>http://www.aiim.org/pdfua/ns/id/</pdfaSchema:namespaceURI>
+    <pdfaSchema:prefix>pdfuaid</pdfaSchema:prefix>
+    <pdfaSchema:schema>PDF/UA ID Schema</pdfaSchema:schema>
+    <pdfaSchema:property>
       <rdf:Seq>
-         <rdf:li rdf:parseType="Resource">
+        <rdf:li>
+          <rdf:Description>
             <pdfaProperty:category>internal</pdfaProperty:category>
             <pdfaProperty:description>Part of PDF/UA standard</pdfaProperty:description>
             <pdfaProperty:name>part</pdfaProperty:name>
             <pdfaProperty:valueType>Open Choice of Integer</pdfaProperty:valueType>
-         </rdf:li>
-         <rdf:li rdf:parseType="Resource">
+          </rdf:Description>
+        </rdf:li>
+        <rdf:li>
+          <rdf:Description>
             <pdfaProperty:category>internal</pdfaProperty:category>
             <pdfaProperty:description>Optional PDF/UA amendment identifier</pdfaProperty:description>
             <pdfaProperty:name>amd</pdfaProperty:name>
             <pdfaProperty:valueType>Open Choice of Text</pdfaProperty:valueType>
-         </rdf:li>
-         <rdf:li rdf:parseType="Resource">
+          </rdf:Description>
+        </rdf:li>
+        <rdf:li>
+          <rdf:Description>
             <pdfaProperty:category>internal</pdfaProperty:category>
             <pdfaProperty:description>Optional PDF/UA corrigenda identifier</pdfaProperty:description>
             <pdfaProperty:name>corr</pdfaProperty:name>
             <pdfaProperty:valueType>Open Choice of Text</pdfaProperty:valueType>
-         </rdf:li>
+          </rdf:Description>
+        </rdf:li>
       </rdf:Seq>
-   </pdfaSchema:property>
+    </pdfaSchema:property>
+  </rdf:Description>
 </rdf:li>)";
 
 static void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
@@ -90,8 +99,9 @@ static void getPdfALevelComponents(PdfALevel level, string& partStr, string& con
 static void getPdfUALevelComponents(PdfUALevel version, string& part, string& revision);
 static nullable<PdfString> getListElementText(xmlNodePtr elem);
 static nullable<PdfString> getElementText(xmlNodePtr elem);
-static void addExtension(xmlDocPtr doc, xmlNodePtr description, string_view extension);
+static void addExtension(xmlDocPtr doc, xmlNodePtr description, string_view extension, string_view extensionNs);
 static xmlNodePtr getOrCreateExtensionBag(xmlDocPtr doc, xmlNodePtr description);
+static void removeExtension(xmlNodePtr extensionBag, string_view extensionNamespace);
 
 void PoDoFo::GetXMPMetadata(xmlNodePtr description, PdfMetadataStore& metadata)
 {
@@ -251,7 +261,7 @@ void PoDoFo::SetXMPMetadata(xmlDocPtr doc, xmlNodePtr description, const PdfMeta
             && metadata.PdfaLevel < PdfALevel::L4)
         {
             // PDF/A up to 3 needs extensions schema for external properties
-            addExtension(doc, description, PdfUAIdSchema);
+            addExtension(doc, description, PdfUAIdSchema, "http://www.aiim.org/pdfua/ns/id/");
         }
 
         // Set actual PdfUA version
@@ -706,9 +716,12 @@ nullable<PdfString> getElementText(xmlNodePtr elem)
         return PdfString(*text);
 }
 
-void addExtension(xmlDocPtr doc, xmlNodePtr description, string_view extension)
+void addExtension(xmlDocPtr doc, xmlNodePtr description, string_view extension, string_view extensionNs)
 {
     auto bag = getOrCreateExtensionBag(doc, description);
+    // Remove any existing same namespace extension
+    removeExtension(bag, extensionNs);
+
     xmlNodePtr newNode = NULL;
     auto rc = xmlParseInNodeContext(description, extension.data(), (int)extension.size(), 0, &newNode);
     if (rc != XML_ERR_OK)
@@ -739,7 +752,7 @@ xmlNodePtr getOrCreateExtensionBag(xmlDocPtr doc, xmlNodePtr description)
         xmlSetNs(pdfaExtension, pdfaExtNs);
     }
 
-    auto bag = utls::FindChildElement(description, "rdf", "Bag");
+    auto bag = utls::FindChildElement(pdfaExtension, "rdf", "Bag");
     if (bag == nullptr)
     {
         bag = xmlNewChild(pdfaExtension, nullptr, XMLCHAR "Bag", nullptr);
@@ -753,4 +766,49 @@ xmlNodePtr getOrCreateExtensionBag(xmlDocPtr doc, xmlNodePtr description)
     }
 
     return bag;
+}
+
+void removeExtension(xmlNodePtr extensionBag, string_view extensionNamespace)
+{
+    xmlNodePtr cur = extensionBag->children;
+    while (cur != NULL)
+    {
+        xmlNodePtr next = cur->next;  // Save next node, as we might delete current
+        if (cur->type != XML_ELEMENT_NODE
+            || !xmlStrEqual(cur->name, XMLCHAR "li")
+            || cur->ns == nullptr
+            || !xmlStrEqual(cur->ns->href, XMLCHAR "http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
+        {
+            cur = next;
+            continue;
+        }
+
+        xmlNodePtr child = cur->children;
+        if (child->type == XML_ELEMENT_NODE
+            && xmlStrEqual(child->name, XMLCHAR "Description"))
+        {
+            // Handle the XMP packet according to the normalization algorithm
+            // described in ISO 16684-2:2014
+            child = child->children;
+        }
+
+        // Look for a child named <pdfaSchema:namespaceURI>
+        while (child != NULL)
+        {
+            if (child->type == XML_ELEMENT_NODE
+                || xmlStrEqual(child->name, XMLCHAR "namespaceURI")
+                || child->ns != nullptr
+                || xmlStrEqual(child->content, XMLCHAR extensionNamespace.data()))
+            {
+                // Found the node; remove it from tree
+                xmlUnlinkNode(cur);
+                xmlFreeNode(cur);
+                break;
+            }
+
+            child = child->next;
+        }
+
+        cur = next;
+    }
 }
