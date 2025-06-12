@@ -544,7 +544,7 @@ const shared_ptr<const PdfXObject>& PdfContent::GetXObject() const
     if (Warnings != PdfContentWarnings::None && ThrowOnWarnings)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidContentStream, "Warnings present while accessing this content");
 
-    return Data.XObject;
+    return reinterpret_cast<const shared_ptr<const PdfXObject>&>(Data.XObject);
 }
 
 void PdfContent::checkAccess(PdfContentType type) const

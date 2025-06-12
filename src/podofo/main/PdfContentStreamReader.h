@@ -62,7 +62,7 @@ public:
         PdfDictionary InlineImageDictionary;
         charbuff InlineImageData;
         const PdfName* Name = nullptr;
-        std::shared_ptr<const PdfXObject> XObject;
+        std::shared_ptr<PdfXObject> XObject;
     };
 
     const PdfVariantStack& GetStack() const;
