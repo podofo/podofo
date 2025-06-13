@@ -83,6 +83,13 @@ public:
      */
     virtual PdfDictionaryConstIndirectIterable GetResourceIterator(const std::string_view& type) const = 0;
 
+    /** Get resource dictionary
+     */
+    virtual PdfDictionary* GetResourceDictionary(PdfResourceType type) = 0;
+    virtual const PdfDictionary* GetResourceDictionary(PdfResourceType type) const = 0;
+    virtual PdfDictionary* GetResourceDictionary(const std::string_view& type) = 0;
+    virtual const PdfDictionary* GetResourceDictionary(const std::string_view& type) const = 0;
+
     /** Remove resource by type name string and key
      * \remarks It remove the resource only by reference
      */

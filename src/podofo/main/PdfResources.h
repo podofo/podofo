@@ -57,12 +57,16 @@ private:
     void RemoveResources(const std::string_view& type) override;
     PdfObject* GetResource(const std::string_view& type, const std::string_view& key) override;
     const PdfObject* GetResource(const std::string_view& type, const std::string_view& key) const override;
+    PdfDictionary* GetResourceDictionary(PdfResourceType type) override;
+    const PdfDictionary* GetResourceDictionary(PdfResourceType type) const override;
+    PdfDictionary* GetResourceDictionary(const std::string_view& type) override;
+    const PdfDictionary* GetResourceDictionary(const std::string_view& type) const override;
 
 private:
     PdfName addResource(PdfResourceType type, const PdfName& typeName, const PdfObject& obj);
     PdfObject* getResource(const std::string_view& type, const std::string_view& key) const;
-    bool tryGetDictionary(const std::string_view& type, PdfDictionary*& dict) const;
-    PdfDictionary& getOrCreateDictionary(const PdfName& type);
+    PdfDictionary* getResourceDictionary(const std::string_view& type) const;
+    PdfDictionary& getOrCreateResourceDictionary(const PdfName& type);
 
 private:
     std::array<unsigned, (unsigned)PdfResourceType::Properties> m_currResourceIds;
