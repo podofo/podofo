@@ -231,14 +231,14 @@ namespace PoDoFo
 
         if (m_HasKids)
         {
-            const PdfArray& kids = GetDictionary().MustFindKey("Kids").GetArray();
-            auto it = kids.begin();
+            auto& kids = GetDictionary().MustFindKey("Kids").GetArray();
             PdfObject* childObj = nullptr;
-            PdfNameLimits limits = PdfNameLimits::Before; // RG: TODO Compiler complains that this variable should be initialised
+            PdfNameLimits limits = PdfNameLimits::Before;
 
-            while (it != kids.end())
+            unsigned i = 0;
+            for (; i < kids.GetSize(); i++)
             {
-                childObj = GetDocument().GetObjects().GetObject((*it).GetReference());
+                childObj = kids.FindAt(i);
                 if (childObj == nullptr)
                     PODOFO_RAISE_ERROR(PdfErrorCode::ObjectNotFound);
 
@@ -248,14 +248,12 @@ namespace PoDoFo
                 {
                     break;
                 }
-
-                it++;
             }
 
-            if (it == kids.end())
+            if (i == kids.GetSize())
             {
                 // not added, so add to last child
-                childObj = GetDocument().GetObjects().GetObject(kids.back().GetReference());
+                childObj = kids.FindAt(i - 1);
                 if (childObj == nullptr)
                     PODOFO_RAISE_ERROR(PdfErrorCode::ObjectNotFound);
 
