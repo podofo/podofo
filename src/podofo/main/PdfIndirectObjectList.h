@@ -291,7 +291,7 @@ private:
      * \remarks These objects are usually compressed and can't be removed,
      * that's why the generation number is irrelevant
      */
-    void AddObjectStream(uint32_t objectNum);
+    void AddCompressedObjectStream(uint32_t objectNum);
 
     std::unique_ptr<PdfObject> RemoveObject(const PdfReference& ref, bool markAsFree);
 
@@ -331,7 +331,7 @@ private:
     unsigned m_ObjectCount;
     PdfFreeObjectList m_FreeObjects;
     ObjectNumSet m_unavailableObjects;
-    ObjectNumSet m_objectStreams;
+    ObjectNumSet m_compressedObjectStreams;
 
     ObserverList m_observers;
     StreamFactory* m_StreamFactory;

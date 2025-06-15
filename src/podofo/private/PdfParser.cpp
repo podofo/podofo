@@ -633,6 +633,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
     // Read objects
     vector<unsigned> compressedIndices;
     map<int64_t, vector<int64_t>> compressedObjects;
+    unique_ptr<PdfParserObject> obj;
     for (unsigned i = 0; i < m_entries.GetSize(); i++)
     {
         auto& entry = m_entries[i];
@@ -651,7 +652,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                     if (entry.Offset > 0)
                     {
                         PdfReference reference(i, (uint16_t)entry.Generation);
-                        unique_ptr<PdfParserObject> obj(new PdfParserObject(m_Objects->GetDocument(), reference, device, (ssize_t)entry.Offset));
+                        obj.reset(new PdfParserObject(m_Objects->GetDocument(), reference, device, (ssize_t)entry.Offset));
                         try
                         {
                             if (m_Encrypt != nullptr)
@@ -756,7 +757,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
             cerr << "Demand loading on, but can't demand-load from object stream." << endl;
 #endif
         readCompressedObjectFromStream((uint32_t)pair.first, pair.second);
-        m_Objects->AddObjectStream((uint32_t)pair.first);
+        m_Objects->AddCompressedObjectStream((uint32_t)pair.first);
     }
 
     if (!m_LoadOnDemand)
