@@ -2736,6 +2736,25 @@ TEST_CASE("TestManyTrailerXRefStream")
     FAIL("Should fail with stack overflow");
 }
 
+// This tests saving the update on a document with
+// compressed object stream with an indirect length
+// still produces a readable file
+TEST_CASE("TestCompressedObjectStreamIndirectLength")
+{
+    string outpath = TestUtils::GetTestOutputFilePath("TestCompressedObjectStreamIndirectLength.pdf");
+
+    PdfMemDocument doc;
+    {
+        FileStreamDevice device(TestUtils::GetTestInputFilePath("PDFUA-Reference", "PDFUA-Ref-2-02_Invoice.pdf"));
+        FileStreamDevice out(outpath, FileMode::Create);
+        device.CopyTo(out);
+    }
+
+    doc.Load(outpath);
+    doc.SaveUpdate(outpath);
+    doc.Load(outpath);
+}
+
 string generateXRefEntries(size_t count)
 {
     string strXRefEntries;
