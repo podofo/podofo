@@ -793,12 +793,14 @@ void removeExtension(xmlNodePtr extensionBag, string_view extensionNamespace)
         }
 
         // Look for a child named <pdfaSchema:namespaceURI>
+        // and check for the actual uri
         while (child != NULL)
         {
             if (child->type == XML_ELEMENT_NODE
-                || xmlStrEqual(child->name, XMLCHAR "namespaceURI")
-                || child->ns != nullptr
-                || xmlStrEqual(child->content, XMLCHAR extensionNamespace.data()))
+                && xmlStrEqual(child->name, XMLCHAR "namespaceURI")
+                && child->children != nullptr
+                && child->children->type == XML_TEXT_NODE
+                && string_view((const char*)child->children->content, xmlStrlen(child->children->content)).find(extensionNamespace) != string_view::npos)
             {
                 // Found the node; remove it from tree
                 xmlUnlinkNode(cur);
