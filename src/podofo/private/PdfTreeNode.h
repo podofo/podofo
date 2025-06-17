@@ -366,27 +366,24 @@ namespace PoDoFo
     void PdfTreeNode<TKey>::setLimits()
     {
         PdfArray limits;
-
+        PdfArray* arr;
         if (m_HasKids)
         {
-            auto kidsObj = GetDictionary().FindKey("Kids");
-            if (kidsObj != nullptr && kidsObj->IsArray())
+            PdfDictionary* childDict;
+            if (GetDictionary().TryFindKeyAs("Kids", arr))
             {
-                auto& kidsArr = kidsObj->GetArray();
-                auto refFirst = kidsArr.front().GetReference();
-                auto child = GetDocument().GetObjects().GetObject(refFirst);
+                PODOFO_ASSERT(arr->GetSize() != 0);
+
                 PdfObject* limitsObj = nullptr;
-                if (child != nullptr
-                    && (limitsObj = child->GetDictionary().FindKey("Limits")) != nullptr
+                if (arr->TryFindAtAs(0, childDict)
+                    && (limitsObj = childDict->FindKey("Limits")) != nullptr
                     && limitsObj->IsArray())
                 {
                     limits.Add(limitsObj->GetArray().front());
                 }
 
-                auto refLast = kidsArr.back().GetReference();
-                child = GetDocument().GetObjects().GetObject(refLast);
-                if (child != nullptr
-                    && (limitsObj = child->GetDictionary().FindKey("Limits")) != nullptr
+                if (arr->TryFindAtAs(arr->GetSize() - 1, childDict)
+                    && (limitsObj = childDict->FindKey("Limits")) != nullptr
                     && limitsObj->IsArray())
                 {
                     limits.Add(limitsObj->GetArray().back());
@@ -403,11 +400,10 @@ namespace PoDoFo
         else // has "Names
         {
             auto namesObj = GetDictionary().FindKey(PdfTreeKeyAccess<TKey>::GetKeyStoreNameStr());
-            if (namesObj != nullptr && namesObj->IsArray())
+            if (namesObj != nullptr && namesObj->TryGetArray(arr))
             {
-                auto& namesArr = namesObj->GetArray();
-                limits.Add(*namesArr.begin());
-                limits.Add(*(namesArr.end() - 2));
+                limits.Add(*arr->begin());
+                limits.Add(*(arr->end() - 2));
             }
             else
                 PoDoFo::LogMessage(PdfLogSeverity::Error,
@@ -657,7 +653,7 @@ namespace PoDoFo
                 return iterator();
             }
 
-            return getLeftMost(*childDict);
+            return getRightMost(*childDict);
         }
     }
 
