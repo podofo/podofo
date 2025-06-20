@@ -213,12 +213,12 @@ void PdfOutlineItem::SetDestination(nullable<const PdfDestination&> destination)
     if (destination == nullptr)
     {
         dict.RemoveKey("Dest");
-        m_Destination = { };
+        m_Destination *= nullptr;
     }
     else
     {
         m_Destination = unique_ptr<PdfDestination>(new PdfDestination(*destination));
-        m_Action = { };
+        m_Action *= nullptr;
         destination->AddToDictionary(dict);
         dict.RemoveKey("A");
     }
@@ -241,7 +241,7 @@ nullable<PdfDestination&> PdfOutlineItem::getDestination()
         auto obj = GetDictionary().FindKey("Dest");
         unique_ptr<PdfDestination> dest;
         if (obj == nullptr || !PdfDestination::TryCreateFromObject(*obj, dest))
-            m_Destination = unique_ptr<PdfDestination>();
+            m_Destination *= nullptr;
         else
             m_Destination = std::move(dest);
     }
@@ -258,12 +258,12 @@ void PdfOutlineItem::SetAction(nullable<const PdfAction&> action)
     if (action == nullptr)
     {
         dict.RemoveKey("A");
-        m_Action = { };
+        m_Action *= nullptr;
     }
     else
     {
         m_Action = PdfAction::Create(*action);
-        m_Destination = { };
+        m_Destination *= nullptr;
         dict.RemoveKey("Dest");
         dict.AddKeyIndirect("A"_n, action->GetObject());
     }
@@ -286,7 +286,7 @@ nullable<PdfAction&> PdfOutlineItem::getAction()
         auto obj = GetDictionary().FindKey("A");
         if (obj == nullptr)
         {
-            m_Action = unique_ptr<PdfAction>();
+            m_Action *= nullptr;
         }
         else
         {

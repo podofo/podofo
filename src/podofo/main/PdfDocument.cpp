@@ -317,9 +317,12 @@ void PdfDocument::resetPrivate()
 
 void PdfDocument::initOutlines()
 {
+    if (m_Outlines != nullptr)
+        return;
+
     auto outlinesObj = m_Catalog->GetDictionary().FindKey("Outlines");
     if (outlinesObj == nullptr)
-        m_Outlines = unique_ptr<PdfOutlines>();
+        m_Outlines *= nullptr;
     else
         m_Outlines = unique_ptr<PdfOutlines>(new PdfOutlines(*outlinesObj));
 }

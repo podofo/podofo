@@ -28,7 +28,7 @@ void PdfAnnotationActionBase::SetAction(nullable<const PdfAction&> action)
     if (action == nullptr)
     {
         dict.RemoveKey("A");
-        m_Action = unique_ptr<PdfAction>();
+        m_Action *= nullptr;
     }
     else
     {
@@ -55,7 +55,7 @@ void PdfAnnotationActionBase::onActionSet()
 
 void PdfAnnotationActionBase::ResetAction()
 {
-    m_Action = { };
+    m_Action *= nullptr;
     GetDictionary().RemoveKey("A");
 }
 
@@ -66,7 +66,7 @@ nullable<PdfAction&> PdfAnnotationActionBase::getAction()
         auto obj = GetDictionary().FindKey("A");
         if (obj == nullptr)
         {
-            m_Action = { };
+            m_Action *= nullptr;
         }
         else
         {

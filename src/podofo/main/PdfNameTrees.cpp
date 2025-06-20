@@ -107,7 +107,7 @@ PdfNameTreeBase* PdfNameTrees::getNameTree(PdfKnownNameTree tree) const
             auto destsObj = const_cast<PdfNameTrees&>(*this).GetDictionary().FindKey("Dests");
             if (destsObj == nullptr)
             {
-                const_cast<PdfNameTrees&>(*this).m_Trees[(unsigned)tree - 1] = unique_ptr<PdfDestinations>();
+                const_cast<PdfNameTrees&>(*this).m_Trees[(unsigned)tree - 1] *= nullptr;
                 return nullptr;
             }
             else
@@ -124,7 +124,7 @@ PdfNameTreeBase* PdfNameTrees::getNameTree(PdfKnownNameTree tree) const
             auto embeddedFilesObj = const_cast<PdfNameTrees&>(*this).GetDictionary().FindKey("EmbeddedFiles");
             if (embeddedFilesObj == nullptr)
             {
-                const_cast<PdfNameTrees&>(*this).m_Trees[(unsigned)tree - 1] = unique_ptr<PdfEmbeddedFiles>();
+                const_cast<PdfNameTrees&>(*this).m_Trees[(unsigned)tree - 1] *= nullptr;
                 return nullptr;
             }
             else

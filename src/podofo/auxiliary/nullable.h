@@ -98,6 +98,24 @@ namespace PoDoFo
             return *this;
         }
 
+        /** This is same as operator=(T value), but allows
+         * to avoid ambiguities or picking wrong overload
+         */
+        nullable& operator*=(T value)
+        {
+            if (m_hasValue)
+            {
+                m_value = std::move(value);
+            }
+            else
+            {
+                new(&m_value)T(std::move(value));
+                m_hasValue = true;
+            }
+
+            return *this;
+        }
+
         nullable& operator=(std::nullptr_t)
         {
             if (m_hasValue)

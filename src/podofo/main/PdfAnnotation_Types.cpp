@@ -18,7 +18,7 @@ void PdfAnnotationLink::SetDestination(nullable<const PdfDestination&> destinati
     if (destination == nullptr)
     {
         GetDictionary().RemoveKey("Dest");
-        m_Destination = { };
+        m_Destination *= nullptr;
     }
     else
     {
@@ -44,7 +44,7 @@ nullable<PdfDestination&> PdfAnnotationLink::getDestination()
     {
         auto obj = GetDictionary().FindKey("Dest");
         if (obj == nullptr)
-            m_Destination = unique_ptr<PdfDestination>();
+            m_Destination *= nullptr;
         else
             m_Destination = unique_ptr<PdfDestination>(new PdfDestination(*obj));
     }
@@ -65,7 +65,7 @@ void PdfAnnotationFileAttachment::SetFileAttachment(const nullable<PdfFileSpec&>
 {
     if (fileSpec == nullptr)
     {
-        m_FileSpec = { };
+        m_FileSpec *= nullptr;
         GetDictionary().RemoveKey("FS");
     }
     else
@@ -92,7 +92,7 @@ nullable<PdfFileSpec&> PdfAnnotationFileAttachment::getFileAttachment()
     {
         auto obj = GetDictionary().FindKey("FS");
         if (obj == nullptr)
-            m_FileSpec = unique_ptr<PdfFileSpec>();
+            m_FileSpec *= nullptr;
         else
             m_FileSpec = unique_ptr<PdfFileSpec>(new PdfFileSpec(*obj));
     }
