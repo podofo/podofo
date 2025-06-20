@@ -685,6 +685,12 @@ bool PdfStringScanContext::IsEndOfString() const
 
 bool PdfStringScanContext::TryScan(PdfCID& cid, string& utf8str, CodePointSpan& codepoints)
 {
+    vector<unsigned> positions;
+    return TryScan(cid, utf8str, positions, codepoints);
+}
+
+bool PdfStringScanContext::TryScan(PdfCID & cid, string &utf8str, vector<unsigned>&positions, CodePointSpan & codepoints)
+{
     bool success = true;
     if (!m_encoding->TryGetNextCID(m_it, m_end, cid))
     {
@@ -696,6 +702,7 @@ bool PdfStringScanContext::TryScan(PdfCID& cid, string& utf8str, CodePointSpan& 
     if (m_toUnicode->TryGetCodePoints(cid, codepoints))
     {
         auto view = codepoints.view();
+        unsigned prevPos = (unsigned)utf8str.length();
         for (size_t i = 0; i < view.size(); i++)
         {
             char32_t codePoint = view[i];
@@ -703,6 +710,8 @@ bool PdfStringScanContext::TryScan(PdfCID& cid, string& utf8str, CodePointSpan& 
             {
                 // Validate codepoints to insert
                 utf8::unchecked::append((uint32_t)view[i], std::back_inserter(utf8str));
+                positions.push_back(prevPos);
+                prevPos = (unsigned)utf8str.length();
             }
         }
     }

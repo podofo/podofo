@@ -332,17 +332,21 @@ bool PdfFont::TryScanEncodedString(const PdfString& encodedStr, const PdfTextSta
     CodePointSpan codepoints;
     PdfCID cid;
     bool success = true;
-    unsigned prevOffset = 0;
     double length;
     while (!context.IsEndOfString())
     {
-        if (!context.TryScan(cid, utf8str, codepoints))
+        if (!context.TryScan(cid, utf8str, positions, codepoints))
             success = false;
 
         length = getGlyphLength(GetCIDWidth(cid.Id), state, false);
+        for (unsigned i = 1; i < codepoints.GetSize(); i++)
+        {
+            // Arbitrarily prefix 0 length positions for ligatures,
+            // for the code point span size minus one
+            lengths.push_back(0);
+        }
+
         lengths.push_back(length);
-        positions.push_back(prevOffset);
-        prevOffset = (unsigned)utf8str.length();
     }
 
     return success;

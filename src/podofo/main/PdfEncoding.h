@@ -36,6 +36,8 @@ namespace PoDoFo
          */
         bool TryScan(PdfCID& cid, std::string& utf8str, CodePointSpan& codepoints);
 
+        bool TryScan(PdfCID& cid, std::string& utf8str, std::vector<unsigned>& positions, CodePointSpan& codepoints);
+
     private:
         std::string_view::iterator m_it;
         std::string_view::iterator m_end;

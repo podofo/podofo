@@ -1130,7 +1130,7 @@ void splitChunkBySpaces(vector<StringChunkPtr> &splittedChunks, const StringChun
 }
 
 // Separate string words by spaces
-void splitStringBySpaces(vector<StatefulString> &separatedStrings, const StatefulString &str)
+void splitStringBySpaces(vector<StatefulString>& separatedStrings, const StatefulString& str)
 {
     PODOFO_ASSERT(str.String.length() != 0);
     separatedStrings.clear();
