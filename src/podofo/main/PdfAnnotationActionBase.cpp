@@ -28,7 +28,7 @@ void PdfAnnotationActionBase::SetAction(nullable<const PdfAction&> action)
     if (action == nullptr)
     {
         dict.RemoveKey("A");
-        m_Action = { };
+        m_Action = unique_ptr<PdfAction>();
     }
     else
     {

@@ -241,7 +241,7 @@ nullable<PdfDestination&> PdfOutlineItem::getDestination()
         auto obj = GetDictionary().FindKey("Dest");
         unique_ptr<PdfDestination> dest;
         if (obj == nullptr || !PdfDestination::TryCreateFromObject(*obj, dest))
-            m_Destination = { };
+            m_Destination = unique_ptr<PdfDestination>();
         else
             m_Destination = std::move(dest);
     }
@@ -286,7 +286,7 @@ nullable<PdfAction&> PdfOutlineItem::getAction()
         auto obj = GetDictionary().FindKey("A");
         if (obj == nullptr)
         {
-            m_Action = { };
+            m_Action = unique_ptr<PdfAction>();
         }
         else
         {
