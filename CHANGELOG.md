@@ -1,3 +1,11 @@
+## Version 1.0.1
+- Fixed #265, #256
+- Fixed several issues related to use of `nullable<std::unique_ptr<T>>`
+- XMP: Fixed removing extension from extension bag
+- XMP: Fix double inserting pdfuaid schema
+- Text extraction fixes: improved word spacing heuristic, space trimming in ligatures, text in XObject form with non identity matrix
+- Fixed pkg-config for shared built library
+
 ## Version 1.0.0
 
 - Added support for Type1, CFF and OpenType CFF font subsetting
