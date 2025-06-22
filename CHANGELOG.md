@@ -1,5 +1,5 @@
 ## Version 1.0.1
-- Fixed #265, #256
+- Fixed #265, #264
 - Fixed several issues related to use of `nullable<std::unique_ptr<T>>`
 - XMP: Fixed removing extension from extension bag
 - XMP: Fix double inserting pdfuaid schema
