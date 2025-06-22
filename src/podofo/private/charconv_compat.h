@@ -7,7 +7,7 @@
 #if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 10
 #define WANT_CHARS_FORMAT
 #endif
-#if (defined(__GNUC__) && !defined(__clang__) && !defined(__MINGW32__) &&  __GNUC__ < 11) || (defined(__MINGW32__) &&  __GNUC__ < 12) || defined(__clang__)
+#if (defined(__GNUC__) && !defined(__clang__) && !defined(__MINGW32__) &&  __GNUC__ < 11) || (defined(__MINGW32__) &&  __GNUC__ < 12) || (defined(__clang__) && defined(_LIBCPP_VERSION) && (_LIBCPP_VERSION < 200000))
 #define WANT_FROM_CHARS
 #endif
 #if (defined(__GNUC__) && !defined(__clang__) && !defined(__MINGW32__) &&  __GNUC__ < 11) || (defined(__MINGW32__) &&  __GNUC__ < 12) || (defined(__clang__) && ((defined(__apple_build_version__) && __apple_build_version__ < 15000000) || __clang_major__ < 14))
