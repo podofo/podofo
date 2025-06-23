@@ -77,7 +77,7 @@ if(PODOFO_BUILD_STATIC)
     set(PODOFO_TARGET podofo_static)
     set(PODOFO_LIBRARIES podofo_static podofo_private podofo_3rdparty
         CACHE INTERNAL "Which podofo library variant to depend on")
-    set(PODOFO_PACKAGE_CONFIG_LIBS "-lpodofo_private -lpodofo_3rdparty")
+    set(PODOFO_PKGCONFIG_LIBS_PRIVATE "-lpodofo_private -lpodofo_3rdparty")
 endif()
 
 if(PODOFO_BUILD_SHARED)
