@@ -146,9 +146,18 @@ void CmsContext::loadX509Certificate(const bufferview& cert)
     m_cert = d2i_X509(nullptr, &in, (int)cert.size());
     if (m_cert == nullptr)
     {
-        string err("Certificate loading failed. Internal OpenSSL error:\n");
-        ssl::GetOpenSSLError(err);
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, err);
+        unique_ptr<BIO, decltype(&BIO_free)> bio(BIO_new_mem_buf(cert.data(), (int)cert.size()), BIO_free);
+        if (bio == nullptr)
+            goto Fail;
+
+        m_cert = PEM_read_bio_X509(bio.get(), nullptr, nullptr, nullptr);
+        if (m_cert == nullptr)
+        {
+        Fail:
+            string err("Certificate loading failed. Internal OpenSSL error:\n");
+            ssl::GetOpenSSLError(err);
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, err);
+        }
     }
 
     auto pubkey = X509_get0_pubkey(m_cert);
