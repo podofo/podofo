@@ -1,3 +1,7 @@
+## 1.0.1 -> 1.0.0
+- `PdfSignerCmsParams`: Deprecated `Encryption` field. The encryption is determined
+  from the public key in the X.509 certificate
+
 ## 0.10.1 -> 1.0.0
 - `PdfFontConfigWrapper`: Put `GetFcConfig()` and the constructor with `FcConfig*`
   argument under guard by the `PODOFO_3RDPARTY_INTEROP_ENABLED` macro

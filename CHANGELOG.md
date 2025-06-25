@@ -1,3 +1,6 @@
+## Version 1.1.0-dev
+- Added support for ECDSA encryption
+
 ## Version 1.0.1
 - Fixed #265, #264
 - Fixed several issues related to use of `nullable<std::unique_ptr<T>>`
