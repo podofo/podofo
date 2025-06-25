@@ -13,24 +13,13 @@ constexpr string_view TestSignatureRefHash = "1CC60CEA1A7A8D3ECDD18B20FAAAEFE7"s
 
 TEST_CASE("TestLoadCertificate")
 {
-    // Load a PEM certificate should fail
-
+    // Load a PEM certificate now works
     string cert;
     TestUtils::ReadTestInputFile("mycert.pem", cert);
 
     PdfSignerCms signer(cert);
-    try
-    {
-        // Dummy data append to enforce certificate load
-        signer.AppendData("");
-    }
-    catch (PdfError& err)
-    {
-        REQUIRE(err.GetCode() == PdfErrorCode::OpenSSLError);
-        return;
-    }
-
-    FAIL("It should fail while loading unsupported PEM certificate");
+    // Dummy data append to enforce certificate load
+    signer.AppendData("");
 }
 
 // Test signing with supplied private key
