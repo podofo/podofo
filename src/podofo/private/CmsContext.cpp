@@ -22,6 +22,7 @@ static void addAttribute(CMS_SignerInfo* si, int(*addAttributeFun)(CMS_SignerInf
 
 CmsContext::CmsContext() :
     m_status(CmsContextStatus::Uninitialized),
+    m_encryption(PdfSignatureEncryption::Unknown),
     m_cert(nullptr),
     m_cms(nullptr),
     m_signer(nullptr),
@@ -149,6 +150,16 @@ void CmsContext::loadX509Certificate(const bufferview& cert)
         ssl::GetOpenSSLError(err);
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, err);
     }
+
+    auto pubkey = X509_get0_pubkey(m_cert);
+    if (pubkey == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Invalid public key");
+
+    m_encryption = PdfSignatureEncryption::Unknown;
+    if (EVP_PKEY_base_id(pubkey) == EVP_PKEY_RSA)
+        m_encryption = PdfSignatureEncryption::RSA;
+    else if (EVP_PKEY_base_id(pubkey) == EVP_PKEY_EC)
+        m_encryption = PdfSignatureEncryption::ECDSA;
 }
 
 void CmsContext::computeCertificateHash()

@@ -70,8 +70,8 @@ void PdfSignerCms::ComputeSignature(charbuff& contents, bool dryrun)
         m_parameters.SignedHashHandler(m_encryptedHash, dryrun);
 
     m_cmsContext->ComputeSignature(m_encryptedHash, contents);
-    if (m_reservedSize != 0 && dryrun)
-        contents.resize(contents.size() + m_reservedSize);
+    if (dryrun)
+        tryEnlargeSignatureContents(contents);
 }
 
 void PdfSignerCms::FetchIntermediateResult(charbuff& result)
@@ -93,8 +93,7 @@ void PdfSignerCms::ComputeSignatureDeferred(const bufferview& processedResult, c
         m_cmsContext->ComputeHashToSign(fakeresult);
         fakeresult.resize(RSASignedHashSize);
         m_cmsContext->ComputeSignature(fakeresult, contents);
-        if (m_reservedSize != 0)
-            contents.resize(contents.size() + m_reservedSize);
+        tryEnlargeSignatureContents(contents);
     }
     else
     {
@@ -217,7 +216,6 @@ void PdfSignerCms::ensureContextInitialized()
 void PdfSignerCms::resetContext()
 {
     CmsContextParams params;
-    params.Encryption = m_parameters.Encryption;
     params.Hashing = m_parameters.Hashing;
     params.SigningTimeUTC = m_parameters.SigningTimeUTC;
     switch (m_parameters.SignatureType)
@@ -237,9 +235,18 @@ void PdfSignerCms::resetContext()
     }
 
     if (m_privKey == nullptr)
+    {
         params.DoWrapDigest = (m_parameters.Flags & PdfSignerCmsFlags::ServiceDoWrapDigest) != PdfSignerCmsFlags::None;
+    }
     else
-        params.DoWrapDigest = true; // We just perform encryption with private key, so we expect the digest wrapped
+    {
+        if (EVP_PKEY_base_id(m_privKey) == EVP_PKEY_RSA)
+        {
+            // An encryption with a private RSA keys always requires the
+            // digest to be PKCS#1 wrapped
+            params.DoWrapDigest = true;
+        }
+    }
 
     m_cmsContext->Reset(m_certificate, params);
 }
@@ -248,4 +255,18 @@ void PdfSignerCms::doSign(const bufferview& input, charbuff& output)
 {
     PODOFO_ASSERT(m_privKey != nullptr);
     return ssl::DoSign(input, m_privKey, PdfHashingAlgorithm::Unknown, output);
+}
+
+void PdfSignerCms::tryEnlargeSignatureContents(charbuff& contents)
+{
+    if (m_cmsContext->GetEncryption() == PdfSignatureEncryption::ECDSA)
+    {
+        // Unconditionally account for 2 slack bytes due to random nature of ECDSA
+        contents.resize(contents.size() + 2 + m_reservedSize);
+    }
+    else
+    {
+        if (m_reservedSize != 0)
+            contents.resize(contents.size() + m_reservedSize);
+    }
 }

@@ -40,6 +40,7 @@ namespace PoDoFo
     struct PODOFO_API PdfSignerCmsParams final
     {
         PdfSignatureType SignatureType = PdfSignatureType::PAdES_B;
+        [[deprecated("Encryption should be automatically detected from the public key in the certificate")]]
         PdfSignatureEncryption Encryption = PdfSignatureEncryption::RSA;
         PdfHashingAlgorithm Hashing = PdfHashingAlgorithm::SHA256;
         PdfSigningService SigningService;
@@ -112,6 +113,7 @@ namespace PoDoFo
         void ensureContextInitialized();
         void resetContext();
         void doSign(const bufferview& input, charbuff& output);
+        void tryEnlargeSignatureContents(charbuff& contents);
     private:
         nullable<bool> m_deferredSigning;
         charbuff m_certificate;

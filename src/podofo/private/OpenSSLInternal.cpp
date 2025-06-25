@@ -121,16 +121,30 @@ void ssl::AddSigningCertificateV2(CMS_SignerInfo* signer, const bufferview& hash
 
 EVP_PKEY* ssl::LoadPrivateKey(const bufferview& input)
 {
+    // Try to load a RSA DER private key first
     const unsigned char* data = (const unsigned char*)input.data();
     auto ret = d2i_PrivateKey(EVP_PKEY_RSA, nullptr, &data, (long)input.size());
-    if (ret == nullptr)
-    {
-        string err("Private key loading failed. Internal OpenSSL error:\n");
-        ssl::GetOpenSSLError(err);
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, err);
-    }
+    if (ret != nullptr)
+        return ret;
 
-    return ret;
+    // Then try to load a ECDSA DER private
+    ret = d2i_PrivateKey(EVP_PKEY_EC, nullptr, &data, (long)input.size());
+    if (ret != nullptr)
+        return ret;
+
+    // Finally try to load a PEM key
+    unique_ptr<BIO, decltype(&BIO_free)> bio(BIO_new_mem_buf(input.data(), (int)input.size()), BIO_free);
+    if (bio == nullptr)
+        goto Fail;
+
+    ret = PEM_read_bio_PrivateKey(bio.get(), nullptr, nullptr, nullptr);
+    if (ret != nullptr)
+        return ret;
+
+Fail:
+    string err("Private key loading failed. Internal OpenSSL error:\n");
+    ssl::GetOpenSSLError(err);
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, err);
 }
 
 void ssl::cmsAddSigningTime(CMS_SignerInfo* si, const date::sys_seconds& timestamp)
@@ -165,9 +179,12 @@ void ssl::DoSign(const bufferview& input, EVP_PKEY* pkey,
     if (EVP_PKEY_sign_init(ctx.get()) <= 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error EVP_PKEY_sign_init");
 
-    // Set deterministic PKCS1 padding
-    if (EVP_PKEY_CTX_set_rsa_padding(ctx.get(), RSA_PKCS1_PADDING) <= 0)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error EVP_PKEY_CTX_set_rsa_padding");
+    if (EVP_PKEY_base_id(pkey) == EVP_PKEY_RSA)
+    {
+        // Set deterministic PKCS1 padding
+        if (EVP_PKEY_CTX_set_rsa_padding(ctx.get(), RSA_PKCS1_PADDING) <= 0)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error EVP_PKEY_CTX_set_rsa_padding");
+    }
 
     auto actualInput = input;
     charbuff tempWrapped;
@@ -186,6 +203,10 @@ void ssl::DoSign(const bufferview& input, EVP_PKEY* pkey,
     {
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error signing input buffer");
     }
+
+    // NOTE: This is required for ECDSA encryption, as the
+    // first determined length is just an upper bound
+    output.resize(siglen);
 }
 
 charbuff ssl::GetEncoded(const X509* cert)

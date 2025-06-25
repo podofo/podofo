@@ -864,6 +864,7 @@ enum class PdfSignatureEncryption : uint8_t
 {
     Unknown = 0,
     RSA,
+    ECDSA,
 };
 
 enum class PdfHashingAlgorithm : uint8_t

@@ -25,7 +25,6 @@ namespace PoDoFo
 {
     struct CmsContextParams
     {
-        PdfSignatureEncryption Encryption = PdfSignatureEncryption::RSA;
         PdfHashingAlgorithm Hashing = PdfHashingAlgorithm::SHA256;
         bool SkipWriteMIMECapabilities = false;
         bool SkipWriteSigningTime = false;
@@ -47,6 +46,8 @@ namespace PoDoFo
         void ComputeHashToSign(charbuff& hashToSign);
         void ComputeSignature(const bufferview& signedHash, charbuff& signature);
         void AddAttribute(const std::string_view& nid, const bufferview& attr, bool signedAttr, bool octetString);
+    public:
+        PdfSignatureEncryption GetEncryption() const { return m_encryption; }
     private:
         void loadX509Certificate(const bufferview& cert);
         void computeCertificateHash();
@@ -70,6 +71,7 @@ namespace PoDoFo
     private:
         CmsContextStatus m_status;
         CmsContextParams m_parameters;
+        PdfSignatureEncryption m_encryption;
         struct x509_st* m_cert;
         charbuff m_certHash;
         struct CMS_ContentInfo_st* m_cms;
