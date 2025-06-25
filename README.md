@@ -29,7 +29,8 @@ PoDoFo has a modern and user-friendly C++17 API that features:
 
 - PDF parsing with high-level entity inspection (annotations, form fields and others)
 - PDF writing with support for incremental updates
-- PDF signing with PAdES-B compliance and support for asynchronous/deferred signing
+- PDF signing with [PAdES-B](https://en.wikipedia.org/wiki/PAdES) compliance,
+  RSA/ECDSA encryption and asynchronous/deferred signing
 - Text drawing with automatic CID encoding generation and font subsetting
 - Full-featured low-level Unicode text extraction
 - Advanced CJK language support (text extraction and automatic multi-byte encoding)
