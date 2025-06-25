@@ -277,7 +277,7 @@ void PdfMemDocument::SaveUpdate(OutputStreamDevice& device, PdfSaveOptions opts)
 
     if (m_InitialVersion < this->GetPdfVersion())
     {
-        if (this->GetPdfVersion() < PdfVersion::V1_0 || this->GetPdfVersion() > PdfVersion::V1_7)
+        if (this->GetPdfVersion() < PdfVersion::V1_0 || this->GetPdfVersion() > PdfVersion::V2_0)
             PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
         GetCatalog().GetDictionary().AddKey("Version", PdfName(PoDoFo::GetPdfVersionName(GetPdfVersion())));
