@@ -1,4 +1,4 @@
-## 1.0.1 -> 1.0.0
+## 1.0.1 -> 1.1.0
 - `PdfSignerCmsParams`: Deprecated `Encryption` field. The encryption is determined
   from the public key in the X.509 certificate
 
