@@ -1,6 +1,8 @@
 ## 1.0.1 -> 1.1.0
 - `PdfSignerCmsParams`: Deprecated `Encryption` field. The encryption is determined
   from the public key in the X.509 certificate
+- `PdfXMPPacket`: make reserved 3rd party interop `GetDescription` non const, as we
+  generally ensure const correctness in all the API (with limited exceptions)
 
 ## 0.10.1 -> 1.0.0
 - `PdfFontConfigWrapper`: Put `GetFcConfig()` and the constructor with `FcConfig*`

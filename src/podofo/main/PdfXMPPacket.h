@@ -38,7 +38,7 @@ namespace PoDoFo
 #if PODOFO_3RDPARTY_INTEROP_ENABLED
         xmlDocPtr GetDoc() { return m_Doc; }
         xmlNodePtr GetOrCreateDescription();
-        xmlNodePtr GetDescription() const { return m_Description; }
+        xmlNodePtr GetDescription() { return m_Description; }
 #endif // PODOFO_3RDPARTY_INTEROP_ENABLED
 
     public:
