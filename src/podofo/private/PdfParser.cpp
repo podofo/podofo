@@ -768,8 +768,8 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
         // in a second pass, or (if demand loading is enabled) defer it for later.
         for (auto objToLoad : *m_Objects)
         {
-            auto obj = dynamic_cast<PdfParserObject*>(objToLoad);
-            obj->ParseStream();
+            auto parserObj = dynamic_cast<PdfParserObject*>(objToLoad);
+            parserObj->ParseStream();
         }
     }
 
