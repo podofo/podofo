@@ -16,17 +16,23 @@ using namespace PoDoFo;
 
 int main(int argc, char* argv[])
 {
-    PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::Warning);
-
-    // Add a fonts directory for more consistents run
-    auto fontPath = TestUtils::GetTestInputPath() / "Fonts";
-    if (!fs::exists(fontPath))
+    // Avoid performing test initialization on Catch2 query for tests,
+    // which it does with switches "--list-test-names-only" and "--list-reporters"
+    if (argc <= 1 || string_view(argv[1]).find("--list") == string_view::npos)
     {
-        throw runtime_error("Missing Fonts directory. Ensure you have correctly "
-            "fetched \"extern/resources\" git submodule");
+        PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::Warning);
+
+        // Add a fonts directory for more consistents run
+        auto fontPath = TestUtils::GetTestInputPath() / "Fonts";
+        if (!fs::exists(fontPath))
+        {
+            throw runtime_error("Missing Fonts directory. Ensure you have correctly "
+                "fetched \"extern/resources\" git submodule");
+        }
+
+        PdfCommon::AddFontDirectory(fontPath.u8string());
+        PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::Warning);
     }
 
-    PdfCommon::AddFontDirectory(fontPath.u8string());
-    PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::Warning);
     return Catch::Session().run(argc, argv);
 }
