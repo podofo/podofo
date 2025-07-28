@@ -110,14 +110,14 @@ void PdfDifferenceMap::AddDifference(unsigned char code, const string_view& name
     // dictionary, therefore they have no meaning
     CodePointSpan codepoints;
     const PdfName* actualName;
-    if (!PdfDifferenceEncoding::TryGetCodePointsFromCharName(name, codepoints, actualName))
+    if (PdfDifferenceEncoding::TryGetCodePointsFromCharName(name, codepoints, actualName))
     {
-        char32_t cp = code;
-        addDifference(code, codepointview(&cp, 1), name);
+        addDifference(code, codepoints, actualName == nullptr ? PdfName(name) : *actualName);
     }
     else
     {
-        addDifference(code, codepoints, actualName == nullptr ? PdfName(name) : *actualName);
+        char32_t cp = code;
+        addDifference(code, codepointview(&cp, 1), name);
     }
 }
 
@@ -427,7 +427,7 @@ bool tryGetCodePointsFromCharNameLigatures(string_view charName, size_t componen
     string_view component;
     CodePointSpan temp;
     const PdfName* discard;
-    do
+    while (true)
     {
         component = charName.substr(0, componentDelim);
         if (!tryFetchCodePoints(component, temp, discard))
@@ -437,8 +437,13 @@ bool tryGetCodePointsFromCharNameLigatures(string_view charName, size_t componen
             return false;
         }
 
+        ret.push_back(*temp);
+        if (componentDelim == string_view::npos)
+            break;
+
         charName = charName.substr(componentDelim + 1);
-    } while ((componentDelim = charName.find('_')) != string_view::npos);
+        componentDelim = charName.find('_');
+    }
 
     codepoints = CodePointSpan(ret);
     return true;
