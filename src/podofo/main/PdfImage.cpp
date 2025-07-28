@@ -1159,48 +1159,6 @@ void PdfImage::loadFromPngData(const unsigned char* data, size_t len, charbuff& 
     png_destroy_read_struct(&png, &pnginfo, (png_infopp)nullptr);
 }
 
-unique_ptr<PdfXObjectForm> PdfImage::getTransformation(PdfImageOrientation orientation)
-{
-    Matrix transformation;
-    switch (orientation)
-    {
-        case PdfImageOrientation::TopRight:
-            transformation = Matrix(-1, 0, 0, 1, m_Width, 0);
-            break;
-        case PdfImageOrientation::BottomRight:
-            transformation = Matrix(-1, 0, 0, -1, m_Width, m_Height);
-            break;
-        case PdfImageOrientation::BottomLeft:
-            transformation = Matrix(1, 0, 0, -1, 0, m_Height);
-            break;
-        case PdfImageOrientation::LeftTop:
-            transformation = Matrix(0, 1, -1, 0, m_Height, 0);
-            break;
-        case PdfImageOrientation::RightTop:
-            transformation = Matrix(0, 1, 1, 0, 0, 0);
-            break;
-        case PdfImageOrientation::RightBottom:
-            transformation = Matrix(0, -1, 1, 0, 0, m_Width);
-            break;
-        case PdfImageOrientation::LeftBottom:
-            transformation = Matrix(0, -1, -1, 0, m_Height, m_Width);
-            break;
-        case PdfImageOrientation::TopLeft:
-            // This would be the identity matrix, so it requires no transformation
-            return nullptr;
-        default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Invalid orientation");
-    }
-
-    auto actualXobj = GetDocument().CreateXObjectForm(GetRect());
-    static_cast<PdfResourceOperations&>(actualXobj->GetOrCreateResources()).AddResource(PdfResourceType::XObject, "XOb1"_n, GetObject());
-    PdfStringStream sstream;
-    PoDoFo::WriteOperator_Do(sstream, "XOb1");
-    actualXobj->GetObject().GetOrCreateStream().SetData(sstream.GetString());
-
-    return actualXobj;
-}
-
 void PdfImage::loadFromPngContent(png_structp png, png_infop pnginfo, charbuff& buffer, PdfImageInfo& info)
 {
     png_set_sig_bytes(png, 8);
@@ -1394,6 +1352,48 @@ void pngReadData(png_structp pngPtr, png_bytep data, png_size_t length)
 }
 
 #endif // PODOFO_HAVE_PNG_LIB
+
+unique_ptr<PdfXObjectForm> PdfImage::getTransformation(PdfImageOrientation orientation)
+{
+    Matrix transformation;
+    switch (orientation)
+    {
+        case PdfImageOrientation::TopRight:
+            transformation = Matrix(-1, 0, 0, 1, m_Width, 0);
+            break;
+        case PdfImageOrientation::BottomRight:
+            transformation = Matrix(-1, 0, 0, -1, m_Width, m_Height);
+            break;
+        case PdfImageOrientation::BottomLeft:
+            transformation = Matrix(1, 0, 0, -1, 0, m_Height);
+            break;
+        case PdfImageOrientation::LeftTop:
+            transformation = Matrix(0, 1, -1, 0, m_Height, 0);
+            break;
+        case PdfImageOrientation::RightTop:
+            transformation = Matrix(0, 1, 1, 0, 0, 0);
+            break;
+        case PdfImageOrientation::RightBottom:
+            transformation = Matrix(0, -1, 1, 0, 0, m_Width);
+            break;
+        case PdfImageOrientation::LeftBottom:
+            transformation = Matrix(0, -1, -1, 0, m_Height, m_Width);
+            break;
+        case PdfImageOrientation::TopLeft:
+            // This would be the identity matrix, so it requires no transformation
+            return nullptr;
+        default:
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Invalid orientation");
+    }
+
+    auto actualXobj = GetDocument().CreateXObjectForm(GetRect());
+    static_cast<PdfResourceOperations&>(actualXobj->GetOrCreateResources()).AddResource(PdfResourceType::XObject, "XOb1"_n, GetObject());
+    PdfStringStream sstream;
+    PoDoFo::WriteOperator_Do(sstream, "XOb1");
+    actualXobj->GetObject().GetOrCreateStream().SetData(sstream.GetString());
+
+    return actualXobj;
+}
 
 void PdfImage::SetChromaKeyMask(int64_t r, int64_t g, int64_t b, int64_t threshold)
 {
