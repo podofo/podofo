@@ -28,8 +28,6 @@ using namespace PoDoFo;
 
 constexpr double SAME_LINE_THRESHOLD = 0.01;
 constexpr double SEPARATION_EPSILON = 0.0000001;
-// Inferred empirically on Adobe Acrobat Pro
-constexpr unsigned HARD_SEPARATION_SPACING_MULTIPLIER = 6;
 #define ASSERT(condition, message, ...) if (!condition)\
     PoDoFo::LogMessage(PdfLogSeverity::Warning, message, ##__VA_ARGS__);
 
@@ -52,13 +50,14 @@ struct TextState
     double T_l = 0;             // Leading text Tl
     PdfTextState PdfState;
     Vector2 WordSpacingVectorRaw;
-    Vector2 SpaceCharVectorRaw;
+    Vector2 HardSpacingVectorRaw;
     double WordSpacingLength = 0;
-    double CharSpaceLength = 0;
+    double HardSpacingLength = 0;
     void ComputeDependentState();
     void ComputeSpaceDescriptors();
     void ComputeT_rm();
     double GetWordSpacingLength() const;
+    double GetHardSpacingLength() const;
     double GetSpaceCharLength() const;
     void ScanString(const PdfString& encodedStr, string& decoded, vector<double>& lengths, vector<unsigned>& positions);
 };
@@ -900,8 +899,8 @@ void ExtractionContext::EndText()
 void ExtractionContext::Tf_Operator(const PdfName &fontname, double fontsize)
 {
     auto resources = getActualCanvas().GetResources();
-    double spacingLengthRaw = 0;
-    double spaceCharLengthRaw = 0;
+    double wordSpacingLengthRaw = 0;
+    double hardSpacingLengthRaw = 0;
     States.Current->PdfState.FontSize = fontsize;
     if (resources == nullptr || (States.Current->PdfState.Font = resources->GetFont(fontname)) == nullptr)
     {
@@ -909,22 +908,22 @@ void ExtractionContext::Tf_Operator(const PdfName &fontname, double fontsize)
     }
     else
     {
-        spacingLengthRaw = States.Current->GetWordSpacingLength();
-        spaceCharLengthRaw = States.Current->GetSpaceCharLength();
+        wordSpacingLengthRaw = States.Current->GetWordSpacingLength();
+        hardSpacingLengthRaw = States.Current->GetHardSpacingLength();
     }
 
-    States.Current->WordSpacingVectorRaw = Vector2(spacingLengthRaw, 0);
-    if (spacingLengthRaw == 0)
+    States.Current->WordSpacingVectorRaw = Vector2(wordSpacingLengthRaw, 0);
+    if (wordSpacingLengthRaw == 0)
     {
         PoDoFo::LogMessage(PdfLogSeverity::Warning, "Unable to provide a word spacing length, setting default font size");
         States.Current->WordSpacingVectorRaw = Vector2(fontsize, 0);
     }
 
-    States.Current->SpaceCharVectorRaw = Vector2(spaceCharLengthRaw, 0);
-    if (spaceCharLengthRaw == 0)
+    States.Current->HardSpacingVectorRaw = Vector2(hardSpacingLengthRaw, 0);
+    if (hardSpacingLengthRaw == 0)
     {
-        PoDoFo::LogMessage(PdfLogSeverity::Warning, "Unable to provide a space char length, setting default font size");
-        States.Current->SpaceCharVectorRaw = Vector2(fontsize, 0);
+        PoDoFo::LogMessage(PdfLogSeverity::Warning, "Unable to provide a hard spacing length, setting default font size");
+        States.Current->HardSpacingVectorRaw = Vector2(fontsize, 0);
     }
 
     States.Current->ComputeSpaceDescriptors();
@@ -1050,7 +1049,7 @@ void ExtractionContext::tryAddEntry(const StatefulString& currStr)
             {
                 if (Options.TokenizeWords
                     || distance + SEPARATION_EPSILON >
-                        States.Current->CharSpaceLength * HARD_SEPARATION_SPACING_MULTIPLIER)
+                        States.Current->HardSpacingLength)
                 {
                     // Current entry is space separated and either we
                     //  tokenize words, or it's an hard entry separation
@@ -1255,7 +1254,7 @@ void TextState::ComputeDependentState()
 void TextState::ComputeSpaceDescriptors()
 {
     WordSpacingLength = (WordSpacingVectorRaw * T_m.GetScalingRotation()).GetLength();
-    CharSpaceLength = (SpaceCharVectorRaw * T_m.GetScalingRotation()).GetLength();
+    HardSpacingLength = (HardSpacingVectorRaw * T_m.GetScalingRotation()).GetLength();
 }
 
 void TextState::ComputeT_rm()
@@ -1266,6 +1265,11 @@ void TextState::ComputeT_rm()
 double TextState::GetWordSpacingLength() const
 {
     return PdfState.Font->GetWordSpacingLength(PdfState);
+}
+
+double TextState::GetHardSpacingLength() const
+{
+    return PdfState.Font->GetHardSpacingLength(PdfState);
 }
 
 double TextState::GetSpaceCharLength() const
