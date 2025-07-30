@@ -186,6 +186,14 @@ public:
     double GetWordSpacingLength(const PdfTextState& state) const;
 
     /**
+     * \returns The hard spacing length
+     * \remarks This differs from GetWordSpacingLength() as this will
+     * unconditionally split same line entries even when extracting lines
+     * as opposed to words
+     */
+    double GetHardSpacingLength(const PdfTextState& state) const;
+
+    /**
      * \returns The space char length
      * \remarks This differs from GetWordSpacingLength() as this will
      * be used to visually represent a space, while word spacing length
@@ -447,7 +455,9 @@ private:
     static std::unique_ptr<PdfFont> createFontForType(PdfDocument& doc, PdfFontMetricsConstPtr&& metrics,
         const PdfEncoding& encoding, bool preferNonCID);
 
-    void initSpaceDescriptors();
+    void initSpacingDescriptors();
+
+    void initSpaceCharLength();
 
     void pushSubsetInfo(unsigned cid, const PdfGID& gid, const PdfCharCode& code);
 

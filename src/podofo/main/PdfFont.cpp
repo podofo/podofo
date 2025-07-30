@@ -33,6 +33,7 @@ using namespace PoDoFo;
 
 static double getGlyphLength(double glyphLength, const PdfTextState& state, bool ignoreCharSpacing);
 static string_view toString(PdfFontStretch stretch);
+static double getGlyphMedianWidth(const PdfFontMetrics& metrics, unsigned maxGlyphCount);
 
 PdfFont::PdfFont(PdfDocument& doc, PdfFontType type, PdfFontMetricsConstPtr&& metrics,
         const PdfEncoding& encoding) :
@@ -354,13 +355,21 @@ bool PdfFont::TryScanEncodedString(const PdfString& encodedStr, const PdfTextSta
 
 double PdfFont::GetWordSpacingLength(const PdfTextState& state) const
 {
-    const_cast<PdfFont&>(*this).initSpaceDescriptors();
-    return getGlyphLength(m_WordSpacingLengthRaw, state, false);
+    const_cast<PdfFont&>(*this).initSpacingDescriptors();
+    constexpr double WORD_SPACING_FRACTIONAL_FACTOR = 5.5;
+    return getGlyphLength(m_WordSpacingLengthRaw / WORD_SPACING_FRACTIONAL_FACTOR, state, false);
+}
+
+double PdfFont::GetHardSpacingLength(const PdfTextState& state) const
+{
+    const_cast<PdfFont&>(*this).initSpacingDescriptors();
+    constexpr double HARD_SPACING_FACTOR = 6;
+    return getGlyphLength(m_WordSpacingLengthRaw * HARD_SPACING_FACTOR, state, false);
 }
 
 double PdfFont::GetSpaceCharLength(const PdfTextState& state) const
 {
-    const_cast<PdfFont&>(*this).initSpaceDescriptors();
+    const_cast<PdfFont&>(*this).initSpaceCharLength();
     return getGlyphLength(m_SpaceCharLengthRaw, state, false);
 }
 
@@ -601,43 +610,37 @@ void PdfFont::embedFontFileData(PdfDictionary& descriptor, const PdfName& fontFi
     contents.GetOrCreateStream().SetData(data);
 }
 
-void PdfFont::initSpaceDescriptors()
+void PdfFont::initSpacingDescriptors()
 {
     if (m_WordSpacingLengthRaw >= 0)
         return;
 
-    // TODO: Maybe try looking up other characters if U' ' is missing?
-    // https://docs.microsoft.com/it-it/dotnet/api/system.char.iswhitespace
-    unsigned gid;
-    if (!TryGetGID(U' ', PdfGlyphAccess::ReadMetrics, gid)
-        || !m_Metrics->TryGetGlyphWidth(gid, m_SpaceCharLengthRaw)
-        || m_SpaceCharLengthRaw <= 0)
-    {
-        double lengthsum = 0;
-        unsigned nonZeroCount = 0;
-        for (unsigned i = 0, count = m_Metrics->GetGlyphCount(PdfGlyphAccess::ReadMetrics); i < count; i++)
-        {
-            double length;
-            m_Metrics->TryGetGlyphWidth(i, length);
-            if (length > 0)
-            {
-                lengthsum += length;
-                nonZeroCount++;
-            }
-        }
-
-        m_SpaceCharLengthRaw = lengthsum / nonZeroCount;
-    }
-
-    // We arbitrarily take a fraction of the read or inferred
-    // char space to determine the word spacing length. The
+    // We arbitrarily take a fraction of the median of few glyphs. The
     // factor proved to work well with a consistent tests corpus
     // NOTE: This is very different from what Adobe Acrobat does,
     // but there's no reference heuristic to look at, every
     // implementation does something different
     // https://github.com/pdf-association/pdf-issues/issues/564
-    constexpr double WORD_SPACING_FRACTIONAL_FACTOR = 5.3;
-    m_WordSpacingLengthRaw = m_SpaceCharLengthRaw / WORD_SPACING_FRACTIONAL_FACTOR;
+    constexpr unsigned GLYPH_MEDIAN_MAX_COUNT = 10;
+    m_WordSpacingLengthRaw = getGlyphMedianWidth(*m_Metrics, GLYPH_MEDIAN_MAX_COUNT);
+}
+
+void PdfFont::initSpaceCharLength()
+{
+    if (m_SpaceCharLengthRaw >= 0)
+        return;
+
+    unsigned gid;
+    if (!TryGetGID(U' ', PdfGlyphAccess::ReadMetrics, gid)
+        || !m_Metrics->TryGetGlyphWidth(gid, m_SpaceCharLengthRaw)
+        || m_SpaceCharLengthRaw <= 0)
+    {
+        constexpr unsigned GLYPH_MEDIAN_MAX_COUNT = 10;
+        m_SpaceCharLengthRaw = getGlyphMedianWidth(*m_Metrics, GLYPH_MEDIAN_MAX_COUNT);
+        constexpr double CHAR_SPACE_FRACTIONAL_FACTOR = 3;
+        if ((m_Metrics->GetFlags() & PdfFontDescriptorFlags::FixedPitch) == PdfFontDescriptorFlags::None)
+            m_SpaceCharLengthRaw /= CHAR_SPACE_FRACTIONAL_FACTOR;
+    }
 }
 
 void PdfFont::pushSubsetInfo(unsigned cid, const PdfGID& gid, const PdfCharCode& code)
@@ -1187,4 +1190,34 @@ string_view toString(PdfFontStretch stretch)
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
+}
+
+double getGlyphMedianWidth(const PdfFontMetrics& metrics, unsigned maxGlyphCount)
+{
+    vector<double> glyphWidths;
+    double length;
+    unsigned i = 0, count = metrics.GetGlyphCount(PdfGlyphAccess::ReadMetrics);
+    while (true)
+    {
+        if (i >= count)
+            break;
+
+        // Skip some small glyph lengths
+        constexpr double GLYPH_WIDTH_THRESHOLD = 0.25;
+        if (metrics.TryGetGlyphWidth(i, length) && length > GLYPH_WIDTH_THRESHOLD)
+        {
+            glyphWidths.push_back(length);
+            if (glyphWidths.size() == maxGlyphCount)
+                break;
+        }
+
+        i++;
+    }
+
+    if (glyphWidths.size() == 0)
+        return 0;
+
+    size_t n = glyphWidths.size() / 2;
+    std::nth_element(glyphWidths.begin(), glyphWidths.begin() + n, glyphWidths.end());
+    return glyphWidths[n];
 }

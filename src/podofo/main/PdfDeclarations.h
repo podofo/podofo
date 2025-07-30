@@ -251,7 +251,7 @@ enum class PdfExportFormat : uint8_t
 enum class PdfFontDescriptorFlags : uint32_t
 {
     None        = 0,
-    FixedPitch  = 1 << 0,
+    FixedPitch  = 1 << 0, ///< Also known as monospaced
     Serif       = 1 << 1,
     Symbolic    = 1 << 2, ///< Font contains glyphs outside the Standard Latin character set. It does **not** mean the font is a symbol like font 
     Script      = 1 << 3,
