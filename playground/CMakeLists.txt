@@ -75,6 +75,9 @@ list(APPEND CMAKE_LIBRARY_PATH
 
 # Set use libxml2 static for fontconfig
 add_compile_definitions(LIBXML_STATIC)
+# Assume rng streaming validation recovery is available in libxml2
+# See https://gitlab.gnome.org/GNOME/libxml2/-/merge_requests/334
+set(PODOFO_HAVE_RNG_VALIDATION_RECOVERY TRUE)
 
 if(WIN32)
     if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")

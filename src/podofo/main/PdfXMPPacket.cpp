@@ -94,16 +94,34 @@ void PdfXMPPacket::SetMetadata(const PdfMetadataStore& metadata)
     PoDoFo::SetXMPMetadata(m_Doc, GetOrCreateDescription(), metadata);
 }
 
+void PdfXMPPacket::PruneInvalidProperties(PdfALevel level, const function<void(string_view)>& reportWarnings)
+{
+    if (m_Description == nullptr)
+        return;
+
+    PoDoFo::PruneInvalidProperties(m_Doc, m_Description, level, [&reportWarnings](string_view name, xmlNodePtr) {
+        reportWarnings(name);
+    });
+}
+
+void PdfXMPPacket::PruneInvalidProperties(PdfALevel level, const function<void(string_view, xmlNodePtr)>& reportWarnings)
+{
+    if (m_Description == nullptr)
+        return;
+
+    PoDoFo::PruneInvalidProperties(m_Doc, m_Description, level, reportWarnings);
+}
+
 xmlNodePtr PdfXMPPacket::GetOrCreateDescription()
 {
     if (m_Description != nullptr)
         return m_Description;
 
-    auto rdf = utls::FindChildElement(m_XMPMeta, "rdf", "RDF");
+    auto rdf = utls::FindChildElement(m_XMPMeta, "rdf"_ns, "RDF");
     if (rdf == nullptr)
         rdf = createRDFElement(m_XMPMeta);
 
-    auto description = utls::FindChildElement(rdf, "rdf", "Description");
+    auto description = utls::FindChildElement(rdf, "rdf"_ns, "Description");
     if (description == nullptr)
         description = createDescriptionElement(rdf);
 
@@ -126,7 +144,7 @@ string PdfXMPPacket::ToString() const
 // Normalize XMP accordingly to ISO 16684-2:2014
 void normalizeXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, xmlNodePtr& description)
 {
-    auto rdf = utls::FindChildElement(xmpmeta, "rdf", "RDF");
+    auto rdf = utls::FindChildElement(xmpmeta, "rdf"_ns, "RDF");
     if (rdf == nullptr)
     {
         description = nullptr;
@@ -135,7 +153,7 @@ void normalizeXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, xmlNodePtr& descrip
 
     normalizeQualifiersAndValues(doc, rdf->ns, rdf);
 
-    description = utls::FindChildElement(rdf, "rdf", "Description");
+    description = utls::FindChildElement(rdf, "rdf"_ns, "Description");
     if (description == nullptr)
         return;
 
@@ -144,7 +162,7 @@ void normalizeXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, xmlNodePtr& descrip
     auto element = description;
     while (true)
     {
-        element = utls::FindSiblingNode(element, "rdf", "Description");
+        element = utls::FindSiblingElement(element, "rdf"_ns, "Description");
         if (element == nullptr)
             break;
         else
@@ -211,7 +229,7 @@ void normalizeQualifiersAndValues(xmlDocPtr doc, xmlNsPtr rdfNs, xmlNodePtr elem
 void normalizeElement(xmlDocPtr doc, xmlNodePtr elem)
 {
     xmlAttrPtr found;
-    auto parseType = utls::FindAttribute(elem, "rdf", "parseType", found);
+    auto parseType = utls::FindAttribute(elem, "rdf"_ns, "parseType", found);
     if (parseType != nullptr && *parseType == "Resource")
     {
         // ISO 16684-2:2014 "5.6 Qualifier serialization"

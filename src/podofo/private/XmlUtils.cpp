@@ -10,17 +10,46 @@
 using namespace std;
 using namespace PoDoFo;
 
-xmlNodePtr utls::FindChildElement(xmlNodePtr element, const std::string_view& name)
+void utls::InitXml()
+{
+    LIBXML_TEST_VERSION;
+}
+
+xmlNodePtr utls::FindDescendantElement(xmlNodePtr element, const string_view& name)
+{
+    return FindDescendantElement(element, { }, name);
+}
+
+xmlNodePtr utls::FindDescendantElement(xmlNodePtr element, const string_view& ns, const string_view& name)
+{
+    for (auto child = xmlFirstElementChild(element); child != nullptr; child = xmlNextElementSibling(child))
+    {
+        if ((ns.length() == 0 || (child->ns != nullptr
+            && ns == (const char*)child->ns->href))
+            && name == (const char*)child->name)
+        {
+            return child;
+        }
+
+        auto ret = FindDescendantElement(child, ns, name);
+        if (ret != nullptr)
+            return ret;
+    }
+
+    return nullptr;
+}
+
+xmlNodePtr utls::FindChildElement(xmlNodePtr element, const string_view& name)
 {
     return FindChildElement(element, { }, name);
 }
 
-xmlNodePtr utls::FindChildElement(xmlNodePtr element, const string_view& prefix, const string_view& name)
+xmlNodePtr utls::FindChildElement(xmlNodePtr element, const string_view& ns, const string_view& name)
 {
     for (auto child = xmlFirstElementChild(element); child != nullptr; child = xmlNextElementSibling(child))
     {
-        if (child->ns != nullptr
-            && prefix == (const char*)child->ns->prefix
+        if ((ns.length() == 0 || (child->ns != nullptr
+            && ns == (const char*)child->ns->href))
             && name == (const char*)child->name)
         {
             return child;
@@ -30,17 +59,17 @@ xmlNodePtr utls::FindChildElement(xmlNodePtr element, const string_view& prefix,
     return nullptr;
 }
 
-xmlNodePtr utls::FindSiblingNode(xmlNodePtr element, const std::string_view& name)
+xmlNodePtr utls::FindSiblingElement(xmlNodePtr element, const string_view& name)
 {
-    return FindSiblingNode(element, { }, name);
+    return FindSiblingElement(element, { }, name);
 }
 
-xmlNodePtr utls::FindSiblingNode(xmlNodePtr element, const string_view& prefix, const string_view& name)
+xmlNodePtr utls::FindSiblingElement(xmlNodePtr element, const string_view& ns, const string_view& name)
 {
     for (auto sibling = xmlNextElementSibling(element); sibling; sibling = xmlNextElementSibling(sibling))
     {
-        if ((prefix.length() == 0 || (sibling->ns != nullptr
-                && prefix == (const char*)sibling->ns->prefix))
+        if ((ns.length() == 0 || (sibling->ns != nullptr
+                && ns == (const char*)sibling->ns->href))
             && name == (const char*)sibling->name)
         {
             return sibling;
@@ -56,10 +85,10 @@ nullable<string> utls::FindAttribute(xmlNodePtr element, const string_view& name
     return FindAttribute(element, { }, name, attr);
 }
 
-nullable<std::string> utls::FindAttribute(xmlNodePtr element, const string_view& prefix, const string_view& name)
+nullable<std::string> utls::FindAttribute(xmlNodePtr element, const string_view& ns, const string_view& name)
 {
     xmlAttrPtr attr;
-    return FindAttribute(element, prefix, name, attr);
+    return FindAttribute(element, ns, name, attr);
 }
 
 nullable<string> utls::FindAttribute(xmlNodePtr element, const string_view& name, xmlAttrPtr& attr)
@@ -67,12 +96,12 @@ nullable<string> utls::FindAttribute(xmlNodePtr element, const string_view& name
     return FindAttribute(element, { }, name, attr);
 }
 
-nullable<string> utls::FindAttribute(xmlNodePtr element, const string_view& prefix, const string_view& name, xmlAttrPtr& found)
+nullable<string> utls::FindAttribute(xmlNodePtr element, const string_view& ns, const string_view& name, xmlAttrPtr& found)
 {
     for (xmlAttrPtr attr = element->properties; attr != nullptr; attr = attr->next)
     {
-        if ((prefix.length() == 0 || (attr->ns != nullptr
-                && prefix == (const char*)attr->ns->prefix))
+        if ((ns.length() == 0 || (attr->ns != nullptr
+                && ns == (const char*)attr->ns->href))
             && name == (const char*)attr->name)
         {
             found = attr;
@@ -123,7 +152,27 @@ string utls::GetNodeName(xmlNodePtr node)
     }
 }
 
-void utls::InitXml()
+void utls::NavigateDescendantElements(xmlNodePtr element, const string_view& name, const function<void(xmlNodePtr)>& action)
 {
-    LIBXML_TEST_VERSION;
+    NavigateDescendantElements(element, { }, name, action);
+}
+
+void utls::NavigateDescendantElements(xmlNodePtr element, const string_view& ns, const string_view& name, const function<void(xmlNodePtr)>& action)
+{
+    for (auto child = xmlFirstElementChild(element); child != nullptr; child = xmlNextElementSibling(child))
+    {
+        if (child->type != XML_ELEMENT_NODE)
+            continue;
+
+        if ((ns.length() == 0 || (child->ns != nullptr
+            && ns == (const char*)child->ns->href))
+            && name == (const char*)child->name)
+        {
+            action(child);
+        }
+        else
+        {
+            NavigateDescendantElements(child, ns, name, action);
+        }
+    }
 }

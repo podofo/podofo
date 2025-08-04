@@ -47,6 +47,50 @@ TEST_CASE("TestNormalizeXMP")
     TestNormalizeXMP("TestXMP7");
 }
 
+#ifdef PODOFO_HAVE_RNG_VALIDATION_RECOVERY
+
+TEST_CASE("PruneInvalidXMP")
+{
+    vector<string> warnings;
+    auto reportWarnings = [&warnings](string_view name) {
+        warnings.push_back(string(name));
+    };
+
+    string sourceXmp;
+    TestUtils::ReadTestInputFile("TestXMP1.xml", sourceXmp);
+
+    auto packet = PdfXMPPacket::Create(sourceXmp);
+    packet->PruneInvalidProperties(PdfALevel::L1B, reportWarnings);
+    REQUIRE(warnings.size() == 0);
+    warnings.clear();
+    packet = PdfXMPPacket::Create(sourceXmp);
+    packet->PruneInvalidProperties(PdfALevel::L2B, reportWarnings);
+    REQUIRE(warnings.size() == 0);
+    warnings.clear();
+    packet = PdfXMPPacket::Create(sourceXmp);
+    packet->PruneInvalidProperties(PdfALevel::L4, reportWarnings);
+    REQUIRE(warnings.size() == 0);
+
+    sourceXmp.clear();
+    TestUtils::ReadTestInputFile("TestXMP1_PDFA4.xml", sourceXmp);
+    packet = PdfXMPPacket::Create(sourceXmp);
+
+    warnings.clear();
+    packet = PdfXMPPacket::Create(sourceXmp);
+    packet->PruneInvalidProperties(PdfALevel::L1B, reportWarnings);
+    REQUIRE(warnings.size() == 1);
+    warnings.clear();
+    packet = PdfXMPPacket::Create(sourceXmp);
+    packet->PruneInvalidProperties(PdfALevel::L2B, reportWarnings);
+    REQUIRE(warnings.size() == 1);
+    warnings.clear();
+    packet = PdfXMPPacket::Create(sourceXmp);
+    packet->PruneInvalidProperties(PdfALevel::L4, reportWarnings);
+    REQUIRE(warnings.size() == 0);
+}
+
+#endif // PODOFO_HAVE_RNG_VALIDATION_RECOVERY
+
 TEST_CASE("TestPDFA1_PDFUA1")
 {
     PdfMemDocument doc;

@@ -27,14 +27,20 @@
 namespace utls
 {
     void InitXml();
+    xmlNodePtr FindDescendantElement(xmlNodePtr element, const std::string_view& name);
+    xmlNodePtr FindDescendantElement(xmlNodePtr element, const std::string_view& ns, const std::string_view& name);
     xmlNodePtr FindChildElement(xmlNodePtr element, const std::string_view& name);
-    xmlNodePtr FindChildElement(xmlNodePtr element, const std::string_view& prefix, const std::string_view& name);
-    xmlNodePtr FindSiblingNode(xmlNodePtr element, const std::string_view& name);
-    xmlNodePtr FindSiblingNode(xmlNodePtr element, const std::string_view& prefix, const std::string_view& name);
+    xmlNodePtr FindChildElement(xmlNodePtr element, const std::string_view& ns, const std::string_view& name);
+    xmlNodePtr FindSiblingElement(xmlNodePtr element, const std::string_view& name);
+    xmlNodePtr FindSiblingElement(xmlNodePtr element, const std::string_view& ns, const std::string_view& name);
+    void NavigateDescendantElements(xmlNodePtr element, const std::string_view& name,
+        const std::function<void(xmlNodePtr)>& action);
+    void NavigateDescendantElements(xmlNodePtr element, const std::string_view& ns,
+        const std::string_view& name, const std::function<void(xmlNodePtr)>& action);
     PoDoFo::nullable<std::string> FindAttribute(xmlNodePtr element, const std::string_view& name);
-    PoDoFo::nullable<std::string> FindAttribute(xmlNodePtr element, const std::string_view& prefix, const std::string_view& name);
+    PoDoFo::nullable<std::string> FindAttribute(xmlNodePtr element, const std::string_view& ns, const std::string_view& name);
     PoDoFo::nullable<std::string> FindAttribute(xmlNodePtr element, const std::string_view& name, xmlAttrPtr& ptr);
-    PoDoFo::nullable<std::string> FindAttribute(xmlNodePtr element, const std::string_view& prefix, const std::string_view& name, xmlAttrPtr& ptr);
+    PoDoFo::nullable<std::string> FindAttribute(xmlNodePtr element, const std::string_view& ns, const std::string_view& name, xmlAttrPtr& ptr);
     PoDoFo::nullable<std::string> GetNodeContent(xmlNodePtr element);
     std::string GetAttributeValue(const xmlAttrPtr attr);
     std::string GetNodeName(xmlNodePtr node);

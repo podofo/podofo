@@ -34,8 +34,11 @@ namespace PoDoFo
         void SetMetadata(const PdfMetadataStore& metadata);
         void ToString(std::string& str) const;
         std::string ToString() const;
-
+        /** Remove invalid properties based on specific PDF/A level
+         */
+        void PruneInvalidProperties(PdfALevel level, const std::function<void(std::string_view)>& warnings = nullptr);
 #if PODOFO_3RDPARTY_INTEROP_ENABLED
+        void PruneInvalidProperties(PdfALevel level, const std::function<void(std::string_view, xmlNodePtr)>& warnings);
         xmlDocPtr GetDoc() { return m_Doc; }
         xmlNodePtr GetOrCreateDescription();
         xmlNodePtr GetDescription() { return m_Description; }
