@@ -314,6 +314,8 @@ extern "C"
 void PoDoFo::PruneInvalidProperties(xmlDocPtr doc, xmlNodePtr description, PdfALevel level,
     const function<void(string_view, xmlNodePtr)>& reportWarnings)
 {
+    assertHaveRngValidationRecovery();
+
     int rc;
     charbuff output;
     auto filter = PdfFilterFactory::Create(PdfFilterType::FlateDecode);
