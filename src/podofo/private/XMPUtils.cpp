@@ -303,9 +303,12 @@ void PoDoFo::SetXMPMetadata(xmlDocPtr doc, xmlNodePtr description, const PdfMeta
     }
 }
 
-static void nullValidationErrorHandler(void*, const xmlError*)
+extern "C"
 {
-    // Ignore errors
+    static void nullValidationErrorHandler(void*, const xmlError*)
+    {
+        // Ignore errors
+    }
 }
 
 void PoDoFo::PruneInvalidProperties(xmlDocPtr doc, xmlNodePtr description, PdfALevel level,
@@ -343,7 +346,7 @@ void PoDoFo::PruneInvalidProperties(xmlDocPtr doc, xmlNodePtr description, PdfAL
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "Out of memory while validating XMP packet");
 
     // Set a null error handler
-    xmlRelaxNGSetValidStructuredErrors(validCtx.get(), nullValidationErrorHandler, nullptr);
+    xmlRelaxNGSetValidStructuredErrors(validCtx.get(), (xmlStructuredErrorFunc)nullValidationErrorHandler, nullptr);
 
     // Push enclosing/preable elements
     rc = xmlRelaxNGValidatePushElement(validCtx.get(), doc, xmlDocGetRootElement(doc)); // <x:xmpmeta>
