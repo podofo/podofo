@@ -11,10 +11,10 @@ include_directories(
 add_executable(podofo-unit ${SOURCE_FILES})
 target_link_libraries(podofo-unit
     podofo_test
+    OpenSSL::Crypto
     ${PODOFO_LIBRARIES}
     podofo_private
     podofo_3rdparty
-    ${PODOFO_LIB_DEPENDS}
 )
 add_compile_options(${PODOFO_CFLAGS})
 
