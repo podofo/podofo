@@ -76,6 +76,12 @@ list(APPEND CMAKE_LIBRARY_PATH
 # Set use libxml2 static for fontconfig
 add_compile_definitions(LIBXML_STATIC)
 
+# Don't search dependencies in sysroot. This avoid
+# potential mismatches
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE NEVER)
+
 if(WIN32)
     if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
         set(LIB_SUFFIX "d")
@@ -95,12 +101,6 @@ if(WIN32)
     # Fontconfig
     set(Fontconfig_LIBRARY "${DEPS_PATH}/fontconfig/lib/${ARCH}/fontconfig${LIB_SUFFIX}.lib" CACHE FILEPATH "" FORCE)
 else()
-    # Freetype
-    set(FREETYPE_INCLUDE_DIR_ft2build "${DEPS_PATH}/freetype/include/freetype2" CACHE PATH "" FORCE)
-    set(FREETYPE_INCLUDE_DIR_freetype2 "${DEPS_PATH}/freetype/include" CACHE PATH "" FORCE)
-    set(FREETYPE_LIBRARY_RELEASE "${DEPS_PATH}/freetype/lib/${ARCH}/libfreetype.a" CACHE FILEPATH "" FORCE)
-    # Fontconfig
-    set(Fontconfig_LIBRARY "${DEPS_PATH}/fontconfig/lib/${ARCH}/libfontconfig.a" CACHE FILEPATH "" FORCE)
     set(PLATFORM_SYSTEM_LIBRARIES "${DEPS_PATH}/bzip2/lib/${ARCH}/libbz2.a" "${DEPS_PATH}/libuuid/lib/${ARCH}/libuuid.a")
 endif()
 
