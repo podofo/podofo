@@ -12,8 +12,6 @@
 using namespace std;
 using namespace PoDoFo;
 
-static void testPruneInvalid(const fs::path& path, PdfALevel level, const fs::path& refFolder, charbuff& buff1, charbuff& buff2);
-
 static void TestNormalizeXMP(string_view filename)
 {
     string sourceXmp;
@@ -47,6 +45,14 @@ TEST_CASE("TestNormalizeXMP")
     TestNormalizeXMP("TestXMP1");
     TestNormalizeXMP("TestXMP5");
     TestNormalizeXMP("TestXMP7");
+}
+
+TEST_CASE("TestPDFA1_PDFUA1")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("blank-pdfa.pdf"));
+    doc.GetMetadata().SetPdfUALevel(PdfUALevel::L1);
+    doc.Save(TestUtils::GetTestOutputFilePath("TestPDFA1_PDFUA1.pdf"));
 }
 
 #ifdef PODOFO_HAVE_RNG_VALIDATION_RECOVERY
@@ -91,15 +97,7 @@ TEST_CASE("TestPruneInvalid")
     REQUIRE(warnings.size() == 0);
 }
 
-#endif // PODOFO_HAVE_RNG_VALIDATION_RECOVERY
-
-TEST_CASE("TestPDFA1_PDFUA1")
-{
-    PdfMemDocument doc;
-    doc.Load(TestUtils::GetTestInputFilePath("blank-pdfa.pdf"));
-    doc.GetMetadata().SetPdfUALevel(PdfUALevel::L1);
-    doc.Save(TestUtils::GetTestOutputFilePath("TestPDFA1_PDFUA1.pdf"));
-}
+static void testPruneInvalid(const fs::path& path, PdfALevel level, const fs::path& refFolder, charbuff& buff1, charbuff& buff2);
 
 TEST_CASE("TestPruneInvalidDataset")
 {
@@ -146,3 +144,5 @@ void testPruneInvalid(const fs::path& path, PdfALevel level, const fs::path& ref
         utls::WriteTo(refPath.u8string(), buff1);
     }
 }
+
+#endif // PODOFO_HAVE_RNG_VALIDATION_RECOVERY
