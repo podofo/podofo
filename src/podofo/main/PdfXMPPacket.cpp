@@ -15,6 +15,16 @@ using namespace std;
 using namespace PoDoFo;
 using namespace utls;
 
+namespace
+{
+    enum class XPacketType
+    {
+        Unknnown = 0,
+        Begin,
+        End
+    };
+}
+
 static xmlDocPtr createXMPDoc(xmlNodePtr& root);
 static xmlNodePtr findRootXMPMeta(xmlDocPtr doc);
 static void normalizeXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, xmlNodePtr& description);
@@ -28,6 +38,10 @@ static xmlNodePtr createDescriptionElement(xmlNodePtr xmpmeta);
 static void serializeXMPMetadataTo(string& str, xmlDocPtr xmpMeta);
 static int xmlOutputStringWriter(void* context, const char* buffer, int len);
 static int xmlOutputStringWriterClose(void* context);
+static void addXPacketBegin(xmlDocPtr doc);
+static void addXPacketBegin(xmlDocPtr doc, string_view id, string_view moreData);
+static void addXPacketEnd(xmlDocPtr doc);
+static XPacketType tryHandleXPacket(xmlNodePtr node, string& id, string& moreData);
 
 static unordered_map<string, XMPListType> s_knownListNodes = {
     { "dc:date", XMPListType::Seq },
@@ -64,6 +78,34 @@ unique_ptr<PdfXMPPacket> PdfXMPPacket::Create(const string_view& xmpview)
         return nullptr;
     }
 
+    // Normalize the packet structure
+    // <?xpacket begin="..." id="..." ...moredata >
+    // <x:xmpmeta></<x:xmpmeta>
+    // <?xpacket end="w">
+
+    xmlNodePtr next;
+    string id;
+    string moredata;
+    XPacketType type;
+    for (xmlNodePtr child = doc->children; child != nullptr; child = next)
+    {
+        next = child->next;
+        if (child == xmpmeta)
+            continue;
+
+        // Search for <?xpacket begin...> and <?xpacket end...> nodes and delete them.
+        // We'll recreate them after the iteration
+        type = tryHandleXPacket(child, id, moredata);
+        if (type != XPacketType::Unknnown)
+        {
+            xmlUnlinkNode(child);
+            xmlFreeNode(child);
+        }
+    }
+
+    addXPacketBegin(doc, id, moredata);
+    addXPacketEnd(doc);
+
     unique_ptr<PdfXMPPacket> ret(new PdfXMPPacket(doc, xmpmeta));
     normalizeXMPMetadata(doc, xmpmeta, ret->m_Description);
     return ret;
@@ -99,9 +141,16 @@ void PdfXMPPacket::PruneInvalidProperties(PdfALevel level, const function<void(s
     if (m_Description == nullptr)
         return;
 
-    PoDoFo::PruneInvalidProperties(m_Doc, m_Description, level, [&reportWarnings](string_view name, xmlNodePtr) {
-        reportWarnings(name);
-    });
+    if (reportWarnings == nullptr)
+    {
+        PoDoFo::PruneInvalidProperties(m_Doc, m_Description, level, nullptr);
+    }
+    else
+    {
+        PoDoFo::PruneInvalidProperties(m_Doc, m_Description, level, [&reportWarnings](string_view name, xmlNodePtr) {
+            reportWarnings(name);
+        });
+    }
 }
 
 void PdfXMPPacket::PruneInvalidProperties(PdfALevel level, const function<void(string_view, xmlNodePtr)>& reportWarnings)
@@ -341,15 +390,7 @@ bool shouldSkipAttribute(xmlAttrPtr attr)
 xmlDocPtr createXMPDoc(xmlNodePtr& root)
 {
     auto doc = xmlNewDoc(nullptr);
-
-    // https://wwwimages2.adobe.com/content/dam/acom/en/devnet/xmp/pdfs/XMP%20SDK%20Release%20cc-2016-08/XMPSpecificationPart1.pdf
-    // See 7.3.2 XMP Packet Wrapper
-    auto xpacketBegin = xmlNewPI(XMLCHAR "xpacket", XMLCHAR "begin=\"\357\273\277\" id=\"W5M0MpCehiHzreSzNTczkc9d\"");
-    if (xpacketBegin == nullptr || xmlAddChild((xmlNodePtr)doc, xpacketBegin) == nullptr)
-    {
-        xmlFreeNode(xpacketBegin);
-        THROW_LIBXML_EXCEPTION("Can't create xpacket begin node");
-    }
+    addXPacketBegin(doc);
 
     // NOTE: x:xmpmeta element doesn't define any attribute
     // but other attributes can be defined (eg. x:xmptk)
@@ -363,12 +404,7 @@ xmlDocPtr createXMPDoc(xmlNodePtr& root)
         THROW_LIBXML_EXCEPTION("Can't find or create x namespace");
     xmlSetNs(xmpmeta, nsAdobeMeta);
 
-    auto xpacketEnd = xmlNewPI(XMLCHAR "xpacket", XMLCHAR "end=\"w\"");
-    if (xpacketEnd == nullptr || xmlAddChild((xmlNodePtr)doc, xpacketEnd) == nullptr)
-    {
-        xmlFreeNode(xpacketEnd);
-        THROW_LIBXML_EXCEPTION("Can't create xpacket end node");
-    }
+    addXPacketEnd(doc);
 
     root = xmpmeta;
     return doc;
@@ -437,4 +473,104 @@ int xmlOutputStringWriterClose(void* context)
     (void)context;
     // Do nothing
     return 0;
+}
+
+void addXPacketBegin(xmlDocPtr doc)
+{
+    addXPacketBegin(doc, { }, { });
+}
+
+void addXPacketBegin(xmlDocPtr doc, string_view id, string_view moreData)
+{
+    // See ISO 16684-1:2019 "7.3.2 XMP packet wrapper"
+    xmlNodePtr xpacketBegin;
+    if (id.empty())
+    {
+        xpacketBegin = xmlNewPI(XMLCHAR "xpacket", XMLCHAR "begin=\"\357\273\277\" id=\"W5M0MpCehiHzreSzNTczkc9d\"");
+    }
+    else
+    {
+        string content = "begin=\"\357\273\277\" id=\"";
+        content.append(id);
+        content.append("\"");
+        if (moreData.length() != 0)
+            content.append(moreData);
+
+        xpacketBegin = xmlNewPI(XMLCHAR "xpacket", XMLCHAR content.data());
+    }
+    
+    if (xpacketBegin == nullptr)
+    {
+    Fail:
+        xmlFreeNode(xpacketBegin);
+        THROW_LIBXML_EXCEPTION("Can't create xpacket begin node");
+    }
+
+    auto node = doc->children;
+    if (node == nullptr)
+        node = xmlAddChild((xmlNodePtr)doc, xpacketBegin);
+    else
+        node = xmlAddPrevSibling(node, xpacketBegin);
+
+    if (node == nullptr)
+        goto Fail;
+}
+
+void addXPacketEnd(xmlDocPtr doc)
+{
+    auto xpacketEnd = xmlNewPI(XMLCHAR "xpacket", XMLCHAR "end=\"w\"");
+    if (xpacketEnd == nullptr || xmlAddChild((xmlNodePtr)doc, xpacketEnd) == nullptr)
+    {
+        xmlFreeNode(xpacketEnd);
+        THROW_LIBXML_EXCEPTION("Can't create xpacket end node");
+    }
+}
+
+XPacketType tryHandleXPacket(xmlNodePtr node, string& id, string& moreData)
+{
+    string_view::size_type pos1;
+    string_view::size_type pos2;
+    string_view content;
+    char quoteChar;
+    XPacketType type = XPacketType::Unknnown;
+    if (node->type != XML_PI_NODE
+        || xmlStrcmp(node->name, XMLCHAR "xpacket") != 0
+        || node->content == nullptr
+        || (content = (const char*)node->content).empty())
+    {
+        goto Exit;
+    }
+
+    if ((pos1 = content.find("begin=")) == string_view::npos)
+    {
+        if ((pos1 = content.find("end=")) != string_view::npos)
+            type = XPacketType::End;
+
+        goto Exit;
+    }
+
+    type = XPacketType::Begin;
+
+    // If the the id has already been determined, just exit
+    if (id.length() != 0)
+        goto Exit;
+
+    if ((pos1 = content.find("id=", pos1 + 6)) == string_view::npos
+        || (pos1 += 3) >= content.size())
+    {
+        goto Exit;
+    }
+
+    quoteChar = content[pos1++];
+    if ((pos2 = content.find(quoteChar, pos1)) == string_view::npos
+        || pos1 == pos2)
+    {
+        goto Exit;
+    }
+
+    id = content.substr(pos1, pos2 - pos1);
+    moreData = content.substr(++pos2);
+
+Exit:
+    return type;
 }
