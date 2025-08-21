@@ -3,7 +3,7 @@
 - Added `PdfXMPPAcket::PruneInvalidProperties(pdfaLevel)`
 
 ## Version 1.0.2
-- Fixed [[#275](https://github.com/podofo/podofo/issues/275), [#276](https://github.com/podofo/podofo/issues/276)
+- Fixed [#275](https://github.com/podofo/podofo/issues/275), [#276](https://github.com/podofo/podofo/issues/276)
 - `PdfTokenizer`: Fixed free-after-use after failing to parse content while reading literal tokens
 - `PdfFont`: Improved heursitic for word spacing
 - `PdfDifferenceEncoding`: Fixed handling of ligatures in AGL character names
