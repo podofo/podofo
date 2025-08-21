@@ -1,8 +1,17 @@
 ## Version 1.1.0-dev
 - Added support for ECDSA encryption
+- Added `PdfXMPPAcket::PruneInvalidProperties(pdfaLevel)`
+
+## Version 1.0.2
+- Fixed [[#275](https://github.com/podofo/podofo/issues/275), [#276](https://github.com/podofo/podofo/issues/276)
+- `PdfTokenizer`: Fixed free-after-use after failing to parse content while reading literal tokens
+- `PdfFont`: Improved heursitic for word spacing
+- `PdfDifferenceEncoding`: Fixed handling of ligatures in AGL character names
+- `PdfXMPPAcket`: Make `GetDescription()` const correct
+- `PdfMemDocument`: Fixed upgrade to PDF2.0 in a incremental update
 
 ## Version 1.0.1
-- Fixed #265, #264
+- Fixed [#265](https://github.com/podofo/podofo/issues/265), [#264](https://github.com/podofo/podofo/issues/264)
 - Fixed several issues related to use of `nullable<std::unique_ptr<T>>`
 - XMP: Fixed removing extension from extension bag
 - XMP: Fix double inserting pdfuaid schema
@@ -56,26 +65,32 @@
 - Tons of other bug fixes
 
 ## Version 0.10.5
-- Fix #191, #197, #201, #212, #233, #241, #251, #252, #253
-- PdfParser: Fixed stack overflow parsing documents with many XRef stream updates
-- PdfFont: Fixed GetBoundingBox() retrival
-- PdfFontMetricsObject: Fixed reading /FontBBox
-- PdfEncodingFactory: Fixed parsing of limits with /FirstChar equals to /LastChar
-- PdfFontMetricsStandard14: Fixed parsing /Widths
-- PdfMetadata: Fixed missing init ensure for SetAuthor()
-- PdfTokenizer: Fixed character escaping when reading strings
-- PdfPageCollection: Fix memory leak in RemovePageAt
+- Fix [#191](https://github.com/podofo/podofo/issues/191), [#197](https://github.com/podofo/podofo/issues/197),
+  [#201](https://github.com/podofo/podofo/issues/201), [#212](https://github.com/podofo/podofo/issues/212),
+  [#233](https://github.com/podofo/podofo/issues/233), [#241](https://github.com/podofo/podofo/issues/241),
+  [#251](https://github.com/podofo/podofo/issues/251), [#252](https://github.com/podofo/podofo/issues/252),
+  [#253](https://github.com/podofo/podofo/issues/253)
+- `PdfParser`: Fixed stack overflow parsing documents with many XRef stream updates
+- `PdfFont`: Fixed `GetBoundingBox()` retrival
+- `PdfFontMetricsObject`: Fixed reading `/FontBBox`
+- `PdfEncodingFactory`: Fixed parsing of limits with `/FirstChar` equals to `/LastChar`
+- `PdfFontMetricsStandard14`: Fixed parsing /Widths
+- `PdfMetadata`: Fixed missing init ensure for SetAuthor()
+- `PdfTokenizer`: Fixed character escaping when reading strings
+- `PdfPageCollection`: Fix memory leak in `RemovePageAt`
 - Compilation and linking fixes in various conditions
-- PdfFontManager: Fixed GetOrCreateFontFromBuffer stealing memory
-- PdfPageCollection: Disable copy/assignment
-- PdfPage_TextExtraction: Fix `decodeString` with no font
-- Fix eating of non-space chars in SplitTextAsLines
+- `PdfFontManager`: Fixed GetOrCreateFontFromBuffer stealing memory
+- `PdfPageCollection`: Disable copy/assignment
+- `PdfPage_TextExtraction`: Fix `decodeString` with no font
+- Fix eating of non-space chars in `SplitTextAsLines`
 - Fix FreeType segfault race condition
-- PdfCheckBox: Fixed IsChecked()
-- PdfParser: Uncondtionally try to read XRef stream in all PDFs that doesn't have a cross reference section
+- `PdfCheckBox`: Fixed `IsChecked()`
+- `PdfParser`: Uncondtionally try to read XRef stream in all PDFs that doesn't have a cross reference section
 
 ## Version 0.10.4
-- Fixes #161, #162, #167, #183, merges #157
+- Fixes [#161](https://github.com/podofo/podofo/issues/161), [#162](https://github.com/podofo/podofo/issues/162),
+[#167](https://github.com/podofo/podofo/issues/167), [#183](https://github.com/podofo/podofo/issues/183),
+merges [#157](https://github.com/podofo/podofo/issues/)
 - `StandardStreamDevice`: Fixed `seek()` in case of `iostream`/`fstream`
 - `PdfWriter`: Fixed computing the doc identifier with a wrong buffer
 - `PdfPainter`: Fix `SetCurrentMatrix()` to really update CTM
@@ -84,17 +99,21 @@
 - `PdfPainter`: Fixed offset on multiline text if text is not left aligned
 
 ## Version 0.10.3
-- Fixed big performance regression introduced in 0.10, see #108
-- Fixed data loss with encrypted documents, see #99
+- Fixed big performance regression introduced in 0.10, see [#108](https://github.com/podofo/podofo/issues/108)
+- Fixed data loss with encrypted documents, see [#99](https://github.com/podofo/podofo/issues/99)
 - Fixed compilation with VS2022 >= 17.8
 - Fixed compilation using libxml >= 2.12.0
 
 ## Version 0.10.2
-- Security related bugfixes #76, #89, #96
+- Security related bugfixes [#76](https://github.com/podofo/podofo/issues/76),
+[#89](https://github.com/podofo/podofo/issues/89),
+[#96](https://github.com/podofo/podofo/issues/96)
 - Some compilation and test fixes
 
 ## Version 0.10.1
-- Security bugfixes, #66, #67, #69, #70, #71, #72
+- Security bugfixes, [#66](https://github.com/podofo/podofo/issues/66), [#67](https://github.com/podofo/podofo/issues/67),
+[#69](https://github.com/podofo/podofo/issues/69), [#70](https://github.com/podofo/podofo/issues/70),
+[#71](https://github.com/podofo/podofo/issues/71), [#72](https://github.com/podofo/podofo/issues/72)
 - Rewritten `PdfPageCollection` for performance
 - `PdfCMapEncoding`: Fix parsing some invalid CMap(s) supported by Acrobat
 - `PdfXRefStreamParserObject`: Fixed handling of invalid XRef stream entries
@@ -144,99 +163,99 @@
 - `PdfImage`: Added `DecodeTo(pixelFormat)`
 
 ## Version 0.9.22 (pdfmm)
-- Fixed serialization of strings with non ASCII PdfDocEncoding
+- Fixed serialization of strings with non ASCII `PdfDocEncoding`
   characters
-- Removed PdfLocaleImbue
-- PdfEncrypt: Removed PdfReference state. Added PdfStatefulEncrypt
-- Removed use of std::ostringstream. Added efficient outstringstream
-- Added PdfMath functionalities (matrix transformations and so on)
+- Removed `PdfLocaleImbue`
+- `PdfEncrypt`: Removed `PdfReference` state. Added `PdfStatefulEncrypt`
+- Removed use of `std::ostringstream`. Added efficient `outstringstream`
+- Added `PdfMath` functionalities (matrix transformations and so on)
 
 ## Version 0.9.21 (pdfmm)
 - Fixed serialization of UTF-16BE strings
-- More lenient PdfDate parsing
+- More lenient `PdfDate` parsing
 
 ## Version 0.9.20 (pdfmm)
 
 - The project is now a C++17 library
-- Added move semantics for PdfVariant, PdfObject, PdfArray, PdfDictionary
+- Added move semantics for `PdfVariant`, `PdfObject`, `PdfArray`, `PdfDictionary`
 - Improved XRefStream support, added support in incremental saves
 - Many fixes in save incremental object/generation number incrementing
-- String backed with UTF-8 storage
-- PdfName backed with UTF-8 storage
-- Brand new PdfEncoding class with support for both /Encoding and /ToUnicode,
+- `PdfString` backed with UTF-8 storage
+- `PdfName` backed with UTF-8 storage
+- Brand new P`dfEncoding` class with support for both `/Encoding` and `/ToUnicode`,
   more complete Unicode support
-- Added a PdfDynamicEncoding class that creates a custom CID encoding
+- Added a `PdfDynamicEncoding` class that creates a custom CID encoding
   based on actual used glyphs used
-- Automatic creation of CIDMap and /ToUnicode
-- Added PdfSigner class and SignDocument()
-- Added PdfFontType1Encoding, which support Type1 implicit encoding
+- Automatic creation of CIDMap and `/ToUnicode`
+- Added `PdfSigner` class and `SignDocument()`
+- Added `PdfFontType1Encoding`, which support Type1 implicit encoding
 - Added support for PDF 2.0 UTF-8 strings (untested)
-- Added indirect iteration for PdfArray/PdfDictionary (see GetIndirectIterator methods)
-- Added PdfDocument::GetPdfALevel()
+- Added indirect iteration for `PdfArray`/`PdfDictionary` (see `GetIndirectIterator` methods)
+- Added `PdfDocument::GetPdfALevel()`
 - Added PDFA preserving writing
-- Refactored/Reviewed PdfInputDevice: versions that take buffer
-  do not copy it (use istringviewstream)
-- Added font replacement facility PdfFont::TryCreateFontSubstitute()
+- Refactored/Reviewed `PdfInputDevice`: versions that take buffer
+  do not copy it (use `istringviewstream`)
+- Added font replacement facility `PdfFont::TryCreateFontSubstitute()`
 - Added standard14 fonts embedding, with font programs from PDFium
-- Reviewed PdfXObject hierarchy, added PdfXObjectForm, PdfXObjectPostScript
-- Added PdfTextState and use it to compute string widths in PdfFont
-- Improved PdfDocEncoding to expose conversion utf8 conversion facilities
-- PdfParser: Support also files with whitespace offset before magic start
-- PdfObject auto ownership
-- PdfContents: create on demand /Contents. First create a single stream, after array
-- Improved IsDirty handling: less dirty bit sets
-- Added PdfPostScriptTokenizer that as better general support for PostScript
-- PdfDictionary: Review/convert GetKey -> FindKey
-- PdfDictionary: Review GetKeyAs methods
+- Reviewed `PdfXObject` hierarchy, added `PdfXObjectForm`, `PdfXObjectPostScript`
+- Added `PdfTextState` and use it to compute string widths in `PdfFont`
+- Improved `PdfDocEncoding` to expose conversion utf8 conversion facilities
+- `PdfParser`: Support also files with whitespace offset before magic start
+- `PdfObject` auto ownership
+- `PdfContents`: create on demand /Contents. First create a single stream, after array
+- Improved `IsDirty` handling: less dirty bit sets
+- Added `PdfPostScriptTokenizer` that as better general support for PostScript
+- `PdfDictionary`: Reviewed/convert `GetKey` -> `FindKey`
+- `PdfDictionary`: Reviewed `GetKeyAs` methods
 - Fixed hundreds of warnings. No warnings left in tested builds
-- FontConfigManager: better handling with custom configurations
-- Removed PdfMutex. Used std::mutex where necessary
-- Datatypte: remove PdfDataType::HexString
+- `FontConfigManager`: better handling with custom configurations
+- Removed `PdfMutex`. Used `std::mutex` where necessary
+- Datatypte: removed `PdfDataType::HexString`
 - Removed support for old compilers (MSVC6, hpux, borland, turbo...)
 - Added better endian swap functions
-- Removed auto_ptr usage
-- Removed pdf_int/pdf_uint types
-- Removed use of pdf_long/long types
-- Removed use of ptrdiff_t
+- Removed `auto_ptr` usage
+- Removed `pdf_int`/`pdf_uint` types
+- Removed use of `pdf_long`/`long` types
+- Removed use of `ptrdiff_t`
 - Removed unistring and ugly string conversion code. Moved to utfcpp
-- Reviewed PdfObject::GetNumber/PdfObject::GetReal (strict/lenient)
-- Remove PdfObject inheritance on PdfVariant
-- Reviewed PdfVariant/PdfObject/PdfArray/PdfDictionary equality/disequality operators
+- Reviewed `PdfObject::GetNumber`/`PdfObject::GetReal` (strict/lenient)
+- Remove `PdfObject` inheritance on `PdfVariant`
+- Reviewed `PdfVariant`/`PdfObject`/`PdfArray`/`PdfDictionary` equality/disequality operators
 - Simplified copyright headers
 - Object copy constructor must copy also stream
-- PdfElement: GetDocument(), GetObject() refs
-- PdfVecObjects: GetParentDocument() -> GetDocument()
-- Remove PdfSignOutputDevice::SetSignatureSize(size)
+- `PdfElement`: `GetDocument()`, `GetObject()` refs
+- `PdfIndirectObjectList`: `GetParentDocument()` -> `GetDocument()`
+- Remove `PdfSignOutputDevice::SetSignatureSize(size)`
 - Moved inline code to .cpp
 - Remove comments on overrides
 - Cleaned CMakeFiles (removed custom Find<>.cmake)
-- NULL -> nullptr
-- Use shared_ptr in PdfFontMetrics, PdfEncoding in PdfFont
-- Cleaned PdfFontCache (renamed PdfFontManager), removed font functions from PdfDocument
-- PdfArray::FindAt() return ref
+- `NULL` -> `nullptr`
+- Use `std::shared_ptr` in `PdfFontMetrics`, `PdfEncoding` in `PdfFont`
+- Cleaned `PdfFontCache` (renamed `PdfFontManager`), removed font functions from `PdfDocument`
+- `PdfArray::FindAt()` return ref
 - Simplified license headers
-- Reviewed PdfPageTree and PdfPageTreeCache API
+- Reviewed `PdfPageTree` and `PdfPageTreeCache` API
 - Reviewed most int vs unsigned indexing
 - Remove all hungarian notation
 - Sanitize code style
 - Removed all const char* and passed to string/string_view
-- Renamed PdfFontCache -> PdfFontManager
-- Renamed PdfVecObjects -> PdfIndirectObjectList
-- Renamed PdfNamesTree -> PdfNameTree
-- Renamed PdfPagesTree -> PdfPageTree
-- Renamed PdfPagesTreeCache -> PdfPageTreeCache
+- Renamed `PdfFontCache` -> `PdfFontManager`
+- Renamed `PdfVecObjects` -> `PdfIndirectObjectList`
+- Renamed `PdfNamesTree` -> `PdfNameTree`
+- Renamed `PdfPagesTree` -> `PdfPageTree`
+- Renamed `PdfPagesTreeCache` -> `PdfPageTreeCache`
 - PdfObject: removed GetIndirectObject(), MustGetIndirectKey (must use PdfDictionary now)
-- Remove PdfMemoryManagement.cpp, Removed podofo_new, podofo_free
+- Remove `PdfMemoryManagement.cpp`, Removed `podofo_new`, `podofo_free`
 - Add chars type for char array storage/buffering which inerits string
 - Review pointer vs ref parameters/return types
-- Remove PdfRefCountedBuffer, PdfRefCountedInputDevice, PdfRefCountedOutputDevice
-- Removed PdfMemoryManagement and all C style malloc/free usage
-- Refactored PdfOutputDevice (PdfMemoryOutputDevice/PdfFileOutputDevice/etc.)
-- Clean PdfError, remove wchar_t
-- Remove printf, snprintf
-- Renamed PdfElement-> {PdfDictionaryElement|PdfArrayElement} that
-  respectively have GetDictionary(), GetArray()
-- Reviwed PdfWriteFlags, added PdfSaveOptions
+- Removed `PdfRefCountedBuffer`, `PdfRefCountedInputDevice`, `PdfRefCountedOutputDevice`
+- Removed `PdfMemoryManagement` and all C style malloc/free usage
+- Refactored `PdfOutputDevice` (`PdfMemoryOutputDevice`/`PdfFileOutputDevice`/etc.)
+- Clean `PdfError`, remove `wchar_t`
+- Remove `printf`, `snprintf`
+- Renamed `PdfElement`-> {`PdfDictionaryElement`|`PdfArrayElement`} that
+  respectively have `GetDictionary()`, `GetArray()`
+- Reviewed `PdfWriteFlags`, added `PdfSaveOptions`
 
 ## Old PoDoFo ChangeLog
 
