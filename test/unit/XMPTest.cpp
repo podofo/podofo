@@ -59,9 +59,15 @@ TEST_CASE("TestPDFA1_PDFUA1")
 
 TEST_CASE("TestPruneInvalid")
 {
-    vector<string> warnings;
-    auto reportWarnings = [&warnings](string_view name) {
-        warnings.push_back(string(name));
+    struct FailedProp
+    {
+        string Name;
+        bool IsDuplicated;
+    };
+
+    vector<FailedProp> warnings;
+    auto reportWarnings = [&warnings](const PdfXMPProperty& prop) {
+        warnings.push_back(FailedProp{ prop.GetPrefixedName(), prop.IsDuplicated() });
     };
 
     string sourceXmp;
@@ -81,7 +87,6 @@ TEST_CASE("TestPruneInvalid")
 
     sourceXmp.clear();
     TestUtils::ReadTestInputFile("TestXMP1_PDFA4.xml", sourceXmp);
-    packet = PdfXMPPacket::Create(sourceXmp);
 
     warnings.clear();
     packet = PdfXMPPacket::Create(sourceXmp);
@@ -95,6 +100,14 @@ TEST_CASE("TestPruneInvalid")
     packet = PdfXMPPacket::Create(sourceXmp);
     packet->PruneInvalidProperties(PdfALevel::L4, reportWarnings);
     REQUIRE(warnings.size() == 0);
+
+    sourceXmp.clear();
+    TestUtils::ReadTestInputFile("TestXMP1_PDFA4_Invalid.xml", sourceXmp);
+    packet = PdfXMPPacket::Create(sourceXmp);
+    packet->PruneInvalidProperties(PdfALevel::L4, reportWarnings);
+    REQUIRE(warnings.size() == 1);
+    REQUIRE(warnings[0].Name == "pdf:Trapped");
+    REQUIRE(warnings[0].IsDuplicated);
 }
 
 static void testPruneInvalid(const fs::path& path, PdfALevel level, const fs::path& refFolder, charbuff& buff1, charbuff& buff2);

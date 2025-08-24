@@ -134,10 +134,10 @@ string utls::GetAttributeValue(xmlAttrPtr attr)
 
 string utls::GetAttributeName(xmlAttrPtr attr)
 {
-    return GetNodeName((xmlNodePtr)attr);
+    return GetNodePrefixedName((xmlNodePtr)attr);
 }
 
-string utls::GetNodeName(xmlNodePtr node)
+string utls::GetNodePrefixedName(xmlNodePtr node)
 {
     if (node->ns == nullptr)
     {
@@ -150,6 +150,21 @@ string utls::GetNodeName(xmlNodePtr node)
         nodename.append((const char*)node->name);
         return nodename;
     }
+}
+
+string_view utls::GetNodeName(xmlNodePtr node)
+{
+    return (const char*)node->name;
+}
+
+string_view utls::GetNodePrefix(xmlNodePtr node)
+{
+    return node->ns == nullptr ? string_view() : string_view((const char*)node->ns->prefix);
+}
+
+string_view utls::GetNodeNamespace(xmlNodePtr node)
+{
+    return node->ns == nullptr ? string_view() : string_view((const char*)node->ns->href);
 }
 
 void utls::NavigateDescendantElements(xmlNodePtr element, const string_view& name, const function<void(xmlNodePtr)>& action)

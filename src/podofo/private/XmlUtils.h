@@ -43,6 +43,9 @@ namespace utls
     PoDoFo::nullable<std::string> FindAttribute(xmlNodePtr element, const std::string_view& ns, const std::string_view& name, xmlAttrPtr& ptr);
     PoDoFo::nullable<std::string> GetNodeContent(xmlNodePtr element);
     std::string GetAttributeValue(const xmlAttrPtr attr);
-    std::string GetNodeName(xmlNodePtr node);
+    std::string GetNodePrefixedName(xmlNodePtr node);
+    std::string_view GetNodeName(xmlNodePtr node);
+    std::string_view GetNodePrefix(xmlNodePtr node);
+    std::string_view GetNodeNamespace(xmlNodePtr node);
     std::string GetAttributeName(xmlAttrPtr attr);
 }

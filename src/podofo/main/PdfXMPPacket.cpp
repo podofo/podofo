@@ -136,7 +136,7 @@ void PdfXMPPacket::SetMetadata(const PdfMetadataStore& metadata)
     PoDoFo::SetXMPMetadata(m_Doc, GetOrCreateDescription(), metadata);
 }
 
-void PdfXMPPacket::PruneInvalidProperties(PdfALevel level, const function<void(string_view)>& reportWarnings)
+void PdfXMPPacket::PruneInvalidProperties(PdfALevel level, const function<void(const PdfXMPProperty& prop)>& reportWarnings)
 {
     if (m_Description == nullptr)
         return;
@@ -147,18 +147,40 @@ void PdfXMPPacket::PruneInvalidProperties(PdfALevel level, const function<void(s
     }
     else
     {
-        PoDoFo::PruneInvalidProperties(m_Doc, m_Description, level, [&reportWarnings](string_view name, xmlNodePtr) {
-            reportWarnings(name);
+        PdfXMPProperty prop;
+        PoDoFo::PruneInvalidProperties(m_Doc, m_Description, level,
+            [&reportWarnings,&prop](string_view name, string_view ns,
+                string_view prefix, bool duplicated, xmlNodePtr) {
+            prop.Name = name;
+            prop.Namespace = ns;
+            prop.Prefix = prefix;
+            prop.Status = duplicated ? PdfXMPProperty::Duplicated : PdfXMPProperty::Invalid;
+            reportWarnings(prop);
         });
     }
 }
 
-void PdfXMPPacket::PruneInvalidProperties(PdfALevel level, const function<void(string_view, xmlNodePtr)>& reportWarnings)
+void PdfXMPPacket::PruneInvalidProperties(PdfALevel level, const function<void(const PdfXMPProperty& prop, xmlNodePtr)>& reportWarnings)
 {
     if (m_Description == nullptr)
         return;
 
-    PoDoFo::PruneInvalidProperties(m_Doc, m_Description, level, reportWarnings);
+    if (reportWarnings == nullptr)
+    {
+        PoDoFo::PruneInvalidProperties(m_Doc, m_Description, level, nullptr);
+    }
+    else
+    {
+        PdfXMPProperty prop;
+        PoDoFo::PruneInvalidProperties(m_Doc, m_Description, level, [&reportWarnings, &prop](string_view name, string_view ns,
+            string_view prefix, bool duplicated, xmlNodePtr node) {
+                prop.Name = name;
+                prop.Namespace = ns;
+                prop.Prefix = prefix;
+                prop.Status = duplicated ? PdfXMPProperty::Duplicated : PdfXMPProperty::Invalid;
+                reportWarnings(prop, node);
+        });
+    }
 }
 
 xmlNodePtr PdfXMPPacket::GetOrCreateDescription()
@@ -348,7 +370,7 @@ void tryFixArrayElement(xmlDocPtr doc, xmlNodePtr& node, const string_view& node
     if (node->ns == nullptr)
         return;
 
-    auto nodename = utls::GetNodeName(node);
+    auto nodename = utls::GetNodePrefixedName(node);
     auto found = s_knownListNodes.find(nodename);
     if (found == s_knownListNodes.end())
         return;
@@ -573,4 +595,34 @@ XPacketType tryHandleXPacket(xmlNodePtr node, string& id, string& moreData)
 
 Exit:
     return type;
+}
+
+PdfXMPProperty::PdfXMPProperty()
+    : Status(PropStatus::Invalid)
+{
+}
+
+string PdfXMPProperty::GetPrefixedName() const
+{
+    if (Prefix.empty())
+    {
+        return Name;
+    }
+    else
+    {
+        string prefixedName = Prefix;
+        prefixedName.push_back(':');
+        prefixedName.append(Name);
+        return prefixedName;
+    }
+}
+
+bool PdfXMPProperty::IsValid() const
+{
+    return Status != PropStatus::None;
+}
+
+bool PdfXMPProperty::IsDuplicated() const
+{
+    return (Status & PropStatus::Duplicated) != PropStatus::None;
 }

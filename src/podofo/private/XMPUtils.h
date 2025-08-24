@@ -30,7 +30,8 @@ namespace PoDoFo
     void GetXMPMetadata(xmlNodePtr description, PdfMetadataStore& metadata);
     void SetXMPMetadata(xmlDocPtr doc, xmlNodePtr description, const PdfMetadataStore& metadata);
     void PruneInvalidProperties(xmlDocPtr doc, xmlNodePtr description, PdfALevel level,
-        const std::function<void(std::string_view, xmlNodePtr)>& reportWarnings);
+        const std::function<void(std::string_view name, std::string_view ns, std::string_view prefix,
+            bool duplicated, xmlNodePtr)>& reportWarnings);
     void GetXMPNamespacePrefix(XMPNamespaceKind ns, std::string_view& href, std::string_view& prefix);
 
     constexpr std::string_view operator""_ns(const char* name, size_t length)

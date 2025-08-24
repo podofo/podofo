@@ -312,7 +312,8 @@ extern "C"
 }
 
 void PoDoFo::PruneInvalidProperties(xmlDocPtr doc, xmlNodePtr description, PdfALevel level,
-    const function<void(string_view, xmlNodePtr)>& reportWarnings)
+    const function<void(string_view name, string_view ns, string_view prefix,
+        bool duplicated, xmlNodePtr node)>& reportWarnings)
 {
     assertHaveRngValidationRecovery();
 
@@ -362,21 +363,31 @@ void PoDoFo::PruneInvalidProperties(xmlDocPtr doc, xmlNodePtr description, PdfAL
     // of properties is unrestricted (there can be repeated properties)
     // TODO1: Enforce non repetition of properties
     // TODO2: Enable pdfuaid, pdfvtid, pdfxid namespaces (pdfuaid with maximum priority)
-    vector<xmlNodePtr> nodesToRemove;
+    unordered_set<string> duplicated;
+    vector<pair<xmlNodePtr, bool>> nodesToRemove;
     for (auto child = xmlFirstElementChild(description); child != nullptr; child = xmlNextElementSibling(child))
     {
-        if (!tryValidateElement(validCtx.get(), doc, child))
-            nodesToRemove.push_back(child);
+        auto inserted = duplicated.emplace(utls::GetNodePrefixedName(child));
+        if (inserted.second)
+        {
+            if (!tryValidateElement(validCtx.get(), doc, child))
+                nodesToRemove.push_back({ child, false });
+        }
+        else
+        {
+            nodesToRemove.push_back({ child, true });
+        }
     }
 
     for (unsigned i = 0; i < nodesToRemove.size(); i++)
     {
-        auto node = nodesToRemove[i];
+        auto& pair = nodesToRemove[i];
         if (reportWarnings != nullptr)
-            reportWarnings(utls::GetNodeName(node), node);
+            reportWarnings(utls::GetNodeName(pair.first), utls::GetNodeNamespace(pair.first),
+                utls::GetNodePrefix(pair.first), pair.second, pair.first);
 
-        xmlUnlinkNode(node);
-        xmlFreeNode(node);
+        xmlUnlinkNode(pair.first);
+        xmlFreeNode(pair.first);
     }
 
     // Pop enclosing/preable elements

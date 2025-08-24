@@ -19,6 +19,34 @@ extern "C"
 
 namespace PoDoFo
 {
+    class PdfXMPPacket;
+
+    class PODOFO_API PdfXMPProperty final
+    {
+        enum PropStatus
+        {
+            None = 0,
+            Invalid = 1,
+            Duplicated = 2,
+        };
+
+        friend class PdfXMPPacket;
+    private:
+        PdfXMPProperty();
+    public:
+        const std::string& GetName() const { return Name; }
+        const std::string& GetNamespace() const { return Namespace; }
+        const std::string& GetPrefix() const { return Prefix; }
+        std::string GetPrefixedName() const;
+        bool IsValid() const;
+        bool IsDuplicated() const;
+    private:
+        std::string Name;
+        std::string Namespace;
+        std::string Prefix;
+        PropStatus Status;
+    };
+
     class PODOFO_API PdfXMPPacket final
     {
     public:
@@ -36,9 +64,9 @@ namespace PoDoFo
         std::string ToString() const;
         /** Remove invalid properties based on specific PDF/A level
          */
-        void PruneInvalidProperties(PdfALevel level, const std::function<void(std::string_view)>& warnings = nullptr);
+        void PruneInvalidProperties(PdfALevel level, const std::function<void(const PdfXMPProperty& prop)>& warnings = nullptr);
 #if PODOFO_3RDPARTY_INTEROP_ENABLED
-        void PruneInvalidProperties(PdfALevel level, const std::function<void(std::string_view, xmlNodePtr)>& warnings);
+        void PruneInvalidProperties(PdfALevel level, const std::function<void(const PdfXMPProperty& prop, xmlNodePtr)>& warnings);
         xmlDocPtr GetDoc() { return m_Doc; }
         xmlNodePtr GetOrCreateDescription();
         xmlNodePtr GetDescription() { return m_Description; }
