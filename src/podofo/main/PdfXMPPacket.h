@@ -23,13 +23,6 @@ namespace PoDoFo
 
     class PODOFO_API PdfXMPProperty final
     {
-        enum PropStatus
-        {
-            None = 0,
-            Invalid = 1,
-            Duplicated = 2,
-        };
-
         friend class PdfXMPPacket;
     private:
         PdfXMPProperty();
@@ -40,11 +33,12 @@ namespace PoDoFo
         std::string GetPrefixedName() const;
         bool IsValid() const;
         bool IsDuplicated() const;
+        bool HasInvalidPrefix() const;
     private:
         std::string Name;
         std::string Namespace;
         std::string Prefix;
-        PropStatus Status;
+        unsigned Error;
     };
 
     class PODOFO_API PdfXMPPacket final

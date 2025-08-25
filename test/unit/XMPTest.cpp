@@ -63,11 +63,13 @@ TEST_CASE("TestPruneInvalid")
     {
         string Name;
         bool IsDuplicated;
+        bool HasInvalidPrefix;
     };
 
     vector<FailedProp> warnings;
     auto reportWarnings = [&warnings](const PdfXMPProperty& prop) {
-        warnings.push_back(FailedProp{ prop.GetPrefixedName(), prop.IsDuplicated() });
+        warnings.push_back(FailedProp{ prop.GetPrefixedName(),
+            prop.IsDuplicated(), prop.HasInvalidPrefix() });
     };
 
     string sourceXmp;
@@ -102,12 +104,21 @@ TEST_CASE("TestPruneInvalid")
     REQUIRE(warnings.size() == 0);
 
     sourceXmp.clear();
-    TestUtils::ReadTestInputFile("TestXMP1_PDFA4_Invalid.xml", sourceXmp);
+    TestUtils::ReadTestInputFile("TestXMP1_PDFA4_Invalid1.xml", sourceXmp);
     packet = PdfXMPPacket::Create(sourceXmp);
     packet->PruneInvalidProperties(PdfALevel::L4, reportWarnings);
     REQUIRE(warnings.size() == 1);
     REQUIRE(warnings[0].Name == "pdf:Trapped");
     REQUIRE(warnings[0].IsDuplicated);
+
+    sourceXmp.clear();
+    TestUtils::ReadTestInputFile("TestXMP1_PDFA4_Invalid2.xml", sourceXmp);
+    warnings.clear();
+    packet = PdfXMPPacket::Create(sourceXmp);
+    packet->PruneInvalidProperties(PdfALevel::L4, reportWarnings);
+    REQUIRE(warnings.size() == 2);
+    REQUIRE(warnings[0].Name == "mypdfaid:part");
+    REQUIRE(warnings[0].HasInvalidPrefix);
 }
 
 static void testPruneInvalid(const fs::path& path, PdfALevel level, const fs::path& refFolder, charbuff& buff1, charbuff& buff2);

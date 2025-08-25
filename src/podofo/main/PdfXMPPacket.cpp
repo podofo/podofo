@@ -150,11 +150,11 @@ void PdfXMPPacket::PruneInvalidProperties(PdfALevel level, const function<void(c
         PdfXMPProperty prop;
         PoDoFo::PruneInvalidProperties(m_Doc, m_Description, level,
             [&reportWarnings,&prop](string_view name, string_view ns,
-                string_view prefix, bool duplicated, xmlNodePtr) {
+                string_view prefix, XMPPropError error, xmlNodePtr) {
             prop.Name = name;
             prop.Namespace = ns;
             prop.Prefix = prefix;
-            prop.Status = duplicated ? PdfXMPProperty::Duplicated : PdfXMPProperty::Invalid;
+            prop.Error = (unsigned)error;
             reportWarnings(prop);
         });
     }
@@ -173,11 +173,11 @@ void PdfXMPPacket::PruneInvalidProperties(PdfALevel level, const function<void(c
     {
         PdfXMPProperty prop;
         PoDoFo::PruneInvalidProperties(m_Doc, m_Description, level, [&reportWarnings, &prop](string_view name, string_view ns,
-            string_view prefix, bool duplicated, xmlNodePtr node) {
+            string_view prefix, XMPPropError error, xmlNodePtr node) {
                 prop.Name = name;
                 prop.Namespace = ns;
                 prop.Prefix = prefix;
-                prop.Status = duplicated ? PdfXMPProperty::Duplicated : PdfXMPProperty::Invalid;
+                prop.Error = (unsigned)error;
                 reportWarnings(prop, node);
         });
     }
@@ -598,7 +598,7 @@ Exit:
 }
 
 PdfXMPProperty::PdfXMPProperty()
-    : Status(PropStatus::Invalid)
+    : Error(0)
 {
 }
 
@@ -619,10 +619,15 @@ string PdfXMPProperty::GetPrefixedName() const
 
 bool PdfXMPProperty::IsValid() const
 {
-    return Status != PropStatus::None;
+    return Error != 0;
 }
 
 bool PdfXMPProperty::IsDuplicated() const
 {
-    return (Status & PropStatus::Duplicated) != PropStatus::None;
+    return (Error & (unsigned)XMPPropError::Duplicated) != 0;
+}
+
+bool PdfXMPProperty::HasInvalidPrefix() const
+{
+    return (Error & (unsigned)XMPPropError::InvalidPrefix) != 0;
 }

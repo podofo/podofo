@@ -18,10 +18,22 @@ namespace PoDoFo
         Xmp,
         PdfAId,
         PdfUAId,
+        PdfVTId,
+        PdfXId,
+        PdfEId,
         PdfAExtension,
         PdfASchema,
         PdfAProperty,
+        PdfAField,
         PdfAType,
+    };
+
+    // CHECK-ME: Consider make this publix and expose to PdfXMPProperty
+    enum class XMPPropError : uint32_t
+    {
+        GenericError = 1,
+        Duplicated = 2,
+        InvalidPrefix = 4
     };
 
     /**
@@ -31,8 +43,9 @@ namespace PoDoFo
     void SetXMPMetadata(xmlDocPtr doc, xmlNodePtr description, const PdfMetadataStore& metadata);
     void PruneInvalidProperties(xmlDocPtr doc, xmlNodePtr description, PdfALevel level,
         const std::function<void(std::string_view name, std::string_view ns, std::string_view prefix,
-            bool duplicated, xmlNodePtr)>& reportWarnings);
-    void GetXMPNamespacePrefix(XMPNamespaceKind ns, std::string_view& href, std::string_view& prefix);
+            XMPPropError error, xmlNodePtr)>& reportWarnings);
+    void GetXMPNamespacePrefix(XMPNamespaceKind ns, std::string_view& prefix);
+    void GetXMPNamespacePrefix(XMPNamespaceKind ns, std::string_view& prefix, std::string_view& href);
 
     constexpr std::string_view operator""_ns(const char* name, size_t length)
     {
@@ -47,12 +60,20 @@ namespace PoDoFo
             return "http://www.aiim.org/pdfa/ns/id/"sv;
         else if (std::char_traits<char>::compare(name, "pdfuaid", length) == 0)
             return "http://www.aiim.org/pdfua/ns/id/"sv;
+        else if (std::char_traits<char>::compare(name, "pdfvtid", length) == 0)
+            return "http://www.npes.org/pdfvt/ns/id/"sv;
+        else if (std::char_traits<char>::compare(name, "pdfxid", length) == 0)
+            return "http://www.npes.org/pdfx/ns/id/"sv;
+        else if (std::char_traits<char>::compare(name, "pdfe", length) == 0)
+            return "http://www.aiim.org/pdfe/ns/id/"sv;
         else if (std::char_traits<char>::compare(name, "pdfaExtension", length) == 0)
             return "http://www.aiim.org/pdfa/ns/extension/"sv;
         else if (std::char_traits<char>::compare(name, "pdfaSchema", length) == 0)
             return "http://www.aiim.org/pdfa/ns/schema#"sv;
         else if (std::char_traits<char>::compare(name, "pdfaProperty", length) == 0)
             return "http://www.aiim.org/pdfa/ns/property#"sv;
+        else if (std::char_traits<char>::compare(name, "pdfaField", length) == 0)
+            return "http://www.aiim.org/pdfa/ns/field#"sv;
         else if (std::char_traits<char>::compare(name, "pdfaType", length) == 0)
             return "http://www.aiim.org/pdfa/ns/type#"sv;
         else if (std::char_traits<char>::compare(name, "rng", length) == 0)

@@ -116,6 +116,7 @@ static xmlRelaxNGPtr getXMPSchema_PDFA1();
 static xmlRelaxNGPtr getXMPSchema_PDFA2_3();
 static xmlRelaxNGPtr getXMPSchema_PDFA4();
 static bool tryValidateElement(xmlRelaxNGValidCtxtPtr ctxt, xmlDocPtr doc, xmlNodePtr elem);
+static const unordered_map<string_view, XMPNamespaceKind>& getXMPMandatoryNSPrefixMap();
 
 namespace PoDoFo
 {
@@ -313,13 +314,14 @@ extern "C"
 
 void PoDoFo::PruneInvalidProperties(xmlDocPtr doc, xmlNodePtr description, PdfALevel level,
     const function<void(string_view name, string_view ns, string_view prefix,
-        bool duplicated, xmlNodePtr node)>& reportWarnings)
+        XMPPropError error, xmlNodePtr node)>& reportWarnings)
 {
     assertHaveRngValidationRecovery();
 
     int rc;
     charbuff output;
     auto filter = PdfFilterFactory::Create(PdfFilterType::FlateDecode);
+    auto& restrictedPrefixNsMap = getXMPMandatoryNSPrefixMap();
     xmlRelaxNGPtr schema;
     switch (level)
     {
@@ -364,18 +366,30 @@ void PoDoFo::PruneInvalidProperties(xmlDocPtr doc, xmlNodePtr description, PdfAL
     // TODO1: Enforce non repetition of properties
     // TODO2: Enable pdfuaid, pdfvtid, pdfxid namespaces (pdfuaid with maximum priority)
     unordered_set<string> duplicated;
-    vector<pair<xmlNodePtr, bool>> nodesToRemove;
+    vector<pair<xmlNodePtr, XMPPropError>> nodesToRemove;
     for (auto child = xmlFirstElementChild(description); child != nullptr; child = xmlNextElementSibling(child))
     {
+        auto foundNs = restrictedPrefixNsMap.find(utls::GetNodeNamespace(child));
+        if (foundNs != restrictedPrefixNsMap.end())
+        {
+            string_view mandatoryPrefix;
+            GetXMPNamespacePrefix(foundNs->second, mandatoryPrefix);
+            if (utls::GetNodePrefix(child) != mandatoryPrefix)
+            {
+                nodesToRemove.push_back({ child, XMPPropError::InvalidPrefix });
+                continue;
+            }
+        }
+
         auto inserted = duplicated.emplace(utls::GetNodePrefixedName(child));
         if (inserted.second)
         {
             if (!tryValidateElement(validCtx.get(), doc, child))
-                nodesToRemove.push_back({ child, false });
+                nodesToRemove.push_back({ child, XMPPropError::GenericError });
         }
         else
         {
-            nodesToRemove.push_back({ child, true });
+            nodesToRemove.push_back({ child, XMPPropError::Duplicated });
         }
     }
 
@@ -383,8 +397,10 @@ void PoDoFo::PruneInvalidProperties(xmlDocPtr doc, xmlNodePtr description, PdfAL
     {
         auto& pair = nodesToRemove[i];
         if (reportWarnings != nullptr)
+        {
             reportWarnings(utls::GetNodeName(pair.first), utls::GetNodeNamespace(pair.first),
                 utls::GetNodePrefix(pair.first), pair.second, pair.first);
+        }
 
         xmlUnlinkNode(pair.first);
         xmlFreeNode(pair.first);
@@ -399,7 +415,13 @@ void PoDoFo::PruneInvalidProperties(xmlDocPtr doc, xmlNodePtr description, PdfAL
     ASSERT_STREAMING_RNG(rc == 1);
 }
 
-void PoDoFo::GetXMPNamespacePrefix(XMPNamespaceKind ns, string_view& href, string_view& prefix)
+void PoDoFo::GetXMPNamespacePrefix(XMPNamespaceKind ns, string_view& prefix)
+{
+    string_view href;
+    PoDoFo::GetXMPNamespacePrefix(ns, prefix, href);
+}
+
+void PoDoFo::GetXMPNamespacePrefix(XMPNamespaceKind ns, string_view& prefix, string_view& href)
 {
     switch (ns)
     {
@@ -423,6 +445,18 @@ void PoDoFo::GetXMPNamespacePrefix(XMPNamespaceKind ns, string_view& href, strin
             prefix = "pdfuaid";
             href = "http://www.aiim.org/pdfua/ns/id/";
             break;
+        case XMPNamespaceKind::PdfVTId:
+            prefix = "pdfvtid";
+            href = "http://www.npes.org/pdfvt/ns/id/";
+            break;
+        case XMPNamespaceKind::PdfXId:
+            prefix = "pdfxid";
+            href = "http://www.npes.org/pdfx/ns/id/";
+            break;
+        case XMPNamespaceKind::PdfEId:
+            prefix = "pdfe";
+            href = "http://www.aiim.org/pdfe/ns/id/";
+            break;
         case XMPNamespaceKind::PdfAExtension:
             prefix = "pdfaExtension";
             href = "http://www.aiim.org/pdfa/ns/extension/";
@@ -434,6 +468,10 @@ void PoDoFo::GetXMPNamespacePrefix(XMPNamespaceKind ns, string_view& href, strin
         case XMPNamespaceKind::PdfAProperty:
             prefix = "pdfaProperty";
             href = "http://www.aiim.org/pdfa/ns/property#";
+            break;
+        case XMPNamespaceKind::PdfAField:
+            prefix = "pdfaField";
+            href = "http://www.aiim.org/pdfa/ns/field#";
             break;
         case XMPNamespaceKind::PdfAType:
             prefix = "pdfaType";
@@ -448,7 +486,7 @@ xmlNsPtr findOrCreateNamespace(xmlDocPtr doc, xmlNodePtr description, XMPNamespa
 {
     string_view href;
     string_view prefix;
-    GetXMPNamespacePrefix(nsKind, href, prefix);
+    GetXMPNamespacePrefix(nsKind, prefix, href);
 
     auto xmlNs = xmlSearchNsByHref(doc, description, XMLCHAR href.data());
     if (xmlNs == nullptr)
@@ -1242,6 +1280,30 @@ bool tryValidateElement(xmlRelaxNGValidCtxtPtr ctx, xmlDocPtr doc, xmlNodePtr el
     {
         goto Fail;
     }
+}
+
+const unordered_map<string_view, XMPNamespaceKind>& getXMPMandatoryNSPrefixMap()
+{
+    static struct Init
+    {
+        Init()
+        {
+            // These namespaces requires a mandatory prefix
+            Map.emplace("http://www.aiim.org/pdfa/ns/id/"sv, XMPNamespaceKind::PdfAId);
+            Map.emplace("http://www.aiim.org/pdfua/ns/id/"sv, XMPNamespaceKind::PdfUAId);
+            Map.emplace("http://www.npes.org/pdfvt/ns/id/"sv, XMPNamespaceKind::PdfVTId);
+            Map.emplace("http://www.npes.org/pdfx/ns/id/"sv, XMPNamespaceKind::PdfXId);
+            Map.emplace("http://www.aiim.org/pdfe/ns/id/"sv, XMPNamespaceKind::PdfEId);
+            Map.emplace("http://www.aiim.org/pdfa/ns/extension/"sv, XMPNamespaceKind::PdfAExtension);
+            Map.emplace("http://www.aiim.org/pdfa/ns/schema#"sv, XMPNamespaceKind::PdfASchema);
+            Map.emplace("http://www.aiim.org/pdfa/ns/property#"sv, XMPNamespaceKind::PdfAProperty);
+            Map.emplace("http://www.aiim.org/pdfa/ns/field#"sv, XMPNamespaceKind::PdfAField);
+            Map.emplace("http://www.aiim.org/pdfa/ns/type#"sv, XMPNamespaceKind::PdfAType);
+        }
+
+        unordered_map<string_view, XMPNamespaceKind> Map;
+    } s_init;
+    return s_init.Map;
 }
 
 xmlDocPtr getXMPSchemaTemplate()
