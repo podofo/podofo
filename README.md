@@ -44,7 +44,7 @@ is also limited as it currently does not perform proper text shaping/kerning.
 ## Requirements
 
 To build PoDoFo lib you'll need a c++17 compiler,
-CMake 3.16 and the following libraries (tentative minimum versions indicated):
+CMake 3.23 and the following libraries (tentative minimum versions indicated):
 
 * freetype2 (2.11)
 * fontconfig (2.13.94, required for Unix platforms, optional for Windows)
