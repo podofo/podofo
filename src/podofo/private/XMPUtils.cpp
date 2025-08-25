@@ -450,7 +450,7 @@ xmlNsPtr findOrCreateNamespace(xmlDocPtr doc, xmlNodePtr description, XMPNamespa
     string_view prefix;
     GetXMPNamespacePrefix(nsKind, href, prefix);
 
-    auto xmlNs = xmlSearchNs(doc, description, XMLCHAR prefix.data());
+    auto xmlNs = xmlSearchNsByHref(doc, description, XMLCHAR href.data());
     if (xmlNs == nullptr)
         xmlNs = xmlNewNs(description, XMLCHAR href.data(), XMLCHAR prefix.data());
 
