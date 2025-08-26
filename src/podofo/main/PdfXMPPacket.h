@@ -58,9 +58,9 @@ namespace PoDoFo
         std::string ToString() const;
         /** Remove invalid properties based on specific PDF/A level
          */
-        void PruneInvalidProperties(PdfALevel level, const std::function<void(const PdfXMPProperty& prop)>& warnings = nullptr);
+        void PruneAndValidate(PdfALevel level, const std::function<void(const PdfXMPProperty& prop)>& warnings = nullptr);
 #if PODOFO_3RDPARTY_INTEROP_ENABLED
-        void PruneInvalidProperties(PdfALevel level, const std::function<void(const PdfXMPProperty& prop, xmlNodePtr)>& warnings);
+        void PruneAndValidate(PdfALevel level, const std::function<void(const PdfXMPProperty& prop, xmlNodePtr)>& warnings);
         xmlDocPtr GetDoc() { return m_Doc; }
         xmlNodePtr GetOrCreateDescription();
         xmlNodePtr GetDescription() { return m_Description; }

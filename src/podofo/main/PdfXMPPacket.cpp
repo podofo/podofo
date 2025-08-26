@@ -136,19 +136,19 @@ void PdfXMPPacket::SetMetadata(const PdfMetadataStore& metadata)
     PoDoFo::SetXMPMetadata(m_Doc, GetOrCreateDescription(), metadata);
 }
 
-void PdfXMPPacket::PruneInvalidProperties(PdfALevel level, const function<void(const PdfXMPProperty& prop)>& reportWarnings)
+void PdfXMPPacket::PruneAndValidate(PdfALevel level, const function<void(const PdfXMPProperty& prop)>& reportWarnings)
 {
     if (m_Description == nullptr)
         return;
 
     if (reportWarnings == nullptr)
     {
-        PoDoFo::PruneInvalidProperties(m_Doc, m_Description, level, nullptr);
+        PoDoFo::PruneAndValidate(m_Doc, m_Description, level, false, nullptr);
     }
     else
     {
         PdfXMPProperty prop;
-        PoDoFo::PruneInvalidProperties(m_Doc, m_Description, level,
+        PoDoFo::PruneAndValidate(m_Doc, m_Description, level, false,
             [&reportWarnings,&prop](string_view name, string_view ns,
                 string_view prefix, XMPPropError error, xmlNodePtr) {
             prop.Name = name;
@@ -160,25 +160,26 @@ void PdfXMPPacket::PruneInvalidProperties(PdfALevel level, const function<void(c
     }
 }
 
-void PdfXMPPacket::PruneInvalidProperties(PdfALevel level, const function<void(const PdfXMPProperty& prop, xmlNodePtr)>& reportWarnings)
+void PdfXMPPacket::PruneAndValidate(PdfALevel level, const function<void(const PdfXMPProperty& prop, xmlNodePtr)>& reportWarnings)
 {
     if (m_Description == nullptr)
         return;
 
     if (reportWarnings == nullptr)
     {
-        PoDoFo::PruneInvalidProperties(m_Doc, m_Description, level, nullptr);
+        PoDoFo::PruneAndValidate(m_Doc, m_Description, level, false, nullptr);
     }
     else
     {
         PdfXMPProperty prop;
-        PoDoFo::PruneInvalidProperties(m_Doc, m_Description, level, [&reportWarnings, &prop](string_view name, string_view ns,
-            string_view prefix, XMPPropError error, xmlNodePtr node) {
-                prop.Name = name;
-                prop.Namespace = ns;
-                prop.Prefix = prefix;
-                prop.Error = (unsigned)error;
-                reportWarnings(prop, node);
+        PoDoFo::PruneAndValidate(m_Doc, m_Description, level, false,
+            [&reportWarnings, &prop](string_view name, string_view ns,
+                string_view prefix, XMPPropError error, xmlNodePtr node) {
+            prop.Name = name;
+            prop.Namespace = ns;
+            prop.Prefix = prefix;
+            prop.Error = (unsigned)error;
+            reportWarnings(prop, node);
         });
     }
 }

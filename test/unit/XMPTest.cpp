@@ -76,15 +76,15 @@ TEST_CASE("TestPruneInvalid")
     TestUtils::ReadTestInputFile("TestXMP1.xml", xmp);
 
     auto packet = PdfXMPPacket::Create(xmp);
-    packet->PruneInvalidProperties(PdfALevel::L1B, reportWarnings);
+    packet->PruneAndValidate(PdfALevel::L1B, reportWarnings);
     REQUIRE(warnings.size() == 0);
     warnings.clear();
     packet = PdfXMPPacket::Create(xmp);
-    packet->PruneInvalidProperties(PdfALevel::L2B, reportWarnings);
+    packet->PruneAndValidate(PdfALevel::L2B, reportWarnings);
     REQUIRE(warnings.size() == 0);
     warnings.clear();
     packet = PdfXMPPacket::Create(xmp);
-    packet->PruneInvalidProperties(PdfALevel::L4, reportWarnings);
+    packet->PruneAndValidate(PdfALevel::L4, reportWarnings);
     REQUIRE(warnings.size() == 0);
 
     xmp.clear();
@@ -92,21 +92,21 @@ TEST_CASE("TestPruneInvalid")
 
     warnings.clear();
     packet = PdfXMPPacket::Create(xmp);
-    packet->PruneInvalidProperties(PdfALevel::L1B, reportWarnings);
+    packet->PruneAndValidate(PdfALevel::L1B, reportWarnings);
     REQUIRE(warnings.size() == 1);
     warnings.clear();
     packet = PdfXMPPacket::Create(xmp);
-    packet->PruneInvalidProperties(PdfALevel::L2B, reportWarnings);
+    packet->PruneAndValidate(PdfALevel::L2B, reportWarnings);
     REQUIRE(warnings.size() == 1);
     warnings.clear();
     packet = PdfXMPPacket::Create(xmp);
-    packet->PruneInvalidProperties(PdfALevel::L4, reportWarnings);
+    packet->PruneAndValidate(PdfALevel::L4, reportWarnings);
     REQUIRE(warnings.size() == 0);
 
     xmp.clear();
     TestUtils::ReadTestInputFile("TestXMP1_PDFA4_Invalid1.xml", xmp);
     packet = PdfXMPPacket::Create(xmp);
-    packet->PruneInvalidProperties(PdfALevel::L4, reportWarnings);
+    packet->PruneAndValidate(PdfALevel::L4, reportWarnings);
     REQUIRE(warnings.size() == 1);
     REQUIRE(warnings[0].Name == "pdf:Trapped");
     REQUIRE(warnings[0].IsDuplicated);
@@ -115,7 +115,7 @@ TEST_CASE("TestPruneInvalid")
     TestUtils::ReadTestInputFile("TestXMP1_PDFA4_Invalid2.xml", xmp);
     warnings.clear();
     packet = PdfXMPPacket::Create(xmp);
-    packet->PruneInvalidProperties(PdfALevel::L4, reportWarnings);
+    packet->PruneAndValidate(PdfALevel::L4, reportWarnings);
     REQUIRE(warnings.size() == 2);
     REQUIRE(warnings[0].Name == "mypdfaid:part");
     REQUIRE(warnings[0].HasInvalidPrefix);
@@ -124,7 +124,7 @@ TEST_CASE("TestPruneInvalid")
     TestUtils::ReadTestInputFile("TestXMP8.xml", xmp);
     warnings.clear();
     packet = PdfXMPPacket::Create(xmp);
-    packet->PruneInvalidProperties(PdfALevel::L2B, reportWarnings);
+    packet->PruneAndValidate(PdfALevel::L2B, reportWarnings);
     REQUIRE(warnings.size() == 0);
 
     string expectedXmp;
@@ -165,7 +165,7 @@ void testPruneInvalid(const fs::path& path, PdfALevel level, const fs::path& ref
         utls::WriteTo(normalizedPath.u8string(), buff1);
     }
 
-    packet->PruneInvalidProperties(level);
+    packet->PruneAndValidate(level);
     buff1.clear();
     packet->ToString(buff1);
 
