@@ -113,6 +113,7 @@ xmlNodePtr PdfXMPPacket::GetOrCreateDescription()
 
 void PdfXMPPacket::ToString(string& str) const
 {
+    str.clear();
     serializeXMPMetadataTo(str, m_Doc);
 }
 
