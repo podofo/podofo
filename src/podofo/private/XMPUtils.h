@@ -13,6 +13,7 @@ namespace PoDoFo
 {
     enum class XMPNamespaceKind : uint8_t
     {
+        Rdf,
         Dc,
         Pdf,
         Xmp,
@@ -50,7 +51,9 @@ namespace PoDoFo
     constexpr std::string_view operator""_ns(const char* name, size_t length)
     {
         using namespace std;
-        if (std::char_traits<char>::compare(name, "dc", length) == 0)
+        if (std::char_traits<char>::compare(name, "rdf", length) == 0)
+            return "http://www.w3.org/1999/02/22-rdf-syntax-ns#"sv;
+        else if (std::char_traits<char>::compare(name, "dc", length) == 0)
             return "http://purl.org/dc/elements/1.1/"sv;
         else if (std::char_traits<char>::compare(name, "pdf", length) == 0)
             return "http://ns.adobe.com/pdf/1.3/"sv;
@@ -78,6 +81,8 @@ namespace PoDoFo
             return "http://www.aiim.org/pdfa/ns/type#"sv;
         else if (std::char_traits<char>::compare(name, "rng", length) == 0)
             return "http://relaxng.org/ns/structure/1.0"sv;
+        else if (std::char_traits<char>::compare(name, "xml", length) == 0)
+            return "http://www.w3.org/XML/1998/namespace"sv;
         else
             return { };
     }

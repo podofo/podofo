@@ -425,6 +425,10 @@ void PoDoFo::GetXMPNamespacePrefix(XMPNamespaceKind ns, string_view& prefix, str
 {
     switch (ns)
     {
+        case XMPNamespaceKind::Rdf:
+            prefix = "rdf";
+            href = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+            break;
         case XMPNamespaceKind::Dc:
             prefix = "dc";
             href = "http://purl.org/dc/elements/1.1/";
@@ -636,7 +640,7 @@ void utls::SetListNodeContent(xmlDocPtr doc, xmlNodePtr node, XMPListType seqTyp
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 
-    auto rdfNs = xmlSearchNs(doc, node, XMLCHAR "rdf");
+    auto rdfNs = xmlSearchNsByHref(doc, node, XMLCHAR ("rdf"_ns).data());
     PODOFO_ASSERT(rdfNs != nullptr);
     auto innerElem = xmlNewChild(node, rdfNs, XMLCHAR elemName, nullptr);
     if (innerElem == nullptr)
@@ -918,7 +922,7 @@ xmlNodePtr getOrCreateExtensionBag(xmlDocPtr doc, xmlNodePtr description)
         if (bag == nullptr)
             THROW_LIBXML_EXCEPTION("Can't create rdf:Bag node");
 
-        auto rdfNs = xmlSearchNs(doc, description, XMLCHAR "rdf");
+        auto rdfNs = xmlSearchNsByHref(doc, description, XMLCHAR ("rdf"_ns).data());
         PODOFO_ASSERT(rdfNs != nullptr);
 
         xmlSetNs(bag, rdfNs);
