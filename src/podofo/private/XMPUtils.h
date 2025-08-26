@@ -13,6 +13,7 @@ namespace PoDoFo
 {
     enum class XMPNamespaceKind : uint8_t
     {
+        Unknown = 0,
         Rdf,
         Dc,
         Pdf,

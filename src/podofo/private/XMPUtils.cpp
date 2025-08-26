@@ -55,44 +55,6 @@ enum class XMPMetadataKind : uint8_t
     PdfUAIdRev,         // Used since to PDF/UA-2
 };
 
-// Coming from: https://pdfa.org/resource/xmp-extension-schema-templates/
-// This snippet is normalized accordingly to ISO 16684-2:2014
-constexpr string_view PdfUAIdSchema = R"(<rdf:li>
-  <rdf:Description>
-    <pdfaSchema:namespaceURI>http://www.aiim.org/pdfua/ns/id/</pdfaSchema:namespaceURI>
-    <pdfaSchema:prefix>pdfuaid</pdfaSchema:prefix>
-    <pdfaSchema:schema>PDF/UA ID Schema</pdfaSchema:schema>
-    <pdfaSchema:property>
-      <rdf:Seq>
-        <rdf:li>
-          <rdf:Description>
-            <pdfaProperty:category>internal</pdfaProperty:category>
-            <pdfaProperty:description>Part of PDF/UA standard</pdfaProperty:description>
-            <pdfaProperty:name>part</pdfaProperty:name>
-            <pdfaProperty:valueType>Open Choice of Integer</pdfaProperty:valueType>
-          </rdf:Description>
-        </rdf:li>
-        <rdf:li>
-          <rdf:Description>
-            <pdfaProperty:category>internal</pdfaProperty:category>
-            <pdfaProperty:description>Optional PDF/UA amendment identifier</pdfaProperty:description>
-            <pdfaProperty:name>amd</pdfaProperty:name>
-            <pdfaProperty:valueType>Open Choice of Text</pdfaProperty:valueType>
-          </rdf:Description>
-        </rdf:li>
-        <rdf:li>
-          <rdf:Description>
-            <pdfaProperty:category>internal</pdfaProperty:category>
-            <pdfaProperty:description>Optional PDF/UA corrigenda identifier</pdfaProperty:description>
-            <pdfaProperty:name>corr</pdfaProperty:name>
-            <pdfaProperty:valueType>Open Choice of Text</pdfaProperty:valueType>
-          </rdf:Description>
-        </rdf:li>
-      </rdf:Seq>
-    </pdfaSchema:property>
-  </rdf:Description>
-</rdf:li>)";
-
 static void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
     XMPMetadataKind property, const string_view& value);
 static void removeXMPProperty(xmlNodePtr description, XMPMetadataKind property);
@@ -101,7 +63,9 @@ static void getPdfALevelComponents(PdfALevel level, string& partStr, string& con
 static void getPdfUALevelComponents(PdfUALevel version, string& part, string& revision);
 static nullable<PdfString> getListElementText(xmlNodePtr elem);
 static nullable<PdfString> getElementText(xmlNodePtr elem);
-static void addExtension(xmlDocPtr doc, xmlNodePtr description, string_view extension, string_view extensionNs);
+static void addExtension(xmlDocPtr doc, xmlNodePtr description, XMPNamespaceKind extension);
+static void addExtension(xmlDocPtr doc, xmlNodePtr description,
+    string_view extensionSnippet, string_view extensionNs);
 static xmlNodePtr getOrCreateExtensionBag(xmlDocPtr doc, xmlNodePtr description);
 static void removeExtension(xmlNodePtr extensionBag, string_view extensionNamespace);
 static void makeDeterministicAndCollectRNG(xmlDocPtr doc);
@@ -121,6 +85,9 @@ static const unordered_map<string_view, XMPNamespaceKind>& getXMPMandatoryNSPref
 namespace PoDoFo
 {
     extern string_view GetXMPSchemaTemplateDeflated();
+    extern string_view GetPdfUAIdSchema();
+    extern string_view GetPdfVTIdSchema();
+    extern string_view GetPdfXIdSchema();
 }
 
 void PoDoFo::GetXMPMetadata(xmlNodePtr description, PdfMetadataStore& metadata)
@@ -281,7 +248,7 @@ void PoDoFo::SetXMPMetadata(xmlDocPtr doc, xmlNodePtr description, const PdfMeta
             && metadata.PdfaLevel < PdfALevel::L4)
         {
             // PDF/A up to 3 needs extensions schema for external properties
-            addExtension(doc, description, PdfUAIdSchema, "http://www.aiim.org/pdfua/ns/id/");
+            addExtension(doc, description, PoDoFo::GetPdfUAIdSchema(), "pdfaid"_ns);
         }
 
         // Set actual PdfUA version
@@ -367,13 +334,27 @@ void PoDoFo::PruneInvalidProperties(xmlDocPtr doc, xmlNodePtr description, PdfAL
     // TODO2: Enable pdfuaid, pdfvtid, pdfxid namespaces (pdfuaid with maximum priority)
     unordered_set<string> duplicated;
     vector<pair<xmlNodePtr, XMPPropError>> nodesToRemove;
+    XMPNamespaceKind extension;
+    vector<XMPNamespaceKind> extensionsToAdd;
     for (auto child = xmlFirstElementChild(description); child != nullptr; child = xmlNextElementSibling(child))
     {
+        extension = XMPNamespaceKind::Unknown;
         auto foundNs = restrictedPrefixNsMap.find(utls::GetNodeNamespace(child));
         if (foundNs != restrictedPrefixNsMap.end())
         {
+            auto ns = foundNs->second;
+            switch (ns)
+            {
+                case XMPNamespaceKind::PdfUAId:
+                case XMPNamespaceKind::PdfXId:
+                case XMPNamespaceKind::PdfVTId:
+                    extension = ns;
+                    break;
+                default:
+                    break;
+            }
             string_view mandatoryPrefix;
-            GetXMPNamespacePrefix(foundNs->second, mandatoryPrefix);
+            GetXMPNamespacePrefix(ns, mandatoryPrefix);
             if (utls::GetNodePrefix(child) != mandatoryPrefix)
             {
                 nodesToRemove.push_back({ child, XMPPropError::InvalidPrefix });
@@ -384,8 +365,22 @@ void PoDoFo::PruneInvalidProperties(xmlDocPtr doc, xmlNodePtr description, PdfAL
         auto inserted = duplicated.emplace(utls::GetNodePrefixedName(child));
         if (inserted.second)
         {
-            if (!tryValidateElement(validCtx.get(), doc, child))
+            if (tryValidateElement(validCtx.get(), doc, child))
+            {
+                // Non duplicate property verified
+                if (extension != XMPNamespaceKind::Unknown && (unsigned)level <= (unsigned)PdfALevel::L3U)
+                {
+                    // Try to register an extension to add in case of PDF/A <= 3
+                    auto found = std::find(extensionsToAdd.begin(), extensionsToAdd.end(), extension);
+                    if (found == extensionsToAdd.end())
+                        extensionsToAdd.push_back(extension);
+                }
+            }
+            else
+            {
+                // Property failed verification
                 nodesToRemove.push_back({ child, XMPPropError::GenericError });
+            }
         }
         else
         {
@@ -405,6 +400,9 @@ void PoDoFo::PruneInvalidProperties(xmlDocPtr doc, xmlNodePtr description, PdfAL
         xmlUnlinkNode(pair.first);
         xmlFreeNode(pair.first);
     }
+
+    for (unsigned i = 0; i < extensionsToAdd.size(); i++)
+        addExtension(doc, description, extensionsToAdd[i]);
 
     // Pop enclosing/preable elements
     rc = xmlRelaxNGValidatePopElement(validCtx.get(), doc, description);                // </rdf:Description>
@@ -879,14 +877,39 @@ nullable<PdfString> getElementText(xmlNodePtr elem)
         return PdfString(*text);
 }
 
-void addExtension(xmlDocPtr doc, xmlNodePtr description, string_view extension, string_view extensionNs)
+void addExtension(xmlDocPtr doc, xmlNodePtr description, XMPNamespaceKind extension)
+{
+    string_view extensionSnippet;
+    string_view extensionNs;
+    switch (extension)
+    {
+        case XMPNamespaceKind::PdfUAId:
+            extensionSnippet = PoDoFo::GetPdfUAIdSchema();
+            extensionNs = "pdfuaid"_ns;
+            break;
+        case XMPNamespaceKind::PdfVTId:
+            extensionSnippet = PoDoFo::GetPdfVTIdSchema();
+            extensionNs = "pdfvtid"_ns;
+            break;
+        case XMPNamespaceKind::PdfXId:
+            extensionSnippet = PoDoFo::GetPdfXIdSchema();
+            extensionNs = "pdfxid"_ns;
+            break;
+        default:
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+
+    addExtension(doc, description, extensionSnippet, extensionNs);
+}
+
+void addExtension(xmlDocPtr doc, xmlNodePtr description, string_view extensionSnippet, string_view extensionNs)
 {
     auto bag = getOrCreateExtensionBag(doc, description);
     // Remove any existing same namespace extension
     removeExtension(bag, extensionNs);
 
     xmlNodePtr newNode = NULL;
-    auto rc = xmlParseInNodeContext(description, extension.data(), (int)extension.size(), 0, &newNode);
+    auto rc = xmlParseInNodeContext(description, extensionSnippet.data(), (int)extensionSnippet.size(), XML_PARSE_NOBLANKS, &newNode);
     if (rc != XML_ERR_OK)
         THROW_LIBXML_EXCEPTION("Could not parse extension fragment");
 
@@ -1180,6 +1203,7 @@ xmlRelaxNGPtr getXMPSchema_PDFA1()
         Init()
         {
             m_schema = createTailoredSchema(unordered_map<string_view, bool>{
+                { "IncludeExtensions", true },
                 { "IsPDFA1", true },
                 { "IsPDFA1OrGreater", true },
             });
@@ -1201,6 +1225,7 @@ xmlRelaxNGPtr getXMPSchema_PDFA2_3()
         Init()
         {
             m_schema = createTailoredSchema(unordered_map<string_view, bool>{
+                { "IncludeExtensions", true },
                 { "IsPDFA1", false },
                 { "IsPDFA1OrGreater", true },
                 { "IsPDFA2", true },
@@ -1226,6 +1251,7 @@ xmlRelaxNGPtr getXMPSchema_PDFA4()
         Init()
         {
             m_schema = createTailoredSchema(unordered_map<string_view, bool>{
+                { "IncludeExtensions", true },
                 { "IsPDFA1", false },
                 { "IsPDFA1OrGreater", true },
                 { "IsPDFA2", false },

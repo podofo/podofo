@@ -2,6 +2,90 @@
 
 using namespace std;
 
+static const char s_PdfUAIdSchema[] = R"(<rdf:li>
+  <rdf:Description>
+    <pdfaSchema:namespaceURI>http://www.aiim.org/pdfua/ns/id/</pdfaSchema:namespaceURI>
+    <pdfaSchema:prefix>pdfuaid</pdfaSchema:prefix>
+    <pdfaSchema:schema>PDF/UA ID Schema</pdfaSchema:schema>
+    <pdfaSchema:property>
+      <rdf:Seq>
+        <rdf:li>
+          <rdf:Description>
+            <pdfaProperty:category>internal</pdfaProperty:category>
+            <pdfaProperty:description>Part of PDF/UA standard</pdfaProperty:description>
+            <pdfaProperty:name>part</pdfaProperty:name>
+            <pdfaProperty:valueType>Open Choice of Integer</pdfaProperty:valueType>
+          </rdf:Description>
+        </rdf:li>
+        <rdf:li>
+          <rdf:Description>
+            <pdfaProperty:category>internal</pdfaProperty:category>
+            <pdfaProperty:description>Optional PDF/UA amendment identifier</pdfaProperty:description>
+            <pdfaProperty:name>amd</pdfaProperty:name>
+            <pdfaProperty:valueType>Open Choice of Text</pdfaProperty:valueType>
+          </rdf:Description>
+        </rdf:li>
+        <rdf:li>
+          <rdf:Description>
+            <pdfaProperty:category>internal</pdfaProperty:category>
+            <pdfaProperty:description>Optional PDF/UA corrigenda identifier</pdfaProperty:description>
+            <pdfaProperty:name>corr</pdfaProperty:name>
+            <pdfaProperty:valueType>Open Choice of Text</pdfaProperty:valueType>
+          </rdf:Description>
+        </rdf:li>
+      </rdf:Seq>
+    </pdfaSchema:property>
+  </rdf:Description>
+</rdf:li>)";
+
+static const char s_PdfVTIdSchema[] = R"(<rdf:li>
+  <rdf:Description>
+    <pdfaSchema:namespaceURI>http://www.npes.org/pdfvt/ns/id/</pdfaSchema:namespaceURI>
+    <pdfaSchema:prefix>pdfvtid</pdfaSchema:prefix>
+    <pdfaSchema:schema>PDF/VT identification schema</pdfaSchema:schema>
+    <pdfaSchema:property>
+      <rdf:Seq>
+        <rdf:li>
+          <rdf:Description>
+            <pdfaProperty:category>internal</pdfaProperty:category>
+            <pdfaProperty:description>The date and time at which the PDF/VT file was last written</pdfaProperty:description>
+            <pdfaProperty:name>GTS_PDFVTModDate</pdfaProperty:name>
+            <pdfaProperty:valueType>Date</pdfaProperty:valueType>
+          </rdf:Description>
+        </rdf:li>
+        <rdf:li>
+          <rdf:Description>
+            <pdfaProperty:category>internal</pdfaProperty:category>
+            <pdfaProperty:description>PDF/VT conformance level identifier</pdfaProperty:description>
+            <pdfaProperty:name>GTS_PDFVTVersion</pdfaProperty:name>
+            <pdfaProperty:valueType>Closed Choice of Text</pdfaProperty:valueType>
+          </rdf:Description>
+        </rdf:li>
+      </rdf:Seq>
+    </pdfaSchema:property>
+  </rdf:Description>
+</rdf:li>)";
+
+static const char s_PdfXIdSchema[] = R"(<rdf:li>
+  <rdf:Description>
+    <pdfaSchema:namespaceURI>http://www.npes.org/pdfx/ns/id/</pdfaSchema:namespaceURI>
+    <pdfaSchema:prefix>pdfxid</pdfaSchema:prefix>
+    <pdfaSchema:schema>PDF/X ID Schema</pdfaSchema:schema>
+    <pdfaSchema:property>
+      <rdf:Seq>
+        <rdf:li>
+          <rdf:Description>
+            <pdfaProperty:category>internal</pdfaProperty:category>
+            <pdfaProperty:description>ID of PDF/X standard</pdfaProperty:description>
+            <pdfaProperty:name>GTS_PDFXVersion</pdfaProperty:name>
+            <pdfaProperty:valueType>Text</pdfaProperty:valueType>
+          </rdf:Description>
+        </rdf:li> 
+      </rdf:Seq>
+    </pdfaSchema:property>
+  </rdf:Description>
+</rdf:li>)";
+
 static const char s_XMPSchemaRNG[] =
 "\170\234\354\175\153\167\334\066\222\366\137\321\172\336\017\316"
 "\146\164\365\045\261\316\114\146\165\261\034\145\045\267\136\111"
@@ -1035,5 +1119,32 @@ namespace PoDoFo
     string_view GetXMPSchemaTemplateDeflated()
     {
         return string_view(s_XMPSchemaRNG, std::size(s_XMPSchemaRNG) - 1);
+    }
+
+    /**
+     * PDF/UA Id schema as coming from: https://pdfa.org/resource/xmp-extension-schema-templates/
+     * This snippet is normalized accordingly to ISO 16684-2:2014
+     */
+    string_view GetPdfUAIdSchema()
+    {
+        return string_view(s_PdfUAIdSchema, std::size(s_PdfUAIdSchema) - 1);
+    }
+
+    /**
+     * PDF/VT Id schema as coming from: https://pdfa.org/resource/xmp-extension-schema-templates/
+     * This snippet is normalized accordingly to ISO 16684-2:2014
+     */
+    string_view GetPdfVTIdSchema()
+    {
+        return string_view(s_PdfVTIdSchema, std::size(s_PdfVTIdSchema) - 1);
+    }
+
+    /**
+     * PDF/X Id schema as coming from: https://pdfa.org/resource/xmp-extension-schema-templates/
+     * This snippet is normalized accordingly to ISO 16684-2:2014
+     */
+    string_view GetPdfXIdSchema()
+    {
+        return string_view(s_PdfXIdSchema, std::size(s_PdfXIdSchema) - 1);
     }
 }
