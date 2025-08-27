@@ -47,11 +47,13 @@ public:
      */
     PdfFontConfigWrapper(const std::string_view& configStr);
 
-#if PODOFO_3RDPARTY_INTEROP_ENABLED
+    PdfFontConfigWrapper();
+
+#ifdef PODOFO_3RDPARTY_INTEROP_ENABLED
     /**
      * Create a new FontConfigWrapper and initialize the fontconfig library.
      */
-    PdfFontConfigWrapper(FcConfig* fcConfig = nullptr);
+    PdfFontConfigWrapper(FcConfig* fcConfig);
 
     FcConfig* GetFcConfig();
 #endif // PODOFO_3RDPARTY_INTEROP_ENABLED
