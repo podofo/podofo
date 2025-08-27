@@ -33,6 +33,9 @@ PdfFontConfigWrapper::PdfFontConfigWrapper(const string_view& configStr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Could not parse font config");
 }
 
+PdfFontConfigWrapper::PdfFontConfigWrapper()
+    : PdfFontConfigWrapper((FcConfig*)nullptr) { }
+
 PdfFontConfigWrapper::PdfFontConfigWrapper(FcConfig* fcConfig)
     : m_FcConfig(fcConfig)
 {
