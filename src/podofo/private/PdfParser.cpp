@@ -78,12 +78,6 @@ void PdfParser::Parse(InputStreamDevice& device, bool loadOnDemand)
     }
     catch (PdfError& e)
     {
-        if (e.GetCode() == PdfErrorCode::InvalidPassword)
-        {
-            // Do not clean up, expect user to call ParseFile again
-            throw;
-        }
-
         // If this is being called from a constructor then the
         // destructor will not be called.
         // Clean up here  
