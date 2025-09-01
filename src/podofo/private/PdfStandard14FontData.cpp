@@ -3380,6 +3380,9 @@ string_view PoDoFo::GetStandard14FontFamilyName(PdfStandard14FontType stdFont)
 
 // NOTE: Adobe strictly checks for Standard14 names + alternative
 // names. No other combinations are possible
+// NOTE: ISO 32000-1:2008 and ISO 32000-2:2020 don't
+// mention alternative names. They are mentioned
+// until Adobe Pdf Reference 1.7
 bool PoDoFo::IsStandard14Font(const string_view& fontName, bool useAltNames, PdfStandard14FontType& stdFont)
 {
     if (fontName == FONT_TIMES_ROMAN_STD)
