@@ -317,17 +317,17 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                             context.States.Current->PdfState.WordSpacing = content->Stack[2].GetReal();
                         }
 
+                        if (content->Operator == PdfOperator::Quote
+                            || content->Operator == PdfOperator::DoubleQuote)
+                        {
+                            context.TStar_Operator();
+                        }
+
                         if (decodeString(str, *context.States.Current, decoded, lengths, positions)
                             && decoded.length() != 0)
                         {
                             context.PushString(StatefulString(std::move(decoded), *context.States.Current,
                                 std::move(lengths), std::move(positions)), true);
-                        }
-
-                        if (content->Operator == PdfOperator::Quote
-                            || content->Operator == PdfOperator::DoubleQuote)
-                        {
-                            context.TStar_Operator();
                         }
 
                         break;
