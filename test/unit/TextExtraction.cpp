@@ -93,3 +93,27 @@ TEST_CASE("TextExtraction4")
 
     REQUIRE(abort);
 }
+
+TEST_CASE("TextExtraction5")
+{
+    // Extraction with quote operators
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TextExtraction5.pdf"));
+    auto& page = doc.GetPages().GetPageAt(0);
+    vector<PdfTextEntry> entries;
+    page.ExtractTextTo(entries);
+    ASSERT_EQUAL(entries.size(),4);
+    REQUIRE(entries[0].Text == "Line 1");
+    ASSERT_EQUAL(entries[0].X, 10.0);
+    ASSERT_EQUAL(entries[0].Y, 112.0);
+    REQUIRE(entries[1].Text == "Line 2");
+    ASSERT_EQUAL(entries[1].X, 10.0);
+    ASSERT_EQUAL(entries[1].Y, 94.0);
+
+    REQUIRE(entries[2].Text == "Paragraph 2");
+    ASSERT_EQUAL(entries[2].X, 10.0);
+    ASSERT_EQUAL(entries[2].Y, 64.0);
+    REQUIRE(entries[3].Text == "Para 2, Line 2");
+    ASSERT_EQUAL(entries[3].X, 10.0);
+    ASSERT_EQUAL(entries[3].Y, 46.0);
+}
