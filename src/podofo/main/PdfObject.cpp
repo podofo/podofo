@@ -317,7 +317,9 @@ void PdfObject::RemoveStream()
     // Unconditionally set the stream as already loaded,
     // then just remove it
     m_IsDelayedLoadStreamDone = true;
-    bool hasStream = m_Stream != nullptr || removeStream();
+    // NOTE: First try to remove delayed load object
+    // stream, then check for shallow stream
+    bool hasStream = removeStream() || m_Stream != nullptr;
     m_Stream = nullptr;
     if (hasStream)
         SetDirty();

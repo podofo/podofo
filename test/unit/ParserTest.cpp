@@ -112,6 +112,7 @@ TEST_CASE("TestRemoveStream")
     auto& resources = page.GetResources();
     auto& imageObj = *resources.GetResource(PdfResourceType::XObject, "XOb5");
     REQUIRE(imageObj.HasStream());
+    (void)imageObj.MustGetStream();
     REQUIRE(!imageObj.IsDirty());
     imageObj.RemoveStream();
     REQUIRE(imageObj.IsDirty());
