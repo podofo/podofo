@@ -125,7 +125,7 @@ set(CMAKE_CXX_EXTENSIONS ON)
 if (MSVC)
     # Set the compiler less permissive and add some warnings
     # /we4287: unsigned/negative constant mismatch
-    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/std:c++17> $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus> /permissive- /utf-8 /we4287 /W4)
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/std:c++17> $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus> /permissive- /utf-8 /we4287 /we4552 /W4)
 
     # Microsoft deprecate certain POSIX functions that we use.
     # for now, turn off these warnings.

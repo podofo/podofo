@@ -124,7 +124,7 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
         {
             // Check if it's one of the standard 14 fonts
             PdfStandard14FontType stdFontType;
-            if (!dict->TryFindKeyAs("BaseFont", name);
+            if (!dict->TryFindKeyAs("BaseFont", name) ||
                 !PdfFont::IsStandard14Font(*name, stdFontType))
             {
                 PoDoFo::LogMessage(PdfLogSeverity::Warning, "/FontDescriptor is null and no known Std14 /BaseFont found");
@@ -151,7 +151,7 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
             // NOTE: PDF 2.0 (ISO 32000-2:2020) clarified that only /Type1 fonts can be
             // one of the standard 14 fonts
             PdfStandard14FontType stdFontType;
-            if (!dict->TryFindKeyAs("BaseFont", name);
+            if (!dict->TryFindKeyAs("BaseFont", name) ||
                 !PdfFont::IsStandard14Font(*name, stdFontType))
             {
                 PoDoFo::LogMessage(PdfLogSeverity::Warning, "/FontDescriptor is null and no known Std14 /BaseFont found");
