@@ -64,7 +64,7 @@ PdfEncodingMapConstPtr PdfFontMetrics::getFontType1BuiltInEncoding(FT_Face face)
     // 9.6.5 Character encoding
     // "In PDF, a font is classified as either nonsymbolic or symbolic according to whether all of its characters
     // are members of the standard Latin character set; see D.2, "Latin character set and encodings". This
-    // shall be indicated by flags in the font descriptor; see 9.8.2, "Font descriptor flags".Symbolic fonts
+    // shall be indicated by flags in the font descriptor; see 9.8.2, "Font descriptor flags". Symbolic fonts
     // contain other character sets, to which the encodings mentioned previously ordinarily do not apply.
     // Such font programs have built - in encodings that are usually unique to each font"
 
@@ -83,11 +83,11 @@ PdfEncodingMapConstPtr PdfFontMetrics::getFontType1BuiltInEncoding(FT_Face face)
     FT_ULong code;
     FT_UInt index;
     PdfCharCodeMap codeMap;
-    if (FT_Select_Charmap(face, FT_ENCODING_ADOBE_CUSTOM) == 0)
+    if (FT_HAS_GLYPH_NAMES(face) && (FT_Select_Charmap(face, FT_ENCODING_ADOBE_STANDARD) == 0 || FT_Select_Charmap(face, FT_ENCODING_ADOBE_CUSTOM) == 0))
     {
-        if (!FT_HAS_GLYPH_NAMES(face))
-            return nullptr;
-
+        // CHECK-ME: What about the other Adobe encodings possibly reported by FT
+        // (FT_ENCODING_ADOBE_EXPERT, FT_ENCODING_ADOBE_LATIN_1,
+        // FT_ENCODING_OLD_LATIN_2, FT_ENCODING_APPLE_ROMAN)?
         FT_Error rc;
         char buffer[64];
         CodePointSpan codepoints;
@@ -108,9 +108,10 @@ PdfEncodingMapConstPtr PdfFontMetrics::getFontType1BuiltInEncoding(FT_Face face)
 
         return PdfEncodingMapConstPtr(new PdfFontBuiltinType1Encoding(std::move(codeMap)));
     }
-    else if (FT_Select_Charmap(face, FT_ENCODING_UNICODE) == 0)
+
+    if (FT_Select_Charmap(face, FT_ENCODING_UNICODE) == 0)
     {
-        // CHECK-ME: The following is fishy
+        // CHECK-ME: Is this fallback correct at all?
         // NOTE: Some very strange CFF fonts just supply an unicode map
         // For these, we just assume code identity with Unicode codepoint
         code = FT_Get_First_Char(face, &index);
@@ -119,6 +120,8 @@ PdfEncodingMapConstPtr PdfFontMetrics::getFontType1BuiltInEncoding(FT_Face face)
             codeMap.PushMapping(PdfCharCode(code), (char32_t)code);
             code = FT_Get_Next_Char(face, code, &index);
         }
+
+        return PdfEncodingMapConstPtr(new PdfFontBuiltinType1Encoding(std::move(codeMap)));
     }
 
     return nullptr;

@@ -570,7 +570,7 @@ PdfEncodingMapConstPtr PdfFontMetrics::getDefaultEncoding(bool tryFetchCidToGidM
         if (face != nullptr)
         {
             auto ret = getFontType1BuiltInEncoding(face);
-            if (tryFetchCidToGidMap)
+            if (tryFetchCidToGidMap && ret != nullptr)
                 cidToGidMap = getIntrinsicCIDToGIDMapType1(face, *ret, nullptr);
 
             return ret;
