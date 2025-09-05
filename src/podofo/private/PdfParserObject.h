@@ -51,12 +51,16 @@ protected:
 public:
     bool TryUnload() override;
 
-    void Parse();
+    /** Parse the object header and data block, excluding the stream (if any)
+     */
+    void ParseShallow();
 
-    void ParseStream();
+    /** Parse the object header, data block and stream (if any)
+     */
+    void ParseFull(bool lenient = false);
 
     /** Gets an offset in which the object beginning is stored in the file.
-     *  Note the offset points just after the object identificator ("0 0 obj").
+     *  Note the offset points just after the object identifier ("0 0 obj").
      *
      * \returns an offset in which the object is stored in the source device,
      *     or -1, if the object was created on demand.
@@ -69,7 +73,7 @@ public:
 
 protected:
     PdfReference ReadReference(PdfTokenizer& tokenizer);
-    void Parse(PdfTokenizer& tokenizer);
+    void ParseShallow(PdfTokenizer& tokenizer);
 
     /** Returns if this object has a stream object appended.
      *  which has to be parsed.
@@ -93,7 +97,7 @@ private:
      *
      *  Called from DelayedLoadStream(). Do not call directly.
      */
-    void parseStream();
+    void parseStream(bool lenient);
 
     PdfReference readReference(PdfTokenizer& tokenizer);
 

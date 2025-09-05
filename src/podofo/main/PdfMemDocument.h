@@ -43,7 +43,9 @@ public:
      */
     PdfMemDocument();
 
-    PdfMemDocument(std::shared_ptr<InputStreamDevice> device, const std::string_view& password = { });
+    PdfMemDocument(std::shared_ptr<InputStreamDevice> device, const std::string_view& password);
+
+    PdfMemDocument(std::shared_ptr<InputStreamDevice> device, PdfLoadOptions opts = PdfLoadOptions::None, const std::string_view& password = { });
 
     /** Construct a copy of the given document
      */
@@ -58,7 +60,8 @@ public:
      *
      *  \see WriteUpdate, LoadFromBuffer, LoadFromDevice
      */
-    void Load(const std::string_view& filename, const std::string_view& password = { });
+    void Load(const std::string_view& filename, const std::string_view& password);
+    void Load(const std::string_view& filename, PdfLoadOptions opts = PdfLoadOptions::None, const std::string_view& password = { });
 
     /** Load a PdfMemDocument from a buffer in memory
      *
@@ -66,7 +69,8 @@ public:
      *
      *  \see WriteUpdate, Load, LoadFromDevice
      */
-    void LoadFromBuffer(const bufferview& buffer, const std::string_view& password = { });
+    void LoadFromBuffer(const bufferview& buffer, const std::string_view& password);
+    void LoadFromBuffer(const bufferview& buffer, PdfLoadOptions opts = PdfLoadOptions::None, const std::string_view& password = { });
 
     /** Load a PdfMemDocument from a PdfRefCountedInputDevice
      *
@@ -74,8 +78,8 @@ public:
      *
      *  \see WriteUpdate, Load, LoadFromBuffer
      */
-    void Load(std::shared_ptr<InputStreamDevice> device, const std::string_view& password = { });
-
+    void Load(std::shared_ptr<InputStreamDevice> device, const std::string_view& password);
+    void Load(std::shared_ptr<InputStreamDevice> device, PdfLoadOptions opts = PdfLoadOptions::None, const std::string_view& password = { });
     /** Save the complete document to a file
      *
      *  \param filename filename of the document
@@ -165,7 +169,7 @@ private:
     PdfMemDocument(bool empty);
 
 private:
-    void loadFromDevice(std::shared_ptr<InputStreamDevice>&& device, const std::string_view& password);
+    void loadFromDevice(std::shared_ptr<InputStreamDevice>&& device, PdfLoadOptions opts, const std::string_view& password);
 
     /** Internal method to load all objects from a PdfParser object.
      *  The objects will be removed from the parser and are now

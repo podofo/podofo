@@ -512,9 +512,9 @@ protected:
 
     void DelayedLoadStream() const;
 
-    void delayedLoadStream() const;
-
     void EnableDelayedLoadingStream();
+
+    void MakeDelayedLoadingStreamDone();
 
     inline void SetIndirectReference(const PdfReference& reference) { m_IndirectReference = reference; }
 

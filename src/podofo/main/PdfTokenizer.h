@@ -34,6 +34,7 @@ struct PODOFO_API PdfTokenizerOptions final
  */
 class PODOFO_API PdfTokenizer
 {
+    friend class PdfParser;
     friend class PdfPostScriptTokenizer;
     PODOFO_PRIVATE_FRIEND(class PdfParserObject);
 
@@ -95,6 +96,8 @@ public:
      */
     void ReadNextVariant(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt = { });
     bool TryReadNextVariant(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt = { });
+
+    void Reset();
 
 protected:
     // This enum differs from regular PdfDataType in the sense

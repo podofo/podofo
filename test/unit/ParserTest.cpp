@@ -77,12 +77,12 @@ namespace PoDoFo
 
         void ReadObjects()
         {
-            PdfParser::ReadObjects(*m_device);
+            PdfParser::ReadObjectEntries(*m_device);
         }
 
-        bool IsPdfFile()
+        void ReadHeader()
         {
-            return PdfParser::IsPdfFile(*m_device);
+            PdfParser::ReadHeader(*m_device);
         }
 
         const shared_ptr<InputStreamDevice>& GetDevice() { return m_device; }
@@ -117,6 +117,20 @@ TEST_CASE("TestRemoveStream")
     imageObj.RemoveStream();
     REQUIRE(imageObj.IsDirty());
     REQUIRE(!imageObj.HasStream());
+}
+
+TEST_CASE("TestXRefRecovery")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TestXRefRecovery.pdf"));
+    auto& page = doc.GetPages().GetPageAt(0);
+    vector<PdfTextEntry> entries;
+    page.ExtractTextTo(entries);
+
+    REQUIRE(entries[0].Text == "Hello world");
+    ASSERT_EQUAL(entries[0].X, 148.90299999999999);
+    ASSERT_EQUAL(entries[0].Y, 722.75699999999995);
+    ASSERT_EQUAL(entries[0].Length, 57.372);
 }
 
 void PdfParserTest::TestMaxObjectCount()
@@ -1173,7 +1187,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         // Parse a doc using XRef stream with invalid /W entries
-        doc.Load(device);
+        doc.Load(device, PdfLoadOptions::SkipXRefRecovery);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1226,7 +1240,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         // Parse a doc using XRef stream with invalid /W entries
-        doc.Load(device);
+        doc.Load(device, PdfLoadOptions::SkipXRefRecovery);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1278,7 +1292,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         // Parse a doc using XRef stream with invalid /W entries
-        doc.Load(device);
+        doc.Load(device, PdfLoadOptions::SkipXRefRecovery);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1330,7 +1344,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         // Parse a doc using XRef stream with invalid /W entries
-        doc.Load(device);
+        doc.Load(device, PdfLoadOptions::SkipXRefRecovery);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1379,7 +1393,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         // Parse a doc using XRef stream with invalid /W entries
-        doc.Load(device);
+        doc.Load(device, PdfLoadOptions::SkipXRefRecovery);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1478,7 +1492,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         PdfXRefEntries offsets;
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
-        doc.Load(device);
+        doc.Load(device, PdfLoadOptions::SkipXRefRecovery);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1530,7 +1544,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         PdfXRefEntries offsets;
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
-        doc.Load(device);
+        doc.Load(device, PdfLoadOptions::SkipXRefRecovery);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1582,7 +1596,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         PdfXRefEntries offsets;
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
-        doc.Load(device);
+        doc.Load(device, PdfLoadOptions::SkipXRefRecovery);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1634,7 +1648,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         PdfXRefEntries offsets;
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
-        doc.Load(device);
+        doc.Load(device, PdfLoadOptions::SkipXRefRecovery);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1686,7 +1700,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         PdfXRefEntries offsets;
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
-        doc.Load(device);
+        doc.Load(device, PdfLoadOptions::SkipXRefRecovery);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1738,7 +1752,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         PdfXRefEntries offsets;
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
-        doc.Load(device);
+        doc.Load(device, PdfLoadOptions::SkipXRefRecovery);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1788,7 +1802,7 @@ void PdfParserTest::TestReadXRefStreamContents()
         PdfXRefEntries offsets;
         auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
-        doc.Load(device);
+        doc.Load(device, PdfLoadOptions::SkipXRefRecovery);
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1832,18 +1846,20 @@ void PdfParserTest::TestReadObjects()
 
 void PdfParserTest::TestIsPdfFile()
 {
+    bool expectedFail;
+
     try
     {
         string strInput = "%PDF-1.0";
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, strInput);
-        REQUIRE(parser.IsPdfFile());
+        parser.ReadHeader();
     }
     catch (PdfError&)
     {
         FAIL("Unexpected PdfError");
     }
-    catch (exception&)
+    catch (...)
     {
         FAIL("Wrong exception type");
     }
@@ -1853,13 +1869,13 @@ void PdfParserTest::TestIsPdfFile()
         string strInput = "%PDF-1.1";
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, strInput);
-        REQUIRE(parser.IsPdfFile());
+        parser.ReadHeader();
     }
     catch (PdfError&)
     {
         FAIL("Unexpected PdfError");
     }
-    catch (exception&)
+    catch (...)
     {
         FAIL("Wrong exception type");
     }
@@ -1869,29 +1885,13 @@ void PdfParserTest::TestIsPdfFile()
         string strInput = "%PDF-1.7";
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, strInput);
-        REQUIRE(parser.IsPdfFile());
+        parser.ReadHeader();
     }
     catch (PdfError&)
     {
         FAIL("Unexpected PdfError");
     }
-    catch (exception&)
-    {
-        FAIL("Wrong exception type");
-    }
-
-    try
-    {
-        string strInput = "%PDF-1.9";
-        PdfIndirectObjectList objects;
-        PdfParserTest parser(objects, strInput);
-        REQUIRE(!parser.IsPdfFile());
-    }
-    catch (PdfError&)
-    {
-        FAIL("Unexpected PdfError");
-    }
-    catch (exception&)
+    catch (...)
     {
         FAIL("Wrong exception type");
     }
@@ -1901,7 +1901,7 @@ void PdfParserTest::TestIsPdfFile()
         string strInput = "%PDF-2.0";
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, strInput);
-        REQUIRE(parser.IsPdfFile());
+        parser.ReadHeader();
     }
     catch (PdfError&)
     {
@@ -1912,37 +1912,62 @@ void PdfParserTest::TestIsPdfFile()
         FAIL("Wrong exception type");
     }
 
+    expectedFail = true;
+    try
+    {
+        string strInput = "%PDF-1.9";
+        PdfIndirectObjectList objects;
+        PdfParserTest parser(objects, strInput);
+        parser.ReadHeader();
+        expectedFail = false;
+    }
+    catch (PdfError&)
+    {
+        // OK
+    }
+    catch (exception&)
+    {
+        FAIL("Wrong exception type");
+    }
+    REQUIRE(expectedFail);
+
+    expectedFail = true;
     try
     {
         string strInput = "%!PS-Adobe-2.0";
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, strInput);
-        REQUIRE(!parser.IsPdfFile());
+        parser.ReadHeader();
+        expectedFail = false;
     }
     catch (PdfError&)
     {
-        FAIL("Unexpected PdfError");
+        // OK
     }
     catch (exception&)
     {
         FAIL("Wrong exception type");
     }
+    REQUIRE(expectedFail);
 
+    expectedFail = true;
     try
     {
         string strInput = "GIF89a";
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, strInput);
-        REQUIRE(!parser.IsPdfFile());
+        parser.ReadHeader();
+        expectedFail = false;
     }
     catch (PdfError&)
     {
-        FAIL("Unexpected PdfError");
+        // OK
     }
     catch (exception&)
     {
         FAIL("Wrong exception type");
     }
+    REQUIRE(expectedFail);
 }
 
 TEST_CASE("TestSaveIncrementalRoundTrip")

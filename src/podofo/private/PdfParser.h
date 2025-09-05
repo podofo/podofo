@@ -30,6 +30,9 @@ class PdfParser
     friend class PdfWriter;
 
 public:
+    static constexpr int64_t MaxObjectCount = std::numeric_limits<int64_t>::max();
+
+public:
     /** Create a new PdfParser object
      *  You have to open a PDF file using ParseFile later.
      *  \param objects vector to write the parsed PdfObjects to
@@ -54,7 +57,7 @@ public:
      *
      *  \see SetPassword
      */
-    void Parse(InputStreamDevice& device, bool loadOnDemand);
+    void Parse(InputStreamDevice& device);
 
     const PdfObject& GetTrailer() const;
 
@@ -111,7 +114,7 @@ public:
      *                The default is to load all object immediately.
      *                In this case false is returned.
      */
-    inline bool GetLoadOnDemand() const { return m_LoadOnDemand; }
+    inline bool GetLoadOnDemand() const { return m_LoadStreamsEargerly; }
 
     /** \returns the length of the file
      */
@@ -136,28 +139,15 @@ public:
      *
      * \param strict new setting for strict parsing mode.
      */
-    inline void SetStrictParsing(bool strict) { m_StrictParsing = strict; }
+    inline void SetStrictParsing(bool value) { m_StrictParsing = value; }
 
-    /**
-     * \return if broken objects are ignored while parsing
-     */
-    inline bool GetIgnoreBrokenObjects() const { return m_IgnoreBrokenObjects; }
-
-    /**
-     * Specify if the parser should ignore broken
-     * objects, i.e. XRef entries that do not point
-     * to valid objects.
-     *
-     * Default is to ignore broken objects and
-     * to not throw an exception if one is found.
-     *
-     * \param bBroken if true broken objects will be ignored
-     */
-    inline void SetIgnoreBrokenObjects(bool broken) { m_IgnoreBrokenObjects = broken; }
+    inline void SetSkipXRefRecovery(bool value) { m_SkipXRefRecovery = value; }
 
     inline size_t GetXRefOffset() const { return m_XRefOffset; }
 
     inline bool HasXRefStream() const { return m_HasXRefStream; }
+
+    inline void SetLoadStreamsEagerly(bool value) { m_LoadStreamsEargerly = value; }
 
     const PdfEncryptSession* GetEncrypt() const { return m_Encrypt.get(); }
 
@@ -196,26 +186,20 @@ private:
      */
     void ReadXRefStreamContents(InputStreamDevice& device, size_t offset, bool skipFollowPrevious);
 
-    /** Reads all objects from the pdf into memory
-     *  from the previously read entries
-     *
-     *  If required an encryption object is setup first.
-     *
-     *  The actual reading happens in ReadObjectsInternal()
-     *  either if no encryption is required or a correct
-     *  encryption object was initialized from SetPassword.
+    /** Reads objects offsets and references into memory
      */
-    void ReadObjects(InputStreamDevice& device);
+    void ReadObjectEntries(InputStreamDevice& device);
 
     /** Checks the magic number at the start of the pdf file
      *  and sets the m_PdfVersion member to the correct version
      *  of the pdf file.
      *
-     *  \returns true if this is a pdf file, otherwise false
      */
-    bool IsPdfFile(InputStreamDevice& device);
+    void ReadHeader(InputStreamDevice& device);
 
 private:
+    bool tryRebuildCrossReference(InputStreamDevice& device);
+
     /** Searches backwards from the specified position of the file
      *  and tries to find a token.
      *  The current file is positioned right after the token.
@@ -253,6 +237,8 @@ private:
      */
     void readObjectsInternal(InputStreamDevice& device);
 
+    void eagerlyLoadStreams();
+
     /** Read the object with index from the object stream nObjNo
      *  and push it on the objects vector
      *
@@ -264,7 +250,7 @@ private:
      *  \param index index of the object which should be parsed
      *
      */
-    void readCompressedObjectFromStream(uint32_t objNo, const cspan<int64_t>& objectList);
+    void readCompressedObjectFromStream(uint32_t objNo, const std::unordered_set<uint32_t>& objectList);
 
     void readNextTrailer(InputStreamDevice& device, bool skipFollowPrevious);
 
@@ -277,10 +263,12 @@ private:
      */
     void checkEOFMarker(InputStreamDevice& device);
 
+    void clear();
+
     /** Initializes all private members
      *  with their initial values.
      */
-    void reset();
+    void init();
 
     /** Small helper method to retrieve the document id from the trailer
      *
@@ -303,7 +291,7 @@ private:
     PdfTokenizer m_tokenizer;
 
     PdfVersion m_PdfVersion;
-    bool m_LoadOnDemand;
+    bool m_LoadStreamsEargerly;
 
     size_t m_magicOffset;
     bool m_HasXRefStream;
@@ -320,7 +308,7 @@ private:
     std::string m_Password;
 
     bool m_StrictParsing;
-    bool m_IgnoreBrokenObjects;
+    bool m_SkipXRefRecovery;
 
     unsigned m_IncrementalUpdateCount;
 

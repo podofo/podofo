@@ -34,7 +34,16 @@ PdfMemDocument::PdfMemDocument(shared_ptr<InputStreamDevice> device, const strin
     if (device == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    loadFromDevice(std::move(device), password);
+    loadFromDevice(std::move(device), PdfLoadOptions::None, password);
+}
+
+PdfMemDocument::PdfMemDocument(shared_ptr<InputStreamDevice> device, PdfLoadOptions opts, const string_view& password)
+    : PdfMemDocument(true)
+{
+    if (device == nullptr)
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+
+    loadFromDevice(std::move(device), opts, password);
 }
 
 PdfMemDocument::PdfMemDocument(const PdfMemDocument& rhs) :
@@ -89,20 +98,28 @@ void PdfMemDocument::initFromParser(PdfParser& parser)
 
 void PdfMemDocument::Load(const string_view& filename, const string_view& password)
 {
+    Load(filename, PdfLoadOptions::None, password);
+}
+
+void PdfMemDocument::Load(const string_view& filename, PdfLoadOptions opts, const string_view& password)
+{
     if (filename.length() == 0)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    auto device = std::make_shared<FileStreamDevice>(filename);
-    Load(device, password);
+    loadFromDevice(std::make_shared<FileStreamDevice>(filename), opts, password);
 }
 
 void PdfMemDocument::LoadFromBuffer(const bufferview& buffer, const string_view& password)
 {
+    LoadFromBuffer(buffer, PdfLoadOptions::None, password);
+}
+
+void PdfMemDocument::LoadFromBuffer(const bufferview& buffer, PdfLoadOptions opts, const string_view& password)
+{
     if (buffer.size() == 0)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    auto device = std::make_shared<SpanStreamDevice>(buffer);
-    Load(device, password);
+    loadFromDevice(std::make_shared<SpanStreamDevice>(buffer), opts, password);
 }
 
 void PdfMemDocument::Load(shared_ptr<InputStreamDevice> device, const string_view& password)
@@ -110,19 +127,35 @@ void PdfMemDocument::Load(shared_ptr<InputStreamDevice> device, const string_vie
     if (device == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    this->Clear();
-    loadFromDevice(std::move(device), password);
+    loadFromDevice(std::move(device), PdfLoadOptions::None, password);
 }
 
-void PdfMemDocument::loadFromDevice(shared_ptr<InputStreamDevice>&& device, const string_view& password)
+void PdfMemDocument::Load(shared_ptr<InputStreamDevice> device, PdfLoadOptions opts, const string_view& password)
 {
+    if (device == nullptr)
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+
+    loadFromDevice(std::move(device), opts, password);
+}
+
+void PdfMemDocument::loadFromDevice(shared_ptr<InputStreamDevice>&& device,
+    PdfLoadOptions opts, const string_view& password)
+{
+    this->Clear();
     m_device = std::move(device);
 
     // Call parse file instead of using the constructor
     // so that m_Parser is initialized for encrypted documents
     PdfParser parser(PdfDocument::GetObjects());
+    if ((opts & PdfLoadOptions::StrictParsing) != PdfLoadOptions::None)
+        parser.SetStrictParsing(true);
+    if ((opts & PdfLoadOptions::SkipXRefRecovery) != PdfLoadOptions::None)
+        parser.SetSkipXRefRecovery(true);
+    if ((opts & PdfLoadOptions::LoadStreamsEagerly) != PdfLoadOptions::None)
+        parser.SetLoadStreamsEagerly(true);
+
     parser.SetPassword(password);
-    parser.Parse(*m_device, true);
+    parser.Parse(*m_device);
     initFromParser(parser);
 }
 

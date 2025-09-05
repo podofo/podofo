@@ -34,10 +34,11 @@ public:
      */
     PdfObjectStreamParser(PdfParserObject& parser, PdfIndirectObjectList& objects, const std::shared_ptr<charbuff>& buffer);
 
-    void Parse(const cspan<int64_t>& objectList);
+    void Parse(const std::unordered_set<uint32_t>* objectList);
 
 private:
-    void readObjectsFromStream(char* buffer, size_t lBufferLen, int64_t lNum, int64_t lFirst, const cspan<int64_t>& list);
+    void readObjectsFromStream(char* buffer, size_t bufferLen,
+        unsigned num, size_t first, const std::unordered_set<uint32_t>* objectList);
 
 private:
     PdfParserObject* m_Parser;

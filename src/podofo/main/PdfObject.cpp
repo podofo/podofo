@@ -393,11 +393,6 @@ PdfObjectStream* PdfObject::getStream()
 void PdfObject::DelayedLoadStream() const
 {
     DelayedLoad();
-    delayedLoadStream();
-}
-
-void PdfObject::delayedLoadStream() const
-{
     if (m_IsDelayedLoadStreamDone)
         return;
 
@@ -427,7 +422,13 @@ void PdfObject::copyStreamFrom(const PdfObject& obj)
 {
     // NOTE: Don't call rhs.DelayedLoad() here. It's implicitly
     // called in PdfVariant assignment or copy constructor
-    obj.delayedLoadStream();
+    PODOFO_ASSERT(obj.IsDelayedLoadDone());
+    if (!obj.IsDelayedLoadStreamDone())
+    {
+        const_cast<PdfObject&>(obj).delayedLoadStream();
+        const_cast<PdfObject&>(obj).MakeDelayedLoadingStreamDone();
+    }
+
     if (obj.m_Stream != nullptr)
     {
         auto& stream = getOrCreateStream();
@@ -451,6 +452,11 @@ void PdfObject::EnableDelayedLoading()
 void PdfObject::EnableDelayedLoadingStream()
 {
     m_IsDelayedLoadStreamDone = false;
+}
+
+void PdfObject::MakeDelayedLoadingStreamDone()
+{
+    m_IsDelayedLoadStreamDone = true;
 }
 
 void PdfObject::SetRevised()

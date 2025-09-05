@@ -32,59 +32,58 @@ using namespace chromium::base;
 
 static bool CheckEOL(char e1, char e2);
 static bool CheckXRefEntryType(char c);
-static bool ReadMagicWord(char ch, unsigned& cursoridx);
+static bool readMagicWord(char ch, unsigned& cursoridx);
+static bool isObjectStream(const PdfObject& obj);
 
 PdfParser::PdfParser(PdfIndirectObjectList& objects) :
     m_buffer(std::make_shared<charbuff>(PdfTokenizer::BufferSize)),
     m_tokenizer(m_buffer),
     m_Objects(&objects),
-    m_StrictParsing(false)
+    m_StrictParsing(false),
+    m_LoadStreamsEargerly(false),
+    m_SkipXRefRecovery(false)
 {
-    this->reset();
+    this->init();
 }
 
-void PdfParser::reset()
+void PdfParser::init()
 {
-    m_PdfVersion = PdfVersionDefault;
-    m_LoadOnDemand = false;
-
+    m_PdfVersion = PdfVersion::Unknown;
     m_magicOffset = 0;
     m_HasXRefStream = false;
     m_XRefOffset = 0;
+    m_FileSize = numeric_limits<size_t>::max();
     m_lastEOFOffset = 0;
-
     m_Trailer = nullptr;
-    m_entries.Clear();
-
     m_Encrypt = nullptr;
-
-    m_IgnoreBrokenObjects = true;
     m_IncrementalUpdateCount = 0;
 }
 
-void PdfParser::Parse(InputStreamDevice& device, bool loadOnDemand)
+void PdfParser::Parse(InputStreamDevice& device)
 {
-    reset();
-
-    m_LoadOnDemand = loadOnDemand;
+    if (m_PdfVersion != PdfVersion::Unknown)
+        clear();
 
     try
     {
-        if (!IsPdfFile(device))
-            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidPDF);
-
+        ReadHeader(device); \
         ReadDocumentStructure(device);
-        ReadObjects(device);
+        ReadObjectEntries(device);
     }
     catch (PdfError& e)
     {
         // If this is being called from a constructor then the
-        // destructor will not be called.
-        // Clean up here  
-        reset();
-        PODOFO_PUSH_FRAME_INFO(e, "Unable to load objects from file");
-        throw;
+        // destructor will not be called
+        if (e.GetCode() == PdfErrorCode::MaxRecursionReached
+            || e.GetCode() == PdfErrorCode::InvalidPassword
+            || m_SkipXRefRecovery || !tryRebuildCrossReference(device))
+        {
+            throw;
+        }
     }
+
+    if (m_LoadStreamsEargerly)
+        eagerlyLoadStreams();
 }
 
 void PdfParser::ReadDocumentStructure(InputStreamDevice& device, ssize_t eofSearchOffset, bool skipFollowPrevious)
@@ -152,32 +151,139 @@ void PdfParser::ReadDocumentStructure(InputStreamDevice& device, ssize_t eofSear
     }
 }
 
-bool PdfParser::IsPdfFile(InputStreamDevice& device)
+void PdfParser::ReadHeader(InputStreamDevice& device)
 {
     unsigned i = 0;
+    char versionStr[PDF_VERSION_LENGHT];
+    bool eof;
     device.Seek(0, SeekDirection::Begin);
     while (true)
     {
         char ch;
         if (!device.Read(ch))
-            return false;
+            goto Fail;
 
-        if (ReadMagicWord(ch, i))
+        if (readMagicWord(ch, i))
             break;
     }
 
-    char versionStr[PDF_VERSION_LENGHT];
-    bool eof;
     if (device.Read(versionStr, PDF_VERSION_LENGHT, eof) != PDF_VERSION_LENGHT)
-        return false;
+        goto Fail;
 
     m_magicOffset = device.GetPosition() - PDF_MAGIC_LENGHT;
     // try to determine the exact PDF version of the file
     m_PdfVersion = PoDoFo::GetPdfVersion(string_view(versionStr, std::size(versionStr)));
     if (m_PdfVersion == PdfVersion::Unknown)
-        return false;
+        goto Fail;
 
-    return true;
+    return;
+Fail:
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidPDF, "Unable to read PDF header");
+}
+
+bool isNumber(string_view token, uint32_t& num)
+{
+    auto ret = std::from_chars(token.data(), token.data() + token.size(), num);
+    return ret.ec == (errc)0;
+}
+
+// Inspired from PDFium https://pdfium.googlesource.com/pdfium/+/1953ba96515b3f9b21703afb3f201b3521012aa8/core/fpdfapi/parser/cpdf_parser.cpp#756
+bool PdfParser::tryRebuildCrossReference(InputStreamDevice& device)
+{
+    // Stash the detected version
+    PODOFO_ASSERT(m_PdfVersion != PdfVersion::Unknown);
+    auto version = m_PdfVersion;
+    clear();
+
+    try
+    {
+        device.Seek(m_magicOffset + PDF_MAGIC_LENGHT);
+        string_view token;
+        PdfTokenType tokenType;
+        vector<pair<uint32_t, size_t>> numbers;
+        uint32_t num;
+        PdfVariant variant;
+        unique_ptr<PdfParserObject> parserObject;
+        const PdfName* name;
+        while (m_tokenizer.TryReadNextToken(device, token, tokenType))
+        {
+            switch (tokenType)
+            {
+                case PdfTokenType::Literal:
+                {
+                    if (isNumber(token, num))
+                    {
+                        numbers.emplace_back(num, device.GetPosition() - token.length());
+                        if (numbers.size() > 2)
+                            numbers.erase(numbers.begin());
+
+                        continue;
+                    }
+
+                    if (token == "trailer")
+                    {
+                        m_Trailer.reset(new PdfParserObject(m_Objects->GetDocument(), device, -1));
+                        m_Trailer->SetIsTrailer(true);
+                    }
+                    else if (token == "obj" && numbers.size() == 2)
+                    {
+                        size_t objPos = numbers[0].second;
+                        uint32_t objNum = numbers[0].first;
+                        uint32_t genNum = numbers[1].first;
+                        if (genNum > numeric_limits<uint16_t>::max())
+                            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile, "Invalid generation number");
+
+                        parserObject.reset(new PdfParserObject(m_Objects->GetDocument(),
+                            PdfReference(objNum, static_cast<uint16_t>(genNum)), device, objPos));
+                        parserObject->ParseFull(true);
+                        if (parserObject->HasStream())
+                        {
+                            if (parserObject->GetDictionary().TryFindKeyAs("Type", name)
+                                && *name == "XRef")
+                            {
+                                // It's a cross reference stream
+                                m_Trailer = std::move(parserObject);
+                                m_Trailer->SetIsTrailer(true);
+                                goto SkipPush;
+                            }
+                            else if (isObjectStream(*parserObject))
+                            {
+                                PdfObjectStreamParser objectStreamParser(*parserObject, *m_Objects, m_buffer);
+                                objectStreamParser.Parse(nullptr);
+                            }
+                        }
+
+                        m_Objects->PushObject(parserObject.get());
+                        parserObject.release();
+                    SkipPush:
+                        ; // NOTE: No-op statement to avoid compilation errors
+                    }
+
+                    break;
+                }
+                case PdfTokenType::ParenthesisLeft:
+                {
+                    m_tokenizer.ReadString(device, variant, nullptr);
+                    variant.Reset();
+                    break;
+                }
+                case PdfTokenType::AngleBracketLeft:
+                {
+                    m_tokenizer.ReadHexString(device, variant, nullptr);
+                    variant.Reset();
+                    break;
+                }
+            }
+        }
+
+        // Restore the detected version
+        m_PdfVersion = version;
+        return true;
+    }
+    catch (...)
+    {
+        return false;
+    }
 }
 
 void PdfParser::mergeTrailer(const PdfObject& trailer)
@@ -514,7 +620,7 @@ void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset,
     auto xrefObjTrailer = new PdfXRefStreamParserObject(m_Objects->GetDocument(), device, m_entries);
     try
     {
-        xrefObjTrailer->ParseStream();
+        xrefObjTrailer->ParseFull();
     }
     catch (PdfError& ex)
     {
@@ -552,7 +658,7 @@ void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset,
     }
 }
 
-void PdfParser::ReadObjects(InputStreamDevice& device)
+void PdfParser::ReadObjectEntries(InputStreamDevice& device)
 {
     if (m_Trailer == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidTrailer);
@@ -582,7 +688,7 @@ void PdfParser::ReadObjects(InputStreamDevice& device)
             unique_ptr<PdfParserObject> obj(new PdfParserObject(device, encryptRef, (ssize_t)m_entries[i].Offset));
             try
             {
-                obj->Parse();
+                obj->ParseShallow();
                 // NOTE: Never add the encryption dictionary to m_Objects
                 // we create a new one, if we need it for writing
                 m_entries[i].Parsed = false;
@@ -626,7 +732,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
 {
     // Read objects
     vector<unsigned> compressedIndices;
-    map<int64_t, vector<int64_t>> compressedObjects;
+    map<uint32_t, vector<uint32_t>> compressedObjects;
     unique_ptr<PdfParserObject> obj;
     for (unsigned i = 0; i < m_entries.GetSize(); i++)
     {
@@ -660,7 +766,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                                     {
                                         // XRef is never encrypted
                                         obj.reset(new PdfParserObject(m_Objects->GetDocument(), reference, device, (ssize_t)entry.Offset));
-                                        if (m_LoadOnDemand)
+                                        if (m_LoadStreamsEargerly)
                                             obj->DelayedLoad();
                                     }
                                 }
@@ -670,15 +776,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                         }
                         catch (PdfError& e)
                         {
-                            if (m_IgnoreBrokenObjects)
-                            {
-                                PoDoFo::LogMessage(PdfLogSeverity::Error, "Error while loading object {} {} R, Offset={}, Index={}",
-                                    obj->GetIndirectReference().ObjectNumber(),
-                                    obj->GetIndirectReference().GenerationNumber(),
-                                    entry.Offset, i);
-                                m_Objects->SafeAddFreeObject(reference);
-                            }
-                            else
+                            if (m_StrictParsing)
                             {
                                 PODOFO_PUSH_FRAME_INFO(e, "Error while loading object {} {} R, Offset={}, Index={}",
                                     obj->GetIndirectReference().ObjectNumber(),
@@ -686,6 +784,12 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                                     entry.Offset, i);
                                 throw;
                             }
+
+                            PoDoFo::LogMessage(PdfLogSeverity::Error, "Error while loading object {} {} R, Offset={}, Index={}",
+                                obj->GetIndirectReference().ObjectNumber(),
+                                obj->GetIndirectReference().GenerationNumber(),
+                                entry.Offset, i);
+                            m_Objects->SafeAddFreeObject(reference);
                         }
                     }
                     else if (entry.Generation == 0)
@@ -719,7 +823,9 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                     break;
                 }
                 case PdfXRefEntryType::Compressed:
-                    compressedObjects[entry.ObjectNumber].push_back(i);
+                    if (entry.ObjectNumber > 0 && entry.ObjectNumber < PdfParser::MaxObjectCount)
+                        compressedObjects[(uint32_t)entry.ObjectNumber].push_back(i);
+
                     break;
                 default:
                     PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
@@ -744,51 +850,60 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
     // Note that even if demand loading is enabled we still currently read all
     // objects from the stream into memory then free the stream.
     //
+    unordered_set<uint32_t> objectList;
     for (auto& pair : compressedObjects)
     {
 #ifndef VERBOSE_DEBUG_DISABLED
         if (m_LoadOnDemand)
             cerr << "Demand loading on, but can't demand-load from object stream." << endl;
 #endif
-        readCompressedObjectFromStream((uint32_t)pair.first, pair.second);
-        m_Objects->AddCompressedObjectStream((uint32_t)pair.first);
-    }
-
-    if (!m_LoadOnDemand)
-    {
-        // Force loading of streams. We can't do this during the initial
-        // run that populates m_Objects because a stream might have a /Length
-        // key that references an object we haven't yet read. So we must do it here
-        // in a second pass, or (if demand loading is enabled) defer it for later.
-        for (auto objToLoad : *m_Objects)
-        {
-            auto parserObj = dynamic_cast<PdfParserObject*>(objToLoad);
-            parserObj->ParseStream();
-        }
+        objectList.insert(pair.second.begin(), pair.second.end());
+        readCompressedObjectFromStream(pair.first, objectList);
+        m_Objects->AddCompressedObjectStream(pair.first);
+        objectList.clear();
     }
 
     updateDocumentVersion();
 }
 
-void PdfParser::readCompressedObjectFromStream(uint32_t objNo, const cspan<int64_t>& objectList)
+void PdfParser::eagerlyLoadStreams()
+{
+    // Force loading of streams. We can't do this during the initial
+    // run that populates m_Objects because a stream might have a /Length
+    // key that references an object we haven't yet read. So we must do it here
+    // in a second pass, or (if demand loading is enabled) defer it for later.
+    for (auto objToLoad : *m_Objects)
+    {
+        auto parserObj = dynamic_cast<PdfParserObject*>(objToLoad);
+        try
+        {
+            parserObj->ParseFull();
+        }
+        catch (PdfError& e)
+        {
+            PODOFO_PUSH_FRAME_INFO(e, "Unable to parse the stream for object {} {} R",
+                parserObj->GetIndirectReference().ObjectNumber(),
+                parserObj->GetIndirectReference().GenerationNumber());
+            throw;
+        }
+    }
+}
+
+void PdfParser::readCompressedObjectFromStream(uint32_t objNo, const unordered_set<uint32_t>& objectList)
 {
     // generation number of object streams is always 0
     auto streamObj = dynamic_cast<PdfParserObject*>(m_Objects->GetObject(PdfReference(objNo, 0)));
     if (streamObj == nullptr)
     {
-        if (m_IgnoreBrokenObjects)
-        {
-            PoDoFo::LogMessage(PdfLogSeverity::Error, "Loading of object {} 0 R failed!", objNo);
-            return;
-        }
-        else
-        {
+        if (m_StrictParsing)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidObject, "Loading of object {} 0 R failed!", objNo);
-        }
+
+        PoDoFo::LogMessage(PdfLogSeverity::Error, "Loading of object {} 0 R failed!", objNo);
+        return;
     }
 
     PdfObjectStreamParser parserObject(*streamObj, *m_Objects, m_buffer);
-    parserObject.Parse(objectList);
+    parserObject.Parse(&objectList);
 }
 
 void PdfParser::findTokenBackward(InputStreamDevice& device, const char* token, size_t range, size_t searchEnd)
@@ -904,6 +1019,14 @@ void PdfParser::checkEOFMarker(InputStreamDevice& device)
     }
 }
 
+void PdfParser::clear()
+{
+    m_entries.Clear();
+    m_Objects->Clear();
+    m_tokenizer.Reset();
+    init();
+}
+
 const PdfObject& PdfParser::GetTrailer() const
 {
     if (m_Trailer == nullptr)
@@ -958,43 +1081,48 @@ bool PdfParser::TryGetPreviousRevisionOffset(InputStreamDevice& input, size_t cu
 }
 
 // Read magic word keeping cursor
-bool ReadMagicWord(char ch, unsigned& cursoridx)
+bool readMagicWord(char ch, unsigned& cursoridx)
 {
-    bool readchar;
     switch (cursoridx)
     {
         case 0:
-            readchar = ch == '%';
-            break;
+            if (ch == '%') goto Advance; break;
         case 1:
-            readchar = ch == 'P';
-            break;
+            if (ch == 'P') goto Advance; break;
         case 2:
-            readchar = ch == 'D';
-            break;
+            if (ch == 'D') goto Advance; break;
         case 3:
-            readchar = ch == 'F';
+            if (ch == 'F') goto Advance; break;
             break;
         case 4:
-            readchar = ch == '-';
-            if (readchar)
-                return true;
-
-            break;
+            if (ch == '-') return true; break;
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unexpected flow");
     }
 
-    if (readchar)
-    {
-        // Advance cursor
-        cursoridx++;
-    }
-    else
-    {
-        // Reset cursor
-        cursoridx = 0;
-    }
-
+    // Reset cursor
+    cursoridx = 0;
     return false;
+
+Advance:
+    // Advance cursor
+    cursoridx++;
+    return false;
+}
+
+bool isObjectStream(const PdfObject& obj)
+{
+    auto& dict = obj.GetDictionary();
+    const PdfName* name;
+    if (!dict.TryFindKeyAs("Type", name) || *name != "ObjStm")
+        return false;
+
+    int64_t num;
+    if (!dict.TryFindKeyAs("N", num) || num < 0)
+        return false;
+
+    if (!dict.TryFindKeyAs("First", num) || num < 0)
+        return false;
+
+    return true;
 }

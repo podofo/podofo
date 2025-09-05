@@ -36,7 +36,7 @@ void PdfXRefStreamParserObject::delayedLoad()
     PdfTokenizer tokenizer;
     auto reference = ReadReference(tokenizer);
     SetIndirectReference(reference);
-    PdfParserObject::Parse(tokenizer);
+    PdfParserObject::ParseShallow(tokenizer);
 
     // Do some very basic error checking
     auto& dict = m_Variant.GetDictionary();

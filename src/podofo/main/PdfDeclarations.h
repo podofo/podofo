@@ -497,6 +497,17 @@ enum class PdfSaveOptions
     NoModifyDateUpdate = NoMetadataUpdate
 };
 
+enum class PdfLoadOptions
+{
+    None = 0,
+    ///< Throw on several PDF syntax violations
+    StrictParsing = 1,
+    ///< Load object streams immediately after parsing cross references sections
+    LoadStreamsEagerly = 2,
+    ///< Skip rebuilding object index on cross reference sections parsing failing
+    SkipXRefRecovery = 4,
+};
+
 enum class PdfAdditionalMetadata : uint8_t
 {
     PdfAIdAmd = 1,
@@ -880,6 +891,7 @@ using PdfFilterList = std::vector<PdfFilterType>;
 };
 
 ENABLE_BITMASK_OPERATORS(PoDoFo::PdfSaveOptions);
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfLoadOptions);
 ENABLE_BITMASK_OPERATORS(PoDoFo::PdfWriteFlags);
 ENABLE_BITMASK_OPERATORS(PoDoFo::PdfInfoInitial);
 ENABLE_BITMASK_OPERATORS(PoDoFo::PdfFontStyle);

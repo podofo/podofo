@@ -1,6 +1,8 @@
 ## Version 1.1.0-dev
 - Added support for ECDSA encryption
-- Added `PdfXMPPAcket::PruneInvalidProperties(pdfaLevel)`
+- Added `PdfXMPPAcket::PruneAndValidate(pdfaLevel)`
+- PdfParser: Try to rebuild the index if cross reference
+  sections parsing fails
 
 ## Version 1.0.2
 - Fixed [#275](https://github.com/podofo/podofo/issues/275), [#276](https://github.com/podofo/podofo/issues/276)

@@ -287,7 +287,7 @@ void PdfEncryptTest::TestLoadEncrypedFilePdfParser()
 
     try
     {
-        parser.Parse(*device, true);
+        parser.Parse(*device);
 
         // Must throw an exception
         FAIL("Encrypted file not recognized!");

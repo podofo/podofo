@@ -44,8 +44,6 @@
 - PdfFontManager: Add font hash to cache descriptor
 - Add special SetAppearance for PdfSignature respecting
   "Digital Signature Appearances" document specification
-- PdfParser: Handle invalid startxref by rebuilding the index,
-  similarly to what pdf.js does
 - Add text shaping with Harfbuzz https://github.com/harfbuzz/harfbuzz
 - Add fail safe sign/update mechanism, meaning the stream gets trimmed
   to initial length if there's a crash. Not so easy, especially since
@@ -61,3 +59,4 @@
 - PdfFontManager: Consider also statically caching the queries and filepaths.
   Maybe we could also weakly (weak shared pointer) cache metrics instead of fonts
 - PdfName: Evaluate unescape lazily, or offer a way to debug/inspect the unescaped sequence a posteriori
+- Consider saving/converting to XRef stream by default

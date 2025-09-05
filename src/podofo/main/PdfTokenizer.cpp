@@ -251,6 +251,11 @@ bool PdfTokenizer::TryReadNextVariant(InputStreamDevice& device, const string_vi
     return tryReadDataType(device, dataType, variant, encrypt);
 }
 
+void PdfTokenizer::Reset()
+{
+    m_tokenQueque.clear();
+}
+
 PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevice& device,
     const string_view& token, PdfTokenType tokenType, PdfVariant& variant)
 {
