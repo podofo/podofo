@@ -25,7 +25,7 @@ PdfXRefStreamParserObject::PdfXRefStreamParserObject(InputStreamDevice& device, 
     : PdfXRefStreamParserObject(nullptr, device, entries) { }
 
 PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfDocument* doc, InputStreamDevice& device, PdfXRefEntries& entries)
-    : PdfParserObject(doc, PdfReference(), device, -1), m_NextOffset(-1), m_entries(&entries)
+    : PdfParserObject(doc, PdfReference(), device, -1, false), m_NextOffset(-1), m_entries(&entries)
 {
 }
 
@@ -36,7 +36,7 @@ void PdfXRefStreamParserObject::delayedLoad()
     PdfTokenizer tokenizer;
     auto reference = ReadReference(tokenizer);
     SetIndirectReference(reference);
-    PdfParserObject::ParseShallow(tokenizer);
+    PdfParserObject::ParseData(tokenizer);
 
     // Do some very basic error checking
     auto& dict = m_Variant.GetDictionary();

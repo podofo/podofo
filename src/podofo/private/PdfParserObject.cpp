@@ -25,35 +25,35 @@ namespace
 using namespace PoDoFo;
 using namespace std;
 
-static size_t determineStreamSize(InputStreamDevice& device);
+static size_t determineStreamSize(InputStreamDevice& device, size_t streamOffset);
 static bool readObjectStreamEnd(int ch, unsigned& cursoridx, EndStreamToken& endStreamWord);
 
 PdfParserObject::PdfParserObject(PdfDocument& doc, const PdfReference& indirectReference, InputStreamDevice& device, ssize_t offset)
-    : PdfParserObject(&doc, indirectReference, device, offset)
+    : PdfParserObject(&doc, indirectReference, device, offset, false)
 {
     if (!indirectReference.IsIndirect())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Indirect reference must be valid");
 }
 
 PdfParserObject::PdfParserObject(PdfDocument& doc, InputStreamDevice& device, ssize_t offset)
-    : PdfParserObject(&doc, PdfReference(), device, offset)
+    : PdfParserObject(&doc, PdfReference(), device, offset, true)
 {
 }
 
 PdfParserObject::PdfParserObject(InputStreamDevice& device,
-    const PdfReference& indirectReference, ssize_t offset)
-    : PdfParserObject(nullptr, indirectReference, device, offset) { }
+        const PdfReference& indirectReference, ssize_t offset)
+    : PdfParserObject(nullptr, indirectReference, device, offset, false) { }
 
 PdfParserObject::PdfParserObject(InputStreamDevice& device, ssize_t offset)
-    : PdfParserObject(nullptr, PdfReference(), device, offset) { }
+    : PdfParserObject(nullptr, PdfReference(), device, offset, false) { }
 
 PdfParserObject::PdfParserObject(PdfDocument* doc, const PdfReference& indirectReference,
-    InputStreamDevice& device, ssize_t offset) :
+        InputStreamDevice& device, ssize_t offset, bool isLegacyTrailer) :
     PdfObject(PdfVariant(), indirectReference, true),
     m_device(&device),
     m_Offset(offset < 0 ? device.GetPosition() : offset),
     m_StreamOffset(0),
-    m_IsTrailer(false),
+    m_isLegacyTrailer(isLegacyTrailer),
     m_HasStream(false),
     m_IsRevised(false)
 {
@@ -68,20 +68,34 @@ PdfParserObject::PdfParserObject(PdfDocument* doc, const PdfReference& indirectR
 }
 
 
-void PdfParserObject::ParseShallow()
+void PdfParserObject::ParseData()
 {
     // It's really just a call to DelayedLoad
     DelayedLoad();
 }
 
-void PdfParserObject::ParseFull(bool lenient)
+void PdfParserObject::ParseFull()
 {
     DelayedLoad();
+    ParseStream(false);
+}
+
+void PdfParserObject::ParseStreamDryRun()
+{
+    PODOFO_ASSERT(IsDelayedLoadDone());
+    PODOFO_ASSERT(!IsDelayedLoadStreamDone());
+    if (m_HasStream)
+        parseStream(true, true);
+}
+
+void PdfParserObject::ParseStream(bool shallow)
+{
+    PODOFO_ASSERT(IsDelayedLoadDone());
     if (IsDelayedLoadStreamDone())
         return;
 
     if (m_HasStream)
-        parseStream(lenient);
+        parseStream(shallow, false);
 
     MakeDelayedLoadingStreamDone();
 }
@@ -90,10 +104,10 @@ void PdfParserObject::delayedLoad()
 {
     PdfTokenizer tokenizer;
     m_device->Seek(m_Offset);
-    if (!m_IsTrailer)
+    if (!m_isLegacyTrailer)
         checkReference(tokenizer);
 
-    ParseShallow(tokenizer);
+    ParseData(tokenizer);
 }
 
 void PdfParserObject::delayedLoadStream()
@@ -106,7 +120,7 @@ void PdfParserObject::delayedLoadStream()
     
     try
     {
-        parseStream(false);
+        parseStream(false, false);
     }
     catch (PdfError& e)
     {
@@ -139,7 +153,7 @@ PdfReference PdfParserObject::ReadReference(PdfTokenizer& tokenizer)
 // Only called via the demand loading mechanism
 // Be very careful to avoid recursive demand loads via PdfVariant
 // or PdfObject method calls here.
-void PdfParserObject::ParseShallow(PdfTokenizer& tokenizer)
+void PdfParserObject::ParseData(PdfTokenizer& tokenizer)
 {
     unique_ptr<PdfStatefulEncrypt> encrypt;
     if (m_Encrypt != nullptr)
@@ -161,7 +175,7 @@ void PdfParserObject::ParseShallow(PdfTokenizer& tokenizer)
     {
         tokenizer.ReadNextVariant(*m_device, token, tokenType, m_Variant, encrypt.get());
 
-        if (!m_IsTrailer)
+        if (!m_isLegacyTrailer)
         {
             gotToken = tokenizer.TryReadNextToken(*m_device, token);
             if (!gotToken)
@@ -193,12 +207,16 @@ bool PdfParserObject::HasStreamToParse() const
 // Only called during delayed loading. Must be careful to avoid
 // triggering recursive delay loading due to use of accessors of
 // PdfVariant or PdfObject.
-void PdfParserObject::parseStream(bool lenient)
+void PdfParserObject::parseStream(bool shallow, bool dryRun)
 {
     PODOFO_ASSERT(IsDelayedLoadDone());
 
     char ch;
-    ssize_t size = (ssize_t)this->m_Variant.GetDictionaryUnsafe().FindKeyAsSafe<int64_t>("Length", -1);
+    ssize_t size;
+    if (shallow)
+        size = (ssize_t)this->m_Variant.GetDictionaryUnsafe().GetKeyAsSafe<int64_t>("Length", -1);
+    else
+        size = (ssize_t)this->m_Variant.GetDictionaryUnsafe().FindKeyAsSafe<int64_t>("Length", -1);
 
     m_device->Seek(m_StreamOffset);
 
@@ -261,29 +279,36 @@ ReadStream:
     m_device->Seek(streamOffset);
     if (size < 0)
     {
-        if (!lenient)
+        if (!shallow)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidStream, "Invalid stream length");
 
-        size = (ssize_t)determineStreamSize(*m_device);
+        size = (ssize_t)determineStreamSize(*m_device, streamOffset);
     }
 
-    // Set stream raw data without marking the object dirty
-    // NOTE: /Metadata objects may be unencrypted even if the
-    // whole document is encrypted
-    const PdfName* type;
-    if (m_Encrypt != nullptr && (m_Encrypt->GetEncrypt().IsMetadataEncrypted()
-        || !this->m_Variant.GetDictionaryUnsafe().TryFindKeyAs("Type", type)
-        || *type != "Metadata"))
+    if (dryRun)
     {
-        auto input = m_Encrypt->GetEncrypt().CreateEncryptionInputStream(*m_device, static_cast<size_t>(size), m_Encrypt->GetContext(), GetIndirectReference());
-        getOrCreateStream().InitData(*input, static_cast<ssize_t>(size), std::move(filters));
-        // Release the encrypt object after loading the stream.
-        // It's not needed for serialization here
-        m_Encrypt = nullptr;
+        m_device->Seek(streamOffset + size);
     }
     else
     {
-        getOrCreateStream().InitData(*m_device, static_cast<ssize_t>(size), std::move(filters));
+        // Set stream raw data without marking the object dirty
+        // NOTE: /Metadata objects may be unencrypted even if the
+        // whole document is encrypted
+        const PdfName* type;
+        if (m_Encrypt != nullptr && (m_Encrypt->GetEncrypt().IsMetadataEncrypted()
+            || !this->m_Variant.GetDictionaryUnsafe().TryFindKeyAs("Type", type)
+            || *type != "Metadata"))
+        {
+            auto input = m_Encrypt->GetEncrypt().CreateEncryptionInputStream(*m_device, static_cast<size_t>(size), m_Encrypt->GetContext(), GetIndirectReference());
+            getOrCreateStream().InitData(*input, static_cast<ssize_t>(size), std::move(filters));
+            // Release the encrypt object after loading the stream.
+            // It's not needed for serialization here
+            m_Encrypt = nullptr;
+        }
+        else
+        {
+            getOrCreateStream().InitData(*m_device, static_cast<ssize_t>(size), std::move(filters));
+        }
     }
 }
 
@@ -336,16 +361,11 @@ bool PdfParserObject::TryUnload()
     return true;
 }
 
-size_t determineStreamSize(InputStreamDevice& device)
+size_t determineStreamSize(InputStreamDevice& device, size_t streamOffset)
 {
     char ch;
-    int ch_1 = -1; // Previous character
-    int ch_2 = -1; // Previous-previous character
-
     unsigned i = 0;
     EndStreamToken endStreamToken;
-    size_t initPos = device.GetPosition();
-    unsigned char newLineSeparatorCount = 0;
     while (true)
     {
         if (device.Read(ch))
@@ -360,29 +380,17 @@ size_t determineStreamSize(InputStreamDevice& device)
 
             goto Fail;
         }
-
-        ch_2 = ch_1;
-        ch_1 = ch;
     }
 
 AdjustSize:
-    // Remove any previous new line separator before "endstream" or "endobj"
-    if (ch_1 == '\n')
-    {
-        if (ch_2 == '\r')
-            newLineSeparatorCount = 2;
-        else
-            newLineSeparatorCount = 1;
-    }
-    else if (ch_2 == '\r')
-        newLineSeparatorCount = 1;
-
+    // NOTE: Ignore newline characters before end stream token. We assume
+    // they will either being skipped/ignored by the stream filter
     switch (endStreamToken)
     {
         case EndStreamToken::Endstream:
-            return device.GetPosition() - initPos - 9 - newLineSeparatorCount;
+            return device.GetPosition() - streamOffset - 10;
         case EndStreamToken::Endobj:
-            return device.GetPosition() - initPos - 6 - newLineSeparatorCount;
+            return device.GetPosition() - streamOffset - 7;
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unexpected flow");
     }

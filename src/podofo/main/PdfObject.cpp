@@ -392,10 +392,10 @@ PdfObjectStream* PdfObject::getStream()
 
 void PdfObject::DelayedLoadStream() const
 {
-    DelayedLoad();
     if (m_IsDelayedLoadStreamDone)
         return;
 
+    DelayedLoad();
     const_cast<PdfObject&>(*this).delayedLoadStream();
     m_IsDelayedLoadStreamDone = true;
 }
@@ -438,10 +438,7 @@ void PdfObject::copyStreamFrom(const PdfObject& obj)
 
 void PdfObject::moveStreamFrom(PdfObject& obj)
 {
-    obj.DelayedLoadStream();
-    m_Stream = std::move(obj.m_Stream);
-    if (m_Stream != nullptr)
-        m_Stream->SetParent(*this);
+
 }
 
 void PdfObject::EnableDelayedLoading()
@@ -522,8 +519,8 @@ void PdfObject::assign(const PdfObject& rhs)
 {
     rhs.DelayedLoad();
     m_Variant = rhs.m_Variant;
-    m_IsDelayedLoadDone = true;
     SetVariantOwner();
+    m_IsDelayedLoadDone = true;
     copyStreamFrom(rhs);
     m_IsDelayedLoadStreamDone = true;
 }
@@ -532,11 +529,13 @@ void PdfObject::assign(const PdfObject& rhs)
 // Objects being assigned always keep current ownership
 void PdfObject::moveFrom(PdfObject&& rhs)
 {
-    rhs.DelayedLoad();
+    rhs.DelayedLoadStream();
     m_Variant = std::move(rhs.m_Variant);
-    m_IsDelayedLoadDone = true;
     SetVariantOwner();
-    moveStreamFrom(rhs);
+    m_IsDelayedLoadDone = true;
+    m_Stream = std::move(rhs.m_Stream);
+    if (m_Stream != nullptr)
+        m_Stream->SetParent(*this);
     m_IsDelayedLoadStreamDone = true;
 }
 

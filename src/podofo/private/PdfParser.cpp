@@ -188,6 +188,8 @@ bool isNumber(string_view token, uint32_t& num)
 }
 
 // Inspired from PDFium https://pdfium.googlesource.com/pdfium/+/1953ba96515b3f9b21703afb3f201b3521012aa8/core/fpdfapi/parser/cpdf_parser.cpp#756
+// Try to read all objects sequentially, irrespective of incremental
+// updates or other situations
 bool PdfParser::tryRebuildCrossReference(InputStreamDevice& device)
 {
     // Stash the detected version
@@ -222,8 +224,9 @@ bool PdfParser::tryRebuildCrossReference(InputStreamDevice& device)
 
                     if (token == "trailer")
                     {
-                        m_Trailer.reset(new PdfParserObject(m_Objects->GetDocument(), device, -1));
-                        m_Trailer->SetIsTrailer(true);
+                        parserObject.reset(new PdfParserObject(m_Objects->GetDocument(), device, -1));
+                        parserObject->ParseData();
+                        m_Trailer = std::move(parserObject);
                     }
                     else if (token == "obj" && numbers.size() == 2)
                     {
@@ -235,46 +238,70 @@ bool PdfParser::tryRebuildCrossReference(InputStreamDevice& device)
 
                         parserObject.reset(new PdfParserObject(m_Objects->GetDocument(),
                             PdfReference(objNum, static_cast<uint16_t>(genNum)), device, objPos));
-                        parserObject->ParseFull(true);
+                        parserObject->ParseData();
+                        bool pushObject = true;
                         if (parserObject->HasStream())
                         {
                             if (parserObject->GetDictionary().TryFindKeyAs("Type", name)
                                 && *name == "XRef")
                             {
                                 // It's a cross reference stream
+                                parserObject->ParseStreamDryRun();
                                 m_Trailer = std::move(parserObject);
-                                m_Trailer->SetIsTrailer(true);
-                                goto SkipPush;
+                                pushObject = false;
                             }
                             else if (isObjectStream(*parserObject))
                             {
+                                // Object streams need the full stream parsed, but we
+                                // must limit the access to /Width do direct numbers,
+                                // otherwise we could access random objects
+                                parserObject->ParseStream(true);
                                 PdfObjectStreamParser objectStreamParser(*parserObject, *m_Objects, m_buffer);
                                 objectStreamParser.Parse(nullptr);
                             }
+                            else
+                            {
+                                // Pretend to parse the stream (if any), just
+                                // setting the stream position past it
+                                parserObject->ParseStreamDryRun();
+                            }
                         }
 
-                        m_Objects->PushObject(parserObject.get());
-                        parserObject.release();
-                    SkipPush:
-                        ; // NOTE: No-op statement to avoid compilation errors
+                        if (pushObject)
+                        {
+                            m_Objects->PushObject(parserObject.get());
+                            parserObject.release();
+                        }
                     }
 
                     break;
                 }
                 case PdfTokenType::ParenthesisLeft:
                 {
+                    // CHECK-ME: PDFium seems to handle spurious strings
+                    // found at random places in the PDF. Does it make sense at all?
                     m_tokenizer.ReadString(device, variant, nullptr);
                     variant.Reset();
                     break;
                 }
                 case PdfTokenType::AngleBracketLeft:
                 {
+                    // CHECK-ME: PDFium seems to handle spurious strings
+                    // found at random places in the PDF. Does it make sense at all?
                     m_tokenizer.ReadHexString(device, variant, nullptr);
                     variant.Reset();
                     break;
                 }
             }
+
+            numbers.clear();
         }
+
+        if (m_Trailer == nullptr)
+            return false;
+
+        // Finally, remove spurious objects, eg. objects with outdated generations
+        m_Objects->CollectGarbage(*m_Trailer);
 
         // Restore the detected version
         m_PdfVersion = version;
@@ -321,7 +348,6 @@ void PdfParser::readNextTrailer(InputStreamDevice& device, bool skipFollowPrevio
 
     // Ignore the encryption in the trailer as the trailer may not be encrypted
     auto trailer = new PdfParserObject(m_Objects->GetDocument(), device, -1);
-    trailer->SetIsTrailer(true);
 
     unique_ptr<PdfParserObject> trailerTemp;
     if (m_Trailer == nullptr)
@@ -688,7 +714,7 @@ void PdfParser::ReadObjectEntries(InputStreamDevice& device)
             unique_ptr<PdfParserObject> obj(new PdfParserObject(device, encryptRef, (ssize_t)m_entries[i].Offset));
             try
             {
-                obj->ParseShallow();
+                obj->ParseData();
                 // NOTE: Never add the encryption dictionary to m_Objects
                 // we create a new one, if we need it for writing
                 m_entries[i].Parsed = false;
@@ -877,7 +903,7 @@ void PdfParser::eagerlyLoadStreams()
         auto parserObj = dynamic_cast<PdfParserObject*>(objToLoad);
         try
         {
-            parserObj->ParseFull();
+            parserObj->ParseStream();
         }
         catch (PdfError& e)
         {

@@ -31,6 +31,7 @@ class PODOFO_API PdfIndirectObjectList final
     friend class PdfDocument;
     friend class PdfObject;
     friend class PdfObjectOutputStream;
+    friend class PdfParser;
     PODOFO_PRIVATE_FRIEND(class PdfObjectStreamParser);
     PODOFO_PRIVATE_FRIEND(class PdfImmediateWriter);
     PODOFO_PRIVATE_FRIEND(class PdfParser);
@@ -188,6 +189,8 @@ private:
     PdfIndirectObjectList& operator=(const PdfIndirectObjectList&) = delete;
 
 private:
+    void CollectGarbage(PdfObject& trailer);
+
     /** Creates a stream object
      *  This method is a factory for PdfObjectStream objects.
      *

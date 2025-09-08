@@ -328,8 +328,13 @@ void PdfIndirectObjectList::CollectGarbage()
     if (m_Document == nullptr)
         return;
 
+    CollectGarbage(m_Document->GetTrailer().GetObject());
+}
+
+void PdfIndirectObjectList::CollectGarbage(PdfObject& trailer)
+{
     unordered_set<PdfReference> referencedOjects;
-    visitObject(m_Document->GetTrailer().GetObject(), referencedOjects);
+    visitObject(trailer, referencedOjects);
     for (auto objId : m_compressedObjectStreams)
     {
         PdfReference ref(objId, 0);

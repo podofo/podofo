@@ -119,18 +119,54 @@ TEST_CASE("TestRemoveStream")
     REQUIRE(!imageObj.HasStream());
 }
 
-TEST_CASE("TestXRefRecovery")
+TEST_CASE("TestXRefRecovery1")
 {
     PdfMemDocument doc;
-    doc.Load(TestUtils::GetTestInputFilePath("TestXRefRecovery.pdf"));
-    auto& page = doc.GetPages().GetPageAt(0);
-    vector<PdfTextEntry> entries;
-    page.ExtractTextTo(entries);
+    doc.Load(TestUtils::GetTestInputFilePath("TestXRefRecovery1.pdf"));
 
-    REQUIRE(entries[0].Text == "Hello world");
-    ASSERT_EQUAL(entries[0].X, 148.90299999999999);
-    ASSERT_EQUAL(entries[0].Y, 722.75699999999995);
-    ASSERT_EQUAL(entries[0].Length, 57.372);
+    auto testDoc = [](PdfDocument& doc) {
+        auto& page = doc.GetPages().GetPageAt(0);
+        vector<PdfTextEntry> entries;
+        page.ExtractTextTo(entries);
+
+        REQUIRE(entries[0].Text == "Hello world");
+        ASSERT_EQUAL(entries[0].X, 148.90299999999999);
+        ASSERT_EQUAL(entries[0].Y, 722.75699999999995);
+        ASSERT_EQUAL(entries[0].Length, 57.372);
+    };
+
+    testDoc(doc);
+    doc.Save(TestUtils::GetTestOutputFilePath("TestXRefRecovery1.pdf"));
+    doc.Load(TestUtils::GetTestOutputFilePath("TestXRefRecovery1.pdf"));
+    testDoc(doc);
+}
+
+TEST_CASE("TestXRefRecovery2")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TestXRefRecovery2.pdf"));
+
+    auto testDoc = [](PdfDocument& doc) {
+        auto& page = doc.GetPages().GetPageAt(0);
+        vector<PdfTextEntry> entries;
+        page.ExtractTextTo(entries);
+
+        REQUIRE(entries[0].Text == "PDF:B");
+        ASSERT_EQUAL(entries[0].X, 56.799999999999997);
+        ASSERT_EQUAL(entries[0].Y, 724.60000000000002);
+        ASSERT_EQUAL(entries[0].Length, 33.324000000000005);
+
+        auto& obj = doc.GetObjects().MustGetObject(PdfReference(9, 0));
+        unique_ptr<PdfImage> image;
+        REQUIRE(PdfImage::TryCreateFromObject(obj, image));
+        REQUIRE(image->GetWidth() == 156);
+        REQUIRE(image->GetHeight() == 140);
+    };
+
+    testDoc(doc);
+    doc.Save(TestUtils::GetTestOutputFilePath("TestXRefRecovery2.pdf"));
+    doc.Load(TestUtils::GetTestOutputFilePath("TestXRefRecovery2.pdf"));
+    testDoc(doc);
 }
 
 void PdfParserTest::TestMaxObjectCount()

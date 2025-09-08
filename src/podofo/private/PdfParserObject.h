@@ -34,30 +34,42 @@ private:
      */
     PdfParserObject(PdfDocument& doc, const PdfReference& indirectReference,
         InputStreamDevice& device, ssize_t offset);
+    /**
+     *  \remarks This constructor is reserved for legacy trailers (preceded by token "trailer")
+     */
     PdfParserObject(PdfDocument& doc, InputStreamDevice& device, ssize_t offset);
 
     PdfParserObject(InputStreamDevice& device, const PdfReference& indirectReference, ssize_t offset);
 
 public:
     /**
-     *  \warning This constructor is for testing usage only
+     *  \remarks This constructor is for testing usage only
      */
     PdfParserObject(InputStreamDevice& device, ssize_t offset = -1);
 
 protected:
     PdfParserObject(PdfDocument* doc, const PdfReference& indirectReference,
-        InputStreamDevice& device, ssize_t offset);
+        InputStreamDevice& device, ssize_t offset, bool isLegacyTrailer);
 
 public:
     bool TryUnload() override;
 
     /** Parse the object header and data block, excluding the stream (if any)
      */
-    void ParseShallow();
+    void ParseData();
 
-    /** Parse the object header, data block and stream (if any)
+    /** Parse the object header and data block and the stream (if any)
      */
-    void ParseFull(bool lenient = false);
+    void ParseFull();
+
+    /** Parse the object stream (if any)
+     *  \param shallow search /Width for a direct length, not following references
+     */
+    void ParseStream(bool shallow = false);
+
+    /** Pretend to parse the stream (if any), just setting the stream position past it
+     */
+    void ParseStreamDryRun();
 
     /** Gets an offset in which the object beginning is stored in the file.
      *  Note the offset points just after the object identifier ("0 0 obj").
@@ -69,11 +81,9 @@ public:
 
     inline void SetEncrypt(const std::shared_ptr<PdfEncryptSession>& encrypt) { m_Encrypt = encrypt; }
 
-    inline void SetIsTrailer(bool isTrailer) { m_IsTrailer = isTrailer; }
-
 protected:
     PdfReference ReadReference(PdfTokenizer& tokenizer);
-    void ParseShallow(PdfTokenizer& tokenizer);
+    void ParseData(PdfTokenizer& tokenizer);
 
     /** Returns if this object has a stream object appended.
      *  which has to be parsed.
@@ -97,7 +107,7 @@ private:
      *
      *  Called from DelayedLoadStream(). Do not call directly.
      */
-    void parseStream(bool lenient);
+    void parseStream(bool shallow, bool dryRun);
 
     PdfReference readReference(PdfTokenizer& tokenizer);
 
@@ -108,7 +118,7 @@ private:
     InputStreamDevice* m_device;
     size_t m_Offset;
     size_t m_StreamOffset;
-    bool m_IsTrailer;
+    bool m_isLegacyTrailer;
     bool m_HasStream;
     bool m_IsRevised;         ///< True if the object was irreversibly modified since first read
 };
