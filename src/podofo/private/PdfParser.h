@@ -114,7 +114,7 @@ public:
      *                The default is to load all object immediately.
      *                In this case false is returned.
      */
-    inline bool GetLoadOnDemand() const { return m_LoadStreamsEargerly; }
+    inline bool GetLoadStreamsEagerly() const { return m_LoadStreamsEagerly; }
 
     /** \returns the length of the file
      */
@@ -147,7 +147,7 @@ public:
 
     inline bool HasXRefStream() const { return m_HasXRefStream; }
 
-    inline void SetLoadStreamsEagerly(bool value) { m_LoadStreamsEargerly = value; }
+    inline void SetLoadStreamsEagerly(bool value) { m_LoadStreamsEagerly = value; }
 
     const PdfEncryptSession* GetEncrypt() const { return m_Encrypt.get(); }
 
@@ -291,7 +291,7 @@ private:
     PdfTokenizer m_tokenizer;
 
     PdfVersion m_PdfVersion;
-    bool m_LoadStreamsEargerly;
+    bool m_LoadStreamsEagerly;
 
     size_t m_magicOffset;
     bool m_HasXRefStream;

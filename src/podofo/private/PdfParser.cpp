@@ -40,7 +40,7 @@ PdfParser::PdfParser(PdfIndirectObjectList& objects) :
     m_tokenizer(m_buffer),
     m_Objects(&objects),
     m_StrictParsing(false),
-    m_LoadStreamsEargerly(false),
+    m_LoadStreamsEagerly(false),
     m_SkipXRefRecovery(false)
 {
     this->init();
@@ -82,7 +82,7 @@ void PdfParser::Parse(InputStreamDevice& device)
         }
     }
 
-    if (m_LoadStreamsEargerly)
+    if (m_LoadStreamsEagerly)
         eagerlyLoadStreams();
 }
 
@@ -760,6 +760,9 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
     vector<unsigned> compressedIndices;
     map<uint32_t, vector<uint32_t>> compressedObjects;
     unique_ptr<PdfParserObject> obj;
+    PdfDictionary* dict;
+    PdfObject* typeObj;
+    const PdfName* name;
     for (unsigned i = 0; i < m_entries.GetSize(); i++)
     {
         auto& entry = m_entries[i];
@@ -784,16 +787,13 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                             if (m_Encrypt != nullptr)
                             {
                                 obj->SetEncrypt(m_Encrypt);
-                                PdfDictionary* objDict;
-                                if (obj->TryGetDictionary(objDict))
+                                if (obj->TryGetDictionary(dict))
                                 {
-                                    auto typeObj = objDict->GetKey("Type");
-                                    if (typeObj != nullptr && typeObj->IsName() && typeObj->GetName() == "XRef")
+                                    typeObj = dict->GetKey("Type");
+                                    if (typeObj != nullptr && typeObj->TryGetName(name) && *name == "XRef")
                                     {
-                                        // XRef is never encrypted
+                                        // NOTE: XRef is never encrypted
                                         obj.reset(new PdfParserObject(m_Objects->GetDocument(), reference, device, (ssize_t)entry.Offset));
-                                        if (m_LoadStreamsEargerly)
-                                            obj->DelayedLoad();
                                     }
                                 }
                             }
@@ -849,13 +849,16 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                     break;
                 }
                 case PdfXRefEntryType::Compressed:
+                {
                     if (entry.ObjectNumber > 0 && entry.ObjectNumber < PdfParser::MaxObjectCount)
                         compressedObjects[(uint32_t)entry.ObjectNumber].push_back(i);
 
                     break;
+                }
                 default:
+                {
                     PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
-
+                }
             }
         }
         else if (i != 0) // Unparsed
