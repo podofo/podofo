@@ -199,12 +199,12 @@ private:
 
 private:
     using TokenizerPair = std::pair<std::string, PdfTokenType>;
-    using TokenizerQueque = std::deque<TokenizerPair>;
+    using TokenizerQueue = std::deque<TokenizerPair>;
 
 private:
     std::shared_ptr<charbuff> m_buffer;
     PdfTokenizerOptions m_options;
-    TokenizerQueque m_tokenQueque;
+    TokenizerQueue m_tokenQueue;
     charbuff m_charBuffer;
 };
 
