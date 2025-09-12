@@ -339,12 +339,14 @@ void PdfEncrypt::EnsureEncryptionInitialized(const PdfString& documentId, PdfEnc
     // When creating an encrypt from scratch we
     // can assume we are the owner of the document
     context.m_AuthResult = PdfAuthResult::Owner;
+    m_IsOwner = true;
     m_initialized = true;
 }
 
-void PdfEncrypt::Authenticate(const string_view& password, const PdfString& documentId, PdfEncryptContext& context) const
+void PdfEncrypt::Authenticate(const string_view& password, const PdfString& documentId, PdfEncryptContext& context)
 {
     context.m_AuthResult = Authenticate(password, documentId.GetRawData(), context.GetCryptCtx(), context.m_encryptionKey);
+    m_IsOwner = (context.m_AuthResult == PdfAuthResult::Owner);
     context.m_documentId = documentId.GetRawData();
 }
 
@@ -555,7 +557,8 @@ PdfEncrypt::PdfEncrypt() :
     m_oValueSize(0),
     m_EncryptMetadata(false),
     m_IsParsed(false),
-    m_initialized(false)
+    m_initialized(false),
+    m_IsOwner(false)
 {
 }
 
@@ -591,6 +594,7 @@ void PdfEncrypt::InitFromScratch(const string_view& userPassword, const string_v
     PODOFO_ASSERT((size_t)keyLength / 8 <= std::size(((PdfEncryptContext*)nullptr)->m_encryptionKey));
     m_userPass = userPassword;
     m_ownerPass = ownerPassword;
+    m_IsOwner = !m_ownerPass.empty();
     m_Algorithm = algorithm;
     m_KeyLength = keyLength;
     m_rValue = revision;
@@ -808,7 +812,7 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
     }
 
-    // If document metadata is not being encrypted, 
+    // If document metadata is not being encrypted,
     // pass 4 bytes with the value 0xFFFFFFFF to the MD5 hash function.
     if (!encryptMetadata)
     {
@@ -956,7 +960,7 @@ void RC4Encrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned keylen,
     if (status != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error RC4-encrypting data");
 }
-    
+
 void PdfEncryptMD5Base::CreateEncryptionDictionary(PdfDictionary& dictionary) const
 {
     dictionary.AddKey("Filter"_n, "Standard"_n);
@@ -1005,7 +1009,7 @@ void PdfEncryptMD5Base::CreateEncryptionDictionary(PdfDictionary& dictionary) co
     dictionary.AddKey("U"_n, PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetUValueRaw()), 32 }));
     dictionary.AddKey("P"_n, PdfVariant(GetPValueForSerialization()));
 }
-    
+
 void PdfEncryptRC4::GenerateEncryptionKey(
     const string_view& documentId, PdfAuthResult authResult, EVP_CIPHER_CTX* ctx,
     unsigned char uValue[48], unsigned char oValue[48], unsigned char encryptionKey[32])
@@ -1028,7 +1032,7 @@ void PdfEncryptRC4::GenerateEncryptionKey(
     ComputeEncryptionKey(documentId, userpswd,
         oValue, GetPValue(), keyLength, GetRevision(), IsMetadataEncrypted(), ctx, uValue, encryptionKey);
 }
-    
+
 PdfAuthResult PdfEncryptRC4::Authenticate(const string_view& password, const string_view& documentId,
     EVP_CIPHER_CTX* ctx, unsigned char encryptionKey[32]) const
 {
@@ -1253,7 +1257,7 @@ void AESEncrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned keyLen, 
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 }
-    
+
 void PdfEncryptAESV2::GenerateEncryptionKey(
     const string_view& documentId, PdfAuthResult authResult, EVP_CIPHER_CTX* ctx,
     unsigned char uValue[48], unsigned char oValue[48], unsigned char encryptionKey[32])
@@ -1317,12 +1321,12 @@ void PdfEncryptAESV2::generateInitialVector(const string_view& documentId, unsig
 {
     ssl::ComputeMD5(documentId, iv);
 }
-    
+
 size_t PdfEncryptAESV2::CalculateStreamOffset() const
 {
     return AES_IV_LENGTH;
 }
-    
+
 void PdfEncryptAESV2::Encrypt(const char* inStr, size_t inLen, PdfEncryptContext& context,
     const PdfReference& objref, char* outStr, size_t outLen) const
 {
@@ -1354,12 +1358,12 @@ void PdfEncryptAESV2::Decrypt(const char* inStr, size_t inLen, PdfEncryptContext
         (const unsigned char*)inStr + offset,
         inLen - offset, (unsigned char*)outStr, outLen);
 }
-    
+
 PdfEncryptAESV2::PdfEncryptAESV2(const string_view& userPassword, const string_view& ownerPassword, PdfPermissions protection)
 {
     InitFromScratch(userPassword, ownerPassword, PdfEncryptionAlgorithm::AESV2, PdfKeyLength::L128, 4, PERMS_DEFAULT | protection, true);
 }
-    
+
 PdfEncryptAESV2::PdfEncryptAESV2(PdfString oValue, PdfString uValue, PdfPermissions pValue, bool encryptMetadata)
 {
     auto oValueData = oValue.GetRawData();
@@ -1385,7 +1389,7 @@ size_t PdfEncryptAESV2::CalculateStreamLength(size_t length) const
 
     return realLength;
 }
-    
+
 unique_ptr<InputStream> PdfEncryptAESV2::CreateEncryptionInputStream(InputStream& inputStream, size_t inputLen,
     PdfEncryptContext& context, const PdfReference& objref) const
 {
@@ -1394,7 +1398,7 @@ unique_ptr<InputStream> PdfEncryptAESV2::CreateEncryptionInputStream(InputStream
     this->CreateObjKey(objkey, keylen, context.GetEncryptionKey(), objref);
     return unique_ptr<InputStream>(new PdfAESInputStream(inputStream, inputLen, objkey, keylen));
 }
-    
+
 unique_ptr<OutputStream> PdfEncryptAESV2::CreateEncryptionOutputStream(OutputStream& outputStream,
     PdfEncryptContext& context, const PdfReference& objref) const
 {
@@ -1619,7 +1623,7 @@ void PdfEncryptAESV3::computeEncryptionKey(unsigned keyLength, unsigned char enc
     for (unsigned i = 0; i < keyLength; i++)
         encryptionKey[i] = rand() % 255;
 }
-    
+
 void PdfEncryptAESV3::CreateEncryptionDictionary(PdfDictionary& dictionary) const
 {
     dictionary.AddKey("Filter"_n, "Standard"_n);
@@ -1665,7 +1669,7 @@ bufferview PdfEncryptAESV3::GetPermsValue() const
 {
     return bufferview((const char*)m_permsValue, std::size(m_permsValue));
 }
-    
+
 void PdfEncryptAESV3::GenerateEncryptionKey(
     const string_view& documentId, PdfAuthResult authResult, EVP_CIPHER_CTX* ctx,
     unsigned char uValue[48], unsigned char oValue[48], unsigned char encryptionKey[32])
@@ -1954,7 +1958,7 @@ bufferview PdfEncrypt::GetOValue() const
 
 bool PdfEncrypt::IsOwnerPasswordSet() const
 {
-    return !m_ownerPass.empty();
+    return m_IsOwner;
 }
 
 bool PdfEncrypt::IsPrintAllowed() const
