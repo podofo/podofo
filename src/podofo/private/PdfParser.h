@@ -202,26 +202,21 @@ private:
 
     /** Searches backwards from the specified position of the file
      *  and tries to find a token.
-     *  The current file is positioned right after the token.
+     *  If found, the current stream is positioned right after the token.
      *
      *  \param token a token to find
      *  \param range range in bytes in which to search
      *                beginning at the specified position of the file
      *  \param searchEnd specifies position
+     *  \returns true if the token was found
      */
-    void findTokenBackward(InputStreamDevice& device, const char* token, size_t range, size_t searchEnd);
+    bool tryFindTokenBackward(InputStreamDevice& device, std::string_view token, size_t searchEnd);
 
     /** Merge the information of this trailer object
      *  in the parsers main trailer object.
      *  \param trailer take the keys to merge from this dictionary.
      */
     void mergeTrailer(const PdfObject& trailer);
-
-    /** Looks for a startxref entry at the current file position
-     *  and saves its byteoffset to pXRefOffset.
-     *  \param xRefOffset store the byte offset of the xref section into this variable.
-     */
-    void findXRef(InputStreamDevice& device, size_t& xRefOffset);
 
     /** Reads all objects from the pdf into memory
      *  from the previously read entries
@@ -292,9 +287,10 @@ private:
 
     PdfVersion m_PdfVersion;
     bool m_LoadStreamsEagerly;
+    bool m_HasXRefStream;
 
     size_t m_magicOffset;
-    bool m_HasXRefStream;
+    size_t m_StartXRefTokenPos;
     size_t m_XRefOffset;
     size_t m_FileSize;
     size_t m_lastEOFOffset;

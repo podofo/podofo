@@ -24,8 +24,6 @@
   (metrics/widths of loaded font override metrics found on /FontFile)
 - Add a fallback to search font on the system for text extraction purposes,
   see #123
-- PdfParser: Handle all pdfs in
-  https://www.mail-archive.com/podofo-users@lists.sourceforge.net/msg04801.html
 - Check PdfWriter should really update doc trailer when saving.
   Now the new trailer is written but the doc still has the old one
 - PdfMemDocument: Check the DeviceStream is not empty before doing an incremental update/signing operation

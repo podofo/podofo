@@ -3,6 +3,7 @@
 - Added `PdfXMPPAcket::PruneAndValidate(pdfaLevel)`
 - PdfParser: Try to rebuild the index if cross reference
   sections parsing fails
+- PdfParser: Handled all [edge cases](https://www.mail-archive.com/podofo-users@lists.sourceforge.net/msg04801.html) pdfs reported in the ML
 
 ## Version 1.0.2
 - Fixed [#275](https://github.com/podofo/podofo/issues/275), [#276](https://github.com/podofo/podofo/issues/276)
