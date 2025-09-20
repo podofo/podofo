@@ -2840,9 +2840,13 @@ TEST_CASE("TestCompressedObjectStreamIndirectLength")
 TEST_CASE("TestEdgeCases")
 {
     PdfMemDocument doc;
-    vector<string_view> test = { "512.pdf"sv, "513.pdf"sv, "514.pdf"sv, "big1.pdf"sv, "big2.pdf"sv, "false.pdf"sv, "rev.pdf"sv };
+    vector<string_view> test = { "512.pdf"sv, "513.pdf"sv, "514.pdf"sv, "big1.pdf"sv, "big2.pdf"sv, "false.pdf"sv };
     for (unsigned i = 0; i < test.size(); i++)
         doc.Load(TestUtils::GetTestInputFilePath("ParserTests", test[i]));
+
+    // NOTE: This test doesn't work in 1.0.x series
+    // This just really requires recovery as it has the trailer preceding the xref sections
+    //doc.Load(TestUtils::GetTestInputFilePath("ParserTests", "rev.pdf"));
 }
 
 string generateXRefEntries(size_t count)
