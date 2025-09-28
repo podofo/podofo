@@ -67,7 +67,7 @@ enum class PdfPermissions : uint32_t
     Edit = 0x00000008,  ///< Allow modifying the document besides annotations, form fields or changing pages
     Copy = 0x00000010,  ///< Allow text and graphic extraction
     EditNotes = 0x00000020,  ///< Add or modify text annotations or form fields (if PdfPermissions::Edit is set also allow to create interactive form fields including signature)
-    FillAndSign = 0x00000100,  ///< Fill in existing form or signature fields 
+    FillAndSign = 0x00000100,  ///< Fill in existing form or signature fields
     Accessible = 0x00000200,  ///< Extract text and graphics to support user with disabilities
     DocAssembly = 0x00000400,  ///< Assemble the document: insert, create, rotate delete pages or add bookmarks
     HighPrint = 0x00000800,   ///< Print a high resolution version of the document
@@ -192,7 +192,7 @@ public:
      *
      * \returns true if either the owner or user password matches password
      */
-    void Authenticate(const std::string_view& password, const PdfString& documentId, PdfEncryptContext& context) const;
+    void Authenticate(const std::string_view& password, const PdfString& documentId, PdfEncryptContext& context);
 
     /** Fill all keys into a encryption dictionary.
      *  This dictionary is usually added to the PDF files trailer
@@ -441,7 +441,8 @@ private:
     unsigned char m_oValueSize;
     bool m_EncryptMetadata;            // Is metadata encrypted
     bool m_IsParsed;                   // True if the object is created from parsed values
-    bool m_initialized;               // True if the object O/U values were filled
+    bool m_initialized;                // True if the object O/U values were filled
+    bool m_IsOwner;                    // Opened with owner privileges
     std::string m_userPass;            // User password
     std::string m_ownerPass;           // Owner password
 
