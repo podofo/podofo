@@ -70,6 +70,10 @@ public:
      */
     static bool TryGetPreviousRevisionOffset(InputStreamDevice& input, size_t currOffset, size_t& eofOffset);
 
+    /** Checks the magic number at the start of the pdf file
+     */
+    static bool TryReadHeader(InputStreamDevice& device, PdfVersion& version);
+
 public:
     /** If you try to open an encrypted PDF file, which requires
      *  a password to open, PoDoFo will throw a PdfError( PdfErrorCode::InvalidPassword )
@@ -193,11 +197,12 @@ private:
     /** Checks the magic number at the start of the pdf file
      *  and sets the m_PdfVersion member to the correct version
      *  of the pdf file.
-     *
      */
     void ReadHeader(InputStreamDevice& device);
 
 private:
+    static bool tryReadHeader(InputStreamDevice& device, size_t& magicOffset, PdfVersion& version);
+
     bool tryRebuildCrossReference(InputStreamDevice& device);
 
     /** Searches backwards from the specified position of the file

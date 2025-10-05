@@ -68,7 +68,7 @@ void PdfParser::Parse(InputStreamDevice& device)
 
     try
     {
-        ReadHeader(device); \
+        ReadHeader(device);
         ReadDocumentStructure(device);
         ReadObjectEntries(device);
     }
@@ -154,6 +154,18 @@ void PdfParser::ReadDocumentStructure(InputStreamDevice& device, ssize_t eofSear
 
 void PdfParser::ReadHeader(InputStreamDevice& device)
 {
+    if (!tryReadHeader(device, m_magicOffset, m_PdfVersion))
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidPDF, "Unable to read PDF header");
+}
+
+bool PdfParser::TryReadHeader(InputStreamDevice& device, PdfVersion& version)
+{
+    size_t magicOffset;
+    return tryReadHeader(device, magicOffset, version);
+}
+
+bool PdfParser::tryReadHeader(InputStreamDevice& device, size_t& magicOffset, PdfVersion& version)
+{
     unsigned i = 0;
     char versionStr[PDF_VERSION_LENGHT];
     bool eof;
@@ -162,24 +174,22 @@ void PdfParser::ReadHeader(InputStreamDevice& device)
     {
         char ch;
         if (!device.Read(ch))
-            goto Fail;
+            return false;
 
         if (readMagicWord(ch, i))
             break;
     }
 
     if (device.Read(versionStr, PDF_VERSION_LENGHT, eof) != PDF_VERSION_LENGHT)
-        goto Fail;
+        return false;
 
-    m_magicOffset = device.GetPosition() - PDF_MAGIC_LENGHT;
+    magicOffset = device.GetPosition() - PDF_MAGIC_LENGHT;
     // try to determine the exact PDF version of the file
-    m_PdfVersion = PoDoFo::GetPdfVersion(string_view(versionStr, std::size(versionStr)));
-    if (m_PdfVersion == PdfVersion::Unknown)
-        goto Fail;
+    version = PoDoFo::GetPdfVersion(string_view(versionStr, std::size(versionStr)));
+    if (version == PdfVersion::Unknown)
+        return false;
 
-    return;
-Fail:
-    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidPDF, "Unable to read PDF header");
+    return true;
 }
 
 bool isNumber(string_view token, uint32_t& num)
