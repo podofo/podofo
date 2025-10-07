@@ -158,7 +158,7 @@ find_package(ZLIB REQUIRED)
 message("Found zlib headers in ${ZLIB_INCLUDE_DIR}, library at ${ZLIB_LIBRARIES}")
 
 find_package(OpenSSL REQUIRED)
-message("OPENSSL_LIBRARIES: ${OPENSSL_LIBRARIES}")
+message("Found OpenSSL headers in ${OPENSSL_INCLUDE_DIR}, libraries at ${OPENSSL_LIBRARIES}")
 
 if (PODOFO_WANT_LCMS2)
     find_package(LCMS2)
