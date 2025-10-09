@@ -68,14 +68,14 @@ public:
      */
     void SetSignatureLocation(nullable<const PdfString&> text);
 
-    [[deprecated("Use the PdfName overload")]]
+    [[deprecated("Use the SetCreatingApplication method instead")]]
     void SetSignatureCreator(nullable<const PdfString&> creator);
 
     /** Set the creator of the signature
      *
      *  \param creator the creator of the signature
      */
-    void SetCreationApplication(nullable<const PdfName&> creator);
+    void SetCreatingApplication(nullable<const PdfName&> application);
 
     /** Date of signature
      */

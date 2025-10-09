@@ -128,16 +128,16 @@ void PdfSignature::SetSignatureLocation(nullable<const PdfString&> text)
 void PdfSignature::SetSignatureCreator(nullable<const PdfString&> creator)
 {
     if (creator == nullptr)
-        SetCreationApplication(nullptr);
+        SetCreatingApplication(nullptr);
     else
-        SetCreationApplication(PdfName(creator->GetString()));
+        SetCreatingApplication(PdfName(creator->GetString()));
 }
 
-void PdfSignature::SetCreationApplication(nullable<const PdfName&> creator)
+void PdfSignature::SetCreatingApplication(nullable<const PdfName&> application)
 {
     EnsureValueObject();
     PdfDictionary* dict;
-    if (creator.has_value())
+    if (application.has_value())
     {
         if (!m_ValueObj->GetDictionary().TryFindKeyAs("Prop_Build", dict))
             dict = &m_ValueObj->GetDictionary().AddKey("Prop_Build"_n, PdfDictionary()).GetDictionary();
@@ -146,7 +146,7 @@ void PdfSignature::SetCreationApplication(nullable<const PdfName&> creator)
         if (!dict->TryFindKeyAs("Prop_Build", appDict))
             appDict = &dict->AddKey("App"_n, PdfDictionary()).GetDictionary();
 
-        appDict->AddKey("Name"_n, *creator);
+        appDict->AddKey("Name"_n, *application);
     }
     else
     {
