@@ -115,9 +115,10 @@ TEST_CASE("TestSignature2")
     REQUIRE(ssl::ComputeMD5Str(buff) == TestSignatureRefHash);
 
     // Resign should work
+    signature.SetCreationApplication(PdfName("Sample Application"));
     PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
     utls::ReadTo(buff, outputPath);
-    REQUIRE(ssl::ComputeMD5Str(buff) == "F4038250AC2A81F552CF34A317619B86");
+    REQUIRE(ssl::ComputeMD5Str(buff) == "7E0A6FCDBCE9BFD65897F3A7B2D4887E");
 }
 
 // Test deferred signing with external service
