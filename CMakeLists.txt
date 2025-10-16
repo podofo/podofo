@@ -32,6 +32,12 @@ configure_file(
     @ONLY
 )
 
+message("PoDoFo version: ${PODOFO_VERSION}")
+message("Host system: ${CMAKE_HOST_SYSTEM}")
+message("C++ compiler ID: ${CMAKE_CXX_COMPILER_ID}")
+message("C++ compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
+message("CMake version: ${CMAKE_VERSION}")
+
 find_package(Doxygen)
 if (DOXYGEN_FOUND)
     # TODO: Add doxygen target
