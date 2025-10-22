@@ -39,9 +39,9 @@ static bool tryGetCharBackward(InputStreamDevice& device, char& ch,
 PdfParser::PdfParser(PdfIndirectObjectList& objects) :
     m_buffer(std::make_shared<charbuff>(PdfTokenizer::BufferSize)),
     m_tokenizer(m_buffer),
+    m_LoadStreamsEagerly(false),
     m_Objects(&objects),
     m_StrictParsing(false),
-    m_LoadStreamsEagerly(false),
     m_SkipXRefRecovery(false)
 {
     this->init();
