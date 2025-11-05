@@ -233,8 +233,8 @@ bool PdfSignature::TryGetPreviousRevision(InputStreamDevice& input, OutputStream
 
     int64_t lastRangeOffset;
     int64_t lastRangeLength;
-    if (!byteRange->TryGetAtAs(byteRange->GetSize() - 1, lastRangeOffset)
-        || !byteRange->TryGetAtAs(byteRange->GetSize() - 2, lastRangeLength)
+    if (!byteRange->TryGetAtAs(byteRange->GetSize() - 2, lastRangeOffset)
+        || !byteRange->TryGetAtAs(byteRange->GetSize() - 1, lastRangeLength)
         || lastRangeOffset < 0 || lastRangeLength < 0)
     {
         return false;

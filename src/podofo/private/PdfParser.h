@@ -305,7 +305,12 @@ private:
     size_t m_StartXRefTokenPos;
     size_t m_XRefOffset;
     size_t m_FileSize;
-    size_t m_lastEOFOffset;
+
+    // Used to backward search for "startxref". It may effectively
+    // be the position of the last %%EOF, but when searching previous
+    // revisions we can't ensure the existing/correctness of such
+    // marker, so this is not guaranteed
+    size_t m_lastEOFOffsetHint;
 
     PdfXRefEntries m_entries;
     PdfIndirectObjectList* m_Objects;
