@@ -55,7 +55,7 @@ void PdfParser::init()
     m_StartXRefTokenPos = 0;
     m_XRefOffset = 0;
     m_FileSize = numeric_limits<size_t>::max();
-    m_lastEOFOffset = 0;
+    m_lastEOFOffsetHint = 0;
     m_Trailer = nullptr;
     m_Encrypt = nullptr;
     m_IncrementalUpdateCount = 0;
@@ -93,25 +93,33 @@ void PdfParser::ReadDocumentStructure(InputStreamDevice& device, ssize_t eofSear
     // Position at the end of the file, or the given
     // offset, to search the xref table.
     if (eofSearchOffset < 0)
+    {
         device.Seek(0, SeekDirection::End);
-    else
-        device.Seek(eofSearchOffset, SeekDirection::Begin);
-
-    m_FileSize = device.GetPosition();
-
-    // Validate the eof marker and when not in strict mode accept garbage after it
-    try
-    {
-        checkEOFMarker(device);
+        m_FileSize = device.GetPosition();
+        try
+        {
+            // Validate the eof marker and when not in strict
+            // mode accept garbage after it
+            checkEOFMarker(device);
+        }
+        catch (PdfError& e)
+        {
+            PODOFO_PUSH_FRAME_INFO(e, "EOF marker could not be found");
+            throw;
+        }
     }
-    catch (PdfError& e)
+    else
     {
-        PODOFO_PUSH_FRAME_INFO(e, "EOF marker could not be found");
-        throw;
+        device.Seek(eofSearchOffset, SeekDirection::Begin);
+        m_FileSize = eofSearchOffset;
+        // NOTE: We don't search for %%EOF, as in the previous
+        // revision it may not exist, or leading to find
+        // an incorrect offset
+        m_lastEOFOffsetHint = eofSearchOffset;
     }
 
     // ISO32000-1:2008, 7.5.5 File Trailer "Conforming readers should read a PDF file from its end"
-    if (!tryFindTokenBackward(device, "startxref", m_lastEOFOffset))
+    if (!tryFindTokenBackward(device, "startxref", m_lastEOFOffsetHint))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef, "Unable to find startxref entry in file");
 
     m_StartXRefTokenPos = device.GetPosition() - char_traits<char>::length("startxref");
@@ -1030,7 +1038,7 @@ void PdfParser::updateDocumentVersion()
 void PdfParser::checkEOFMarker(InputStreamDevice& device)
 {
     // Check for the existence of the EOF marker
-    m_lastEOFOffset = 0;
+    m_lastEOFOffsetHint = 0;
     const char* EOFToken = "%%EOF";
     constexpr size_t EOFTokenLen = 5;
     char buff[EOFTokenLen + 1];
@@ -1066,10 +1074,10 @@ void PdfParser::checkEOFMarker(InputStreamDevice& device)
         }
 
         // Try and deal with garbage by offsetting the buffer reads in PdfParser from now on
-        if (found)
-            m_lastEOFOffset = device.GetPosition() - EOFTokenLen;
-        else
+        if (!found)
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEOFToken);
+
+        m_lastEOFOffsetHint = device.GetPosition() - EOFTokenLen;
     }
 }
 
