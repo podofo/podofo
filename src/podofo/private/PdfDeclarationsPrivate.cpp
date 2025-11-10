@@ -1259,13 +1259,50 @@ void utls::WriteCharHexTo(char buf[2], char ch)
     buf[1] += (buf[1] > 9 ? 'A' - 10 : '0');
 }
 
-string utls::GetCharHexString(const bufferview& buff)
+string utls::GetHexString(const bufferview& buff)
 {
     string ret(buff.size() * 2, '\0');
     for (unsigned i = 0; i < buff.size(); i++)
         utls::WriteCharHexTo(ret.data() + i * 2, buff[i]);
 
     return ret;
+}
+
+void utls::WriteHexStringTo(string& str, const bufferview& buff)
+{
+    str.resize(buff.size() * 2, '\0');
+    for (unsigned i = 0; i < buff.size(); i++)
+        utls::WriteCharHexTo(str.data() + i * 2, buff[i]);
+}
+
+void utls::DecodeHexStringTo(charbuff& buffer, const string_view& hexView)
+{
+    size_t len = hexView.size();
+    buffer.clear();
+    buffer.reserve(len % 2 ? (len + 1) >> 1 : len >> 1);
+
+    unsigned char val;
+    char decodedChar = 0;
+    bool low = true;
+    for (size_t i = 0; i < len; i++)
+    {
+        char ch = hexView[i];
+        if (PoDoFo::IsCharWhitespace(ch))
+            continue;
+
+        (void)utls::TryGetHexValue(ch, val);
+        if (low)
+        {
+            decodedChar = (char)(val & 0x0F);
+            low = false;
+        }
+        else
+        {
+            decodedChar = (char)((decodedChar << 4) | val);
+            low = true;
+            buffer.push_back(decodedChar);
+        }
+    }
 }
 
 void utls::WriteUtf16BETo(u16string& str, char32_t codePoint)

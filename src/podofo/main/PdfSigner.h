@@ -89,6 +89,24 @@ namespace PoDoFo
          */
         virtual std::string GetSignatureType() const = 0;
 
+        /**
+         * Return the number of signer identities, if the signer supports multiple
+         * \remarks by default it returns 1
+         */
+        virtual unsigned GetSignerIdentityCount() const;
+
+        /**
+         * Unpack intermediate results, if the signer supports multiple signer identities
+         * \remarks by default we just do a simple copy of the input to the output
+         */
+        virtual void UnpackIntermediateResult(const bufferview& processedResult, unsigned signerIdx, charbuff& result);
+
+        /**
+         * Assemble processed results handling multiple signer identities (if the signer supports it)
+         * \remarks by default we just do a simple copy of the input to the output
+         */
+        virtual void AssembleProcessedResult(const bufferview& processedResult, unsigned signerIdx, charbuff& result);
+
     private:
         PdfSigner(const PdfSigner&) = delete;
         PdfSigner& operator=(const PdfSigner&) = delete;

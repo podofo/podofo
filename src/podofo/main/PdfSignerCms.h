@@ -12,8 +12,11 @@
 
 extern "C"
 {
-    // OpenSSL forward 
+    // OpenSSL forward declaration
     struct evp_pkey_st;
+    // libxml2 forward declaration
+    typedef struct _xmlNode xmlNode;
+    typedef xmlNode* xmlNodePtr;
 }
 
 namespace PoDoFo
@@ -23,7 +26,7 @@ namespace PoDoFo
     using PdfSigningService = std::function<void(bufferview hashToSign, bool dryrun, charbuff& signedHash)>;
     using PdfSignedHashHandler = std::function<void(bufferview signedhHash, bool dryrun)>;
 
-    enum class PdfSignerCmsFlags
+    enum class PdfSignerCmsFlags : uint32_t
     {
         None = 0,
         ///< When supplying a PdfSigningService, specify if the service
@@ -49,7 +52,7 @@ namespace PoDoFo
         PdfSignerCmsFlags Flags = PdfSignerCmsFlags::None;
     };
 
-    enum class PdfSignatureAttributeFlags
+    enum class PdfSignatureAttributeFlags : uint32_t
     {
         None = 0,
         ///< The attribute is a signed attribute. By default, it is unsigned
@@ -62,6 +65,7 @@ namespace PoDoFo
      */
     class PODOFO_API PdfSignerCms : public PdfSigner
     {
+        friend class PdfSigningContext;
     public:
         /** Load X.509 certificate and supply a ASN.1 DER encoded private key
          * \param cert ASN.1 DER encoded X.509 certificate
@@ -79,6 +83,11 @@ namespace PoDoFo
         PdfSignerCms(const bufferview& cert, const PdfSignerCmsParams& parameters = { });
 
         ~PdfSignerCms();
+
+    private:
+        /** This is used for deserialization by PdfSigningContext
+         */
+        PdfSignerCms();
 
     public:
         void AppendData(const bufferview& data) override;
@@ -106,6 +115,10 @@ namespace PoDoFo
     public:
         const PdfSignerCmsParams& GetParameters() const { return m_parameters; }
 
+    private:
+        // Called by PdfSigningContext
+        void Dump(xmlNodePtr signerElem, std::string& temp);
+        void Restore(xmlNodePtr signerElem, charbuff& temp);
     private:
         void ensureEventBasedSigning();
         void ensureDeferredSigning();

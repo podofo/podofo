@@ -1,5 +1,6 @@
 ## Version 1.1.0-dev
 - Added support for ECDSA encryption
+- Added resumable signing context feature with functions `PdfSigningContext::DumpInPlace()` and `PdfSigningContext::Restore()`
 - Added `PdfXMPPAcket::PruneAndValidate(pdfaLevel)`
 - PdfParser: Try to rebuild the index if cross reference
   sections parsing fails

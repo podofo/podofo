@@ -8,6 +8,7 @@
 #include "PdfSignerCms.h"
 #include <podofo/private/OpenSSLInternal.h>
 #include <podofo/private/CmsContext.h>
+#include <podofo/private/XmlUtils.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -37,6 +38,12 @@ PdfSignerCms::~PdfSignerCms()
         EVP_PKEY_free(m_privKey);
         m_privKey = nullptr;
     }
+}
+
+PdfSignerCms::PdfSignerCms() :
+    m_privKey(nullptr),
+    m_reservedSize(0)
+{
 }
 
 void PdfSignerCms::AppendData(const bufferview& data)
@@ -138,6 +145,25 @@ string PdfSignerCms::GetSignatureType() const
     return "Sig";
 }
 
+unsigned PdfSigner::GetSignerIdentityCount() const
+{
+    return 1;
+}
+
+void PdfSigner::UnpackIntermediateResult(const bufferview& processedResult, unsigned signerIdx, charbuff& result)
+{
+    (void)signerIdx;
+    result = processedResult;
+}
+
+void PdfSigner::AssembleProcessedResult(const bufferview& processedResult, unsigned signerIdx, charbuff& result)
+{
+    if (signerIdx != 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedOperation, "Unsupported multiple signer identities");
+
+    result = processedResult;
+}
+
 bool PdfSignerCms::SkipBufferClear() const
 {
     // We do pre-allocation semantics, so don't need to clear the buffer
@@ -164,6 +190,115 @@ void PdfSignerCms::ReserveAttributeSize(unsigned attrSize)
     // necessary for the ASN.1 infrastructure to make room
     // for the attribute
     m_reservedSize += (attrSize + 40);
+}
+
+void PdfSignerCms::Dump(xmlNodePtr signerElem, string& temp)
+{
+    PODOFO_ASSERT(m_deferredSigning == true);
+
+    utls::FormatTo(temp, m_reservedSize);
+    if (xmlNewChild(signerElem, nullptr, XMLCHAR "ReservedSize", XMLCHAR temp.data()) == nullptr)
+    {
+    SerializationFailed:
+        THROW_LIBXML_EXCEPTION("PdfSignerCms serialization failed");
+    }
+
+    utls::WriteHexStringTo(temp, m_certificate);
+    auto certificateElem = xmlNewChild(signerElem, nullptr, XMLCHAR "Certificate", XMLCHAR temp.data());
+    if (certificateElem == nullptr)
+        goto SerializationFailed;
+
+    auto cmsContextElem = xmlNewChild(signerElem, nullptr, XMLCHAR "CmsContext", nullptr);
+    if (cmsContextElem == nullptr)
+        goto SerializationFailed;
+
+    m_cmsContext->Dump(cmsContextElem, temp);
+
+    auto parametersElem = xmlNewChild(signerElem, nullptr, XMLCHAR "Parameters", nullptr);
+    if (parametersElem == nullptr)
+        goto SerializationFailed;
+
+    if (xmlNewChild(parametersElem, nullptr, XMLCHAR "SignatureType", XMLCHAR PoDoFo::ToString(m_parameters.SignatureType).data()) == nullptr)
+        goto SerializationFailed;
+
+    if (xmlNewChild(parametersElem, nullptr, XMLCHAR "Hashing", XMLCHAR PoDoFo::ToString(m_parameters.Hashing).data()) == nullptr)
+        goto SerializationFailed;
+
+    if (m_parameters.SigningTimeUTC == nullptr)
+        temp = "null";
+    else
+        utls::FormatTo(temp, m_parameters.SigningTimeUTC->count());
+    if (xmlNewChild(parametersElem, nullptr, XMLCHAR "SigningTimeUTC", XMLCHAR temp.data()) == nullptr)
+        goto SerializationFailed;
+
+    utls::FormatTo(temp, (uint32_t)m_parameters.Flags);
+    if (xmlNewChild(parametersElem, nullptr, XMLCHAR "Flags", XMLCHAR temp.data()) == nullptr)
+        goto SerializationFailed;
+}
+
+void PdfSignerCms::Restore(xmlNodePtr signerElem, charbuff& temp)
+{
+    unsigned num1;
+    int64_t num2;
+    string_view str;
+
+    // By design only deferred signing signers can be serialized
+    m_deferredSigning = true;
+
+    auto node = utls::FindChildElement(signerElem, "ReservedSize");
+    if (node == nullptr)
+    {
+    DeserializationFailed:
+        THROW_LIBXML_EXCEPTION("PdfSignerCms deserialization failed");
+    }
+    if (node == nullptr || node->children == nullptr || node->children->content == nullptr
+            || !utls::TryParse((const char*)node->children->content, num1))
+        goto DeserializationFailed;
+    m_reservedSize = num1;
+
+    node = utls::FindChildElement(signerElem, "Certificate");
+    if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
+        goto DeserializationFailed;
+    utls::DecodeHexStringTo(m_certificate, (const char*)node->children->content);
+
+    node = utls::FindChildElement(signerElem, "CmsContext");
+    if (node == nullptr)
+        goto DeserializationFailed;
+    m_cmsContext.reset(new CmsContext());
+    m_cmsContext->Restore(node, temp);
+
+    auto parametersNode = utls::FindChildElement(signerElem, "Parameters");
+    if (node == nullptr)
+        goto DeserializationFailed;
+
+    node = utls::FindChildElement(parametersNode, "SignatureType");
+    if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
+        goto DeserializationFailed;
+    m_parameters.SignatureType = PoDoFo::ConvertTo<PdfSignatureType>((const char*)node->children->content);
+
+    node = utls::FindChildElement(parametersNode, "Hashing");
+    if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
+        goto DeserializationFailed;
+    m_parameters.Hashing = PoDoFo::ConvertTo<PdfHashingAlgorithm>((const char*)node->children->content);
+
+    node = utls::FindChildElement(parametersNode, "SigningTimeUTC");
+    if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
+        goto DeserializationFailed;
+
+    str = (const char*)node->children->content;
+    if (str != "null")
+    {
+        if (!utls::TryParse(str, num2))
+            goto DeserializationFailed;
+
+        m_parameters.SigningTimeUTC = chrono::seconds(num2);
+    }
+
+    node = utls::FindChildElement(parametersNode, "Flags");
+    if (node == nullptr || node->children == nullptr || node->children->content == nullptr
+            || !utls::TryParse((const char*)node->children->content, num1))
+        goto DeserializationFailed;
+    m_parameters.Flags = (PdfSignerCmsFlags)num1;
 }
 
 void PdfSignerCms::ensureEventBasedSigning()

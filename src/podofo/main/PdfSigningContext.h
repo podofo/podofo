@@ -75,6 +75,10 @@ namespace PoDoFo
     public:
         PdfSigningContext();
 
+        /** Restore a dumped signing context from an input stream device
+         */
+        std::unique_ptr<PdfMemDocument> Restore(std::shared_ptr<StreamDevice> device);
+
         /** Configure a signer on the specific signature field
          */
         PdfSignerId AddSigner(const PdfSignature& signature, std::shared_ptr<PdfSigner> signer);
@@ -94,20 +98,48 @@ namespace PoDoFo
          */
         void FinishSigning(const PdfSigningResults& processedResults);
 
+        /** Dump the signing context so it can be resumed later
+         * \remarks Can be used only after starting a deferred (aka "async") signing
+         * operation. This will effectively disable further operations on this context
+         */
+        void DumpInPlace();
+
+        /** Get the fist signer entry from the context for the given input signature
+         */
+        std::shared_ptr<PdfSigner> GetSignerEntry(const PdfReference& signatureRef);
+
+        /** Get the fist signer entry from the context for the given input signature
+         */
+        std::shared_ptr<PdfSigner> GetSignerEntry(const std::string_view& fullName,
+            PdfReference& signatureRef);
+
+        bool IsEmpty() const;
+
     private:
-        struct SignatureAttrs
+        struct SignatureDescriptors
         {
+            std::string FullName;
             unsigned PageIndex = 0u - 1u; // Necessary to correctly recover the PdfSignature field
-            std::vector<PdfSigner*> Signers;
-            std::vector<std::shared_ptr<PdfSigner>> SignersStorage; // Unnecessary for PoDoFo::SignDocument()
+            PdfSigner* Signer;
+            std::shared_ptr<PdfSigner> SignerStorage; // Unnecessary for PoDoFo::SignDocument()
         };
 
         struct SignatureCtx
         {
+            // Buffer for the final signature /Contents
             charbuff Contents;
             size_t BeaconSize = 0;
             PdfSignatureBeacons Beacons;
             PdfArray ByteRangeArr;
+        };
+
+        enum class Status
+        {
+            Config,     ///< The context is still configuring signers
+            Started,    ///< A deferred signing operation has been started 
+            Finished,   ///< A deferred signing operation has been finished 
+            Dumped,     ///< The context has been dumped
+            Restored,   ///< The context has been restored
         };
 
     private:
@@ -118,11 +150,11 @@ namespace PoDoFo
         PdfSignerId addSigner(const PdfSignature& signature, PdfSigner* signer,
             std::shared_ptr<PdfSigner>&& storage);
         void ensureNotStarted() const;
-        std::unordered_map<PdfSignerId, SignatureCtx> prepareSignatureContexts(PdfDocument& doc, bool deferredSigning);
+        std::unordered_map<PdfReference, SignatureCtx> prepareSignatureContexts(PdfDocument& doc, bool deferredSigning);
         void saveDocForSigning(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions saveOptions);
-        void appendDataForSigning(std::unordered_map<PdfSignerId, SignatureCtx>& contexts, StreamDevice& device,
+        void appendDataForSigning(std::unordered_map<PdfReference, SignatureCtx>& contexts, StreamDevice& device,
             std::unordered_map<PdfSignerId, charbuff>* intermediateResults, charbuff& tmpbuff);
-        void computeSignatures(std::unordered_map<PdfSignerId, SignatureCtx>& contexts,
+        void computeSignatures(std::unordered_map<PdfReference, SignatureCtx>& contexts,
             PdfDocument& doc, StreamDevice& device,
             const PdfSigningResults* processedResults, charbuff& tmpbuff);
 
@@ -131,11 +163,12 @@ namespace PoDoFo
         PdfSigningContext& operator==(const PdfSigningContext&) = delete;
 
     private:
-        std::unordered_map<PdfReference, SignatureAttrs> m_signers;
+        std::unordered_map<PdfReference, SignatureDescriptors> m_signatures;
         // Used during deferred signing
         PdfMemDocument* m_doc;
         std::shared_ptr<StreamDevice> m_device;
-        std::unordered_map<PdfSignerId, SignatureCtx> m_contexts;
+        std::unordered_map<PdfReference, SignatureCtx> m_contexts;
+        Status m_status;
     };
 }
 

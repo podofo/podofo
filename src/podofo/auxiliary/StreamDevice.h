@@ -72,6 +72,7 @@ protected:
     bool readChar(char& ch) override;
     bool peek(char& ch) const override;
     void seek(ssize_t offset, SeekDirection direction) override;
+    void truncate() override;
 
     inline std::ios& GetStream() { return *m_Stream; }
 
@@ -134,6 +135,7 @@ protected:
     bool peek(char& ch) const override;
     void seek(ssize_t offset, SeekDirection direction) override;
     void close() override;
+    void truncate() override;
 
 private:
     FILE* m_file;
@@ -220,6 +222,11 @@ protected:
         m_Position = SeekPosition(m_Position, m_container->size(), offset, direction);
     }
 
+    void truncate() override
+    {
+        m_container->resize(m_Position);
+    }
+
 private:
     TContainer* m_container;
     size_t m_Position;
@@ -229,7 +236,7 @@ class PODOFO_API SpanStreamDevice : public StreamDevice
 {
 public:
     /** Construct a new StreamDevice that reads all data from a memory buffer.
-     *  The buffer is temporarily binded
+     *  The buffer is temporarily bound
      */
     SpanStreamDevice(const char* buffer, size_t size);
     SpanStreamDevice(const bufferview& buffer);
@@ -258,6 +265,7 @@ protected:
     bool readChar(char& ch) override;
     bool peek(char& ch) const override;
     void seek(ssize_t offset, SeekDirection direction) override;
+    void truncate() override;
 
 private:
     SpanStreamDevice(std::nullptr_t) = delete;
@@ -289,6 +297,7 @@ protected:
     bool readChar(char& ch) override;
     bool peek(char& ch) const override;
     void seek(ssize_t offset, SeekDirection direction) override;
+    void truncate() override;
 
 private:
     size_t m_Length;

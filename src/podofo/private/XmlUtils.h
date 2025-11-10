@@ -7,6 +7,7 @@
 #pragma once
 
 #include <string>
+#include <functional>
 #include <libxml/tree.h>
 #include <libxml/xmlerror.h>
 #include <podofo/auxiliary/nullable.h>
@@ -27,6 +28,7 @@
 namespace utls
 {
     void InitXml();
+    bool TrySerializeXmlDocTo(std::string& str, xmlDocPtr doc);
     xmlNodePtr FindDescendantElement(xmlNodePtr element, const std::string_view& name);
     xmlNodePtr FindDescendantElement(xmlNodePtr element, const std::string_view& ns, const std::string_view& name);
     xmlNodePtr FindChildElement(xmlNodePtr element, const std::string_view& name);

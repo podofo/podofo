@@ -7,7 +7,6 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfXMPPacket.h"
 #include <podofo/private/XmlUtils.h>
-#include <libxml/xmlsave.h>
 #include <libxml/parser.h>
 #include <podofo/private/XMPUtils.h>
 
@@ -36,8 +35,6 @@ static xmlNodePtr createRDFElement(xmlNodePtr xmpmeta);
 static void createRDFNamespace(xmlNodePtr rdf);
 static xmlNodePtr createDescriptionElement(xmlNodePtr xmpmeta);
 static void serializeXMPMetadataTo(string& str, xmlDocPtr xmpMeta);
-static int xmlOutputStringWriter(void* context, const char* buffer, int len);
-static int xmlOutputStringWriterClose(void* context);
 static void addXPacketBegin(xmlDocPtr doc);
 static void addXPacketBegin(xmlDocPtr doc, string_view id, string_view moreData);
 static void addXPacketEnd(xmlDocPtr doc);
@@ -480,23 +477,8 @@ xmlNodePtr createDescriptionElement(xmlNodePtr rdf)
 
 void serializeXMPMetadataTo(string& str, xmlDocPtr xmpMeta)
 {
-    auto ctx = xmlSaveToIO(xmlOutputStringWriter, xmlOutputStringWriterClose, &str, nullptr, XML_SAVE_NO_DECL | XML_SAVE_FORMAT);
-    if (ctx == nullptr || xmlSaveDoc(ctx, xmpMeta) == -1 || xmlSaveClose(ctx) == -1)
+    if(!utls::TrySerializeXmlDocTo(str, xmpMeta))
         THROW_LIBXML_EXCEPTION("Can't save XPM fragment");
-}
-
-int xmlOutputStringWriter(void* context, const char* buffer, int len)
-{
-    auto str = (string*)context;
-    str->append(buffer, (size_t)len);
-    return len;
-}
-
-int xmlOutputStringWriterClose(void* context)
-{
-    (void)context;
-    // Do nothing
-    return 0;
 }
 
 void addXPacketBegin(xmlDocPtr doc)

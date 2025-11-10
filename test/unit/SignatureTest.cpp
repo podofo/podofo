@@ -160,6 +160,65 @@ TEST_CASE("TestSignature3")
     REQUIRE(ssl::ComputeMD5Str(buff) == TestSignatureRefHash);
 }
 
+// Test deferred signing with external service and context dumping/restore
+TEST_CASE("TestSignatureDumpRestore")
+{
+    charbuff buff;
+    auto inputPath = TestUtils::GetTestInputFilePath("TestSignature.pdf");
+    utls::ReadTo(buff, inputPath);
+
+    // X509 Certificate
+    string cert;
+    TestUtils::ReadTestInputFile("mycert.der", cert);
+
+    // RSA Private key coefficients in der format (binary)
+    string pkey;
+    TestUtils::ReadTestInputFile("mykey-pkcs8.der", pkey);
+
+    charbuff hashToSign;
+    PdfSignerId signerId;
+    PdfSignerCmsParams params;
+
+    // NOTE: This block simulates loosing all the original objects
+    // and restore the context in a subsequent phase
+    {
+        auto stream = std::make_shared<BufferStreamDevice>(buff);
+        PdfMemDocument doc(stream);
+        auto& page = doc.GetPages().GetPageAt(0);
+        auto& annot = page.GetAnnotations().GetAnnotAt(0);
+        auto& field = dynamic_cast<PdfAnnotationWidget&>(annot).GetField();
+        auto& signature = dynamic_cast<PdfSignature&>(field);
+        signature.SetSignatureDate(PdfDate::Parse("D:20250205192456+06'00'"));
+
+        auto signer = std::make_shared<PdfSignerCms>(cert, params);
+        PdfSigningContext ctx;
+        signerId = ctx.AddSigner(signature, signer);
+        PdfSigningResults results;
+        ctx.StartSigning(doc, stream, results, PdfSaveOptions::NoMetadataUpdate);
+
+        hashToSign = results.Intermediate[signerId];
+
+        ctx.DumpInPlace();
+        utls::WriteTo(TestUtils::GetTestOutputFilePath("TestSignatureDumpRestore.bin"), buff);
+    }
+
+    auto newStream = std::make_shared<BufferStreamDevice>(buff);
+    PdfSigningContext newCtx;
+    auto doc = newCtx.Restore(newStream);
+
+    utls::WriteTo(TestUtils::GetTestOutputFilePath("TestSignatureDumpRestore1.pdf"), buff);
+
+    charbuff signedHash;
+    ssl::DoSign(hashToSign, pkey, params.Hashing, signedHash);
+    PdfSigningResults newResults;
+    newResults.Intermediate[signerId] = signedHash;
+    newCtx.FinishSigning(newResults);
+
+    utls::WriteTo(TestUtils::GetTestOutputFilePath("TestSignatureDumpRestore2.pdf"), buff);
+
+    REQUIRE(ssl::ComputeMD5Str(buff) == "4162823DB0FD7A43B7A3FDDFE4FDEC38");
+}
+
 TEST_CASE("TestSignEncryptedDoc")
 {
     auto inputPath = TestUtils::GetTestInputFilePath("AESV3R6-256.pdf");

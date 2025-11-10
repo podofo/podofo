@@ -10,6 +10,7 @@
 #include <date/date.h>
 
 #include <podofo/private/OpenSSLInternal.h>
+#include <podofo/private/XmlUtils.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -17,6 +18,7 @@ using namespace PoDoFo;
 // The following flags allow for streaming and editing of the attributes
 #define CMS_FLAGS CMS_DETACHED | CMS_BINARY | CMS_PARTIAL | CMS_STREAM
 
+static void serializeCmsTo(charbuff& buff, CMS_ContentInfo* info);
 static void addAttribute(CMS_SignerInfo* si, int(*addAttributeFun)(CMS_SignerInfo*, const char*, int, const void*, int),
     const string_view& nid, const bufferview& attr, bool octet);
 
@@ -26,8 +28,7 @@ CmsContext::CmsContext() :
     m_cert(nullptr),
     m_cms(nullptr),
     m_signer(nullptr),
-    m_databio(nullptr),
-    m_out(nullptr)
+    m_databio(nullptr)
 {
 }
 
@@ -53,10 +54,10 @@ void CmsContext::AppendData(const bufferview& data)
 {
     checkAppendStarted();
 
-    if (m_out != nullptr)
+    if (m_status == CmsContextStatus::ComputedSignature)
     {
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle,
-            "The signer must be reset before appening new data");
+            "The signer must be reset before appending new data");
     }
 
     auto mem = BIO_new_mem_buf(data.data(), (int)data.size());
@@ -113,16 +114,7 @@ void CmsContext::ComputeSignature(const bufferview& signedHash, charbuff& signat
     // Directly set the signature memory in the SignerInfo
     ASN1_STRING_set0(signatuerAsn1, buf, (int)signedHash.size());
 
-    m_out = BIO_new(BIO_s_mem());
-    if (m_out == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "BIO_new");
-
-    // Output CMS as DER format
-    i2d_CMS_bio(m_out, m_cms);
-
-    char* signatureData;
-    size_t length = (size_t)BIO_get_mem_data(m_out, &signatureData);
-    signature.assign(signatureData, signatureData + length);
+    serializeCmsTo(signature, m_cms);
     m_status = CmsContextStatus::ComputedSignature;
 }
 
@@ -138,6 +130,142 @@ void CmsContext::AddAttribute(const string_view& nid, const bufferview& attr, bo
         checkEnabledAddUnsignedAttributes();
         addAttribute(m_signer, CMS_unsigned_add1_attr_by_txt, nid, attr, asOctetString);
     }
+}
+
+void CmsContext::Dump(xmlNodePtr ctxElem, string& temp)
+{
+    PODOFO_ASSERT(m_status == CmsContextStatus::ComputedHash);
+
+    charbuff cmsBuff;
+    serializeCmsTo(cmsBuff, m_cms);
+    utls::WriteHexStringTo(temp, cmsBuff);
+    if (xmlNewChild(ctxElem, nullptr, XMLCHAR "Encoded", XMLCHAR temp.data()) == nullptr)
+    {
+    SerializationFailed:
+        THROW_LIBXML_EXCEPTION("PdfSignerCms serialization failed");
+    }
+
+    auto parametersElem = xmlNewChild(ctxElem, nullptr, XMLCHAR "Parameters", nullptr);
+    if (parametersElem == nullptr)
+        goto SerializationFailed;
+
+    if (xmlNewChild(parametersElem, nullptr, XMLCHAR "Hashing", XMLCHAR PoDoFo::ToString(m_parameters.Hashing).data()) == nullptr)
+        goto SerializationFailed;
+
+    if (xmlNewChild(parametersElem, nullptr, XMLCHAR "SkipWriteMIMECapabilities", XMLCHAR (m_parameters.SkipWriteMIMECapabilities ? "true"sv : "false"sv).data()) == nullptr)
+        goto SerializationFailed;
+
+    if (xmlNewChild(parametersElem, nullptr, XMLCHAR "SkipWriteSigningTime", XMLCHAR (m_parameters.SkipWriteSigningTime ? "true"sv : "false"sv).data()) == nullptr)
+        goto SerializationFailed;
+
+    if (xmlNewChild(parametersElem, nullptr, XMLCHAR "AddSigningCertificateV2", XMLCHAR (m_parameters.AddSigningCertificateV2 ? "true"sv : "false"sv).data()) == nullptr)
+        goto SerializationFailed;
+
+    if (xmlNewChild(parametersElem, nullptr, XMLCHAR "DoWrapDigest", XMLCHAR (m_parameters.DoWrapDigest ? "true"sv : "false"sv).data()) == nullptr)
+        goto SerializationFailed;
+
+    if (m_parameters.SigningTimeUTC == nullptr)
+        temp = "null";
+    else
+        utls::FormatTo(temp, m_parameters.SigningTimeUTC->count());
+
+    if (xmlNewChild(parametersElem, nullptr, XMLCHAR "SigningTimeUTC", XMLCHAR temp.data()) == nullptr)
+        goto SerializationFailed;
+
+    if (xmlNewChild(ctxElem, nullptr, XMLCHAR "Encryption", XMLCHAR PoDoFo::ToString(m_encryption).data()) == nullptr)
+        goto SerializationFailed;
+
+    utls::WriteHexStringTo(temp, m_certHash);
+    auto certificateElem = xmlNewChild(ctxElem, nullptr, XMLCHAR "CertHash", XMLCHAR temp.data());
+    if (certificateElem == nullptr)
+        goto SerializationFailed;
+}
+
+void CmsContext::Restore(xmlNodePtr ctxElem, charbuff& temp)
+{
+    unsigned num;
+    string_view str;
+
+    // By definition we can serialize only contexts after they computed the hash
+    m_status = CmsContextStatus::ComputedHash;
+
+    auto node = utls::FindChildElement(ctxElem, "Encoded");
+    if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
+    {
+    DeserializationFailed:
+        THROW_LIBXML_EXCEPTION("CmsContext deserialization failed");
+    }
+
+    utls::DecodeHexStringTo(temp, (const char*)node->children->content);
+
+    const unsigned char* buff = (const unsigned char*)temp.data();
+    m_cms = d2i_CMS_ContentInfo(NULL, &buff, (long)temp.size());
+    if (m_cms == nullptr)
+        goto DeserializationFailed;
+
+    m_signer = sk_CMS_SignerInfo_value(CMS_get0_SignerInfos(m_cms), 0);
+    if (m_signer == nullptr)
+        goto DeserializationFailed;
+
+    m_cert = sk_X509_value(CMS_get1_certs(m_cms), 0);
+    if (m_cert == nullptr)
+        goto DeserializationFailed;
+
+    // Increment the reference count of the certificate,
+    // as it will be freed in the destructor
+    X509_up_ref(m_cert);
+
+    auto parametersNode = utls::FindChildElement(ctxElem, "Parameters");
+    if (node == nullptr)
+        goto DeserializationFailed;
+
+    node = utls::FindChildElement(parametersNode, "Hashing");
+    if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
+        goto DeserializationFailed;
+    m_parameters.Hashing = PoDoFo::ConvertTo<PdfHashingAlgorithm>((const char*)node->children->content);
+
+    node = utls::FindChildElement(parametersNode, "SkipWriteMIMECapabilities");
+    if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
+        goto DeserializationFailed;
+    m_parameters.SkipWriteMIMECapabilities = string_view((const char*)node->children->content) == "true" ? true : false;
+
+    node = utls::FindChildElement(parametersNode, "SkipWriteSigningTime");
+    if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
+        goto DeserializationFailed;
+    m_parameters.SkipWriteSigningTime = string_view((const char*)node->children->content) == "true" ? true : false;
+
+    node = utls::FindChildElement(parametersNode, "AddSigningCertificateV2");
+    if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
+        goto DeserializationFailed;
+    m_parameters.AddSigningCertificateV2 = string_view((const char*)node->children->content) == "true" ? true : false;
+
+    node = utls::FindChildElement(parametersNode, "DoWrapDigest");
+    if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
+        goto DeserializationFailed;
+    m_parameters.DoWrapDigest = string_view((const char*)node->children->content) == "true" ? true : false;
+
+    node = utls::FindChildElement(parametersNode, "SigningTimeUTC");
+    if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
+        goto DeserializationFailed;
+
+    str = (const char*)node->children->content;
+    if (str != "null")
+    {
+        if (!utls::TryParse(str, num))
+            goto DeserializationFailed;
+
+        m_parameters.SigningTimeUTC = chrono::seconds(num);
+    }
+
+    node = utls::FindChildElement(ctxElem, "Encryption");
+    if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
+        goto DeserializationFailed;
+    m_encryption = PoDoFo::ConvertTo<PdfSignatureEncryption>((const char*)node->children->content);
+
+    node = utls::FindChildElement(ctxElem, "CertHash");
+    if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
+        goto DeserializationFailed;
+    utls::DecodeHexStringTo(m_certHash, (const char*)node->children->content);
 }
 
 void CmsContext::loadX509Certificate(const bufferview& cert)
@@ -214,12 +342,6 @@ void CmsContext::clear()
     {
         BIO_free(m_databio);
         m_databio = nullptr;
-    }
-
-    if (m_out != nullptr)
-    {
-        BIO_free(m_out);
-        m_out = nullptr;
     }
 }
 
@@ -298,6 +420,20 @@ void CmsContext::checkEnabledAddUnsignedAttributes()
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic,
                 "Unsigned attributes can be added only after initialization and before signature computation");
     }
+}
+
+void serializeCmsTo(charbuff& buff, CMS_ContentInfo* info)
+{
+    unique_ptr<BIO, decltype(&BIO_free)> out(BIO_new(BIO_s_mem()), BIO_free);
+    if (out == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "BIO_new");
+
+    // Output CMS as DER format
+    i2d_CMS_bio(out.get(), info);
+
+    char* signatureData;
+    size_t length = (size_t)BIO_get_mem_data(out.get(), &signatureData);
+    buff.assign(signatureData, signatureData + length);
 }
 
 // CHECK-ME: Untested!
