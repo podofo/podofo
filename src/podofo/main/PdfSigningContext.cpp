@@ -27,6 +27,7 @@ static void setSignature(StreamDevice& device, const string_view& sigData,
 static void prepareBeaconsData(size_t signatureSize, string& contentsBeacon, string& byteRangeBeacon);
 
 constexpr uint16_t DumpFooterMagic = 0x5343; // "SC" -> Signing Context
+constexpr uint8_t DumpFooterVersion = 1;
 
 namespace
 {
@@ -36,7 +37,7 @@ namespace
     struct SigningContextDumpFooter
     {
         uint16_t Magic = DumpFooterMagic;
-        uint8_t Version = 1;
+        uint8_t Version = DumpFooterVersion;
         uint8_t _Unused = 0;
         uint32_t XMLFragmentSize = 0;
     };
@@ -63,6 +64,9 @@ unique_ptr<PdfMemDocument> PdfSigningContext::Restore(shared_ptr<StreamDevice> d
     if (footer.Magic != DumpFooterMagic)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "Invalid PdfSigningContext footer");
 
+    if (footer.Version != DumpFooterVersion)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "Unsupported PdfSigningContext footer version");
+
     device->Seek(-(ssize_t)(sizeof(SigningContextDumpFooter) + footer.XMLFragmentSize), SeekDirection::End);
 
     charbuff temp(footer.XMLFragmentSize);
@@ -77,7 +81,7 @@ unique_ptr<PdfMemDocument> PdfSigningContext::Restore(shared_ptr<StreamDevice> d
         THROW_LIBXML_EXCEPTION("PdfSigningContext deserialization failed");
     }
 
-    m_signatures.clear();
+    m_signers.clear();
     m_contexts.clear();
 
     PdfLoadOptions loadOptions = PdfLoadOptions::None;
@@ -91,7 +95,7 @@ unique_ptr<PdfMemDocument> PdfSigningContext::Restore(shared_ptr<StreamDevice> d
 
     loadOptions = (PdfLoadOptions)num1;
 
-    node = utls::FindChildElement(sigCtxElem, "Signatures");
+    node = utls::FindChildElement(sigCtxElem, "Signers");
     if (node == nullptr)
         goto DeserializationFailed;
 
@@ -113,21 +117,27 @@ unique_ptr<PdfMemDocument> PdfSigningContext::Restore(shared_ptr<StreamDevice> d
 
         PdfReference ref(num1, (uint16_t)num2);
 
-        auto& descs = m_signatures[ref];
+        auto& descs = m_signers[ref];
         auto value = utls::FindChildElement(child, "Value");
         if (value == nullptr)
             goto DeserializationFailed;
 
-        node = utls::FindChildElement(value, "FullName");
+        node = utls::FindChildElement(value, "SignatureFullName");
         if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
             goto DeserializationFailed;
-        descs.FullName = (const char*)node->children->content;
+        descs.SignatureFullName = (const char*)node->children->content;
 
-        node = utls::FindChildElement(value, "PageIndex");
+        node = utls::FindChildElement(value, "SignaturePageIndex");
+        if (node == nullptr || node->children == nullptr || node->children->content == nullptr
+            || !utls::TryParse((const char*)node->children->content, num2))
+            goto DeserializationFailed;
+        descs.SignaturePageIndex = num2;
+
+        node = utls::FindChildElement(value, "ContextIndex");
         if (node == nullptr || node->children == nullptr || node->children->content == nullptr
                 || !utls::TryParse((const char*)node->children->content, num2))
             goto DeserializationFailed;
-        descs.PageIndex = num2;
+        descs.ContextIndex = num2;
 
         node = utls::FindChildElement(value, "Signer");
         // TODO: Check Type="PdfSignerCMS"
@@ -143,37 +153,19 @@ unique_ptr<PdfMemDocument> PdfSigningContext::Restore(shared_ptr<StreamDevice> d
     if (node == nullptr)
         goto DeserializationFailed;
 
+    unsigned i = 0;
+    m_contexts.resize(xmlChildElementCount(node));
     for (auto child = node->children; child != nullptr; child = child->next)
     {
-        auto key = utls::FindChildElement(child, "Key");
-        if (key == nullptr)
-            goto DeserializationFailed;
+        auto& ctx = m_contexts[i];
 
-        node = utls::FindChildElement(key, "ObjNum");
-        if (node == nullptr || node->children == nullptr || node->children->content == nullptr
-                || !utls::TryParse((const char*)node->children->content, num1))
-            goto DeserializationFailed;
-
-        node = utls::FindChildElement(key, "GenNum");
-        if (node == nullptr || node->children == nullptr || node->children->content == nullptr
-                || !utls::TryParse((const char*)node->children->content, num2))
-            goto DeserializationFailed;
-
-        PdfReference ref(num1, (uint16_t)num2);
-
-        auto& ctx = m_contexts[ref];
-
-        auto value = utls::FindChildElement(child, "Value");
-        if (value == nullptr)
-            goto DeserializationFailed;
-
-        node = utls::FindChildElement(value, "BeaconSize");
+        node = utls::FindChildElement(child, "BeaconSize");
         if (node == nullptr || node->children == nullptr || node->children->content == nullptr
                 || !utls::TryParse((const char*)node->children->content, num1))
             goto DeserializationFailed;
         ctx.BeaconSize = num1;
 
-        auto byteRangeArrElem = utls::FindChildElement(value, "ByteRangeArr");
+        auto byteRangeArrElem = utls::FindChildElement(child, "ByteRangeArr");
         if (node == nullptr)
             goto DeserializationFailed;
 
@@ -201,7 +193,7 @@ unique_ptr<PdfMemDocument> PdfSigningContext::Restore(shared_ptr<StreamDevice> d
             goto DeserializationFailed;
         ctx.ByteRangeArr.Add(num3);
 
-        auto beaconsArrElem = utls::FindChildElement(value, "Beacons");
+        auto beaconsArrElem = utls::FindChildElement(child, "Beacons");
         if (node == nullptr)
             goto DeserializationFailed;
 
@@ -216,6 +208,8 @@ unique_ptr<PdfMemDocument> PdfSigningContext::Restore(shared_ptr<StreamDevice> d
                 || !utls::TryParse((const char*)node->children->content, num3))
             goto DeserializationFailed;
         *ctx.Beacons.ByteRangeOffset = (size_t)num3;
+
+        i++;
     }
 
     // Truncate the stream just before the XML fragment
@@ -248,7 +242,7 @@ void PdfSigningContext::StartSigning(PdfMemDocument& doc, shared_ptr<StreamDevic
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The output device must be not null");
 
     ensureNotStarted();
-    if (m_signatures.size() == 0)
+    if (m_signers.size() == 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "No signers were configured");
 
     m_doc = &doc;
@@ -298,11 +292,11 @@ void PdfSigningContext::DumpInPlace()
     if (xmlNewChild(sigCtxElem, nullptr, XMLCHAR "PdfLoadOptions", XMLCHAR "0") == nullptr)
         goto SerializationFailed;
 
-    auto signaturesElem = xmlNewChild(sigCtxElem, nullptr, XMLCHAR "Signatures", nullptr);
+    auto signaturesElem = xmlNewChild(sigCtxElem, nullptr, XMLCHAR "Signers", nullptr);
     if (signaturesElem == nullptr)
         goto SerializationFailed;
 
-    for (auto& pair : m_signatures)
+    for (auto& pair : m_signers)
     {
         auto& ref = pair.first;
         auto& descs = pair.second;
@@ -310,7 +304,7 @@ void PdfSigningContext::DumpInPlace()
         if (signer == nullptr)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedOperation, "Dumping context is supported only for PdfSignerCMS signers");
 
-        auto signatureElem = xmlNewChild(signaturesElem, nullptr, XMLCHAR "Signature", nullptr);
+        auto signatureElem = xmlNewChild(signaturesElem, nullptr, XMLCHAR "Signer", nullptr);
         if (signatureElem == nullptr)
             goto SerializationFailed;
 
@@ -330,11 +324,15 @@ void PdfSigningContext::DumpInPlace()
         if (valueElem == nullptr)
             goto SerializationFailed;
 
-        if (xmlNewChild(valueElem, nullptr, XMLCHAR "FullName", XMLCHAR descs.FullName.data()) == nullptr)
+        if (xmlNewChild(valueElem, nullptr, XMLCHAR "SignatureFullName", XMLCHAR descs.SignatureFullName.data()) == nullptr)
             goto SerializationFailed;
 
-        utls::FormatTo(temp, descs.PageIndex);
-        if (xmlNewChild(valueElem, nullptr, XMLCHAR "PageIndex", XMLCHAR temp.data()) == nullptr)
+        utls::FormatTo(temp, descs.SignaturePageIndex);
+        if (xmlNewChild(valueElem, nullptr, XMLCHAR "SignaturePageIndex", XMLCHAR temp.data()) == nullptr)
+            goto SerializationFailed;
+
+        utls::FormatTo(temp, descs.ContextIndex);
+        if (xmlNewChild(valueElem, nullptr, XMLCHAR "ContextIndex", XMLCHAR temp.data()) == nullptr)
             goto SerializationFailed;
 
         auto signerElem = xmlNewChild(valueElem, nullptr, XMLCHAR "Signer", nullptr);
@@ -349,37 +347,19 @@ void PdfSigningContext::DumpInPlace()
     }
 
     auto contextsElem = xmlNewChild(sigCtxElem, nullptr, XMLCHAR "Contexts", nullptr);
-    for (auto& pair : m_contexts)
+    for (auto& ctx : m_contexts)
     {
-        auto& id = pair.first;
-        auto& ctx = pair.second;
         auto contextElem = xmlNewChild(contextsElem, nullptr, XMLCHAR "Context", nullptr);
         if (contextElem == nullptr)
-            goto SerializationFailed;
-
-        auto keyElem = xmlNewChild(contextElem, nullptr, XMLCHAR "Key", nullptr);
-        if (keyElem == nullptr)
-            goto SerializationFailed;
-
-        utls::FormatTo(temp, id.ObjectNumber());
-        if (xmlNewChild(keyElem, nullptr, XMLCHAR "ObjNum", XMLCHAR temp.data()) == nullptr)
-            goto SerializationFailed;
-
-        utls::FormatTo(temp, id.GenerationNumber());
-        if (xmlNewChild(keyElem, nullptr, XMLCHAR "GenNum", XMLCHAR temp.data()) == nullptr)
-            goto SerializationFailed;
-
-        auto valueElem = xmlNewChild(contextElem, nullptr, XMLCHAR "Value", nullptr);
-        if (valueElem == nullptr)
             goto SerializationFailed;
 
         // NOTE: Ignore SignatureCtx.Contents. This is set during signature computing
 
         utls::FormatTo(temp, ctx.BeaconSize);
-        if (xmlNewChild(valueElem, nullptr, XMLCHAR "BeaconSize", XMLCHAR temp.data()) == nullptr)
+        if (xmlNewChild(contextElem, nullptr, XMLCHAR "BeaconSize", XMLCHAR temp.data()) == nullptr)
             goto SerializationFailed;
 
-        auto byteRangeArrElem = xmlNewChild(valueElem, nullptr, XMLCHAR "ByteRangeArr", nullptr);
+        auto byteRangeArrElem = xmlNewChild(contextElem, nullptr, XMLCHAR "ByteRangeArr", nullptr);
         if (byteRangeArrElem == nullptr)
             goto SerializationFailed;
 
@@ -399,7 +379,7 @@ void PdfSigningContext::DumpInPlace()
         if (xmlNewChild(byteRangeArrElem, nullptr, XMLCHAR "Range2Length", XMLCHAR temp.data()) == nullptr)
             goto SerializationFailed;
 
-        auto beaconsElem = xmlNewChild(valueElem, nullptr, XMLCHAR "Beacons", nullptr);
+        auto beaconsElem = xmlNewChild(contextElem, nullptr, XMLCHAR "Beacons", nullptr);
         if (beaconsElem == nullptr)
             goto SerializationFailed;
 
@@ -434,15 +414,15 @@ void PdfSigningContext::DumpInPlace()
 
 shared_ptr<PdfSigner> PdfSigningContext::GetSignerEntry(const PdfReference& signatureRef)
 {
-    return m_signatures.at(signatureRef).SignerStorage;
+    return m_signers.at(signatureRef).SignerStorage;
 }
 
 shared_ptr<PdfSigner> PdfSigningContext::GetSignerEntry(const string_view& fullName,
     PdfReference& signatureRef)
 {
-    for (auto& pair : m_signatures)
+    for (auto& pair : m_signers)
     {
-        if (pair.second.FullName == fullName)
+        if (pair.second.SignatureFullName == fullName)
         {
             signatureRef = pair.first;
             return pair.second.SignerStorage;
@@ -454,13 +434,13 @@ shared_ptr<PdfSigner> PdfSigningContext::GetSignerEntry(const string_view& fullN
 
 bool PdfSigningContext::IsEmpty() const
 {
-    return m_signatures.empty();
+    return m_signers.empty();
 }
 
 void PdfSigningContext::Sign(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions saveOptions)
 {
     ensureNotStarted();
-    if (m_signatures.size() == 0)
+    if (m_signers.size() == 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "No signers were configured");
 
     charbuff tmpbuff;
@@ -474,16 +454,16 @@ void PdfSigningContext::Sign(PdfMemDocument& doc, StreamDevice& device, PdfSaveO
 PdfSignerId PdfSigningContext::addSigner(const PdfSignature& signature, PdfSigner* signer,
     shared_ptr<PdfSigner>&& storage)
 {
-    if (m_signatures.size() != 0)
+    if (m_signers.size() != 0)
     {
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Signing multiple signature fields "
             "or signing the same field with multiple signers is currently not implemented");
     }
 
     auto reference = signature.GetObject().GetIndirectReference();
-    auto found = m_signatures.find(reference);
-    SignatureDescriptors* descs;
-    if (found == m_signatures.end())
+    auto found = m_signers.find(reference);
+    SignerDescriptors* descs;
+    if (found == m_signers.end())
     {
         auto widget = signature.GetWidget();
         int pageIndex;
@@ -492,9 +472,11 @@ PdfSignerId PdfSigningContext::addSigner(const PdfSignature& signature, PdfSigne
         else
             pageIndex = (int)widget->MustGetPage().GetIndex();
 
-        descs = &m_signatures[reference];
-        descs->FullName = signature.GetFullName();
-        descs->PageIndex = pageIndex;
+        descs = &m_signers[reference];
+        descs->SignatureFullName = signature.GetFullName();
+        descs->SignaturePageIndex = pageIndex;
+        descs->ContextIndex = (unsigned)m_contexts.size();
+        m_contexts.resize(m_contexts.size() + 1);
     }
     else
     {
@@ -513,15 +495,15 @@ void PdfSigningContext::ensureNotStarted() const
 }
 
 // Prepare signature contexts, running dry-run signature computation
-unordered_map<PdfReference, PdfSigningContext::SignatureCtx> PdfSigningContext::prepareSignatureContexts(
+vector<PdfSigningContext::SignerContext> PdfSigningContext::prepareSignatureContexts(
     PdfDocument& doc, bool deferredSigning)
 {
-    unordered_map<PdfReference, SignatureCtx> ret;
-    for (auto& pair : m_signatures)
+    vector<SignerContext> ret(m_signers.size());
+    for (auto& pair : m_signers)
     {
         auto& descs = pair.second;
-        auto& signature = getSignature(doc, descs.PageIndex, pair.first);
-        auto& ctx = ret[pair.first];
+        auto& signature = getSignature(doc, descs.SignaturePageIndex, pair.first);
+        auto& ctx = ret[descs.ContextIndex];
         auto& signer = descs.Signer;
         signer->Reset();
         if (deferredSigning)
@@ -564,14 +546,14 @@ void PdfSigningContext::saveDocForSigning(PdfMemDocument& doc, StreamDevice& dev
     device.Flush();
 }
 
-void PdfSigningContext::appendDataForSigning(unordered_map<PdfReference, SignatureCtx>& contexts, StreamDevice& device,
+void PdfSigningContext::appendDataForSigning(vector<SignerContext>& contexts, StreamDevice& device,
     std::unordered_map<PdfSignerId, charbuff>* intermediateResults, charbuff& tmpbuff)
 {
-    for (auto& pair : m_signatures)
+    for (auto& pair : m_signers)
     {
         auto& descs = pair.second;
         auto& signer = *descs.Signer;
-        auto& ctx = contexts[pair.first];
+        auto& ctx = contexts[descs.ContextIndex];
 
         adjustByteRange(device, *ctx.Beacons.ByteRangeOffset, *ctx.Beacons.ContentsOffset,
             ctx.Beacons.ContentsBeacon.size(), ctx.ByteRangeArr, tmpbuff);
@@ -597,16 +579,15 @@ void PdfSigningContext::appendDataForSigning(unordered_map<PdfReference, Signatu
     }
 }
 
-void PdfSigningContext::computeSignatures(unordered_map<PdfReference, SignatureCtx>& contexts,
-    PdfDocument& doc, StreamDevice& device,
+void PdfSigningContext::computeSignatures(std::vector<SignerContext>& contexts, PdfDocument& doc, StreamDevice& device,
     const PdfSigningResults* processedResults, charbuff& tmpbuff)
 {
-    for (auto& pair : m_signatures)
+    for (auto& pair : m_signers)
     {
         auto& descs = pair.second;
-        auto& signature = getSignature(doc, descs.PageIndex, pair.first);
+        auto& signature = getSignature(doc, descs.SignaturePageIndex, pair.first);
         auto& signer = *descs.Signer;
-        auto& ctx = contexts[pair.first];
+        auto& ctx = contexts[descs.ContextIndex];
 
         if (!signer.SkipBufferClear())
             ctx.Contents.clear();

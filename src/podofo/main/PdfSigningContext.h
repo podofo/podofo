@@ -116,15 +116,17 @@ namespace PoDoFo
         bool IsEmpty() const;
 
     private:
-        struct SignatureDescriptors
+        struct SignerDescriptors
         {
-            std::string FullName;
-            unsigned PageIndex = 0u - 1u; // Necessary to correctly recover the PdfSignature field
+            std::string SignatureFullName;              // Signature field full name
+            unsigned SignaturePageIndex = 0u - 1u;      // Necessary to correctly recover the PdfSignature field
+            unsigned ContextIndex = 0u - 1u;            // Index in the context list
             PdfSigner* Signer;
             std::shared_ptr<PdfSigner> SignerStorage; // Unnecessary for PoDoFo::SignDocument()
         };
 
-        struct SignatureCtx
+        // Context data for signing operations
+        struct SignerContext
         {
             // Buffer for the final signature /Contents
             charbuff Contents;
@@ -150,12 +152,11 @@ namespace PoDoFo
         PdfSignerId addSigner(const PdfSignature& signature, PdfSigner* signer,
             std::shared_ptr<PdfSigner>&& storage);
         void ensureNotStarted() const;
-        std::unordered_map<PdfReference, SignatureCtx> prepareSignatureContexts(PdfDocument& doc, bool deferredSigning);
+        std::vector<SignerContext> prepareSignatureContexts(PdfDocument& doc, bool deferredSigning);
         void saveDocForSigning(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions saveOptions);
-        void appendDataForSigning(std::unordered_map<PdfReference, SignatureCtx>& contexts, StreamDevice& device,
+        void appendDataForSigning(std::vector<SignerContext>& contexts, StreamDevice& device,
             std::unordered_map<PdfSignerId, charbuff>* intermediateResults, charbuff& tmpbuff);
-        void computeSignatures(std::unordered_map<PdfReference, SignatureCtx>& contexts,
-            PdfDocument& doc, StreamDevice& device,
+        void computeSignatures(std::vector<SignerContext>& contexts, PdfDocument& doc, StreamDevice& device,
             const PdfSigningResults* processedResults, charbuff& tmpbuff);
 
     private:
@@ -163,11 +164,12 @@ namespace PoDoFo
         PdfSigningContext& operator==(const PdfSigningContext&) = delete;
 
     private:
-        std::unordered_map<PdfReference, SignatureDescriptors> m_signatures;
+        std::unordered_map<PdfReference, SignerDescriptors> m_signers;
         // Used during deferred signing
         PdfMemDocument* m_doc;
         std::shared_ptr<StreamDevice> m_device;
-        std::unordered_map<PdfReference, SignatureCtx> m_contexts;
+        // Signer contexts used when preparing/finish signing operations
+        std::vector<SignerContext> m_contexts;
         Status m_status;
     };
 }
