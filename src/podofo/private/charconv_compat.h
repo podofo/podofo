@@ -1,13 +1,21 @@
 #ifndef CHARCONV_COMPAT_H
 #define CHARCONV_COMPAT_H
 
+// Check for Apple targets runtime checks for from_chars availability. CHECK-ME: watchOS, tvOS, visionOS???
+// Should fix https://github.com/podofo/podofo/issues/290
+#if defined(__apple_build_version__) && __apple_build_version__ >= 17000000 && ((defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED < 260000) || (defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && __IPHONE_OS_VERSION_MIN_REQUIRED < 260000))
+// The following avoids including from_chars_floating_point.h
+#define _LIBCPP___CHARCONV_FROM_CHARS_FLOATING_POINT_H
+#define FROM_CHARS_APPLE_TARGET_TOO_LOW
+#endif
+
 #include <charconv>
 
 // Older gcc and clang may have not have floating point std::from_chars/std::to_chars
 #if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 10
 #define WANT_CHARS_FORMAT
 #endif
-#if (defined(__GNUC__) && !defined(__clang__) && !defined(__MINGW32__) &&  __GNUC__ < 11) || (defined(__MINGW32__) &&  __GNUC__ < 12) || (defined(__clang__) && defined(_LIBCPP_VERSION) && (_LIBCPP_VERSION < 200000))
+#if (defined(__GNUC__) && !defined(__clang__) && !defined(__MINGW32__) &&  __GNUC__ < 11) || (defined(__MINGW32__) &&  __GNUC__ < 12) || (defined(__clang__) && defined(_LIBCPP_VERSION) && (_LIBCPP_VERSION < 200000)) || defined(FROM_CHARS_APPLE_TARGET_TOO_LOW)
 #define WANT_FROM_CHARS
 #endif
 #if (defined(__GNUC__) && !defined(__clang__) && !defined(__MINGW32__) &&  __GNUC__ < 11) || (defined(__MINGW32__) &&  __GNUC__ < 12) || (defined(__clang__) && ((defined(__apple_build_version__) && __apple_build_version__ < 15000000) || __clang_major__ < 14))
