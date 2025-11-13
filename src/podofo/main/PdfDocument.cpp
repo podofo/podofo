@@ -15,6 +15,21 @@
 using namespace std;
 using namespace PoDoFo;
 
+inline unsigned getDifference(PdfIndirectObjectList& m_Objects) {
+    unsigned maxObjectId = 0;
+
+    for (auto& obj : m_Objects) {
+        maxObjectId = std::max(maxObjectId, obj->GetIndirectReference().ObjectNumber());
+    }
+
+    for (auto& ref : m_Objects.GetFreeObjects()) {
+        maxObjectId = std::max(maxObjectId, ref.ObjectNumber());
+    }
+
+    unsigned difference = maxObjectId + 1;
+    return difference;
+}
+
 PdfDocument::PdfDocument(bool empty) :
     m_Objects(*this),
     m_Metadata(*this),
@@ -106,7 +121,7 @@ void PdfDocument::append(const PdfDocument& doc, bool appendAll)
     // but in this way free objects should be already taken into account. We'll eventually fix it by not
     // relying on computing a static difference between inserted objects and objects being inserted but just
     // inserting objects normally and remapping them with a support map
-    unsigned difference = static_cast<unsigned>(m_Objects.GetObjectCount() + m_Objects.GetFreeObjects().size());
+    unsigned difference = getDifference(m_Objects);
 
     // create all free objects again, to have a clean free object list
     for (auto& ref : doc.GetObjects().GetFreeObjects())
@@ -192,7 +207,7 @@ void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc,
     // but in this way free objects should be already taken into account. We'll eventually fix it by not
     // relying on computing a static difference between inserted objects and objects being inserted but just
     // inserting objects normally and remapping them with a support map
-    unsigned difference = static_cast<unsigned>(m_Objects.GetObjectCount() + m_Objects.GetFreeObjects().size());
+    unsigned difference = getDifference(m_Objects);
 
     // create all free objects again, to have a clean free object list
     for (auto& freeObj : doc.GetObjects().GetFreeObjects())
@@ -355,7 +370,7 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
         // but in this way free objects should be already taken into account. We'll eventually fix it by not
         // relying on computing a static difference between inserted objects and objects being inserted but just
         // inserting objects normally and remapping them with a support map
-        difference = static_cast<unsigned>(m_Objects.GetObjectCount() + m_Objects.GetFreeObjects().size());
+        difference = getDifference(m_Objects);
         append(sourceDoc, false);
     }
 
