@@ -7,6 +7,7 @@
 #pragma once
 
 #include "XmlUtils.h"
+#include <libxml/parser.h>
 #include <podofo/main/PdfMetadataStore.h>
 
 namespace PoDoFo
