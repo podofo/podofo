@@ -10,6 +10,7 @@
 #include <functional>
 #include <libxml/tree.h>
 #include <libxml/xmlerror.h>
+#include <libxml/parser.h>
 #include <podofo/auxiliary/nullable.h>
 
 // Cast macro that keep or enforce const to use
