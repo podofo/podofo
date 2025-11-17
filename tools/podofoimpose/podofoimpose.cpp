@@ -5,25 +5,26 @@
 
 #include "pdftranslator.h"
 
-#include <cstdlib>
 #include <iostream>
 #include <string>
-#include <cstdio>
 
 using namespace std;
 using namespace PoDoFo;
 using namespace PoDoFo::Impose;
 
-struct _params
+namespace
 {
-    string executablePath;
-    string inFilePath;
-    string outFilePath;
-    string planFilePath;
-    PlanReader planReader;
-} params;
+    struct ImposeParams
+    {
+        string executablePath;
+        string inFilePath;
+        string outFilePath;
+        string planFilePath;
+        PlanReader planReader = PlanReader::Lua;
+    };
+}
 
-void usage()
+static void usage(const ImposeParams& params)
 {
     cerr << "Usage : " << params.executablePath << " Input Output Plan [Interpreter]" << endl;
     cerr << "***" << endl;
@@ -34,13 +35,12 @@ void usage()
     cerr << "PoDoFo Version: " << PODOFO_VERSION_STRING << endl << endl;
 }
 
-void parseCommandLine(const cspan<string_view>& args)
+static void parseCommandLine(const cspan<string_view>& args, ImposeParams& params)
 {
     params.executablePath = args[0];
-
     if (args.size() < 4)
     {
-        usage();
+        usage(params);
         exit(-1);
     }
 
@@ -69,22 +69,17 @@ void parseCommandLine(const cspan<string_view>& args)
  */
 void Main(const cspan<string_view>& args)
 {
-#if 0
-    PdfError::EnableDebug(false);
-    PdfError::EnableLogging(false);
-#endif
-    parseCommandLine(args);
+    ImposeParams params;
+
+    parseCommandLine(args, params);
 
     cerr << "Source : " << params.inFilePath << endl;
     cerr << "Target : " << params.outFilePath << endl;
     cerr << "Plan   : " << params.planFilePath << endl;
 
-
-    PdfTranslator* translator = new  PdfTranslator;
-
-    translator->setSource(params.inFilePath);
-    translator->setTarget(params.outFilePath);
-    translator->loadPlan(params.planFilePath, params.planReader);
-
-    translator->impose();
+    PdfTranslator translator;
+    translator.setSource(params.inFilePath);
+    translator.setTarget(params.outFilePath);
+    translator.loadPlan(params.planFilePath, params.planReader);
+    translator.impose();
 }
