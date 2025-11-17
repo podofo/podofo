@@ -39,8 +39,6 @@ namespace PoDoFo::Impose
     public:
         PdfTranslator();
 
-        ~PdfTranslator() { }
-
         PdfMemDocument* sourceDoc;
         PdfMemDocument* targetDoc;
 
@@ -95,10 +93,7 @@ namespace PoDoFo::Impose
 
         bool checkIsPDF(std::string path);
         PdfObject* getInheritedResources(PdfPage& page);
-        void mergeResKey(PdfObject* base, PdfName key, PdfObject* tomerge);
         PdfObject* migrateResource(PdfObject* obj);
-        void drawLine(double x, double y, double xx, double yy, std::ostringstream& a);
-        void signature(double x, double y, int sheet, const std::vector<int>& pages, std::ostringstream& a);
 
         // An attempt to allow nested loops
         // returns new position in records list.
