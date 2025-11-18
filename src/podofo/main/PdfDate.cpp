@@ -441,7 +441,7 @@ bool parseFixLenNumber(const char*& in, unsigned maxLength, int min, int max, in
     ret = 0;
     for (unsigned i = 0; i < maxLength; i++)
     {
-        if (in == nullptr || !isdigit(*in))
+        if (in == nullptr || !std::isdigit(static_cast<unsigned char>(*in)))
             return i != 0;
 
         ret = ret * 10 + (*in - '0');

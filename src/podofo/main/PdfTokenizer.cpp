@@ -287,7 +287,7 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevi
                 {
                     dataType = PdfLiteralDataType::Real;
                 }
-                else if (!(isdigit(*start) || *start == '-' || *start == '+'))
+                else if (!(std::isdigit(static_cast<unsigned char>(*start)) || *start == '-' || *start == '+'))
                 {
                     dataType = PdfLiteralDataType::Unknown;
                     break;
@@ -740,7 +740,7 @@ void readHexString(InputStreamDevice& device, charbuff& buffer)
             break;
 
         // only a hex digits
-        if (isdigit(ch) ||
+        if (std::isdigit(static_cast<unsigned char>(ch)) ||
             (ch >= 'A' && ch <= 'F') ||
             (ch >= 'a' && ch <= 'f'))
             buffer.push_back(ch);
