@@ -169,29 +169,13 @@ unique_ptr<PdfMemDocument> PdfSigningContext::Restore(shared_ptr<StreamDevice> d
         if (node == nullptr)
             goto DeserializationFailed;
 
-        node = utls::FindChildElement(byteRangeArrElem, "Range1Offset");
-        if (node == nullptr || node->children == nullptr || node->children->content == nullptr
-                || !utls::TryParse((const char*)node->children->content, num3))
-            goto DeserializationFailed;
-        ctx.ByteRangeArr.Add(num3);
-
-        node = utls::FindChildElement(byteRangeArrElem, "Range1Length");
-        if (node == nullptr || node->children == nullptr || node->children->content == nullptr
-                || !utls::TryParse((const char*)node->children->content, num3))
-            goto DeserializationFailed;
-        ctx.ByteRangeArr.Add(num3);
-
-        node = utls::FindChildElement(byteRangeArrElem, "Range2Offset");
-        if (node == nullptr || node->children == nullptr || node->children->content == nullptr
-                || !utls::TryParse((const char*)node->children->content, num3))
-            goto DeserializationFailed;
-        ctx.ByteRangeArr.Add(num3);
-
-        node = utls::FindChildElement(byteRangeArrElem, "Range2Length");
-        if (node == nullptr || node->children == nullptr || node->children->content == nullptr
-                || !utls::TryParse((const char*)node->children->content, num3))
-            goto DeserializationFailed;
-        ctx.ByteRangeArr.Add(num3);
+        for (auto item = byteRangeArrElem->children; item != nullptr; item = item->next)
+        {
+            if (item->children == nullptr || item->children->content == nullptr
+                || !utls::TryParse((const char*)item->children->content, num3))
+                goto DeserializationFailed;
+            ctx.ByteRangeArr.Add(num3);
+        }
 
         auto beaconsArrElem = utls::FindChildElement(child, "Beacons");
         if (node == nullptr)
@@ -364,19 +348,19 @@ void PdfSigningContext::DumpInPlace()
             goto SerializationFailed;
 
         utls::FormatTo(temp, ctx.ByteRangeArr[0].GetNumber());
-        if (xmlNewChild(byteRangeArrElem, nullptr, XMLCHAR "Range1Offset", XMLCHAR temp.data()) == nullptr)
+        if (xmlNewChild(byteRangeArrElem, nullptr, XMLCHAR "Item", XMLCHAR temp.data()) == nullptr)
             goto SerializationFailed;
 
         utls::FormatTo(temp, ctx.ByteRangeArr[1].GetNumber());
-        if (xmlNewChild(byteRangeArrElem, nullptr, XMLCHAR "Range1Length", XMLCHAR temp.data()) == nullptr)
+        if (xmlNewChild(byteRangeArrElem, nullptr, XMLCHAR "Item", XMLCHAR temp.data()) == nullptr)
             goto SerializationFailed;
 
         utls::FormatTo(temp, ctx.ByteRangeArr[2].GetNumber());
-        if (xmlNewChild(byteRangeArrElem, nullptr, XMLCHAR "Range2Offset", XMLCHAR temp.data()) == nullptr)
+        if (xmlNewChild(byteRangeArrElem, nullptr, XMLCHAR "Item", XMLCHAR temp.data()) == nullptr)
             goto SerializationFailed;
 
         utls::FormatTo(temp, ctx.ByteRangeArr[3].GetNumber());
-        if (xmlNewChild(byteRangeArrElem, nullptr, XMLCHAR "Range2Length", XMLCHAR temp.data()) == nullptr)
+        if (xmlNewChild(byteRangeArrElem, nullptr, XMLCHAR "Item", XMLCHAR temp.data()) == nullptr)
             goto SerializationFailed;
 
         auto beaconsElem = xmlNewChild(contextElem, nullptr, XMLCHAR "Beacons", nullptr);
