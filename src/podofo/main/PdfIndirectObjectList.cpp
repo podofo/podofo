@@ -256,7 +256,7 @@ int32_t PdfIndirectObjectList::tryAddFreeObject(uint32_t objnum, uint32_t gennum
     // NOTE: gennum is uint32 to accommodate overflows from callers
     if (gennum >= MaxXRefGenerationNum)
     {
-        m_unavailableObjects.insert(gennum);
+        m_unavailableObjects.insert(objnum);
         return -1;
     }
 
