@@ -24,6 +24,7 @@ constexpr unsigned PDF_VERSION_LENGHT = 3;
 constexpr unsigned PDF_MAGIC_LENGHT = 8;
 constexpr unsigned PDF_XREF_ENTRY_SIZE = 20;
 constexpr unsigned MAX_XREF_SESSION_COUNT = 512;
+constexpr unsigned MaxXRefGenerationNum = 65535;
 
 using namespace std;
 using namespace PoDoFo;
@@ -743,10 +744,11 @@ void PdfParser::ReadObjectEntries(InputStreamDevice& device)
         }
     }
 
-    readObjectsInternal(device);
+    ReadObjectsInternal(device);
+    updateDocumentVersion();
 }
 
-void PdfParser::readObjectsInternal(InputStreamDevice& device)
+void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
 {
     // Read objects
     vector<unsigned> compressedIndices;
@@ -755,14 +757,73 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
     PdfDictionary* dict;
     PdfObject* typeObj;
     const PdfName* name;
-    for (unsigned i = 0; i < m_entries.GetSize(); i++)
+    if (m_entries.GetSize() != 0)
+    {
+        // Check first entry in advance, as it won't be added
+        // neither as an in use or a free object
+        auto& entry = m_entries[0];
+        if (entry.Parsed)
+        {
+            switch (entry.Type)
+            {
+                case PdfXRefEntryType::InUse:
+                {
+                    if (m_StrictParsing)
+                    {
+                        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef,
+                            "Found object number 0 that is marked as in use. Shall be free");
+                    }
+
+                    PoDoFo::LogMessage(PdfLogSeverity::Warning,
+                        "Found object number 0 that is marked as in use. Shall be free");
+                    break;
+                }
+                case PdfXRefEntryType::Free:
+                {
+                    if (entry.Generation > MaxXRefGenerationNum)
+                    {
+                        if (m_StrictParsing)
+                        {
+                            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef,
+                                "Found object 0 with generation number > 65535");
+                        }
+
+                        PoDoFo::LogMessage(PdfLogSeverity::Warning,
+                            "Found free object  0 with generation number > 65535");
+                    }
+
+                    break;
+                }
+                case PdfXRefEntryType::Compressed:
+                {
+                    if (m_StrictParsing)
+                    {
+                        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef,
+                            "Found object number 0 that is marked as compressed. Shall be free");
+                    }
+
+                    PoDoFo::LogMessage(PdfLogSeverity::Warning,
+                        "Found object number 0 that is marked as compressed. Shall be free");
+                    break;
+                }
+                default:
+                {
+                    PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+                }
+            }
+        }
+    }
+
+    // Iterate all entries from second one, as the first one is
+    // checked already
+    for (unsigned i = 1; i < m_entries.GetSize(); i++)
     {
         auto& entry = m_entries[i];
 #ifdef PODOFO_VERBOSE_DEBUG
-        cerr << "ReadObjectsInteral\t" << i << " "
-            << (entry.Parsed ? "parsed" : "unparsed") << " "
-            << entry.Offset << " "
-            << entry.Generation << endl;
+        cerr << "ReadObjectsInternal\t" << i << " "
+             << (entry.Parsed ? "parsed" : "unparsed") << " "
+             << entry.Offset << " "
+             << entry.Generation << endl;
 #endif
         if (entry.Parsed)
         {
@@ -770,6 +831,19 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
             {
                 case PdfXRefEntryType::InUse:
                 {
+                    if (entry.Generation >= MaxXRefGenerationNum)
+                    {
+                        if (m_StrictParsing)
+                        {
+                            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef,
+                                "Found in use object {} with generation number >= 65535", i);
+                        }
+
+                        PoDoFo::LogMessage(PdfLogSeverity::Warning,
+                            "Found in use object {} with generation number >= 65535", i);
+                        break;
+                    }
+
                     if (entry.Offset > 0)
                     {
                         PdfReference reference(i, (uint16_t)entry.Generation);
@@ -803,7 +877,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                                 throw;
                             }
 
-                            PoDoFo::LogMessage(PdfLogSeverity::Error, "Error while loading object {} {} R, Offset={}, Index={}",
+                            PoDoFo::LogMessage(PdfLogSeverity::Warning, "Error while loading object {} {} R, Offset={}, Index={}",
                                 obj->GetIndirectReference().ObjectNumber(),
                                 obj->GetIndirectReference().GenerationNumber(),
                                 entry.Offset, i);
@@ -820,7 +894,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                         if (m_StrictParsing)
                         {
                             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef,
-                                "Found object with 0 offset which should be 'f' instead of 'n'");
+                                "Found object with 0 offset which should be a free entry instead of in use");
                         }
                         else
                         {
@@ -833,11 +907,22 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                 }
                 case PdfXRefEntryType::Free:
                 {
+                    if (entry.Generation > MaxXRefGenerationNum)
+                    {
+                        if (m_StrictParsing)
+                        {
+                            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef,
+                                "Found free object {} with generation number > 65535", i);
+                        }
+
+                        PoDoFo::LogMessage(PdfLogSeverity::Warning,
+                            "Found free object {} with generation number > 65535", i);
+                        break;
+                    }
+
                     // NOTE: We don't need entry.ObjectNumber, which is supposed to be
                     // the entry of the next free object
-                    if (i != 0)
-                        m_Objects->SafeAddFreeObject(PdfReference(i, (uint16_t)entry.Generation));
-
+                    m_Objects->SafeAddFreeObject(PdfReference(i, (uint16_t)entry.Generation));
                     break;
                 }
                 case PdfXRefEntryType::Compressed:
@@ -853,7 +938,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                 }
             }
         }
-        else if (i != 0) // Unparsed
+        else // Unparsed
         {
             m_Objects->AddFreeObject(PdfReference(i, 1));
         }
@@ -883,8 +968,6 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
         m_Objects->AddCompressedObjectStream(pair.first);
         objectList.clear();
     }
-
-    updateDocumentVersion();
 }
 
 void PdfParser::eagerlyLoadStreams()

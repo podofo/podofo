@@ -194,6 +194,20 @@ private:
      */
     void ReadObjectEntries(InputStreamDevice& device);
 
+    /** Reads all objects from the pdf into memory
+     *  from the previously read entries
+     *
+     *  Requires a correctly setup PdfEncrypt object
+     *  with correct password.
+     *
+     *  This method is called from ReadObjects
+     *  or SetPassword.
+     *
+     *  \see ReadObjects
+     *  \see SetPassword
+     */
+    void ReadObjectsInternal(InputStreamDevice& device);
+
     /** Checks the magic number at the start of the pdf file
      *  and sets the m_PdfVersion member to the correct version
      *  of the pdf file.
@@ -222,20 +236,6 @@ private:
      *  \param trailer take the keys to merge from this dictionary.
      */
     void mergeTrailer(const PdfObject& trailer);
-
-    /** Reads all objects from the pdf into memory
-     *  from the previously read entries
-     *
-     *  Requires a correctly setup PdfEncrypt object
-     *  with correct password.
-     *
-     *  This method is called from ReadObjects
-     *  or SetPassword.
-     *
-     *  \see ReadObjects
-     *  \see SetPassword
-     */
-    void readObjectsInternal(InputStreamDevice& device);
 
     void eagerlyLoadStreams();
 
