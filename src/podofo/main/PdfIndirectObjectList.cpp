@@ -299,12 +299,13 @@ void PdfIndirectObjectList::PushObject(PdfObject* obj)
     obj->SetDocument(m_Document);
 
     ObjectList::node_type node;
-    auto it = m_Objects.find(obj);
+    auto it = m_Objects.lower_bound(obj);
     auto hintpos = it;
-    if (it != m_Objects.end())
+    if (it != m_Objects.end()
+        && (*it)->GetIndirectReference().ObjectNumber() == obj->GetIndirectReference().ObjectNumber())
     {
-        // Delete existing object and replace
-        // the pointer on its node
+        // We found and existing object with same number. Let's
+        // replace the pointer on its node
         hintpos++;
         node = m_Objects.extract(it);
         delete node.value();
