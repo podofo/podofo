@@ -22,57 +22,13 @@ class OutputStreamDevice;
  */
 class PdfXRef
 {
-    friend class PdfWriter;
-    friend class PdfImmediateWriter;
     friend class PdfXRefStream;
 
-private:
+public:
     PdfXRef(PdfWriter& writer);
 
 public:
     virtual ~PdfXRef();
-
-protected:
-    struct XRefItem
-    {
-        XRefItem(const PdfReference& ref, uint64_t off)
-            : Reference(ref), Offset(off) { }
-
-        PdfReference Reference;
-        uint64_t Offset;
-
-        bool operator<(const XRefItem& rhs) const
-        {
-            return this->Reference < rhs.Reference;
-        }
-    };
-
-    using XRefItemList = std::vector<XRefItem>;
-    using ReferenceList = std::vector<PdfReference>;
-
-    struct PdfXRefBlock
-    {
-        PdfXRefBlock()
-            : First(0), Count(0) { }
-
-        PdfXRefBlock(const PdfXRefBlock& rhs) = default;
-
-        bool InsertItem(const PdfReference& ref, nullable<uint64_t> offset, bool bUsed);
-
-        bool operator<(const PdfXRefBlock& rhs) const
-        {
-            return First < rhs.First;
-        }
-
-        PdfXRefBlock& operator=(const PdfXRefBlock& rhs) = default;
-
-        uint32_t First;
-        uint32_t Count;
-        XRefItemList Items;
-        ReferenceList FreeItems;
-    };
-
-    using XRefBlockList = std::vector<PdfXRefBlock>;
 
 public:
 
@@ -84,7 +40,7 @@ public:
      *                if std::nullopt, the object will be accounted for
      *                 trailer's /Size but not written in the entries list
      */
-    void AddInUseObject(const PdfReference& ref, nullable<uint64_t> offset);
+    void AddInUseObject(const PdfReference& ref, uint64_t offset);
 
     /** Add a free object to the XRef table.
      *
@@ -95,6 +51,8 @@ public:
      *               for free object references.
      */
     void AddFreeObject(const PdfReference& ref);
+
+    void AddUnavailableObject(uint32_t objNum);
 
     /** Write the XRef table to an output device.
      *
@@ -109,11 +67,6 @@ public:
      *  \returns the size of the xref table
      */
     uint32_t GetSize() const;
-
-    /**
-     * Mark as empty block.
-     */
-    void SetFirstEmptyBlock();
 
     /** Should skip writing for this object
      *  \param ref reference of the object
@@ -166,7 +119,143 @@ protected:
     virtual void EndWriteImpl(OutputStreamDevice& device, charbuff& buffer);
 
 private:
-    void addObject(const PdfReference& ref, nullable<uint64_t> offset, bool inUse);
+    struct XRefObject
+    {
+        XRefObject(const PdfReference& ref, int64_t offset);
+
+        PdfReference Reference;
+        int64_t Offset;
+
+        bool IsFree() const;
+
+        bool IsInUse() const;
+
+        bool IsUnavailable() const;
+    };
+
+    struct XRefObjectInequality
+    {
+        using is_transparent = std::true_type;
+
+        bool operator()(const XRefObject& lhs, const XRefObject& rhs) const
+        {
+            return lhs.Reference.ObjectNumber() < rhs.Reference.ObjectNumber();
+        }
+        bool operator()(const XRefObject& lhs, const PdfReference& rhs) const
+        {
+            return lhs.Reference.ObjectNumber() < rhs.ObjectNumber();
+        }
+        bool operator()(const PdfReference& lhs, const XRefObject& rhs) const
+        {
+            return lhs.ObjectNumber() < rhs.Reference.ObjectNumber();
+        }
+    };
+
+    using XRefObjectList = std::vector<XRefObject>;
+    using XRefObjectSet = std::set<XRefObject, XRefObjectInequality>;
+
+    class XRefSubSectionList;
+
+    class XRefSubSection
+    {
+        friend class XRefSubSectionList;
+    public:
+        class iterator
+        {
+            friend class XRefSubSection;
+
+            iterator(uint32_t objNum, XRefObjectList::const_iterator&& objIt);
+
+            uint32_t ObjectNum;
+            XRefObjectList::const_iterator ObjectIt;
+        };
+
+    private:
+        XRefSubSection();
+
+        XRefSubSection(const XRefSubSection&) = default;
+
+    public:
+        /** Try add the object to this subsection, only
+         * but only if the object number is the next after
+         * last object in the section
+         */
+        bool TryAddObject(const XRefObject& obj);
+
+        /** Try to the get the XRef object for the object referenced
+         * by the iterator and increment it if successful
+         */
+        bool TryGetXRefEntryIncrement(iterator& it, PdfReference& ref, PdfXRefEntry& entry) const;
+
+    public:
+        XRefSubSection& operator=(const XRefSubSection&) = delete;
+
+    public:
+        inline uint32_t GetFirst() const { return m_First; }
+
+        inline uint32_t GetLast() const { return m_Last; }
+
+        inline uint32_t GetCount() const;
+
+        /** This gives raw access to the objects
+         * For entry iteration use TryGetNextEntry()
+         */
+        inline const XRefObjectList& GetObjects() const { return m_Objects; }
+
+        iterator begin() const;
+
+    private:
+        XRefSubSectionList* m_parent;
+        size_t m_Index;
+        uint32_t m_First;
+        uint32_t m_Last;
+        XRefObjectList m_Objects;
+    };
+
+    class XRefSubSectionList
+    {
+        friend class XRefSubSection;
+    public:
+        XRefSubSectionList();
+
+        XRefSubSectionList(const XRefSubSectionList&) = delete;
+    public:
+        /** Push a sub section with just a single unavailable,
+         * generation 65535, object 0
+         */
+        XRefSubSection& PushSubSection();
+
+        /** Push a sub section with single object starting at
+         * the given reference object number
+         */
+        XRefSubSection& PushSubSection(const XRefObject& obj);
+
+
+        /** Push a sub section with all objects from the input,
+         * and forcibly setting first and last object numbers
+         */
+        XRefSubSection& PushSubSection(const XRefObjectSet& objects, uint32_t firstObjectNum, uint32_t lastObjectNum);
+
+    public:
+        const XRefSubSection& operator[](unsigned index) const
+        {
+            return *m_Sections[index];
+        }
+
+        XRefSubSectionList& operator=(const XRefSubSectionList&) = delete;
+
+    public:
+        unsigned GetSize() const { return (unsigned)m_Sections.size(); }
+
+    private:
+        uint32_t GetNextFreeXRefObjectNumber(size_t sectionIdx, uint32_t objectNum, XRefObjectList::const_iterator itObject) const;
+    private:
+        std::vector<std::unique_ptr<XRefSubSection>> m_Sections;
+    };
+
+    void buildSubSections(XRefSubSectionList& sections);
+
+    void addObject(const PdfReference& ref, int64_t offset, bool inUse);
 
     /** Called at the end of writing the XRef table.
      *  Sub classes can overload this method to finish a XRef table.
@@ -176,21 +265,9 @@ private:
      */
     void endWrite(OutputStreamDevice& device, charbuff& buffer);
 
-    const PdfReference* getFirstFreeObject(XRefBlockList::const_iterator itBlock, ReferenceList::const_iterator itFree) const;
-    const PdfReference* getNextFreeObject(XRefBlockList::const_iterator itBlock, ReferenceList::const_iterator itFree) const;
-
-    /** Merge all xref blocks that follow immediately after each other
-     *  into a single block.
-     *
-     *  This results in slightly smaller PDF files which are easier to parse
-     *  for other applications.
-     */
-    void mergeBlocks();
-
 private:
-    uint32_t m_maxObjCount;
-    XRefBlockList m_blocks;
     PdfWriter* m_writer;
+    XRefObjectSet m_xrefObjects;
     uint64_t m_offset;
 };
 

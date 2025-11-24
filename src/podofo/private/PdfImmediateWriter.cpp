@@ -45,7 +45,9 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
     this->WritePdfHeader(*m_Device);
 
     // Manually prepare the cross-reference table/stream
-    m_xRef.reset(GetUseXRefStream() ? new PdfXRefStream(*this) : new PdfXRef(*this));
+    m_xRef.reset(GetUseXRefStream()
+        ? new PdfXRefStream(*this)
+        : new PdfXRef(*this));
 }
 
 PdfImmediateWriter::~PdfImmediateWriter()

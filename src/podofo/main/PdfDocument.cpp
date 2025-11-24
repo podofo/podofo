@@ -101,16 +101,16 @@ void PdfDocument::AppendDocumentPages(const PdfDocument& doc)
 
 void PdfDocument::append(const PdfDocument& doc, bool appendAll)
 {
-    // CHECK-ME: The following is fishy. We switched from m_Objects.GetSize() to m_Objects.GetObjectCount()
+    // CHECK-ME: The following is fishy. We switched from m_Objects.GetSize() to m_Objects.GetLastObjectNumber()
     // to not fall in overlaps in case of removed objects (see https://github.com/podofo/podofo/issues/253),
     // but in this way free objects should be already taken into account. We'll eventually fix it by not
     // relying on computing a static difference between inserted objects and objects being inserted but just
     // inserting objects normally and remapping them with a support map
-    unsigned difference = static_cast<unsigned>(m_Objects.GetObjectCount() + m_Objects.GetFreeObjects().size());
+    unsigned difference = static_cast<unsigned>(m_Objects.GetLastObjectNumber() + m_Objects.GetFreeObjects().size());
 
     // create all free objects again, to have a clean free object list
     for (auto& ref : doc.GetObjects().GetFreeObjects())
-        m_Objects.AddFreeObject(PdfReference(ref.ObjectNumber() + difference, ref.GenerationNumber()));
+        m_Objects.AddFreeObjectUnchecked(PdfReference(ref.ObjectNumber() + difference, ref.GenerationNumber()));
 
     // append all objects first and fix their references
     for (auto& obj : doc.GetObjects())
@@ -187,17 +187,17 @@ void PdfDocument::append(const PdfDocument& doc, bool appendAll)
 
 void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex)
 {
-    // CHECK-ME: The following is fishy. We switched from m_Objects.GetSize() to m_Objects.GetObjectCount()
+    // CHECK-ME: The following is fishy. We switched from m_Objects.GetSize() to m_Objects.GetLastObjectNumber()
     // to not fall in overlaps in case of removed objects (see https://github.com/podofo/podofo/issues/253),
     // but in this way free objects should be already taken into account. We'll eventually fix it by not
     // relying on computing a static difference between inserted objects and objects being inserted but just
     // inserting objects normally and remapping them with a support map
-    unsigned difference = static_cast<unsigned>(m_Objects.GetObjectCount() + m_Objects.GetFreeObjects().size());
+    unsigned difference = static_cast<unsigned>(m_Objects.GetLastObjectNumber() + m_Objects.GetFreeObjects().size());
 
     // create all free objects again, to have a clean free object list
     for (auto& freeObj : doc.GetObjects().GetFreeObjects())
     {
-        m_Objects.AddFreeObject(PdfReference(freeObj.ObjectNumber() + difference, freeObj.GenerationNumber()));
+        m_Objects.AddFreeObjectUnchecked(PdfReference(freeObj.ObjectNumber() + difference, freeObj.GenerationNumber()));
     }
 
     // append all objects first and fix their references
@@ -350,12 +350,12 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
     auto& sourceDoc = page.GetDocument();
     if (this != &sourceDoc)
     {
-        // CHECK-ME: The following is fishy. We switched from m_Objects.GetSize() to m_Objects.GetObjectCount()
+        // CHECK-ME: The following is fishy. We switched from m_Objects.GetSize() to m_Objects.GetLastObjectNumber()
         // to not fall in overlaps in case of removed objects (see https://github.com/podofo/podofo/issues/253),
         // but in this way free objects should be already taken into account. We'll eventually fix it by not
         // relying on computing a static difference between inserted objects and objects being inserted but just
         // inserting objects normally and remapping them with a support map
-        difference = static_cast<unsigned>(m_Objects.GetObjectCount() + m_Objects.GetFreeObjects().size());
+        difference = static_cast<unsigned>(m_Objects.GetLastObjectNumber() + m_Objects.GetFreeObjects().size());
         append(sourceDoc, false);
     }
 

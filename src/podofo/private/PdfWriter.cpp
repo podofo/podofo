@@ -34,8 +34,7 @@ PdfWriter::PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer) :
     m_SaveOptions(PdfSaveOptions::None),
     m_WriteFlags(PdfWriteFlags::None),
     m_PrevXRefOffset(0),
-    m_IncrementalUpdate(false),
-    m_rewriteXRefTable(false)
+    m_IsIncrementalUpdate(false)
 {
 }
 
@@ -49,10 +48,9 @@ PdfWriter::PdfWriter(PdfIndirectObjectList& objects)
 {
 }
 
-void PdfWriter::SetIncrementalUpdate(bool rewriteXRefTable)
+void PdfWriter::SetIncrementalUpdate(bool enabled)
 {
-    m_IncrementalUpdate = true;
-    m_rewriteXRefTable = rewriteXRefTable;
+    m_IsIncrementalUpdate = enabled;
 }
 
 PdfWriter::~PdfWriter()
@@ -87,19 +85,15 @@ void PdfWriter::Write(OutputStreamDevice& device)
 
     try
     {
-        if (!m_IncrementalUpdate)
+        if (!m_IsIncrementalUpdate)
             WritePdfHeader(device);
 
         WritePdfObjects(device, *m_Objects, *xRef);
-
-        if (m_IncrementalUpdate)
-            xRef->SetFirstEmptyBlock();
-
         xRef->Write(device, m_buffer);
     }
     catch (PdfError& e)
     {
-        // P.Zent: Delete Encryption dictionary (cannot be reused)
+        // Delete Encryption dictionary (cannot be reused)
         if (m_EncryptObj != nullptr)
         {
             m_Objects->RemoveObject(m_EncryptObj->GetIndirectReference());
@@ -110,7 +104,7 @@ void PdfWriter::Write(OutputStreamDevice& device)
         throw;
     }
 
-    // P.Zent: Delete Encryption dictionary (cannot be reused)
+    // Delete Encryption dictionary (cannot be reused)
     if (m_EncryptObj != nullptr)
     {
         m_Objects->RemoveObject(m_EncryptObj->GetIndirectReference());
@@ -118,6 +112,7 @@ void PdfWriter::Write(OutputStreamDevice& device)
     }
 
     device.Flush();
+    m_Objects->ResetFreeObjectsInvalidated();
 }
 
 void PdfWriter::WritePdfHeader(OutputStreamDevice& device)
@@ -136,35 +131,8 @@ void PdfWriter::WritePdfObjects(OutputStreamDevice& device, const PdfIndirectObj
         else
             encrypt.reset();
 
-        if (m_IncrementalUpdate && !obj->IsDirty())
-        {
-            if (m_rewriteXRefTable)
-            {
-                PdfParserObject* parserObject = dynamic_cast<PdfParserObject*>(obj);
-                if (parserObject != nullptr)
-                {
-                    // Try to see if we can just write the reference to previous entry
-                    // without rewriting the entry
-
-                    // the reference looks like "0 0 R", while the object identifier like "0 0 obj", thus add two letters
-                    size_t objRefLength = obj->GetIndirectReference().ToString().length() + 2;
-
-                    // the offset points just after the "0 0 obj" string
-                    if (parserObject->GetOffset() - (ssize_t)objRefLength > 0)
-                    {
-                        xref.AddInUseObject(obj->GetIndirectReference(), parserObject->GetOffset() - objRefLength);
-                        continue;
-                    }
-                }
-            }
-            else
-            {
-                // The object will not be output in the XRef entries but it will be
-                // counted in trailer's /Size
-                xref.AddInUseObject(obj->GetIndirectReference(), nullptr);
-                continue;
-            }
-        }
+        if (m_IsIncrementalUpdate && !obj->IsDirty())
+            continue;
 
         if (xref.ShouldSkipWrite(obj->GetIndirectReference()))
         {
@@ -180,9 +148,27 @@ void PdfWriter::WritePdfObjects(OutputStreamDevice& device, const PdfIndirectObj
         }
     }
 
-    for (auto& freeObjectRef : objects.GetFreeObjects())
+    if (m_IsIncrementalUpdate)
     {
-        xref.AddFreeObject(freeObjectRef);
+        if (objects.AreFreeObjectsInvalidated())
+        {
+            // Free objects were invalidated, such as when deleting objects
+            // or re-using free objects references
+            for (auto& freeObjectRef : objects.GetFreeObjects())
+                xref.AddFreeObject(freeObjectRef);
+
+            for (auto& freeObjectRef : objects.GetUnavailableObjects())
+                xref.AddUnavailableObject(freeObjectRef);
+        }
+    }
+    else
+    {
+        // Add to the XRef all free/unavailable objects
+        // NOTE: It's not necessary to add unavailable objects,
+        // they will be handled implictly as when the object
+        // is not defined it's treated as unavailable
+        for (auto& freeObjectRef : objects.GetFreeObjects())
+            xref.AddFreeObject(freeObjectRef);
     }
 }
 
@@ -205,7 +191,7 @@ void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t size, bool onlySize
         PdfArray array;
         // The ID must stay the same if this is an incremental update
         // or the /Encrypt entry was parsed
-        if ((m_IncrementalUpdate || (m_Encrypt != nullptr && m_Encrypt->GetEncrypt().IsParsed())) && !m_originalIdentifier.IsEmpty())
+        if ((m_IsIncrementalUpdate || (m_Encrypt != nullptr && m_Encrypt->GetEncrypt().IsParsed())) && !m_originalIdentifier.IsEmpty())
             array.Add(m_originalIdentifier);
         else
             array.Add(m_identifier);
@@ -215,7 +201,7 @@ void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t size, bool onlySize
         // finally add the key to the trailer dictionary
         trailer.GetDictionary().AddKey("ID"_n, array);
 
-        if (!m_rewriteXRefTable && m_PrevXRefOffset > 0)
+        if (m_PrevXRefOffset > 0)
         {
             PdfVariant value(m_PrevXRefOffset);
             trailer.GetDictionary().AddKey("Prev"_n, value);

@@ -67,23 +67,24 @@ namespace
 
 PdfIndirectObjectList::PdfIndirectObjectList() :
     m_Document(nullptr),
-    m_ObjectCount(0),
+    m_LastObjectNumber(0),
     m_StreamFactory(nullptr)
 {
 }
 
 PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document) :
     m_Document(&document),
-    m_ObjectCount(0),
+    m_LastObjectNumber(0),
     m_StreamFactory(nullptr)
 {
 }
 
 PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document, const PdfIndirectObjectList& rhs)  :
     m_Document(&document),
-    m_ObjectCount(rhs.m_ObjectCount),
+    m_LastObjectNumber(rhs.m_LastObjectNumber),
+    m_FreeObjectsInvalidated(false),
     m_FreeObjects(rhs.m_FreeObjects),
-    m_unavailableObjects(rhs.m_unavailableObjects),
+    m_UnavailableObjects(rhs.m_UnavailableObjects),
     m_StreamFactory(nullptr)
 {
     // Copy all objects from source, resetting parent and indirect reference
@@ -107,9 +108,10 @@ void PdfIndirectObjectList::Clear()
         delete obj;
 
     m_Objects.clear();
-    m_ObjectCount = 0;
+    m_LastObjectNumber = 0;
+    m_FreeObjectsInvalidated = false;
     m_FreeObjects.clear();
-    m_unavailableObjects.clear();
+    m_UnavailableObjects.clear();
     m_compressedObjectStreams.clear();
 }
 
@@ -157,7 +159,7 @@ unique_ptr<PdfObject> PdfIndirectObjectList::removeObject(const iterator& it, bo
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Can't remove a compressed object stream");
 
     if (markAsFree)
-        SafeAddFreeObject(obj->GetIndirectReference());
+        markObjectFree(obj->GetIndirectReference());
 
     m_Objects.erase(it);
     return unique_ptr<PdfObject>(obj);
@@ -170,11 +172,12 @@ PdfReference PdfIndirectObjectList::getNextFreeObject()
     {
         PdfReference freeObjectRef = m_FreeObjects.front();
         m_FreeObjects.pop_front();
+        m_FreeObjectsInvalidated = true;
         return freeObjectRef;
     }
 
     // If no free objects are available, create a new object number with generation 0
-    uint32_t nextObjectNum = static_cast<uint32_t>(m_ObjectCount + 1);
+    uint32_t nextObjectNum = static_cast<uint32_t>(m_LastObjectNumber + 1);
     while (true)
     {
         if (nextObjectNum > PdfCommon::GetMaxObjectCount())
@@ -182,7 +185,7 @@ PdfReference PdfIndirectObjectList::getNextFreeObject()
 
         // Check also if the object number it not available,
         // e.g. it reached maximum generation number (65535)
-        if (m_unavailableObjects.find(nextObjectNum) == m_unavailableObjects.end())
+        if (m_UnavailableObjects.find(nextObjectNum) == m_UnavailableObjects.end())
             break;
 
         nextObjectNum++;
@@ -231,24 +234,12 @@ PdfObject& PdfIndirectObjectList::CreateObject(PdfObject&& obj)
     return *ret;
 }
 
-int32_t PdfIndirectObjectList::SafeAddFreeObject(const PdfReference& reference)
+void PdfIndirectObjectList::AddFreeObjectSafe(const PdfReference& reference)
 {
-    // From 3.4.3 Cross-Reference Table:
-    // "When an indirect object is deleted, its cross-reference
-    // entry is marked free and it is added to the linked list
-    // of free entries.The entry’s generation number is incremented by
-    // 1 to indicate the generation number to be used the next time an
-    // object with that object number is created. Thus, each time
-    // the entry is reused, it is given a new generation number."
-    return tryAddFreeObject(reference.ObjectNumber(), reference.GenerationNumber() + 1);
+    addFreeObject(reference.ObjectNumber(), reference.GenerationNumber());
 }
 
-bool PdfIndirectObjectList::TryAddFreeObject(const PdfReference& reference)
-{
-    return tryAddFreeObject(reference.ObjectNumber(), reference.GenerationNumber()) != -1;
-}
-
-int32_t PdfIndirectObjectList::tryAddFreeObject(uint32_t objnum, uint32_t gennum)
+void PdfIndirectObjectList::addFreeObject(uint32_t objnum, uint16_t gennum)
 {
     // Documentation 3.4.3 Cross-Reference Table states: "The maximum
     // generation number is 65535; when a cross reference entry reaches
@@ -256,15 +247,15 @@ int32_t PdfIndirectObjectList::tryAddFreeObject(uint32_t objnum, uint32_t gennum
     // NOTE: gennum is uint32 to accommodate overflows from callers
     if (gennum >= MaxXRefGenerationNum)
     {
-        m_unavailableObjects.insert(objnum);
-        return -1;
+        m_UnavailableObjects.insert(objnum);
+        tryIncrementLastObjectNumber(objnum);
+        return;
     }
 
-    AddFreeObject(PdfReference(objnum, (uint16_t)gennum));
-    return gennum;
+    AddFreeObjectUnchecked(PdfReference(objnum, gennum));
 }
 
-void PdfIndirectObjectList::AddFreeObject(const PdfReference& reference)
+void PdfIndirectObjectList::AddFreeObjectUnchecked(const PdfReference& reference)
 {
     auto it = std::equal_range(m_FreeObjects.begin(), m_FreeObjects.end(), reference, ReferenceComparatorPredicate());
     if (it.first != it.second && !m_FreeObjects.empty())
@@ -279,7 +270,13 @@ void PdfIndirectObjectList::AddFreeObject(const PdfReference& reference)
 
     // When manually appending free objects we also
     // need to update the object count
-    tryIncrementObjectCount(reference);
+    tryIncrementLastObjectNumber(reference.ObjectNumber());
+}
+
+void PdfIndirectObjectList::AddUnavailableObject(uint32_t objNum)
+{
+    m_UnavailableObjects.insert(objNum);
+    tryIncrementLastObjectNumber(objNum);
 }
 
 void PdfIndirectObjectList::AddCompressedObjectStream(uint32_t objectNum)
@@ -315,13 +312,27 @@ void PdfIndirectObjectList::PushObject(PdfObject* obj)
     pushObject(hintpos, node, obj);
 }
 
+void PdfIndirectObjectList::markObjectFree(const PdfReference& reference)
+{
+    // From 3.4.3 Cross-Reference Table:
+    // "When an indirect object is deleted, its cross-reference
+    // entry is marked free and it is added to the linked list
+    // of free entries.The entry’s generation number is incremented by
+    // 1 to indicate the generation number to be used the next time an
+    // object with that object number is created. Thus, each time
+    // the entry is reused, it is given a new generation number."
+    uint16_t nextGenNumber = reference.GenerationNumber() + 1;
+    addFreeObject(reference.ObjectNumber(), nextGenNumber);
+    m_FreeObjectsInvalidated = true;
+}
+
 void PdfIndirectObjectList::pushObject(const ObjectList::const_iterator& hintpos, ObjectList::node_type& node, PdfObject* obj)
 {
     if (node.empty())
         m_Objects.insert(hintpos, obj);
     else
         m_Objects.insert(hintpos, std::move(node));
-    tryIncrementObjectCount(obj->GetIndirectReference());
+    tryIncrementLastObjectNumber(obj->GetIndirectReference().ObjectNumber());
 }
 
 void PdfIndirectObjectList::CollectGarbage()
@@ -356,7 +367,7 @@ void PdfIndirectObjectList::CollectGarbage(PdfObject& trailer)
         if (referencedOjects.find(ref) == referencedOjects.end()
             && m_compressedObjectStreams.find(ref.ObjectNumber()) == m_compressedObjectStreams.end())
         {
-            SafeAddFreeObject(ref);
+            markObjectFree(ref);
             objectsToDelete.push_back(obj);
             continue;
         }
@@ -461,6 +472,11 @@ unsigned PdfIndirectObjectList::GetSize() const
     return (unsigned)m_Objects.size();
 }
 
+unsigned PdfIndirectObjectList::GetObjectCount() const
+{
+    return m_LastObjectNumber + 1;
+}
+
 void PdfIndirectObjectList::AttachObserver(Observer& observer)
 {
     m_observers.push_back(&observer);
@@ -471,13 +487,18 @@ void PdfIndirectObjectList::SetStreamFactory(StreamFactory* factory)
     m_StreamFactory = factory;
 }
 
-void PdfIndirectObjectList::tryIncrementObjectCount(const PdfReference& ref)
+void PdfIndirectObjectList::ResetFreeObjectsInvalidated()
 {
-    if (ref.ObjectNumber() > m_ObjectCount)
+    m_FreeObjectsInvalidated = false;
+}
+
+void PdfIndirectObjectList::tryIncrementLastObjectNumber(uint32_t objNum)
+{
+    if (objNum > m_LastObjectNumber)
     {
         // "m_ObjectCount" is used to determine the next available object number.
         // It shall be the highest object number otherwise overlaps may occur
-        m_ObjectCount = ref.ObjectNumber();
+        m_LastObjectNumber = objNum;
     }
 }
 

@@ -21,16 +21,11 @@ namespace PoDoFo {
  */
 class PdfXRefStream final : public PdfXRef
 {
-    friend class PdfWriter;
-    friend class PdfImmediateWriter;
-
-private:
+public:
     /** Create a new XRef table
      *
      *  \param writer is needed to fill the trailer directory
      *                 correctly which is included into the XRef
-     *  \param parent a vector of PdfObject is required
-     *                 to create a PdfObject for the XRef
      */
     PdfXRefStream(PdfWriter& writer);
 

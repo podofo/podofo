@@ -12,236 +12,116 @@
 
 #include <algorithm>
 
-#define EMPTY_OBJECT_GENERATION 65535
+constexpr unsigned UnavailableObjectGenerationNumber = 65535;
 
 using namespace std;
 using namespace PoDoFo;
 
 PdfXRef::PdfXRef(PdfWriter& writer)
-    : m_maxObjCount(0), m_writer(&writer), m_offset(0)
-{
-
-}
+    : m_writer(&writer), m_offset(0) { }
 
 PdfXRef::~PdfXRef() { }
 
-void PdfXRef::AddInUseObject(const PdfReference& ref, nullable<uint64_t> offset)
+void PdfXRef::AddInUseObject(const PdfReference& ref, uint64_t offset)
 {
-    addObject(ref, offset, true);
+    addObject(ref, (int64_t)offset, true);
 }
 
 void PdfXRef::AddFreeObject(const PdfReference& ref)
 {
-    addObject(ref, nullptr, false);
+    addObject(ref, -1, false);
 }
 
-void PdfXRef::addObject(const PdfReference& ref, nullable<uint64_t> offset, bool inUse)
+void PdfXRef::AddUnavailableObject(uint32_t objNum)
 {
-    if (ref.ObjectNumber() > m_maxObjCount)
-        m_maxObjCount = ref.ObjectNumber();
+    addObject(PdfReference(objNum, UnavailableObjectGenerationNumber), -1, false);
+}
 
-    if (inUse && offset == nullptr)
+void PdfXRef::addObject(const PdfReference& ref, int64_t offset, bool inUse)
+{
+    // Don't allow object 0, or an in use object with generation number 65535
+    PODOFO_ASSERT(ref.ObjectNumber() != 0 && (ref.GenerationNumber() != UnavailableObjectGenerationNumber || !inUse));
+
+    // Find the insertion point for the object in the ordered set
+    auto it = m_xrefObjects.lower_bound(ref);
+    if (it == m_xrefObjects.end() || it->Reference.ObjectNumber() != ref.ObjectNumber())
     {
-        // Objects with no offset provided will not be written
-        // in the entry list
-        return;
+        // The object is not present, just insert it
+        (void)m_xrefObjects.emplace_hint(it, ref, offset);
     }
-
-    bool insertDone = false;
-
-    for (auto& block : m_blocks)
+    else
     {
-        if (block.InsertItem(ref, offset, inUse))
-        {
-            insertDone = true;
-            break;
-        }
-    }
-
-    if (!insertDone)
-    {
-        PdfXRefBlock block;
-        block.First = ref.ObjectNumber();
-        block.Count = 1;
-        if (inUse)
-            block.Items.push_back(XRefItem(ref, offset.value()));
-        else
-            block.FreeItems.push_back(ref);
-
-        m_blocks.push_back(block);
-        std::sort(m_blocks.begin(), m_blocks.end());
+        // Update the existing object by extracting
+        // the node and reinsert it in the set
+        auto hintIt = std::next(it);
+        auto node = m_xrefObjects.extract(it);
+        node.value().Reference = ref;
+        node.value().Offset = offset;
+        (void)m_xrefObjects.insert(hintIt, std::move(node));
     }
 }
 
 void PdfXRef::Write(OutputStreamDevice& device, charbuff& buffer)
 {
-    auto it = m_blocks.begin();
-    XRefItemList::const_iterator itItems;
-    ReferenceList::const_iterator itFree;
-    const PdfReference* nextFree = nullptr;
-
-    uint32_t first = 0;
-    uint32_t count = 0;
-
-    mergeBlocks();
+    XRefSubSectionList sections;
+    buildSubSections(sections);
 
     m_offset = device.GetPosition();
     this->BeginWrite(device, buffer);
-    while (it != m_blocks.end())
-    {
-        auto& block = *it;
-        count = block.Count;
-        first = block.First;
-        itFree = block.FreeItems.begin();
-        itItems = block.Items.begin();
 
-        if (first == 1)
-        {
-            first--;
-            count++;
-        }
+    for (unsigned i = 0; i < sections.GetSize(); i++)
+    {
+        auto& section = sections[i];
+        PODOFO_ASSERT(section.GetCount() != 0);
 
         // when there is only one, then we need to start with 0 and the bogus object...
-        this->WriteSubSection(device, first, count, buffer);
+        this->WriteSubSection(device, section.GetFirst(), section.GetCount(), buffer);
 
-        if (first == 0)
-        {
-            const PdfReference* firstFree = getFirstFreeObject(it, itFree);
-            this->WriteXRefEntry(device, PdfReference(0, EMPTY_OBJECT_GENERATION),
-                PdfXRefEntry::CreateFree(firstFree == nullptr ? 0 : firstFree->ObjectNumber(), EMPTY_OBJECT_GENERATION),
-                buffer);
-        }
-
-        while (itItems != block.Items.end())
-        {
-            // check if there is a free object at the current position
-            while (itFree != block.FreeItems.end() &&
-                *itFree < itItems->Reference)
-            {
-                uint16_t genNo = itFree->GenerationNumber();
-
-                // get a pointer to the next free object
-                nextFree = this->getNextFreeObject(it, itFree);
-
-                // write free object
-                this->WriteXRefEntry(device, *itFree,
-                    PdfXRefEntry::CreateFree(nextFree == nullptr ? 0 : nextFree->ObjectNumber(), genNo), buffer);
-                itFree++;
-            }
-
-            this->WriteXRefEntry(device, itItems->Reference,
-                PdfXRefEntry::CreateInUse(itItems->Offset, itItems->Reference.GenerationNumber()), buffer);
-            itItems++;
-        }
-
-        // Check if there are any free objects left!
-        while (itFree != block.FreeItems.end())
-        {
-            uint16_t genNo = itFree->GenerationNumber();
-
-            // get a pointer to the next free object
-            nextFree = this->getNextFreeObject(it, itFree);
-
-            // write free object
-            this->WriteXRefEntry(device, *itFree,
-                PdfXRefEntry::CreateFree(nextFree  == nullptr ? 0 : nextFree->ObjectNumber(), genNo), buffer);
-            itFree++;
-        }
-
-        it++;
+        auto it = section.begin();
+        PdfReference ref;
+        PdfXRefEntry entry;
+        while (section.TryGetXRefEntryIncrement(it, ref, entry))
+            WriteXRefEntry(device, ref, entry, buffer);
     }
 
     endWrite(device, buffer);
 }
 
-const PdfReference* PdfXRef::getFirstFreeObject(XRefBlockList::const_iterator itBlock, ReferenceList::const_iterator itFree) const
+void PdfXRef::buildSubSections(XRefSubSectionList& sections)
 {
-    // find the next free object
-    while (itBlock != m_blocks.end())
+    if (m_writer->IsIncrementalUpdate())
     {
-        if (itFree != itBlock->FreeItems.end())
-            break; // got a free object
-
-        itBlock++;
-        if (itBlock != m_blocks.end())
-            itFree = itBlock->FreeItems.begin();
+        // The following effectively adds a free entry for object 0
+        // with generation number (65535, meaning it's unavailable).
+        // It was present in PoDoFo 0.9.x[1] since they introduced
+        // incremental saving/signing. It may be required to
+        // workaround opening of files with incremental saves, as
+        // Acrobat is sometimes silly if there's no cross-reference
+        // section starting with ObjNum 0
+        // [1] https://github.com/podofo/podofo/blob/5723d09bbab68340a3a32923d90910c3d6912cdd/src/podofo/base/PdfWriter.cpp#L182
+        auto section = &sections.PushSubSection();
+        for (auto& obj : m_xrefObjects)
+        {
+            // Try to add the XRef object to the current section,
+            // or append a new one
+             if (!section->TryAddObject(obj))
+                section = &sections.PushSubSection(obj);
+        }
     }
-
-    // if there is another free object, return it
-    if (itBlock != m_blocks.end() &&
-        itFree != itBlock->FreeItems.end())
+    else
     {
-        return &(*itFree);
+        // Per ISO 32000-2:2020 7.5.4 Cross-reference table "For a PDF file
+        // that has never been incrementally updated, the cross-reference
+        // section shall contain only one subsection, whose object numbering
+        // begins at 0"
+        (void)sections.PushSubSection(m_xrefObjects, 0, m_writer->GetObjects().GetLastObjectNumber());
     }
-
-    return nullptr;
-}
-
-const PdfReference* PdfXRef::getNextFreeObject(XRefBlockList::const_iterator itBlock, ReferenceList::const_iterator itFree) const
-{
-    // check if itFree points to a valid free object at the moment
-    if (itFree != itBlock->FreeItems.end())
-        itFree++; // we currently have a free object, so go to the next one
-
-    // find the next free object
-    while (itBlock != m_blocks.end())
-    {
-        if (itFree != itBlock->FreeItems.end())
-            break; // got a free object
-
-        itBlock++;
-        if (itBlock != m_blocks.end())
-            itFree = itBlock->FreeItems.begin();
-    }
-
-    // if there is another free object, return it
-    if (itBlock != m_blocks.end() &&
-        itFree != itBlock->FreeItems.end())
-    {
-        return &(*itFree);
-    }
-
-    return nullptr;
 }
 
 uint32_t PdfXRef::GetSize() const
 {
     // From the PdfReference: /Size's value is 1 greater than the highest object number used in the file.
-    return m_maxObjCount + 1;
-}
-
-void PdfXRef::mergeBlocks()
-{
-    auto it = m_blocks.begin();
-    auto itNext = it + 1;
-
-    // Stop in case we have no blocks at all
-    if (it == m_blocks.end())
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRef);
-
-    while (itNext != m_blocks.end())
-    {
-        auto& curr = *it;
-        auto& next = *itNext;
-        if (next.First == curr.First + curr.Count)
-        {
-            // merge the two 
-            curr.Count += next.Count;
-
-            curr.Items.reserve(curr.Items.size() + next.Items.size());
-            curr.Items.insert(curr.Items.end(), next.Items.begin(), next.Items.end());
-
-            curr.FreeItems.reserve(curr.FreeItems.size() + next.FreeItems.size());
-            curr.FreeItems.insert(curr.FreeItems.end(), next.FreeItems.begin(), next.FreeItems.end());
-
-            itNext = m_blocks.erase(itNext);
-            it = itNext - 1;
-        }
-        else
-        {
-            it = itNext++;
-        }
-    }
+    return m_writer->GetObjects().GetLastObjectNumber() + 1;
 }
 
 void PdfXRef::BeginWrite(OutputStreamDevice& device, charbuff& buffer)
@@ -303,14 +183,6 @@ void PdfXRef::endWrite(OutputStreamDevice& device, charbuff& buffer)
     device.Write(buffer);
 }
 
-void PdfXRef::SetFirstEmptyBlock()
-{
-    PdfXRefBlock block;
-    block.First = 0;
-    block.Count = 1;
-    m_blocks.insert(m_blocks.begin(), block);
-}
-
 bool PdfXRef::ShouldSkipWrite(const PdfReference& ref)
 {
     (void)ref;
@@ -318,54 +190,162 @@ bool PdfXRef::ShouldSkipWrite(const PdfReference& ref)
     return false;
 }
 
-bool PdfXRef::PdfXRefBlock::InsertItem(const PdfReference& ref, nullable<uint64_t> offset, bool inUse)
+PdfXRef::XRefSubSection::XRefSubSection() :
+    m_parent(nullptr), m_Index(numeric_limits<size_t>::max()),
+    m_First(numeric_limits<unsigned>::max()), m_Last(0) { }
+
+bool PdfXRef::XRefSubSection::TryAddObject(const XRefObject& obj)
 {
-    PODOFO_ASSERT(!inUse || offset.has_value());
-    if (ref.ObjectNumber() == First + Count)
-    {
-        // Insert at back
-        Count++;
+    // Check if the added object is the next one after the last one
+    if (obj.Reference.ObjectNumber() != m_Last + 1)
+        return false;
 
-        if (inUse)
-            Items.push_back(XRefItem(ref, offset.value()));
+    // Insert at back, unless it's an unavailable object. Those
+    // are handled as fallbacks when iterating the section
+    if (obj.Reference.GenerationNumber() != UnavailableObjectGenerationNumber)
+        m_Objects.emplace_back(obj.Reference, obj.Offset);
+
+    m_Last++;
+    return true;
+}
+
+bool PdfXRef::XRefSubSection::TryGetXRefEntryIncrement(iterator& it, PdfReference& ref, PdfXRefEntry& entry) const
+{
+    if (it.ObjectNum > m_Last)
+        return false;
+
+    const XRefObject* obj = nullptr;
+    if (it.ObjectIt != m_Objects.end() && (obj = &*it.ObjectIt)->Reference.ObjectNumber() == it.ObjectNum)
+    {
+        // The current object number lies in the lists,
+        // which contains in use and proper free objects
+        ref = obj->Reference;
+        if (obj->IsInUse())
+            entry = PdfXRefEntry::CreateInUse((uint64_t)obj->Offset, obj->Reference.GenerationNumber());
         else
-            FreeItems.push_back(ref);
-
-        return true; // no sorting required
+            entry = PdfXRefEntry::CreateFree(m_parent->GetNextFreeXRefObjectNumber(m_Index, it.ObjectNum + 1, std::next(it.ObjectIt)), ref.GenerationNumber());
+        it.ObjectIt++;
     }
-    else if (ref.ObjectNumber() == First - 1)
+    else
     {
-        // Insert at front 
-        First--;
-        Count++;
-
-        // This is known to be slow, but should not occur actually
-        if (inUse)
-            Items.insert(Items.begin(), XRefItem(ref, offset.value()));
-        else
-            FreeItems.insert(FreeItems.begin(), ref);
-
-        return true; // no sorting required
+        // The current object number is unavailable, create a free entry for it
+        ref = PdfReference(it.ObjectNum, UnavailableObjectGenerationNumber);
+        entry = PdfXRefEntry::CreateFree(m_parent->GetNextFreeXRefObjectNumber(m_Index, it.ObjectNum + 1, it.ObjectIt), UnavailableObjectGenerationNumber);
     }
-    else if (ref.ObjectNumber() > First - 1 &&
-        ref.ObjectNumber() < First + Count)
-    {
-        // Insert at back
-        Count++;
 
-        if (inUse)
+    it.ObjectNum++;
+    return true;
+}
+
+PdfXRef::XRefSubSection::iterator PdfXRef::XRefSubSection::begin() const
+{
+    return iterator(m_First, m_Objects.begin());
+}
+
+uint32_t PdfXRef::XRefSubSection::GetCount() const
+{
+    return m_Last - m_First + 1;
+}
+
+PdfXRef::XRefObject::XRefObject(const PdfReference& ref, int64_t offset)
+    : Reference(ref), Offset(offset) { }
+
+bool PdfXRef::XRefObject::IsFree() const
+{
+    return Offset < 0;
+}
+
+bool PdfXRef::XRefObject::IsInUse() const
+{
+    return Offset >= 0;
+}
+
+bool PdfXRef::XRefObject::IsUnavailable() const
+{
+    return Reference.GenerationNumber() == UnavailableObjectGenerationNumber;
+}
+
+PdfXRef::XRefSubSection::iterator::iterator(uint32_t objNum, XRefObjectList::const_iterator&& objectIt)
+    : ObjectNum(objNum), ObjectIt(std::move(objectIt)) { }
+
+PdfXRef::XRefSubSectionList::XRefSubSectionList() { }
+
+PdfXRef::XRefSubSection& PdfXRef::XRefSubSectionList::PushSubSection()
+{
+    size_t index = m_Sections.size();
+    auto& ret = *m_Sections.emplace_back(new XRefSubSection());
+    ret.m_parent = this;
+    ret.m_Index = index;
+    ret.m_First = 0;
+    ret.m_Last = 0;
+    return ret;
+}
+
+PdfXRef::XRefSubSection& PdfXRef::XRefSubSectionList::PushSubSection(const XRefObject& item)
+{
+    size_t index = m_Sections.size();
+    auto& ret = *m_Sections.emplace_back(new XRefSubSection());
+    ret.m_parent = this;
+    ret.m_Index = index;
+    if (!item.IsUnavailable())
+        ret.m_Objects.emplace_back(item.Reference, item.Offset);
+
+    ret.m_First = item.Reference.ObjectNumber();
+    ret.m_Last = ret.m_First;
+    return ret;
+}
+
+PdfXRef::XRefSubSection& PdfXRef::XRefSubSectionList::PushSubSection(const XRefObjectSet& objects, uint32_t firstObjectNum, uint32_t lastObjectNum)
+{
+    PODOFO_ASSERT(firstObjectNum <= lastObjectNum);
+    size_t index = m_Sections.size();
+    auto& ret = *m_Sections.emplace_back(new XRefSubSection());
+    ret.m_parent = this;
+    ret.m_Index = index;
+    for (auto& obj : objects)
+        (void)ret.m_Objects.emplace_back(obj.Reference, obj.Offset);
+
+    PODOFO_ASSERT(ret.m_Objects.size() == 0 || (ret.m_Objects.front().Reference.ObjectNumber() >= firstObjectNum
+        && ret.m_Objects.back().Reference.ObjectNumber() <= lastObjectNum));
+    ret.m_First = firstObjectNum;
+    ret.m_Last = lastObjectNum;
+    return ret;
+}
+
+uint32_t PdfXRef::XRefSubSectionList::GetNextFreeXRefObjectNumber(size_t sectionIdx, uint32_t currObjectNum, XRefObjectList::const_iterator itObject) const
+{
+    auto sectionIt = m_Sections.begin() + sectionIdx;
+    auto objects = &(*sectionIt)->GetObjects();
+    while (true)
+    {
+        auto& section = **sectionIt;
+        for (; currObjectNum <= section.GetLast(); currObjectNum++)
         {
-            Items.push_back(XRefItem(ref, offset.value()));
-            std::sort(Items.begin(), Items.end());
-        }
-        else
-        {
-            FreeItems.push_back(ref);
-            std::sort(FreeItems.begin(), FreeItems.end());
+            // Iterate remaining objects in the section, determining if they lies
+            // in the list or they are absent, meaning they are unavailable
+            if (itObject != objects->end() && itObject->Reference.ObjectNumber() == currObjectNum)
+            {
+                if (itObject->IsFree())
+                    return currObjectNum;
+
+                // Increment the list iterator and test the next object number
+                itObject++;
+                continue;
+            }
+
+            // If the object is not found in the list, it's unavailable
+            // so it's free by definition
+            return currObjectNum;
         }
 
-        return true;
+        sectionIt++;
+        if (sectionIt == m_Sections.end())
+            break;
+
+        objects = &(*sectionIt)->GetObjects();
+        currObjectNum = (*sectionIt)->GetFirst();
+        itObject = objects->begin();
     }
 
-    return false;
+    return 0;
 }

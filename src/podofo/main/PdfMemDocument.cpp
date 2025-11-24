@@ -204,7 +204,7 @@ void PdfMemDocument::SaveUpdate(OutputStreamDevice& device, PdfSaveOptions opts)
     writer.SetSaveOptions(opts);
     writer.SetPrevXRefOffset(m_PrevXRefOffset);
     writer.SetUseXRefStream(m_HasXRefStream);
-    writer.SetIncrementalUpdate(false);
+    writer.SetIncrementalUpdate(true);
 
     if (m_Encrypt != nullptr)
         writer.SetEncrypt(*m_Encrypt);

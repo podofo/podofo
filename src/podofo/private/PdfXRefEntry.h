@@ -25,7 +25,7 @@ namespace PoDoFo
     {
         PdfXRefEntry();
 
-        static PdfXRefEntry CreateFree(uint32_t object, uint16_t generation);
+        static PdfXRefEntry CreateFree(uint32_t nextFreeObj, uint16_t generation);
 
         static PdfXRefEntry CreateInUse(uint64_t offset, uint16_t generation);
 

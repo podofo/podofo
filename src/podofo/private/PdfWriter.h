@@ -112,14 +112,13 @@ public:
 
     /** Set whether writing an incremental update.
      *  Default is false.
-     *  \param incrementalUpdate if true an incremental update will be written
      */
-    void SetIncrementalUpdate(bool rewriteXRefTable);
+    void SetIncrementalUpdate(bool enabled);
 
     /**
      *  \returns whether writing an incremental update
      */
-    inline bool GetIncrementalUpdate() const { return m_IncrementalUpdate; }
+    inline bool IsIncrementalUpdate() const { return m_IsIncrementalUpdate; }
 
     /**
      * \returns true if this PdfWriter creates an encrypted PDF file
@@ -189,8 +188,7 @@ private:
     PdfString m_identifier;
     PdfString m_originalIdentifier; // used for incremental update
     int64_t m_PrevXRefOffset;
-    bool m_IncrementalUpdate;
-    bool m_rewriteXRefTable; // Only used if incremental update
+    bool m_IsIncrementalUpdate;
 };
 
 };

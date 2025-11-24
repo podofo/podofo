@@ -881,7 +881,7 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
                                 obj->GetIndirectReference().ObjectNumber(),
                                 obj->GetIndirectReference().GenerationNumber(),
                                 entry.Offset, i);
-                            m_Objects->SafeAddFreeObject(reference);
+                            m_Objects->AddUnavailableObject(i);
                         }
                     }
                     else if (entry.Generation == 0)
@@ -899,8 +899,8 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
                         else
                         {
                             PoDoFo::LogMessage(PdfLogSeverity::Warning,
-                                "Treating object {} 0 R as a free object", i);
-                            m_Objects->AddFreeObject(PdfReference(i, 1));
+                                "Treating object {} 0 R as a unavailable object", i);
+                            m_Objects->AddUnavailableObject(i);
                         }
                     }
                     break;
@@ -917,6 +917,7 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
 
                         PoDoFo::LogMessage(PdfLogSeverity::Warning,
                             "Found free object {} with generation number > 65535", i);
+                        m_Objects->AddUnavailableObject(i);
                         break;
                     }
 
@@ -930,12 +931,13 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
 
                         PoDoFo::LogMessage(PdfLogSeverity::Warning,
                             "Skipped free object entry {} with generation number 0", i);
+                        m_Objects->AddUnavailableObject(i);
                         break;
                     }
 
                     // NOTE: We don't need entry.ObjectNumber, which is supposed to be
                     // the object number of the next free object
-                    m_Objects->SafeAddFreeObject(PdfReference(i, (uint16_t)entry.Generation));
+                    m_Objects->AddFreeObjectSafe(PdfReference(i, (uint16_t)entry.Generation));
                     break;
                 }
                 case PdfXRefEntryType::Compressed:
@@ -953,14 +955,12 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
         }
         else // Unparsed
         {
-            m_Objects->AddFreeObject(PdfReference(i, 1));
+            // The linked free list in the xref section is not always correct in pdf's
+            // (especially Illustrator) but Acrobat still accepts them. I've seen XRefs
+            // where some object-numbers are altogether missing and multiple XRefs where
+            // the link list is broken.
+            m_Objects->AddUnavailableObject(i);
         }
-        // the linked free list in the xref section is not always correct in pdf's
-        // (especially Illustrator) but Acrobat still accepts them. I've seen XRefs 
-        // where some object-numbers are altogether missing and multiple XRefs where 
-        // the link list is broken.
-        // Because PdfIndirectObjectList relies on a unbroken range, fill the free list more
-        // robustly from all places which are either free or unparsed
     }
 
     // all normal objects including object streams are available now,
