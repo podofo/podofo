@@ -780,16 +780,16 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
                 }
                 case PdfXRefEntryType::Free:
                 {
-                    if (entry.Generation > MaxXRefGenerationNum)
+                    if (entry.Generation != MaxXRefGenerationNum)
                     {
                         if (m_StrictParsing)
                         {
                             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef,
-                                "Found object 0 with generation number > 65535");
+                                "Found object 0 with generation number != 65535");
                         }
 
                         PoDoFo::LogMessage(PdfLogSeverity::Warning,
-                            "Found free object  0 with generation number > 65535");
+                            "Found free object 0 with generation number!= 65535");
                     }
 
                     break;
@@ -920,8 +920,21 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
                         break;
                     }
 
+                    if (entry.Generation == 0)
+                    {
+                        if (m_StrictParsing)
+                        {
+                            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef,
+                                "Skipped free object entry {} with generation number 0", i);
+                        }
+
+                        PoDoFo::LogMessage(PdfLogSeverity::Warning,
+                            "Skipped free object entry {} with generation number 0", i);
+                        break;
+                    }
+
                     // NOTE: We don't need entry.ObjectNumber, which is supposed to be
-                    // the entry of the next free object
+                    // the object number of the next free object
                     m_Objects->SafeAddFreeObject(PdfReference(i, (uint16_t)entry.Generation));
                     break;
                 }

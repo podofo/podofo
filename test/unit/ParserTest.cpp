@@ -2306,10 +2306,11 @@ void PdfParserTest::TestInvalidXRefEntries()
         string strInput =
             "0000000000 65535 n\r\n"
             "0000000001 65536 n\r\n"
+            "0000000003 00000 f\r\n"
             "0000000000 65536 f\r\n";
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, strInput);
-        parser.ReadXRefSubsection(0, 3);
+        parser.ReadXRefSubsection(0, 4);
         parser.ReadObjectsInternal();
         PdfCommon::SetMaxLoggingSeverity(currentLogSeverity);
         REQUIRE(objects.GetSize() == 0);
