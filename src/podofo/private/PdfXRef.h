@@ -255,7 +255,7 @@ private:
 
     void buildSubSections(XRefSubSectionList& sections);
 
-    void addObject(const PdfReference& ref, int64_t offset, bool inUse);
+    void addObject(const PdfReference& ref, int64_t offset);
 
     /** Called at the end of writing the XRef table.
      *  Sub classes can overload this method to finish a XRef table.

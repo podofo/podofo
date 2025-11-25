@@ -24,24 +24,24 @@ PdfXRef::~PdfXRef() { }
 
 void PdfXRef::AddInUseObject(const PdfReference& ref, uint64_t offset)
 {
-    addObject(ref, (int64_t)offset, true);
+    PODOFO_ASSERT(ref.ObjectNumber() != 0 && offset < (uint64_t)numeric_limits<int64_t>::max());
+    addObject(ref, (int64_t)offset);
 }
 
 void PdfXRef::AddFreeObject(const PdfReference& ref)
 {
-    addObject(ref, -1, false);
+    PODOFO_ASSERT(ref.ObjectNumber() != 0 && ref.GenerationNumber() != 0);
+    addObject(ref, -1);
 }
 
 void PdfXRef::AddUnavailableObject(uint32_t objNum)
 {
-    addObject(PdfReference(objNum, UnavailableObjectGenerationNumber), -1, false);
+    PODOFO_ASSERT(objNum != 0);
+    addObject(PdfReference(objNum, UnavailableObjectGenerationNumber), -1);
 }
 
-void PdfXRef::addObject(const PdfReference& ref, int64_t offset, bool inUse)
+void PdfXRef::addObject(const PdfReference& ref, int64_t offset)
 {
-    // Don't allow object 0, or an in use object with generation number 65535
-    PODOFO_ASSERT(ref.ObjectNumber() != 0 && (ref.GenerationNumber() != UnavailableObjectGenerationNumber || !inUse));
-
     // Find the insertion point for the object in the ordered set
     auto it = m_xrefObjects.lower_bound(ref);
     if (it == m_xrefObjects.end() || it->Reference.ObjectNumber() != ref.ObjectNumber())
