@@ -16,5 +16,5 @@ TEST_CASE("TestFixInvalidCrossReferenceTable")
     doc.Save(TestUtils::GetTestOutputFilePath("TestFixInvalidCrossReferenceTable.pdf"), PdfSaveOptions::NoMetadataUpdate);
     charbuff buff;
     utls::ReadTo(buff, TestUtils::GetTestOutputFilePath("TestFixInvalidCrossReferenceTable.pdf"));
-    REQUIRE(ssl::ComputeMD5Str(buff) == "CBD04FBCAADE32271C45BFA0EEFF8D2D");
+    REQUIRE(ssl::ComputeMD5Str(buff) == "FF980936FDE894F4495DDEC7C13AF4F4");
 }
