@@ -264,6 +264,8 @@ void PdfParser::readNextTrailer(InputStreamDevice& device, bool skipFollowPrevio
             // we know that the file was updated.
             m_IncrementalUpdateCount++;
 
+            // Fix the offset with the magic offset
+            offset += m_magicOffset;
             if (!skipFollowPrevious)
             {
                 if (m_visitedXRefOffsets.find((size_t)offset) == m_visitedXRefOffsets.end())
