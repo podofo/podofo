@@ -52,7 +52,7 @@ void PdfParser::init()
 {
     m_PdfVersion = PdfVersion::Unknown;
     m_HasXRefStream = false;
-    m_magicOffset = 0;
+    m_MagicOffset = 0;
     m_StartXRefTokenPos = 0;
     m_XRefOffset = 0;
     m_FileSize = numeric_limits<size_t>::max();
@@ -126,7 +126,7 @@ void PdfParser::ReadDocumentStructure(InputStreamDevice& device, ssize_t eofSear
     m_StartXRefTokenPos = device.GetPosition() - char_traits<char>::length("startxref");
 
     // Support also files with whitespace offset before magic start
-    m_XRefOffset = (size_t)m_tokenizer.ReadNextNumber(device) + m_magicOffset;
+    m_XRefOffset = (size_t)m_tokenizer.ReadNextNumber(device) + m_MagicOffset;
 
     try
     {
@@ -163,7 +163,7 @@ void PdfParser::ReadDocumentStructure(InputStreamDevice& device, ssize_t eofSear
 
 void PdfParser::ReadHeader(InputStreamDevice& device)
 {
-    if (!tryReadHeader(device, m_magicOffset, m_PdfVersion))
+    if (!tryReadHeader(device, m_MagicOffset, m_PdfVersion))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidPDF, "Unable to read PDF header");
 }
 
@@ -219,7 +219,7 @@ bool PdfParser::tryRebuildCrossReference(InputStreamDevice& device)
 
     try
     {
-        device.Seek(m_magicOffset + PDF_MAGIC_LENGHT);
+        device.Seek(m_MagicOffset + PDF_MAGIC_LENGHT);
         string_view token;
         PdfTokenType tokenType;
         vector<pair<uint32_t, size_t>> numbers;
@@ -408,7 +408,7 @@ void PdfParser::readNextTrailer(InputStreamDevice& device, bool skipFollowPrevio
             m_IncrementalUpdateCount++;
 
             // Fix the offset with the magic offset
-            offset += m_magicOffset;
+            offset += m_MagicOffset;
             if (!skipFollowPrevious)
             {
                 if (m_visitedXRefOffsets.find((size_t)offset) == m_visitedXRefOffsets.end())
@@ -601,7 +601,7 @@ void PdfParser::ReadXRefSubsection(InputStreamDevice& device, int64_t& firstObje
                 case PdfXRefEntryType::InUse:
                 {
                     // Support also files with whitespace offset before magic start
-                    variant += (uint64_t)m_magicOffset;
+                    variant += (uint64_t)m_MagicOffset;
                     if (variant > PTRDIFF_MAX)
                     {
                         // max size is PTRDIFF_MAX, so throw error if llOffset too big

@@ -17,7 +17,7 @@ using namespace PoDoFo;
 
 PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const PdfObject& trailer,
         OutputStreamDevice& device, PdfVersion version, shared_ptr<PdfEncrypt> encrypt, PdfSaveOptions opts) :
-    PdfWriter(objects, trailer),
+    PdfWriter(objects, trailer, 0),
     m_Device(&device),
     m_OpenStream(false)
 {

@@ -24,6 +24,7 @@ PdfMemDocument::PdfMemDocument(bool empty) :
     m_Version(PdfVersionDefault),
     m_InitialVersion(PdfVersionDefault),
     m_HasXRefStream(false),
+    m_MagicOffset(0),
     m_PrevXRefOffset(-1)
 {
 }
@@ -51,6 +52,7 @@ PdfMemDocument::PdfMemDocument(const PdfMemDocument& rhs) :
     m_Version(rhs.m_Version),
     m_InitialVersion(rhs.m_InitialVersion),
     m_HasXRefStream(rhs.m_HasXRefStream),
+    m_MagicOffset(rhs.m_MagicOffset),
     m_PrevXRefOffset(rhs.m_PrevXRefOffset)
 {
     // Do a full copy of the encrypt session
@@ -80,6 +82,7 @@ void PdfMemDocument::initFromParser(PdfParser& parser)
     m_InitialVersion = m_Version;
     m_HasXRefStream = parser.HasXRefStream();
     m_PrevXRefOffset = parser.GetXRefOffset();
+    m_MagicOffset = parser.GetMagicOffset();
     this->SetTrailer(parser.TakeTrailer());
 
     if (PdfCommon::IsLoggingSeverityEnabled(PdfLogSeverity::Debug))
@@ -169,7 +172,7 @@ void PdfMemDocument::Save(OutputStreamDevice& device, PdfSaveOptions opts)
 {
     beforeWrite(opts);
 
-    PdfWriter writer(this->GetObjects(), this->GetTrailer().GetObject());
+    PdfWriter writer(this->GetObjects(), this->GetTrailer().GetObject(), 0);
     writer.SetPdfVersion(GetMetadata().GetPdfVersion());
     writer.SetPdfALevel(GetMetadata().GetPdfALevel());
     writer.SetSaveOptions(opts);
@@ -198,7 +201,7 @@ void PdfMemDocument::SaveUpdate(OutputStreamDevice& device, PdfSaveOptions opts)
 {
     beforeWrite(opts);
 
-    PdfWriter writer(this->GetObjects(), this->GetTrailer().GetObject());
+    PdfWriter writer(this->GetObjects(), this->GetTrailer().GetObject(), m_MagicOffset);
     writer.SetPdfVersion(GetMetadata().GetPdfVersion());
     writer.SetPdfALevel(GetMetadata().GetPdfALevel());
     writer.SetSaveOptions(opts);

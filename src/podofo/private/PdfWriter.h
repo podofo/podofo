@@ -27,7 +27,7 @@ class PdfXRef;
 class PdfWriter
 {
 private:
-    PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer);
+    PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer, size_t magicOffset);
 
 public:
     /** Create a new pdf file, from an vector of PdfObjects
@@ -35,7 +35,8 @@ public:
      *  \param objects the vector of objects
      *  \param trailer a valid trailer object
      */
-    PdfWriter(PdfIndirectObjectList& objects, const PdfObject& trailer);
+    PdfWriter(PdfIndirectObjectList& objects, const PdfObject& trailer,
+        size_t magicOffset);
 
     virtual ~PdfWriter();
 
@@ -127,6 +128,8 @@ public:
 
     inline PdfIndirectObjectList& GetObjects() { return *m_Objects; }
 
+    inline size_t GetMagicOffset() const { return m_MagicOffset; }
+
 protected:
     /**
      * Create a PdfWriter from a PdfIndirectObjectList
@@ -173,6 +176,7 @@ protected:
 private:
     PdfIndirectObjectList* m_Objects;
     const PdfObject* m_Trailer;
+    size_t m_MagicOffset;
     PdfVersion m_Version;
     PdfALevel m_PdfALevel;
 

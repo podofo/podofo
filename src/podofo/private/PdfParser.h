@@ -153,7 +153,9 @@ public:
 
     inline void SetLoadStreamsEagerly(bool value) { m_LoadStreamsEagerly = value; }
 
-    const PdfEncryptSession* GetEncrypt() const { return m_Encrypt.get(); }
+    inline const PdfEncryptSession* GetEncrypt() const { return m_Encrypt.get(); }
+
+    inline size_t GetMagicOffset() const { return m_MagicOffset; }
 
 private:
     /**
@@ -294,7 +296,7 @@ private:
     bool m_LoadStreamsEagerly;
     bool m_HasXRefStream;
 
-    size_t m_magicOffset;
+    size_t m_MagicOffset;
     size_t m_StartXRefTokenPos;
     size_t m_XRefOffset;
     size_t m_FileSize;

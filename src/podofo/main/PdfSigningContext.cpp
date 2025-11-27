@@ -17,13 +17,12 @@ constexpr const char* ByteRangeBeacon = "[ 0 1234567890 1234567890 1234567890]";
 constexpr size_t BufferSize = 65536;
 
 static PdfSignature& getSignature(PdfDocument& doc, int pageIndex, const PdfReference& signatureRef);
-static size_t readForSignature(StreamDevice& device,
-    size_t conentsBeaconOffset, size_t conentsBeaconSize,
+static size_t readForSignature(StreamDevice& device, size_t contentsBeaconOffset, size_t contentsBeaconSize,
     char* buffer, size_t size);
-static void adjustByteRange(StreamDevice& device, size_t byteRangeOffset,
-    size_t conentsBeaconOffset, size_t conentsBeaconSize, PdfArray& byteRangeArr, charbuff& buffer);
+static void adjustByteRange(StreamDevice& device, size_t byteRangeOffset, size_t magicOffset,
+    size_t contentsBeaconOffset, size_t contentsBeaconSize, PdfArray& byteRangeArr, charbuff& buffer);
 static void setSignature(StreamDevice& device, const string_view& sigData,
-    size_t conentsBeaconOffset, charbuff& buffer);
+    size_t contentsBeaconOffset, charbuff& buffer);
 static void prepareBeaconsData(size_t signatureSize, string& contentsBeacon, string& byteRangeBeacon);
 
 constexpr uint16_t DumpFooterMagic = 0x5343; // "SC" -> Signing Context
@@ -235,7 +234,7 @@ void PdfSigningContext::StartSigning(PdfMemDocument& doc, shared_ptr<StreamDevic
     charbuff tmpbuff;
     m_contexts = prepareSignatureContexts(doc, true);
     saveDocForSigning(doc, *m_device, saveOptions);
-    appendDataForSigning(m_contexts, *m_device, &results.Intermediate, tmpbuff);
+    appendDataForSigning(doc, *m_device, m_contexts, &results.Intermediate, tmpbuff);
     m_status = Status::Started;
 }
 
@@ -431,7 +430,7 @@ void PdfSigningContext::Sign(PdfMemDocument& doc, StreamDevice& device, PdfSaveO
 
     auto contexts = prepareSignatureContexts(doc, false);
     saveDocForSigning(doc, device, saveOptions);
-    appendDataForSigning(contexts, device, nullptr, tmpbuff);
+    appendDataForSigning(doc, device, contexts, nullptr, tmpbuff);
     computeSignatures(contexts, doc, device, nullptr, tmpbuff);
 }
 
@@ -480,7 +479,7 @@ void PdfSigningContext::ensureNotStarted() const
 
 // Prepare signature contexts, running dry-run signature computation
 vector<PdfSigningContext::SignerContext> PdfSigningContext::prepareSignatureContexts(
-    PdfDocument& doc, bool deferredSigning)
+    PdfMemDocument& doc, bool deferredSigning)
 {
     vector<SignerContext> ret(m_signers.size());
     for (auto& pair : m_signers)
@@ -530,8 +529,8 @@ void PdfSigningContext::saveDocForSigning(PdfMemDocument& doc, StreamDevice& dev
     device.Flush();
 }
 
-void PdfSigningContext::appendDataForSigning(vector<SignerContext>& contexts, StreamDevice& device,
-    std::unordered_map<PdfSignerId, charbuff>* intermediateResults, charbuff& tmpbuff)
+void PdfSigningContext::appendDataForSigning(PdfMemDocument& doc, StreamDevice& device,
+    vector<SignerContext>& contexts, std::unordered_map<PdfSignerId, charbuff>* intermediateResults, charbuff& tmpbuff)
 {
     for (auto& pair : m_signers)
     {
@@ -539,13 +538,13 @@ void PdfSigningContext::appendDataForSigning(vector<SignerContext>& contexts, St
         auto& signer = *descs.Signer;
         auto& ctx = contexts[descs.ContextIndex];
 
-        adjustByteRange(device, *ctx.Beacons.ByteRangeOffset, *ctx.Beacons.ContentsOffset,
+        adjustByteRange(device, *ctx.Beacons.ByteRangeOffset, doc.GetMagicOffset(), *ctx.Beacons.ContentsOffset,
             ctx.Beacons.ContentsBeacon.size(), ctx.ByteRangeArr, tmpbuff);
         device.Flush();
 
         // Read data from the device to prepare the signature
         signer.Reset();
-        device.Seek(0);
+        device.Seek(doc.GetMagicOffset());
         size_t readBytes;
         tmpbuff.resize(BufferSize);
         while ((readBytes = readForSignature(device, *ctx.Beacons.ContentsOffset, ctx.Beacons.ContentsBeacon.size(),
@@ -563,7 +562,7 @@ void PdfSigningContext::appendDataForSigning(vector<SignerContext>& contexts, St
     }
 }
 
-void PdfSigningContext::computeSignatures(std::vector<SignerContext>& contexts, PdfDocument& doc, StreamDevice& device,
+void PdfSigningContext::computeSignatures(std::vector<SignerContext>& contexts, PdfMemDocument& doc, StreamDevice& device,
     const PdfSigningResults* processedResults, charbuff& tmpbuff)
 {
     for (auto& pair : m_signers)
@@ -603,7 +602,7 @@ void PdfSigningContext::computeSignatures(std::vector<SignerContext>& contexts, 
     }
 }
 
-size_t readForSignature(StreamDevice& device, size_t conentsBeaconOffset, size_t conentsBeaconSize,
+size_t readForSignature(StreamDevice& device, size_t contentsBeaconOffset, size_t contentsBeaconSize,
     char* buffer, size_t bufferSize)
 {
     if (device.Eof())
@@ -612,9 +611,9 @@ size_t readForSignature(StreamDevice& device, size_t conentsBeaconOffset, size_t
     size_t pos = device.GetPosition();
     size_t readSize = 0;
     // Check if we are before beacon
-    if (pos < conentsBeaconOffset)
+    if (pos < contentsBeaconOffset)
     {
-        readSize = std::min(bufferSize, conentsBeaconOffset - pos);
+        readSize = std::min(bufferSize, contentsBeaconOffset - pos);
         if (readSize > 0)
         {
             device.Read(buffer, readSize);
@@ -626,10 +625,10 @@ size_t readForSignature(StreamDevice& device, size_t conentsBeaconOffset, size_t
     }
 
     // shift at the end of beacon
-    if ((pos + readSize) >= conentsBeaconOffset
-        && pos < (conentsBeaconOffset + conentsBeaconSize))
+    if ((pos + readSize) >= contentsBeaconOffset
+        && pos < (contentsBeaconOffset + contentsBeaconSize))
     {
-        device.Seek(conentsBeaconOffset + conentsBeaconSize);
+        device.Seek(contentsBeaconOffset + contentsBeaconSize);
     }
 
     // read after beacon
@@ -641,15 +640,15 @@ size_t readForSignature(StreamDevice& device, size_t conentsBeaconOffset, size_t
     return readSize + bufferSize;
 }
 
-void adjustByteRange(StreamDevice& device, size_t byteRangeOffset,
-    size_t conentsBeaconOffset, size_t conentsBeaconSize, PdfArray& byteRangeArr, charbuff& buffer)
+void adjustByteRange(StreamDevice& device, size_t byteRangeOffset, size_t magicOffset,
+    size_t contentsBeaconOffset, size_t contentsBeaconSize, PdfArray& byteRangeArr, charbuff& buffer)
 {
     // Get final position
     size_t fileEnd = device.GetLength();
-    byteRangeArr.Add(PdfObject(static_cast<int64_t>(0)));
-    byteRangeArr.Add(PdfObject(static_cast<int64_t>(conentsBeaconOffset)));
-    byteRangeArr.Add(PdfObject(static_cast<int64_t>(conentsBeaconOffset + conentsBeaconSize)));
-    byteRangeArr.Add(PdfObject(static_cast<int64_t>(fileEnd - (conentsBeaconOffset + conentsBeaconSize))));
+    byteRangeArr.Add(PdfObject(static_cast<int64_t>(0))); // This must ignore magic offset != 0
+    byteRangeArr.Add(PdfObject(static_cast<int64_t>(contentsBeaconOffset - magicOffset)));
+    byteRangeArr.Add(PdfObject(static_cast<int64_t>(contentsBeaconOffset + contentsBeaconSize - magicOffset)));
+    byteRangeArr.Add(PdfObject(static_cast<int64_t>(fileEnd - (contentsBeaconOffset + contentsBeaconSize))));
 
     device.Seek(byteRangeOffset);
     byteRangeArr.Write(device, PdfWriteFlags::None, { }, buffer);

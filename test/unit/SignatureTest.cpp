@@ -387,3 +387,31 @@ TEST_CASE("TestGetPreviousRevision")
         REQUIRE(!signature.TryGetPreviousRevision(*input, output));
     }
 }
+
+TEST_CASE("TestSignatureOffsetStart")
+{
+    string x509certbuffer;
+    TestUtils::ReadTestInputFile("mycert.der", x509certbuffer);
+
+    string pkeybuffer;
+    TestUtils::ReadTestInputFile("mykey-pkcs8.der", pkeybuffer);
+
+    charbuff currBuffer;
+    utls::ReadTo(currBuffer, TestUtils::GetTestInputFilePath("blank-with-offset-start.pdf"));
+    auto inputOutput = std::make_shared<BufferStreamDevice>(currBuffer);
+
+    PdfMemDocument doc;
+    doc.Load(inputOutput);
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+
+    PdfSignerCms signer(x509certbuffer, pkeybuffer);
+    PoDoFo::SignDocument(doc, *inputOutput, signer, signature, PdfSaveOptions::NoMetadataUpdate);
+
+    utls::WriteTo(TestUtils::GetTestOutputFilePath("TestSignatureOffsetStart.pdf"), currBuffer);
+
+    // Try to reload the document
+    doc.Load(inputOutput);
+
+    REQUIRE(ssl::ComputeMD5Str(currBuffer) == "7063AD6AFCB797D361D2DAF943002298");
+}

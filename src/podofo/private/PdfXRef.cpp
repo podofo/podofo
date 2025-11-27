@@ -179,7 +179,7 @@ void PdfXRef::EndWriteImpl(OutputStreamDevice& device, charbuff& buffer)
 void PdfXRef::endWrite(OutputStreamDevice& device, charbuff& buffer)
 {
     EndWriteImpl(device, buffer);
-    utls::FormatTo(buffer, "startxref\n{}\n%%EOF\n", GetOffset());
+    utls::FormatTo(buffer, "startxref\n{}\n%%EOF\n", GetOffset() - m_writer->GetMagicOffset());
     device.Write(buffer);
 }
 

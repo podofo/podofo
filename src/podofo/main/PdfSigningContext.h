@@ -152,11 +152,11 @@ namespace PoDoFo
         PdfSignerId addSigner(const PdfSignature& signature, PdfSigner* signer,
             std::shared_ptr<PdfSigner>&& storage);
         void ensureNotStarted() const;
-        std::vector<SignerContext> prepareSignatureContexts(PdfDocument& doc, bool deferredSigning);
+        std::vector<SignerContext> prepareSignatureContexts(PdfMemDocument& doc, bool deferredSigning);
         void saveDocForSigning(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions saveOptions);
-        void appendDataForSigning(std::vector<SignerContext>& contexts, StreamDevice& device,
+        void appendDataForSigning(PdfMemDocument& doc, StreamDevice& device, std::vector<SignerContext>& contexts,
             std::unordered_map<PdfSignerId, charbuff>* intermediateResults, charbuff& tmpbuff);
-        void computeSignatures(std::vector<SignerContext>& contexts, PdfDocument& doc, StreamDevice& device,
+        void computeSignatures(std::vector<SignerContext>& contexts, PdfMemDocument& doc, StreamDevice& device,
             const PdfSigningResults* processedResults, charbuff& tmpbuff);
 
     private:

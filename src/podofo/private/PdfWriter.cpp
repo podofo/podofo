@@ -23,9 +23,10 @@ using namespace PoDoFo;
 
 static PdfWriteFlags toWriteFlags(PdfSaveOptions opts, PdfALevel pdfaLevel);
 
-PdfWriter::PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer) :
+PdfWriter::PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer, size_t magicOffset) :
     m_Objects(objects),
     m_Trailer(&trailer),
+    m_MagicOffset(magicOffset),
     m_Version(PdfVersionDefault),
     m_PdfALevel(PdfALevel::Unknown),
     m_UseXRefStream(false),
@@ -38,13 +39,14 @@ PdfWriter::PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer) :
 {
 }
 
-PdfWriter::PdfWriter(PdfIndirectObjectList& objects, const PdfObject& trailer)
-    : PdfWriter(&objects, trailer)
+PdfWriter::PdfWriter(PdfIndirectObjectList& objects, const PdfObject& trailer,
+        size_t magicOffset)
+    : PdfWriter(&objects, trailer, magicOffset)
 {
 }
 
 PdfWriter::PdfWriter(PdfIndirectObjectList& objects)
-    : PdfWriter(&objects, PdfObject())
+    : PdfWriter(&objects, PdfObject(), 0)
 {
 }
 
@@ -142,7 +144,7 @@ void PdfWriter::WritePdfObjects(OutputStreamDevice& device, const PdfIndirectObj
         }
         else
         {
-            xref.AddInUseObject(obj->GetIndirectReference(), device.GetPosition());
+            xref.AddInUseObject(obj->GetIndirectReference(), device.GetPosition() - m_MagicOffset);
             // Also make sure that we do not encrypt the encryption dictionary!
             obj->WriteFinal(device, m_WriteFlags, encrypt.get(), m_buffer);
         }
@@ -202,10 +204,7 @@ void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t size, bool onlySize
         trailer.GetDictionary().AddKey("ID"_n, array);
 
         if (m_PrevXRefOffset > 0)
-        {
-            PdfVariant value(m_PrevXRefOffset);
-            trailer.GetDictionary().AddKey("Prev"_n, value);
-        }
+            trailer.GetDictionary().AddKey("Prev"_n, m_PrevXRefOffset - (int64_t)m_MagicOffset);
     }
 }
 
