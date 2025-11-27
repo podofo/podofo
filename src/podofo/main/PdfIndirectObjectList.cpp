@@ -68,6 +68,7 @@ namespace
 PdfIndirectObjectList::PdfIndirectObjectList() :
     m_Document(nullptr),
     m_LastObjectNumber(0),
+    m_FreeObjectsInvalidated(false),
     m_StreamFactory(nullptr)
 {
 }
@@ -75,6 +76,7 @@ PdfIndirectObjectList::PdfIndirectObjectList() :
 PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document) :
     m_Document(&document),
     m_LastObjectNumber(0),
+    m_FreeObjectsInvalidated(false),
     m_StreamFactory(nullptr)
 {
 }
