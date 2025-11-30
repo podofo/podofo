@@ -25,7 +25,7 @@ PdfMemDocument::PdfMemDocument(bool empty) :
     m_InitialVersion(PdfVersionDefault),
     m_HasXRefStream(false),
     m_MagicOffset(0),
-    m_PrevXRefOffset(-1)
+    m_PrevXRefOffset(0) // 0 is a sentinel for invalid XRef offset
 {
 }
 
@@ -73,7 +73,7 @@ void PdfMemDocument::reset()
     m_Version = PdfVersionDefault;
     m_InitialVersion = PdfVersionDefault;
     m_HasXRefStream = false;
-    m_PrevXRefOffset = -1;
+    m_PrevXRefOffset = 0;
 }
 
 void PdfMemDocument::initFromParser(PdfParser& parser)
@@ -183,6 +183,7 @@ void PdfMemDocument::Save(OutputStreamDevice& device, PdfSaveOptions opts)
     try
     {
         writer.Write(device);
+        m_PrevXRefOffset = writer.GetCurrXRefOffset();
     }
     catch (PdfError& e)
     {
@@ -224,6 +225,7 @@ void PdfMemDocument::SaveUpdate(OutputStreamDevice& device, PdfSaveOptions opts)
     {
         device.Seek(0, SeekDirection::End);
         writer.Write(device);
+        m_PrevXRefOffset = writer.GetCurrXRefOffset();
     }
     catch (PdfError& e)
     {

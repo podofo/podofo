@@ -101,7 +101,7 @@ public:
      *  The default is 0.
      *  \param lPrevXRefOffset the previous XRef table offset
      */
-    inline void SetPrevXRefOffset(int64_t prevXRefOffset) { m_PrevXRefOffset = prevXRefOffset; }
+    inline void SetPrevXRefOffset(size_t prevXRefOffset) { m_PrevXRefOffset = prevXRefOffset; }
 
     /**
      *  \returns offset to the previous XRef table, as previously set
@@ -109,7 +109,7 @@ public:
      *
      * \see SetPrevXRefOffset
      */
-    inline int64_t GetPrevXRefOffset() const { return m_PrevXRefOffset; }
+    inline size_t GetPrevXRefOffset() const { return m_PrevXRefOffset; }
 
     /** Set whether writing an incremental update.
      *  Default is false.
@@ -129,6 +129,8 @@ public:
     inline PdfIndirectObjectList& GetObjects() { return *m_Objects; }
 
     inline size_t GetMagicOffset() const { return m_MagicOffset; }
+
+    inline size_t GetCurrXRefOffset() const { return m_CurrXRefOffset; }
 
 protected:
     /**
@@ -191,7 +193,8 @@ private:
 
     PdfString m_identifier;
     PdfString m_originalIdentifier; // used for incremental update
-    int64_t m_PrevXRefOffset;
+    size_t m_PrevXRefOffset;
+    size_t m_CurrXRefOffset;
     bool m_IsIncrementalUpdate;
 };
 

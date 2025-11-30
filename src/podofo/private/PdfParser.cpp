@@ -54,7 +54,7 @@ void PdfParser::init()
     m_HasXRefStream = false;
     m_MagicOffset = 0;
     m_StartXRefTokenPos = 0;
-    m_XRefOffset = 0;
+    m_XRefOffset = 0; // 0 is a sentinel for invalid XRef offset
     m_FileSize = numeric_limits<size_t>::max();
     m_lastEOFOffsetHint = 0;
     m_Trailer = nullptr;
@@ -125,8 +125,12 @@ void PdfParser::ReadDocumentStructure(InputStreamDevice& device, ssize_t eofSear
 
     m_StartXRefTokenPos = device.GetPosition() - char_traits<char>::length("startxref");
 
+    auto xRefOffset = m_tokenizer.ReadNextNumber(device);
+    if (xRefOffset < 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef, "Invalid negative startxref {}", m_XRefOffset);
+
     // Support also files with whitespace offset before magic start
-    m_XRefOffset = (size_t)m_tokenizer.ReadNextNumber(device) + m_MagicOffset;
+    m_XRefOffset = (size_t)xRefOffset + m_MagicOffset;
 
     try
     {
@@ -215,6 +219,7 @@ bool PdfParser::tryRebuildCrossReference(InputStreamDevice& device)
     // Stash the detected version
     PODOFO_ASSERT(m_PdfVersion != PdfVersion::Unknown);
     auto version = m_PdfVersion;
+    auto magicOffset = m_MagicOffset;
     clear();
 
     try
@@ -323,8 +328,9 @@ bool PdfParser::tryRebuildCrossReference(InputStreamDevice& device)
         // Finally, remove spurious objects, eg. objects with outdated generations
         m_Objects->CollectGarbage(*m_Trailer);
 
-        // Restore the detected version
+        // Restore the header
         m_PdfVersion = version;
+        m_MagicOffset = magicOffset;
         return true;
     }
     catch (...)

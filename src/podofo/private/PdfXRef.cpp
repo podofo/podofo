@@ -89,7 +89,9 @@ void PdfXRef::Write(OutputStreamDevice& device, charbuff& buffer)
 
 void PdfXRef::buildSubSections(XRefSubSectionList& sections)
 {
-    if (m_writer->IsIncrementalUpdate())
+    // Check if this an incremental update and we have a valid
+    // previous XRef section to refer to
+    if (m_writer->IsIncrementalUpdate() && m_writer->GetPrevXRefOffset() > 0)
     {
         // The following effectively adds a free entry for object 0
         // with generation number (65535, meaning it's unavailable).
@@ -188,6 +190,11 @@ bool PdfXRef::ShouldSkipWrite(const PdfReference& ref)
     (void)ref;
     // No object to skip in PdfXRef table
     return false;
+}
+
+size_t PdfXRef::GetOffset() const
+{
+    return m_offset;
 }
 
 PdfXRef::XRefSubSection::XRefSubSection() :

@@ -30,7 +30,7 @@ public:
     PdfXRefStream(PdfWriter& writer);
 
 public:
-    uint64_t GetOffset() const override;
+    size_t GetOffset() const override;
 
     bool ShouldSkipWrite(const PdfReference& ref) override;
 

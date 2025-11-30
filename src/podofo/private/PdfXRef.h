@@ -80,7 +80,7 @@ public:
      * \returns the offset in the file at which the XRef table
      *          starts after it was written
      */
-    inline virtual uint64_t GetOffset() const { return m_offset; }
+    virtual size_t GetOffset() const;
 
 protected:
     /** Called at the start of writing the XRef table.
@@ -268,7 +268,7 @@ private:
 private:
     PdfWriter* m_writer;
     XRefObjectSet m_xrefObjects;
-    uint64_t m_offset;
+    size_t m_offset;
 };
 
 };

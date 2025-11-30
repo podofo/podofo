@@ -34,7 +34,8 @@ PdfWriter::PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer, s
     m_EncryptObj(nullptr),
     m_SaveOptions(PdfSaveOptions::None),
     m_WriteFlags(PdfWriteFlags::None),
-    m_PrevXRefOffset(0),
+    m_PrevXRefOffset(0), // 0 is a sentinel for invalid XRef offset
+    m_CurrXRefOffset(0), // 0 is a sentinel for invalid XRef offset
     m_IsIncrementalUpdate(false)
 {
 }
@@ -87,11 +88,21 @@ void PdfWriter::Write(OutputStreamDevice& device)
 
     try
     {
-        if (!m_IsIncrementalUpdate)
+        if (m_IsIncrementalUpdate)
+        {
+            if (m_PrevXRefOffset == 0)
+                PoDoFo::LogMessage(PdfLogSeverity::Warning,
+                    "Writing an update with previously read invalid XRef sections. "
+                    "The cross references will be fully rewritten");
+        }
+        else
+        {
             WritePdfHeader(device);
+        }
 
         WritePdfObjects(device, *m_Objects, *xRef);
         xRef->Write(device, m_buffer);
+        m_CurrXRefOffset = xRef->GetOffset();
     }
     catch (PdfError& e)
     {
@@ -134,7 +145,28 @@ void PdfWriter::WritePdfObjects(OutputStreamDevice& device, const PdfIndirectObj
             encrypt.reset();
 
         if (m_IsIncrementalUpdate && !obj->IsDirty())
-            continue;
+        {
+            if (m_PrevXRefOffset == 0)
+            {
+                // The previous XRef was not read successfully and needs rewriting,
+                // try to see if we can just write the previous object offset in the
+                // entry without fully rewriting it
+                PdfParserObject* parserObject = dynamic_cast<PdfParserObject*>(obj);
+                if (parserObject != nullptr)
+                {
+                    if (parserObject->GetOffset() > 0)
+                    {
+                        xref.AddInUseObject(obj->GetIndirectReference(), parserObject->GetOffset() - m_MagicOffset);
+                        continue;
+                    }
+                }
+            }
+            else
+            {
+                // It's a regular incremental update, just skip processing the object
+                continue;
+            }
+        }
 
         if (xref.ShouldSkipWrite(obj->GetIndirectReference()))
         {
@@ -150,7 +182,17 @@ void PdfWriter::WritePdfObjects(OutputStreamDevice& device, const PdfIndirectObj
         }
     }
 
-    if (m_IsIncrementalUpdate)
+    if (!m_IsIncrementalUpdate || m_PrevXRefOffset == 0)
+    {
+        // It's a regular save, or the previous XRef was not read
+        // successfully and needs rewriting: add to the XRef all
+        // free/unavailable objects NOTE: It's not necessary to add
+        // unavailable objects, they will be handled implicitly as when
+        // the object is not defined it's treated as unavailable
+        for (auto& freeObjectRef : objects.GetFreeObjects())
+            xref.AddFreeObject(freeObjectRef);
+    }
+    else
     {
         if (objects.AreFreeObjectsInvalidated())
         {
@@ -162,15 +204,6 @@ void PdfWriter::WritePdfObjects(OutputStreamDevice& device, const PdfIndirectObj
             for (auto& freeObjectRef : objects.GetUnavailableObjects())
                 xref.AddUnavailableObject(freeObjectRef);
         }
-    }
-    else
-    {
-        // Add to the XRef all free/unavailable objects
-        // NOTE: It's not necessary to add unavailable objects,
-        // they will be handled implictly as when the object
-        // is not defined it's treated as unavailable
-        for (auto& freeObjectRef : objects.GetFreeObjects())
-            xref.AddFreeObject(freeObjectRef);
     }
 }
 
@@ -203,8 +236,10 @@ void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t size, bool onlySize
         // finally add the key to the trailer dictionary
         trailer.GetDictionary().AddKey("ID"_n, array);
 
+        // If the previous XRef was read successfully, just make add
+        // a /Prev pointer to it
         if (m_PrevXRefOffset > 0)
-            trailer.GetDictionary().AddKey("Prev"_n, m_PrevXRefOffset - (int64_t)m_MagicOffset);
+            trailer.GetDictionary().AddKey("Prev"_n, (int64_t)(m_PrevXRefOffset - m_MagicOffset));
     }
 }
 

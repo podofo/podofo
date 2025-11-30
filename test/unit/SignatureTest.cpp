@@ -118,7 +118,7 @@ TEST_CASE("TestSignature2")
     signature.SetCreatingApplication(PdfName("Sample Application"));
     PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
     utls::ReadTo(buff, outputPath);
-    REQUIRE(ssl::ComputeMD5Str(buff) == "7E0A6FCDBCE9BFD65897F3A7B2D4887E");
+    REQUIRE(ssl::ComputeMD5Str(buff) == "2AA706A0A84C662CEE3886C908C06557");
 }
 
 // Test deferred signing with external service
@@ -414,4 +414,54 @@ TEST_CASE("TestSignatureOffsetStart")
     doc.Load(inputOutput);
 
     REQUIRE(ssl::ComputeMD5Str(currBuffer) == "7063AD6AFCB797D361D2DAF943002298");
+}
+
+TEST_CASE("TestSignatureCorrupted")
+{
+    auto currentLogSeverity = PdfCommon::GetMaxLoggingSeverity();
+    PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::None);
+    string x509certbuffer;
+    TestUtils::ReadTestInputFile("mycert.der", x509certbuffer);
+
+    string pkeybuffer;
+    TestUtils::ReadTestInputFile("mykey-pkcs8.der", pkeybuffer);
+
+    charbuff currBuffer;
+
+    auto doTest = [&currBuffer, &x509certbuffer, &pkeybuffer](string_view outFilename, string_view expectedMD5)
+    {
+        auto inputOutput = std::make_shared<BufferStreamDevice>(currBuffer);
+
+        PdfMemDocument doc;
+        doc.Load(inputOutput);
+        auto& page = doc.GetPages().GetPageAt(0);
+        auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+
+        PdfSignerCms signer(x509certbuffer, pkeybuffer);
+        PoDoFo::SignDocument(doc, *inputOutput, signer, signature, PdfSaveOptions::NoMetadataUpdate);
+
+        utls::WriteTo(TestUtils::GetTestOutputFilePath(outFilename), currBuffer);
+
+        // Try to reload the document
+        doc.Load(inputOutput);
+
+        REQUIRE(ssl::ComputeMD5Str(currBuffer) == expectedMD5);
+    };
+
+    try
+    {
+        utls::ReadTo(currBuffer, TestUtils::GetTestInputFilePath("TestXRefRecovery1.pdf"));
+        doTest("TestSignatureCorrupted1.pdf", "FF1B6A133940DED8C0890E3A9707C151");
+
+        // Repeat the test with some garbage at the beginning of the test
+        utls::ReadTo(currBuffer, TestUtils::GetTestInputFilePath("TestXRefRecovery1.pdf"));
+        currBuffer.insert(0, "% Some garbage before the PDF header\n\n");
+        doTest("TestSignatureCorrupted2.pdf", "8AA3CB1D40DC13E652AD935A16DA927C");
+        PdfCommon::SetMaxLoggingSeverity(currentLogSeverity);
+    }
+    catch (...)
+    {
+        PdfCommon::SetMaxLoggingSeverity(currentLogSeverity);
+        throw;
+    }
 }
