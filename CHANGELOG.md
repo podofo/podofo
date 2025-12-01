@@ -1,3 +1,11 @@
+## Version 1.0.3
+- Fixed [#278](https://github.com/podofo/podofo/issues/278), [#288](https://github.com/podofo/podofo/issues/288),
+[#292](https://github.com/podofo/podofo/issues/292), [#290](https://github.com/podofo/podofo/issues/290),
+[#295](https://github.com/podofo/podofo/issues/295)
+- PdfParser: Fix the /Prev offsets by adding the %PDF- magic offset
+- PdfSignature: Fixed TryGetPreviousRevision()
+- PdfParser: Fixed parsing some edge case PDFs reported in the ML
+
 ## Version 1.0.2
 - Fixed [#275](https://github.com/podofo/podofo/issues/275), [#276](https://github.com/podofo/podofo/issues/276)
 - `PdfTokenizer`: Fixed free-after-use after failing to parse content while reading literal tokens
