@@ -38,7 +38,7 @@ inline size_t imp_lua_objlen(lua_State *L, int index) {
 inline int imp_lua_dofile(lua_State* L, const char * path) {
     return luaL_dofile(L, path);
 }
-inline int imp_lua_getn(lua_State *L, int t) {
+inline size_t imp_lua_getn(lua_State *L, int t) {
     return imp_lua_objlen(L, t);
 }
 #else

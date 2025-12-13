@@ -10,7 +10,7 @@ set(color_srcs
 
 set(color_extra_libs)
 
-if(LUA_FOUND)
+if(PODOFO_HAVE_LUA)
   set(color_extra_libs ${LUA_LIBRARIES})
   set(color_srcs ${color_srcs} luaconverter.cpp)
 endif()

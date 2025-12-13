@@ -11,7 +11,7 @@ set(SOURCE_FILES
 )
 
 set(IMPOSE_EXTRA_LIBS)
-if(LUA_FOUND)
+if(PODOFO_HAVE_LUA)
 	set(IMPOSE_EXTRA_LIBS ${LUA_LIBRARIES})
 	set(SOURCE_FILES ${SOURCE_FILES} lua_compat.h planreader_lua.h planreader_lua.cpp)
 endif()
