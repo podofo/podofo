@@ -78,9 +78,9 @@ void Main(const cspan<string_view>& args)
 #ifdef PODOFO_HAVE_LUA
     else if (args.size() == 5 && converterName == "lua")
     {
-        lua = argv[2];
-        input = argv[3];
-        output = argv[4];
+        lua = args[2];
+        input = args[3];
+        output = args[4];
     }
 #endif //  PODOFO_HAVE_LUA
     else

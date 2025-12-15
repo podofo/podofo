@@ -103,6 +103,9 @@ if(WIN32)
     set(LIBXML2_LIBRARY "${DEPS_PATH}/libxml2/lib/${ARCH}/libxml2${LIB_SUFFIX}.lib" CACHE FILEPATH "" FORCE)
     # Fontconfig
     set(Fontconfig_LIBRARY "${DEPS_PATH}/fontconfig/lib/${ARCH}/fontconfig${LIB_SUFFIX}.lib" CACHE FILEPATH "" FORCE)
+
+    set(LUA_INCLUDE_DIR "E:\\Lua\\include" CACHE FILEPATH "" FORCE)
+    set(LUA_LIBRARY "E:\\Lua\\lua54.lib" CACHE FILEPATH "" FORCE)
 else()
     set(PLATFORM_SYSTEM_LIBRARIES "${DEPS_PATH}/bzip2/lib/${ARCH}/libbz2.a" "${DEPS_PATH}/libuuid/lib/${ARCH}/libuuid.a")
 endif()

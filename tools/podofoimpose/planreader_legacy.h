@@ -11,14 +11,17 @@
 #include <string>
 #include <vector>
 
-class PlanReader_Legacy
+namespace PoDoFo::Impose
 {
-public:
-    PlanReader_Legacy(const std::string& plan, PoDoFo::Impose::ImpositionPlan* Imp);
-    ~PlanReader_Legacy() {}
-private:
-    PoDoFo::Impose::ImpositionPlan* I;
-    int sortLoop(std::vector<std::string>& memfile, int numline);
-};
+    class PlanReader_Legacy
+    {
+    public:
+        PlanReader_Legacy(const std::string& plan, ImpositionPlan& Imp);
+    private:
+        int sortLoop(std::vector<std::string>& memfile, int numline);
+    private:
+        ImpositionPlan* m_imp;
+    };
+}
 
 #endif // PLANREADER_LEGACY_H

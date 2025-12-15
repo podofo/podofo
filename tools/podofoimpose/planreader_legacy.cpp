@@ -5,14 +5,6 @@
 
 #include "planreader_legacy.h"
 
-#include <fstream>
-#include <stdexcept>
-#include <algorithm>
-#include <cmath>
-#include <istream>
-#include <iostream> //XXX#define MAX_SOURCE_PAGES 5000
-#include <ostream>
-
 #ifdef PODOFO_HAVE_LUA
 #include "planreader_lua.h"
 #endif // PODOFO_HAVE_LUA
@@ -24,15 +16,8 @@ using namespace PoDoFo::Impose;
 
 int PlanReader_Legacy::sortLoop(vector<string>& memfile, int numline)
 {
-    // 	cerr<<"===================================== "<<numline<<endl;
-        //Debug
-    // 	for(map<string, double>::iterator dit(localvars.begin());dit!=localvars.end(); dit++)
-    // 	{
-    // 		cerr<<"R "<<dit->first<<" = "<<dit->second<<endl;
-    // 	}
-        //
-    map<string, string> storedvars = I->vars;
-    int startAt(numline);
+    map<string, string> storedvars = m_imp->Vars;
+    int startAt = numline;
     string buffer(memfile.at(numline));
     unsigned len = (unsigned)buffer.length();
     string iterN;
@@ -43,8 +28,10 @@ int PlanReader_Legacy::sortLoop(vector<string>& memfile, int numline)
         ca = buffer.at(a);
         if (ca == '[')
             break;
-        else if (ca == 0x20 || ca == 0x9)
+
+        if (ca == 0x20 || ca == 0x9)
             continue;
+
         iterN += buffer.at(a);
     }
 
@@ -52,17 +39,14 @@ int PlanReader_Legacy::sortLoop(vector<string>& memfile, int numline)
     string tvar;
     string tinc;
     a++;
-    bool varside(true);
+    bool varside = true;
     for (; a < len; a++)
     {
         ca = buffer.at(a);
-        // 		if(ca == 0x20 || ca == 0x9 )
-        // 			continue;
         if ((ca == ']') || (ca == ';')) // time to commit
         {
-            if (I->vars.find(tvar) != I->vars.end())
+            if (m_imp->Vars.find(tvar) != m_imp->Vars.end())
             {
-                // 				cerr<< "I " << tvar <<" = "<< tinc <<endl;
                 increments.insert(pair<string, double>(tvar, std::atof(tinc.c_str())));
             }
             tvar.clear();
@@ -88,23 +72,24 @@ int PlanReader_Legacy::sortLoop(vector<string>& memfile, int numline)
 
     int endOfloopBlock = numline + 1;
     int openLoop = 0;
-    for (unsigned int bolb2 = (numline + 1); bolb2 < memfile.size(); bolb2++)
+    for (unsigned bolb2 = numline + 1; bolb2 < memfile.size(); bolb2++)
     {
-        // 		cerr<<"| "<< memfile.at ( bolb2 ) <<" |"<<endl;
         if (memfile.at(bolb2).at(0) == '<')
             openLoop++;
         else if (memfile.at(bolb2).at(0) == '>')
         {
             if (openLoop == 0)
                 break;
-            else
-                openLoop--;
+
+            openLoop--;
         }
         else
+        {
             endOfloopBlock = bolb2 + 1;
+        }
     }
 
-    unsigned maxIter = (unsigned)PageRecord::calc(iterN, I->vars);
+    unsigned maxIter = (unsigned)PageRecord::calc(iterN, m_imp->Vars);
     for (unsigned iter = 0; iter < maxIter; iter++)
     {
         if (iter != 0)
@@ -113,62 +98,39 @@ int PlanReader_Legacy::sortLoop(vector<string>& memfile, int numline)
             map<string, double>::iterator vit;
             for (vit = increments.begin(); vit != increments.end(); vit++)
             {
-                I->vars[vit->first] = Util::dToStr(std::atof(I->vars[vit->first].c_str()) + vit->second);
+                m_imp->Vars[vit->first] = Util::dToStr(std::atof(m_imp->Vars[vit->first].c_str()) + vit->second);
             }
         }
-        for (int subi(numline + 1); subi < endOfloopBlock; subi++)
+        for (int subi = numline + 1; subi < endOfloopBlock; subi++)
         {
-            // 					cerr<< subi <<"/"<< endOfloopBlock <<" - "<<memfile.at(subi) <<endl;
-
             if (memfile.at(subi).at(0) == '<')
             {
                 subi += sortLoop(memfile, subi);
-                // 				cerr<< "||  "  << memfile.at ( subi )  <<endl;
             }
             else
             {
                 PageRecord p;
-                p.load(memfile.at(subi), I->vars);
-                if (!p.isValid() || p.sourcePage > I->sourceVars.PageCount)
-                {
-                    // 					cerr<< "Error p("<<(p.isValid()?"valid":"invalid")<<") "<< p.sourcePage  <<endl;
+                p.load(memfile.at(subi), m_imp->Vars);
+                if (!p.isValid() || p.sourcePage > m_imp->SourceVars.PageCount)
                     continue;
-                }
-                // 				maxPageDest = std::max ( maxPageDest, p.destPage );
-                // 				bool isDup(false);
-                // 				for(ImpositionPlan::const_iterator ipIt(planImposition.begin());ipIt != planImposition.end(); ipIt++)
-                // 				{
-                // 					if(ipIt->sourcePage == p.sourcePage)
-                // 					{
-                // 						isDup = true;
-                // 						break;
-                // 					}
-                // 				}
-                // 				if ( isDup )
-                // 				{
-                // 					p.duplicateOf = p.sourcePage;
-                // 				}
-                I->push_back(p);
+
+                m_imp->push_back(p);
             }
         }
-
     }
-    // 	numline = endOfloopBlock;
-    // 	cerr<<"EOL"<<endl;
-    int retvalue(endOfloopBlock - startAt + 1);
-    I->vars = storedvars;
-    // 	cerr<<"------------------------------------- "<<retvalue<<endl;
+
+    int retvalue = endOfloopBlock - startAt + 1;
+    m_imp->Vars = storedvars;
     return retvalue;
 }
 
-PlanReader_Legacy::PlanReader_Legacy(const string& plan, ImpositionPlan* Imp)
-    :I(Imp)
+PlanReader_Legacy::PlanReader_Legacy(const string& plan, ImpositionPlan& imp)
+    : m_imp(&imp)
 {
     ifstream in(plan.c_str(), ifstream::in);
     if (!in.good())
         throw runtime_error("Failed to open plan file");
 
-    // 	duplicate = MAX_SOURCE_PAGES;
     vector<string> memfile;
     do
     {
@@ -183,7 +145,7 @@ PlanReader_Legacy::PlanReader_Legacy(const string& plan, ImpositionPlan* Imp)
         // with two dashes, it must be a lua file, so process it accordingly:
         if (buffer.substr(0, 2) == "--") {
             in.close();
-            PlanReader_Lua(plan, Imp);
+            PlanReader_Lua(plan, imp);
             return;
         }
 #endif // PODOFO_HAVE_LUA
@@ -197,18 +159,15 @@ PlanReader_Legacy::PlanReader_Legacy(const string& plan, ImpositionPlan* Imp)
         else if (buffer.at(0) == '#') // Comment
             continue;
         else
-        {
             memfile.push_back(buffer);
-            // 			cerr<<buffer<<endl;
-        }
     } while (!in.eof());
     /// PROVIDED 
-    I->vars[string("$PagesCount")] = Util::uToStr(I->sourceVars.PageCount);
-    I->vars[string("$SourceWidth")] = Util::dToStr(I->sourceVars.PageWidth);
-    I->vars[string("$SourceHeight")] = Util::dToStr(I->sourceVars.PageHeight);
+    m_imp->Vars[string("$PagesCount")] = Util::uToStr(m_imp->SourceVars.PageCount);
+    m_imp->Vars[string("$SourceWidth")] = Util::dToStr(m_imp->SourceVars.PageWidth);
+    m_imp->Vars[string("$SourceHeight")] = Util::dToStr(m_imp->SourceVars.PageHeight);
     /// END OF PROVIDED
 
-    for (unsigned int numline = 0; numline < memfile.size(); numline++)
+    for (unsigned numline = 0; numline < memfile.size(); numline++)
     {
         string buffer(memfile.at(numline));
         if (buffer.at(0) == '$') // Variable
@@ -216,10 +175,7 @@ PlanReader_Legacy::PlanReader_Legacy(const string& plan, ImpositionPlan* Imp)
             unsigned sepPos = (unsigned)buffer.find_first_of('=');
             string key(buffer.substr(0, sepPos));
             string value(buffer.substr(sepPos + 1));
-
-            {
-                I->vars[key] = value;
-            }
+            m_imp->Vars[key] = value;
         }
         else if (buffer.at(0) == '<') // Loop - experimental
         {
@@ -228,33 +184,28 @@ PlanReader_Legacy::PlanReader_Legacy(const string& plan, ImpositionPlan* Imp)
         else // Record? We hope!
         {
             PageRecord p;
-            p.load(buffer, I->vars);
-            if (!p.isValid() || p.sourcePage > I->sourceVars.PageCount)
+            p.load(buffer, m_imp->Vars);
+            if (!p.isValid() || p.sourcePage > m_imp->SourceVars.PageCount)
                 continue;
-            // 			maxPageDest = std::max ( maxPageDest, p.destPage );
-            // 			if ( pagesIndex.find ( p.sourcePage ) != pagesIndex.end() )
-            // 			{
-            // 				p.duplicateOf = p.sourcePage;
-            // 			}
-            I->push_back(p);
-        }
 
+            m_imp->push_back(p);
+        }
     }
 
     /// REQUIRED
-    if (I->vars.find("$PageWidth") == I->vars.end())
+    if (m_imp->Vars.find("$PageWidth") == m_imp->Vars.end())
         throw runtime_error("$PageWidth not set");
-    if (I->vars.find("$PageHeight") == I->vars.end())
+    if (m_imp->Vars.find("$PageHeight") == m_imp->Vars.end())
         throw runtime_error("$PageHeight not set");
 
-    I->setDestWidth(PageRecord::calc(I->vars["$PageWidth"], I->vars));
-    I->setDestHeight(PageRecord::calc(I->vars["$PageHeight"], I->vars));
+    m_imp->setDestWidth(PageRecord::calc(m_imp->Vars["$PageWidth"], m_imp->Vars));
+    m_imp->setDestHeight(PageRecord::calc(m_imp->Vars["$PageHeight"], m_imp->Vars));
     /// END OF REQUIRED
 
     /// SUPPORTED
-    if (I->vars.find("$ScaleFactor") != I->vars.end())
-        I->setScale(PageRecord::calc(I->vars["$ScaleFactor"], I->vars));
-    if (I->vars.find("$BoundingBox") != I->vars.end())
-        I->setBoundingBox(I->vars["$BoundingBox"]);
+    if (m_imp->Vars.find("$ScaleFactor") != m_imp->Vars.end())
+        m_imp->setScale(PageRecord::calc(m_imp->Vars["$ScaleFactor"], m_imp->Vars));
+    if (m_imp->Vars.find("$BoundingBox") != m_imp->Vars.end())
+        m_imp->setBoundingBox(m_imp->Vars["$BoundingBox"]);
     /// END OF SUPPORTED
 }
