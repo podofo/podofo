@@ -41,9 +41,8 @@ namespace PoDoFo::Impose
                 else if ((*si) == 0x9)
                     si = s.erase(si);
                 else
-                    ++si;
+                    si++;
             }
-
         }
 
         static std::string dToStr(double d)
@@ -93,12 +92,11 @@ namespace PoDoFo::Impose
     {
     public:
         ImpositionPlan(const SourceVars& sv);
-        ~ImpositionPlan();
 
         // legacy
-        std::map<std::string, std::string> vars;
+        std::map<std::string, std::string> Vars;
 
-        const SourceVars sourceVars;
+        const SourceVars SourceVars;
 
     private:
         double m_destWidth;
@@ -108,16 +106,16 @@ namespace PoDoFo::Impose
     public:
         bool valid() const;
 
-        void setDestWidth(double theValue);
+        void setDestWidth(double value);
         double destWidth() const { return m_destWidth; }
 
-        void setDestHeight(double theValue);
+        void setDestHeight(double value);
         double destHeight() const { return m_destHeight; }
 
-        void setScale(double theValue);
+        void setScale(double value);
         double scale() const { return m_scale; }
 
-        void setBoundingBox(const std::string& theString);
+        void setBoundingBox(const std::string& value);
         std::string boundingBox()const { return m_boundingBox; }
     };
 

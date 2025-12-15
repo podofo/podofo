@@ -4,19 +4,14 @@
  */
 
 #include "impositionplan.h"
-#include <fstream>
-#include <stdexcept>
-#include <algorithm>
-#include <cmath>
+
 #include <iostream>
-#include <ostream>
-#include <cstdio>
 
 using namespace std;
 using namespace PoDoFo::Impose;
 
-PageRecord::PageRecord(int s, int d, double r, double tx, double ty, int du, double sx, double sy)
-    : sourcePage(s),
+PageRecord::PageRecord(int s, int d, double r, double tx, double ty, int du, double sx, double sy) :
+    sourcePage(s),
     destPage(d),
     rotate(r),
     transX(tx),
@@ -25,10 +20,10 @@ PageRecord::PageRecord(int s, int d, double r, double tx, double ty, int du, dou
     scaleY(sy),
     duplicateOf(du)
 {
-};
+}
 
-PageRecord::PageRecord()
-    : sourcePage(0),
+PageRecord::PageRecord() :
+    sourcePage(0),
     destPage(0),
     rotate(0),
     transX(0),
@@ -36,7 +31,8 @@ PageRecord::PageRecord()
     scaleX(1),
     scaleY(1),
     duplicateOf(0)
-{};
+{
+}
 
 void PageRecord::load(const string& buffer, const map<string, string>& vars)
 {
@@ -45,9 +41,11 @@ void PageRecord::load(const string& buffer, const map<string, string>& vars)
     string ts;
     for (unsigned i = 0; i < len; i++)
     {
-        char ci(buffer.at(i));
+        char ci = buffer.at(i);
         if (ci == ' ')
+        {
             continue;
+        }
         else if (ci == ';')
         {
             tokens.push_back(ts);
@@ -61,7 +59,7 @@ void PageRecord::load(const string& buffer, const map<string, string>& vars)
     {
         sourcePage = destPage = 0; // will return false for isValid()
         cerr << "INVALID_RECORD(" << tokens.size() << ") " << buffer << endl;
-        for (unsigned int i = 0; i < tokens.size(); ++i)
+        for (unsigned i = 0; i < tokens.size(); i++)
             cerr << "\t+ " << tokens.at(i) << endl;
     }
 
@@ -75,11 +73,13 @@ void PageRecord::load(const string& buffer, const map<string, string>& vars)
     rotate = calc(tokens.at(2), vars);
     transX = calc(tokens.at(3), vars);
     transY = calc(tokens.at(4), vars);
-    if (tokens.size() == 7) {
+    if (tokens.size() == 7)
+    {
         scaleX = calc(tokens.at(5), vars);
         scaleY = calc(tokens.at(6), vars);
     }
-    else {
+    else
+    {
         scaleX = scaleY = 1.0;
     }
 
@@ -89,15 +89,12 @@ void PageRecord::load(const string& buffer, const map<string, string>& vars)
 
 double PageRecord::calc(const string& s, const map<string, string>& vars)
 {
-    // 	cerr<< s;
     vector<string> tokens;
     unsigned tokenCount = (unsigned)s.length();
     string ts;
     for (unsigned i = 0; i < tokenCount; i++)
     {
-        char ci(s.at(i));
-        // 		if ( ci == 0x20 || ci == 0x9 )// skip spaces and horizontal tabs
-        // 			continue;
+        char ci = s[i];
         if ((ci == '+')
             || (ci == '-')
             || (ci == '*')
@@ -114,12 +111,10 @@ double PageRecord::calc(const string& s, const map<string, string>& vars)
                 map<string, string>::const_iterator vit = vars.find(ts);
                 if (vit != vars.end())
                 {
-                    // 					cerr<<"A Found "<<ts<<" "<< vit->second <<endl;
                     tokens.push_back(Util::dToStr(calc(vit->second, vars)));
                 }
                 else
                 {
-                    // 					cerr<<"A Not Found "<<ts<<endl;
                     tokens.push_back(ts);
                 }
             }
@@ -133,148 +128,128 @@ double PageRecord::calc(const string& s, const map<string, string>& vars)
         {
             ts += ci;
         }
-        // 		else
-        // 			cerr<<"Wrong char : "<< ci <<endl;
     }
     if (ts.length() > 0)
     {
         map<string, string>::const_iterator vit2 = vars.find(ts);
         if (vit2 != vars.end())
         {
-            // 			cerr<<endl<<"Found "<<ts<<endl;
             tokens.push_back(Util::dToStr(calc(vit2->second, vars)));
         }
         else
         {
-            // 			if((ts.length() > 0) && (ts[0] == '$'))
-            // 			{
-            // 				cerr<<endl<<"Not Found \"";
-            // 				for(unsigned int c(0);c < ts.length(); ++c)
-            // 				{
-            // 					cerr<<ts[c]<<"/";
-            // 				}
-            // 				cerr<<"\""<<endl;
-            // 				for(map<string,string>::iterator i(PoDoFoImpose::vars.begin());i != PoDoFoImpose::vars.end(); ++i)
-            // 				{
-            // // 					cerr<<"VA \""<< i->first << "\" => " <<(i->first == ts ? "True" : "False") <<endl;
-            // 					for(unsigned int c(0);c < i->first.length(); ++c)
-            // 					{
-            // 						cerr<<	i->first[c]<<"/";
-            // 					}
-            // 					cerr<<endl;
-            // 				}
-            // 			}
             tokens.push_back(ts);
         }
     }
-    double result(calc(tokens));
-    // 	cerr<<" = "<<result<<endl;
-    return result;
 
+    return calc(tokens);
 }
 
-double PageRecord::calc(const vector<string>& t)
+double PageRecord::calc(const vector<string>& tokens)
 {
-    // 	cerr<<"C =";
-    // 	for(uint i(0);i<t.size();++i)
-    // 		cerr<<" "<< t.at(i) <<" ";
-    // 	cerr<<endl;
+    if (tokens.size() == 0)
+        return 0;
 
-
-    if (t.size() == 0)
-        return 0.0;
-
-    double ret(0.0);
+    double ret = 0;
 
     vector<double> values;
     vector<string> ops;
     ops.push_back("+");
 
-    for (unsigned int vi = 0; vi < t.size(); ++vi)
+    for (unsigned vi = 0; vi < tokens.size(); vi++)
     {
-        if (t.at(vi) == "(")
+        auto& t1 = tokens[vi];
+        if (t1 == "(")
         {
-            vector<string> tokens;
-            int cdeep(0);
-            // 			cerr<<"(";
-            for (++vi; vi < t.size(); ++vi)
+            vector<string> tokens2;
+            int cdeep = 0;
+            for (vi++; vi < tokens.size(); vi++)
             {
-                // 				cerr<<t.at ( ti );
-                if (t.at(vi) == ")")
+                auto& t2 = tokens[vi];
+                if (t2 == ")")
                 {
                     if (cdeep == 0)
                         break;
-                    else
-                    {
-                        --cdeep;
-                    }
+
+                    cdeep--;
                 }
-                else if (t.at(vi) == "(")
+                else if (t2 == "(")
                 {
-                    ++cdeep;
+                    cdeep++;
                 }
-                // 				cerr<<endl<<"\t";
-                tokens.push_back(t.at(vi));
+
+                tokens2.push_back(t2);
             }
-            // 			cerr<<endl;
-            values.push_back(calc(tokens));
+
+            values.push_back(calc(tokens2));
         }
-        else if (t.at(vi) == "+")
+        else if (t1 == "+")
             ops.push_back("+");
-        else if (t.at(vi) == "-")
+        else if (t1 == "-")
             ops.push_back("-");
-        else if (t.at(vi) == "*")
+        else if (t1 == "*")
             ops.push_back("*");
-        else if (t.at(vi) == "/")
+        else if (t1 == "/")
             ops.push_back("/");
-        else if (t.at(vi) == "%")
+        else if (t1 == "%")
             ops.push_back("%");
-        else if (t.at(vi) == "|")
+        else if (t1 == "|")
             ops.push_back("|");
-        else if (t.at(vi) == "\"")
+        else if (t1 == "\"")
             ops.push_back("\"");
         else
-            values.push_back(std::atof(t.at(vi).c_str()));
+            values.push_back(std::atof(t1.c_str()));
     }
 
     if (values.size() == 1)
+    {
         ret = values.at(0);
+    }
     else
     {
-        for (unsigned int vi = 0; vi < ops.size(); ++vi)
+        for (unsigned vi = 0; vi < ops.size(); vi++)
         {
-            // 			cerr<<"OP>> \""<<ret<<"\" " << ops.at ( vi )<<" \""<<values.at( vi ) <<"\" = ";
-            if (ops.at(vi) == "+")
-                ret += values.at(vi);
-            else if (ops.at(vi) == "-")
-                ret -= values.at(vi);
-            else if (ops.at(vi) == "*")
-                ret *= values.at(vi);
+            auto& op = ops[vi];
+            auto& value = values.at(vi);
+            if (op == "+")
+            {
+                ret += value;
+            }
+            else if (op == "-")
+            {
+                ret -= value;
+            }
+            else if (op == "*")
+            {
+                ret *= value;
+            }
             /// I know it’s not good (tm)
             /// + http://gcc.gnu.org/ml/gcc/2001-08/msg00853.html
-            else if (ops.at(vi) == "/")
+            else if (op == "/")
             {
-                if (values.at(vi) == 0.0)
-                    ret = 0.0;
+                if (value == 0)
+                    ret = 0;
                 else
-                    ret /= values.at(vi);
+                    ret /= value;
             }
-            else if (ops.at(vi) == "%")
+            else if (op == "%")
             {
-                if (values.at(vi) == 0.0)
-                    ret = 0.0;
+                if (value == 0)
+                    ret = 0;
                 else
-                    ret = static_cast<int> (ret) % static_cast<int> (values.at(vi));
+                    ret = static_cast<int> (ret) % static_cast<int> (value);
             }
-            else if (ops.at(vi) == "|") // Stands for max(a,b), easier than true condition, allow to filter division by 0
-                ret = std::max(ret, values.at(vi));
-            else if (ops.at(vi) == "\"") // Stands for min(a,b)
-                ret = std::min(ret, values.at(vi));
-
-            // 			cerr<<ret<<endl;
+            else if (op == "|") // Stands for max(a,b), easier than true condition, allow to filter division by 0
+            {
+                ret = std::max(ret, value);
+            }
+            else if (op == "\"") // Stands for min(a,b)
+            {
+                ret = std::min(ret, value);
+            }
         }
     }
-    // 	cerr<<" <"<< values.size() <<"> "<<ret<<endl;
+
     return ret;
 }
 
@@ -286,15 +261,11 @@ bool PageRecord::isValid() const
     return true;
 }
 
-ImpositionPlan::ImpositionPlan(const SourceVars& sv) :
-    sourceVars(sv),
+ImpositionPlan::ImpositionPlan(const Impose::SourceVars& sv) :
+    SourceVars(sv),
     m_destWidth(0.0),
     m_destHeight(0.0),
     m_scale(1.0)
-{
-}
-
-ImpositionPlan::~ImpositionPlan()
 {
 }
 
@@ -304,33 +275,28 @@ bool ImpositionPlan::valid() const
         return false;
     else if (destHeight() <= 0.0)
         return false;
-    // 	else if ( scale() <= 0.0 )
-    // 		return false;
     else if (size() == 0)
         return false;
 
     return true;
-
 }
 
-void ImpositionPlan::setDestWidth(double theValue)
+void ImpositionPlan::setDestWidth(double value)
 {
-    m_destWidth = theValue;
+    m_destWidth = value;
 }
 
-
-void ImpositionPlan::setDestHeight(double theValue)
+void ImpositionPlan::setDestHeight(double value)
 {
-    m_destHeight = theValue;
+    m_destHeight = value;
 }
 
-
-void ImpositionPlan::setScale(double theValue)
+void ImpositionPlan::setScale(double value)
 {
-    m_scale = theValue;
+    m_scale = value;
 }
 
-void ImpositionPlan::setBoundingBox(const string& theString)
+void ImpositionPlan::setBoundingBox(const string& value)
 {
-    m_boundingBox = theString;
+    m_boundingBox = value;
 }

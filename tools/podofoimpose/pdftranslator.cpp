@@ -4,17 +4,9 @@
  */
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
+#include <podofo/private/PdfParser.h>
+
 #include "pdftranslator.h"
-
-#include <fstream>
-#include <stdexcept>
-#include <algorithm>
-#include <cmath>
-#include <istream>
-#include <ostream>
-#include <cstdlib>
-#include <iostream>
-
 #include "planreader_legacy.h"
 
 #ifdef PODOFO_HAVE_LUA
@@ -30,46 +22,30 @@ using namespace PoDoFo::Impose;
 
 bool PdfTranslator::checkIsPDF(string path)
 {
-    ifstream in(path.c_str(), ifstream::in);
-    if (!in.good())
-        throw runtime_error("setSource() failed to open input file");
-
-    const int magicBufferLen = 5;
-    char magicBuffer[magicBufferLen];
-    in.read(magicBuffer, magicBufferLen);
-    string magic(magicBuffer, magicBufferLen);
-
-    in.close();
-    if (magic.find("%PDF") < 5)
-        return true;
-    // 			throw runtime_error("First bytes of the file tend to indicate it is not a PDF file");
-    return false;
+    FileStreamDevice device(path);
+    PdfVersion version;
+    return PdfParser::TryReadHeader(device, version);
 }
 
 PdfTranslator::PdfTranslator()
 {
-    cerr << "PdfTranslator::PdfTranslator" << endl;
     sourceDoc = nullptr;
     targetDoc = nullptr;
     planImposition = nullptr;
     duplicate = 0;
     extraSpace = 0;
-    scaleFactor = 1.0;
+    scaleFactor = 1;
     pageCount = 0;
-    sourceWidth = 0.0;
-    sourceHeight = 0.0;
-    destWidth = 0.0;
-    destHeight = 0.0;
+    sourceWidth = 0;
+    sourceHeight = 0;
+    destWidth = 0;
+    destHeight = 0;
 }
 
 void PdfTranslator::setSource(const string& source)
 {
-    int dbg = 0;
-    // 			cerr<<"PdfTranslator::setSource "<<source<<endl;
-    cerr << ++dbg << endl;
     if (checkIsPDF(source))
     {
-        // 		cerr << "Appending "<<source<<" to source" << endl;
         multiSource.push_back(source);
     }
     else
@@ -78,23 +54,21 @@ void PdfTranslator::setSource(const string& source)
         if (!in.good())
             throw runtime_error("setSource() failed to open input file");
 
-        char* filenameBuffer = new char[1000];
+        string filenameBuffer;
+        filenameBuffer.resize(1000);
         do
         {
-            if (!in.getline(filenameBuffer, 1000))
+            if (!in.getline(filenameBuffer.data(), 1000))
                 throw runtime_error("failed reading line from input file");
 
             string ts(filenameBuffer, (size_t)in.gcount());
             if (ts.size() > 4) // at least ".pdf" because just test if ts is empty doesn't work.
             {
                 multiSource.push_back(ts);
-                cerr << "Appending " << ts << " to source" << endl;
             }
         } while (!in.eof());
         in.close();
-        delete[] filenameBuffer;
     }
-    cerr << ++dbg << endl;
 
     if (multiSource.empty())
         throw runtime_error("No recognized source given");
@@ -103,7 +77,6 @@ void PdfTranslator::setSource(const string& source)
     {
         if (ms == multiSource.begin())
         {
-            // 					cerr << "First doc is "<< (*ms).c_str()   << endl;
             try
             {
                 sourceDoc = new PdfMemDocument();
@@ -117,15 +90,13 @@ void PdfTranslator::setSource(const string& source)
         }
         else
         {
-            PdfMemDocument mdoc;
-            mdoc.Load(*ms);
-            // 			cerr << "Appending "<< mdoc.GetPageCount() << " page(s) of " << *ms  << endl;
-            sourceDoc->GetPages().AppendDocumentPages(mdoc, 0, mdoc.GetPages().GetCount());
+            PdfMemDocument doc;
+            doc.Load(*ms);
+            sourceDoc->GetPages().AppendDocumentPages(doc, 0, doc.GetPages().GetCount());
         }
     }
 
     pageCount = sourceDoc->GetPages().GetCount();
-    // 	cerr << "Document has "<< pcount << " page(s) " << endl;
     if (pageCount > 0) // only here to avoid possible segfault, but PDF without page is not conform IIRC
     {
         auto& firstPage = sourceDoc->GetPages().GetPageAt(0);
@@ -139,8 +110,7 @@ void PdfTranslator::setSource(const string& source)
 
 void PdfTranslator::addToSource(const string& source)
 {
-    // 			cerr<<"PdfTranslator::addToSource "<< source<<endl;
-    if (!sourceDoc)
+    if (sourceDoc == nullptr)
         return;
 
     PdfMemDocument extraDoc;
@@ -152,117 +122,129 @@ void PdfTranslator::addToSource(const string& source)
 
 PdfObject* PdfTranslator::migrateResource(PdfObject* obj)
 {
-    // 			cerr<<"PdfTranslator::migrateResource"<<endl;
     PdfObject* ret = nullptr;
 
-    if (!obj)
+    if (obj == nullptr)
+    {
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "migrateResource called"
             " with nullptr object");
+    }
 
-    if (obj->IsDictionary())
+    switch (obj->GetDataType())
     {
-        if (obj->GetIndirectReference().IsIndirect())
-            ret = &targetDoc->GetObjects().CreateObject(*obj);
-        else
-            ret = new PdfObject(*obj);
-
-        for (auto& pair : obj->GetDictionary())
+        case PdfDataType::Dictionary:
         {
-            PdfObject* o = &pair.second;
-            auto res = setMigrationPending.insert(o);
+            if (obj->GetIndirectReference().IsIndirect())
+                ret = &targetDoc->GetObjects().CreateObject(*obj);
+            else
+                ret = new PdfObject(*obj);
+
+            for (auto& pair : obj->GetDictionary())
+            {
+                PdfObject* o = &pair.second;
+                auto res = setMigrationPending.insert(o);
+                if (!res.second)
+                {
+                    ostringstream oss;
+                    oss << "Cycle detected: Object with ref " << o->GetIndirectReference().ToString()
+                        << " is already pending migration to the target.\n";
+                    PoDoFo::LogMessage(PdfLogSeverity::Warning, oss.str());
+                    continue;
+                }
+                PdfObject* migrated = migrateResource(o);
+                if (migrated != nullptr)
+                {
+                    ret->GetDictionary().AddKey(pair.first, *migrated);
+                    if (!(migrated->GetIndirectReference().IsIndirect()))
+                        delete migrated;
+                }
+            }
+
+            if (obj->HasStream())
+            {
+                *(ret->GetStream()) = *(obj->GetStream());
+            }
+            break;
+        }
+        case PdfDataType::Array:
+        {
+            PdfArray carray(obj->GetArray());
+            PdfArray narray;
+            for (unsigned ci = 0; ci < carray.GetSize(); ci++)
+            {
+                PdfObject* co(migrateResource(&carray[ci]));
+                if (co == nullptr)
+                    continue;
+
+                narray.Add(*co);
+                if (!(co->GetIndirectReference().IsIndirect()))
+                {
+                    delete co;
+                }
+            }
+            if (obj->GetIndirectReference().IsIndirect())
+            {
+                ret = &targetDoc->GetObjects().CreateObject(narray);
+            }
+            else
+            {
+                ret = new PdfObject(narray);
+            }
+
+            break;
+        }
+        case PdfDataType::Reference:
+        {
+            if (migrateMap.find(obj->GetReference().ToString()) != migrateMap.end())
+            {
+                ostringstream oss;
+                oss << "Referenced object " << obj->GetReference().ToString()
+                    << " already migrated." << endl;
+                PoDoFo::LogMessage(PdfLogSeverity::Debug, oss.str());
+
+                const PdfObject* const found = migrateMap[obj->GetReference().ToString()];
+                return new PdfObject(found->GetIndirectReference());
+            }
+
+            PdfObject* to_migrate = sourceDoc->GetObjects().GetObject(obj->GetReference());
+
+            pair<set<PdfObject*>::iterator, bool> res
+                = setMigrationPending.insert(to_migrate);
             if (!res.second)
             {
                 ostringstream oss;
-                oss << "Cycle detected: Object with ref " << o->GetIndirectReference().ToString()
+                oss << "Cycle detected: Object with ref " << obj->GetReference().ToString()
                     << " is already pending migration to the target.\n";
                 PoDoFo::LogMessage(PdfLogSeverity::Warning, oss.str());
-                continue;
+                return nullptr; // skip this migration
             }
-            PdfObject* migrated = migrateResource(o);
-            if (migrated != nullptr)
-            {
-                ret->GetDictionary().AddKey(pair.first, *migrated);
-                if (!(migrated->GetIndirectReference().IsIndirect()))
-                    delete migrated;
-            }
+            PdfObject* o(migrateResource(to_migrate));
+            if (nullptr != o)
+                ret = new PdfObject(o->GetIndirectReference());
+            else
+                return nullptr; // avoid going through rest of method
+            break;
         }
-
-        if (obj->HasStream())
+        case PdfDataType::Name:
         {
-            *(ret->GetStream()) = *(obj->GetStream());
+            ret = &targetDoc->GetObjects().CreateObject(obj->GetName());
+            break;
         }
-    }
-    else if (obj->IsArray())
-    {
-        PdfArray carray(obj->GetArray());
-        PdfArray narray;
-        for (unsigned ci = 0; ci < carray.GetSize(); ci++)
+        case PdfDataType::Number:
         {
-            PdfObject* co(migrateResource(&carray[ci]));
-            if (co == nullptr)
-                continue;
-
-            narray.Add(*co);
-            if (!(co->GetIndirectReference().IsIndirect()))
-            {
-                delete co;
-            }
+            ret = &targetDoc->GetObjects().CreateObject(obj->GetNumber());
+            break;
         }
-        if (obj->GetIndirectReference().IsIndirect())
+        case PdfDataType::Null:
         {
-            ret = &targetDoc->GetObjects().CreateObject(narray);
+            ret = &targetDoc->GetObjects().CreateDictionaryObject();
+            break;
         }
-        else
+        default:
         {
-            ret = new PdfObject(narray);
+            ret = new PdfObject(*obj);
+            break;
         }
-    }
-    else if (obj->IsReference())
-    {
-        if (migrateMap.find(obj->GetReference().ToString()) != migrateMap.end())
-        {
-            ostringstream oss;
-            oss << "Referenced object " << obj->GetReference().ToString()
-                << " already migrated." << endl;
-            PoDoFo::LogMessage(PdfLogSeverity::Debug, oss.str());
-
-            const PdfObject* const found = migrateMap[obj->GetReference().ToString()];
-            return new PdfObject(found->GetIndirectReference());
-        }
-
-        PdfObject* to_migrate = sourceDoc->GetObjects().GetObject(obj->GetReference());
-
-        pair<set<PdfObject*>::iterator, bool> res
-            = setMigrationPending.insert(to_migrate);
-        if (!res.second)
-        {
-            ostringstream oss;
-            oss << "Cycle detected: Object with ref " << obj->GetReference().ToString()
-                << " is already pending migration to the target.\n";
-            PoDoFo::LogMessage(PdfLogSeverity::Warning, oss.str());
-            return nullptr; // skip this migration
-        }
-        PdfObject* o(migrateResource(to_migrate));
-        if (nullptr != o)
-            ret = new PdfObject(o->GetIndirectReference());
-        else
-            return nullptr; // avoid going through rest of method
-    }
-    else if (obj->IsName())
-    {
-        ret = &targetDoc->GetObjects().CreateObject(obj->GetName());
-    }
-    else if (obj->IsNumber())
-    {
-        ret = &targetDoc->GetObjects().CreateObject(obj->GetNumber());
-    }
-    else if (obj->IsNull())
-    {
-        ret = &targetDoc->GetObjects().CreateDictionaryObject();
-    }
-    else
-    {
-        ret = new PdfObject(*obj);//targetDoc->GetObjects().CreateObject(*obj);
     }
 
     if (obj->GetIndirectReference().IsIndirect())
@@ -275,23 +257,20 @@ PdfObject* PdfTranslator::migrateResource(PdfObject* obj)
 
 PdfObject* PdfTranslator::getInheritedResources(PdfPage& page)
 {
-    // 			cerr<<"PdfTranslator::getInheritedResources"<<endl;
     PdfObject* res(0);
     // mabri: resources are inherited as whole dict, not at all if the page has the dict
     // mabri: specified in PDF32000_2008.pdf section 7.7.3.4 Inheritance of Page Attributes
     // mabri: and in section 7.8.3 Resource Dictionaries
     PdfObject* sourceRes = page.GetDictionary().FindKeyParent("Resources");
-    if (sourceRes)
-    {
+    if (sourceRes != nullptr)
         res = migrateResource(sourceRes);
-    }
+
     return res;
 }
 
 void PdfTranslator::setTarget(const string& target)
 {
-    // 			cerr<<"PdfTranslator::setTarget "<<target<<endl;
-    if (!sourceDoc)
+    if (sourceDoc == nullptr)
         throw logic_error("setTarget() called before setSource()");
 
     targetDoc = new PdfMemDocument;
@@ -302,7 +281,6 @@ void PdfTranslator::setTarget(const string& target)
         auto& page = sourceDoc->GetPages().GetPageAt(i);
         charbuff buff;
         BufferStreamDevice outMemStream(buff);
-
 
         auto xobj = sourceDoc->CreateXObjectForm(page.GetMediaBox());
         if (page.GetContents() != nullptr)
@@ -353,20 +331,6 @@ void PdfTranslator::setTarget(const string& target)
         targetMetadata.SetKeywords(sourceMetadata.GetKeywords());
     if (sourceMetadata.GetTrapped().has_value())
         targetMetadata.SetTrapped(*sourceMetadata.GetTrapped());
-
-    // 	PdfObject *scat( sourceDoc->GetCatalog() );
-    // 	PdfObject *tcat( targetDoc->GetCatalog() );
-    // 	TKeyMap catmap = scat->GetDictionary().GetKeys();
-    // 	for ( TCIKeyMap itc = catmap.begin(); itc != catmap.end(); ++itc )
-    // 	{
-    // 		if(tcat->GetDictionary().GetKey(itc->first) == 0)
-    // 		{
-    // 			PdfObject *o = itc->second;
-    // 			tcat->GetDictionary().AddKey (itc->first , migrateResource( o ) );
-    // 		}
-    // 	}
-
-    // 	delete sourceDoc;
 }
 
 void PdfTranslator::transform(double a, double b, double c, double d, double e, double f)
@@ -378,9 +342,9 @@ void PdfTranslator::transform(double a, double b, double c, double d, double e, 
         transformMatrix.push_back(d);
         transformMatrix.push_back(e);
         transformMatrix.push_back(f);
-
     }
-    else {
+    else
+    {
         vector<double> m0 = transformMatrix;
         vector<double> m;
 
@@ -425,7 +389,6 @@ void PdfTranslator::rotate(double theta)
 
 void PdfTranslator::loadPlan(const string& planFile, PlanReader loader)
 {
-    // 			cerr<< "loadPlan" << planFile<<endl;
     SourceVars sv;
     sv.PageCount = pageCount;
     sv.PageHeight = sourceHeight;
@@ -433,12 +396,12 @@ void PdfTranslator::loadPlan(const string& planFile, PlanReader loader)
     planImposition = new ImpositionPlan(sv);
     if (loader == PlanReader::Legacy)
     {
-        PlanReader_Legacy(planFile, planImposition);
+        PlanReader_Legacy(planFile, *planImposition);
     }
 #if defined(PODOFO_HAVE_LUA)
     else if (loader == PlanReader::Lua)
     {
-        PlanReader_Lua(planFile, planImposition);
+        PlanReader_Lua(planFile, *planImposition);
     }
 #endif
 
@@ -449,19 +412,14 @@ void PdfTranslator::loadPlan(const string& planFile, PlanReader loader)
     destHeight = planImposition->destHeight();
     scaleFactor = planImposition->scale();
     boundingBox = planImposition->boundingBox();
-    // 	cerr <<"Plan completed "<< planImposition.size() <<endl;
 
 }
 
 void PdfTranslator::impose()
 {
-    // 			cerr<<"PdfTranslator::impose"<<endl;
     if (!targetDoc)
         throw invalid_argument("impose() called with empty target");
 
-    //			PdfObject trimbox;
-    //			Rect trim ( 0, 0, destWidth, destHeight );
-    //			trim.ToVariant ( trimbox );
     map<int, Rect>* bbIndex = nullptr;
     if (boundingBox.size() > 0)
     {
@@ -490,30 +448,29 @@ void PdfTranslator::impose()
         groups[(*planImposition)[i].destPage].push_back((*planImposition)[i]);
     }
 
-    unsigned int lastPlate(0);
-    groups_t::const_iterator  git = groups.begin();
-    const groups_t::const_iterator gitEnd = groups.end();
-    while (git != gitEnd)
+    unsigned lastPlate = 0;
+    groups_t::const_iterator it = groups.begin();
+    const groups_t::const_iterator end = groups.end();
+    while (it != end)
     {
         PdfPage* newpage = nullptr;
         // Allow "holes" in dest. pages sequence.
-        unsigned int curPlate(git->first);
+        unsigned curPlate = it->first;
         while (lastPlate != curPlate)
         {
             newpage = &targetDoc->GetPages().CreatePage(Rect(0.0, 0.0, destWidth, destHeight));
             lastPlate++;
         }
-        // 		newpage->GetObject()->GetDictionary().AddKey ( PdfName ( "TrimBox" ), trimbox );
+
         PdfDictionary xdict;
 
         ostringstream buffer;
         // Scale
         buffer << fixed << scaleFactor << " 0 0 " << scaleFactor << " 0 0 cm\n";
 
-        for (unsigned int i = 0; i < git->second.size(); i++)
+        for (unsigned i = 0; i < it->second.size(); i++)
         {
-            PageRecord curRecord(git->second[i]);
-            // 					cerr<<curRecord.sourcePage<< " " << curRecord.destPage<<endl;
+            PageRecord curRecord(it->second[i]);
             if (curRecord.sourcePage <= pageCount)
             {
                 double rot = curRecord.rotate;
@@ -522,14 +479,11 @@ void PdfTranslator::impose()
                 double sx = curRecord.scaleX;
                 double sy = curRecord.scaleY;
 
-                int resourceIndex( /*(curRecord.duplicateOf > 0) ? curRecord.duplicateOf : */curRecord.sourcePage);
+                int resourceIndex = curRecord.sourcePage;
                 PdfXObjectForm* xo = xobjects[resourceIndex];
                 if (nullptr != bbIndex)
                 {
                     PdfArray bb;
-                    // DominikS: Fix compilation using Visual Studio on Windows
-                    // mabri: ML post archive URL is https://sourceforge.net/p/podofo/mailman/message/24609746/
-                    // bbIndex->at(resourceIndex).ToVariant( bb );							
                     ((*bbIndex)[resourceIndex]).ToArray(bb);
                     xo->GetDictionary().AddKey("BBox", bb);
                 }
@@ -542,9 +496,7 @@ void PdfTranslator::impose()
                     if (resources[resourceIndex]->IsDictionary())
                     {
                         for (auto& pair : resources[resourceIndex]->GetDictionary())
-                        {
                             xo->GetOrCreateResources().GetDictionary().AddKey(pair.first, pair.second);
-                        }
                     }
                     else if (resources[resourceIndex]->IsReference())
                     {
@@ -573,21 +525,21 @@ void PdfTranslator::impose()
             }
         }
 
-        if (!newpage)
+        if (newpage == nullptr)
             PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
         string bufStr = buffer.str();
         newpage->GetOrCreateContents().CreateStreamForAppending().SetData(bufStr);
         newpage->GetResources().GetDictionary().AddKey(PdfName("XObject"), xdict);
-        git++;
+        it++;
     }
 
     targetDoc->Save(outFilePath);
 
     // The following is necessary to avoid line 195 being detected as allocation having a memory leak
     // without changing other files than this one (thorough leak prevention shall be applied later).
-    for (map<int, PdfObject*>::iterator it = resources.begin(); it != resources.end(); it++)
-        delete (*it).second;
+    for (auto& pair: resources)
+        delete pair.second;
 
     resources.clear();
 }
