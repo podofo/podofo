@@ -124,10 +124,10 @@ int PlanReader_Legacy::sortLoop(vector<string>& memfile, int numline)
     return retvalue;
 }
 
-PlanReader_Legacy::PlanReader_Legacy(const string& plan, ImpositionPlan& imp)
+PlanReader_Legacy::PlanReader_Legacy(const string_view& plan, ImpositionPlan& imp)
     : m_imp(&imp)
 {
-    ifstream in(plan.c_str(), ifstream::in);
+    ifstream in(plan.data(), ifstream::in);
     if (!in.good())
         throw runtime_error("Failed to open plan file");
 

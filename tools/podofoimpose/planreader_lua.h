@@ -36,7 +36,7 @@ class PlanReader_Lua
     LuaMachina L;
 
 public:
-    PlanReader_Lua(const std::string& planfile, PoDoFo::Impose::ImpositionPlan& ip);
+    PlanReader_Lua(const std::string_view& planfile, PoDoFo::Impose::ImpositionPlan& ip);
     ~PlanReader_Lua();
 
     static int PushRecord(lua_State* L);

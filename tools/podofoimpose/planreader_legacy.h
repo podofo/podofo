@@ -16,7 +16,7 @@ namespace PoDoFo::Impose
     class PlanReader_Legacy
     {
     public:
-        PlanReader_Legacy(const std::string& plan, ImpositionPlan& Imp);
+        PlanReader_Legacy(const std::string_view& plan, ImpositionPlan& Imp);
     private:
         int sortLoop(std::vector<std::string>& memfile, int numline);
     private:
