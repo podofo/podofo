@@ -20,6 +20,8 @@
 // 5.0 .
 #include "lua_compat.h"
 
+using namespace std;
+
 LuaMachina::LuaMachina()
 {
     /* Init the Lua interpreter */
@@ -44,7 +46,7 @@ LuaMachina::~LuaMachina()
     lua_close(L);
 }
 
-PlanReader_Lua::PlanReader_Lua(const std::string& planfile, PoDoFo::Impose::ImpositionPlan& ip)
+PlanReader_Lua::PlanReader_Lua(const string_view& planfile, PoDoFo::Impose::ImpositionPlan& ip)
 {
     // 	std::cerr<<"PlanReader_Lua::PlanReader_Lua "<< planfile <<std::endl;
     plan = &ip;
@@ -60,7 +62,7 @@ PlanReader_Lua::PlanReader_Lua(const std::string& planfile, PoDoFo::Impose::Impo
     setNumber("SourceHeight", plan->SourceVars.PageHeight);
 
     // imp_lua_dofile is a wrapper around luaL_dofile for Lua 5.0/5.1 compat.
-    if (imp_lua_dofile(L.State(), planfile.c_str()))
+    if (imp_lua_dofile(L.State(), planfile.data()))
     {
         std::cerr << "Unable to process Lua script:\"" << lua_tostring(L.State(), -1) << "\"" << std::endl;
     }

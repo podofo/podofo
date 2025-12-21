@@ -39,25 +39,16 @@ namespace PoDoFo::Impose
     public:
         PdfTranslator();
 
-        PdfMemDocument* sourceDoc;
-        PdfMemDocument* targetDoc;
-
         /**
         Set the source document(s) to be imposed.
         Argument source is the path of the PDF file, or the path of a file containing a list of paths of PDF files...
         */
-        void setSource(const std::string& source);
-
-        /**
-        Another way to set many files as source document.
-        Note that a source must be set before you call addToSource().
-        */
-        void addToSource(const std::string& source);
+        void SetSource(const std::string_view& source);
 
         /**
         Set the path of the file where the imposed PDF doc will be save.
         */
-        void setTarget(const std::string& target);
+        void SetTarget(const std::string_view& target);
 
         /**
         Load an imposition plan file of form:
@@ -65,48 +56,17 @@ namespace PoDoFo::Impose
         sourcePage destPage rotation translationX translationY
         ...        ...      ...      ...          ...
         */
-        void loadPlan(const std::string& planFile, PoDoFo::Impose::PlanReader loader);
+        void LoadPlan(const std::string_view& planFile, PoDoFo::Impose::PlanReader loader);
 
         /**
         When all is prepared, call it to do the job.
         */
-        void impose();
+        void Impose();
 
     private:
-        std::string inFilePath;
-        std::string outFilePath;
-
-        PdfReference globalResRef;
-
-        ImpositionPlan* planImposition;
-
-        std::map<int, PdfXObjectForm*> xobjects;
-        std::map<int, PdfObject*> resources;
-        std::map<int, Rect> cropRect;
-        std::map<int, Rect> bleedRect;
-        std::map<int, Rect> trimRect;
-        std::map<int, Rect> artRect;
-        std::map<int, PdfDictionary*> pDict;
-        std::map<int, int> virtualMap;
-        // 		int maxPageDest;
-        int duplicate;
-
-        bool checkIsPDF(std::string path);
+        bool checkIsPDF(const std::string_view& path);
         PdfObject* getInheritedResources(PdfPage& page);
         PdfObject* migrateResource(PdfObject* obj);
-
-        // An attempt to allow nested loops
-        // returns new position in records list.
-        int sortLoop(std::vector<std::string>& memfile, int numline);
-
-        std::string useFont;
-        PdfReference useFontRef;
-        double extraSpace;
-
-        std::vector<std::string> multiSource;
-
-        std::map<std::string, PdfObject*> migrateMap;
-        std::set<PdfObject*> setMigrationPending;
 
         std::vector<double> transformMatrix;
         void transform(double a, double b, double c, double d, double e, double f);
@@ -114,14 +74,34 @@ namespace PoDoFo::Impose
         void scale(double sx, double sy);
         void rotate(double theta);
         void rotate_and_translate(double theta, double dx, double dy);
-    public:
-        unsigned pageCount;
-        double sourceWidth;
-        double sourceHeight;
-        double destWidth;
-        double destHeight;
-        double scaleFactor;
-        std::string boundingBox;
+
+    private:
+        std::unique_ptr<PdfMemDocument> m_sourceDoc;
+        std::unique_ptr<PdfMemDocument> m_targetDoc;
+
+        std::string m_outFilePath;
+
+        std::unique_ptr<ImpositionPlan> m_planImposition;
+
+        std::map<int, std::unique_ptr<PdfXObjectForm>> m_xobjects;
+        std::map<int, PdfObject*> m_resources;
+        std::map<int, Rect> m_cropRect;
+        std::map<int, Rect> m_bleedRect;
+        std::map<int, Rect> m_trimRect;
+        std::map<int, Rect> m_artRect;
+
+        std::vector<std::string> m_multiSource;
+
+        std::map<std::string, PdfObject*> m_migrateMap;
+        std::set<PdfObject*> m_setMigrationPending;
+
+        unsigned m_pageCount;
+        double m_sourceWidth;
+        double m_sourceHeight;
+        double m_destWidth;
+        double m_destHeight;
+        double m_scaleFactor;
+        std::string m_boundingBox;
     };
 
 }
