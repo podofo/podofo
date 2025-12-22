@@ -386,6 +386,8 @@ public:
 
     PdfFontManager& GetFonts() { return m_FontManager; }
 
+    const PdfFontManager& GetFonts() const { return m_FontManager; }
+
 protected:
     /** Set the trailer of this PdfDocument
      *  deleting the old one.

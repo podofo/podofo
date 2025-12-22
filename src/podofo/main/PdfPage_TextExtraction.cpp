@@ -172,7 +172,7 @@ static void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &strings
     int pageIndex, const Matrix* rotation);
 static void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &strings,
     const string_view &pattern, const EntryOptions& options, const nullable<Rect> &clipRect,
-    int pageIndex, const Matrix* rotation);
+    int pageIndex, const Matrix* rotation, const PdfFont* font);
 static void processChunks(const StringChunkList& chunks, string& destString,
     vector<unsigned>& positions, vector<const StatefulString*>& strings,
     vector<GlyphAddress>& glyphAddresses);
@@ -504,18 +504,19 @@ void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, const 
         for (auto& batch : batches)
         {
             addEntryChunk(textEntries, *batch, pattern, options,
-                clipRect, pageIndex, rotation);
+                clipRect, pageIndex, rotation, nullptr);
         }
     }
     else
     {
         addEntryChunk(textEntries, chunks, pattern, options,
-            clipRect, pageIndex, rotation);
+            clipRect, pageIndex, rotation, nullptr);
     }
 }
 
 void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, const string_view &pattern,
-    const EntryOptions& options, const nullable<Rect> &clipRect, int pageIndex, const Matrix* rotation)
+    const EntryOptions& options, const nullable<Rect> &clipRect, int pageIndex, const Matrix* rotation,
+    const PdfFont* font)
 {
     if (options.TrimSpaces)
     {
@@ -659,15 +660,15 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
     auto strPosition = textState.T_rm.GetTranslationVector();
     if (rotation == nullptr || options.RawCoordinates)
     {
-        textEntries.push_back(PdfTextEntry{ str, pageIndex,
-            strPosition.X, strPosition.Y, strLength, bbox });
+        textEntries.push_back(PdfTextEntry{ std::move(str), pageIndex,
+            strPosition.X, strPosition.Y, strLength, bbox, font == nullptr ? PdfFontId() : font->GetFontId() });
     }
     else
     {
         Vector2 rawp(strPosition.X, strPosition.Y);
         auto p_1 = rawp * (*rotation);
-        textEntries.push_back(PdfTextEntry{ str, pageIndex,
-            p_1.X, p_1.Y, strLength, bbox });
+        textEntries.push_back(PdfTextEntry{ std::move(str), pageIndex,
+            p_1.X, p_1.Y, strLength, bbox, font == nullptr ? PdfFontId() : font->GetFontId() });
     }
 
     chunks.clear();
@@ -1455,4 +1456,9 @@ EntryOptions optionsFromFlags(PdfTextExtractFlags flags)
     }
 
     return ret;
+}
+
+const PdfFont* PdfTextEntry::GetFont(const PdfDocument& doc)
+{
+    return doc.GetFonts().GetCachedFont(FontId);
 }

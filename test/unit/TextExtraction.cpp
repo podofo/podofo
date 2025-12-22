@@ -44,6 +44,7 @@ TEST_CASE("TextExtraction2")
     REQUIRE(entries[0].Text == "Test text");
     ASSERT_EQUAL(entries[0].X, 31.199999999999999);
     ASSERT_EQUAL(entries[0].Y, 801.60000000000002);
+    auto font = entries[0].GetFont(doc);
 }
 
 TEST_CASE("TextExtraction3")

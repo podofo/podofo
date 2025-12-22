@@ -31,6 +31,15 @@ struct PODOFO_API PdfSplittedString final
     bool IsSeparator = false;
 };
 
+/** An identifier to be used to retrieve fonts, including inline ones,
+ * from the document font manager
+ */
+struct PODOFO_API PdfFontId final
+{
+    PdfReference Reference;                  ///< The reference for regular indirect fonts
+    std::shared_ptr<std::string> InlineId;   ///< An identifier for inline fonts
+};
+
 /** Before you can draw text on a PDF document, you have to create
  *  a font object first. You can reuse this font object as often
  *  as you want.
@@ -302,6 +311,8 @@ public:
     static bool IsStandard14Font(const std::string_view& fontName, bool useAltNames, PdfStandard14FontType& stdFont);
 
 public:
+    PdfFontId GetFontId() const;
+
     /** True if the font is a composite CIDFont
      */
     bool IsCIDFont() const;
@@ -433,6 +444,8 @@ private:
     bool TryMapCIDToGID(unsigned cid, PdfGID& gid) const;
     bool TryMapCIDToGID(unsigned cid, PdfGlyphAccess access, unsigned& gid) const;
 
+    void SetInlineId(std::string&& inlineId);
+
 private:
     struct CIDSubsetInfo
     {
@@ -463,7 +476,8 @@ private:
 
 private:
     std::string m_Name;
-    std::string m_SubsetPrefix;
+    std::shared_ptr<std::string> m_InlineId;
+    std::unique_ptr<std::string> m_SubsetPrefix;
     PdfFontType m_Type;
     bool m_EmbeddingEnabled;
     bool m_IsEmbedded;

@@ -92,10 +92,15 @@ public:
     PdfFont& GetOrCreateFont(PdfFontMetricsConstPtr metrics,
         const PdfFontCreateParams& params = { });
 
-    /** Try getting the font from the cached font map
+    /** Try get the font from the cached font map
      * Can return nullptr
      */
-    PdfFont* GetCachedFont(const PdfReference& ref);
+    PdfFont* GetCachedFont(const PdfReference& ref) const;
+
+    /** Try get the font from the cached font map
+     * It can be either a regular or an inline font. Can return nullptr
+     */
+    PdfFont* GetCachedFont(const PdfFontId& id) const;
 
     /** Try to search for fontmetrics from the given fontname and parameters
      *

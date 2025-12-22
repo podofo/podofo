@@ -148,14 +148,15 @@ const PdfFont* PdfFontManager::GetLoadedFont(const PdfResources& resources, cons
         if (found != m_inlineFonts.end())
             return found->second.get();
 
-
         // Create a new font
         unique_ptr<PdfFont> font;
         if (!PdfFont::TryCreateFromObject(const_cast<PdfObject&>(*fontObj), font))
             return nullptr;
 
         auto inserted = m_inlineFonts.emplace(inlineFontId, std::move(font));
-        return inserted.first->second.get();
+        auto ret = inserted.first->second.get();
+        ret->SetInlineId(std::move(inlineFontId));
+        return ret;
     }
 }
 
@@ -233,13 +234,35 @@ PdfFont& PdfFontManager::GetOrCreateFont(PdfFontMetricsConstPtr metrics, const P
     return getOrCreateFontHashed(std::move(metrics), params);
 }
 
-PdfFont* PdfFontManager::GetCachedFont(const PdfReference& ref)
+PdfFont* PdfFontManager::GetCachedFont(const PdfReference& ref) const
 {
     auto found = m_fonts.find(ref);
     if (found == m_fonts.end())
         return nullptr;
 
     return found->second.Font.get();
+}
+
+PdfFont* PdfFontManager::GetCachedFont(const PdfFontId& id) const
+{
+    if (id.InlineId == nullptr)
+    {
+        // Search indirect fonts
+        auto found = m_fonts.find(id.Reference);
+        if (found == m_fonts.end())
+            return nullptr;
+
+        return found->second.Font.get();
+    }
+    else
+    {
+        // Search inline fonts
+        auto found = m_inlineFonts.find(*id.InlineId);
+        if (found == m_inlineFonts.end())
+            return nullptr;
+
+        return found->second.get();
+    }
 }
 
 PdfFont& PdfFontManager::GetOrCreateFontFromBuffer(const bufferview& buffer, unsigned faceIndex, const PdfFontCreateParams& params)

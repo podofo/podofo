@@ -16,6 +16,7 @@
 #include "PdfContents.h"
 #include "PdfField.h"
 #include "PdfResources.h"
+#include "PdfFont.h"
 
 namespace PoDoFo {
 
@@ -31,6 +32,9 @@ struct PODOFO_API PdfTextEntry final
     double Y = -1;
     double Length = -1;
     nullable<Rect> BoundingBox;
+    PdfFontId FontId;
+
+    const PdfFont* GetFont(const PdfDocument& doc);
 };
 
 /** A structure with status progress attributes of certain operations

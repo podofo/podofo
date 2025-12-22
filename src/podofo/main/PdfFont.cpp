@@ -212,8 +212,8 @@ void PdfFont::InitImported(bool wantEmbed, bool wantSubset, bool isProxy)
     {
         if (m_SubsettingEnabled)
         {
-            m_SubsetPrefix = GetDocument().GetFonts().GenerateSubsetPrefix();
-            m_Name = m_SubsetPrefix.append(m_Metrics->GetPostScriptNameRough());
+            m_SubsetPrefix.reset(new string(GetDocument().GetFonts().GenerateSubsetPrefix()));
+            m_Name = m_SubsetPrefix->append(m_Metrics->GetPostScriptNameRough());
         }
         else
         {
@@ -223,7 +223,7 @@ void PdfFont::InitImported(bool wantEmbed, bool wantSubset, bool isProxy)
     else
     {
         m_Name = m_Metrics->GetFontName();
-        m_SubsetPrefix = m_Name.substr(0, subsetPrefixLength);
+        m_SubsetPrefix.reset(new string(m_Name.substr(0, subsetPrefixLength)));
     }
 
     initImported();
@@ -970,6 +970,11 @@ bool PdfFont::TryMapCIDToGID(unsigned cid, PdfGlyphAccess access, unsigned& gid)
     }
 }
 
+void PdfFont::SetInlineId(string&& inlineId)
+{
+    m_InlineId.reset(new string(std::move(inlineId)));
+}
+
 bool PdfFont::tryMapCIDToGIDLoadedMetrics(unsigned cid, unsigned& gid) const
 {
     if (!m_Encoding->IsObjectLoaded() || !m_Metrics->HasParsedWidths())
@@ -1128,6 +1133,11 @@ bool PdfFont::IsStandard14Font(const string_view& fontName, bool useAltNames, Pd
     return ::IsStandard14Font(fontName, useAltNames, stdFont);
 }
 
+PdfFontId PdfFont::GetFontId() const
+{
+    return PdfFontId{ GetObject().GetIndirectReference(), m_InlineId };
+}
+
 bool PdfFont::IsCIDFont() const
 {
     switch (GetType())
@@ -1147,7 +1157,10 @@ bool PdfFont::IsObjectLoaded() const
 
 inline string_view PdfFont::GetSubsetPrefix() const
 {
-    return m_SubsetPrefix;
+    if (m_SubsetPrefix == nullptr)
+        return { };
+
+    return *m_SubsetPrefix;
 }
 
 // TODO:
