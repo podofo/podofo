@@ -189,7 +189,7 @@ bool PdfCanvasInputDevice::tryGetNextDevice(InputStreamDevice*& device)
     // ISO 32000-1:2008: Table 30 – Entries in a page object,
     // /Contents: "The division between streams may occur
     // only at the boundaries between lexical tokens".
-    // We will handle the device switch by addind a
+    // We will handle the device switch by adding a
     // newline separator
     m_deviceSwitchOccurred = true;
     device = m_currDevice.get();

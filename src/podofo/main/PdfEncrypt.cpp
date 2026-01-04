@@ -322,7 +322,7 @@ void PdfEncrypt::EnsureEncryptionInitialized(const PdfString& documentId, PdfEnc
     if (m_initialized)
     {
         if (!context.IsAuthenticated())
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unexpected non autenticated context");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unexpected non-authenticated context");
 
         // If params are already filled, then it's not necessary
         // (nor possible) to regenerate them
