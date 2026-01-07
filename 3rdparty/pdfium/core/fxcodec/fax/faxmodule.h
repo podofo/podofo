@@ -13,7 +13,7 @@
 
 #include <pdfium/third_party/base/span.h>
 
-namespace fxcodec {
+namespace PoDoFo_fxcodec {
 
 class ScanlineDecoder;
 
@@ -46,6 +46,6 @@ class FaxModule {
 
 }  // namespace fxcodec
 
-using FaxModule = fxcodec::FaxModule;
+using FaxModule = PoDoFo_fxcodec::FaxModule;
 
 #endif  // CORE_FXCODEC_FAX_FAXMODULE_H_
