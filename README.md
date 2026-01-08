@@ -255,7 +255,7 @@ at the [issue](https://github.com/podofo/podofo/issues) tracker.
 **Q: PoDoFo compilation requires a CMake version higher than what is present in my system, can you lower the requirement?<a id='faq-cmake'></a>**
 
 **A:** No, CMake 2.23 introduced a functionality that makes it very easy to create [CMake packages](https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html) that
-is too convenient to ignore. In Windows it's easy to upgrade the CMake version to latest, while in MacOs it's the same thanks to the official KitWare installer or `brew`.
+is too convenient to ignore. In Windows it's easy to upgrade the CMake version to latest, while in MacOS it's the same thanks to the official KitWare installer or `brew`.
 In a linux system it's also quite easy to install an upgraded parallel CMake installation. Just run the following script:
 
 ```
