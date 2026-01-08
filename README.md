@@ -231,7 +231,7 @@ At this [page](https://github.com/podofo/podofo/blob/master/API-MIGRATION.md) yo
 All `std::strings` or `std::string_view` in the library are intended
 to hold UTF-8 encoded string content. `PdfString` and `PdfName` constructors
 accept UTF-8 encoded strings by default (`PdfName` accept only characters in the
-`PdfDocEncoding` char set, though). `charbuff` abd `bufferview`
+`PdfDocEncoding` char set, though). `charbuff` and `bufferview`
 instead represent a generic octet buffer.
 
 ## PoDoFo Tools
@@ -255,7 +255,7 @@ at the [issue](https://github.com/podofo/podofo/issues) tracker.
 **Q: PoDoFo compilation requires a CMake version higher than what is present in my system, can you lower the requirement?<a id='faq-cmake'></a>**
 
 **A:** No, CMake 2.23 introduced a functionality that makes it very easy to create [CMake packages](https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html) that
-is too conventient to ignore. In Windows it's easy to upgrade the CMake version to latest, while in MacOs it's the same thanks to the official KitWare installer or `brew`.
+is too convenient to ignore. In Windows it's easy to upgrade the CMake version to latest, while in MacOS it's the same thanks to the official KitWare installer or `brew`.
 In a linux system it's also quite easy to install an upgraded parallel CMake installation. Just run the following script:
 
 ```
@@ -325,7 +325,7 @@ for following operations, meaning the mechanism was bugged/unreliable.
 
 An alternative strategy that makes clearer the fact that the incremental update
 must be performed on the same file from where the document was loaded, or that underlying
-buffer will grow its mememory consumption following subsequent operations in case of
+buffer will grow its memory consumption following subsequent operations in case of
 buffer loaded documents, is available. It follows a couple of examples showing the
 correct operations to update a document, loaded from file or buffer:
 
@@ -360,7 +360,7 @@ Signing documents can be done with same technique, read the other questions for 
 **Q: Can I sign a document a second time?<a id='faq-sign-second'></a>**
 
 **A:** Yes, this is tested, but to make sure this will work you'll to re-parse the document a second time,
-as re-using the already loaded document is still untested (this may change later). For example you can
+as reusing the already loaded document is still untested (this may change later). For example you can
 do as it follows:
 
 ```cpp

@@ -14,7 +14,7 @@
 ## Version 1.0.2
 - Fixed [#275](https://github.com/podofo/podofo/issues/275), [#276](https://github.com/podofo/podofo/issues/276)
 - `PdfTokenizer`: Fixed free-after-use after failing to parse content while reading literal tokens
-- `PdfFont`: Improved heursitic for word spacing
+- `PdfFont`: Improved heuristic for word spacing
 - `PdfDifferenceEncoding`: Fixed handling of ligatures in AGL character names
 - `PdfXMPPAcket`: Make `GetDescription()` const correct
 - `PdfMemDocument`: Fixed upgrade to PDF2.0 in a incremental update
@@ -80,7 +80,7 @@
   [#251](https://github.com/podofo/podofo/issues/251), [#252](https://github.com/podofo/podofo/issues/252),
   [#253](https://github.com/podofo/podofo/issues/253)
 - `PdfParser`: Fixed stack overflow parsing documents with many XRef stream updates
-- `PdfFont`: Fixed `GetBoundingBox()` retrival
+- `PdfFont`: Fixed `GetBoundingBox()` retrieval
 - `PdfFontMetricsObject`: Fixed reading `/FontBBox`
 - `PdfEncodingFactory`: Fixed parsing of limits with `/FirstChar` equals to `/LastChar`
 - `PdfFontMetricsStandard14`: Fixed parsing /Widths
@@ -94,7 +94,7 @@
 - Fix eating of non-space chars in `SplitTextAsLines`
 - Fix FreeType segfault race condition
 - `PdfCheckBox`: Fixed `IsChecked()`
-- `PdfParser`: Uncondtionally try to read XRef stream in all PDFs that doesn't have a cross reference section
+- `PdfParser`: Unconditionally try to read XRef stream in all PDFs that don't have a cross reference section
 
 ## Version 0.10.4
 - Fixes [#161](https://github.com/podofo/podofo/issues/161), [#162](https://github.com/podofo/podofo/issues/162),
@@ -132,7 +132,7 @@ merges [#157](https://github.com/podofo/podofo/issues/)
 - `PdfPage`/`PdfAnnotationCollection`/`PdfAnnotation`: Now functions with
   rect input assume it to be using the canonical coordinate system
   with no rotation
-- `PdfImage`: Added support for CYMK jpeg
+- `PdfImage`: Added support for CMYK jpeg
 - `PdfParser`: Cleaned `FindToken2` -> `FindTokenBackward`
 - Renamed base source folder -> main
 - `PdfPainter`: Revamped API, added full state inspection with current point,
@@ -255,7 +255,7 @@ merges [#157](https://github.com/podofo/podofo/issues/)
 - Renamed `PdfPagesTreeCache` -> `PdfPageTreeCache`
 - PdfObject: removed GetIndirectObject(), MustGetIndirectKey (must use PdfDictionary now)
 - Remove `PdfMemoryManagement.cpp`, Removed `podofo_new`, `podofo_free`
-- Add chars type for char array storage/buffering which inerits string
+- Add chars type for char array storage/buffering which inherits string
 - Review pointer vs ref parameters/return types
 - Removed `PdfRefCountedBuffer`, `PdfRefCountedInputDevice`, `PdfRefCountedOutputDevice`
 - Removed `PdfMemoryManagement` and all C style malloc/free usage
@@ -281,7 +281,7 @@ Version 0.7
   needed again)
 - Fixed a crash when appending PDFs
 - Added unicode support on Win32 (wchar_t* constructors and methods
-- where apropriate, e.g. file handling)
+- where appropriate, e.g. file handling)
 - Fixed a memory leak in PdfStream
 - Small optimizations in various places
 - Fixed DCTDecode filter for CMYK images

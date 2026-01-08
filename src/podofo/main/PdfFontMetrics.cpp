@@ -92,7 +92,7 @@ unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateMergedMetrics(bool skipNo
         if (fontType == PdfFontFileType::Type1)
         {
             // Unconditionally convert the Type1 font to CFF: this allow
-            // the font file to be insterted in a CID font
+            // the font file to be inserted in a CID font
             charbuff cffDest;
             PoDoFo::ConvertFontType1ToCFF(GetOrLoadFontFileData(), cffDest);
             unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> face(FT::CreateFaceFromBuffer(cffDest), FT_Done_Face);
@@ -123,7 +123,7 @@ unique_ptr<PdfFontMetrics> PdfFontMetrics::CreateFromFace(FT_Face face, unique_p
         if (fontType == PdfFontFileType::Type1)
         {
             // Unconditionally convert the Type1 font to CFF: this allow
-            // the font file to be insterted in a CID font
+            // the font file to be inserted in a CID font
             charbuff cffDest;
             PoDoFo::ConvertFontType1ToCFF(*buffer, cffDest);
             unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> newface(FT::CreateFaceFromBuffer(cffDest), FT_Done_Face);
@@ -761,7 +761,7 @@ PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapType1(FT_Face face, const PdfEncod
         if (differences == nullptr || !differences->TryGetMappedName((unsigned char)code, name, codePoints))
         {
             // NOTE: 9.6.5.2 does not mention about querying the AGL, but
-            // all predefined encodings characater names are also present in the AGL
+            // all predefined encodings character names are also present in the AGL
             if (!baseEncodings.TryGetCodePoints(PdfCharCode(code, 1), codePoints)
                 || codePoints.GetSize() != 1
                 || !PdfPredefinedEncoding::TryGetCharNameFromCodePoint(*codePoints, name))

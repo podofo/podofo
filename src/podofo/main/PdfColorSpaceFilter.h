@@ -335,7 +335,7 @@ namespace PoDoFo
         charbuff m_iccprofile;
     };
 
-    /** A color space for a tiling or a shading pattern, as decribed by ISO 32000-2:2020 8.6.6.2 "Pattern colour spaces"
+    /** A color space for a tiling or a shading pattern, as described by ISO 32000-2:2020 8.6.6.2 "Pattern colour spaces"
      */
     class PODOFO_API PdfColorSpaceFilterPattern final : public PdfColorSpaceFilter
     {
