@@ -94,7 +94,7 @@
 - Fix eating of non-space chars in `SplitTextAsLines`
 - Fix FreeType segfault race condition
 - `PdfCheckBox`: Fixed `IsChecked()`
-- `PdfParser`: Unconditonally try to read XRef stream in all PDFs that doesn't have a cross reference section
+- `PdfParser`: Unconditionally try to read XRef stream in all PDFs that don't have a cross reference section
 
 ## Version 0.10.4
 - Fixes [#161](https://github.com/podofo/podofo/issues/161), [#162](https://github.com/podofo/podofo/issues/162),
