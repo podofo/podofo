@@ -192,7 +192,7 @@ public:
      *
      * \returns true if either the owner or user password matches password
      */
-    void Authenticate(const std::string_view& password, const PdfString& documentId, PdfEncryptContext& context);
+    void Authenticate(const std::string_view& password, const PdfString& documentId, PdfEncryptContext& context) const;
 
     /** Fill all keys into a encryption dictionary.
      *  This dictionary is usually added to the PDF files trailer
@@ -442,7 +442,6 @@ private:
     bool m_EncryptMetadata;            // Is metadata encrypted
     bool m_IsParsed;                   // True if the object is created from parsed values
     bool m_initialized;                // True if the object O/U values were filled
-    bool m_IsOwner;                    // Opened with owner privileges
     std::string m_userPass;            // User password
     std::string m_ownerPass;           // Owner password
 

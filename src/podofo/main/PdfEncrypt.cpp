@@ -339,14 +339,12 @@ void PdfEncrypt::EnsureEncryptionInitialized(const PdfString& documentId, PdfEnc
     // When creating an encrypt from scratch we
     // can assume we are the owner of the document
     context.m_AuthResult = PdfAuthResult::Owner;
-    m_IsOwner = true;
     m_initialized = true;
 }
 
-void PdfEncrypt::Authenticate(const string_view& password, const PdfString& documentId, PdfEncryptContext& context)
+void PdfEncrypt::Authenticate(const string_view& password, const PdfString& documentId, PdfEncryptContext& context) const
 {
     context.m_AuthResult = Authenticate(password, documentId.GetRawData(), context.GetCryptCtx(), context.m_encryptionKey);
-    m_IsOwner = (context.m_AuthResult == PdfAuthResult::Owner);
     context.m_documentId = documentId.GetRawData();
 }
 
@@ -557,8 +555,7 @@ PdfEncrypt::PdfEncrypt() :
     m_oValueSize(0),
     m_EncryptMetadata(false),
     m_IsParsed(false),
-    m_initialized(false),
-    m_IsOwner(false)
+    m_initialized(false)
 {
 }
 
@@ -594,7 +591,6 @@ void PdfEncrypt::InitFromScratch(const string_view& userPassword, const string_v
     PODOFO_ASSERT((size_t)keyLength / 8 <= std::size(((PdfEncryptContext*)nullptr)->m_encryptionKey));
     m_userPass = userPassword;
     m_ownerPass = ownerPassword;
-    m_IsOwner = !m_ownerPass.empty();
     m_Algorithm = algorithm;
     m_KeyLength = keyLength;
     m_rValue = revision;
@@ -1958,7 +1954,7 @@ bufferview PdfEncrypt::GetOValue() const
 
 bool PdfEncrypt::IsOwnerPasswordSet() const
 {
-    return m_IsOwner;
+    return !m_ownerPass.empty();
 }
 
 bool PdfEncrypt::IsPrintAllowed() const
