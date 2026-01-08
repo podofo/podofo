@@ -134,6 +134,8 @@ string_view PdfError::ErrorName(PdfErrorCode code)
             return "PdfErrorCode::FlateError"sv;
         case PdfErrorCode::FreeTypeError:
             return "PdfErrorCode::FreeTypeError"sv;
+        case PdfErrorCode::UnsupportedOperation:
+            return "PdfErrorCode::UnsupportedOperation"sv;
         case PdfErrorCode::UnsupportedPixelFormat:
             return "PdfErrorCode::UnsupportedPixelFormat"sv;
         case PdfErrorCode::UnsupportedImageFormat:
@@ -215,6 +217,8 @@ string_view PdfError::ErrorMessage(PdfErrorCode code)
             return "The content stream is invalid due to mismatched context pairing or other problems."sv;
         case PdfErrorCode::InvalidInput:
             return "The supplied input value is incorrect/unsupported."sv;
+        case PdfErrorCode::UnsupportedOperation:
+            return "The requested operation is not supported"sv;
         case PdfErrorCode::UnsupportedFilter:
             break;
         case PdfErrorCode::UnsupportedFontFormat:

@@ -61,7 +61,7 @@ TEST_CASE("TestSALSprep")
     INFO("C.9 Tagging characters");
     REQUIRE(!sprep::TrySASLprep("a\U000e0001b", prepd));
 
-    INFO("Should not containt RandALCat and LCat bidi");
+    INFO("Should not contain RandALCat and LCat bidi");
     REQUIRE(!sprep::TrySASLprep("a\u06DD\u00AAb", prepd));
 
     INFO("RandALCat should be first and last");

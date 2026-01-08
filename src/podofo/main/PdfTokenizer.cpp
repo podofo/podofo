@@ -53,9 +53,9 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
     size_t bufferSize = m_buffer->size() - 1;
 
     // check first if there are queued tokens and return them first
-    if (m_tokenQueque.size() != 0)
+    if (m_tokenQueue.size() != 0)
     {
-        auto& pair = m_tokenQueque.front();
+        auto& pair = m_tokenQueue.front();
         tokenType = pair.second;
 
         size_t size = std::min(bufferSize, pair.first.size());
@@ -64,7 +64,7 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
         buffer[size] = '\0';
         token = string_view(buffer, size);
 
-        m_tokenQueque.pop_front();
+        m_tokenQueue.pop_front();
         return true;
     }
 
@@ -253,7 +253,7 @@ bool PdfTokenizer::TryReadNextVariant(InputStreamDevice& device, const string_vi
 
 void PdfTokenizer::Reset()
 {
-    m_tokenQueque.clear();
+    m_tokenQueue.clear();
 }
 
 PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevice& device,
@@ -292,7 +292,7 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevi
                 {
                     dataType = PdfLiteralDataType::Real;
                 }
-                else if (!(isdigit(*start) || *start == '-' || *start == '+'))
+                else if (!(std::isdigit(static_cast<unsigned char>(*start)) || *start == '-' || *start == '+'))
                 {
                     dataType = PdfLiteralDataType::Unknown;
                     break;
@@ -700,7 +700,7 @@ void PdfTokenizer::ReadName(InputStreamDevice& device, PdfVariant& variant)
 
 void PdfTokenizer::EnqueueToken(const string_view& token, PdfTokenType tokenType)
 {
-    m_tokenQueque.push_back(TokenizerPair(string(token), tokenType));
+    m_tokenQueue.push_back(TokenizerPair(string(token), tokenType));
 }
 
 bool tryGetEscapedCharacter(char ch, char& escapedChar)
@@ -745,7 +745,7 @@ void readHexString(InputStreamDevice& device, charbuff& buffer)
             break;
 
         // only a hex digits
-        if (isdigit(ch) ||
+        if (std::isdigit(static_cast<unsigned char>(ch)) ||
             (ch >= 'A' && ch <= 'F') ||
             (ch >= 'a' && ch <= 'f'))
             buffer.push_back(ch);

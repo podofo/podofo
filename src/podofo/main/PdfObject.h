@@ -583,8 +583,6 @@ private:
 
     void copyStreamFrom(const PdfObject& obj);
 
-    void moveStreamFrom(PdfObject& obj);
-
     // Shared initialization between all the ctors
     void initObject();
 

@@ -436,11 +436,6 @@ void PdfObject::copyStreamFrom(const PdfObject& obj)
     }
 }
 
-void PdfObject::moveStreamFrom(PdfObject& obj)
-{
-
-}
-
 void PdfObject::EnableDelayedLoading()
 {
     m_IsDelayedLoadDone = false;

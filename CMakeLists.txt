@@ -32,6 +32,12 @@ configure_file(
     @ONLY
 )
 
+message("PoDoFo version: ${PODOFO_VERSION}")
+message("Host system: ${CMAKE_HOST_SYSTEM}")
+message("C++ compiler ID: ${CMAKE_CXX_COMPILER_ID}")
+message("C++ compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
+message("CMake version: ${CMAKE_VERSION}")
+
 find_package(Doxygen)
 if (DOXYGEN_FOUND)
     # TODO: Add doxygen target
@@ -158,7 +164,7 @@ find_package(ZLIB REQUIRED)
 message("Found zlib headers in ${ZLIB_INCLUDE_DIR}, library at ${ZLIB_LIBRARIES}")
 
 find_package(OpenSSL REQUIRED)
-message("OPENSSL_LIBRARIES: ${OPENSSL_LIBRARIES}")
+message("Found OpenSSL headers in ${OPENSSL_INCLUDE_DIR}, libraries at ${OPENSSL_LIBRARIES}")
 
 if (PODOFO_WANT_LCMS2)
     find_package(LCMS2)

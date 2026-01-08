@@ -447,7 +447,7 @@ namespace PoDoFo
             else
             {
                 child1 = &GetObject();
-                kids = GetDictionary().MustFindKey("Kids").GetArray();
+                kids = m_Parent->GetDictionary().MustFindKey("Kids").GetArray();
             }
 
             auto child2 = &GetDocument().GetObjects().CreateDictionaryObject();

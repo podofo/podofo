@@ -1,3 +1,4 @@
+#include "XmlUtils.h"
 /**
  * SPDX-FileCopyrightText: (C) 2022 Francesco Pretto <ceztko@gmail.com>
  * SPDX-License-Identifier: LGPL-2.0-or-later
@@ -6,9 +7,13 @@
 
 #include "PdfDeclarationsPrivate.h"
 #include "XmlUtils.h"
+#include <libxml/xmlsave.h>
 
 using namespace std;
 using namespace PoDoFo;
+
+static int xmlOutputStringWriter(void* context, const char* buffer, int len);
+static int xmlOutputStringWriterClose(void* context);
 
 void utls::InitXml()
 {
@@ -190,4 +195,27 @@ void utls::NavigateDescendantElements(xmlNodePtr element, const string_view& ns,
             NavigateDescendantElements(child, ns, name, action);
         }
     }
+}
+
+bool utls::TrySerializeXmlDocTo(string& str, xmlDocPtr doc)
+{
+    auto ctx = xmlSaveToIO(xmlOutputStringWriter, xmlOutputStringWriterClose, &str, nullptr, XML_SAVE_NO_DECL | XML_SAVE_FORMAT);
+    if (ctx == nullptr || xmlSaveDoc(ctx, doc) == -1 || xmlSaveClose(ctx) == -1)
+        return false;
+
+    return true;
+}
+
+int xmlOutputStringWriter(void* context, const char* buffer, int len)
+{
+    auto str = (string*)context;
+    str->append(buffer, (size_t)len);
+    return len;
+}
+
+int xmlOutputStringWriterClose(void* context)
+{
+    (void)context;
+    // Do nothing
+    return 0;
 }

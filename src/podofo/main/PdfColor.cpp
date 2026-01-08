@@ -539,7 +539,7 @@ PdfColor PdfColor::CreateFromString(const string_view& name)
         return PdfColor();
 
     // first see if it's a single number - if so, that's a single gray value
-    if (isdigit(name[0]) || name[0] == '.')
+    if (std::isdigit(static_cast<unsigned char>(name[0])) || name[0] == '.')
     {
         double grayVal = 0.0;
         if (!utls::TryParse(name.substr(1), grayVal))

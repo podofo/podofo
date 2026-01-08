@@ -24,7 +24,8 @@ PdfMemDocument::PdfMemDocument(bool empty) :
     m_Version(PdfVersionDefault),
     m_InitialVersion(PdfVersionDefault),
     m_HasXRefStream(false),
-    m_PrevXRefOffset(-1)
+    m_MagicOffset(0),
+    m_PrevXRefOffset(0) // 0 is a sentinel for invalid XRef offset
 {
 }
 
@@ -51,6 +52,7 @@ PdfMemDocument::PdfMemDocument(const PdfMemDocument& rhs) :
     m_Version(rhs.m_Version),
     m_InitialVersion(rhs.m_InitialVersion),
     m_HasXRefStream(rhs.m_HasXRefStream),
+    m_MagicOffset(rhs.m_MagicOffset),
     m_PrevXRefOffset(rhs.m_PrevXRefOffset)
 {
     // Do a full copy of the encrypt session
@@ -71,7 +73,7 @@ void PdfMemDocument::reset()
     m_Version = PdfVersionDefault;
     m_InitialVersion = PdfVersionDefault;
     m_HasXRefStream = false;
-    m_PrevXRefOffset = -1;
+    m_PrevXRefOffset = 0;
 }
 
 void PdfMemDocument::initFromParser(PdfParser& parser)
@@ -80,6 +82,7 @@ void PdfMemDocument::initFromParser(PdfParser& parser)
     m_InitialVersion = m_Version;
     m_HasXRefStream = parser.HasXRefStream();
     m_PrevXRefOffset = parser.GetXRefOffset();
+    m_MagicOffset = parser.GetMagicOffset();
     this->SetTrailer(parser.TakeTrailer());
 
     if (PdfCommon::IsLoggingSeverityEnabled(PdfLogSeverity::Debug))
@@ -169,7 +172,7 @@ void PdfMemDocument::Save(OutputStreamDevice& device, PdfSaveOptions opts)
 {
     beforeWrite(opts);
 
-    PdfWriter writer(this->GetObjects(), this->GetTrailer().GetObject());
+    PdfWriter writer(this->GetObjects(), this->GetTrailer().GetObject(), 0);
     writer.SetPdfVersion(GetMetadata().GetPdfVersion());
     writer.SetPdfALevel(GetMetadata().GetPdfALevel());
     writer.SetSaveOptions(opts);
@@ -180,6 +183,7 @@ void PdfMemDocument::Save(OutputStreamDevice& device, PdfSaveOptions opts)
     try
     {
         writer.Write(device);
+        m_PrevXRefOffset = writer.GetCurrXRefOffset();
     }
     catch (PdfError& e)
     {
@@ -198,13 +202,13 @@ void PdfMemDocument::SaveUpdate(OutputStreamDevice& device, PdfSaveOptions opts)
 {
     beforeWrite(opts);
 
-    PdfWriter writer(this->GetObjects(), this->GetTrailer().GetObject());
+    PdfWriter writer(this->GetObjects(), this->GetTrailer().GetObject(), m_MagicOffset);
     writer.SetPdfVersion(GetMetadata().GetPdfVersion());
     writer.SetPdfALevel(GetMetadata().GetPdfALevel());
     writer.SetSaveOptions(opts);
     writer.SetPrevXRefOffset(m_PrevXRefOffset);
     writer.SetUseXRefStream(m_HasXRefStream);
-    writer.SetIncrementalUpdate(false);
+    writer.SetIncrementalUpdate(true);
 
     if (m_Encrypt != nullptr)
         writer.SetEncrypt(*m_Encrypt);
@@ -221,6 +225,7 @@ void PdfMemDocument::SaveUpdate(OutputStreamDevice& device, PdfSaveOptions opts)
     {
         device.Seek(0, SeekDirection::End);
         writer.Write(device);
+        m_PrevXRefOffset = writer.GetCurrXRefOffset();
     }
     catch (PdfError& e)
     {

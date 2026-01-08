@@ -115,9 +115,10 @@ TEST_CASE("TestSignature2")
     REQUIRE(ssl::ComputeMD5Str(buff) == TestSignatureRefHash);
 
     // Resign should work
+    signature.SetCreatingApplication(PdfName("Sample Application"));
     PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
     utls::ReadTo(buff, outputPath);
-    REQUIRE(ssl::ComputeMD5Str(buff) == "F4038250AC2A81F552CF34A317619B86");
+    REQUIRE(ssl::ComputeMD5Str(buff) == "2AA706A0A84C662CEE3886C908C06557");
 }
 
 // Test deferred signing with external service
@@ -157,6 +158,65 @@ TEST_CASE("TestSignature3")
     
     utls::ReadTo(buff, outputPath);
     REQUIRE(ssl::ComputeMD5Str(buff) == TestSignatureRefHash);
+}
+
+// Test deferred signing with external service and context dumping/restore
+TEST_CASE("TestSignatureDumpRestore")
+{
+    charbuff buff;
+    auto inputPath = TestUtils::GetTestInputFilePath("TestSignature.pdf");
+    utls::ReadTo(buff, inputPath);
+
+    // X509 Certificate
+    string cert;
+    TestUtils::ReadTestInputFile("mycert.der", cert);
+
+    // RSA Private key coefficients in der format (binary)
+    string pkey;
+    TestUtils::ReadTestInputFile("mykey-pkcs8.der", pkey);
+
+    charbuff hashToSign;
+    PdfSignerId signerId;
+    PdfSignerCmsParams params;
+
+    // NOTE: This block simulates loosing all the original objects
+    // and restore the context in a subsequent phase
+    {
+        auto stream = std::make_shared<BufferStreamDevice>(buff);
+        PdfMemDocument doc(stream);
+        auto& page = doc.GetPages().GetPageAt(0);
+        auto& annot = page.GetAnnotations().GetAnnotAt(0);
+        auto& field = dynamic_cast<PdfAnnotationWidget&>(annot).GetField();
+        auto& signature = dynamic_cast<PdfSignature&>(field);
+        signature.SetSignatureDate(PdfDate::Parse("D:20250205192456+06'00'"));
+
+        auto signer = std::make_shared<PdfSignerCms>(cert, params);
+        PdfSigningContext ctx;
+        signerId = ctx.AddSigner(signature, signer);
+        PdfSigningResults results;
+        ctx.StartSigning(doc, stream, results, PdfSaveOptions::NoMetadataUpdate);
+
+        hashToSign = results.Intermediate[signerId];
+
+        ctx.DumpInPlace();
+        utls::WriteTo(TestUtils::GetTestOutputFilePath("TestSignatureDumpRestore.bin"), buff);
+    }
+
+    auto newStream = std::make_shared<BufferStreamDevice>(buff);
+    PdfSigningContext newCtx;
+    auto doc = newCtx.Restore(newStream);
+
+    utls::WriteTo(TestUtils::GetTestOutputFilePath("TestSignatureDumpRestore1.pdf"), buff);
+
+    charbuff signedHash;
+    ssl::DoSign(hashToSign, pkey, params.Hashing, signedHash);
+    PdfSigningResults newResults;
+    newResults.Intermediate[signerId] = signedHash;
+    newCtx.FinishSigning(newResults);
+
+    utls::WriteTo(TestUtils::GetTestOutputFilePath("TestSignatureDumpRestore2.pdf"), buff);
+
+    REQUIRE(ssl::ComputeMD5Str(buff) == "4162823DB0FD7A43B7A3FDDFE4FDEC38");
 }
 
 TEST_CASE("TestSignEncryptedDoc")
@@ -325,5 +385,83 @@ TEST_CASE("TestGetPreviousRevision")
         // This file is signed but has not incremental updates,
         // so the previous revision is undefined
         REQUIRE(!signature.TryGetPreviousRevision(*input, output));
+    }
+}
+
+TEST_CASE("TestSignatureOffsetStart")
+{
+    string x509certbuffer;
+    TestUtils::ReadTestInputFile("mycert.der", x509certbuffer);
+
+    string pkeybuffer;
+    TestUtils::ReadTestInputFile("mykey-pkcs8.der", pkeybuffer);
+
+    charbuff currBuffer;
+    utls::ReadTo(currBuffer, TestUtils::GetTestInputFilePath("blank-with-offset-start.pdf"));
+    auto inputOutput = std::make_shared<BufferStreamDevice>(currBuffer);
+
+    PdfMemDocument doc;
+    doc.Load(inputOutput);
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+
+    PdfSignerCms signer(x509certbuffer, pkeybuffer);
+    PoDoFo::SignDocument(doc, *inputOutput, signer, signature, PdfSaveOptions::NoMetadataUpdate);
+
+    utls::WriteTo(TestUtils::GetTestOutputFilePath("TestSignatureOffsetStart.pdf"), currBuffer);
+
+    // Try to reload the document
+    doc.Load(inputOutput);
+
+    REQUIRE(ssl::ComputeMD5Str(currBuffer) == "7063AD6AFCB797D361D2DAF943002298");
+}
+
+TEST_CASE("TestSignatureCorrupted")
+{
+    auto currentLogSeverity = PdfCommon::GetMaxLoggingSeverity();
+    PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::None);
+    string x509certbuffer;
+    TestUtils::ReadTestInputFile("mycert.der", x509certbuffer);
+
+    string pkeybuffer;
+    TestUtils::ReadTestInputFile("mykey-pkcs8.der", pkeybuffer);
+
+    charbuff currBuffer;
+
+    auto doTest = [&currBuffer, &x509certbuffer, &pkeybuffer](string_view outFilename, string_view expectedMD5)
+    {
+        auto inputOutput = std::make_shared<BufferStreamDevice>(currBuffer);
+
+        PdfMemDocument doc;
+        doc.Load(inputOutput);
+        auto& page = doc.GetPages().GetPageAt(0);
+        auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+
+        PdfSignerCms signer(x509certbuffer, pkeybuffer);
+        PoDoFo::SignDocument(doc, *inputOutput, signer, signature, PdfSaveOptions::NoMetadataUpdate);
+
+        utls::WriteTo(TestUtils::GetTestOutputFilePath(outFilename), currBuffer);
+
+        // Try to reload the document
+        doc.Load(inputOutput);
+
+        REQUIRE(ssl::ComputeMD5Str(currBuffer) == expectedMD5);
+    };
+
+    try
+    {
+        utls::ReadTo(currBuffer, TestUtils::GetTestInputFilePath("TestXRefRecovery1.pdf"));
+        doTest("TestSignatureCorrupted1.pdf", "FF1B6A133940DED8C0890E3A9707C151");
+
+        // Repeat the test with some garbage at the beginning of the test
+        utls::ReadTo(currBuffer, TestUtils::GetTestInputFilePath("TestXRefRecovery1.pdf"));
+        currBuffer.insert(0, "% Some garbage before the PDF header\n\n");
+        doTest("TestSignatureCorrupted2.pdf", "8AA3CB1D40DC13E652AD935A16DA927C");
+        PdfCommon::SetMaxLoggingSeverity(currentLogSeverity);
+    }
+    catch (...)
+    {
+        PdfCommon::SetMaxLoggingSeverity(currentLogSeverity);
+        throw;
     }
 }

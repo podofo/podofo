@@ -18,10 +18,10 @@ PdfXRefEntry::PdfXRefEntry() :
     Parsed(false)
 { }
 
-PdfXRefEntry PdfXRefEntry::CreateFree(uint32_t object, uint16_t generation)
+PdfXRefEntry PdfXRefEntry::CreateFree(uint32_t nextFreeObj, uint16_t generation)
 {
     PdfXRefEntry ret;
-    ret.ObjectNumber = object;
+    ret.ObjectNumber = nextFreeObj;
     ret.Generation = generation;
     ret.Type = PdfXRefEntryType::Free;
     return ret;

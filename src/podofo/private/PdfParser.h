@@ -70,6 +70,10 @@ public:
      */
     static bool TryGetPreviousRevisionOffset(InputStreamDevice& input, size_t currOffset, size_t& eofOffset);
 
+    /** Checks the magic number at the start of the pdf file
+     */
+    static bool TryReadHeader(InputStreamDevice& device, PdfVersion& version);
+
 public:
     /** If you try to open an encrypted PDF file, which requires
      *  a password to open, PoDoFo will throw a PdfError( PdfErrorCode::InvalidPassword )
@@ -149,7 +153,9 @@ public:
 
     inline void SetLoadStreamsEagerly(bool value) { m_LoadStreamsEagerly = value; }
 
-    const PdfEncryptSession* GetEncrypt() const { return m_Encrypt.get(); }
+    inline const PdfEncryptSession* GetEncrypt() const { return m_Encrypt.get(); }
+
+    inline size_t GetMagicOffset() const { return m_MagicOffset; }
 
 private:
     /**
@@ -190,39 +196,6 @@ private:
      */
     void ReadObjectEntries(InputStreamDevice& device);
 
-    /** Checks the magic number at the start of the pdf file
-     *  and sets the m_PdfVersion member to the correct version
-     *  of the pdf file.
-     *
-     */
-    void ReadHeader(InputStreamDevice& device);
-
-private:
-    bool tryRebuildCrossReference(InputStreamDevice& device);
-
-    /** Searches backwards from the specified position of the file
-     *  and tries to find a token.
-     *  The current file is positioned right after the token.
-     *
-     *  \param token a token to find
-     *  \param range range in bytes in which to search
-     *                beginning at the specified position of the file
-     *  \param searchEnd specifies position
-     */
-    void findTokenBackward(InputStreamDevice& device, const char* token, size_t range, size_t searchEnd);
-
-    /** Merge the information of this trailer object
-     *  in the parsers main trailer object.
-     *  \param trailer take the keys to merge from this dictionary.
-     */
-    void mergeTrailer(const PdfObject& trailer);
-
-    /** Looks for a startxref entry at the current file position
-     *  and saves its byteoffset to pXRefOffset.
-     *  \param xRefOffset store the byte offset of the xref section into this variable.
-     */
-    void findXRef(InputStreamDevice& device, size_t& xRefOffset);
-
     /** Reads all objects from the pdf into memory
      *  from the previously read entries
      *
@@ -235,7 +208,36 @@ private:
      *  \see ReadObjects
      *  \see SetPassword
      */
-    void readObjectsInternal(InputStreamDevice& device);
+    void ReadObjectsInternal(InputStreamDevice& device);
+
+    /** Checks the magic number at the start of the pdf file
+     *  and sets the m_PdfVersion member to the correct version
+     *  of the pdf file.
+     */
+    void ReadHeader(InputStreamDevice& device);
+
+private:
+    static bool tryReadHeader(InputStreamDevice& device, size_t& magicOffset, PdfVersion& version);
+
+    bool tryRebuildCrossReference(InputStreamDevice& device);
+
+    /** Searches backwards from the specified position of the file
+     *  and tries to find a token.
+     *  If found, the current stream is positioned right after the token.
+     *
+     *  \param token a token to find
+     *  \param range range in bytes in which to search
+     *                beginning at the specified position of the file
+     *  \param searchEnd specifies position
+     *  \returns true if the token was found
+     */
+    bool tryFindTokenBackward(InputStreamDevice& device, std::string_view token, size_t searchEnd);
+
+    /** Merge the information of this trailer object
+     *  in the parsers main trailer object.
+     *  \param trailer take the keys to merge from this dictionary.
+     */
+    void mergeTrailer(const PdfObject& trailer);
 
     void eagerlyLoadStreams();
 
@@ -292,12 +294,18 @@ private:
 
     PdfVersion m_PdfVersion;
     bool m_LoadStreamsEagerly;
-
-    size_t m_magicOffset;
     bool m_HasXRefStream;
+
+    size_t m_MagicOffset;
+    size_t m_StartXRefTokenPos;
     size_t m_XRefOffset;
     size_t m_FileSize;
-    size_t m_lastEOFOffset;
+
+    // Used to backward search for "startxref". It may effectively
+    // be the position of the last %%EOF, but when searching previous
+    // revisions we can't ensure the existing/correctness of such
+    // marker, so this is not guaranteed
+    size_t m_lastEOFOffsetHint;
 
     PdfXRefEntries m_entries;
     PdfIndirectObjectList* m_Objects;

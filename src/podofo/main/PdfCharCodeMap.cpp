@@ -75,7 +75,7 @@ bool PdfCharCodeMap::IsTrivialIdentity() const
     // We look first if we can look just at straight mappings
     if (m_Mappings.size() != 0)
     {
-        // If we also have ranges, then it's definetely not trivial
+        // If we also have ranges, then it's definitely not trivial
         if (m_Ranges.size() != 0)
             return false;
 
@@ -156,7 +156,7 @@ vector<CodeSpaceRange> PdfCharCodeMap::GetCodeSpaceRanges() const
         prevCodeHi = range.GetSrcCodeHi();
     }
 
-    // Merge all smae code space size ranges
+    // Merge all same code space size ranges
     it = ranges.begin();
     end = ranges.end();
     ret.push_back(CodeSpaceRange{ it->SrcCodeLo.Code, it->GetSrcCodeHi().Code, it->SrcCodeLo.CodeSpaceSize });

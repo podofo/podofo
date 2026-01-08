@@ -143,7 +143,7 @@ void PdfFontMetricsFreetype::init(const PdfFontMetrics* refMetrics)
         // NOTE2: It is not correct to write flags ForceBold if the
         // font is already bold. The ForceBold flag is just an hint
         // for the viewer to draw glyphs with more pixels
-        // TODO: Infer more characateristics
+        // TODO: Infer more characteristics
         if ((GetStyle() & PdfFontStyle::Italic) == PdfFontStyle::Italic)
             m_Flags |= PdfFontDescriptorFlags::Italic;
     }

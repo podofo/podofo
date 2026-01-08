@@ -36,7 +36,7 @@ namespace
     {
         AglMapType Type;                ///< The mapping may belong to multiple maps
         unsigned char CodePointCount;
-        unsigned short Code;            ///< The unicode code point of the charater, or the index in the ligatures lists
+        unsigned short Code;            ///< The unicode code point of the character, or the index in the ligatures lists
     };
 
     struct AglLigatureInfo

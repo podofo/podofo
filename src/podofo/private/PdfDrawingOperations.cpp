@@ -33,7 +33,7 @@ void PoDoFo::WriteArcTo(PdfStringStream& stream, double x0, double y0, double x1
     double x1_2 = x2 - x1;
     double y1_2 = y2 - y1;
 
-    // Compute the tagent points
+    // Compute the tangent points
     double norm1 = std::sqrt(x1_0 * x1_0 + y1_0 * y1_0);
     double norm2 = std::sqrt(x1_2 * x1_2 + y1_2 * y1_2);
 
@@ -45,12 +45,12 @@ void PoDoFo::WriteArcTo(PdfStringStream& stream, double x0, double y0, double x1
     // Compute a two-point form -(y2–y1)*(x-x1) + (x2-x1)*(y-y1) = 0 and
     // then find the equation of perpendicular on the point (x1,y1) with b*x - a*y + a * y1 − b * x1 = 0
 
-    // Compute the coefficientes of a line passing through (x1t, y1t) and perpendicular to the arc tangent
+    // Compute the coefficients of a line passing through (x1t, y1t) and perpendicular to the arc tangent
     double a0t = x1_0;
     double b0t = y1_0;
     double c0t = -x1_0 * x1t - y1_0 * y1t;
 
-    // Compute the coefficientes of a line passing through (x2t, y2t) and perpendicular to the arc tangent
+    // Compute the coefficients of a line passing through (x2t, y2t) and perpendicular to the arc tangent
     double a2t = x1_2;
     double b2t = y1_2;
     double c2t = -x1_2 * x2t - y1_2 * y2t;
@@ -138,7 +138,7 @@ void PoDoFo::WriteEllipse(PdfStringStream& stream, double x, double y,
     double pointsY[BEZIER_POINTS];
     convertRectToBezier(x, y, width, height, pointsX, pointsY);
 
-    PoDoFo::WriteOperator_m(stream, x, y);
+    PoDoFo::WriteOperator_m(stream, pointsX[0], pointsY[0]);
     for (unsigned i = 1; i < BEZIER_POINTS; i += 3)
         PoDoFo::WriteOperator_c(stream, pointsX[i], pointsY[i], pointsX[i + 1], pointsY[i + 1], pointsX[i + 2], pointsY[i + 2]);
 

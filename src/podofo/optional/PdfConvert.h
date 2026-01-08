@@ -1202,6 +1202,122 @@ namespace PoDoFo
         }
     };
 
+    template<>
+    struct Convert<PdfSignatureType>
+    {
+        static std::string_view ToString(PdfSignatureType value)
+        {
+            using namespace std;
+            switch (value)
+            {
+                case PdfSignatureType::Unknown:
+                    return "Unknown"sv;
+                case PdfSignatureType::PAdES_B:
+                    return "PAdES_B"sv;
+                case PdfSignatureType::Pkcs7:
+                    return "Pkcs7"sv;
+                default:
+                    throw PdfError(PdfErrorCode::InvalidEnumValue, __FILE__, __LINE__);
+            }
+        }
+
+        static bool TryParse(const std::string_view& str, PdfSignatureType& value)
+        {
+            if (str == "Unknown")
+            {
+                value = PdfSignatureType::Unknown;
+                return true;
+            }
+            else if (str == "PAdES_B")
+            {
+                value = PdfSignatureType::PAdES_B;
+                return true;
+            }
+            else if (str == "Pkcs7")
+            {
+                value = PdfSignatureType::Pkcs7;
+                return true;
+            }
+
+            return false;
+        }
+    };
+
+    template<>
+    struct Convert<PdfSignatureEncryption>
+    {
+        static std::string_view ToString(PdfSignatureEncryption value)
+        {
+            using namespace std;
+            switch (value)
+            {
+                case PdfSignatureEncryption::RSA:
+                    return "RSA"sv;
+                case PdfSignatureEncryption::ECDSA:
+                    return "ECDSA"sv;
+                default:
+                    throw PdfError(PdfErrorCode::InvalidEnumValue, __FILE__, __LINE__);
+            }
+        }
+
+        static bool TryParse(const std::string_view& str, PdfSignatureEncryption& value)
+        {
+            if (str == "RSA")
+            {
+                value = PdfSignatureEncryption::RSA;
+                return true;
+            }
+            else if (str == "ECDSA")
+            {
+                value = PdfSignatureEncryption::ECDSA;
+                return true;
+            }
+
+            return false;
+        }
+    };
+
+    template<>
+    struct Convert<PdfHashingAlgorithm>
+    {
+        static std::string_view ToString(PdfHashingAlgorithm value)
+        {
+            using namespace std;
+            switch (value)
+            {
+                case PdfHashingAlgorithm::SHA256:
+                    return "SHA256"sv;
+                case PdfHashingAlgorithm::SHA384:
+                    return "SHA384"sv;
+                case PdfHashingAlgorithm::SHA512:
+                    return "SHA512"sv;
+                default:
+                    throw PdfError(PdfErrorCode::InvalidEnumValue, __FILE__, __LINE__);
+            }
+        }
+
+        static bool TryParse(const std::string_view& str, PdfHashingAlgorithm& value)
+        {
+            if (str == "SHA256")
+            {
+                value = PdfHashingAlgorithm::SHA256;
+                return true;
+            }
+            else if (str == "SHA384")
+            {
+                value = PdfHashingAlgorithm::SHA384;
+                return true;
+            }
+            else if (str == "SHA512")
+            {
+                value = PdfHashingAlgorithm::SHA512;
+                return true;
+            }
+
+            return false;
+        }
+    };
+
     template<typename T>
     std::string_view ToString(T value)
     {

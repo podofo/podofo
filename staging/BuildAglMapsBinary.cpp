@@ -21,7 +21,7 @@ namespace
     {
         AglType Type;
         unsigned char CodePointCount;
-        unsigned short Code;            ///< The unicode code point of the charater, or the index in the s_ligatures lists
+        unsigned short Code;            ///< The unicode code point of the character, or the index in the s_ligatures lists
     };
 
     struct AglLigatureInfo

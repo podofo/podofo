@@ -127,19 +127,32 @@ void PdfSignature::SetSignatureLocation(nullable<const PdfString&> text)
 
 void PdfSignature::SetSignatureCreator(nullable<const PdfString&> creator)
 {
+    if (creator == nullptr)
+        SetCreatingApplication(nullptr);
+    else
+        SetCreatingApplication(PdfName(creator->GetString()));
+}
+
+void PdfSignature::SetCreatingApplication(nullable<const PdfName&> application)
+{
     EnsureValueObject();
-    // TODO: Make it less brutal, preserving /Prop_Build
-    if (creator.has_value())
+    PdfDictionary* dict;
+    if (application.has_value())
     {
-        m_ValueObj->GetDictionary().AddKey("Prop_Build"_n, PdfDictionary());
-        PdfObject* propBuild = m_ValueObj->GetDictionary().GetKey("Prop_Build");
-        propBuild->GetDictionary().AddKey("App"_n, PdfDictionary());
-        PdfObject* app = propBuild->GetDictionary().GetKey("App");
-        app->GetDictionary().AddKey("Name"_n, *creator);
+        if (!m_ValueObj->GetDictionary().TryFindKeyAs("Prop_Build", dict))
+            dict = &m_ValueObj->GetDictionary().AddKey("Prop_Build"_n, PdfDictionary()).GetDictionary();
+
+        PdfDictionary* appDict;
+        if (!dict->TryFindKeyAs("Prop_Build", appDict))
+            appDict = &dict->AddKey("App"_n, PdfDictionary()).GetDictionary();
+
+        appDict->AddKey("Name"_n, *application);
     }
     else
     {
-        m_ValueObj->GetDictionary().RemoveKey("Prop_Build");
+        dict = m_ValueObj->GetDictionary().FindKeyAs<PdfDictionary*>("Prop_Build");
+        if (dict != nullptr)
+            dict->RemoveKey("App");
     }
 }
 
@@ -233,8 +246,8 @@ bool PdfSignature::TryGetPreviousRevision(InputStreamDevice& input, OutputStream
 
     int64_t lastRangeOffset;
     int64_t lastRangeLength;
-    if (!byteRange->TryGetAtAs(byteRange->GetSize() - 1, lastRangeOffset)
-        || !byteRange->TryGetAtAs(byteRange->GetSize() - 2, lastRangeLength)
+    if (!byteRange->TryGetAtAs(byteRange->GetSize() - 2, lastRangeOffset)
+        || !byteRange->TryGetAtAs(byteRange->GetSize() - 1, lastRangeLength)
         || lastRangeOffset < 0 || lastRangeLength < 0)
     {
         return false;

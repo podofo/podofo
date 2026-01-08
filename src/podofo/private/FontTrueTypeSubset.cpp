@@ -337,7 +337,7 @@ void FontTrueTypeSubset::LoadGlyphData(GlyphContext& ctx, unsigned gid)
 
     glyphData.GlyphAdvOffset = glyphData.GlyphOffset + 5 * sizeof(uint16_t);
 
-    // NOTE: Some fonts may truncate countour section,
+    // NOTE: Some fonts may truncate contour section,
     // skip reading on EOF in that case
     m_device->Seek(glyphData.GlyphOffset);
     if (!m_device->Eof())

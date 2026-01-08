@@ -419,5 +419,5 @@ string computeHashStr(const bufferview& data, const EVP_MD* type)
     unsigned char hash[EVP_MAX_MD_SIZE];
     unsigned length;
     computeHash(data, type, hash, length);
-    return utls::GetCharHexString({ (const char*)hash, length });
+    return utls::GetHexString({ (const char*)hash, length });
 }

@@ -383,6 +383,11 @@ Fail:
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to seek to given position in the stream");
 }
 
+void StandardStreamDevice::truncate()
+{
+    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+}
+
 FileStreamDevice::FileStreamDevice(const string_view& filepath)
     : FileStreamDevice(filepath, FileMode::Open, DeviceAccess::Read)
 {
@@ -451,6 +456,11 @@ bool FileStreamDevice::CanSeek() const
 bool FileStreamDevice::Eof() const
 {
     return std::feof(m_file) != 0;
+}
+
+void FileStreamDevice::truncate()
+{
+    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
 void FileStreamDevice::writeBuffer(const char* buffer, size_t size)
@@ -611,6 +621,11 @@ void NullStreamDevice::seek(ssize_t offset, SeekDirection direction)
     m_Position = SeekPosition(m_Position, m_Length, offset, direction);
 }
 
+void NullStreamDevice::truncate()
+{
+    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+}
+
 SpanStreamDevice::SpanStreamDevice(const char* buffer, size_t size)
     : StreamDevice(DeviceAccess::Read), m_buffer(const_cast<char*>(buffer)), m_Length(size), m_Position(0)
 {
@@ -717,6 +732,11 @@ bool SpanStreamDevice::peek(char& ch) const
 void SpanStreamDevice::seek(ssize_t offset, SeekDirection direction)
 {
     m_Position = SeekPosition(m_Position, m_Length, offset, direction);
+}
+
+void SpanStreamDevice::truncate()
+{
+    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
 FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access)

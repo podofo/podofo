@@ -27,7 +27,7 @@ class PdfXRef;
 class PdfWriter
 {
 private:
-    PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer);
+    PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer, size_t magicOffset);
 
 public:
     /** Create a new pdf file, from an vector of PdfObjects
@@ -35,7 +35,8 @@ public:
      *  \param objects the vector of objects
      *  \param trailer a valid trailer object
      */
-    PdfWriter(PdfIndirectObjectList& objects, const PdfObject& trailer);
+    PdfWriter(PdfIndirectObjectList& objects, const PdfObject& trailer,
+        size_t magicOffset);
 
     virtual ~PdfWriter();
 
@@ -100,7 +101,7 @@ public:
      *  The default is 0.
      *  \param lPrevXRefOffset the previous XRef table offset
      */
-    inline void SetPrevXRefOffset(int64_t prevXRefOffset) { m_PrevXRefOffset = prevXRefOffset; }
+    inline void SetPrevXRefOffset(size_t prevXRefOffset) { m_PrevXRefOffset = prevXRefOffset; }
 
     /**
      *  \returns offset to the previous XRef table, as previously set
@@ -108,18 +109,17 @@ public:
      *
      * \see SetPrevXRefOffset
      */
-    inline int64_t GetPrevXRefOffset() const { return m_PrevXRefOffset; }
+    inline size_t GetPrevXRefOffset() const { return m_PrevXRefOffset; }
 
     /** Set whether writing an incremental update.
      *  Default is false.
-     *  \param incrementalUpdate if true an incremental update will be written
      */
-    void SetIncrementalUpdate(bool rewriteXRefTable);
+    void SetIncrementalUpdate(bool enabled);
 
     /**
      *  \returns whether writing an incremental update
      */
-    inline bool GetIncrementalUpdate() const { return m_IncrementalUpdate; }
+    inline bool IsIncrementalUpdate() const { return m_IsIncrementalUpdate; }
 
     /**
      * \returns true if this PdfWriter creates an encrypted PDF file
@@ -127,6 +127,10 @@ public:
     inline bool GetEncrypted() const { return m_Encrypt != nullptr; }
 
     inline PdfIndirectObjectList& GetObjects() { return *m_Objects; }
+
+    inline size_t GetMagicOffset() const { return m_MagicOffset; }
+
+    inline size_t GetCurrXRefOffset() const { return m_CurrXRefOffset; }
 
 protected:
     /**
@@ -174,6 +178,7 @@ protected:
 private:
     PdfIndirectObjectList* m_Objects;
     const PdfObject* m_Trailer;
+    size_t m_MagicOffset;
     PdfVersion m_Version;
     PdfALevel m_PdfALevel;
 
@@ -188,9 +193,9 @@ private:
 
     PdfString m_identifier;
     PdfString m_originalIdentifier; // used for incremental update
-    int64_t m_PrevXRefOffset;
-    bool m_IncrementalUpdate;
-    bool m_rewriteXRefTable; // Only used if incremental update
+    size_t m_PrevXRefOffset;
+    size_t m_CurrXRefOffset;
+    bool m_IsIncrementalUpdate;
 };
 
 };

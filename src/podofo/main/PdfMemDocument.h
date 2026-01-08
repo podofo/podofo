@@ -156,6 +156,8 @@ public:
 
     const PdfEncrypt* GetEncrypt() const override;
 
+    inline size_t GetMagicOffset() const { return m_MagicOffset; }
+
 protected:
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.
@@ -192,7 +194,8 @@ private:
     PdfVersion m_Version;
     PdfVersion m_InitialVersion;
     bool m_HasXRefStream;
-    int64_t m_PrevXRefOffset;
+    size_t m_MagicOffset;
+    size_t m_PrevXRefOffset;
     std::unique_ptr<PdfEncryptSession> m_Encrypt;
     std::shared_ptr<InputStreamDevice> m_device;
 };

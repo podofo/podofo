@@ -64,6 +64,7 @@ enum class PdfErrorCode : uint8_t
     FlateError,               ///< Error in zlib
     FreeTypeError,            ///< Error in FreeType
 
+    UnsupportedOperation,     ///< Unsupported operation
     UnsupportedPixelFormat,   ///< This pixel format is not supported by PoDoFo.
     UnsupportedImageFormat,   ///< This image format is not supported by PoDoFo.
     CannotConvertColor,       ///< This color format cannot be converted.

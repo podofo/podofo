@@ -10,7 +10,7 @@
 #include <csetjmp>
 
 #ifdef __MINGW32__
-// Workaround <csetjmp> inlcuding <Windows.h> in MINGW
+// Workaround <csetjmp> including <Windows.h> in MINGW
 // See https://github.com/podofo/podofo/commit/939ec73578e09aab11012bd38a034a74da1a202c#commitcomment-141054513
 #include <podofo/private/WindowsLeanMean.h>
 #endif // __MINGW32__

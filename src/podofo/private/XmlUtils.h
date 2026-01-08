@@ -7,8 +7,10 @@
 #pragma once
 
 #include <string>
+#include <functional>
 #include <libxml/tree.h>
 #include <libxml/xmlerror.h>
+#include <libxml/parser.h>
 #include <podofo/auxiliary/nullable.h>
 
 // Cast macro that keep or enforce const to use
@@ -27,6 +29,7 @@
 namespace utls
 {
     void InitXml();
+    bool TrySerializeXmlDocTo(std::string& str, xmlDocPtr doc);
     xmlNodePtr FindDescendantElement(xmlNodePtr element, const std::string_view& name);
     xmlNodePtr FindDescendantElement(xmlNodePtr element, const std::string_view& ns, const std::string_view& name);
     xmlNodePtr FindChildElement(xmlNodePtr element, const std::string_view& name);

@@ -170,7 +170,7 @@
     Removed from the public API: They have always been for inner use and dangerous to call for the user. For object removal we now rely on garbage collection
   * Renamed `ObjectListComparator` to `PdfObjectInequality` and moved it to PoDoFo namespace
 - `PdfExtGState`:
-  * Costructor is now private, create it through `PdfDocument::CreateExtGState(definition)`
+  * Constructor is now private, create it through `PdfDocument::CreateExtGState(definition)`
   * All methods removed: Retrieve the `PdfExtGStateDefinition` instance
   * Fill opacity -> `PdfExtGStateDefinition::NonStrokingAlpha`
   * Stroke opacity -> `PdfExtGStateDefinition::StrokingAlpha`
@@ -267,7 +267,7 @@ and use move semantics on the stream
 - `PdfXObjectPostScript`: Made the class final
 - `PdfContents`: Made the constructor internal and the class internal
 - `PdfCatalog`: Made the constructor internal
-- `PdfEncoding`: Made the class final, maked `ExportToFont()` internal
+- `PdfEncoding`: Made the class final, made `ExportToFont()` internal
 
 ## 0.10.0 -> 0.10.1
 - `PdfParser::TakeEncrypt()` -> `PdfParser::GetEncrypt()` which now returns `std::shared_ptr`. This change was needed to address a vulnerability concern in #70. Although public, This method is considered to be infrastructural and not called often outside of PoDofo;

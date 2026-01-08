@@ -13,12 +13,15 @@
 
 extern "C"
 {
-    // Openssl forward declations
+    // OpenSSL forward declarations
     struct x509_st;
     struct evp_pkey_st;
     struct CMS_ContentInfo_st;
     struct CMS_SignerInfo_st;
     struct bio_st;
+    // libxml2 forward declarations
+    typedef struct _xmlNode xmlNode;
+    typedef xmlNode* xmlNodePtr;
 }
 
 namespace PoDoFo
@@ -46,6 +49,8 @@ namespace PoDoFo
         void ComputeHashToSign(charbuff& hashToSign);
         void ComputeSignature(const bufferview& signedHash, charbuff& signature);
         void AddAttribute(const std::string_view& nid, const bufferview& attr, bool signedAttr, bool octetString);
+        void Dump(xmlNodePtr elem, std::string& temp);
+        void Restore(xmlNodePtr elem, charbuff& temp);
     public:
         PdfSignatureEncryption GetEncryption() const { return m_encryption; }
     private:
@@ -77,7 +82,6 @@ namespace PoDoFo
         struct CMS_ContentInfo_st* m_cms;
         struct CMS_SignerInfo_st* m_signer;
         struct bio_st* m_databio;
-        struct bio_st* m_out;
     };
 }
 

@@ -54,6 +54,7 @@ namespace PoDoFo
         static void TestIsPdfFile();
         static void TestNestedArrays();
         static void TestNestedDictionaries();
+        static void TestInvalidXRefEntries();
 
         void ReadXRefContents(size_t offset, bool skipFollowPrevious)
         {
@@ -85,6 +86,11 @@ namespace PoDoFo
             PdfParser::ReadHeader(*m_device);
         }
 
+        void ReadObjectsInternal()
+        {
+            PdfParser::ReadObjectsInternal(*m_device);
+        }
+
         const shared_ptr<InputStreamDevice>& GetDevice() { return m_device; }
 
     private:
@@ -103,6 +109,7 @@ METHOD_AS_TEST_CASE(PdfParserTest::TestReadXRefStreamContents, "TestReadXRefStre
 METHOD_AS_TEST_CASE(PdfParserTest::TestIsPdfFile, "TestIsPdfFile");
 METHOD_AS_TEST_CASE(PdfParserTest::TestNestedArrays, "TestNestedArrays");
 METHOD_AS_TEST_CASE(PdfParserTest::TestNestedDictionaries, "TestNestedDictionaries");
+METHOD_AS_TEST_CASE(PdfParserTest::TestInvalidXRefEntries, "TestInvalidXRefEntries");
 
 TEST_CASE("TestRemoveStream")
 {
@@ -2289,6 +2296,33 @@ void PdfParserTest::TestNestedDictionaries()
     }
 }
 
+void PdfParserTest::TestInvalidXRefEntries()
+{
+    auto currentLogSeverity = PdfCommon::GetMaxLoggingSeverity();
+    try
+    {
+        // Test invalid entries
+        PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::None);
+        string strInput =
+            "0000000000 65535 n\r\n"
+            "0000000001 65536 n\r\n"
+            "0000000003 00000 f\r\n"
+            "0000000000 65536 f\r\n";
+        PdfIndirectObjectList objects;
+        PdfParserTest parser(objects, strInput);
+        parser.ReadXRefSubsection(0, 4);
+        parser.ReadObjectsInternal();
+        PdfCommon::SetMaxLoggingSeverity(currentLogSeverity);
+        REQUIRE(objects.GetSize() == 0);
+        REQUIRE(objects.GetFreeObjects().size() == 0);
+    }
+    catch (...)
+    {
+        PdfCommon::SetMaxLoggingSeverity(currentLogSeverity);
+        FAIL("should not throw");
+    }
+}
+
 // CVE-2021-30471
 TEST_CASE("TestNestedNameTree")
 {
@@ -2897,6 +2931,17 @@ TEST_CASE("TestCompressedObjectStreamIndirectLength")
     doc.Load(outpath);
     doc.SaveUpdate(outpath);
     doc.Load(outpath);
+}
+
+TEST_CASE("TestEdgeCases")
+{
+    PdfMemDocument doc;
+    vector<string_view> test = { "512.pdf"sv, "513.pdf"sv, "514.pdf"sv, "big1.pdf"sv, "big2.pdf"sv, "false.pdf"sv };
+    for (unsigned i = 0; i < test.size(); i++)
+        doc.Load(TestUtils::GetTestInputFilePath("ParserTests", test[i]), PdfLoadOptions::SkipXRefRecovery);
+
+    // This just really requires recovery as it has the trailer preceding the xref sections
+    doc.Load(TestUtils::GetTestInputFilePath("ParserTests", "rev.pdf"));
 }
 
 string generateXRefEntries(size_t count)
