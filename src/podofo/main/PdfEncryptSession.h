@@ -10,7 +10,7 @@
 #include "PdfEncrypt.h"
 
 namespace PoDoFo {
-    
+
 /**
  * A bundle of the encrypt object together a context
  */
@@ -30,6 +30,8 @@ private:
 public:
     PdfEncrypt& GetEncrypt() { return *m_Encrypt; }
     PdfEncryptContext& GetContext() { return m_Context; }
+
+    bool HasOwnerPermissions() { return m_Context.GetAuthResult() == PdfAuthResult::Owner; }
 
 private:
     PdfEncryptSession& operator=(const PdfEncryptSession&) = delete;

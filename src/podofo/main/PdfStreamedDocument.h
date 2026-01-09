@@ -85,6 +85,8 @@ public:
     ~PdfStreamedDocument();
 
 public:
+    bool HasOwnerPermissions() const override;
+
     const PdfEncrypt* GetEncrypt() const override;
 
 protected:
