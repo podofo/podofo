@@ -49,6 +49,11 @@ void PdfStreamedDocument::SetPdfVersion(PdfVersion version)
     PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
+bool PdfStreamedDocument::HasOwnerPermissions() const
+{
+    return false; // PdfStreamedDocument does not have an encryption context
+}
+
 const PdfEncrypt* PdfStreamedDocument::GetEncrypt() const
 {
     return m_Encrypt.get();

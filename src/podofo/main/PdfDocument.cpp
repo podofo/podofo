@@ -551,42 +551,42 @@ bool PdfDocument::IsEncrypted() const
 
 bool PdfDocument::IsPrintAllowed() const
 {
-    return GetEncrypt() == nullptr ? true : GetEncrypt()->IsPrintAllowed();
+    return GetEncrypt() == nullptr || GetEncrypt()->IsPrintAllowed() || HasOwnerPermissions();
 }
 
 bool PdfDocument::IsEditAllowed() const
 {
-    return GetEncrypt() == nullptr ? true : GetEncrypt()->IsEditAllowed();
+    return GetEncrypt() == nullptr || GetEncrypt()->IsEditAllowed() || HasOwnerPermissions();
 }
 
 bool PdfDocument::IsCopyAllowed() const
 {
-    return GetEncrypt() == nullptr ? true : GetEncrypt()->IsCopyAllowed();
+    return GetEncrypt() == nullptr || GetEncrypt()->IsCopyAllowed() || HasOwnerPermissions();
 }
 
 bool PdfDocument::IsEditNotesAllowed() const
 {
-    return GetEncrypt() == nullptr ? true : GetEncrypt()->IsEditNotesAllowed();
+    return GetEncrypt() == nullptr || GetEncrypt()->IsEditNotesAllowed() || HasOwnerPermissions();
 }
 
 bool PdfDocument::IsFillAndSignAllowed() const
 {
-    return GetEncrypt() == nullptr ? true : GetEncrypt()->IsFillAndSignAllowed();
+    return GetEncrypt() == nullptr || GetEncrypt()->IsFillAndSignAllowed() || HasOwnerPermissions();
 }
 
 bool PdfDocument::IsAccessibilityAllowed() const
 {
-    return GetEncrypt() == nullptr ? true : GetEncrypt()->IsAccessibilityAllowed();
+    return GetEncrypt() == nullptr || GetEncrypt()->IsAccessibilityAllowed() || HasOwnerPermissions();
 }
 
 bool PdfDocument::IsDocAssemblyAllowed() const
 {
-    return GetEncrypt() == nullptr ? true : GetEncrypt()->IsDocAssemblyAllowed();
+    return GetEncrypt() == nullptr || GetEncrypt()->IsDocAssemblyAllowed() || HasOwnerPermissions();
 }
 
 bool PdfDocument::IsHighPrintAllowed() const
 {
-    return GetEncrypt() == nullptr ? true : GetEncrypt()->IsHighPrintAllowed();
+    return GetEncrypt() == nullptr || GetEncrypt()->IsHighPrintAllowed() || HasOwnerPermissions();
 }
 
 void PdfDocument::PushPdfExtension(const PdfExtension& extension)

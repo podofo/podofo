@@ -269,6 +269,11 @@ void PdfMemDocument::SetEncrypt(unique_ptr<PdfEncrypt>&& encrypt)
         m_Encrypt.reset(new PdfEncryptSession(std::move(encrypt)));
 }
 
+bool PdfMemDocument::HasOwnerPermissions() const
+{
+    return m_Encrypt == nullptr || m_Encrypt->HasOwnerPermissions();
+}
+
 const PdfEncrypt* PdfMemDocument::GetEncrypt() const
 {
     if (m_Encrypt == nullptr)

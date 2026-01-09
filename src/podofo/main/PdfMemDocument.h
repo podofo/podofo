@@ -154,6 +154,8 @@ public:
      */
     void SetEncrypt(std::unique_ptr<PdfEncrypt>&& encrypt);
 
+    bool HasOwnerPermissions() const override;
+
     const PdfEncrypt* GetEncrypt() const override;
 
     inline size_t GetMagicOffset() const { return m_MagicOffset; }
