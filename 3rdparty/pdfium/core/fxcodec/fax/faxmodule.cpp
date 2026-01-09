@@ -16,7 +16,7 @@
 #include <pdfium/pdfium_shim.h>
 #include <pdfium/core/fxcodec/scanlinedecoder.h>
 
-namespace fxcodec {
+namespace PoDoFo_fxcodec {
 
 namespace {
 
