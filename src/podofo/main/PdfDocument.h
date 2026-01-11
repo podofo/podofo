@@ -99,7 +99,7 @@ using PdfDocumentConstFieldIterable = PdfDocumentFieldIterableBase<const PdfFiel
  *
  *  PdfDocument cannot be used directly.
  *  Use PdfMemDocument whenever you want to change the object structure
- *  of a PDF file. 
+ *  of a PDF file.
  *
  *  When you are only creating PDF files, please use PdfStreamedDocument
  *  which is usually faster for creating PDFs.
@@ -300,6 +300,16 @@ public:
     void Reset();
 
 public:
+    /** Checks if document has been opened with full owner privileges.
+     *  This implies that the document can be modified, printed, copied, etc.,
+     *  regardless of listed permissions
+     *
+     *  \returns true if document is not protected or has been opened with owner password
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    virtual bool HasOwnerPermissions() const = 0;
+
     virtual const PdfEncrypt* GetEncrypt() const = 0;
 
     /**
