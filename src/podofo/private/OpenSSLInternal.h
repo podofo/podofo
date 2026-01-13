@@ -63,6 +63,8 @@ namespace ssl
     // Load a ASN.1 encoded private key (PKCS#1 or PKCS#8 formats supported)
     EVP_PKEY* LoadPrivateKey(const PoDoFo::bufferview& input);
 
+    unsigned GetSignedHashSize(EVP_PKEY* pkey);
+
     // Sign a buffer with the supplied pkey, no encapsulation and deterministic padding
     void DoSign(const PoDoFo::bufferview& input, const PoDoFo::bufferview& pkey,
         PoDoFo::PdfHashingAlgorithm hashing, PoDoFo::charbuff& output);

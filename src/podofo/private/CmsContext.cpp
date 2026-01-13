@@ -268,6 +268,18 @@ void CmsContext::Restore(xmlNodePtr ctxElem, charbuff& temp)
     utls::DecodeHexStringTo(m_certHash, (const char*)node->children->content);
 }
 
+unsigned CmsContext::GetSignedHashSize() const
+{
+    if (m_status == CmsContextStatus::Uninitialized)
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle,
+            "The signer must be initialized before accessing the signed hash size");
+    }
+
+    auto pubkey = X509_get0_pubkey(m_cert);
+    return ssl::GetSignedHashSize(pubkey);
+}
+
 void CmsContext::loadX509Certificate(const bufferview& cert)
 {
     auto in = (const unsigned char*)cert.data();

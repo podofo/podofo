@@ -13,8 +13,6 @@
 using namespace std;
 using namespace PoDoFo;
 
-constexpr unsigned RSASignedHashSize = 256;
-
 PdfSignerCms::PdfSignerCms(const bufferview& cert, const PdfSignerCmsParams& parameters) :
     PdfSignerCms(cert, { }, parameters)
 {
@@ -70,7 +68,7 @@ void PdfSignerCms::ComputeSignature(charbuff& contents, bool dryrun)
     else
     {
         // Just prepare a fake result with the size of RSA block
-        m_encryptedHash.resize(RSASignedHashSize);
+        m_encryptedHash.resize(m_cmsContext->GetSignedHashSize());
     }
 
     if (m_parameters.SignedHashHandler != nullptr)
@@ -98,7 +96,7 @@ void PdfSignerCms::ComputeSignatureDeferred(const bufferview& processedResult, c
         // Just prepare a fake result with the size of RSA block
         charbuff fakeresult;
         m_cmsContext->ComputeHashToSign(fakeresult);
-        fakeresult.resize(RSASignedHashSize);
+        fakeresult.resize(m_cmsContext->GetSignedHashSize());
         m_cmsContext->ComputeSignature(fakeresult, contents);
         tryEnlargeSignatureContents(contents);
     }
@@ -190,6 +188,12 @@ void PdfSignerCms::ReserveAttributeSize(unsigned attrSize)
     // necessary for the ASN.1 infrastructure to make room
     // for the attribute
     m_reservedSize += (attrSize + 40);
+}
+
+unsigned PdfSignerCms::GetSignedHashSize() const
+{
+    const_cast<PdfSignerCms&>(*this).ensureContextInitialized();
+    return m_cmsContext->GetSignedHashSize();
 }
 
 void PdfSignerCms::Dump(xmlNodePtr signerElem, string& temp)

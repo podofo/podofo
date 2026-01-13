@@ -219,6 +219,36 @@ TEST_CASE("TestSignatureDumpRestore")
     REQUIRE(ssl::ComputeMD5Str(buff) == "4162823DB0FD7A43B7A3FDDFE4FDEC38");
 }
 
+TEST_CASE("TestCertificateRSA")
+{
+    {
+        string cert;
+        TestUtils::ReadTestInputFile("RSA1024Cert.pem", cert);
+
+        PdfSignerCmsParams params;
+        PdfSignerCms signer(cert, params);
+        REQUIRE(signer.GetSignedHashSize() == 128);
+    }
+
+    {
+        string cert;
+        TestUtils::ReadTestInputFile("RSA3072Cert.pem", cert);
+
+        PdfSignerCmsParams params;
+        PdfSignerCms signer(cert, params);
+        REQUIRE(signer.GetSignedHashSize() == 384);
+    }
+
+    {
+        string cert;
+        TestUtils::ReadTestInputFile("RSA4096Cert.pem", cert);
+
+        PdfSignerCmsParams params;
+        PdfSignerCms signer(cert, params);
+        REQUIRE(signer.GetSignedHashSize() == 512);
+    }
+}
+
 TEST_CASE("TestSignEncryptedDoc")
 {
     auto inputPath = TestUtils::GetTestInputFilePath("AESV3R6-256.pdf");

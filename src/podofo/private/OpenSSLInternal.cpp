@@ -147,6 +147,11 @@ Fail:
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, err);
 }
 
+unsigned ssl::GetSignedHashSize(EVP_PKEY* pkey)
+{
+    return (unsigned)EVP_PKEY_size(pkey);
+}
+
 void ssl::cmsAddSigningTime(CMS_SignerInfo* si, const date::sys_seconds& timestamp)
 {
     auto time = chrono::system_clock::to_time_t(timestamp);

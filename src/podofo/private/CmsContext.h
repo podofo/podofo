@@ -51,6 +51,7 @@ namespace PoDoFo
         void AddAttribute(const std::string_view& nid, const bufferview& attr, bool signedAttr, bool octetString);
         void Dump(xmlNodePtr elem, std::string& temp);
         void Restore(xmlNodePtr elem, charbuff& temp);
+        unsigned GetSignedHashSize() const;
     public:
         PdfSignatureEncryption GetEncryption() const { return m_encryption; }
     private:

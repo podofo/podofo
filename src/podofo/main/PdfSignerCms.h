@@ -32,7 +32,7 @@ namespace PoDoFo
         ///< When supplying a PdfSigningService, specify if the service
         ///< expects a bare digest (the default), or if should be wrapped
         ///< in a ASN.1 structure with encryption and hashing type (PKCS#1 v1.5
-        ///< encpasulation), and the signing service will just perform an
+        ///< encapsulation), and the signing service will just perform an
         ///< encryption with private key
         ServiceDoWrapDigest = 1,
         ///< When supplying an external PdfSigningService, specify if
@@ -113,6 +113,8 @@ namespace PoDoFo
         void ReserveAttributeSize(unsigned attrSize);
 
     public:
+        unsigned GetSignedHashSize() const;
+
         const PdfSignerCmsParams& GetParameters() const { return m_parameters; }
 
     private:
