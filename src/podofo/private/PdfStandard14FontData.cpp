@@ -7170,7 +7170,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
         },
         {
             CHAR_DATA_COURIER,
-            315,
+            (unsigned)std::size(CHAR_DATA_COURIER),
             PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif,
             1000,
             PdfFontStretch::Normal,
@@ -7188,7 +7188,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
         },
         {
             CHAR_DATA_COURIER_OBLIQUE,
-            315,
+            (unsigned)std::size(CHAR_DATA_COURIER_OBLIQUE),
             PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif | PdfFontDescriptorFlags::Italic,
             1000,
             PdfFontStretch::Normal,
@@ -7206,7 +7206,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
         },
         {
             CHAR_DATA_COURIER_BOLD,
-            315,
+            (unsigned)std::size(CHAR_DATA_COURIER_BOLD),
             PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif,
             1000,
             PdfFontStretch::Normal,
@@ -7224,7 +7224,7 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
         },
         {
             CHAR_DATA_COURIER_BOLD_OBLIQUE,
-            315,
+            (unsigned)std::size(CHAR_DATA_COURIER_BOLD_OBLIQUE),
             PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif | PdfFontDescriptorFlags::Italic,
             1000,
             PdfFontStretch::Normal,
