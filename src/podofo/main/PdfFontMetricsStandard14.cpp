@@ -252,7 +252,7 @@ double PdfFontMetricsStandard14::GetMaxWidthRaw() const
 
 PdfFontFileType PdfFontMetricsStandard14::GetFontFileType() const
 {
-    return m_data.FileType;
+    return PdfFontFileType::Type1CFF;
 }
 
 bool PdfFontMetricsStandard14::IsStandard14FontMetrics(PdfStandard14FontType& std14Font) const
