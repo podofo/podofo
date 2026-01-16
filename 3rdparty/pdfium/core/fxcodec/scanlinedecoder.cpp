@@ -8,7 +8,7 @@
 
 #include <pdfium/core/fxcrt/pauseindicator_iface.h>
 
-namespace fxcodec {
+namespace PoDoFo_fxcodec {
 
 ScanlineDecoder::ScanlineDecoder() : ScanlineDecoder(0, 0, 0, 0, 0, 0, 0) {}
 
@@ -47,7 +47,7 @@ pdfium::span<const uint8_t> ScanlineDecoder::GetScanline(int line) {
   return m_pLastScanline;
 }
 
-bool ScanlineDecoder::SkipToScanline(int line, PauseIndicatorIface* pPause) {
+bool ScanlineDecoder::SkipToScanline(int line, PoDoFo_PauseIndicatorIface* pPause) {
   if (m_NextLine == line || m_NextLine == line + 1)
     return false;
 
