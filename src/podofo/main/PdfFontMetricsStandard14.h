@@ -127,14 +127,9 @@ private:
     PdfStandard14FontType m_Std14FontType;
     const Standard14FontData& m_data;
 
-    double m_Ascent;
-    double m_Descent;
-
     double m_LineSpacing;
     double m_UnderlineThickness;
-    double m_UnderlinePosition;
     double m_StrikeThroughThickness;
-    double m_StrikeThroughPosition;
 };
 
 }
