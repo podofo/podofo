@@ -46,7 +46,7 @@ unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateFromFile(const string_vie
     unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> face(FT::CreateFaceFromFile(filepath, faceIndex, buffer), FT_Done_Face);
     if (face == nullptr)
     {
-        PoDoFo::LogMessage(PdfLogSeverity::Error, "Error when loading the face from buffer");
+        PoDoFo::LogMessage(PdfLogSeverity::Error, "Error when loading the face from the file");
         return nullptr;
     }
     auto ret = CreateFromFace(face.get(), std::make_unique<charbuff>(std::move(buffer)), refMetrics, skipNormalization);
