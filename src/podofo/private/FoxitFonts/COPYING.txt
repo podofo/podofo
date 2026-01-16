@@ -1,0 +1,15 @@
+The font files in this source were originally extracted from Pdfium,
+but were found in pdf.js[1]. They are actually Compact Font Format[2]
+(CFF) representation of the fonts
+
+Original copyright notice:
+------------------------------------
+Copyright 2014 PDFium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+
+Original code copyright 2014 Foxit Software Inc. http://www.foxitsoftware.com
+------------------------------------
+
+[1] https://github.com/mozilla/pdf.js/commit/4c1dd47e65ae66135c6d9a55774a99a8066fbf37
+[2] https://adobe-type-tools.github.io/font-tech-notes/pdfs/5176.CFF.pdf

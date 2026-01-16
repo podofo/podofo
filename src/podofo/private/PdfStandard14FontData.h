@@ -15,7 +15,8 @@ namespace PoDoFo {
 struct Standard14FontData final
 {
     const unsigned short* Widths;
-    unsigned WidthsSize;
+    unsigned short WidthsSize;
+    PdfFontFileType FileType;
     PdfFontDescriptorFlags Flags;
     uint16_t DefaultWidth;
     PdfFontStretch Stretch;
@@ -32,7 +33,7 @@ struct Standard14FontData final
     Corners BBox;
 };
 
-using Std14CPToGIDMap = std::unordered_map<unsigned short, unsigned char>;
+using Std14CPToGIDMap = std::unordered_map<unsigned short, unsigned short>;
 
 std::string_view GetStandard14FontName(PdfStandard14FontType stdFont);
 

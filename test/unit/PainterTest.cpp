@@ -141,11 +141,11 @@ BT
 100 500 Td
 <0203040405010605070408> Tj
 ET
-100 498.5 m
-172.075 498.5 l
+100 498.74 m
+172.075 498.74 l
 S
-100 503.93 m
-172.075 503.93 l
+100 503.075 m
+172.075 503.075 l
 S
 Q
 Q
@@ -288,8 +288,8 @@ BT
 100 600 Td
 (Test2) Tj
 ET
-100 604.35 m
-137.515 604.35 l
+100 603.885 m
+137.515 603.885 l
 S
 Q
 20 20 m
@@ -393,6 +393,7 @@ TEST_CASE("TestPainter5")
     painter.SetCanvas(page);
     painter.TextState.SetFont(font, 15);
     painter.DrawTextMultiLine("Hello\nWorld", 100, 600, 100, 40);
+    painter.DrawRectangle(Rect(100, 600, 100, 40));
 
     painter.FinishDrawing();
     doc.Save(TestUtils::GetTestOutputFilePath("TestPainter5.pdf"));
@@ -404,12 +405,14 @@ W
 n
 BT
 /Ft0 15 Tf
-100 628.75 Td
+100 629.08 Td
 (Hello) Tj
-0 -15 Td
+0 -14.07 Td
 (World) Tj
 ET
 Q
+100 600 100 40 re
+S
 Q
 )";
 
