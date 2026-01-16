@@ -780,11 +780,21 @@ int MetricsFetcher::GetWeight() const
 
 double MetricsFetcher::GetAscent() const
 {
+    // NOTE: For some reason FT_FaceRec::ascender is not the expected
+    // ascent, but it's more like a maximum value
+    if (m_os2Table != nullptr)
+        return m_os2Table->sTypoAscender / (double)m_face->units_per_EM;
+
     return m_face->ascender / (double)m_face->units_per_EM;
 }
 
 double MetricsFetcher::GetDescent() const
 {
+    // NOTE: For some reason FT_FaceRec::descender is not the expected
+    // descent, but it's more like a minimum value
+    if (m_os2Table != nullptr)
+        return m_os2Table->sTypoDescender / (double)m_face->units_per_EM;
+
     return m_face->descender / (double)m_face->units_per_EM;
 }
 
