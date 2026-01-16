@@ -11,6 +11,9 @@
 using namespace std;
 using namespace PoDoFo;
 
+// NOTE: The mappings in this file were generated using the
+// "staging/BuildPredefinedCMaps.cpp" script
+
 static void buildMappings(const string_view& serialized, CodeUnitMap& mappings, CodeUnitRanges& ranges);
 
 namespace
