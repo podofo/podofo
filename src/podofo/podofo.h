@@ -103,6 +103,8 @@
 #include "main/PdfOutlines.h"
 #include "main/PdfPage.h"
 #include "main/PdfPageCollection.h"
+#include "main/PdfFastExtractOptions.h"
+#include "main/PdfFastExtractor.h"
 #include "main/PdfPainterTextObject.h"
 #include "main/PdfPainterPath.h"
 #include "main/PdfPainter.h"
