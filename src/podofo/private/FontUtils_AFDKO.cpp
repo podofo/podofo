@@ -681,8 +681,15 @@ ConvCtx::ConvCtx(const bufferview& src, charbuff& dst)
 
 ConvCtx::~ConvCtx()
 {
-    t1rFree(t1r.ctx);
-    cfwFree(cfw.ctx);
+    if (t1r.ctx != nullptr) {
+        t1rFree(t1r.ctx);
+    }
+    if (cfr.ctx != nullptr) {
+        cfrFree(cfr.ctx);
+    }
+    if (cfw.ctx != nullptr) {
+        cfwFree(cfw.ctx);
+    }
 }
 
 static void doConversion(ConvCtxPtr h)
