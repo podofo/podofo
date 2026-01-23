@@ -682,6 +682,7 @@ ConvCtx::ConvCtx(const bufferview& src, charbuff& dst)
 ConvCtx::~ConvCtx()
 {
     t1rFree(t1r.ctx);
+    cfrFree(cfr.ctx);
     cfwFree(cfw.ctx);
 }
 
