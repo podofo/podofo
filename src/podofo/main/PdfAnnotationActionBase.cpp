@@ -73,6 +73,8 @@ nullable<PdfAction&> PdfAnnotationActionBase::getAction()
             unique_ptr<PdfAction> action;
             if (PdfAction::TryCreateFromObject(*obj, action))
                 m_Action = std::move(action);
+            else
+                m_Action *= nullptr;
         }
     }
 
