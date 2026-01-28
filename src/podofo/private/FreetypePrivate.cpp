@@ -6,6 +6,9 @@
 
 #include "PdfDeclarationsPrivate.h"
 #include "FreetypePrivate.h"
+
+#include <atomic>
+
 #include FT_TRUETYPE_TAGS_H
 #include FT_TRUETYPE_TABLES_H
 #include FT_FONT_FORMATS_H
@@ -39,51 +42,42 @@ namespace
         FT_ULong Tag;
         FT_ULong Size;
     };
+
+    // A manually handled FreeType smart pointer with
+    // automatically accessed reference counter. It's
+    // initialized with count 1
+    struct FT_LibraryPtr
+    {
+        FT_Library Ptr = nullptr;
+
+        void Ref();
+        void Unref();
+
+    private:
+        std::atomic<size_t> m_count = 1;
+    };
 }
 
 static PdfFontFileType determineFormatCFF(FT_Face face);
 static unsigned determineFaceSize(FT_Face face, vector<TableInfo>& tables, unsigned& tableDirSize);
-static FT_Face createFaceFromBuffer(const bufferview& view, unsigned faceIndex);
+static FT::FT_FacePtr createFaceFromBuffer(const bufferview& view, unsigned faceIndex, bool bare = false);
 static bool isTTCFont(FT_Face face);
 static bool isTTCFont(const bufferview& face);
 static bool tryExtractDataFromTTC(FT_Face face, charbuff& buffer);
 static void getDataFromFace(FT_Face face, charbuff& buffer);
+static FT_LibraryPtr& getLibrary();
+static void freeFaceBare(FT_Face face);
+static void noOpFace(FT_Face face);
 
-FT_Library FT::GetLibrary()
-{
-    struct Init
-    {
-        Init() : Library(nullptr)
-        {
-            // Initialize all the fonts stuff
-            if (FT_Init_FreeType(&Library))
-                PODOFO_RAISE_ERROR(PdfErrorCode::FreeTypeError);
-        }
-
-        ~Init()
-        {
-
-            FT_Done_FreeType(Library);
-        }
-
-        FT_Library Library;     // Handle to the freetype library
-    };
-
-    thread_local Init init;
-    return init.Library;
-}
-
-FT_Face FT::CreateFaceFromBuffer(const bufferview& view, unsigned faceIndex,
+FT::FT_FacePtr FT::CreateFaceFromBuffer(const bufferview& view, unsigned faceIndex,
     charbuff& buffer)
 {
     if (isTTCFont(view))
     {
-        auto face = createFaceFromBuffer(view, faceIndex);
-        unique_ptr<struct FT_FaceRec_, decltype(&FT_Done_Face)> face_(face, FT_Done_Face);
-
+        auto face = createFaceFromBuffer(view, faceIndex, true);
         // Try to extract data from the TTC font, or just copy
         // existing view to buffer if it fails
-        if (!tryExtractDataFromTTC(face, buffer))
+        if (!tryExtractDataFromTTC(face.get(), buffer))
             buffer = view;
 
         // Unconditionally re-create the face from the copied buffer
@@ -96,7 +90,7 @@ FT_Face FT::CreateFaceFromBuffer(const bufferview& view, unsigned faceIndex,
     }
 }
 
-FT_Face FT::ExtractCFFFont(FT_Face face, charbuff& buffer)
+FT::FT_FacePtr FT::ExtractCFFFont(FT_Face face, charbuff& buffer)
 {
     FT_ULong size = 0;
     FT_Error rc = FT_Load_Sfnt_Table(face, TTAG_CFF, 0, nullptr, &size);
@@ -107,22 +101,40 @@ FT_Face FT::ExtractCFFFont(FT_Face face, charbuff& buffer)
 }
 
 // No check for TTC fonts
-FT_Face FT::CreateFaceFromBuffer(const bufferview& view)
+FT::FT_FacePtr FT::CreateFaceFromBuffer(const bufferview& view)
 {
     return createFaceFromBuffer(view, 0);
 }
 
-FT_Face FT::CreateFaceFromFile(const string_view& filepath, unsigned faceIndex,
+void FT::FreeFace(FT_Face face)
+{
+    if (face == nullptr)
+        return;
+
+    FT_Done_Face(face);
+    // Dereference the hidden library pointer
+    static_cast<FT_LibraryPtr*>(face->extensions)->Unref();
+}
+
+void FT::ReferenceFace(FT_Face face)
+{
+    // Reference the hidden library pointer
+    static_cast<FT_LibraryPtr*>(face->extensions)->Ref();
+    FT_Reference_Face(face);
+}
+
+FT::FT_FacePtr FT::CreateFaceFromFile(const string_view& filepath, unsigned faceIndex,
     charbuff& buffer)
 {
     utls::ReadTo(buffer, filepath, sizeof(TTAG_ttcf));
     if (isTTCFont(buffer))
     {
+        auto& lib = getLibrary();
         FT_Error rc;
         FT_Face face;
-        rc = FT_New_Face(FT::GetLibrary(), filepath.data(), faceIndex, &face);
+        rc = FT_New_Face(lib.Ptr, filepath.data(), faceIndex, &face);
         if (rc != 0)
-            return nullptr;
+            return FT_FacePtr(nullptr, FT::FreeFace);
 
         unique_ptr<struct FT_FaceRec_, decltype(&FT_Done_Face)> face_(face, FT_Done_Face);
 
@@ -212,7 +224,8 @@ unordered_map<string_view, unsigned> FT::GetPostMap(FT_Face face)
     return ret;
 }
 
-FT_Face createFaceFromBuffer(const bufferview& view, unsigned faceIndex)
+/// <param name="bare">True if the smart pointer </param>
+FT::FT_FacePtr createFaceFromBuffer(const bufferview& view, unsigned faceIndex, bool bare)
 {
     FT_Error rc;
     FT_Open_Args openArgs{ };
@@ -222,12 +235,26 @@ FT_Face createFaceFromBuffer(const bufferview& view, unsigned faceIndex)
     openArgs.memory_base = (const FT_Byte*)view.data();
     openArgs.memory_size = (FT_Long)view.size();
 
+    auto& lib = getLibrary();
     FT_Face face;
-    rc = FT_Open_Face(FT::GetLibrary(), &openArgs, faceIndex, &face);
+    rc = FT_Open_Face(lib.Ptr, &openArgs, faceIndex, &face);
     if (rc != 0)
-        return nullptr;
+        return FT::FT_FacePtr(nullptr, noOpFace);
 
-    return face;
+    if (bare)
+    {
+        // Don't install any extension
+        return FT::FT_FacePtr(face, freeFaceBare);
+    }
+    else
+    {
+        // Install an extension that binds the library
+        // to the lifetime of this face. It will be
+        // dereferenced with FT::FreeFace
+        lib.Ref();
+        face->extensions = &lib;
+        return FT::FT_FacePtr(face, FT::FreeFace);
+    }
 }
 
 bool isTTCFont(FT_Face face)
@@ -373,4 +400,58 @@ unsigned determineFaceSize(FT_Face face, vector<TableInfo>& tables, unsigned& ta
     }
 
     return faceSize;
+}
+
+FT_LibraryPtr& getLibrary()
+{
+    struct Init
+    {
+        Init()
+        {
+            // Initialize all the fonts stuff
+            if (FT_Init_FreeType(&Library.Ptr))
+                PODOFO_RAISE_ERROR(PdfErrorCode::FreeTypeError);
+        }
+
+        ~Init()
+        {
+            // Dereference the library on thread exit
+            Library.Unref();
+        }
+
+        FT_LibraryPtr Library;     // Handle to the freetype library
+    };
+
+    thread_local Init init;
+    return init.Library;
+}
+
+void freeFaceBare(FT_Face face)
+{
+    // Just call the bare FT free face function
+    (void)FT_Done_Face(face);
+}
+
+void noOpFace(FT_Face face)
+{
+    (void)face;
+    // Do nothing
+}
+
+void FT_LibraryPtr::Ref()
+{
+    // It's a normal counter that just get incremented and
+    // decremented, so we can relax the memory order
+    size_t prev = m_count.fetch_add(1, std::memory_order_relaxed);
+    PODOFO_ASSERT(prev != 0);
+    (void)prev;
+}
+void FT_LibraryPtr::Unref()
+{
+    // It's a normal counter that just get incremented and
+    // decremented, so we can relax the memory order
+    auto prev = m_count.fetch_sub(1, std::memory_order_relaxed);
+    PODOFO_ASSERT(prev != 0);
+    if (prev == 1)
+        (void)FT_Done_FreeType(Ptr);
 }

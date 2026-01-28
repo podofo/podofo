@@ -43,7 +43,7 @@ unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateFromFile(const string_vie
     const PdfFontMetrics* refMetrics, bool skipNormalization)
 {
     charbuff buffer;
-    unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> face(FT::CreateFaceFromFile(filepath, faceIndex, buffer), FT_Done_Face);
+    auto face = FT::CreateFaceFromFile(filepath, faceIndex, buffer);
     if (face == nullptr)
     {
         PoDoFo::LogMessage(PdfLogSeverity::Error, "Error when loading the face from the file");
@@ -69,7 +69,7 @@ unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateFromBuffer(const buffervi
     const PdfFontMetrics* refMetrics, bool skipNormalization)
 {
     charbuff buffer;
-    unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> face(FT::CreateFaceFromBuffer(view, faceIndex, buffer), FT_Done_Face);
+    auto face = FT::CreateFaceFromBuffer(view, faceIndex, buffer);
     if (face == nullptr)
     {
         PoDoFo::LogMessage(PdfLogSeverity::Error, "Error when loading the face from buffer");
@@ -95,7 +95,7 @@ unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateMergedMetrics(bool skipNo
             // the font file to be inserted in a CID font
             charbuff cffDest;
             PoDoFo::ConvertFontType1ToCFF(GetOrLoadFontFileData(), cffDest);
-            unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> face(FT::CreateFaceFromBuffer(cffDest), FT_Done_Face);
+            auto face = FT::CreateFaceFromBuffer(cffDest);
             auto ret = unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(
                 face.get(), datahandle(std::move(cffDest)), this));
             (void)face.release();
@@ -107,7 +107,7 @@ unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateMergedMetrics(bool skipNo
     auto ret = unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(face,
         GetFontFileDataHandle(), this));
     // Reference the face after having created a new PdfFontMetricsFreetype instance
-    FT_Reference_Face(face);
+    FT::ReferenceFace(face);
     return ret;
 }
 
@@ -126,7 +126,7 @@ unique_ptr<PdfFontMetrics> PdfFontMetrics::CreateFromFace(FT_Face face, unique_p
             // the font file to be inserted in a CID font
             charbuff cffDest;
             PoDoFo::ConvertFontType1ToCFF(*buffer, cffDest);
-            unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> newface(FT::CreateFaceFromBuffer(cffDest), FT_Done_Face);
+            auto newface = FT::CreateFaceFromBuffer(cffDest);
             auto ret = unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(
                 newface.get(), datahandle(std::move(cffDest)), refMetrics));
             (void)newface.release();
@@ -656,7 +656,7 @@ PdfFontMetricsBase::PdfFontMetricsBase()
 
 PdfFontMetricsBase::~PdfFontMetricsBase()
 {
-    FT_Done_Face(m_Face);
+    FT::FreeFace(m_Face);
 }
 
 const datahandle& PdfFontMetricsBase::GetFontFileDataHandle() const
@@ -679,7 +679,7 @@ FT_Face PdfFontMetricsBase::GetFaceHandle() const
         auto view = GetFontFileDataHandle().view();
         // NOTE: The data always represents a face, not a collection
         if (view.size() != 0)
-            rthis.m_Face = FT::CreateFaceFromBuffer(view);
+            rthis.m_Face = FT::CreateFaceFromBuffer(view).release();
 
         rthis.m_faceInit = true;
     }

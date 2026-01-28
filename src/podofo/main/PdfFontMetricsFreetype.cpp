@@ -82,7 +82,7 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Face face, const datahandle& d
 
 PdfFontMetricsFreetype::~PdfFontMetricsFreetype()
 {
-    FT_Done_Face(m_Face);
+    FT::FreeFace(m_Face);
 }
 
 void PdfFontMetricsFreetype::init(const PdfFontMetrics* refMetrics)
