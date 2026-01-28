@@ -335,6 +335,10 @@ public:
      */
     virtual std::unique_ptr<PdfCMapEncoding> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const;
 
+#ifdef PODOFO_3RDPARTY_INTEROP_ENABLED
+    virtual FT_Face GetFaceHandle() const = 0;
+#endif // PODOFO_3RDPARTY_INTEROP_ENABLED
+
 public:
     const std::string& GetFilePath() const { return m_FilePath; }
     unsigned GetFaceIndex() const { return m_FaceIndex; }
@@ -352,7 +356,6 @@ protected:
     virtual bool getIsBoldHint() const = 0;
     virtual bool getIsItalicHint() const = 0;
     virtual const datahandle& GetFontFileDataHandle() const = 0;
-    virtual FT_Face GetFaceHandle() const = 0;
 
     virtual unsigned GetGlyphCountFontProgram() const;
     virtual bool TryGetGlyphWidthFontProgram(unsigned gid, double& width) const;

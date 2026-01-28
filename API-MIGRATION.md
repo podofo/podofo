@@ -1,3 +1,9 @@
+# 1.0.* -> 1.1
+
+- `PdfFontMetricsFreetype`: The `GetFaceHandle` can now be accessed only by
+setting `PODOFO_3RDPARTY_INTEROP_ENABLED`. This was forgotten in 1.0 release
+
+
 # 1.0.2 -> 1.0.1
 - `PdfSignerCmsParams`: Deprecated `Encryption` field. The encryption is determined
   from the public key in the X.509 certificate

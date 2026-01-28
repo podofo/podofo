@@ -85,7 +85,9 @@ public:
 
     const datahandle& GetFontFileDataHandle() const override;
 
+#ifdef PODOFO_3RDPARTY_INTEROP_ENABLED
     FT_Face GetFaceHandle() const override;
+#endif // #ifdef PODOFO_3RDPARTY_INTEROP_ENABLED
 
 protected:
     std::string_view GetBaseFontName() const override;
