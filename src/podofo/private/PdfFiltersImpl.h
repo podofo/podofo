@@ -18,6 +18,14 @@
 
 #include "PdfFilter.h"
 
+#ifdef ZLIB_WINAPI
+// It appears zlib.h can include <windows.h> when ZLIB_WINAPI is defined,
+// which causes usual issues with unwanted macros like GetObject().
+// We early workaround them here, before including zlib.h
+// See https://github.com/podofo/podofo/issues/314#issuecomment-3864027624
+#include "WindowsLeanMean.h"
+#endif // ZLIB_WINAPI
+
 #include <zlib.h>
 
 namespace PoDoFo {
