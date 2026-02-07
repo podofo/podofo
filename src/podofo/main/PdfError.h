@@ -131,10 +131,6 @@ private:
 using PdErrorInfoStack = std::deque<PdfErrorInfo>;
 using LogMessageCallback = std::function<void(PdfLogSeverity logSeverity, const std::string_view& msg)>;
 
-// This is required to generate the documentation with Doxygen.
-// Without this define doxygen thinks we have a class called PODOFO_EXCEPTION_API(PODOFO_API) ...
-#define PODOFO_EXCEPTION_API_DOXYGEN PODOFO_EXCEPTION_API(PODOFO_API)
-
 /** The error handling class of the PoDoFo library.
  *  If a method encounters an error,
  *  a PdfError object is thrown as a C++ exception.
@@ -145,7 +141,7 @@ using LogMessageCallback = std::function<void(PdfLogSeverity logSeverity, const 
  *  for the error codes which are values of the enum PdfErrorCode,
  *  which are all codes PoDoFo uses (except the first and last one).
  */
-class PODOFO_EXCEPTION_API_DOXYGEN PdfError final : public std::exception
+class PODOFO_API PdfError final : public std::exception
 {
 public:
     /** Create a PdfError object with a given error code.
