@@ -102,10 +102,6 @@ private:
 
 using PdErrorInfoStack = std::deque<PdfErrorInfo>;
 
-// This is required to generate the documentation with Doxygen.
-// Without this define doxygen thinks we have a class called PODOFO_EXCEPTION_API(PODOFO_API) ...
-#define PODOFO_EXCEPTION_API_DOXYGEN PODOFO_EXCEPTION_API(PODOFO_API)
-
 /** The error handling class of the PoDoFo library.
  *  If a method encounters an error,
  *  a PdfError object is thrown as a C++ exception.
@@ -116,7 +112,7 @@ using PdErrorInfoStack = std::deque<PdfErrorInfo>;
  *  for the error codes which are values of the enum PdfErrorCode,
  *  which are all codes PoDoFo uses (except the first and last one).
  */
-class PODOFO_EXCEPTION_API_DOXYGEN PdfError final : public std::exception
+class PODOFO_API PdfError final : public std::exception
 {
     PODOFO_PRIVATE_FRIEND(void AddToCallStack(PdfError& err, std::string filepath, unsigned line, std::string information));
 
