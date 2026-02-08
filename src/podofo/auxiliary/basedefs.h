@@ -57,6 +57,32 @@
     #define PODOFO_IMPORT __attribute__ ((visibility("default")))
 #endif
 
+// If detected, undefine some macros that are defined by Windows
+// headers and that may cause errors when consuming PoDoFo. To
+// avoid this behavior, define PODOFO_WIN32_SKIP_UNDEF_MACROS
+// before including PoDoFo headers.
+#if defined(_WIN32) && !defined(PODOFO_WIN32_SKIP_UNDEF_MACROS)
+#ifdef min
+#undef min
+#endif // min
+
+#ifdef max
+#undef max
+#endif // max
+
+#ifdef GetObject
+#undef GetObject
+#endif // GetObject
+
+#ifdef CreateFont
+#undef CreateFont
+#endif // CreateFont
+
+#ifdef DrawText
+#undef DrawText
+#endif // DrawText
+#endif
+
 #if defined(PODOFO_BUILD)
 #define PODOFO_API PODOFO_EXPORT
 #else
