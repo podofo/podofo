@@ -426,13 +426,6 @@ private:
      */
     PdfCharCode AddCharCodeSafe(unsigned gid, const unicodeview& codePoints);
 
-    /** Optional function to map a CID to a GID
-     *
-     * Example for /Type2 CID fonts may have a /CIDToGIDMap
-     */
-    bool TryMapCIDToGID(unsigned cid, PdfGID& gid) const;
-    bool TryMapCIDToGID(unsigned cid, PdfGlyphAccess access, unsigned& gid) const;
-
 private:
     struct CIDSubsetInfo
     {
@@ -444,6 +437,13 @@ private:
 
     bool tryConvertToGIDs(const std::string_view& utf8Str, PdfGlyphAccess access, std::vector<unsigned>& gids) const;
     bool tryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCID& cid);
+
+    /** Optional function to map a CID to a GID
+     *
+     * Example for /Type2 CID fonts may have a /CIDToGIDMap
+     */
+    bool tryMapCIDToGID(unsigned cid, PdfGID& gid) const;
+    bool tryMapCIDToGID(unsigned cid, PdfGlyphAccess access, unsigned& gid) const;
 
     void initBase(const PdfEncoding& encoding);
 
