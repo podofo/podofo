@@ -167,7 +167,7 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
                         if (var->IsArray())
                         {
                             PdfArray& arr = var->GetArray();
-                            for (unsigned i = 0; i < rangeSize; i++)
+                            for (unsigned i = 0; i < rangeSize && i < arr.GetSize(); i++)
                             {
                                 auto& dst = arr[i];
                                 if (dst.TryGetString(str) && str.IsHex()) // pp. 475 PdfReference 1.7
