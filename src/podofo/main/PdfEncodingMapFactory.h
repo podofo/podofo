@@ -38,8 +38,6 @@ public:
      *  of WinAnsiEncoding.
      *
      *  \returns global instance of WinAnsiEncoding
-     *
-     *  \see Win1250EncodingInstance
      */
     static PdfBuiltInEncodingConstPtr GetWinAnsiEncodingInstancePtr();
     static const PdfBuiltInEncoding& GetWinAnsiEncodingInstance();

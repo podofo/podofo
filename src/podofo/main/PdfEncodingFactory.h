@@ -37,8 +37,6 @@ public:
      *  of WinAnsiEncoding.
      *
      *  \returns global instance of WinAnsiEncoding
-     *
-     *  \see GlobalWin1250EncodingInstance, GlobalIso88592EncodingInstance
      */
     static PdfEncoding CreateWinAnsiEncoding();
 

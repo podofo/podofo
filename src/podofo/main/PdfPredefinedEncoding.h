@@ -51,8 +51,6 @@ namespace PoDoFo
      * It is also called CP-1252 encoding.
      * This class may be used as base for derived encodings.
      *
-     * \see PdfWin1250Encoding
-     *
      * \see PdfFont::WinAnsiEncoding
      */
     class PODOFO_API PdfWinAnsiEncoding final : public PdfPredefinedEncoding
