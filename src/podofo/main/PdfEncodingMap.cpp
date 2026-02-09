@@ -348,7 +348,8 @@ void PdfEncodingMapSimple::AppendToUnicodeEntries(OutputStream& stream, charbuff
         if (!TryGetCodePoints(PdfCharCode(code), codePoints))
         {
             // If we don't find the code in the encoding/font
-            // program, it's safe to continue
+            // just map it to null
+            stream.Write("<0000>\n");
             continue;
         }
 
