@@ -226,15 +226,15 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
                         tokenizer.ReadNextVariant(device, *var);
                         if (srcCodeHi < srcCodeLo)
                         {
-                            PoDoFo::LogMessage(PdfLogSeverity::Warning, "begincidrange: Found range with srcCodeHi {} < srcCodeLo {}", srcCodeHi, srcCodeLo);
+                            PoDoFo::LogMessage(PdfLogSeverity::Warning, "beginbfrange: Found range with srcCodeHi {} < srcCodeLo {}", srcCodeHi, srcCodeLo);
                             continue;
                         }
 
                         unsigned rangeSize = srcCodeHi - srcCodeLo + 1;
                         if (var->IsArray())
                         {
-                            PdfArray& arr = var->GetArray();
-                            for (unsigned i = 0; i < rangeSize; i++)
+                            auto& arr = var->GetArray();
+                            for (unsigned i = 0; i < rangeSize && i < arr.GetSize(); i++)
                             {
                                 auto& dst = arr[i];
                                 if (dst.TryGetString(str) && str->IsHex()) // pp. 475 PdfReference 1.7
