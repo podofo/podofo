@@ -422,7 +422,12 @@ void PdfEncodingMapOneByte::AppendToUnicodeEntries(OutputStream& stream, charbuf
     for (; code < lastCode; code++)
     {
         if (!TryGetCodePoints(PdfCharCode(code), codePoints))
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Unable to find character code");
+        {
+            // If we don't find the code in the encoding/font
+            // just map it to null
+            stream.Write("<0000>\n");
+            continue;
+        }
 
         AppendUTF16CodeTo(stream, codePoints, u16tmp);
         stream.Write("\n");
