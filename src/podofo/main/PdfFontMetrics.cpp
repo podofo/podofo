@@ -753,8 +753,8 @@ PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapType1(FT_Face face, const PdfEncod
     const PdfName* name;
     CodePointSpan codePoints;
     FT_UInt index;
-    // NOTE:  It's safe to assume the base encoding is a one byte encoding.
-    // Iterate all the range, as the base econding may be narrow
+    // NOTE: It's safe to assume the base encoding is a one byte encoding.
+    // Iterate all the range, as the base encoding may be narrow
     for (unsigned code = 0; code <= 0xFFU; code++)
     {
         // If there's a difference, use that instead
@@ -827,14 +827,14 @@ PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapTrueType(FT_Face face, const PdfEn
     PdfCharCode charCode;
     FT_UInt index;
     auto& standardEncoding = PdfEncodingMapFactory::GetStandardEncodingInstance();
-    // NOTE:  It's safe to assume the base encoding is a one byte encoding.
-    // Iterate all the range, as the base econding may be narrow
+    // NOTE: It's safe to assume the base encoding is a one byte encoding.
+    // Iterate all the range, as the base encoding may be narrow
     for (unsigned code = 0; code <= 0xFFU; code++)
     {
         // If there's a difference, use that instead
         if (differences == nullptr || !differences->TryGetMappedName((unsigned char)code, name, codePoints))
         {
-            // "...the table shall be initialised with the entries from the
+            // "...the table shall be initialized with the entries from the
             // dictionary’s BaseEncoding entry. (...) Finally, any undefined
             // entries in the table shall be filled using StandardEncoding"
             charCode = PdfCharCode(code, 1);
