@@ -58,8 +58,6 @@ namespace PoDoFo
     class PODOFO_API PdfWinAnsiEncoding final : public PdfPredefinedEncoding
     {
         friend class PdfEncodingMapFactory;
-        friend class PdfWin1250Encoding;
-        friend class PdfIso88592Encoding;
 
     private:
         PdfWinAnsiEncoding();
