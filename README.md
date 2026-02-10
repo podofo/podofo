@@ -401,7 +401,7 @@ high-quality patches.
 
 Please subscribe to the project mailing [list](https://sourceforge.net/projects/podofo/lists/podofo-users)
 which is still followed by several of the original developers of PoDoFo.
-A gitter [community](https://gitter.im/podofo/community) has also been created to ease some more informal chatter.
+A Discord [server](https://discord.gg/t9xX77ZrHr) has also been created to ease some more informal chatter.
 If you find a bug and know how to fix it, or you want to add a small feature, you're welcome to send a [pull request](https://github.com/podofo/podofo/pulls),
 providing it follows the [coding style](https://github.com/podofo/podofo/blob/master/CODING-STYLE.md)
 of the project. As a minimum requisite, any contribution should be:
