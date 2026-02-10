@@ -91,7 +91,6 @@ PdfEncodingMapConstPtr PdfFontMetrics::getFontType1BuiltInEncoding(FT_Face face)
         // iterate all codes to 0xFF, get the glyph name for the selected glyph and
         // convert to unicode with PdfDifferenceEncoding::TryGetCodePointsFromCharName()
 
-        FT_ULong code;
         FT_UInt index;
         PdfCharCodeMap codeMap;
         CodePointSpan codepoints;
@@ -104,7 +103,7 @@ PdfEncodingMapConstPtr PdfFontMetrics::getFontType1BuiltInEncoding(FT_Face face)
             index = FT_Get_Char_Index(face, code);
             if (index != 0)
             {
-                // If the match succeded then by definition the code
+                // If the match succeeded then by definition the code
                 // is a also a valid Unicode code point, so we can just
                 // add an identity mapping
                 codeMap.PushMapping(PdfCharCode(code, 1), (char32_t)code);
