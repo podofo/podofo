@@ -98,8 +98,9 @@ void PdfIdentityEncoding::AppendCIDMappingEntries(OutputStream& stream, const Pd
     stream.Write("\nendcidrange\n");
 }
 
-void PdfIdentityEncoding::AppendToUnicodeEntries(OutputStream& stream, charbuff& temp) const
+void PdfIdentityEncoding::AppendToUnicodeEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const
 {
+    (void)font;
     // Just do a single bfrange
     // Use PdfEncodingMap::AppendUTF16CodeTo
 

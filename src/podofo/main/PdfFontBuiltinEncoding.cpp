@@ -10,6 +10,7 @@
 #include <podofo/private/PdfEncodingPrivate.h>
 #include <podofo/private/FreetypePrivate.h>
 
+#include "PdfFont.h"
 #include "PdfIdentityEncoding.h"
 #include "PdfEncodingMapFactory.h"
 #include "PdfDifferenceEncoding.h"
@@ -27,6 +28,7 @@ namespace PoDoFo
         PdfFontBuiltinType1Encoding(PdfCharCodeMap&& map)
             : PdfEncodingMapSimple(map.GetLimits()), m_charMap(std::move(map)) { }
 
+    protected:
         bool tryGetCharCodeSpan(const unicodeview& codePoints, PdfCharCode& codeUnit) const override
         {
             return m_charMap.TryGetCharCode(codePoints, codeUnit);
@@ -43,9 +45,9 @@ namespace PoDoFo
             return m_charMap.TryGetCodePoints(code, codePoints);
         }
 
-        void AppendToUnicodeEntries(OutputStream& stream, charbuff& temp) const override
+        void AppendToUnicodeEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const override
         {
-            PoDoFo::AppendToUnicodeEntriesTo(stream, m_charMap, temp);
+            PoDoFo::AppendToUnicodeEntriesTo(stream, m_charMap, font.GetCharCodeSubset().get(), temp);
         }
 
         void AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const override

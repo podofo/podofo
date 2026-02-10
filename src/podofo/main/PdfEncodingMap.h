@@ -158,7 +158,7 @@ protected:
      *
      * To be called by PdfEncoding
      */
-    virtual void AppendToUnicodeEntries(OutputStream& stream, charbuff& temp) const = 0;
+    virtual void AppendToUnicodeEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const = 0;
 
     /** During a PdfEncoding::ExportToFont() append "begincidchar"
      * and/or "begincidrange" entries. See Adobe tecnichal notes #5014\
@@ -228,7 +228,7 @@ protected:
 
     void AppendCodeSpaceRange(OutputStream& stream, charbuff& temp) const override;
 
-    void AppendToUnicodeEntries(OutputStream& stream, charbuff& temp) const override;
+    void AppendToUnicodeEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const override;
 
     void AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const override;
 
@@ -260,7 +260,7 @@ private:
     PdfEncodingMapSimple(const PdfEncodingLimits& limits);
 
 protected:
-    void AppendToUnicodeEntries(OutputStream& stream, charbuff& temp) const override;
+    void AppendToUnicodeEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const override;
 
     void AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const override;
 
@@ -345,7 +345,7 @@ protected:
 
     bool tryGetCodePoints(const PdfCharCode& codeUnit, const unsigned* cidId, CodePointSpan& codePoints) const override;
 
-    void AppendToUnicodeEntries(OutputStream& stream, charbuff& temp) const override;
+    void AppendToUnicodeEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const override;
 
     void AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const override;
 };

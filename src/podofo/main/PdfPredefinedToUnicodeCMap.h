@@ -32,7 +32,7 @@ namespace PoDoFo
         bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
         bool tryGetCharCodeSpan(const unicodeview& ligature, PdfCharCode& codeUnit) const override;
 
-        void AppendToUnicodeEntries(OutputStream& stream, charbuff& temp) const override;
+        void AppendToUnicodeEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const override;
         void AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const override;
 
     public:

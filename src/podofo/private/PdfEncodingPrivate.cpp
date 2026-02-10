@@ -438,51 +438,120 @@ void PoDoFo::AppendCodeSpaceRangeTo(OutputStream& stream, const PdfCharCodeMap& 
     stream.Write("\nendcodespacerange\n");
 }
 
-void PoDoFo::AppendToUnicodeEntriesTo(OutputStream& stream, const PdfCharCodeMap& charMap, charbuff& temp)
+void PoDoFo::AppendToUnicodeEntriesTo(OutputStream& stream, const PdfCharCodeMap& charMap,
+    const set<PdfCharCode>* charCodeSubset, charbuff& temp)
 {
     u16string u16temp;
-
-    auto& mappings = charMap.GetMappings();
-    if (mappings.size() != 0)
+    if (charCodeSubset != nullptr)
     {
-        // Sort the keys, so the output will be deterministic
-        set<PdfCharCode> ordered;
-        std::for_each(mappings.begin(), mappings.end(), [&ordered](auto& pair) {
-            ordered.insert(pair.first);
-            });
-
-        utls::FormatTo(temp, mappings.size());
-        stream.Write(temp);
-        stream.Write(" beginbfchar\n");
-
-        for (auto& code : ordered)
+        auto& mappings = charMap.GetMappings();
+        if (mappings.size() != 0)
         {
-            code.WriteHexTo(temp);
+            // Sort the keys, so the output will be deterministic
+            set<PdfCharCode> filtered;
+            for (auto& mapping : mappings)
+            {
+                if (charCodeSubset->find(mapping.first) != charCodeSubset->end())
+                    filtered.insert(mapping.first);
+            }
+
+            utls::FormatTo(temp, filtered.size());
             stream.Write(temp);
-            stream.Write(" ");
-            PoDoFo::AppendUTF16CodeTo(stream, mappings.at(code), u16temp);
-            stream.Write("\n");
+            stream.Write(" beginbfchar\n");
+
+            for (auto& code : filtered)
+            {
+                code.WriteHexTo(temp);
+                stream.Write(temp);
+                stream.Write(" ");
+                PoDoFo::AppendUTF16CodeTo(stream, mappings.at(code), u16temp);
+                stream.Write("\n");
+            }
+            stream.Write("endbfchar\n");
         }
-        stream.Write("endbfchar\n");
+
+        auto& ranges = charMap.GetRanges();
+        if (ranges.size() != 0)
+        {
+            CodeUnitRanges filtered;
+            for (auto& code : *charCodeSubset)
+            {
+                auto it = ranges.upper_bound(code);
+                if (it == ranges.begin())
+                {
+                    // No range that is <= code
+                    continue;
+                }
+
+                it--;
+                if (code.Code > it->GetSrcCodeHi().Code)
+                {
+                    // The code is out of this range
+                    continue;
+                }
+
+                filtered.insert(*it);
+            }
+
+            utls::FormatTo(temp, filtered.size());
+            stream.Write(temp);
+            stream.Write(" beginbfrange\n");
+            for (auto& range : filtered)
+            {
+                range.SrcCodeLo.WriteHexTo(temp);
+                stream.Write(temp);
+                range.GetSrcCodeHi().WriteHexTo(temp);
+                stream.Write(temp);
+                stream.Write(" ");
+                PoDoFo::AppendUTF16CodeTo(stream, range.DstCodeLo, u16temp);
+                stream.Write("\n");
+            }
+            stream.Write("endbfrange\n");
+        }
     }
-
-    auto& ranges = charMap.GetRanges();
-    if (ranges.size() != 0)
+    else
     {
-        utls::FormatTo(temp, ranges.size());
-        stream.Write(temp);
-        stream.Write(" beginbfrange\n");
-        for (auto& range : ranges)
+        auto& mappings = charMap.GetMappings();
+        if (mappings.size() != 0)
         {
-            range.SrcCodeLo.WriteHexTo(temp);
+            // Sort the keys, so the output will be deterministic
+            set<PdfCharCode> ordered;
+            for (auto& mapping : mappings)
+                ordered.insert(mapping.first);
+
+            utls::FormatTo(temp, ordered.size());
             stream.Write(temp);
-            range.GetSrcCodeHi().WriteHexTo(temp);
-            stream.Write(temp);
-            stream.Write(" ");
-            PoDoFo::AppendUTF16CodeTo(stream, range.DstCodeLo, u16temp);
-            stream.Write("\n");
+            stream.Write(" beginbfchar\n");
+
+            for (auto& code : ordered)
+            {
+                code.WriteHexTo(temp);
+                stream.Write(temp);
+                stream.Write(" ");
+                PoDoFo::AppendUTF16CodeTo(stream, mappings.at(code), u16temp);
+                stream.Write("\n");
+            }
+            stream.Write("endbfchar\n");
         }
-        stream.Write("endbfrange\n");
+
+        auto& ranges = charMap.GetRanges();
+        if (ranges.size() != 0)
+        {
+            utls::FormatTo(temp, ranges.size());
+            stream.Write(temp);
+            stream.Write(" beginbfrange\n");
+            for (auto& range : ranges)
+            {
+                range.SrcCodeLo.WriteHexTo(temp);
+                stream.Write(temp);
+                range.GetSrcCodeHi().WriteHexTo(temp);
+                stream.Write(temp);
+                stream.Write(" ");
+                PoDoFo::AppendUTF16CodeTo(stream, range.DstCodeLo, u16temp);
+                stream.Write("\n");
+            }
+            stream.Write("endbfrange\n");
+        }
     }
 }
 

@@ -49,6 +49,9 @@ class PODOFO_API PdfFont : public PdfDictionaryElement
     friend class PdfFontObject;
     friend class PdfEncoding;
     friend class PdfFontManager;
+    friend class PdfEncodingMapBase;
+    friend class PdfEncodingMapSimple;
+    friend class PdfFontBuiltinType1Encoding;
 
 private:
     /** Create a new PdfFont object which will introduce itself
@@ -56,7 +59,7 @@ private:
      *
      *  \param parent parent of the font object
      *  \param metrics pointer to a font metrics object. The font in the PDF
-     *         file will match this fontmetrics object. The metrics object is
+     *         file will match this font metrics object. The metrics object is
      *         deleted along with the font.
      *  \param encoding the encoding of this font
      */
@@ -87,7 +90,7 @@ private:
      *
      * \param doc the parent of the created font.
      * \param metrics pointer to a font metrics object. The font in the PDF
-     *      file will match this fontmetrics object. The metrics object is
+     *      file will match this font metrics object. The metrics object is
      *      deleted along with the created font. In case of an error, it is deleted
      *      here.
      * \param encoding the encoding of this font.
@@ -426,15 +429,11 @@ private:
      */
     PdfCharCode AddCharCodeSafe(unsigned gid, const unicodeview& codePoints);
 
+    /** Returns all the char codes that were subsetted
+     */
+    std::unique_ptr<std::set<PdfCharCode>> GetCharCodeSubset() const;
+
 private:
-    struct CIDSubsetInfo
-    {
-        PdfGID Gid;                     ///< The GID mapped from the source CID in the map
-        PdfCharCodeList Codes;          ///< The codes that maps to the CID in the map
-    };
-
-    using CIDSubsetMap = std::map<unsigned, CIDSubsetInfo>;
-
     bool tryConvertToGIDs(const std::string_view& utf8Str, PdfGlyphAccess access, std::vector<unsigned>& gids) const;
     bool tryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCID& cid);
 
@@ -461,6 +460,17 @@ private:
 
     void pushSubsetInfo(unsigned cid, const PdfGID& gid, const PdfCharCode& code);
 
+    // TODO: Optimize me
+    using PdfCharCodeList = std::vector<PdfCharCode>;
+
+    struct PODOFO_API CIDSubsetInfo final
+    {
+        PdfGID Gid;                     ///< The GID mapped from the source CID in the map
+        PdfCharCodeList Codes;          ///< The codes that maps to the CID in the map
+    };
+
+    using CIDSubsetMap = std::map<unsigned, CIDSubsetInfo>;
+
 private:
     std::string m_Name;
     std::string m_SubsetPrefix;
@@ -469,7 +479,7 @@ private:
     bool m_IsEmbedded;
     bool m_SubsettingEnabled;
     bool m_IsProxy;
-    std::unique_ptr<CIDSubsetMap> m_subsetCIDMap;
+    std::unique_ptr<CIDSubsetMap> m_SubsetCIDMap;
     std::unique_ptr<std::unordered_map<unsigned, unsigned>> m_subsetGIDToCIDMap;
     const PdfCIDToGIDMap* m_fontProgCIDToGIDMap;
     double m_WordSpacingLengthRaw;

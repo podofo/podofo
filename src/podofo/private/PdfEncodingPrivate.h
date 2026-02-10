@@ -63,7 +63,8 @@ namespace PoDoFo
 
     void AppendCodeSpaceRangeTo(OutputStream& stream, const PdfCharCodeMap& charMap, charbuff& temp);
     void AppendCIDMappingEntriesTo(OutputStream& stream, const PdfCharCodeMap& charMap, charbuff& temp);
-    void AppendToUnicodeEntriesTo(OutputStream& stream, const PdfCharCodeMap& charMap, charbuff& temp);
+    void AppendToUnicodeEntriesTo(OutputStream& stream, const PdfCharCodeMap& charMap,
+        const std::set<PdfCharCode>* charCodeSubset, charbuff& temp);
     void WriteCIDMapping(OutputStream& stream, const PdfCharCode& unit, unsigned cid, charbuff& temp);
     void WriteCIDRange(OutputStream& stream, const PdfCharCode& srcCodeLo, const PdfCharCode& srcCodeHi, unsigned dstCidLo, charbuff& temp);
     void AppendUTF16CodeTo(OutputStream& stream, char32_t codePoint, std::u16string& u16tmp);

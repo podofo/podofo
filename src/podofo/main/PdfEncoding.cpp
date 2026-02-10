@@ -655,7 +655,7 @@ void PdfEncoding::writeToUnicodeCMap(PdfObject& cmapObj, const PdfFont& font) co
         "/CMapType 2 def\n");     // As defined in Adobe Technical Notes #5099
     toUnicode.AppendCodeSpaceRange(output, temp);
 
-    toUnicode.AppendToUnicodeEntries(output, temp);
+    toUnicode.AppendToUnicodeEntries(output, font, temp);
     output.Write(
         "endcmap\n"
         "CMapName currentdict /CMap defineresource pop\n"

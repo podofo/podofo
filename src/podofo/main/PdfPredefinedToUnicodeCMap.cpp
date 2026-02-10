@@ -57,9 +57,10 @@ bool PdfPredefinedToUnicodeCMap::tryGetCharCodeSpan(const unicodeview& ligature,
     return m_CIDEncoding->GetCharMap().TryGetCharCode(codeUnit.Code, codeUnit);
 }
 
-void PdfPredefinedToUnicodeCMap::AppendToUnicodeEntries(OutputStream& stream, charbuff& temp) const
+void PdfPredefinedToUnicodeCMap::AppendToUnicodeEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const
 {
     (void)stream;
+    (void)font;
     (void)temp;
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Unsupported serializing a predefined ToUnicode map");
 }

@@ -185,7 +185,7 @@ void PdfFont::InitImported(bool wantEmbed, bool wantSubset, bool isProxy)
     PODOFO_ASSERT(!IsObjectLoaded());
 
     // Init the subset maps
-    m_subsetCIDMap.reset(new CIDSubsetMap());
+    m_SubsetCIDMap.reset(new CIDSubsetMap());
     m_subsetGIDToCIDMap.reset(new unordered_map<unsigned, unsigned>());
 
     // No embedding implies no subsetting
@@ -645,7 +645,7 @@ void PdfFont::initSpaceCharLength()
 
 void PdfFont::pushSubsetInfo(unsigned cid, const PdfGID& gid, const PdfCharCode& code)
 {
-    auto& info = (*m_subsetCIDMap)[cid];
+    auto& info = (*m_SubsetCIDMap)[cid];
     info.Gid = gid;
     for (unsigned i = 0; i < info.Codes.size(); i++)
     {
@@ -719,7 +719,7 @@ bool PdfFont::TryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCI
     if (found != m_subsetGIDToCIDMap->end())
     {
         // NOTE: Assume the subset CID map contains a single code
-        cid = PdfCID(found->first, (*m_subsetCIDMap)[found->second].Codes[0]);
+        cid = PdfCID(found->first, (*m_SubsetCIDMap)[found->second].Codes[0]);
         return true;
     }
 
@@ -746,6 +746,20 @@ PdfCharCode PdfFont::AddCharCodeSafe(unsigned gid, const unicodeview& codePoints
     m_DynamicCIDMap->PushMapping(code, gid);
     m_DynamicToUnicodeMap->PushMapping(code, codePoints);
     return code;
+}
+
+unique_ptr<set<PdfCharCode>> PdfFont::GetCharCodeSubset() const
+{
+    if (m_SubsetCIDMap == nullptr || m_SubsetCIDMap->size() == 0)
+        return nullptr;
+
+    unique_ptr<set<PdfCharCode>> ret(new set<PdfCharCode>());
+    for (auto& pair : *m_SubsetCIDMap)
+    {
+        for (auto& code : pair.second.Codes)
+            ret->insert(code);
+    }
+    return ret;
 }
 
 bool PdfFont::tryConvertToGIDs(const std::string_view& utf8Str, PdfGlyphAccess access, std::vector<unsigned>& gids) const
@@ -830,7 +844,7 @@ bool PdfFont::tryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCI
         // is reserved for fallbacks. Encode it with FSS-UTF
         // encoding so it will be variable code size safe
 
-        cid = PdfCID((unsigned)m_subsetCIDMap->size() + 1, PdfCharCode(utls::FSSUTFEncode((unsigned)m_subsetCIDMap->size() + 1)));
+        cid = PdfCID((unsigned)m_SubsetCIDMap->size() + 1, PdfCharCode(utls::FSSUTFEncode((unsigned)m_SubsetCIDMap->size() + 1)));
         m_DynamicCIDMap->PushMapping(cid.Unit, cid.Id);
         m_DynamicToUnicodeMap->PushMapping(cid.Unit, codePoints);
     }
@@ -845,7 +859,7 @@ bool PdfFont::tryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCI
 
         // We start numberings CIDs from 1 since CID 0
         // is reserved for fallbacks
-        cid = PdfCID((unsigned)m_subsetCIDMap->size() + 1, codeUnit);
+        cid = PdfCID((unsigned)m_SubsetCIDMap->size() + 1, codeUnit);
     }
 
     pushSubsetInfo(cid.Id, PdfGID(gid), cid.Unit);
@@ -893,7 +907,7 @@ void PdfFont::AddSubsetCIDs(const PdfString& encodedStr)
 
 bool PdfFont::HasCIDSubset() const
 {
-    return m_subsetCIDMap != nullptr && m_subsetCIDMap->size() != 0;
+    return m_SubsetCIDMap != nullptr && m_SubsetCIDMap->size() != 0;
 }
 
 bool PdfFont::SupportsSubsetting() const
@@ -1018,7 +1032,7 @@ bool PdfFont::tryMapCIDToGIDNormal(unsigned cid, unsigned& gid) const
 vector<PdfCharGIDInfo> PdfFont::GetCharGIDInfos() const
 {
     vector<PdfCharGIDInfo> ret;
-    if (m_subsetCIDMap == nullptr)
+    if (m_SubsetCIDMap == nullptr)
     {
         PODOFO_ASSERT(!IsSubsettingEnabled());
         // Create an identity cid/gid map
@@ -1029,17 +1043,17 @@ vector<PdfCharGIDInfo> PdfFont::GetCharGIDInfos() const
     }
     else
     {
-        if (m_subsetCIDMap->size() == 0)
+        if (m_SubsetCIDMap->size() == 0)
         {
             ret.push_back({ 0, 0, PdfGID(0)});
             return ret;
         }
 
-        ret.resize(m_subsetCIDMap->size());
+        ret.resize(m_SubsetCIDMap->size());
         unsigned i = 0;
         if (m_SubsettingEnabled)
         {
-            for (auto& pair : *m_subsetCIDMap)
+            for (auto& pair : *m_SubsetCIDMap)
             {
                 // Reserve CID 0 and start numbering CIDS from 1
                 ret[i] = { i + 1, pair.first, pair.second.Gid };
@@ -1048,7 +1062,7 @@ vector<PdfCharGIDInfo> PdfFont::GetCharGIDInfos() const
         }
         else
         {
-            for (auto& pair : *m_subsetCIDMap)
+            for (auto& pair : *m_SubsetCIDMap)
             {
                 ret[i] = { pair.first, pair.first, pair.second.Gid };
                 i++;
@@ -1061,7 +1075,7 @@ vector<PdfCharGIDInfo> PdfFont::GetCharGIDInfos() const
 
 bool PdfFont::TryGetSubstituteCIDEncoding(unique_ptr<PdfEncodingMap>& cidEncodingMap) const
 {
-    if (m_subsetCIDMap == nullptr || m_subsetCIDMap->size() == 0 || m_DynamicCIDMap != nullptr)
+    if (m_SubsetCIDMap == nullptr || m_SubsetCIDMap->size() == 0 || m_DynamicCIDMap != nullptr)
     {
         // Return if the subset map is non existing or invalid, or this font
         // is already defining a dynamic CID mapping
@@ -1073,7 +1087,7 @@ bool PdfFont::TryGetSubstituteCIDEncoding(unique_ptr<PdfEncodingMap>& cidEncodin
     if (m_SubsettingEnabled)
     {
         unsigned i = 0;
-        for (auto& pair : *m_subsetCIDMap)
+        for (auto& pair : *m_SubsetCIDMap)
         {
             for (auto& code : pair.second.Codes)
                 map.PushMapping(code, i + 1);
@@ -1085,7 +1099,7 @@ bool PdfFont::TryGetSubstituteCIDEncoding(unique_ptr<PdfEncodingMap>& cidEncodin
     {
         // The identifier for the new CID encoding
         // unconditionally becomes the found GID
-        for (auto& pair : *m_subsetCIDMap)
+        for (auto& pair : *m_SubsetCIDMap)
         {
             for (auto& code : pair.second.Codes)
                 map.PushMapping(code, pair.second.Gid.Id);

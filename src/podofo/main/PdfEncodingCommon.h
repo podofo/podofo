@@ -43,9 +43,6 @@ namespace PoDoFo
         void WriteHexTo(std::string& str, bool wrap = true) const;
     };
 
-    // TODO: Optimize me
-    using PdfCharCodeList = std::vector<PdfCharCode>;
-
     /** Represent a CID (Character ID) with full code unit information
      */
     struct PODOFO_API PdfCID final
