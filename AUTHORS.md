@@ -1,14 +1,21 @@
 ## Authors
 
-* Dominik Seichter <domseichter@web.de>
-* Leonard Rosenthol <leonardr@pdfsages.com>
-* Craig Ringer <craig@postnewspapers.com.au>
-* Petr Petrov
-* Francesco Pretto <ceztko@gmail.com>
-* Petr Pytelka (PdfSignature)
-* Kaushik ??? (Standard 14 Fonts related work)
-* Takeshi Kanno ??? (Libharu)
-* Raph Levien
-* Ulrich Arnold
-
-Work on revamp authors file is tracked in [this](https://github.com/podofo/podofo/issues/26) issue.
+- Francesco Pretto:           main developer and maintainer since 2023
+- Christopher Creutzig:       patch review
+- Dominik Seichter:           main developer and mantainer until 2022
+- Leonard Rosenthol:          initial Windows port, early maintenance
+- Craig Ringer:               early maintenance
+- Ulrich Arnold:              encoding, page append
+- Reinhard Mitteregger:       page append, Tiff decoding
+- Ian Curington:              AES, crypto refactor
+- Mark Rogers:                security infrastructure/fixes
+- Ulrich Telle:               merged wxPdf code
+- Petr Pytelka:               initial Pdf signing
+- James McGill:               page append, Windows fonts fetch
+- Nenad Novak:                oneliners, PNG load, CID width, TrueType subset
+- Palmer Zent:                AES 128/256, crypto refactor
+- M.C. (zyx):                 Pdf signing, painting, patterns, maintenance
+- Andreas Brzesowsky:         AES2/AES3 crypto
+- Matthew Brincke:            maintenance
+- Josef Rokos:                encodings
+- John Senneker:              PNG Paeth filter
