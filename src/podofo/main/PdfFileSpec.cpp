@@ -13,6 +13,7 @@
 #include "PdfObject.h"
 #include "PdfObjectStream.h"
 #include <podofo/auxiliary/StreamDevice.h>
+#include <podofo/staging/PdfCollectionItem.h>
 
 using namespace std;
 using namespace cmn;
@@ -26,6 +27,18 @@ PdfFileSpec::PdfFileSpec(PdfDocument& doc)
 PdfFileSpec::PdfFileSpec(PdfObject& obj)
     : PdfDictionaryElement(obj)
 {
+    initFromObject();
+}
+
+PdfFileSpec::PdfFileSpec(const PdfFileSpec& fileSpec)
+    : PdfDictionaryElement(fileSpec)
+{
+    // Note: Collection item is not copied - must be set separately if needed
+}
+
+PdfFileSpec::~PdfFileSpec()
+{
+    // Destructor defined here to allow unique_ptr<PdfCollectionItem> with forward declaration
 }
 
 bool PdfFileSpec::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFileSpec>& filespec)
@@ -134,4 +147,56 @@ void PdfFileSpec::setData(InputStream& input, size_t size)
     fObj.GetDictionary().AddKey("Params"_n, params);
     auto& efObj = GetDictionary().AddKey("EF"_n, PdfDictionary());
     efObj.GetDictionary().AddKeyIndirect("F"_n, fObj);
+}
+void PdfFileSpec::initFromObject()
+{
+    // Load existing collection item if present
+    auto ciObj = GetDictionary().FindKey("CI");
+    if (ciObj != nullptr)
+        m_CollectionItem.reset(new PdfCollectionItem(*ciObj));
+}
+
+void PdfFileSpec::SetCollectionItem(nullable<const PdfCollectionItem&> item)
+{
+    auto& dict = GetDictionary();
+    if (item == nullptr)
+    {
+        dict.RemoveKey("CI");
+        m_CollectionItem.reset();
+    }
+    else
+    {
+        if (m_CollectionItem == nullptr)
+            m_CollectionItem.reset(new PdfCollectionItem(GetDocument()));
+
+        // Copy the item's dictionary
+        m_CollectionItem->GetDictionary() = item->GetDictionary();
+        dict.AddKey("CI"_n, m_CollectionItem->GetObject().GetIndirectReference());
+    }
+}
+
+nullable<const PdfCollectionItem&> PdfFileSpec::GetCollectionItem() const
+{
+    if (m_CollectionItem == nullptr)
+        return nullptr;
+
+    return *m_CollectionItem.get();
+}
+
+nullable<PdfCollectionItem&> PdfFileSpec::GetCollectionItem()
+{
+    if (m_CollectionItem == nullptr)
+        return nullptr;
+
+    return *m_CollectionItem.get();
+}
+
+PdfCollectionItem& PdfFileSpec::GetOrCreateCollectionItem()
+{
+    if (m_CollectionItem != nullptr)
+        return *m_CollectionItem.get();
+
+    m_CollectionItem.reset(new PdfCollectionItem(GetDocument()));
+    GetDictionary().AddKey("CI"_n, m_CollectionItem->GetObject().GetIndirectReference());
+    return *m_CollectionItem.get();
 }

@@ -143,6 +143,31 @@ enum class PdfWModeKind : uint8_t
 };
 
 /**
+ * View modes for PDF Portfolio display (ISO 32000-1 12.3.5)
+ */
+enum class PdfCollectionViewMode : uint8_t
+{
+    Details = 0,  ///< Detail view with columns (default, /D)
+    Tile = 1,     ///< Tile view with thumbnails (/T)
+    Hidden = 2,   ///< Hidden view, no visual interface (/H)
+};
+
+/**
+ * Data types for collection schema fields (ISO 32000-1 12.3.5)
+ */
+enum class PdfCollectionFieldType : uint8_t
+{
+    String = 0,      ///< Text string (/S)
+    Date = 1,        ///< Date value (/D)
+    Number = 2,      ///< Numeric value (/N)
+    Filename = 3,    ///< Filename (/F)
+    Description = 4, ///< Description text (/Desc)
+    ModDate = 5,     ///< Modification date (/ModDate)
+    CreationDate = 6,///< Creation date (/CreationDate)
+    Size = 7,        ///< File size (/Size)
+};
+
+/**
  * Specify additional options for writing the PDF.
  */
 enum class PdfWriteFlags

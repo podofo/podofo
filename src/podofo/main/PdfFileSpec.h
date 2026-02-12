@@ -14,6 +14,7 @@
 namespace PoDoFo {
 
 class PdfDocument;
+class PdfCollectionItem;
 
 /**
  *  A file specification is used in the PDF file to refer to another file.
@@ -31,9 +32,11 @@ private:
 
     PdfFileSpec(PdfObject& obj);
 
-    PdfFileSpec(const PdfFileSpec& fileSpec) = default;
+    PdfFileSpec(const PdfFileSpec& fileSpec);
 
 public:
+    ~PdfFileSpec();
+
     bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfFileSpec>& filespec);
 
     /** Gets file name for the FileSpec
@@ -49,8 +52,32 @@ public:
 
     nullable<charbuff> GetEmbeddedData() const;
 
+    /** Set the collection item (metadata) for this file
+     * \param item the collection item or nullptr to remove
+     */
+    void SetCollectionItem(nullable<const PdfCollectionItem&> item);
+
+    /** Get the collection item (metadata) for this file
+     * \returns the collection item or nullptr if not set
+     */
+    nullable<const PdfCollectionItem&> GetCollectionItem() const;
+
+    /** Get the collection item (metadata) for this file
+     * \returns the collection item or nullptr if not set
+     */
+    nullable<PdfCollectionItem&> GetCollectionItem();
+
+    /** Get or create the collection item (metadata) for this file
+     * \returns reference to the collection item
+     */
+    PdfCollectionItem& GetOrCreateCollectionItem();
+
 private:
     void setData(InputStream& stream, size_t size);
+    void initFromObject();
+
+private:
+    std::unique_ptr<PdfCollectionItem> m_CollectionItem;
 };
 
 };
