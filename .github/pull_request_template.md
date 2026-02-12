@@ -1,3 +1,5 @@
+- [ ] Claim autorship on the whole submited code and documentation, if not specified differently in SPDX headers or by other means
+- [ ] If the submited code and documentation were produced with the use of AI assistants (in part or in whole), claim that the produced contents are fully human supervised and reviewed. The used AI assistants shall not be listed among the co-authors in the commit message
 - [ ] Accept to license the library and tools code under the terms
   of the [LGPL 2.0](https://spdx.org/licenses/LGPL-2.0-or-later.html) or later
 - [ ] Accept to license the library and tools code under the terms
@@ -7,3 +9,4 @@
 - [ ] Read [contributions](https://github.com/podofo/podofo#contributions) guidelines
 - [ ] Checked coding [style](https://github.com/podofo/podofo/blob/master/CODING-STYLE.md)
 - [ ] The commits sequence is clean without work in progress/bugged revisions and merge commits. In doubt, [squash](https://github.com/podofo/podofo/wiki/Squash-git-history-guide) the commits and/or rebase master
+
