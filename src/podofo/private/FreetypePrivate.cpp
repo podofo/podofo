@@ -111,9 +111,13 @@ void FT::FreeFace(FT_Face face)
     if (face == nullptr)
         return;
 
+    // NOTE: Store the hidden library pointer before freeing the face
+    auto lib = static_cast<FT_LibraryPtr*>(face->extensions);
+
     FT_Done_Face(face);
+
     // Dereference the hidden library pointer
-    static_cast<FT_LibraryPtr*>(face->extensions)->Unref();
+    lib->Unref();
 }
 
 void FT::ReferenceFace(FT_Face face)
