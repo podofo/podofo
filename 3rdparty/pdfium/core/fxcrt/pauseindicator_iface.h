@@ -7,9 +7,9 @@
 #ifndef CORE_FXCRT_PAUSEINDICATOR_IFACE_H_
 #define CORE_FXCRT_PAUSEINDICATOR_IFACE_H_
 
-class PauseIndicatorIface {
+class PoDoFo_PauseIndicatorIface {
  public:
-  virtual ~PauseIndicatorIface() = default;
+  virtual ~PoDoFo_PauseIndicatorIface() = default;
   virtual bool NeedToPauseNow() = 0;
 };
 
