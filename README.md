@@ -8,12 +8,13 @@
 6.  [Doxygen Documentation](#doxygen-documentation)
 7.  [Software life cycle and API stability](#software-life-cycle-and-api-stability)
 8.  [String encoding and buffer conventions](#string-encoding-and-buffer-conventions)
-9.  [PoDoFo tools](#podofo-tools)
-10.  [TODO](#todo)
-11.  [FAQ](#faq)
-12.  [No warranty](#no-warranty)
-13.  [Contributions](#contributions)
-14.  [Authors](#authors)
+9.  [Thread safety](#thread-safety)
+11.  [PoDoFo tools](#podofo-tools)
+12.  [TODO](#todo)
+13.  [FAQ](#faq)
+14.  [No warranty](#no-warranty)
+15.  [Contributions](#contributions)
+16.  [Authors](#authors)
 
 ## What is PoDoFo?
 
@@ -233,6 +234,10 @@ to hold UTF-8 encoded string content. `PdfString` and `PdfName` constructors
 accept UTF-8 encoded strings by default (`PdfName` accept only characters in the
 `PdfDocEncoding` char set, though). `charbuff` and `bufferview`
 instead represent a generic octet buffer.
+
+## Thread safety
+
+For the most part PoDoFo is not a thread safe library. As a general rule: use any object on the same thread it was created on. Explicit support is provided for freeing object instances in different threads, as is done in modern garbage collected languages.
 
 ## PoDoFo Tools
 
