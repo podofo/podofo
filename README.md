@@ -118,14 +118,13 @@ cmake --build . --config Debug
 
 ### Build with Conan
 
-Install [conan](https://docs.conan.io/1/installation.html), then from source root run:
+Install [conan-2](https://docs.conan.io/2/installation.html), then when configuring with `cmake` simply turn on `PODOFO_USE_CONAN`:
 
 ```
 mkdir build
 cd build
-conan install ..
-cmake -DCMAKE_BUILD_TYPE=Debug ..
-cmake --build . --config Debug
+cmake -DCMAKE_BUILD_TYPE=Debug -DPODOFO_USE_CONAN=ON ..
+cmake --build .
 ```
 
 ### Build with vcpkg
