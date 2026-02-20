@@ -181,6 +181,150 @@ TEST_CASE("TestLocale")
     setlocale(LC_ALL, old);
 }
 
+TEST_CASE("TestInvalidRealTokenNocrash")
+{
+    // CVE-2025-9394 regression: invalid real token after a PdfName must not
+    // cause use-after-free. The bug: DetermineDataType() calls variant.~PdfVariant()
+    // (destroying the PdfName's shared_ptr), then returns Unknown WITHOUT
+    // reinitializing the union. The variant's destructor later reads stale PdfName
+    // data and calls ~shared_ptr() on freed memory.
+    //
+    // To trigger the actual vulnerability, the variant must hold a PdfName
+    // (which has a non-trivial destructor with shared_ptr) before the invalid
+    // token is parsed. A default-constructed Null variant has a trivial destructor
+    // and would not trigger the use-after-free.
+    SpanStreamDevice device("/SomeName -.");
+    PdfTokenizer tokenizer;
+    PdfVariant variant;
+
+    // Name arms the variant with a non-trivial destructor (shared_ptr in union)
+    REQUIRE(tokenizer.TryReadNextVariant(device, variant));
+    REQUIRE(variant.GetDataType() == PdfDataType::Name);
+
+    // "-." triggers the Real recovery path; without the fix, the variant's
+    // PdfName union member is destroyed but never reinitialized, so the
+    // subsequent ~PdfVariant() double-frees the shared_ptr
+    (void)tokenizer.TryReadNextVariant(device, variant);
+}
+
+TEST_CASE("TestInvalidNumberTokenNocrash")
+{
+    // CVE-2025-9394 regression: same mechanism as TestInvalidRealTokenNocrash
+    // but exercises the Number recovery path (integer overflow fails from_chars).
+    SpanStreamDevice device("/SomeName 99999999999999999999999999999999");
+    PdfTokenizer tokenizer;
+    PdfVariant variant;
+
+    // Name arms the variant with a non-trivial destructor
+    REQUIRE(tokenizer.TryReadNextVariant(device, variant));
+    REQUIRE(variant.GetDataType() == PdfDataType::Name);
+
+    // Overflow triggers the Number recovery path
+    (void)tokenizer.TryReadNextVariant(device, variant);
+}
+
+TEST_CASE("TestInvalidRealInArrayNocrash")
+{
+    // CVE-2025-9394 regression: invalid numeric values inside arrays
+    // must not cause use-after-free during array destruction.
+    // "+." fails std::from_chars but passes the character scan as Real.
+    // ReadArray internally calls ReadNextVariant (throwing), so we catch the
+    // expected exception — the important thing is no crash or ASAN violation.
+    SpanStreamDevice device("[+. ..]");
+    PdfTokenizer tokenizer;
+    PdfVariant variant;
+    try
+    {
+        (void)tokenizer.TryReadNextVariant(device, variant);
+    }
+    catch (const PdfError&)
+    {
+        // Exception is acceptable error handling — not a crash
+    }
+}
+
+TEST_CASE("TestInvalidNumberInDictionaryNocrash")
+{
+    // CVE-2025-9394 / issue #275 regression: invalid numeric values inside
+    // dictionaries must not cause use-after-free during dictionary destruction.
+    // ReadDictionary internally calls ReadNextVariant (throwing), so we catch
+    // the expected exception.
+    SpanStreamDevice device("<< /Key -. >>");
+    PdfTokenizer tokenizer;
+    PdfVariant variant;
+    try
+    {
+        (void)tokenizer.TryReadNextVariant(device, variant);
+    }
+    catch (const PdfError&)
+    {
+        // Exception is acceptable error handling — not a crash
+    }
+}
+
+TEST_CASE("TestVariantReuseAfterInvalidToken")
+{
+    // CVE-2025-9394 regression: the recovery path must leave the variant in a
+    // fully usable state, not just a non-crashing one. Verifies the variant
+    // can be reassigned and used after the fix reinitializes it as NullMember.
+    {
+        SpanStreamDevice device("/TestName -. 42");
+        PdfTokenizer tokenizer;
+        PdfVariant variant;
+
+        // Arm with Name, then trigger Real recovery path
+        REQUIRE(tokenizer.TryReadNextVariant(device, variant));
+        REQUIRE(variant.GetDataType() == PdfDataType::Name);
+        (void)tokenizer.TryReadNextVariant(device, variant);
+
+        // Reassignment must work — proves variant is in a valid state, not just
+        // that it avoided a crash during destruction
+        variant = PdfVariant(static_cast<int64_t>(42));
+        REQUIRE(variant.GetDataType() == PdfDataType::Number);
+        REQUIRE(variant.GetNumber() == 42);
+    }
+    {
+        SpanStreamDevice device("/TestName 99999999999999999999999999999999 99");
+        PdfTokenizer tokenizer;
+        PdfVariant variant;
+
+        // Arm with Name, then trigger Number recovery path
+        REQUIRE(tokenizer.TryReadNextVariant(device, variant));
+        REQUIRE(variant.GetDataType() == PdfDataType::Name);
+        (void)tokenizer.TryReadNextVariant(device, variant);
+
+        variant = PdfVariant(static_cast<int64_t>(99));
+        REQUIRE(variant.GetDataType() == PdfDataType::Number);
+        REQUIRE(variant.GetNumber() == 99);
+    }
+}
+
+TEST_CASE("TestMultipleInvalidTokenVariantsNocrash")
+{
+    // CVE-2025-9394 regression: exercises multiple distinct invalid-token patterns
+    // that all reach the recovery path. Each variant is armed with a PdfName first
+    // because the use-after-free only manifests with non-trivial union members.
+    const string_view sequences[] = {
+        "/Name1 -.",                                    // Real: sign-dot
+        "/Name2 +.",                                    // Real: sign-dot
+        "/Name3 ..",                                    // Real: double-dot
+        "/Name4 99999999999999999999999999999999"        // Number: overflow
+    };
+    for (const string_view& input : sequences)
+    {
+        SpanStreamDevice device(input);
+        PdfTokenizer tokenizer;
+        PdfVariant variant;
+
+        // Arm with Name so the destructor path is non-trivial
+        REQUIRE(tokenizer.TryReadNextVariant(device, variant));
+        REQUIRE(variant.GetDataType() == PdfDataType::Name);
+
+        // Trigger recovery; variant destruction at end of scope is the real test
+        (void)tokenizer.TryReadNextVariant(device, variant);
+    }
+}
+
 void Test(const string_view& buffer, PdfDataType dataType, string_view expected)
 {
     expected = expected.empty() ? buffer : expected;
