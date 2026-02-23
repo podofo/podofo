@@ -111,4 +111,9 @@
 #include "main/PdfXObjectForm.h"
 #include "main/PdfXObjectPostScript.h"
 
+// Staging headers (experimental API - may change in future releases)
+#include "staging/PdfCollection.h"
+#include "staging/PdfCollectionSchema.h"
+#include "staging/PdfCollectionItem.h"
+
 #endif // PODOFO_H

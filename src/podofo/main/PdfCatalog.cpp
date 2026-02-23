@@ -274,3 +274,13 @@ void PdfCatalog::SetPageLayout(nullable<PdfPageLayout> layout)
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 }
+
+PdfObject* PdfCatalog::GetCollectionObject()
+{
+    return GetDictionary().FindKey("Collection");
+}
+
+const PdfObject* PdfCatalog::GetCollectionObject() const
+{
+    return GetDictionary().FindKey("Collection");
+}

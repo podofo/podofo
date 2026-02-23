@@ -30,6 +30,7 @@ class PdfAction;
 class PdfExtGState;
 class PdfEncrypt;
 class PdfDocument;
+class PdfCollection;
 
 template <typename TField>
 class PdfDocumentFieldIterableBase final
@@ -147,6 +148,30 @@ public:
      *  \returns PdfObject the AcroForm dictionary
      */
     PdfAcroForm& GetOrCreateAcroForm(PdfAcroFormDefaulAppearance eDefaultAppearance = PdfAcroFormDefaulAppearance::ArialBlack);
+
+    /** Get or create the Collection (Portfolio) dictionary
+     *  \returns reference to the collection
+     */
+    PdfCollection& GetOrCreateCollection();
+
+    /** Get the Collection (Portfolio) dictionary
+     *  \returns pointer to the collection or nullptr if not created
+     */
+    nullable<PdfCollection&> GetCollection();
+
+    /** Get the Collection (Portfolio) dictionary (const version)
+     *  \returns pointer to the collection or nullptr if not created
+     */
+    nullable<const PdfCollection&> GetCollection() const;
+
+    /** Remove the Collection (Portfolio) from the document
+     */
+    void RemoveCollection();
+
+    /** Check if this document is a PDF Portfolio
+     *  \returns true if the document has a collection dictionary
+     */
+    bool IsPortfolio() const;
 
     void CollectGarbage();
 
@@ -479,6 +504,7 @@ private:
     std::unique_ptr<PdfAcroForm> m_AcroForm;
     nullable<std::unique_ptr<PdfOutlines>> m_Outlines;
     std::unique_ptr<PdfNameTrees> m_NameTrees;
+    std::unique_ptr<PdfCollection> m_Collection;
 };
 
 template<typename TAction>
