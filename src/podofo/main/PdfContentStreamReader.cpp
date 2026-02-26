@@ -7,6 +7,8 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfContentStreamReader.h"
 
+#include <podofo/private/PdfFilterFactory.h>
+
 #include "PdfXObjectForm.h"
 #include "PdfCanvasInputDevice.h"
 #include "PdfData.h"
@@ -51,8 +53,11 @@ bool PdfContentStreamReader::TryReadNext(PdfContent& content)
         {
             if (m_args.InlineImageHandler == nullptr)
             {
-                if (!tryReadInlineImgData(content.Data.InlineImageData))
+                if (!tryReadInlineImgData(content.Data.InlineImageData, content.Data.InlineImageDictionary,
+                    (m_args.Flags & PdfContentReaderFlags::SkipFetchInlineImages) != PdfContentReaderFlags::None))
+                {
                     goto PopDevice;
+                }
 
                 content.Type = PdfContentType::ImageData;
                 m_readingInlineImgData = false;
@@ -404,12 +409,69 @@ InvalidXObj:
 }
 
 // Returns false in case of EOF
-bool PdfContentStreamReader::tryReadInlineImgData(charbuff& data)
+bool PdfContentStreamReader::tryReadInlineImgData(charbuff& data,
+    const PdfDictionary& imageDict, bool skipFetchImage)
 {
-    // Consume one whitespace between ID and data
     char ch;
+    data.clear();
+
+    // Consume one whitespace between ID and data
     if (!m_inputs.back().Device->Read(ch))
         return false;
+
+    auto filtersObj = imageDict.GetKey("F");
+    if (filtersObj != nullptr)
+    {
+        auto filters = PdfFilterFactory::CreateFilterList(*filtersObj);
+        if (filters.size() > 0)
+        {
+            if (filters[0] == PdfFilterType::ASCII85Decode)
+            {
+                enum class ReadA85Status : uint8_t
+                {
+                    ReadTilde,
+                    ReadRightAngle,
+                };
+
+                ReadA85Status status = ReadA85Status::ReadTilde;
+                while (true)
+                {
+                    if (!m_inputs.back().Device->Read(ch))
+                        return false;
+
+                    if (!skipFetchImage)
+                        data.push_back(ch);
+
+                    switch (status)
+                    {
+                        case ReadA85Status::ReadTilde:
+                        {
+                            if (ch == '~')
+                                status = ReadA85Status::ReadRightAngle;
+
+                            break;
+                        }
+                        case ReadA85Status::ReadRightAngle:
+                        {
+                            if (ch == '>')
+                                goto ReadA85EOF;
+
+                            // Reset to the initial state
+                            status = ReadA85Status::ReadTilde;
+                            break;
+                        }
+                    }
+                }
+
+            ReadA85EOF:
+                // We need to read EI operator to keep the stream in a
+                // consistent state, but we already have the image data
+                // so we can skip it
+                skipFetchImage = true;
+            }
+        }
+    }
+
 
     // Read "EI"
     enum class ReadEIStatus : uint8_t
@@ -427,9 +489,11 @@ bool PdfContentStreamReader::tryReadInlineImgData(charbuff& data)
     // the situation the only approach would be to use more
     // comprehensive heuristic, similarly to what pdf.js does
     ReadEIStatus status = ReadEIStatus::ReadE;
-    unsigned readCount = 0;
     while (m_inputs.back().Device->Read(ch))
     {
+        if (!skipFetchImage)
+            data.push_back(ch);
+
         switch (status)
         {
             case ReadEIStatus::ReadE:
@@ -452,24 +516,20 @@ bool PdfContentStreamReader::tryReadInlineImgData(charbuff& data)
             {
                 if (PoDoFo::IsCharWhitespace(ch))
                 {
-                    data = bufferview(m_buffer->data(), readCount - 2);
+                    if (!skipFetchImage)
+                    {
+                        // Don't include "EI" and the whitespace after it
+                        data.resize(data.size() - 3);
+                    }
+
                     return true;
                 }
-                else
-                    status = ReadEIStatus::ReadE;
 
+                // Reset to the initial state
+                status = ReadEIStatus::ReadE;
                 break;
             }
         }
-
-        if (m_buffer->size() == readCount)
-        {
-            // image is larger than buffer => resize buffer
-            m_buffer->resize(m_buffer->size() * 2);
-        }
-
-        m_buffer->data()[readCount] = ch;
-        readCount++;
     }
 
     return false;

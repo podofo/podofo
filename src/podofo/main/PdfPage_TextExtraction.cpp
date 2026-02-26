@@ -198,7 +198,8 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
 
     // Look FIGURE 4.1 Graphics objects
     PdfContentReaderArgs args;
-    args.Flags = PdfContentReaderFlags::SkipHandleNonFormXObjects; // Images are not needed for text extraction
+    // Images are not needed for text extraction
+    args.Flags = PdfContentReaderFlags::SkipHandleNonFormXObjects | PdfContentReaderFlags::SkipFetchInlineImages;
     PdfContentStreamReader reader(*this, args);
     PdfContent content;
     vector<double> lengths;

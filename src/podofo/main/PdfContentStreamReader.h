@@ -112,6 +112,7 @@ enum class PdfContentReaderFlags
     ThrowOnWarnings = 1,
     SkipFollowFormXObjects = 2,     ///< Don't follow Form XObject 
     SkipHandleNonFormXObjects = 4,  ///< Don't handle non Form XObjects (PdfImage, PdfXObjectPostScript). Doesn't influence traversing of Form XObject(s)
+    SkipFetchInlineImages = 8,      ///< Don't fetch inline images data, just skip it
 };
 
 /** Custom handler for inline images
@@ -153,7 +154,7 @@ private:
 
     bool tryReadInlineImgDict(PdfContent& content);
 
-    bool tryReadInlineImgData(charbuff& data);
+    bool tryReadInlineImgData(charbuff& data, const PdfDictionary& imageDict, bool skipSaveImage);
 
     bool tryHandleXObject(PdfContent& content);
 
