@@ -5,8 +5,8 @@
 - Pull-Request [contributors](https://github.com/podofo/podofo/graphs/contributors)
 
 ### Past authors (until 2022)
-- Dominik Seichter:           main developer and mantainer
-- Leonard Rosenthol:          initial Windows port, early maintenance
+- Dominik Seichter:           main developer and mantainer, tools
+- Leonard Rosenthol:          initial Windows port, early maintenance, tools
 - Craig Ringer:               early maintenance
 - Ulrich Arnold:              encoding, page append
 - Reinhard Mitteregger:       page append, Tiff decoding
@@ -18,9 +18,17 @@
 - James McGill:               page append, Windows fonts fetch
 - Nenad Novak:                oneliners, PNG load, CID width, TrueType subset
 - Palmer Zent:                AES 128/256, crypto refactor
-- M.C. (zyx):                 Pdf signing, painting, patterns, maintenance
+- M.C. (zyx):                 Pdf signing, painting, patterns, maintenance, podofosign
 - Michal Sudolsky:            Small internals fixes and features
 - Andreas Brzesowsky:         AES2/AES3 crypto
 - Matthew Brincke:            maintenance
 - Josef Rokos:                encodings
 - John Senneker:              PNG Paeth filter
+
+### Tools contributions
+- Pierre Marchand: podofoimpose, podofobox, pdfinfo
+- Chris B.: podofoimpose fixes
+- Ian Ashley: podofoxmp
+- Ivan Romanov: podofonooc
+- John Denker: podofoimpose plans
+- Stefan Huber: podofocolor examples
