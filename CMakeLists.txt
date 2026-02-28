@@ -1,4 +1,16 @@
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.24)
+
+# Conan integration, has to be done before project()
+option(PODOFO_USE_CONAN "Use Conan to manage dependencies" FALSE)
+if(PODOFO_USE_CONAN)
+    include(cmake/modules/Conan.cmake)
+    set(CONAN_INSTALL_ARGS --build=missing)
+    run_conan(
+        HOST_PROFILE default auto-cmake
+        BUILD_PROFILE default
+        INSTALL_ARGS ${CONAN_INSTALL_ARGS}
+    )
+endif()
 
 project(PoDoFo)
 
