@@ -11,9 +11,9 @@
 
 #include <pdfium/third_party/base/span.h>
 
-class PauseIndicatorIface;
+class PoDoFo_PauseIndicatorIface;
 
-namespace fxcodec {
+namespace PoDoFo_fxcodec {
 
 class ScanlineDecoder {
  public:
@@ -28,7 +28,7 @@ class ScanlineDecoder {
   virtual ~ScanlineDecoder();
 
   pdfium::span<const uint8_t> GetScanline(int line);
-  bool SkipToScanline(int line, PauseIndicatorIface* pPause);
+  bool SkipToScanline(int line, PoDoFo_PauseIndicatorIface* pPause);
 
   int GetWidth() const { return m_OutputWidth; }
   int GetHeight() const { return m_OutputHeight; }
@@ -54,6 +54,6 @@ class ScanlineDecoder {
 
 }  // namespace fxcodec
 
-using ScanlineDecoder = fxcodec::ScanlineDecoder;
+using ScanlineDecoder = PoDoFo_fxcodec::ScanlineDecoder;
 
 #endif  // CORE_FXCODEC_SCANLINEDECODER_H_
