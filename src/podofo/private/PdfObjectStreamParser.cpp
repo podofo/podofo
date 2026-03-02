@@ -59,8 +59,15 @@ void PdfObjectStreamParser::readObjectsFromStream(char* buffer, size_t bufferLen
                 "Object stream has invalid object number or offset");
         }
 
+        size_t objectPos = first + (size_t)offset;
+        if (objectPos >= bufferLen)
+        {
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile,
+                "Object stream offset exceeds buffer length");
+        }
+
         // move to the position of the object in the stream
-        device.Seek(first + (size_t)offset);
+        device.Seek(objectPos);
 
         // use a second tokenizer here so that anything that gets dequeued isn't left in the tokenizer that reads the offsets and lengths
         PdfTokenizer variantTokenizer(m_buffer);
