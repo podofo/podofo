@@ -366,10 +366,16 @@ size_t determineStreamSize(InputStreamDevice& device, size_t streamOffset)
     char ch;
     unsigned i = 0;
     EndStreamToken endStreamToken;
+    size_t bytesScanned = 0;
+    size_t maxScan = device.GetLength() - streamOffset;
     while (true)
     {
+        if (bytesScanned >= maxScan)
+            goto Fail;
+
         if (device.Read(ch))
         {
+            bytesScanned++;
             if (readObjectStreamEnd(ch, i, endStreamToken))
                 goto AdjustSize;
         }
