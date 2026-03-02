@@ -543,6 +543,9 @@ void PdfTokenizer::ReadString(InputStreamDevice& device, PdfVariant& variant, co
     m_charBuffer.clear();
     while (device.Read(ch))
     {
+        if (m_charBuffer.size() >= MaxStringLength)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "String length exceeds maximum allowed size");
+
         if (escape)
         {
             // Handle escape sequences
@@ -735,6 +738,9 @@ void readHexString(InputStreamDevice& device, charbuff& buffer)
     char ch;
     while (device.Read(ch))
     {
+        if (buffer.size() >= PdfTokenizer::MaxStringLength)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Hex string length exceeds maximum allowed size");
+
         // end of stream reached
         if (ch == '>')
             break;
