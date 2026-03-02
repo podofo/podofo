@@ -17,6 +17,7 @@
 #include "PdfEncrypt.h"
 
 #include <openssl/md5.h>
+#include <openssl/rand.h>
 #include <podofo/private/SASLprep.h>
 
 #include "PdfDictionary.h"
@@ -1513,11 +1514,8 @@ void PdfEncryptAESV3::computeUserKey(const unsigned char* userpswd, unsigned len
     unsigned char vSalt[8];
     unsigned char kSalt[8];
 
-    for (unsigned i = 0; i < 8; i++)
-    {
-        vSalt[i] = rand() % 255;
-        kSalt[i] = rand() % 255;
-    }
+    if (RAND_bytes(vSalt, sizeof(vSalt)) != 1 || RAND_bytes(kSalt, sizeof(kSalt)) != 1)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error generating random salt bytes");
 
     // Generate hash for U
     unsigned char hashValue[32];
@@ -1557,15 +1555,12 @@ void PdfEncryptAESV3::computeOwnerKey(const unsigned char* ownerpswd, unsigned l
     unsigned keyLength, const unsigned char encryptionKey[32], const unsigned char uValue[48],
     unsigned char oValue[48], unsigned char oeValue[32])
 {
-    // Generate User Salts
+    // Generate Owner Salts
     unsigned char vSalt[8];
     unsigned char kSalt[8];
 
-    for (unsigned i = 0; i < 8; i++)
-    {
-        vSalt[i] = rand() % 255;
-        kSalt[i] = rand() % 255;
-    }
+    if (RAND_bytes(vSalt, sizeof(vSalt)) != 1 || RAND_bytes(kSalt, sizeof(kSalt)) != 1)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error generating random salt bytes");
 
     // Generate hash for O
     unsigned char hashValue[32];
@@ -1612,12 +1607,9 @@ void PdfEncryptAESV3::preprocessPassword(const string_view& password, unsigned c
 
 void PdfEncryptAESV3::computeEncryptionKey(unsigned keyLength, unsigned char encryptionKey[32])
 {
-    // Seed once for all
-    srand((unsigned)time(nullptr));
-
     PODOFO_INVARIANT(keyLength <= 32);
-    for (unsigned i = 0; i < keyLength; i++)
-        encryptionKey[i] = rand() % 255;
+    if (RAND_bytes(encryptionKey, (int)keyLength) != 1)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error generating random encryption key");
 }
 
 void PdfEncryptAESV3::CreateEncryptionDictionary(PdfDictionary& dictionary) const
@@ -1911,8 +1903,8 @@ unique_ptr<OutputStream> PdfEncryptAESV3::CreateEncryptionOutputStream(OutputStr
 
 void PdfEncryptAESV3::generateInitialVector(unsigned char iv[])
 {
-    for (unsigned i = 0; i < AES_IV_LENGTH; i++)
-        iv[i] = rand() % 255;
+    if (RAND_bytes(iv, AES_IV_LENGTH) != 1)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error generating random initialization vector");
 }
 
 void PdfEncrypt::EncryptTo(charbuff& out, const bufferview& view, PdfEncryptContext& context, const PdfReference& objref) const
