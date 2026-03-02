@@ -40,6 +40,7 @@ class PODOFO_API PdfTokenizer
 
 public:
     static constexpr unsigned BufferSize = 4096;
+    static constexpr size_t MaxStringLength = 64 * 1024 * 1024; // 64 MiB
 
 public:
     PdfTokenizer(const PdfTokenizerOptions& options = { });
