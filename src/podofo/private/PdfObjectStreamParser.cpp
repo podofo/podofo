@@ -9,6 +9,8 @@
 
 #include <algorithm>
 
+#include <numerics/checked_math.h>
+
 #include "PdfParser.h"
 
 #include <podofo/main/PdfDictionary.h>
@@ -17,6 +19,7 @@
 
 using namespace std;
 using namespace PoDoFo;
+using namespace chromium::base;
 
 PdfObjectStreamParser::PdfObjectStreamParser(PdfParserObject& parser,
         PdfIndirectObjectList& objects, const shared_ptr<charbuff>& buffer)
@@ -52,15 +55,22 @@ void PdfObjectStreamParser::readObjectsFromStream(char* buffer, size_t bufferLen
         int64_t offset = tokenizer.ReadNextNumber(device);
         size_t pos = device.GetPosition();
 
-        if (objNo < 0 || offset < 0 || objNo >= PdfParser::MaxObjectCount
-            || first >= numeric_limits<size_t>::max() - (size_t)offset)
+        if (objNo < 0 || offset < 0 || objNo >= PdfParser::MaxObjectCount)
         {
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile,
                 "Object stream has invalid object number or offset");
         }
 
+        size_t target;
+        if (!(CheckedNumeric<size_t>(first) + CheckedNumeric<size_t>((size_t)offset)).AssignIfValid(&target)
+            || target > bufferLen)
+        {
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile,
+                "Object stream offset overflows buffer");
+        }
+
         // move to the position of the object in the stream
-        device.Seek(first + (size_t)offset);
+        device.Seek(target);
 
         // use a second tokenizer here so that anything that gets dequeued isn't left in the tokenizer that reads the offsets and lengths
         PdfTokenizer variantTokenizer(m_buffer);
