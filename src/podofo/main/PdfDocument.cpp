@@ -11,6 +11,7 @@
 #include "PdfExtGState.h"
 #include "PdfDestination.h"
 #include "PdfFileSpec.h"
+#include <podofo/staging/PdfCollection.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -62,6 +63,7 @@ void PdfDocument::Clear()
     m_AcroForm = nullptr;
     m_Outlines = nullptr;
     m_NameTrees = nullptr;
+    m_Collection = nullptr;
     m_Objects.Clear();
     clear();
 }
@@ -92,6 +94,10 @@ void PdfDocument::Init()
     auto acroformObj = catalogDict.FindKey("AcroForm");
     if (acroformObj != nullptr)
         m_AcroForm.reset(new PdfAcroForm(*acroformObj));
+
+    auto collectionObj = catalogDict.FindKey("Collection");
+    if (collectionObj != nullptr)
+        m_Collection.reset(new PdfCollection(*collectionObj));
 }
 
 void PdfDocument::AppendDocumentPages(const PdfDocument& doc)
@@ -522,6 +528,46 @@ PdfAcroForm& PdfDocument::GetOrCreateAcroForm(PdfAcroFormDefaulAppearance defaul
     m_AcroForm.reset(new PdfAcroForm(*this, defaultAppearance));
     m_Catalog->GetDictionary().AddKey("AcroForm"_n, m_AcroForm->GetObject().GetIndirectReference());
     return *m_AcroForm.get();
+}
+
+PdfCollection& PdfDocument::GetOrCreateCollection()
+{
+    if (m_Collection != nullptr)
+        return *m_Collection.get();
+
+    m_Collection.reset(new PdfCollection(*this));
+    m_Catalog->GetDictionary().AddKey("Collection"_n, m_Collection->GetObject().GetIndirectReference());
+    return *m_Collection.get();
+}
+
+nullable<PdfCollection&> PdfDocument::GetCollection()
+{
+    if (m_Collection == nullptr)
+        return nullptr;
+
+    return *m_Collection.get();
+}
+
+nullable<const PdfCollection&> PdfDocument::GetCollection() const
+{
+    if (m_Collection == nullptr)
+        return nullptr;
+
+    return *m_Collection.get();
+}
+
+void PdfDocument::RemoveCollection()
+{
+    if (m_Collection == nullptr)
+        return;
+
+    m_Catalog->GetDictionary().RemoveKey("Collection");
+    m_Collection.reset();
+}
+
+bool PdfDocument::IsPortfolio() const
+{
+    return m_Catalog->GetDictionary().HasKey("Collection");
 }
 
 void PdfDocument::SetTrailer(unique_ptr<PdfObject> obj)

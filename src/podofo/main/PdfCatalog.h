@@ -123,6 +123,12 @@ namespace PoDoFo
         std::string GetMetadataStreamValue() const;
         void SetMetadataStreamValue(const std::string_view& value);
 
+        /** Get access to the Collection dictionary (PDF Portfolio)
+         *  \returns PdfObject the Collection dictionary or nullptr if not present
+         */
+        PdfObject* GetCollectionObject();
+        const PdfObject* GetCollectionObject() const;
+
     private:
         /** Low-level APIs for setting a viewer preference.
          *  \param whichPref the dictionary key to set
