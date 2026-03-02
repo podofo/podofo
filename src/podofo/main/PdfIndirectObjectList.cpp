@@ -199,7 +199,7 @@ PdfReference PdfIndirectObjectList::getNextFreeObject()
 PdfObject& PdfIndirectObjectList::CreateDictionaryObject(const PdfName& type,
     const PdfName& subtype)
 {
-    auto ret = new PdfObject();
+    auto ret = std::make_unique<PdfObject>();
     auto& dict = ret->GetDictionaryUnsafe();
     if (!type.IsNull())
         dict.AddKey("Type"_n, type);
@@ -208,32 +208,36 @@ PdfObject& PdfIndirectObjectList::CreateDictionaryObject(const PdfName& type,
         dict.AddKey("Subtype"_n, subtype);
 
     ret->setDirty();
-    addNewObject(ret);
-    return *ret;
+    auto ptr = ret.get();
+    addNewObject(ret.release());
+    return *ptr;
 }
 
 PdfObject& PdfIndirectObjectList::CreateArrayObject()
 {
-    auto ret = new PdfObject(new PdfArray());
+    unique_ptr<PdfObject> ret(new PdfObject(new PdfArray()));
     ret->setDirty();
-    addNewObject(ret);
-    return *ret;
+    auto ptr = ret.get();
+    addNewObject(ret.release());
+    return *ptr;
 }
 
 PdfObject& PdfIndirectObjectList::CreateObject(const PdfObject& obj)
 {
-    auto ret = new PdfObject(obj);
+    auto ret = std::make_unique<PdfObject>(obj);
     ret->setDirty();
-    addNewObject(ret);
-    return *ret;
+    auto ptr = ret.get();
+    addNewObject(ret.release());
+    return *ptr;
 }
 
 PdfObject& PdfIndirectObjectList::CreateObject(PdfObject&& obj)
 {
-    auto ret = new PdfObject(std::move(obj));
+    auto ret = std::make_unique<PdfObject>(std::move(obj));
     ret->setDirty();
-    addNewObject(ret);
-    return *ret;
+    auto ptr = ret.get();
+    addNewObject(ret.release());
+    return *ptr;
 }
 
 void PdfIndirectObjectList::AddFreeObjectSafe(const PdfReference& reference)
