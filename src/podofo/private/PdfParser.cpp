@@ -293,10 +293,7 @@ bool PdfParser::tryRebuildCrossReference(InputStreamDevice& device)
                         }
 
                         if (pushObject)
-                        {
-                            m_Objects->PushObject(parserObject.get());
-                            parserObject.release();
-                        }
+                            m_Objects->PushObject(std::move(parserObject));
                     }
 
                     break;
@@ -373,22 +370,22 @@ void PdfParser::readNextTrailer(InputStreamDevice& device, bool skipFollowPrevio
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidTrailer);
 
     // Ignore the encryption in the trailer as the trailer may not be encrypted
-    auto trailer = new PdfParserObject(m_Objects->GetDocument(), device, -1);
+    unique_ptr<PdfParserObject> trailer(new PdfParserObject(m_Objects->GetDocument(), device, -1));
 
-    unique_ptr<PdfParserObject> trailerTemp;
+    // Keep a raw pointer before potentially moving ownership to m_Trailer
+    auto* trailerPtr = trailer.get();
     if (m_Trailer == nullptr)
     {
-        m_Trailer.reset(trailer);
+        m_Trailer = std::move(trailer);
     }
     else
     {
-        trailerTemp.reset(trailer);
         // now merge the information of this trailer with the main documents trailer
         mergeTrailer(*trailer);
     }
 
     int64_t xrefStmOffset;
-    if (trailer->GetDictionary().TryFindKeyAs<int64_t>("XRefStm", xrefStmOffset))
+    if (trailerPtr->GetDictionary().TryFindKeyAs<int64_t>("XRefStm", xrefStmOffset))
     {
         // The trailer is hybrid-reference file's trailer with a
         // separate XRef stream: just read it
@@ -403,7 +400,7 @@ void PdfParser::readNextTrailer(InputStreamDevice& device, bool skipFollowPrevio
         }
     }
 
-    auto prevObj = trailer->GetDictionary().FindKey("Prev");
+    auto prevObj = trailerPtr->GetDictionary().FindKey("Prev");
     int64_t offset;
     if (prevObj != nullptr && prevObj->TryGetNumber(offset))
     {
@@ -872,7 +869,7 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
                                 }
                             }
 
-                            m_Objects->PushObject(obj.release());
+                            m_Objects->PushObject(std::move(obj));
                         }
                         catch (PdfError& e)
                         {

@@ -199,41 +199,45 @@ PdfReference PdfIndirectObjectList::getNextFreeObject()
 PdfObject& PdfIndirectObjectList::CreateDictionaryObject(const PdfName& type,
     const PdfName& subtype)
 {
-    auto ret = new PdfObject();
-    auto& dict = ret->GetDictionaryUnsafe();
+    unique_ptr<PdfObject> obj(new PdfObject());
+    auto& dict = obj->GetDictionaryUnsafe();
     if (!type.IsNull())
         dict.AddKey("Type"_n, type);
 
     if (!subtype.IsNull())
         dict.AddKey("Subtype"_n, subtype);
 
-    ret->setDirty();
-    addNewObject(ret);
-    return *ret;
+    obj->setDirty();
+    auto& ret = *obj;
+    addNewObject(std::move(obj));
+    return ret;
 }
 
 PdfObject& PdfIndirectObjectList::CreateArrayObject()
 {
-    auto ret = new PdfObject(new PdfArray());
-    ret->setDirty();
-    addNewObject(ret);
-    return *ret;
+    unique_ptr<PdfObject> obj(new PdfObject(new PdfArray()));
+    obj->setDirty();
+    auto& ret = *obj;
+    addNewObject(std::move(obj));
+    return ret;
 }
 
 PdfObject& PdfIndirectObjectList::CreateObject(const PdfObject& obj)
 {
-    auto ret = new PdfObject(obj);
-    ret->setDirty();
-    addNewObject(ret);
-    return *ret;
+    unique_ptr<PdfObject> newObj(new PdfObject(obj));
+    newObj->setDirty();
+    auto& ret = *newObj;
+    addNewObject(std::move(newObj));
+    return ret;
 }
 
 PdfObject& PdfIndirectObjectList::CreateObject(PdfObject&& obj)
 {
-    auto ret = new PdfObject(std::move(obj));
-    ret->setDirty();
-    addNewObject(ret);
-    return *ret;
+    unique_ptr<PdfObject> newObj(new PdfObject(std::move(obj)));
+    newObj->setDirty();
+    auto& ret = *newObj;
+    addNewObject(std::move(newObj));
+    return ret;
 }
 
 void PdfIndirectObjectList::AddFreeObjectSafe(const PdfReference& reference)
@@ -286,19 +290,19 @@ void PdfIndirectObjectList::AddCompressedObjectStream(uint32_t objectNum)
     m_compressedObjectStreams.insert(objectNum);
 }
 
-void PdfIndirectObjectList::addNewObject(PdfObject* obj)
+void PdfIndirectObjectList::addNewObject(unique_ptr<PdfObject>&& obj)
 {
     PdfReference ref = getNextFreeObject();
     obj->SetIndirectReference(ref);
-    PushObject(obj);
+    PushObject(std::move(obj));
 }
 
-void PdfIndirectObjectList::PushObject(PdfObject* obj)
+void PdfIndirectObjectList::PushObject(unique_ptr<PdfObject> obj)
 {
     obj->SetDocument(m_Document);
 
     ObjectList::node_type node;
-    auto it = m_Objects.lower_bound(obj);
+    auto it = m_Objects.lower_bound(obj.get());
     auto hintpos = it;
     if (it != m_Objects.end()
         && (*it)->GetIndirectReference().ObjectNumber() == obj->GetIndirectReference().ObjectNumber())
@@ -308,10 +312,11 @@ void PdfIndirectObjectList::PushObject(PdfObject* obj)
         hintpos++;
         node = m_Objects.extract(it);
         delete node.value();
-        node.value() = obj;
+        node.value() = obj.get();
     }
 
-    pushObject(hintpos, node, obj);
+    pushObject(hintpos, node, obj.get());
+    (void)obj.release();
 }
 
 void PdfIndirectObjectList::markObjectFree(const PdfReference& reference)

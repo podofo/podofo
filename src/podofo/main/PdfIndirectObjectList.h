@@ -269,7 +269,7 @@ private:
      *
      *  \param obj pointer to the object you want to insert
      */
-    void PushObject(PdfObject* obj);
+    void PushObject(std::unique_ptr<PdfObject> obj);
 
     /** Add the given reference as a free object
      * It adds the object only if the generation is the allowed range
@@ -314,11 +314,13 @@ private:
      */
     void markObjectFree(const PdfReference& reference);
 
+    void pushObject(PdfObject* obj);
+
     void pushObject(const ObjectList::const_iterator& hintpos, ObjectList::node_type& node, PdfObject* obj);
 
     std::unique_ptr<PdfObject> removeObject(const iterator& it, bool markAsFree);
 
-    void addNewObject(PdfObject* obj);
+    void addNewObject(std::unique_ptr<PdfObject>&& obj);
 
     /**
      * \returns the next free object reference

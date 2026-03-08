@@ -116,15 +116,16 @@ void PdfDocument::append(const PdfDocument& doc, bool appendAll)
     for (auto& obj : doc.GetObjects())
     {
         PdfReference ref(static_cast<uint32_t>(obj->GetIndirectReference().ObjectNumber() + difference), obj->GetIndirectReference().GenerationNumber());
-        auto newObj = new PdfObject(PdfDictionary());
+        unique_ptr<PdfObject> newObj(new PdfObject(PdfDictionary()));
         newObj->setDirty();
         newObj->SetIndirectReference(ref);
-        m_Objects.PushObject(newObj);
-        *newObj = *obj;
+        auto& newObjRef = *newObj;
+        m_Objects.PushObject(std::move(newObj));
+        newObjRef = *obj;
 
         PoDoFo::LogMessage(PdfLogSeverity::Debug, "Fixing references in {} {} R by {}",
-            newObj->GetIndirectReference().ObjectNumber(), newObj->GetIndirectReference().GenerationNumber(), difference);
-        fixObjectReferences(*newObj, difference);
+            newObjRef.GetIndirectReference().ObjectNumber(), newObjRef.GetIndirectReference().GenerationNumber(), difference);
+        fixObjectReferences(newObjRef, difference);
     }
 
     if (appendAll)
@@ -204,15 +205,16 @@ void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc,
     for (auto& obj : doc.GetObjects())
     {
         PdfReference ref(static_cast<uint32_t>(obj->GetIndirectReference().ObjectNumber() + difference), obj->GetIndirectReference().GenerationNumber());
-        auto newObj = new PdfObject(PdfDictionary());
+        unique_ptr<PdfObject> newObj(new PdfObject(PdfDictionary()));
         newObj->setDirty();
         newObj->SetIndirectReference(ref);
-        m_Objects.PushObject(newObj);
-        *newObj = *obj;
+        auto& newObjRef = *newObj;
+        m_Objects.PushObject(std::move(newObj));
+        newObjRef = *obj;
 
         PoDoFo::LogMessage(PdfLogSeverity::Debug, "Fixing references in {} {} R by {}",
-            newObj->GetIndirectReference().ObjectNumber(), newObj->GetIndirectReference().GenerationNumber(), difference);
-        fixObjectReferences(*newObj, difference);
+            newObjRef.GetIndirectReference().ObjectNumber(), newObjRef.GetIndirectReference().GenerationNumber(), difference);
+        fixObjectReferences(newObjRef, difference);
     }
 
     const PdfName inheritableAttributes[] = {
