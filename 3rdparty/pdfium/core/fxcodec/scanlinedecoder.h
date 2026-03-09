@@ -11,9 +11,9 @@
 
 #include <pdfium/third_party/base/span.h>
 
-class PauseIndicatorIface;
+namespace chromium {
 
-namespace fxcodec {
+class PauseIndicatorIface;
 
 class ScanlineDecoder {
  public:
@@ -52,8 +52,8 @@ class ScanlineDecoder {
   pdfium::span<uint8_t> m_pLastScanline;
 };
 
-}  // namespace fxcodec
+}  // namespace chromium
 
-using ScanlineDecoder = fxcodec::ScanlineDecoder;
+using ScanlineDecoder = chromium::ScanlineDecoder;
 
 #endif  // CORE_FXCODEC_SCANLINEDECODER_H_

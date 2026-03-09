@@ -169,7 +169,7 @@ void utls::FetchImage(OutputStream& stream, PdfPixelFormat format, int scanLineS
 }
 
 void utls::FetchImageCCITT(OutputStream& stream, PdfPixelFormat format, int scanLineSize,
-    fxcodec::ScanlineDecoder& decoder, unsigned width, unsigned heigth, const charbuff& smaskData)
+    chromium::ScanlineDecoder& decoder, unsigned width, unsigned heigth, const charbuff& smaskData)
 {
     charbuff scanLine = initScanLine(format, width, scanLineSize);
 

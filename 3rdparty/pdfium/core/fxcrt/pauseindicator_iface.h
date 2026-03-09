@@ -7,10 +7,14 @@
 #ifndef CORE_FXCRT_PAUSEINDICATOR_IFACE_H_
 #define CORE_FXCRT_PAUSEINDICATOR_IFACE_H_
 
+namespace chromium {
+
 class PauseIndicatorIface {
  public:
   virtual ~PauseIndicatorIface() = default;
   virtual bool NeedToPauseNow() = 0;
 };
+
+}  // namespace chromium
 
 #endif  // CORE_FXCRT_PAUSEINDICATOR_IFACE_H_

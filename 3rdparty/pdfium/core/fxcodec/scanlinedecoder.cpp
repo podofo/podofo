@@ -8,7 +8,7 @@
 
 #include <pdfium/core/fxcrt/pauseindicator_iface.h>
 
-namespace fxcodec {
+namespace chromium {
 
 ScanlineDecoder::ScanlineDecoder() : ScanlineDecoder(0, 0, 0, 0, 0, 0, 0) {}
 
@@ -66,4 +66,4 @@ bool ScanlineDecoder::SkipToScanline(int line, PauseIndicatorIface* pPause) {
   return false;
 }
 
-}  // namespace fxcodec
+}  // namespace chromium

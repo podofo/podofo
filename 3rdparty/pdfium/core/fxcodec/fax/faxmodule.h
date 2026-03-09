@@ -13,7 +13,7 @@
 
 #include <pdfium/third_party/base/span.h>
 
-namespace fxcodec {
+namespace chromium {
 
 class ScanlineDecoder;
 
@@ -44,8 +44,8 @@ class FaxModule {
   FaxModule& operator=(const FaxModule&) = delete;
 };
 
-}  // namespace fxcodec
+}  // namespace chromium
 
-using FaxModule = fxcodec::FaxModule;
+using FaxModule = chromium::FaxModule;
 
 #endif  // CORE_FXCODEC_FAX_FAXMODULE_H_

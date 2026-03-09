@@ -180,7 +180,7 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int scanLin
                     columns = (int)decodeParms->FindKeyAsSafe<int64_t>("Columns", 1728);
                     rows = (int)decodeParms->FindKeyAsSafe<int64_t>("Rows");
                 }
-                auto decoder = fxcodec::FaxModule::CreateDecoder(
+                auto decoder = chromium::FaxModule::CreateDecoder(
                     pdfium::span<const uint8_t>((const uint8_t *)imageData.data(), imageData.size()),
                     (int)m_Width, (int)m_Height, k, endOfLine, encodedByteAlign, blackIs1, columns, rows);
 

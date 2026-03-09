@@ -16,7 +16,7 @@
 #include <pdfium/pdfium_shim.h>
 #include <pdfium/core/fxcodec/scanlinedecoder.h>
 
-namespace fxcodec {
+namespace chromium {
 
 namespace {
 
@@ -628,4 +628,4 @@ int FaxModule::FaxG4Decode(const uint8_t* src_buf,
   return bitpos;
 }
 
-}  // namespace fxcodec
+}  // namespace chromium
