@@ -1,7 +1,7 @@
 # Authors
 
 - Francesco Pretto:           main developer and maintainer since 2023
-- Christopher Creutzig:       patch review
+- Christopher Creutzig:       patch review, security and generic maintenance
 - Pull-Request [contributors](https://github.com/podofo/podofo/graphs/contributors)
 
 ### Past authors (until 2022)
