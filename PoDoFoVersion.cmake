@@ -1,0 +1,5 @@
+set(PODOFO_VERSION_MAJOR "1" CACHE STRING "Major part of podofo version number")
+set(PODOFO_VERSION_MINOR "1" CACHE STRING "Minor part of podofo version number")
+set(PODOFO_VERSION_PATCH "0" CACHE STRING "Patchlevel part of podofo version number")
+set(PODOFO_SOVERSION "4")
+set(PODOFO_VERSION "${PODOFO_VERSION_MAJOR}.${PODOFO_VERSION_MINOR}.${PODOFO_VERSION_PATCH}")
