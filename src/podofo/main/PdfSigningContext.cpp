@@ -395,12 +395,12 @@ void PdfSigningContext::DumpInPlace()
     m_status = Status::Dumped;
 }
 
-shared_ptr<PdfSigner> PdfSigningContext::GetSignerEntry(const PdfReference& signatureRef)
+shared_ptr<PdfSigner> PdfSigningContext::GetSigner(const PdfReference& signatureRef)
 {
     return m_signers.at(signatureRef).SignerStorage;
 }
 
-shared_ptr<PdfSigner> PdfSigningContext::GetSignerEntry(const string_view& fullName,
+shared_ptr<PdfSigner> PdfSigningContext::GetSigner(const string_view& fullName,
     PdfReference& signatureRef)
 {
     for (auto& pair : m_signers)
@@ -413,6 +413,19 @@ shared_ptr<PdfSigner> PdfSigningContext::GetSignerEntry(const string_view& fullN
     }
 
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ObjectNotFound, "Not found a signature with name\"{}\"", fullName);
+}
+
+void PdfSigningContext::GetSignerReferences(vector<PdfReference>& signatureRefs) const
+{
+    signatureRefs.clear();
+    signatureRefs.reserve(m_signers.size());
+    for (auto& pair : m_signers)
+        signatureRefs.push_back(pair.first);
+}
+
+unsigned PdfSigningContext::GetSignerCount() const
+{
+    return (unsigned)m_signers.size();
 }
 
 bool PdfSigningContext::IsEmpty() const

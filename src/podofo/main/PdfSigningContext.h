@@ -104,14 +104,20 @@ namespace PoDoFo
          */
         void DumpInPlace();
 
-        /** Get the fist signer entry from the context for the given input signature
+        /** Get the fist signer from the context for the given input signature
          */
-        std::shared_ptr<PdfSigner> GetSignerEntry(const PdfReference& signatureRef);
+        std::shared_ptr<PdfSigner> GetSigner(const PdfReference& signatureRef);
 
-        /** Get the fist signer entry from the context for the given input signature
+        /** Get the fist signer from the context for the given input signature
          */
-        std::shared_ptr<PdfSigner> GetSignerEntry(const std::string_view& fullName,
+        std::shared_ptr<PdfSigner> GetSigner(const std::string_view& fullName,
             PdfReference& signatureRef);
+
+        /** Retrieve all the references for the signers configured in this context
+         */
+        void GetSignerReferences(std::vector<PdfReference>& signatureRefs) const;
+
+        unsigned GetSignerCount() const;
 
         bool IsEmpty() const;
 
