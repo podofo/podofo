@@ -58,7 +58,7 @@ private:
     int m_xrefStreamEntryIndex;
     PdfObject* m_xrefStreamObj;
     PdfArray m_indices;
-    int64_t m_offset;
+    size_t m_offset;
 };
 
 };
