@@ -102,14 +102,11 @@ private:
         const PdfFontCreateParams& createParams, bool isProxy = false);
 
     /**
-     * Creates a new standard 14 font object (of class PdfFontStandard14) if
-     * the font name (has to include variant) is one of the standard 14 fonts.
-     * The font name is to be given as specified (with an ASCII hyphen)
+     * Creates a new standard 14 font object
      *
      * \param doc the parent of the created font
      * \param std14Font standard14 font type
-     * \param encoding an encoding compatible with the font
-     * \param flags flags for font init
+     * \param createParams params for font init
      * \remarks to be called by PdfFontManager
      * \returns a new PdfFont object
      */
