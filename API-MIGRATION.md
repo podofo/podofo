@@ -1,5 +1,7 @@
 # 1.0.* -> 1.1
 
+- `PdfFontFactory`: Removed, this was a leftover of a removed class,
+  as a friendship declaration
 - `PdfFontMetricsFreetype`: The `GetFaceHandle` can now be accessed only by
 setting `PODOFO_3RDPARTY_INTEROP_ENABLED`. This was forgotten in 1.0 release
 - `PdfCharCodeList`: Removed. This was used only privately and had a big

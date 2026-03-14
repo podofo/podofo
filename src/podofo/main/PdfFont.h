@@ -45,7 +45,6 @@ class PODOFO_API PdfFont : public PdfDictionaryElement
 {
     friend class PdfFontSimple;
     friend class PdfFontCID;
-    friend class PdfFontFactory;
     friend class PdfFontObject;
     friend class PdfEncoding;
     friend class PdfFontManager;

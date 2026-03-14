@@ -17,7 +17,6 @@ class PODOFO_API PdfFontObject final : public PdfFont
 
 private:
     /** Create a PdfFontObject based on an existing PdfObject
-     *  To be used by PdfFontFactory
      */
     PdfFontObject(PdfObject& obj, PdfFontMetricsConstPtr&& metrics,
         const PdfEncoding& encoding);
