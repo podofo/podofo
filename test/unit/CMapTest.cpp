@@ -38,6 +38,23 @@ TEST_CASE("TestCMapShiftOverflow")
     REQUIRE_NOTHROW(PdfCMapEncoding::Parse(device2));
 }
 
+// Bug: getCodeFromVariant used arithmetic right-shift on a signed int64_t
+// to count code bytes: `do { codeSize++; num >>= 8; } while (num != 0)`.
+// When the parsed number was negative (e.g. -1), arithmetic right-shift
+// propagates the sign bit, so num stays -1 forever → infinite loop.
+TEST_CASE("TestCMapNegativeCodeNoHang")
+{
+    // A beginbfrange with -1 as the source-code-lo operand.
+    // Before the fix this hangs in getCodeFromVariant's byte-counting loop.
+    string_view input =
+        "-1 beginbfrange\n"
+        "-1 -1 (A)\n"
+        "endbfrange\n"sv;
+
+    SpanStreamDevice device(input);
+    REQUIRE_NOTHROW(PdfCMapEncoding::Parse(device));
+}
+
 TEST_CASE("TestCodeSpaceRange")
 {
     // Testing the begincodespacerange section for the same CMap tested in the
