@@ -17,39 +17,9 @@ using namespace PoDoFo;
 #define timegm _mkgmtime
 #endif
 
-// a PDF date has a maximum of 24 bytes incuding the terminating \0
-#define PDF_DATE_BUFFER_SIZE 24
-
-// a W3C date has a maximum of 26 bytes incuding the terminating \0
-#define W3C_DATE_BUFFER_SIZE 26
-
-#define PEEK_DATE_CHAR(str, zoneShift)\
-if (*str == '\0')\
-{\
-    goto End;\
-}\
-else if (tryReadShiftChar(str, zoneShift))\
-{\
-    goto ParseShift;\
-}
-
-#define PEEK_DATE_CHAR_W3C(str, separator)\
-if (*str == '\0')\
-{\
-    goto End;\
-}\
-else if (*str != separator)\
-{\
-    return false;\
-}\
-else\
-{\
-    str++;\
-}
-
-static bool parseFixLenNumber(const char*& in, unsigned maxLength, int min, int max, int& ret);
+static bool parseFixLenNumber(const string_view& str, size_t& pos, unsigned maxLength, int min, int max, int& ret);
 static int getLocalOffesetFromUTCMinutes();
-static bool tryReadShiftChar(const char*& in, int& zoneShift);
+static bool tryReadShiftChar(const string_view& str, size_t& pos, int& zoneShift);
 static bool tryParse(const string_view & dateStr, chrono::seconds & secondsFromEpoch, nullable<chrono::minutes>&minutesFromUtc);
 static bool tryParseW3C(const string_view & dateStr, chrono::seconds & secondsFromEpoch, nullable<chrono::minutes>&minutesFromUtc);
 static void inferTimeComponents(int y, int m, int d, int h, int M, int s,
@@ -199,6 +169,9 @@ bool PdfDate::operator!=(const PdfDate& rhs) const
 
 bool tryParse(const string_view& dateStr, chrono::seconds& secondsFromEpoch, nullable<chrono::minutes>& minutesFromUtc)
 {
+    if (dateStr.empty())
+        return false;
+
     int y = 0;
     int m = 0;
     int d = 0;
@@ -211,73 +184,63 @@ bool tryParse(const string_view& dateStr, chrono::seconds& secondsFromEpoch, nul
     int zoneHour = 0;
     int zoneMin = 0;
 
-    const char* cursor = dateStr.data();
-    if (cursor == nullptr)
-        return false;
+    size_t pos = 0;
 
-    if (*cursor == 'D')
+    // Skip optional "D:" prefix
+    if (dateStr[pos] == 'D')
     {
-        cursor++;
-        if (*cursor++ != ':')
+        pos++;
+        if (pos >= dateStr.size() || dateStr[pos] != ':')
+            return false;
+        pos++;
+    }
+
+    // Parse each field; between fields check for end-of-input or zone shift
+    struct { unsigned len; int min; int max; int* out; } fields[] = {
+        { 4, 0, 9999, &y }, { 2, 1, 12, &m }, { 2, 1, 31, &d },
+        { 2, 0, 23, &h },   { 2, 0, 59, &M }, { 2, 0, 59, &s },
+    };
+
+    for (auto& f : fields)
+    {
+        if (pos >= dateStr.size())
+            goto End;
+        if (tryReadShiftChar(dateStr, pos, zoneShift))
+            goto ParseShift;
+        if (!parseFixLenNumber(dateStr, pos, f.len, f.min, f.max, *f.out))
             return false;
     }
 
-    PEEK_DATE_CHAR(cursor, zoneShift);
-
-    if (!parseFixLenNumber(cursor, 4, 0, 9999, y))
+    // After all fields, check for trailing shift or end
+    if (pos >= dateStr.size())
+        goto End;
+    if (!tryReadShiftChar(dateStr, pos, zoneShift))
         return false;
-
-    PEEK_DATE_CHAR(cursor, zoneShift);
-
-    if (!parseFixLenNumber(cursor, 2, 1, 12, m))
-        return false;
-
-    PEEK_DATE_CHAR(cursor, zoneShift);
-
-    if (!parseFixLenNumber(cursor, 2, 1, 31, d))
-        return false;
-
-    PEEK_DATE_CHAR(cursor, zoneShift);
-
-    if (!parseFixLenNumber(cursor, 2, 0, 23, h))
-        return false;
-
-    PEEK_DATE_CHAR(cursor, zoneShift);
-
-    if (!parseFixLenNumber(cursor, 2, 0, 59, M))
-        return false;
-
-    PEEK_DATE_CHAR(cursor, zoneShift);
-
-    if (!parseFixLenNumber(cursor, 2, 0, 59, s))
-        return false;
-
-    PEEK_DATE_CHAR(cursor, zoneShift);
 
 ParseShift:
     hasZoneShift = true;
-    if (*cursor != '\0')
+    if (pos < dateStr.size())
     {
-        if (!parseFixLenNumber(cursor, 2, 0, 59, zoneHour))
+        if (!parseFixLenNumber(dateStr, pos, 2, 0, 59, zoneHour))
             goto End;
 
-        if (*cursor == '\'')
+        if (pos < dateStr.size() && dateStr[pos] == '\'')
         {
-            cursor++;
-            if (*cursor != '\0')
+            pos++;
+            if (pos < dateStr.size())
             {
-                if (!parseFixLenNumber(cursor, 2, 0, 59, zoneMin))
+                if (!parseFixLenNumber(dateStr, pos, 2, 0, 59, zoneMin))
                     return false;
 
-                if (*cursor == '\'')
-                    cursor++;
+                if (pos < dateStr.size() && dateStr[pos] == '\'')
+                    pos++;
             }
         }
 
         if (zoneShift == 0 && (zoneHour != 0 || zoneMin != 0))
             return false;
 
-        if (*cursor != '\0')
+        if (pos < dateStr.size())
             return false;
     }
 
@@ -289,8 +252,24 @@ End:
     return true;
 }
 
+// Helper: consume a specific separator character at the current position.
+enum class PeekResult { Continue, AtEnd, Mismatch };
+
+static PeekResult tryReadSeparator(const string_view& str, size_t& pos, char separator)
+{
+    if (pos >= str.size())
+        return PeekResult::AtEnd;
+    if (str[pos] != separator)
+        return PeekResult::Mismatch;
+    pos++;
+    return PeekResult::Continue;
+}
+
 bool tryParseW3C(const string_view& dateStr, chrono::seconds& secondsFromEpoch, nullable<chrono::minutes>& minutesFromUtc)
 {
+    if (dateStr.empty())
+        return false;
+
     int y = 0;
     int m = 0;
     int d = 0;
@@ -303,57 +282,59 @@ bool tryParseW3C(const string_view& dateStr, chrono::seconds& secondsFromEpoch, 
     int zoneHour = 0;
     int zoneMin = 0;
 
-    const char* cursor = dateStr.data();
-    if (cursor == nullptr || *cursor == '\0')
+    size_t pos = 0;
+
+    if (!parseFixLenNumber(dateStr, pos, 4, 0, 9999, y))
         return false;
 
-    if (!parseFixLenNumber(cursor, 4, 0, 9999, y))
-        return false;
+    // Parse: -MM-DDThh:mm
+    struct { char sep; unsigned len; int min; int max; int* out; } fields[] = {
+        { '-', 2, 1, 12, &m }, { '-', 2, 1, 31, &d },
+        { 'T', 2, 0, 23, &h }, { ':', 2, 0, 59, &M },
+    };
 
-    PEEK_DATE_CHAR_W3C(cursor, '-');
+    for (auto& f : fields)
+    {
+        auto r = tryReadSeparator(dateStr, pos, f.sep);
+        if (r == PeekResult::AtEnd)
+            goto End;
+        if (r == PeekResult::Mismatch)
+            return false;
+        if (!parseFixLenNumber(dateStr, pos, f.len, f.min, f.max, *f.out))
+            return false;
+    }
 
-    if (!parseFixLenNumber(cursor, 2, 1, 12, m))
-        return false;
-
-    PEEK_DATE_CHAR_W3C(cursor, '-');
-
-    if (!parseFixLenNumber(cursor, 2, 1, 31, d))
-        return false;
-
-    PEEK_DATE_CHAR_W3C(cursor, 'T');
-
-    if (!parseFixLenNumber(cursor, 2, 0, 23, h))
-        return false;
-
-    PEEK_DATE_CHAR_W3C(cursor, ':');
-
-    if (!parseFixLenNumber(cursor, 2, 0, 59, M))
-        return false;
-
-    if (tryReadShiftChar(cursor, zoneShift))
+    // After minutes: optional zone shift or :ss
+    if (tryReadShiftChar(dateStr, pos, zoneShift))
         goto ParseShift;
 
-    PEEK_DATE_CHAR_W3C(cursor, ':');
+    {
+        auto r = tryReadSeparator(dateStr, pos, ':');
+        if (r == PeekResult::AtEnd)
+            goto End;
+        if (r == PeekResult::Mismatch)
+            return false;
+    }
 
-    if (!parseFixLenNumber(cursor, 2, 0, 59, s))
+    if (!parseFixLenNumber(dateStr, pos, 2, 0, 59, s))
         return false;
 
-    if (!tryReadShiftChar(cursor, zoneShift))
+    if (!tryReadShiftChar(dateStr, pos, zoneShift))
         goto End;
 
 ParseShift:
     hasZoneShift = true;
-    if (*cursor != '\0')
+    if (pos < dateStr.size())
     {
-        if (!parseFixLenNumber(cursor, 2, 0, 59, zoneHour))
+        if (!parseFixLenNumber(dateStr, pos, 2, 0, 59, zoneHour))
             goto End;
 
-        if (*cursor == ':')
+        if (pos < dateStr.size() && dateStr[pos] == ':')
         {
-            cursor++;
-            if (*cursor != '\0')
+            pos++;
+            if (pos < dateStr.size())
             {
-                if (!parseFixLenNumber(cursor, 2, 0, 59, zoneMin))
+                if (!parseFixLenNumber(dateStr, pos, 2, 0, 59, zoneMin))
                     return false;
             }
         }
@@ -361,7 +342,7 @@ ParseShift:
         if (zoneShift == 0 && (zoneHour != 0 || zoneMin != 0))
             return false;
 
-        if (*cursor != '\0')
+        if (pos < dateStr.size())
             return false;
     }
 
@@ -415,9 +396,12 @@ int getLocalOffesetFromUTCMinutes()
     return (int)(timegm(locg) - mktime(&locl)) / 60;
 }
 
-bool tryReadShiftChar(const char*& in, int& zoneShift)
+bool tryReadShiftChar(const string_view& str, size_t& pos, int& zoneShift)
 {
-    switch (*in)
+    if (pos >= str.size())
+        return false;
+
+    switch (str[pos])
     {
         case '+':
             zoneShift = 1;
@@ -432,20 +416,20 @@ bool tryReadShiftChar(const char*& in, int& zoneShift)
             return false;
     }
 
-    in++;
+    pos++;
     return true;
 }
 
-bool parseFixLenNumber(const char*& in, unsigned maxLength, int min, int max, int& ret)
+bool parseFixLenNumber(const string_view& str, size_t& pos, unsigned maxLength, int min, int max, int& ret)
 {
     ret = 0;
     for (unsigned i = 0; i < maxLength; i++)
     {
-        if (in == nullptr || !isdigit(*in))
+        if (pos >= str.size() || !std::isdigit(static_cast<unsigned char>(str[pos])))
             return i != 0;
 
-        ret = ret * 10 + (*in - '0');
-        in++;
+        ret = ret * 10 + (str[pos] - '0');
+        pos++;
     }
     if (ret < min || ret > max)
         return false;
