@@ -36,7 +36,8 @@ static void checkExpected(const string_view& datestr, bool expectedValid)
 
 TEST_CASE("TestCreateDateFromString")
 {
-    checkExpected({ }, false);
+    checkExpected({ }, false);     // default string_view (data() == nullptr)
+    checkExpected(""sv, false);    // empty string_view (data() != nullptr)
     checkExpected("D:2012", true);
     checkExpected("D:20120", true);
     checkExpected("D:201201", true);
@@ -64,6 +65,42 @@ TEST_CASE("TestCreateDateFromString")
     checkExpected("D:20120120135959-00'00", true);
 
     checkExpected("INVALID", false);
+
+    // Regression: non-null-terminated inputs must not read out of bounds.
+    // The tryParse() implementation previously used const char* from
+    // string_view::data() and checked for '\0' terminators, but string_view
+    // is not guaranteed to be null-terminated. These short inputs (from
+    // fuzzer crash artifacts) triggered ASan heap-buffer-overflow.
+    checkExpected("7+"sv, true);   // year 7, zone shift '+'
+    checkExpected("7"sv, true);    // year 7, no zone shift
+    checkExpected("+"sv, true);    // year 0, zone shift '+'
+    checkExpected("-"sv, true);    // year 0, zone shift '-'
+    checkExpected("."sv, false);   // not a digit or 'D'
+    checkExpected("D:"sv, true);   // "D:" with no year digits (year 0)
+}
+
+TEST_CASE("TestParseW3CShortInputs")
+{
+    // Regression: tryParseW3C had the same out-of-bounds read bug as tryParse
+    // when given non-null-terminated string_view inputs.
+    auto checkW3C = [](const string_view& datestr, bool expectedValid)
+    {
+        PdfDate date;
+        bool valid = PdfDate::TryParseW3C(datestr, date);
+        INFO(datestr);
+        REQUIRE(valid == expectedValid);
+    };
+
+    checkW3C(""sv, false);
+    checkW3C("2"sv, true);             // partial year
+    checkW3C("2024"sv, true);          // year only
+    checkW3C("2024-"sv, false);        // trailing separator, no month digits
+    checkW3C("2024-01"sv, true);
+    checkW3C("2024-01-15T10:30Z"sv, true);
+    checkW3C("2024-01-15T10:30+05:30"sv, true);
+    checkW3C("+"sv, false);            // not a digit
+    checkW3C("-"sv, false);            // not a digit
+    checkW3C("."sv, false);            // not a digit
 }
 
 TEST_CASE("TestRoundTrip")
