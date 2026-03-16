@@ -432,6 +432,13 @@ static uint32_t getCodeFromVariant(const PdfVariant& var, unsigned char& codeSiz
     if (var.IsNumber())
     {
         int64_t num = var.GetNumber();
+        if (num < 0)
+        {
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, "CMap: negative number {} used as character code", num);
+            codeSize = 1;
+            return 0;
+        }
+
         uint32_t ret = (uint32_t)num;
         if (num == 0)
         {
@@ -440,11 +447,12 @@ static uint32_t getCodeFromVariant(const PdfVariant& var, unsigned char& codeSiz
         else
         {
             codeSize = 0;
+            uint32_t unum = ret;
             do
             {
                 codeSize++;
-                num >>= 8;
-            } while (num != 0);
+                unum >>= 8;
+            } while (unum != 0);
         }
 
         return ret;
