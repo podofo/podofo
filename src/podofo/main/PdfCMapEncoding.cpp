@@ -363,10 +363,14 @@ static uint32_t getCodeFromVariant(const PdfVariant& var, unsigned char& codeSiz
     uint32_t ret = 0;
     auto& rawstr = str.GetRawData();
     unsigned len = (unsigned)rawstr.length();
+    // A uint32_t can represent at most 4 bytes; cap to avoid
+    // undefined behavior from shifting by >= 32.
+    if (len > 4)
+        len = 4;
     for (unsigned i = 0; i < len; i++)
     {
         uint8_t code = (uint8_t)rawstr[len - 1 - i];
-        ret += code << i * 8;
+        ret += (uint32_t)code << (i * 8);
     }
 
     codeSize = (unsigned char)len;
