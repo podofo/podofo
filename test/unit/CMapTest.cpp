@@ -11,6 +11,33 @@
 using namespace std;
 using namespace PoDoFo;
 
+// UB: getCodeFromVariant did `code << i * 8` with int (32-bit).
+// When a PdfString operand in a CMap section had raw length >= 5, the shift
+// exponent reached 32+ which is undefined behavior (caught by UBSan as
+// "shift exponent 32 is too large for 32-bit type 'int'").
+TEST_CASE("TestCMapShiftOverflow")
+{
+    // A beginbfchar section where the source code is a 5-byte hex string.
+    // getCodeFromVariant iterates over each byte with `code << i*8`;
+    // at i==4 the shift is 32 which is UB for a 32-bit int.
+    string_view bfcharInput =
+        "1 beginbfchar\n"
+        "<0102030405> <0041>\n"
+        "endbfchar\n"sv;
+
+    SpanStreamDevice device1(bfcharInput);
+    REQUIRE_NOTHROW(PdfCMapEncoding::Parse(device1));
+
+    // A begincidrange section with a 5-byte hex string source code.
+    string_view cidrangeInput =
+        "1 begincidrange\n"
+        "<0102030405> <0102030405> 0\n"
+        "endcidrange\n"sv;
+
+    SpanStreamDevice device2(cidrangeInput);
+    REQUIRE_NOTHROW(PdfCMapEncoding::Parse(device2));
+}
+
 TEST_CASE("TestCodeSpaceRange")
 {
     // Testing the begincodespacerange section for the same CMap tested in the
