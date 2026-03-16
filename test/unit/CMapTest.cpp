@@ -55,6 +55,30 @@ TEST_CASE("TestCMapNegativeCodeNoHang")
     REQUIRE_NOTHROW(PdfCMapEncoding::Parse(device));
 }
 
+// Bug: PdfCharCodeMap::PushRange called std::prev(inserted.first) when a
+// duplicate range key was re-inserted with a larger size. If the duplicate
+// was the first element in the set (m_Ranges.begin()), std::prev walked
+// before begin() - undefined behavior that crashed under UBSan as a
+// misaligned pointer access in libc++'s __tree.
+// Trigger: two beginbfrange sections with the same srcCodeLo where the
+// second has a larger span, and no smaller key exists in the map.
+TEST_CASE("TestCMapDuplicateRangeAtBegin")
+{
+    // Two ranges starting at <01> - the second is wider (size 3 vs 2).
+    // PushRange will find the duplicate key, enter the "update size" branch,
+    // and call std::prev on begin().
+    string_view input =
+        "1 beginbfrange\n"
+        "<01> <02> <0041>\n"
+        "endbfrange\n"
+        "1 beginbfrange\n"
+        "<01> <03> <0041>\n"
+        "endbfrange\n"sv;
+
+    SpanStreamDevice device(input);
+    REQUIRE_NOTHROW(PdfCMapEncoding::Parse(device));
+}
+
 TEST_CASE("TestCodeSpaceRange")
 {
     // Testing the begincodespacerange section for the same CMap tested in the
