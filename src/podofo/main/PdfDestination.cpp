@@ -103,14 +103,7 @@ unique_ptr<PdfDestination> PdfDestination::Create(PdfObject& obj)
     }
     else if (obj.GetDataType() == PdfDataType::Name)
     {
-        auto memDoc = dynamic_cast<PdfMemDocument*>(&doc);
-        if (memDoc == nullptr)
-        {
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle,
-                "For reading from a document, only use PdfMemDocument");
-        }
-
-        auto dests = memDoc->GetCatalog().GetDictionary().FindKey("Dests");
+        auto dests = doc.GetCatalog().GetDictionary().FindKey("Dests");
         if (dests == nullptr)
         {
             // The error code has been chosen for its distinguishability.
