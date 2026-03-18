@@ -195,4 +195,58 @@ TEST_CASE("TestObjectStreamOffsetBeyondBuffer")
     REQUIRE(caughtCode == PdfErrorCode::BrokenFile);
 }
 
+// Bug: PdfParser::TakeTrailer move-constructed the trailer PdfObject via
+// the noexcept move constructor, which called DelayedLoadStream().  For a
+// malformed XRef stream (e.g. /Length referencing a non-existent object)
+// this threw PdfErrorCode::InvalidStream inside a noexcept context,
+// triggering std::terminate.
+TEST_CASE("TestXRefStreamMoveNoTerminate")
+{
+    // Minimal XRef-stream PDF (291 bytes).
+    // Object 4 is the XRef stream with "/Length 99 0 R" (indirect ref to
+    // non-existent object 99).
+    ostringstream oss;
+    oss << "%PDF-1.5\n";
+
+    size_t catOff = oss.str().size();
+    oss << "1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n";
+
+    size_t pagesOff = oss.str().size();
+    oss << "2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n";
+
+    size_t pageOff = oss.str().size();
+    oss << "3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 1 1]>>endobj\n";
+
+    size_t xrefOff = oss.str().size();
+
+    // Build binary XRef entry data: W=[1 2 1], 5 entries (objs 0-4)
+    ostringstream xrefHexData;
+    xrefHexData << utls::Format("{:02X}{:04X}{:02X}", 0, 0, 255);           // obj 0: free
+    xrefHexData << utls::Format("{:02X}{:04X}{:02X}", 1, (unsigned)catOff, 0);
+    xrefHexData << utls::Format("{:02X}{:04X}{:02X}", 1, (unsigned)pagesOff, 0);
+    xrefHexData << utls::Format("{:02X}{:04X}{:02X}", 1, (unsigned)pageOff, 0);
+    xrefHexData << utls::Format("{:02X}{:04X}{:02X}", 1, (unsigned)xrefOff, 0);
+    string xrefHex = xrefHexData.str();
+
+    // /Length references non-existent "99 0 R" → indirect resolution fails →
+    // delayedLoadStream throws InvalidStream
+    oss << "4 0 obj\n"
+        << "<</Type/XRef/Size 5/W[1 2 1]/Root 1 0 R"
+        << "/Filter/ASCIIHexDecode"
+        << "/Length 99 0 R>>\n"
+        << "stream\n"
+        << xrefHex
+        << "\nendstream\n"
+        << "endobj\n";
+
+    oss << "startxref\n" << xrefOff << "\n%%EOF\n";
+    string pdfBuf = oss.str();
+
+    // Before the fix this calls std::terminate (noexcept move ctor throws).
+    // After the fix, TakeTrailer discards the unparseable stream and the
+    // document loads successfully (the trailer dictionary is still usable).
+    PdfMemDocument doc;
+    REQUIRE_NOTHROW(doc.LoadFromBuffer(pdfBuf));
+}
+
 

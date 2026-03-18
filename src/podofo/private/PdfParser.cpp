@@ -1205,7 +1205,15 @@ unique_ptr<PdfObject> PdfParser::TakeTrailer()
 
     // We create a new object using move semantics. This may loose XRef
     // stream information stored in PdfXRefStreamParserObject, but we
-    // don't want to preserve it
+    // don't want to preserve it.
+    // Force stream loading before the noexcept move: moveFrom() calls
+    // DelayedLoadStream() which can throw (e.g. invalid /Length in a
+    // malformed XRef stream), and throwing inside the noexcept move
+    // constructor triggers std::terminate. The stream is not needed
+    // for the trailer, so we discard it on failure.
+    try { m_Trailer->DelayedLoadStream(); }
+    catch (PdfError&) { m_Trailer->removeStream(); }
+
     auto ret = unique_ptr<PdfObject>(new PdfObject(std::move(*m_Trailer)));
     m_Trailer = nullptr;
     return ret;
