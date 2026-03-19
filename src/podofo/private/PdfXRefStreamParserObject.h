@@ -17,10 +17,6 @@ namespace PoDoFo
 /**
  * A utility class for PdfParser that can parse
  * an XRef stream object.
- *
- * It is mainly here to make PdfParser more modular.
- * This is only marked PODOFO_API for the benefit of the tests,
- * the class is for internal use only.
  */
 class PdfXRefStreamParserObject final : public PdfParserObject
 {

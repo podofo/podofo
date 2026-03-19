@@ -47,6 +47,7 @@
 #if defined(_MSC_VER)
     #define PODOFO_EXPORT __declspec(dllexport)
     #define PODOFO_IMPORT __declspec(dllimport)
+    #define PODOFO_DEPRECATED
 #else
     // NOTE: In non MSVC compilers https://gcc.gnu.org/wiki/Visibility,
     // it's not necessary to distinct between exporting and importing
@@ -55,6 +56,7 @@
     // the library. The symbol will not be re-exported by other libraries
     #define PODOFO_EXPORT __attribute__ ((visibility("default")))
     #define PODOFO_IMPORT __attribute__ ((visibility("default")))
+    #define PODOFO_DEPRECATED __attribute__((__deprecated__))
 #endif
 
 // If detected, undefine some macros that are defined by Windows
@@ -92,21 +94,6 @@
 #endif
 
 // Set up some other compiler-specific but not platform-specific macros
-
-#ifdef __GNU__
-  #define PODOFO_HAS_GCC_ATTRIBUTE_DEPRECATED 1
-#elif defined(__has_attribute)
-  #if __has_attribute(__deprecated__)
-    #define PODOFO_HAS_GCC_ATTRIBUTE_DEPRECATED 1
-  #endif
-#endif
-
-#ifdef PODOFO_HAS_GCC_ATTRIBUTE_DEPRECATED
-    // gcc (or compat. clang) will issue a warning if a function or variable so annotated is used
-    #define PODOFO_DEPRECATED __attribute__((__deprecated__))
-#else
-    #define PODOFO_DEPRECATED
-#endif
 
 /** Specify the friend identifier is defined in private symbols only
  */
