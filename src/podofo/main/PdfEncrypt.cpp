@@ -28,7 +28,13 @@ using namespace PoDoFo;
 PdfEncryptionAlgorithm s_EnabledEncryptionAlgorithms;
 
 // Default value for P (permissions) = no permission
-#define PERMS_DEFAULT (PdfPermissions)0xFFFFF0C0
+// ISO 32000-2:2020 "Table 22 — Standard security handler user access permissions":
+// Bit position 1-2: Reserved. Must be zero (0)
+//  ...
+// Bit position 7-8: Reserved. Must be 1
+//  ...
+// Bit position 13-32: (Security handlers of revision 3 or greater) Reserved. Must be 1
+constexpr PdfPermissions DefaultPermsMask = ~(PdfPermissions::Default | (PdfPermissions)1 | (PdfPermissions)2);
 
 #define AES_IV_LENGTH 16
 #define AES_BLOCK_SIZE 16
@@ -1186,7 +1192,7 @@ PdfEncryptRC4::PdfEncryptRC4(const string_view& userPassword, const string_view&
         }
     }
 
-    InitFromScratch(userPassword, ownerPassword, algorithm, keyLength, rValue, PERMS_DEFAULT | protection, true);
+    InitFromScratch(userPassword, ownerPassword, algorithm, keyLength, rValue, DefaultPermsMask | protection, true);
 }
 
 unique_ptr<OutputStream> PdfEncryptRC4::CreateEncryptionOutputStream(OutputStream& outputStream,
@@ -1358,7 +1364,7 @@ void PdfEncryptAESV2::Decrypt(const char* inStr, size_t inLen, PdfEncryptContext
 
 PdfEncryptAESV2::PdfEncryptAESV2(const string_view& userPassword, const string_view& ownerPassword, PdfPermissions protection)
 {
-    InitFromScratch(userPassword, ownerPassword, PdfEncryptionAlgorithm::AESV2, PdfKeyLength::L128, 4, PERMS_DEFAULT | protection, true);
+    InitFromScratch(userPassword, ownerPassword, PdfEncryptionAlgorithm::AESV2, PdfKeyLength::L128, 4, DefaultPermsMask | protection, true);
 }
 
 PdfEncryptAESV2::PdfEncryptAESV2(PdfString oValue, PdfString uValue, PdfPermissions pValue, bool encryptMetadata)
@@ -1833,7 +1839,7 @@ PdfEncryptAESV3::PdfEncryptAESV3(const string_view& userPassword, const string_v
     : m_ueValue{ }, m_oeValue{ }, m_permsValue{ }
 {
     InitFromScratch(userPassword, ownerPassword, revision == PdfAESV3Revision::R6 ? PdfEncryptionAlgorithm::AESV3R6 : PdfEncryptionAlgorithm::AESV3R5,
-        PdfKeyLength::L256, (unsigned char)revision, m_pValue = PERMS_DEFAULT | protection, true);
+        PdfKeyLength::L256, (unsigned char)revision, DefaultPermsMask | protection, true);
 }
 
 PdfEncryptAESV3::PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString uValue,
