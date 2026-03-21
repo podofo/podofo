@@ -88,9 +88,6 @@ public:
     const_iterator end() const { return m_differences.end(); }
 
 private:
-    /**
-     * \param explicitNames if true, the unicode value is set to nCode as name is meaningless (Type3 fonts)
-     */
     void AddDifference(unsigned char code, const std::string_view& name);
 
     void addDifference(unsigned char code, const codepointview& codepoints, const PdfName& name);
