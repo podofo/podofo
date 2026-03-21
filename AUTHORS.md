@@ -19,9 +19,9 @@
 - Nenad Novak:                oneliners, PNG load, CID width, TrueType subset
 - Palmer Zent:                AES 128/256, crypto refactor
 - M.C. (zyx):                 Pdf signing, painting, patterns, maintenance, podofosign
-- Michal Sudolsky:            Small internals fixes and features
+- Michal Sudolsky:            small internals fixes and features
 - Andreas Brzesowsky:         AES2/AES3 crypto
-- Matthew Brincke:            maintenance
+- Matthias Brinke:            maintenance, security fixes
 - Josef Rokos:                encodings
 - John Senneker:              PNG Paeth filter
 
