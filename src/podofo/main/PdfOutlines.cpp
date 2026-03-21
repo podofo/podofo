@@ -164,25 +164,23 @@ void PdfOutlineItem::Erase()
 {
     while (m_First != nullptr)
     {
-        // erase will set a new first
+        // Erase will set a new first
         // if it has a next item
         m_First->Erase();
     }
 
+    // Unlink from siblings
     if (m_Prev != nullptr)
-    {
         m_Prev->setNext(m_Next);
-    }
 
     if (m_Next != nullptr)
-    {
         m_Next->setPrevious(m_Prev);
-    }
 
-    if (m_Prev == nullptr && m_ParentOutline != nullptr && this == m_ParentOutline->First())
+    // Unlink from parent
+    if (m_Prev == nullptr && m_ParentOutline != nullptr && m_ParentOutline->First() == this)
         m_ParentOutline->setFirst(m_Next);
 
-    if (m_Next == nullptr && m_ParentOutline != nullptr && this == m_ParentOutline->Last())
+    if (m_Next == nullptr && m_ParentOutline != nullptr && m_ParentOutline->Last() == this)
         m_ParentOutline->setLast(m_Prev);
 
     m_Next = nullptr;
