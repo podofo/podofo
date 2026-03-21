@@ -183,7 +183,7 @@ private:
     void setNext(PdfOutlineItem* item);
     void setLast(PdfOutlineItem* item);
     void setFirst(PdfOutlineItem* item);
-    void insertChildInternal(PdfOutlineItem* item, bool checkParent);
+    void insertChildInternal(PdfOutlineItem* item, bool checkSameTree);
 
 private:
     PdfOutlineItem* m_ParentOutline;

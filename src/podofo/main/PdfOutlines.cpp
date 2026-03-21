@@ -66,41 +66,23 @@ void PdfOutlineItem::InsertChild(unique_ptr<PdfOutlineItem> item)
     (void)item.release();
 }
 
-void PdfOutlineItem::insertChildInternal(PdfOutlineItem* item, bool checkParent)
+/// <param name="checkSameTree">Check if the given item is in the same tree as this item</param>
+void PdfOutlineItem::insertChildInternal(PdfOutlineItem* item, bool checkSameTree)
 {
-    PdfOutlineItem* itemToCheckParent = item;
-    PdfOutlineItem* root = nullptr;
-    PdfOutlineItem* rootOfThis = nullptr;
-
-    if (itemToCheckParent == nullptr)
+    if (item == nullptr)
         return;
 
-    if (checkParent)
+    if (checkSameTree)
     {
-        while (itemToCheckParent != nullptr)
-        {
-            while (itemToCheckParent->GetParentOutline())
-                itemToCheckParent = itemToCheckParent->GetParentOutline();
+        auto itemRoot = item;
+        while (itemRoot->GetParentOutline() != nullptr)
+            itemRoot = itemRoot->GetParentOutline();
 
-            if (itemToCheckParent == item) // item can't have a parent
-            {
-                root = item; // needed later, "root" can mean "standalone" here
-                break;       // for performance in standalone or doc-merge case
-            }
+        auto thisRoot = this;
+        while (thisRoot->GetParentOutline() != nullptr)
+            thisRoot = thisRoot->GetParentOutline();
 
-            if (root == nullptr)
-            {
-                rootOfThis = itemToCheckParent;
-                itemToCheckParent = nullptr;
-            }
-            else
-            {
-                root = itemToCheckParent;
-                itemToCheckParent = this;
-            }
-        }
-
-        if (root == rootOfThis) // later nullptr if check skipped for performance
+        if (itemRoot == thisRoot) // item is in the same tree as this
             PODOFO_RAISE_ERROR(PdfErrorCode::ItemAlreadyPresent);
     }
 
