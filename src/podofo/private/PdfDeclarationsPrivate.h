@@ -608,6 +608,7 @@ namespace utls
 
     inline PoDoFo::uint24_t ByteSwap(PoDoFo::uint24_t n)
     {
+        static_assert(std::is_standard_layout_v<PoDoFo::uint24_t>);
         PoDoFo::uint24_t ret;
         // NOTE: The following is safe as uint24_t is internally a uint8_t array
         auto in = (const uint8_t*)&n;
