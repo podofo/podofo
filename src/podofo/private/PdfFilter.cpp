@@ -76,7 +76,7 @@ void PdfFilter::decodeTo(OutputStream& stream, const bufferview& inBuffer, const
 
 void PdfFilter::BeginEncode(OutputStream& output)
 {
-    PODOFO_RAISE_LOGIC_IF(m_OutputStream != nullptr, "BeginEncode() on failed filter or without EndEncode()");
+    PODOFO_ASSERT(m_OutputStream == nullptr && "BeginEncode() on failed filter or without EndEncode()");
     m_OutputStream = &output;
 
     try
@@ -93,7 +93,7 @@ void PdfFilter::BeginEncode(OutputStream& output)
 
 void PdfFilter::EncodeBlock(const bufferview& view)
 {
-    PODOFO_RAISE_LOGIC_IF(m_OutputStream == nullptr, "EncodeBlock() without BeginEncode() or on failed filter");
+    PODOFO_ASSERT(m_OutputStream != nullptr && "EncodeBlock() without BeginEncode() or on failed filter");
 
     try
     {
@@ -109,7 +109,7 @@ void PdfFilter::EncodeBlock(const bufferview& view)
 
 void PdfFilter::EndEncode()
 {
-    PODOFO_RAISE_LOGIC_IF(m_OutputStream == nullptr, "EndEncode() without BeginEncode() or on failed filter");
+    PODOFO_ASSERT(m_OutputStream != nullptr && "EndEncode() without BeginEncode() or on failed filter");
 
     try
     {
@@ -127,7 +127,7 @@ void PdfFilter::EndEncode()
 
 void PdfFilter::BeginDecode(OutputStream& output, const PdfDictionary* decodeParms)
 {
-    PODOFO_RAISE_LOGIC_IF(m_OutputStream != nullptr, "BeginDecode() on failed filter or without EndDecode()");
+    PODOFO_ASSERT(m_OutputStream == nullptr && "BeginDecode() on failed filter or without EndDecode()");
     m_OutputStream = &output;
 
     try
@@ -144,7 +144,7 @@ void PdfFilter::BeginDecode(OutputStream& output, const PdfDictionary* decodePar
 
 void PdfFilter::DecodeBlock(const bufferview& view)
 {
-    PODOFO_RAISE_LOGIC_IF(m_OutputStream == nullptr, "DecodeBlock() without BeginDecode() or on failed filter")
+    PODOFO_ASSERT(m_OutputStream != nullptr && "DecodeBlock() without BeginDecode() or on failed filter")
 
     try
     {
@@ -160,7 +160,7 @@ void PdfFilter::DecodeBlock(const bufferview& view)
 
 void PdfFilter::EndDecode()
 {
-    PODOFO_RAISE_LOGIC_IF(m_OutputStream == nullptr, "EndDecode() without BeginDecode() or on failed filter")
+    PODOFO_ASSERT(m_OutputStream != nullptr && "EndDecode() without BeginDecode() or on failed filter")
 
     try
     {
