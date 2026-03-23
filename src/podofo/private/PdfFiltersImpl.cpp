@@ -510,7 +510,6 @@ void PdfFlateFilter::EncodeBlockInternal(const char* buffer, size_t len, int nMo
 
         if (deflate(&m_stream, nMode) == Z_STREAM_ERROR)
         {
-            FailEncodeDecode();
             PODOFO_RAISE_ERROR(PdfErrorCode::FlateError);
         }
 
@@ -525,7 +524,6 @@ void PdfFlateFilter::EncodeBlockInternal(const char* buffer, size_t len, int nMo
         catch (PdfError& e)
         {
             // clean up after any output stream errors
-            FailEncodeDecode();
             PODOFO_PUSH_FRAME(e);
             throw;
         }
@@ -573,7 +571,6 @@ void PdfFlateFilter::DecodeBlockImpl(const char* buffer, size_t len)
                 PoDoFo::LogMessage(PdfLogSeverity::Error, "Flate Decoding Error from ZLib: {}", flateErr);
                 (void)inflateEnd(&m_stream);
 
-                FailEncodeDecode();
                 PODOFO_RAISE_ERROR(PdfErrorCode::FlateError);
             }
             case Z_DATA_ERROR:
@@ -608,7 +605,6 @@ void PdfFlateFilter::DecodeBlockImpl(const char* buffer, size_t len)
         catch (PdfError& e)
         {
             // clean up after any output stream errors
-            FailEncodeDecode();
             PODOFO_PUSH_FRAME(e);
             throw;
         }
