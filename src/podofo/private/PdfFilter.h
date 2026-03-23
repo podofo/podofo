@@ -257,18 +257,8 @@ protected:
 private:
     void encodeTo(OutputStream& stream, const bufferview& inBuffer);
     void decodeTo(OutputStream& stream, const bufferview& inBuffer, const PdfDictionary* decodeParms);
-    /**
-     * Indicate that the filter has failed, and will be non-functional
-     * until BeginEncode() or BeginDecode() is next called. Call this
-     * instead of EndEncode() or EndDecode if something went wrong.
-     * It clears the stream output but otherwise does nothing.
-     *
-     * After this method is called further calls to EncodeBlock(),
-     * DecodeBlock(), EndDecode() and EndEncode() before the next
-     * BeginEncode() or BeginDecode() are guaranteed to throw
-     * without calling their virtual implementations.
-     */
     void failEncodeDecode();
+    void closeEncodeDecode();
 
 private:
     OutputStream* m_OutputStream;

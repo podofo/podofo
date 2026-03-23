@@ -122,8 +122,7 @@ void PdfFilter::EndEncode()
         throw;
     }
 
-    m_OutputStream->Flush();
-    m_OutputStream = nullptr;
+    closeEncodeDecode();
 }
 
 void PdfFilter::BeginDecode(OutputStream& output, const PdfDictionary* decodeParms)
@@ -174,27 +173,41 @@ void PdfFilter::EndDecode()
         this->failEncodeDecode();
         throw;
     }
-    try
-    {
-        if (m_OutputStream != nullptr)
-        {
-            m_OutputStream->Flush();
-            m_OutputStream = nullptr;
-        }
-    }
-    catch (PdfError& e)
-    {
-        PODOFO_PUSH_FRAME_INFO(e, "Exception caught closing filter's output stream");
-        // Closing stream failed, just get rid of it
-        m_OutputStream = nullptr;
-        throw;
-    }
+
+    closeEncodeDecode();
 }
 
 void PdfFilter::failEncodeDecode()
 {
-    if (m_OutputStream != nullptr)
+    try
+    {
         m_OutputStream->Flush();
+    }
+    catch (...)
+    {
+        // Ignore errors flushing the stream, we're already in an
+        // error state and just want to clean up as best we can
+    }
+    m_OutputStream = nullptr;
+}
+
+void PdfFilter::closeEncodeDecode()
+{
+    try
+    {
+        m_OutputStream->Flush();
+    }
+    catch (PdfError& e)
+    {
+        PODOFO_PUSH_FRAME_INFO(e, "Exception caught flushing filter's output stream");
+        m_OutputStream = nullptr;
+        throw;
+    }
+    catch (...)
+    {
+        m_OutputStream = nullptr;
+        throw;
+    }
 
     m_OutputStream = nullptr;
 }
