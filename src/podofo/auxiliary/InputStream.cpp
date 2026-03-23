@@ -73,33 +73,79 @@ size_t InputStream::Read(char* buffer, size_t size, bool& eof)
 
 void InputStream::CopyTo(OutputStream& stream)
 {
+    bool eof;
     size_t read = 0;
     char buffer[BUFFER_SIZE];
 
-    bool eof;
-    do
+    try
     {
-        read = readBuffer(buffer, BUFFER_SIZE, eof);
-        stream.Write(buffer, read);
-    } while (!eof);
+        do
+        {
+            read = readBuffer(buffer, BUFFER_SIZE, eof);
+            stream.Write(buffer, read);
+        } while (!eof);
 
-    stream.Flush();
+        stream.Flush();
+    }
+    catch (PdfError& err)
+    {
+        if (err.GetCode() == PdfErrorCode::FlateError)
+        {
+            // We want to ignore compression errors, as most
+            // implementations do, but we also try to clear
+            // the stream as it may contain truncated/invalid
+            // content
+            auto deviceStream = dynamic_cast<OutputStreamDevice*>(&stream);
+            if (deviceStream != nullptr)
+            {
+                deviceStream->Seek(0, SeekDirection::Begin);
+                deviceStream->Truncate();
+            }
+        }
+        else
+        {
+            throw;
+        }
+    }
 }
 
 void InputStream::CopyTo(OutputStream& stream, size_t size)
 {
+    bool eof;
     size_t read = 0;
     char buffer[BUFFER_SIZE];
 
-    bool eof;
-    do
+    try
     {
-        read = readBuffer(buffer, std::min(BUFFER_SIZE, size), eof);
-        size -= read;
-        stream.Write(buffer, read);
-    } while (size > 0 && !eof);
+        do
+        {
+            read = readBuffer(buffer, std::min(BUFFER_SIZE, size), eof);
+            size -= read;
+            stream.Write(buffer, read);
+        } while (size > 0 && !eof);
 
-    stream.Flush();
+        stream.Flush();
+    }
+    catch (PdfError& err)
+    {
+        if (err.GetCode() == PdfErrorCode::FlateError)
+        {
+            // We want to ignore compression errors, as most
+            // implementations do, but we also try to clear
+            // the stream as it may contain truncated/invalid
+            // content
+            auto deviceStream = dynamic_cast<OutputStreamDevice*>(&stream);
+            if (deviceStream != nullptr)
+            {
+                deviceStream->Seek(0, SeekDirection::Begin);
+                deviceStream->Truncate();
+            }
+        }
+        else
+        {
+            throw;
+        }
+    }
 }
 
 bool InputStream::readChar(char& ch)
