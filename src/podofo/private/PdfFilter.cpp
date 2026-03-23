@@ -85,7 +85,6 @@ void PdfFilter::BeginEncode(OutputStream& output)
     }
     catch (...)
     {
-        // Clean up and close stream
         this->failEncodeDecode();
         throw;
     }
@@ -101,7 +100,6 @@ void PdfFilter::EncodeBlock(const bufferview& view)
     }
     catch (...)
     {
-        // Clean up and close stream
         this->failEncodeDecode();
         throw;
     }
@@ -117,7 +115,6 @@ void PdfFilter::EndEncode()
     }
     catch (...)
     {
-        // Clean up and close stream
         this->failEncodeDecode();
         throw;
     }
@@ -136,7 +133,6 @@ void PdfFilter::BeginDecode(OutputStream& output, const PdfDictionary* decodePar
     }
     catch (...)
     {
-        // Clean up and close stream
         this->failEncodeDecode();
         throw;
     }
@@ -152,7 +148,6 @@ void PdfFilter::DecodeBlock(const bufferview& view)
     }
     catch (...)
     {
-        // Clean up and close stream
         this->failEncodeDecode();
         throw;
     }
@@ -166,10 +161,8 @@ void PdfFilter::EndDecode()
     {
         EndDecodeImpl();
     }
-    catch (PdfError& e)
+    catch (...)
     {
-        PODOFO_PUSH_FRAME(e);
-        // Clean up and close stream
         this->failEncodeDecode();
         throw;
     }
