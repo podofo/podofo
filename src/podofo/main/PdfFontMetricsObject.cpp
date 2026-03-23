@@ -204,7 +204,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfDictionary& fontDict,
             vector<double> widths;
             while (pos < widthsArr.GetSize())
             {
-                unsigned start = (unsigned)widthsArr[pos++].GetNumberLenient();
+                unsigned start = (unsigned)widthsArr.MustFindAt(pos++).GetNumberLenient();
                 auto second = &widthsArr[pos];
                 if (second->IsReference())
                 {
@@ -223,11 +223,11 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfDictionary& fontDict,
                         widths.resize(length, m_DefaultWidth);
 
                     for (unsigned i = 0; i < arr->GetSize(); i++)
-                        widths[start + i] = (*arr)[i].GetReal() * m_Matrix[0];
+                        widths[start + i] = arr->FindAtAsSafe<double>(i, 0) * m_Matrix[0];
                 }
                 else
                 {
-                    unsigned end = (unsigned)widthsArr[pos++].GetNumberLenient();
+                    unsigned end = (unsigned)widthsArr.MustFindAt(pos++).GetNumberLenient();
                     unsigned length = end + 1;
                     PODOFO_ASSERT(length >= start);
                     if (length > widths.size())
