@@ -524,7 +524,23 @@ void PdfObject::assign(const PdfObject& rhs)
 // Objects being assigned always keep current ownership
 void PdfObject::moveFrom(PdfObject&& rhs)
 {
-    rhs.DelayedLoadStream();
+    // NOTE: move should not throw, as it's used in "noexcept" moethods
+    try
+    {
+        rhs.DelayedLoadStream();
+    }
+    catch (...)
+    {
+        if (!rhs.IsDelayedLoadDone())
+        {
+            // Reset the variant as well if the data section
+            // didn't complete
+            rhs.m_Variant.Reset();
+        }
+
+        // Unconditionally remove the stream
+        rhs.removeStream();
+    }
     m_Variant = std::move(rhs.m_Variant);
     SetVariantOwner();
     m_IsDelayedLoadDone = true;

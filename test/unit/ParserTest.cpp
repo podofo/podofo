@@ -2944,6 +2944,33 @@ TEST_CASE("TestEdgeCases")
     doc.Load(TestUtils::GetTestInputFilePath("ParserTests", "rev.pdf"));
 }
 
+// Bug: PdfParser::TakeTrailer move-constructed the trailer PdfObject via
+// the noexcept move constructor, which called DelayedLoadStream().  For a
+// malformed XRef stream (e.g. /Length referencing a non-existent object)
+// this threw PdfErrorCode::InvalidStream inside a noexcept context,
+// triggering std::terminate.
+TEST_CASE("TestXRefStreamMoveNoTerminate")
+{
+    string_view pdf = R"(
+%PDF-1.5
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 1 1]>>endobj
+4 0 obj
+<</Type/XRef/Size 5/W[1 2 1]/Root 1 0 R/Filter/ASCIIHexDecode/Length 99 0 R>>
+stream
+000000FF0100090001003400010065000100A000
+endstream
+endobj
+startxref
+160
+%%EOF
+)";
+
+    PdfMemDocument doc;
+    REQUIRE_NOTHROW(doc.LoadFromBuffer(pdf));
+}
+
 string generateXRefEntries(size_t count)
 {
     string strXRefEntries;
