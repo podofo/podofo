@@ -1,3 +1,9 @@
+### 1.1
+- Complete the LGPLv2+/MPL-2.0 relicensing
+- Throw by default when signing a document with invalid XRef sections
+- Support devendoring 3rdparty libraries
+- Fix https://github.com/podofo/podofo/issues/299
+
 ### After 1.0
 - Cleanup PdfTreeNode
 - Add subsetting of PdfDifferenceEncoding
@@ -23,7 +29,7 @@
 - Add version of PdfFont::TryCreateSubstituteFont for rendering
   (metrics/widths of loaded font override metrics found on /FontFile)
 - Add a fallback to search font on the system for text extraction purposes,
-  see #123
+  see https://github.com/podofo/podofo/issues/123
 - Check PdfWriter should really update doc trailer when saving.
   Now the new trailer is written but the doc still has the old one
 - PdfMemDocument: Check the DeviceStream is not empty before doing an incremental update/signing operation
