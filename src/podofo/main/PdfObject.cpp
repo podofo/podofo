@@ -522,7 +522,7 @@ void PdfObject::assign(const PdfObject& rhs)
 
 // NOTE: Don't move parent document/container and indirect reference.
 // Objects being assigned always keep current ownership
-void PdfObject::moveFrom(PdfObject&& rhs)
+void PdfObject::moveFrom(PdfObject&& rhs) noexcept
 {
     // NOTE: move should not throw, as it's used in "noexcept" moethods
     try
