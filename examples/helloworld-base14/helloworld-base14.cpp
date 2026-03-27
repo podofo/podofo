@@ -91,7 +91,7 @@ void HelloWorld(const string_view& filename)
         // You could set a different color than black to draw
         // the text.
         // 
-        // painter.SetColor(1.0, 0.0, 0.0);
+        // painter.GraphicsState.SetNonStrokingColor(PdfColor(1.0, 0.0, 0.0));
 
         // Actually draw the line "Hello World!" on to the PdfPage at
         // the position 2cm,2cm from the top left corner.
