@@ -8,7 +8,7 @@
 #include <cassert>
 #include <vector>
 
-#include <utf8proc/utf8proc.h>
+#include <utf8proc.h>
 #include <utf8cpp/utf8.h>
 
 #include "SASLprepPrivate.h"

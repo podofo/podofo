@@ -11,7 +11,7 @@ add_compile_definitions(HAS_UNCAUGHT_EXCEPTIONS=1 UTF8PROC_STATIC)
 set(PODOFO_INCLUDE_DIRS
     "${CMAKE_CURRENT_BINARY_DIR}/podofo/auxiliary"
     "${PROJECT_SOURCE_DIR}/src"
-    "${PROJECT_SOURCE_DIR}/3rdparty"
+    ${PODOFO_3RDPARTY_INCLUDES}
     CACHE INTERNAL "podofo include directories"
 )
 

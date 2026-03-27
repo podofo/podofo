@@ -1,6 +1,6 @@
 #pragma once
 
-#include <span.hpp>
+#include <tcb/span.hpp>
 
 namespace pdfium
 {

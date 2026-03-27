@@ -112,7 +112,7 @@ Install [brew](https://brew.sh/), then from the source root run:
 brew install fontconfig freetype openssl libxml2 jpeg-turbo libpng libtiff cmake
 mkdir build
 cd build
-cmake  -DCMAKE_BUILD_TYPE=Debug -DCMAKE_FIND_FRAMEWORK=NEVER -DCMAKE_PREFIX_PATH=`brew --prefix` -DFontconfig_INCLUDE_DIR=`brew --prefix fontconfig`/include -DOPENSSL_ROOT_DIR=`brew --prefix openssl@3` ..
+cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_FIND_FRAMEWORK=NEVER -DCMAKE_PREFIX_PATH=`brew --prefix` -DFontconfig_INCLUDE_DIR=`brew --prefix fontconfig`/include -DOPENSSL_ROOT_DIR=`brew --prefix openssl@3` ..
 cmake --build . --config Debug
 ```
 
@@ -132,16 +132,15 @@ cmake --build . --config Debug
 
 Follow the vcpkg [quickstart](https://vcpkg.io/en/getting-started.html) guide to setup the package manager repository first.
 In Windows, it may be also useful to set the environment variable `VCPKG_DEFAULT_TRIPLET` to `x64-windows` to default installing 64 bit dependencies
-and define a `VCPKG_INSTALLATION_ROOT` variable with the location of the repository as created in the quickstart.
+and define a `VCPKG_ROOT` variable with the location of the repository as created in the quickstart.
 
 Then from source root run:
 
 ```
-vcpkg install fontconfig freetype libxml2 openssl libjpeg-turbo libpng tiff zlib
+vcpkg install
 mkdir build
-cd build
-cmake -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake -DCMAKE_BUILD_TYPE=Debug ..
-cmake --build . --config Debug
+cmake "-DCMAKE_TOOLCHAIN_FILE=vcpkg.cmake" -DCMAKE_BUILD_TYPE=Debug -B build
+cmake --build build --config Debug
 ```
 
 ### Consume PoDoFo from package managers with CMake
@@ -185,7 +184,17 @@ the relevant [section](https://github.com/podofo/podofo/#podofo-tools) in the Re
 This unconditionally disable building tests, examples and tools;
 
 - `PODOFO_BUILD_STATIC`: If TRUE, build the library as a static object and use it in tests,
-examples and tools. By default a shared library is built.
+examples and tools. By default a shared library is built;
+
+- `PODOFO_DEVENDOR_DATE`: If TRUE, the [`date`](https://github.com/howardhinnant/date) library will be devendored;
+
+- `PODOFO_DEVENDOR_FASTFLOAT`: If TRUE, the [`fast_float`](https://github.com/fastfloat/fast_float) library will be devendored;
+
+- `PODOFO_DEVENDOR_FMT`: If TRUE, the [`fmt`](https://github.com/fmtlib/fmt) library will be devendored;
+
+- `PODOFO_DEVENDOR_UTF8CPP`: If TRUE, the [`utf8cpp`](https://github.com/nemtrif/utfcpp) library will be devendored;
+
+- `PODOFO_DEVENDOR_UTF8PROC`: If TRUE, the [`utf8proc`](https://juliastrings.github.io/utf8proc/) library will be devendored.
 
 ### Static linking
 

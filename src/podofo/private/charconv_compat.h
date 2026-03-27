@@ -31,7 +31,7 @@
 #endif
 
 #if defined(WANT_CHARS_FORMAT) || defined(WANT_FROM_CHARS)
-#include <fast_float.h>
+#include <fast_float/fast_float.h>
 #endif
 
 #ifdef WANT_TO_CHARS

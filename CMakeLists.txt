@@ -156,6 +156,12 @@ else()
     endif()
 endif()
 
+set(PODOFO_3RDPARTY_INCLUDES
+    "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/adobe"
+    "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/chromium"
+    "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/tcbspan"
+)
+
 find_package(ZLIB REQUIRED)
 message("Found zlib headers in ${ZLIB_INCLUDE_DIR}, library at ${ZLIB_LIBRARIES}")
 
@@ -219,6 +225,32 @@ endif()
 find_package(LibXml2 REQUIRED)
 message("Found libxml2 library at ${LIBXML2_LIBRARIES}, headers ${LIBXML2_INCLUDE_DIRS}")
 
+if (PODOFO_DEVENDOR_DATE)
+    find_package(date CONFIG REQUIRED)
+else()
+    list(APPEND PODOFO_3RDPARTY_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/date")
+endif()
+if (PODOFO_DEVENDOR_FASTFLOAT)
+    find_package(FastFloat CONFIG REQUIRED)
+else()
+    list(APPEND PODOFO_3RDPARTY_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/fastfloat")
+endif()
+if (PODOFO_DEVENDOR_FMT)
+    find_package(fmt CONFIG REQUIRED)
+else()
+    list(APPEND PODOFO_3RDPARTY_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/fmtlib")
+endif()
+if (PODOFO_DEVENDOR_UTF8CPP)
+    find_package(utf8cpp CONFIG REQUIRED)
+else()
+    list(APPEND PODOFO_3RDPARTY_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/utf8cpp")
+endif()
+if (PODOFO_DEVENDOR_UTF8PROC)
+    find_package(utf8proc CONFIG REQUIRED)
+else()
+    list(APPEND PODOFO_3RDPARTY_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/utf8proc")
+endif()
+
 # The podofo library needs to be linked to these libraries
 # NOTE: Be careful when adding/removing: the order may be
 # platform sensible, so don't modify the current order
@@ -249,6 +281,22 @@ if(JPEG_FOUND)
 endif()
 list(APPEND PODOFO_LIB_DEPENDS ZLIB::ZLIB)
 string(APPEND PODOFO_PKGCONFIG_REQUIRES_PRIVATE " zlib")
+if (PODOFO_DEVENDOR_DATE)
+    list(APPEND PODOFO_LIB_DEPENDS $<COMPILE_ONLY:date::date>)
+endif()
+if (PODOFO_DEVENDOR_FASTFLOAT)
+    list(APPEND PODOFO_LIB_DEPENDS $<COMPILE_ONLY:FastFloat::fast_float>)
+endif()
+if (PODOFO_DEVENDOR_FMT)
+    list(APPEND PODOFO_LIB_DEPENDS $<COMPILE_ONLY:fmt::fmt>)
+endif()
+if (PODOFO_DEVENDOR_UTF8CPP)
+    list(APPEND PODOFO_LIB_DEPENDS $<COMPILE_ONLY:utf8cpp::utf8cpp>)
+endif()
+if (PODOFO_DEVENDOR_UTF8PROC)
+    list(APPEND PODOFO_LIB_DEPENDS utf8proc::utf8proc)
+    string(APPEND PODOFO_PKGCONFIG_REQUIRES_PRIVATE " libutf8proc")
+endif()
 list(APPEND PODOFO_LIB_DEPENDS ${PLATFORM_SYSTEM_LIBRARIES})
 
 if(LCMS2_FOUND)

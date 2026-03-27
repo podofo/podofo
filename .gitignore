@@ -32,3 +32,4 @@ rtf/
 man/
 xml/
 htmlhelp/
+vcpkg_installed/
