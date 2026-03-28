@@ -1,9 +1,8 @@
 ### 1.1
 - Complete the LGPLv2+/MPL-2.0 relicensing
 - Throw by default when signing a document with invalid XRef sections
-- Fix https://github.com/podofo/podofo/issues/299
 
-### After 1.0
+### After 1.1
 - Cleanup PdfTreeNode
 - Add subsetting of PdfDifferenceEncoding
 - PdfDifferenceList: Validate insertion for the public Add methods (like for example enforce "Adobe Glyph List For New Fonts")
