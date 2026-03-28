@@ -48,8 +48,10 @@ foreach(subdir main auxiliary optional staging)
     list(APPEND PODOFO_HEADERS ${HEADER_FILES})
 endforeach()
 
-# Set to install further public 3rdparty headers
-list(APPEND PODOFO_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/span.hpp")
+if (NOT PODOFO_DEVENDOR_TCBSPAN)
+    # Set to install tcb span.hpp 3rdparty header
+    list(APPEND PODOFO_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/span.hpp")
+endif()
 
 if(NOT PODOFO_HAVE_FONTCONFIG)
     # Remove FontConfig source if not needed

@@ -186,6 +186,8 @@ This unconditionally disable building tests, examples and tools;
 - `PODOFO_BUILD_STATIC`: If TRUE, build the library as a static object and use it in tests,
 examples and tools. By default a shared library is built;
 
+- `PODOFO_DEVENDOR_TCBSPAN`: If TRUE, the [`tcb::span`](https://github.com/tcbrindle/span) library will be devendored;
+
 - `PODOFO_DEVENDOR_DATE`: If TRUE, the [`date`](https://github.com/howardhinnant/date) library will be devendored;
 
 - `PODOFO_DEVENDOR_FASTFLOAT`: If TRUE, the [`fast_float`](https://github.com/fastfloat/fast_float) library will be devendored;

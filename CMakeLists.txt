@@ -159,7 +159,6 @@ endif()
 set(PODOFO_3RDPARTY_INCLUDES
     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/adobe"
     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/chromium"
-    "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/tcbspan"
 )
 
 find_package(ZLIB REQUIRED)
@@ -225,6 +224,11 @@ endif()
 find_package(LibXml2 REQUIRED)
 message("Found libxml2 library at ${LIBXML2_LIBRARIES}, headers ${LIBXML2_INCLUDE_DIRS}")
 
+if (PODOFO_DEVENDOR_TCBSPAN)
+    find_package(TcbSpan REQUIRED)
+else()
+    list(APPEND PODOFO_3RDPARTY_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/tcbspan")
+endif()
 if (PODOFO_DEVENDOR_DATE)
     find_package(date CONFIG REQUIRED)
 else()
@@ -281,6 +285,9 @@ if(JPEG_FOUND)
 endif()
 list(APPEND PODOFO_LIB_DEPENDS ZLIB::ZLIB)
 string(APPEND PODOFO_PKGCONFIG_REQUIRES_PRIVATE " zlib")
+if (PODOFO_DEVENDOR_TCBSPAN)
+    list(APPEND PODOFO_LIB_DEPENDS $<COMPILE_ONLY:tcbspan::tcbspan>)
+endif()
 if (PODOFO_DEVENDOR_DATE)
     list(APPEND PODOFO_LIB_DEPENDS $<COMPILE_ONLY:date::date>)
 endif()
