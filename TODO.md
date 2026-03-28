@@ -1,7 +1,6 @@
 ### 1.1
 - Complete the LGPLv2+/MPL-2.0 relicensing
 - Throw by default when signing a document with invalid XRef sections
-- Support devendoring 3rdparty libraries
 - Fix https://github.com/podofo/podofo/issues/299
 
 ### After 1.0
