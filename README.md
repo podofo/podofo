@@ -194,6 +194,8 @@ examples and tools. By default a shared library is built;
 
 - `PODOFO_DEVENDOR_FMT`: If TRUE, the [`fmt`](https://github.com/fmtlib/fmt) library will be devendored;
 
+- `PODOFO_DEVENDOR_FMT_HEADER_ONLY`: Implies `PODOFO_DEVENDOR_FMT`, but uses the `fmt::fmt-header-only` library flavour;
+
 - `PODOFO_DEVENDOR_UTF8CPP`: If TRUE, the [`utf8cpp`](https://github.com/nemtrif/utfcpp) library will be devendored;
 
 - `PODOFO_DEVENDOR_UTF8PROC`: If TRUE, the [`utf8proc`](https://juliastrings.github.io/utf8proc/) library will be devendored.
