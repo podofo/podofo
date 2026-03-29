@@ -296,7 +296,7 @@ vector<string> PoDoFo::ToPdfKeywordsList(const string_view& str)
             case U'\r':
             case U'\n':
             {
-                token = string(tokenStart, it);
+                token = string(tokenStart, std::prev(it));
                 if (token.length() != 0)
                     ret.push_back(std::move(token));
                 tokenStart = it;
