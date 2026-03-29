@@ -45,3 +45,11 @@ TEST_CASE("TestMetadataSet")
     metadata.SetTitle(nullptr);
     REQUIRE(metadata.GetTitle() == nullptr);
 }
+
+TEST_CASE("TestGetDocKeywords")
+{
+    PdfMemDocument doc;
+    vector<string> keywords = { "one", "two", "three" };
+    doc.GetMetadata().SetKeywords(keywords);
+    REQUIRE(keywords == doc.GetMetadata().GetKeywords());
+}
