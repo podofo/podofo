@@ -263,3 +263,11 @@ TEST_CASE("TestObjectAdapter")
     REQUIRE(info.FindKeyParentAs<PdfString>("Producer") == "PoDoFo - http://podofo.sf.net");
     REQUIRE(info.FindKeyParentAsSafe<PdfString>("Prod", "fallback") == "fallback");
 }
+
+TEST_CASE("TestGetDocKeywords")
+{
+    PdfMemDocument doc;
+    vector<string> keywords = { "one", "two", "three" };
+    doc.GetMetadata().SetKeywords(keywords);
+    REQUIRE(keywords == doc.GetMetadata().GetKeywords());
+}
