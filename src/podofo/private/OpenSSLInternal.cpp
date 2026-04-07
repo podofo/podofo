@@ -100,7 +100,10 @@ void ssl::AddSigningCertificateV2(CMS_SignerInfo* signer, const bufferview& hash
     certIdV2.hash = &hashstr;
     certV2.cert_ids = sk_MY_ESS_CERT_ID_V2_new_null();
     if (!sk_MY_ESS_CERT_ID_V2_push(certV2.cert_ids, &certIdV2))
+    {
+        sk_MY_ESS_CERT_ID_V2_free(certV2.cert_ids);
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Unable to add attribute");
+    }
 
     auto clean = [&]()
     {

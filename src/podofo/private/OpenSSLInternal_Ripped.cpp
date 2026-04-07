@@ -27,7 +27,7 @@ static void encode_pkcs1(X509_ALGOR* digestAlg,
 
 static X509_ALGOR* getDigestAlgorithm(CMS_SignerInfo* si);
 static const ASN1_OBJECT* getASN1Object(X509_ALGOR* alg);
-static STACK_OF(X509_ATTRIBUTE)* getSignedAttributesCopy(CMS_SignerInfo* si);
+static STACK_OF(X509_ATTRIBUTE)* getSignedAttributesDeepCopy(CMS_SignerInfo* si);
 
 // The following is using for reordering attributes during serialization
 ASN1_ITEM_TEMPLATE(CMS_Attributes_Sign) =
@@ -60,11 +60,11 @@ void ssl::ComputeHashToSign(CMS_SignerInfo* si, BIO* chain, bool doWrapDigest, c
     unsigned char hash[EVP_MAX_MD_SIZE];
     unsigned hashlen;
 
-    EVP_MD_CTX* mctx = EVP_MD_CTX_new();
-    if (!cms_DigestAlgorithm_find_ctx(mctx, chain, getDigestAlgorithm(si)))
+    unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> mctx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
+    if (!cms_DigestAlgorithm_find_ctx(mctx.get(), chain, getDigestAlgorithm(si)))
         goto Error;
 
-    if (EVP_DigestFinal_ex(mctx, hash, &hashlen) <= 0)
+    if (EVP_DigestFinal_ex(mctx.get(), hash, &hashlen) <= 0)
         goto Error;
 
     if (!CMS_signed_add1_attr_by_NID(si, NID_pkcs9_messageDigest,
@@ -145,11 +145,13 @@ void compute_hash_to_sign(CMS_SignerInfo* si, unsigned char hash[], unsigned& ha
     if (EVP_DigestInit(mctx, sign_md) <= 0)
         goto Error;
 
-    // Prepare the DER structure to sign, reordering attributes
-    signedAttrs = getSignedAttributesCopy(si);
+    // Prepare the DER structure to sign, reordering attributes.
+    // We do a deep copy to avoid internally corrupting the signer info structures
+    signedAttrs = getSignedAttributesDeepCopy(si);
     len = (unsigned)ASN1_item_i2d((ASN1_VALUE*)signedAttrs, &buf,
         ASN1_ITEM_rptr(CMS_Attributes_Sign));
-    sk_X509_ATTRIBUTE_free(signedAttrs);
+    // Free both the structure and the copied attributes
+    sk_X509_ATTRIBUTE_pop_free(signedAttrs, X509_ATTRIBUTE_free);
     if (buf == nullptr)
         goto Error;
 
@@ -234,7 +236,7 @@ const ASN1_OBJECT* getASN1Object(X509_ALGOR* alg)
     return obj;
 }
 
-STACK_OF(X509_ATTRIBUTE)* getSignedAttributesCopy(CMS_SignerInfo* si)
+STACK_OF(X509_ATTRIBUTE)* getSignedAttributesDeepCopy(CMS_SignerInfo* si)
 {
     STACK_OF(X509_ATTRIBUTE)* ret = nullptr;
     int count = CMS_signed_get_attr_count(si);
@@ -248,6 +250,7 @@ STACK_OF(X509_ATTRIBUTE)* getSignedAttributesCopy(CMS_SignerInfo* si)
     return ret;
 
 Error:
-    sk_X509_ATTRIBUTE_free(ret);
+    // Free both the structure and the copied attributes
+    sk_X509_ATTRIBUTE_pop_free(ret, X509_ATTRIBUTE_free);
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "GetSignedAttributes: Out of memory");
 }

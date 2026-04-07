@@ -192,7 +192,7 @@ void CmsContext::clear()
 
     if (m_databio != nullptr)
     {
-        BIO_free(m_databio);
+        BIO_free_all(m_databio);
         m_databio = nullptr;
     }
 
