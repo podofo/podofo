@@ -131,6 +131,7 @@ EVP_PKEY* ssl::LoadPrivateKey(const bufferview& input)
         return ret;
 
     // Then try to load a ECDSA DER private
+    data = (const unsigned char*)input.data(); // Reset the input as it may be used as an iterator
     ret = d2i_PrivateKey(EVP_PKEY_EC, nullptr, &data, (long)input.size());
     if (ret != nullptr)
         return ret;
