@@ -207,13 +207,17 @@ void CmsContext::Restore(xmlNodePtr ctxElem, charbuff& temp)
     if (m_signer == nullptr)
         goto DeserializationFailed;
 
-    m_cert = sk_X509_value(CMS_get1_certs(m_cms), 0);
-    if (m_cert == nullptr)
+    auto certs = CMS_get1_certs(m_cms);
+    if (certs == nullptr)
         goto DeserializationFailed;
 
-    // Increment the reference count of the certificate,
-    // as it will be freed in the destructor
-    X509_up_ref(m_cert);
+    // Removes the first element and returns it transferring ownership
+    m_cert = sk_X509_shift(certs);
+
+    // Deference all the certificates and release the stack
+    sk_X509_pop_free(certs, X509_free);
+    if (m_cert == nullptr)
+        goto DeserializationFailed;
 
     auto parametersNode = utls::FindChildElement(ctxElem, "Parameters");
     if (node == nullptr)
@@ -352,7 +356,7 @@ void CmsContext::clear()
 
     if (m_databio != nullptr)
     {
-        BIO_free(m_databio);
+        BIO_free_all(m_databio);
         m_databio = nullptr;
     }
 }
