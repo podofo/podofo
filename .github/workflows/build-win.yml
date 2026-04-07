@@ -2,13 +2,13 @@ name: build-win
 
 on:
   push:
-    branches: [master]
+    branches: [ master ]
   pull_request:
-    branches: [master]
+    branches: [ master ]
   workflow_dispatch:
     inputs:
       ctestArgs:
-        description: "CTest arguments"
+        description: 'CTest arguments'
 
 env:
   BUILD_TYPE: Release
@@ -18,23 +18,23 @@ jobs:
     runs-on: windows-2025
 
     steps:
-      - uses: actions/checkout@v6
-        with:
+    - uses: actions/checkout@v6
+      with:
           submodules: true
 
-      - name: Configure CMake
-        working-directory: .\playground
-        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -A x64 -DARCH=Win64
+    - name: Configure CMake
+      working-directory: .\playground
+      run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -A x64 -DARCH=Win64
 
-        # NOTE: The cmake build is forced to be single
-        # configuration (either Debug or Release) but it
-        #  must be specified when running tests on Windows
-        # because of MSVC solution oddities
+      # NOTE: The cmake build is forced to be single
+      # configuration (either Debug or Release) but it
+      #  must be specified when running tests on Windows
+      # because of MSVC solution oddities
 
-      - name: Build
-        working-directory: .\playground
-        run: cmake --build build --config ${{env.BUILD_TYPE}}
+    - name: Build
+      working-directory: .\playground
+      run: cmake --build build --config ${{env.BUILD_TYPE}}
 
-      - name: Test
-        working-directory: .\playground
-        run: ctest --test-dir build ${{ github.event.inputs.ctestArgs }}
+    - name: Test
+      working-directory: .\playground
+      run: ctest --test-dir build ${{ github.event.inputs.ctestArgs }}

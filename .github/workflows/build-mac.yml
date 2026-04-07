@@ -2,13 +2,13 @@ name: build-mac
 
 on:
   push:
-    branches: [master]
+    branches: [ master ]
   pull_request:
-    branches: [master]
+    branches: [ master ]
   workflow_dispatch:
     inputs:
       ctestArgs:
-        description: "CTest arguments"
+        description: 'CTest arguments'
 
 # NOTE: Don't update other tools with broken linkage with
 # HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK. See https://docs.brew.sh/Manpage#install-options-formulacask-
@@ -21,22 +21,22 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v6
-        with:
+    - uses: actions/checkout@v6
+      with:
           submodules: true
 
-      - name: Install deps
-        # NOTE: We need to ensure jpeg-turbo is at least version 2.14
-        run: brew update
-          && brew install fontconfig freetype openssl libxml2 jpeg-turbo libpng libtiff
+    - name: Install deps
+      # NOTE: We need to ensure jpeg-turbo is at least version 2.14
+      run: brew update
+           && brew install fontconfig freetype openssl libxml2 jpeg-turbo libpng libtiff
 
-      - name: Configure CMake
-        # NOTE: OpenSSL prefix must be explicitly set
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_FIND_FRAMEWORK=NEVER -DCMAKE_PREFIX_PATH=`brew --prefix` -DFontconfig_INCLUDE_DIR=`brew --prefix fontconfig`/include -DOPENSSL_ROOT_DIR=`brew --prefix openssl@3`
+    - name: Configure CMake
+      # NOTE: OpenSSL prefix must be explicitly set
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_FIND_FRAMEWORK=NEVER -DCMAKE_PREFIX_PATH=`brew --prefix` -DFontconfig_INCLUDE_DIR=`brew --prefix fontconfig`/include -DOPENSSL_ROOT_DIR=`brew --prefix openssl@3`
 
-      - name: Build
-        run: cmake --build ${{github.workspace}}/build
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build
 
-      - name: Test
-        working-directory: ${{github.workspace}}/build
-        run: ctest ${{ github.event.inputs.ctestArgs }}
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      run: ctest ${{ github.event.inputs.ctestArgs }}
