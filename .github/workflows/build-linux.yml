@@ -18,20 +18,20 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     strategy:
       matrix:
         language: [ 'cpp' ]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
       with:
           submodules: true
 
     - name: Initialize CodeQL
       if: ${{ github.event.inputs.runCodeQL }}
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v4
       with:
         languages: ${{ matrix.language }}
         config-file: ./.github/codeql/codeql-config.yml
@@ -51,6 +51,6 @@ jobs:
 
     - name: Perform CodeQL Analysis
       if: ${{ github.event.inputs.runCodeQL }}
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v4
       with:
         category: "/language:${{matrix.language}}"
