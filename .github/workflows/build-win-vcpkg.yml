@@ -17,10 +17,10 @@ env:
 
 jobs:
   build:
-    runs-on: windows-2019
+    runs-on: windows-2025
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
       with:
           submodules: true
 
@@ -37,7 +37,7 @@ jobs:
       # NOTE2: vcpkg is installed in C:\vcpkg as per Github
       # documentation, but VCPKG_INSTALLATION_ROOT variable
       # doesn't seem to be defined
-      # https://github.com/actions/runner-images/blob/main/images/win/Windows2019-Readme.md
+      # https://github.com/actions/runner-images/blob/main/images/windows/Windows2025-Readme.md
 
     - name: Build
       run: cmake --build ${{github.workspace}}\build --config ${{env.BUILD_TYPE}}
