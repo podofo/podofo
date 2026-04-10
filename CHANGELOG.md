@@ -4,6 +4,7 @@
 - Added `PdfXMPPAcket::PruneAndValidate(pdfaLevel)`
 - PdfParser: Try to rebuild the index if cross reference
   sections parsing fails
+- Added initial support for several raw images with /BitsPerComponent != 8
 - Added support for devendoring 3rd party dependencies
 
 ## Version 1.0.3

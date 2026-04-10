@@ -11,6 +11,8 @@
 using namespace std;
 using namespace PoDoFo;
 
+#include <podofo/private/OpenSSLInternal.h>
+
 TEST_CASE("TestImage1")
 {
     PdfMemDocument doc;
@@ -275,4 +277,22 @@ TEST_CASE("TestImage8")
 
     painter.FinishDrawing();
     doc.Save(outputFile);
+}
+
+TEST_CASE("TestBitsPerComponent1")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TestBitsPerComponent1.pdf"));
+    PdfPainter painter;
+    auto& obj = doc.GetObjects().MustGetObject(PdfReference(27, 0));
+    unique_ptr<PdfImage> image;
+    REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(obj, image));
+
+    charbuff buffer;
+    image->DecodeTo(buffer, PdfPixelFormat::BGRA);
+    charbuff ppmbuffer;
+    TestUtils::SaveFramePPM(ppmbuffer, buffer.data(),
+        PdfPixelFormat::BGRA, image->GetWidth(), image->GetHeight());
+
+    REQUIRE(ssl::ComputeMD5Str(buffer) == "C7C13471D8E5CF9E48637513D73FDCB5");
 }

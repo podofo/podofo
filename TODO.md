@@ -3,6 +3,8 @@
 - Throw by default when signing a document with invalid XRef sections
 
 ### After 1.1
+- PdfPredictorDecoder: Support BitsPerComponent != 8
+- PdfColorSpaceFilterIndexed::GetSourceScanLineSize() handle bitsPerComponent != 8
 - Cleanup PdfTreeNode
 - Add subsetting of PdfDifferenceEncoding
 - PdfDifferenceList: Validate insertion for the public Add methods (like for example enforce "Adobe Glyph List For New Fonts")

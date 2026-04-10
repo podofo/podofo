@@ -22,16 +22,27 @@ static void fetchScanLineRGB(unsigned char* dstScanLine, PdfPixelFormat format,
 template <int bpp>
 static void fetchScanLineRGB(unsigned char* dstScanLine, PdfPixelFormat format,
     const unsigned char* srcScanLine, unsigned width, const unsigned char* srcAphaLine);
+static void fetchScanLineRGB(unsigned char* dstScanLine, PdfPixelFormat format,
+    const unsigned char* srcScanLine, unsigned width, unsigned bitsPerComponent);
+static void fetchScanLineRGB(unsigned char* dstScanLine, PdfPixelFormat format,
+    const unsigned char* srcScanLine, unsigned width, const unsigned char* srcAphaLine,
+    unsigned bitsPerComponent);
 static void fetchScanLineGrayScale(unsigned char* dstScanLine, PdfPixelFormat format,
     const unsigned char* srcScanLine, unsigned width);
 static void fetchScanLineGrayScale(unsigned char* dstScanLine, PdfPixelFormat format,
     const unsigned char* srcScanLine, unsigned width,
     const unsigned char* srcAphaLine);
+static void fetchScanLineGrayScale(unsigned char* dstScanLine, PdfPixelFormat format,
+    const unsigned char* srcScanLine, unsigned width, unsigned bitsPerComponent);
+static void fetchScanLineGrayScale(unsigned char* dstScanLine, PdfPixelFormat format,
+    const unsigned char* srcScanLine, unsigned width, const unsigned char* srcAphaLine,
+    unsigned bitsPerComponent);
 static void fetchScanLineBW(unsigned char* dstScanLine, PdfPixelFormat format,
     const unsigned char* srcScanLine, unsigned width);
 static void fetchScanLineBW(unsigned char* dstScanLine, PdfPixelFormat format,
     const unsigned char* srcScanLine, unsigned width,
     const unsigned char* srcAphaLine);
+static unsigned char getSample8Bits(const unsigned char* src, unsigned sampleIdx, unsigned bitsPerComponent);
 
 static charbuff initScanLine(PdfPixelFormat format, unsigned width, int scanLineSizeHint);
 
@@ -39,10 +50,7 @@ void utls::FetchImage(OutputStream& stream, PdfPixelFormat format, int scanLineS
     const unsigned char* imageData, unsigned width, unsigned heigth, unsigned bitsPerComponent,
     const PdfColorSpaceFilter& map, const charbuff& smaskData)
 {
-    // TODO: Add support for non-trivial /BitsPerComponent. This could be done
-    // by keeping existing optimized fecthScanLine* methods and add other overloads
-    // that take bitsPerComponent as an argument
-    if (bitsPerComponent != 8)
+    if (bitsPerComponent != 1 && bitsPerComponent != 2 && bitsPerComponent != 4 && bitsPerComponent != 8 && bitsPerComponent != 16)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Unsupported /BitsPerComponent");
 
     charbuff scanLine = initScanLine(format, width, scanLineSize);
@@ -52,48 +60,99 @@ void utls::FetchImage(OutputStream& stream, PdfPixelFormat format, int scanLineS
         {
             case PdfColorSpacePixelFormat::Grayscale:
             {
-                unsigned srcScanLineSize = width;
+                unsigned srcScanLineSize = map.GetSourceScanLineSize(width, bitsPerComponent);
                 if (smaskData.size() == 0)
                 {
-                    for (unsigned i = 0; i < heigth; i++)
+                    if (bitsPerComponent == 8)
                     {
-                        fetchScanLineGrayScale((unsigned char*)scanLine.data(),
-                            format, imageData + i * srcScanLineSize, width);
-                        stream.Write(scanLine.data(), scanLine.size());
+                        for (unsigned i = 0; i < heigth; i++)
+                        {
+                            fetchScanLineGrayScale((unsigned char*)scanLine.data(),
+                                format, imageData + i * srcScanLineSize, width);
+                            stream.Write(scanLine.data(), scanLine.size());
+                        }
+                    }
+                    else
+                    {
+                        for (unsigned i = 0; i < heigth; i++)
+                        {
+                            fetchScanLineGrayScale((unsigned char*)scanLine.data(),
+                                format, imageData + i * srcScanLineSize, width, bitsPerComponent);
+                            stream.Write(scanLine.data(), scanLine.size());
+                        }
                     }
                 }
                 else
                 {
-                    for (unsigned i = 0; i < heigth; i++)
+                    if (bitsPerComponent == 8)
                     {
-                        fetchScanLineGrayScale((unsigned char*)scanLine.data(),
-                            format, imageData + i * srcScanLineSize, width,
-                            (const unsigned char*)smaskData.data() + i * width);
-                        stream.Write(scanLine.data(), scanLine.size());
+                        for (unsigned i = 0; i < heigth; i++)
+                        {
+                            fetchScanLineGrayScale((unsigned char*)scanLine.data(),
+                                format, imageData + i * srcScanLineSize, width,
+                                (const unsigned char*)smaskData.data() + i * width);
+                            stream.Write(scanLine.data(), scanLine.size());
+                        }
+                    }
+                    else
+                    {
+                        for (unsigned i = 0; i < heigth; i++)
+                        {
+                            fetchScanLineGrayScale((unsigned char*)scanLine.data(),
+                                format, imageData + i * srcScanLineSize, width,
+                                (const unsigned char*)smaskData.data() + i * width, bitsPerComponent);
+                            stream.Write(scanLine.data(), scanLine.size());
+                        }
                     }
                 }
                 break;
             }
             case PdfColorSpacePixelFormat::RGB:
             {
-                unsigned srcScanLineSize = width * 3;
+                unsigned srcScanLineSize = map.GetSourceScanLineSize(width, bitsPerComponent);
                 if (smaskData.size() == 0)
                 {
-                    for (unsigned i = 0; i < heigth; i++)
+                    if (bitsPerComponent == 8)
                     {
-                        fetchScanLineRGB<3>((unsigned char*)scanLine.data(),
-                            format, imageData + i * srcScanLineSize, width);
-                        stream.Write(scanLine.data(), scanLine.size());
+                        for (unsigned i = 0; i < heigth; i++)
+                        {
+                            fetchScanLineRGB<3>((unsigned char*)scanLine.data(),
+                                format, imageData + i * srcScanLineSize, width);
+                            stream.Write(scanLine.data(), scanLine.size());
+                        }
+                    }
+                    else
+                    {
+                        for (unsigned i = 0; i < heigth; i++)
+                        {
+                            fetchScanLineRGB((unsigned char*)scanLine.data(),
+                                format, imageData + i * srcScanLineSize, width, bitsPerComponent);
+                            stream.Write(scanLine.data(), scanLine.size());
+                        }
                     }
                 }
                 else
                 {
-                    for (unsigned i = 0; i < heigth; i++)
+                    if (bitsPerComponent == 8)
                     {
-                        fetchScanLineRGB<3>((unsigned char*)scanLine.data(),
-                            format, imageData + i * srcScanLineSize, width,
-                            (const unsigned char*)smaskData.data() + i * width);
-                        stream.Write(scanLine.data(), scanLine.size());
+                        for (unsigned i = 0; i < heigth; i++)
+                        {
+
+                            fetchScanLineRGB<3>((unsigned char*)scanLine.data(),
+                                format, imageData + i * srcScanLineSize, width,
+                                (const unsigned char*)smaskData.data() + i * width);
+                            stream.Write(scanLine.data(), scanLine.size());
+                        }
+                    }
+                    else
+                    {
+                        for (unsigned i = 0; i < heigth; i++)
+                        {
+                            fetchScanLineRGB((unsigned char*)scanLine.data(), format,
+                                imageData + i * srcScanLineSize, width,
+                                (const unsigned char*)smaskData.data() + i * width, bitsPerComponent);
+                            stream.Write(scanLine.data(), scanLine.size());
+                        }
                     }
                 }
                 break;
@@ -706,5 +765,309 @@ charbuff initScanLine(PdfPixelFormat format, unsigned width, int scanLineSizeHin
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The buffer row size is too small");
 
         return charbuff((size_t)scanLineSizeHint);
+    }
+}
+
+void fetchScanLineRGB(unsigned char* dstScanLine, PdfPixelFormat format,
+    const unsigned char* srcScanLine, unsigned width, unsigned bitsPerComponent)
+{
+    switch (format)
+    {
+        case PdfPixelFormat::RGB24:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 3 + 0] = getSample8Bits(srcScanLine, i * 3 + 0, bitsPerComponent);
+                dstScanLine[i * 3 + 1] = getSample8Bits(srcScanLine, i * 3 + 1, bitsPerComponent);
+                dstScanLine[i * 3 + 2] = getSample8Bits(srcScanLine, i * 3 + 2, bitsPerComponent);
+            }
+            break;
+        }
+        case PdfPixelFormat::BGR24:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 3 + 0] = getSample8Bits(srcScanLine, i * 3 + 2, bitsPerComponent);
+                dstScanLine[i * 3 + 1] = getSample8Bits(srcScanLine, i * 3 + 1, bitsPerComponent);
+                dstScanLine[i * 3 + 2] = getSample8Bits(srcScanLine, i * 3 + 0, bitsPerComponent);
+            }
+            break;
+        }
+        case PdfPixelFormat::RGBA:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 4 + 0] = getSample8Bits(srcScanLine, i * 3 + 0, bitsPerComponent);
+                dstScanLine[i * 4 + 1] = getSample8Bits(srcScanLine, i * 3 + 1, bitsPerComponent);
+                dstScanLine[i * 4 + 2] = getSample8Bits(srcScanLine, i * 3 + 2, bitsPerComponent);
+                dstScanLine[i * 4 + 3] = 255;
+            }
+            break;
+        }
+        case PdfPixelFormat::BGRA:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 4 + 0] = getSample8Bits(srcScanLine, i * 3 + 2, bitsPerComponent);
+                dstScanLine[i * 4 + 1] = getSample8Bits(srcScanLine, i * 3 + 1, bitsPerComponent);
+                dstScanLine[i * 4 + 2] = getSample8Bits(srcScanLine, i * 3 + 0, bitsPerComponent);
+                dstScanLine[i * 4 + 3] = 255;
+            }
+            break;
+        }
+        case PdfPixelFormat::ARGB:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 4 + 0] = 255;
+                dstScanLine[i * 4 + 1] = getSample8Bits(srcScanLine, i * 3 + 0, bitsPerComponent);
+                dstScanLine[i * 4 + 2] = getSample8Bits(srcScanLine, i * 3 + 1, bitsPerComponent);
+                dstScanLine[i * 4 + 3] = getSample8Bits(srcScanLine, i * 3 + 2, bitsPerComponent);
+            }
+            break;
+        }
+        case PdfPixelFormat::ABGR:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 4 + 0] = 255;
+                dstScanLine[i * 4 + 1] = getSample8Bits(srcScanLine, i * 3 + 2, bitsPerComponent);
+                dstScanLine[i * 4 + 2] = getSample8Bits(srcScanLine, i * 3 + 1, bitsPerComponent);
+                dstScanLine[i * 4 + 3] = getSample8Bits(srcScanLine, i * 3 + 0, bitsPerComponent);
+            }
+            break;
+        }
+        default:
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedPixelFormat, "Unsupported pixel format");
+    }
+}
+
+void fetchScanLineRGB(unsigned char* dstScanLine, PdfPixelFormat format,
+    const unsigned char* srcScanLine, unsigned width, const unsigned char* srcAphaLine,
+    unsigned bitsPerComponent)
+{
+    switch (format)
+    {
+        case PdfPixelFormat::RGB24:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 3 + 0] = getSample8Bits(srcScanLine, i * 3 + 0, bitsPerComponent);
+                dstScanLine[i * 3 + 1] = getSample8Bits(srcScanLine, i * 3 + 1, bitsPerComponent);
+                dstScanLine[i * 3 + 2] = getSample8Bits(srcScanLine, i * 3 + 2, bitsPerComponent);
+            }
+            break;
+        }
+        case PdfPixelFormat::BGR24:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 3 + 0] = getSample8Bits(srcScanLine, i * 3 + 2, bitsPerComponent);
+                dstScanLine[i * 3 + 1] = getSample8Bits(srcScanLine, i * 3 + 1, bitsPerComponent);
+                dstScanLine[i * 3 + 2] = getSample8Bits(srcScanLine, i * 3 + 0, bitsPerComponent);
+            }
+            break;
+        }
+        case PdfPixelFormat::RGBA:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 4 + 0] = getSample8Bits(srcScanLine, i * 3 + 0, bitsPerComponent);
+                dstScanLine[i * 4 + 1] = getSample8Bits(srcScanLine, i * 3 + 1, bitsPerComponent);
+                dstScanLine[i * 4 + 2] = getSample8Bits(srcScanLine, i * 3 + 2, bitsPerComponent);
+                dstScanLine[i * 4 + 3] = srcAphaLine[i];
+            }
+            break;
+        }
+        case PdfPixelFormat::BGRA:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 4 + 0] = getSample8Bits(srcScanLine, i * 3 + 2, bitsPerComponent);
+                dstScanLine[i * 4 + 1] = getSample8Bits(srcScanLine, i * 3 + 1, bitsPerComponent);
+                dstScanLine[i * 4 + 2] = getSample8Bits(srcScanLine, i * 3 + 0, bitsPerComponent);
+                dstScanLine[i * 4 + 3] = srcAphaLine[i];
+            }
+            break;
+        }
+        case PdfPixelFormat::ARGB:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 4 + 0] = srcAphaLine[i];
+                dstScanLine[i * 4 + 1] = getSample8Bits(srcScanLine, i * 3 + 0, bitsPerComponent);
+                dstScanLine[i * 4 + 2] = getSample8Bits(srcScanLine, i * 3 + 1, bitsPerComponent);
+                dstScanLine[i * 4 + 3] = getSample8Bits(srcScanLine, i * 3 + 2, bitsPerComponent);
+            }
+            break;
+        }
+        case PdfPixelFormat::ABGR:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 4 + 0] = srcAphaLine[i];
+                dstScanLine[i * 4 + 1] = getSample8Bits(srcScanLine, i * 3 + 2, bitsPerComponent);
+                dstScanLine[i * 4 + 2] = getSample8Bits(srcScanLine, i * 3 + 1, bitsPerComponent);
+                dstScanLine[i * 4 + 3] = getSample8Bits(srcScanLine, i * 3 + 0, bitsPerComponent);
+            }
+            break;
+        }
+        default:
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedPixelFormat, "Unsupported pixel format");
+    }
+}
+
+void fetchScanLineGrayScale(unsigned char* dstScanLine, PdfPixelFormat format,
+    const unsigned char* srcScanLine, unsigned width, unsigned bitsPerComponent)
+{
+    switch (format)
+    {
+        case PdfPixelFormat::Grayscale:
+        {
+            for (unsigned i = 0; i < width; i++)
+                dstScanLine[i] = getSample8Bits(srcScanLine, i, bitsPerComponent);
+            break;
+        }
+        case PdfPixelFormat::RGB24:
+        case PdfPixelFormat::BGR24:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                unsigned char gray = getSample8Bits(srcScanLine, i, bitsPerComponent);
+                dstScanLine[i * 3 + 0] = gray;
+                dstScanLine[i * 3 + 1] = gray;
+                dstScanLine[i * 3 + 2] = gray;
+            }
+            break;
+        }
+        case PdfPixelFormat::RGBA:
+        case PdfPixelFormat::BGRA:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                unsigned char gray = getSample8Bits(srcScanLine, i, bitsPerComponent);
+                dstScanLine[i * 4 + 0] = gray;
+                dstScanLine[i * 4 + 1] = gray;
+                dstScanLine[i * 4 + 2] = gray;
+                dstScanLine[i * 4 + 3] = 255;
+            }
+            break;
+        }
+        case PdfPixelFormat::ARGB:
+        case PdfPixelFormat::ABGR:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                unsigned char gray = getSample8Bits(srcScanLine, i, bitsPerComponent);
+                dstScanLine[i * 4 + 0] = 255;
+                dstScanLine[i * 4 + 1] = gray;
+                dstScanLine[i * 4 + 2] = gray;
+                dstScanLine[i * 4 + 3] = gray;
+            }
+            break;
+        }
+        default:
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedPixelFormat, "Unsupported pixel format");
+    }
+}
+
+void fetchScanLineGrayScale(unsigned char* dstScanLine, PdfPixelFormat format,
+    const unsigned char* srcScanLine, unsigned width, const unsigned char* srcAphaLine,
+    unsigned bitsPerComponent)
+{
+    switch (format)
+    {
+        case PdfPixelFormat::Grayscale:
+        {
+            for (unsigned i = 0; i < width; i++)
+                dstScanLine[i] = getSample8Bits(srcScanLine, i, bitsPerComponent);
+            break;
+        }
+        case PdfPixelFormat::RGB24:
+        case PdfPixelFormat::BGR24:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                unsigned char gray = getSample8Bits(srcScanLine, i, bitsPerComponent);
+                dstScanLine[i * 3 + 0] = gray;
+                dstScanLine[i * 3 + 1] = gray;
+                dstScanLine[i * 3 + 2] = gray;
+            }
+            break;
+        }
+        case PdfPixelFormat::RGBA:
+        case PdfPixelFormat::BGRA:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                unsigned char gray = getSample8Bits(srcScanLine, i, bitsPerComponent);
+                dstScanLine[i * 4 + 0] = gray;
+                dstScanLine[i * 4 + 1] = gray;
+                dstScanLine[i * 4 + 2] = gray;
+                dstScanLine[i * 4 + 3] = srcAphaLine[i];
+            }
+            break;
+        }
+        case PdfPixelFormat::ARGB:
+        case PdfPixelFormat::ABGR:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                unsigned char gray = getSample8Bits(srcScanLine, i, bitsPerComponent);
+                dstScanLine[i * 4 + 0] = srcAphaLine[i];
+                dstScanLine[i * 4 + 1] = gray;
+                dstScanLine[i * 4 + 2] = gray;
+                dstScanLine[i * 4 + 3] = gray;
+            }
+            break;
+        }
+        default:
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedPixelFormat, "Unsupported pixel format");
+    }
+}
+
+unsigned char getSample8Bits(const unsigned char* src, unsigned sampleIdx, unsigned bitsPerComponent)
+{
+    switch (bitsPerComponent)
+    {
+        case 1:
+        {
+            return (unsigned char)(FETCH_BIT(src, sampleIdx) * 255);
+        }
+        case 2:
+        {
+            constexpr unsigned maxval = 4 - 1; // 2^2 -1
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+            unsigned char bits = (src[sampleIdx / 4] >> (2 * (3 - (sampleIdx % 4)))) & maxval;
+#else
+            unsigned char bits = (src[sampleIdx / 4] >> (2 * (sampleIdx % 4))) & maxval;
+#endif
+            return (unsigned char)(bits * 255 / maxval); // Rescale to 255
+        }
+        case 4:
+        {
+            constexpr unsigned maxval = 16 - 1; // 2^4 -1
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+            unsigned char bits = (src[sampleIdx / 2] >> (4 * (1 - (sampleIdx % 2)))) & maxval;
+#else
+            unsigned char bits = (src[sampleIdx / 2] >> (4 * (sampleIdx % 2))) & maxval;
+#endif
+            return (unsigned char)(bits * 255 / maxval); // Rescale to 255
+        }
+        case 8:
+        {
+            return src[sampleIdx];
+        }
+        case 16:
+        {
+            // 8.9.3 Sample representation
+            // "units of 16 bits shall be given with the most significant byte first"
+            // We just take the most significant byte as the scaled 8-bit value
+            return src[sampleIdx * 2];
+        }
+        default:
+        {
+            PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
+        }
     }
 }
