@@ -433,11 +433,14 @@ private:
     bool tryConvertToGIDs(const std::string_view& utf8Str, PdfGlyphAccess access, std::vector<unsigned>& gids) const;
     bool tryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCID& cid);
 
-    /** Optional function to map a CID to a GID
-     *
-     * Example for /Type2 CID fonts may have a /CIDToGIDMap
+    /** Map a CID to a GID
+     * If available it uses the /CIDToGIDMap, 
      */
-    bool tryMapCIDToGID(unsigned cid, PdfGID& gid) const;
+    void mapCIDToGID(unsigned cid, PdfGID& gid) const;
+
+    /** Map a CID to a GID
+     * Similar to the previous method but specialized for queries
+     */
     bool tryMapCIDToGID(unsigned cid, PdfGlyphAccess access, unsigned& gid) const;
 
     void initBase(const PdfEncoding& encoding);

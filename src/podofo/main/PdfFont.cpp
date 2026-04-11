@@ -886,18 +886,13 @@ void PdfFont::AddSubsetCIDs(const PdfString& encodedStr)
     for (unsigned i = 0; i < cids.size(); i++)
     {
         auto& cid = cids[i];
-        if (!tryMapCIDToGID(cid.Id, gid))
+        mapCIDToGID(cid.Id, gid);
+        if (gid.Id >= glyphCount)
         {
-            // Assume the font will always contain at least one glyph
-            // and add a mapping to CID 0 for the char code
-            gid = { };
-        }
-        else if (gid.Id >= glyphCount)
-        {
-            gid.Id = 0;
             // Assume the font will always contain at least one glyph
             // and add a mapping to CID 0 for the char code, but
             // the metrics id may be correct
+            gid.Id = 0;
         }
 
         // Ignore trying to replace existing mapping
@@ -934,21 +929,18 @@ PdfObject& PdfFont::GetDescendantFontObject()
     return *obj;
 }
 
-bool PdfFont::tryMapCIDToGID(unsigned cid, PdfGID& gid) const
+void PdfFont::mapCIDToGID(unsigned cid, PdfGID& gid) const
 {
     // Retrieve first the font program GID first
     bool normalLookup = false;
     if (m_fontProgCIDToGIDMap == nullptr)
     {
-        if (!tryMapCIDToGIDNormal(cid, gid.Id))
-            return false;
-
+        (void)tryMapCIDToGIDNormal(cid, gid.Id);
         normalLookup = true;
     }
     else
     {
-        if (!m_fontProgCIDToGIDMap->TryMapCIDToGID(cid, gid.Id))
-            return false;
+        (void)m_fontProgCIDToGIDMap->TryMapCIDToGID(cid, gid.Id);
     }
 
     // Secondly, retrieve PDF metrics Id
@@ -956,11 +948,9 @@ bool PdfFont::tryMapCIDToGID(unsigned cid, PdfGID& gid) const
     {
         if (normalLookup) // The normal lookup just happened, no need to repeat it
             gid.MetricsId = gid.Id;
-        else if (!tryMapCIDToGIDNormal(cid, gid.MetricsId))
-            return false;
+        else
+            (void)tryMapCIDToGIDNormal(cid, gid.MetricsId);
     }
-
-    return true;
 }
 
 bool PdfFont::tryMapCIDToGID(unsigned cid, PdfGlyphAccess access, unsigned& gid) const

@@ -766,10 +766,7 @@ PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapType1(FT_Face face, const PdfEncod
                 || codePoints.GetSize() != 1
                 || !PdfPredefinedEncoding::TryGetCharNameFromCodePoint(*codePoints, name))
             {
-                // It may happen the code is not found even in the base encoding,
-                // just add an identity mapping
-            Identity:
-                map[code] = code;
+                // It may happen the code is not found even in the base encoding
                 continue;
             }
         }
@@ -777,7 +774,7 @@ PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapType1(FT_Face face, const PdfEncod
         // "A Type 1 font program’s glyph descriptions are keyed by glyph names, not by character codes"
         index = FT_Get_Name_Index(face, name->GetString().data());
         if (index == 0)
-            goto Identity;
+            continue;
 
         map[code] = index;
     }
@@ -841,10 +838,7 @@ PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapTrueType(FT_Face face, const PdfEn
             if (!(baseEncodings.TryGetCodePoints(charCode, codePoints)
                 || standardEncoding.TryGetCodePoints(charCode, codePoints)))
             {
-                // It may happen the code is not found even in the base encoding,
-                // just add an identity mapping
-            Identity:
-                map[code] = code;
+                // It may happen the code is not found even in the base encoding
                 continue;
             }
         }
@@ -868,7 +862,7 @@ PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapTrueType(FT_Face face, const PdfEn
         if (name == nullptr)
         {
             if (codePoints.GetSize() != 1 || !PdfPredefinedEncoding::TryGetCharNameFromCodePoint(*codePoints, name))
-                goto Identity;
+                continue;
         }
 
         // "In any of these cases, if the glyph name cannot be mapped as specified,
@@ -878,7 +872,7 @@ PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapTrueType(FT_Face face, const PdfEn
             fontPostMap.reset(new unordered_map<string_view, unsigned>(FT::GetPostMap(face)));
 
         if ((found = fontPostMap->find(*name)) == fontPostMap->end())
-            goto Identity;
+            continue;
 
         map[code] = found->second;
     }
