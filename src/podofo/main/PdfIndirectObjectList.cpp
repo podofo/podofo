@@ -161,7 +161,7 @@ unique_ptr<PdfObject> PdfIndirectObjectList::removeObject(const iterator& it, bo
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Can't remove a compressed object stream");
 
     if (markAsFree)
-        markObjectFree(obj->GetIndirectReference());
+        markObjectFree(obj->GetIndirectReference(), false);
 
     m_Objects.erase(it);
     return unique_ptr<PdfObject>(obj);
@@ -242,23 +242,18 @@ PdfObject& PdfIndirectObjectList::CreateObject(PdfObject&& obj)
 
 void PdfIndirectObjectList::AddFreeObjectSafe(const PdfReference& reference)
 {
-    addFreeObject(reference.ObjectNumber(), reference.GenerationNumber());
-}
-
-void PdfIndirectObjectList::addFreeObject(uint32_t objnum, uint16_t gennum)
-{
     // Documentation 3.4.3 Cross-Reference Table states: "The maximum
     // generation number is 65535; when a cross reference entry reaches
     // this value, it is never reused."
     // NOTE: gennum is uint32 to accommodate overflows from callers
-    if (gennum >= MaxXRefGenerationNum)
+    if (reference.GenerationNumber() >= MaxXRefGenerationNum)
     {
-        m_UnavailableObjects.insert(objnum);
-        tryIncrementLastObjectNumber(objnum);
+        m_UnavailableObjects.insert(reference.ObjectNumber());
+        tryIncrementLastObjectNumber(reference.ObjectNumber());
         return;
     }
 
-    AddFreeObjectUnchecked(PdfReference(objnum, gennum));
+    AddFreeObjectUnchecked(reference);
 }
 
 void PdfIndirectObjectList::AddFreeObjectUnchecked(const PdfReference& reference)
@@ -319,7 +314,7 @@ void PdfIndirectObjectList::PushObject(unique_ptr<PdfObject> obj)
     (void)obj.release();
 }
 
-void PdfIndirectObjectList::markObjectFree(const PdfReference& reference)
+void PdfIndirectObjectList::markObjectFree(const PdfReference& reference, bool doConsistencyCheck)
 {
     // From 3.4.3 Cross-Reference Table:
     // "When an indirect object is deleted, its cross-reference
@@ -328,8 +323,20 @@ void PdfIndirectObjectList::markObjectFree(const PdfReference& reference)
     // 1 to indicate the generation number to be used the next time an
     // object with that object number is created. Thus, each time
     // the entry is reused, it is given a new generation number."
-    uint16_t nextGenNumber = reference.GenerationNumber() + 1;
-    addFreeObject(reference.ObjectNumber(), nextGenNumber);
+    PdfReference freeObjRef(reference.ObjectNumber(), reference.GenerationNumber() + 1);
+    if (doConsistencyCheck)
+    {
+        auto found = m_Objects.find(freeObjRef);
+        if (found != m_Objects.end())
+        {
+            // The free object reference is already used by an
+            // existing object, just exit
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, "Object {} {} R marked free but same object with generation {} exists",
+                reference.ObjectNumber(), reference.GenerationNumber(), freeObjRef.GenerationNumber());
+            return;
+        }
+    }
+    AddFreeObjectSafe(freeObjRef);
     m_FreeObjectsInvalidated = true;
 }
 
@@ -374,7 +381,7 @@ void PdfIndirectObjectList::CollectGarbage(PdfObject& trailer)
         if (referencedOjects.find(ref) == referencedOjects.end()
             && m_compressedObjectStreams.find(ref.ObjectNumber()) == m_compressedObjectStreams.end())
         {
-            markObjectFree(ref);
+            markObjectFree(ref, true);
             objectsToDelete.push_back(obj);
             continue;
         }

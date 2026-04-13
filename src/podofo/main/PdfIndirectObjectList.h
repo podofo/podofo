@@ -311,10 +311,9 @@ private:
      *
      *  Add the object and increment the generation number. Add the object
      *  only if the generation is the allowed range
+     * \param doConsistencyCheck check if the free object reference is not already part of this list
      */
-    void markObjectFree(const PdfReference& reference);
-
-    void pushObject(PdfObject* obj);
+    void markObjectFree(const PdfReference& reference, bool doConsistencyCheck);
 
     void pushObject(const ObjectList::const_iterator& hintpos, ObjectList::node_type& node, PdfObject* obj);
 
@@ -326,8 +325,6 @@ private:
      * \returns the next free object reference
      */
     PdfReference getNextFreeObject();
-
-    void addFreeObject(uint32_t objnum, uint16_t gennum);
 
     void visitObject(const PdfObject& obj, std::unordered_set<PdfReference>& referencedObj);
 
