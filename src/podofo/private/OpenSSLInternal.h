@@ -96,7 +96,8 @@ namespace ssl
 
     const EVP_CIPHER* Rc4();
     const EVP_CIPHER* Aes128();
-    const EVP_CIPHER* Aes256();
+    const EVP_CIPHER* Aes256_CBC();
+    const EVP_CIPHER* Aes256_ECB();
     const EVP_MD* MD5();
     const EVP_MD* SHA1();
     const EVP_MD* SHA256();
@@ -121,7 +122,8 @@ namespace ssl
     public:
         const EVP_CIPHER* GetRc4() const { return m_Rc4; }
         const EVP_CIPHER* GetAes128() const { return m_Aes128; }
-        const EVP_CIPHER* GetAes256() const { return m_Aes256; }
+        const EVP_CIPHER* GetAes256_CBC() const { return m_Aes256_CBC; }
+        const EVP_CIPHER* GetAes256_ECB() const { return m_Aes256_ECB; }
         const EVP_MD* GetMD5() const { return m_MD5; }
         const EVP_MD* GetSHA1() const { return m_SHA1; }
         const EVP_MD* GetSHA256() const { return m_SHA256; }
@@ -135,7 +137,8 @@ namespace ssl
 #endif // OPENSSL_VERSION_MAJOR >= 3
         const EVP_CIPHER* m_Rc4;
         const EVP_CIPHER* m_Aes128;
-        const EVP_CIPHER* m_Aes256;
+        const EVP_CIPHER* m_Aes256_CBC;
+        const EVP_CIPHER* m_Aes256_ECB;
         const EVP_MD* m_MD5;
         const EVP_MD* m_SHA1;
         const EVP_MD* m_SHA256;
