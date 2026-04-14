@@ -240,7 +240,7 @@ protected:
                 }
                 case (size_t)PdfKeyLength::L256 / 8:
                 {
-                    cipher = ssl::Aes256();
+                    cipher = ssl::Aes256_CBC();
                     break;
                 }
                 default:
@@ -1215,7 +1215,7 @@ void AESDecrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned keyLen, 
     if (keyLen == (int)PdfKeyLength::L128 / 8)
         rc = EVP_DecryptInit_ex(ctx, ssl::Aes128(), nullptr, key, iv);
     else if (keyLen == (int)PdfKeyLength::L256 / 8)
-        rc = EVP_DecryptInit_ex(ctx, ssl::Aes256(), nullptr, key, iv);
+        rc = EVP_DecryptInit_ex(ctx, ssl::Aes256_CBC(), nullptr, key, iv);
     else
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid AES key length");
 
@@ -1244,7 +1244,7 @@ void AESEncrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned keyLen, 
     if (keyLen == (int)PdfKeyLength::L128 / 8)
         rc = EVP_EncryptInit_ex(ctx, ssl::Aes128(), nullptr, key, iv);
     else if (keyLen == (int)PdfKeyLength::L256 / 8)
-        rc = EVP_EncryptInit_ex(ctx, ssl::Aes256(), nullptr, key, iv);
+        rc = EVP_EncryptInit_ex(ctx, ssl::Aes256_CBC(), nullptr, key, iv);
     else
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid AES key length");
 
@@ -1516,44 +1516,47 @@ void PdfEncryptAESV3::computeUserKey(const unsigned char* userpswd, unsigned len
     unsigned keyLength, const unsigned char encryptionKey[32],
     unsigned char uValue[48], unsigned char ueValue[32])
 {
-    // Generate User Salts
-    unsigned char vSalt[8];
-    unsigned char kSalt[8];
+    // ISO 32000-2:2020 "7.6.4.4.7 Algorithm 8: Computing the encryption dictionary’s U
+    // (user password) and UE (user encryption) values (Security handlers of revision 6)"
+    // "Generate 16 random bytes of data using a strong random number generator.
+    // The first 8 bytes are the User Validation Salt. The second 8 bytes are the User Key Salt"
 
-    if (RAND_bytes(vSalt, sizeof(vSalt)) != 1 || RAND_bytes(kSalt, sizeof(kSalt)) != 1)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error generating random salt bytes");
+    if (RAND_bytes(uValue + 32, 8) != 1)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error generating random user validation salt");
+    if (RAND_bytes(uValue + 40, 8) != 1)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error generating random user key salt");
 
-    // Generate hash for U
+    // "Compute the 32-byte hash using algorithm 2.B with an input string consisting
+    // of the UTF-8 password concatenated with the User Validation Salt. The 48- byte
+    // string consisting of the 32-byte hash followed by the User Validation Salt
+    // followed by the User Key Salt is stored as the U key"
+
     unsigned char hashValue[32];
-
-    computeHash(userpswd, len, revision, vSalt, 0, hashValue);
-
-    // U = hash + validation salt + key salt
+    computeHash(userpswd, len, revision, uValue + 32, nullptr, hashValue);
     std::memcpy(uValue, hashValue, 32);
-    std::memcpy(uValue + 32, vSalt, 8);
-    std::memcpy(uValue + 32 + 8, kSalt, 8);
 
-    // Generate hash for UE
-    computeHash(userpswd, len, revision, kSalt, 0, hashValue);
+    computeHash(userpswd, len, revision, uValue + 40, nullptr, hashValue);
 
-    // UE = AES-256 encoded file encryption key with key=hash
-    // CBC mode, no padding, init vector=0
-
-    int rc;
     unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> aes(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
-    if (aes == nullptr || (rc = EVP_EncryptInit_ex(aes.get(), ssl::Aes256(), nullptr, hashValue, nullptr)) != 1)
+    if (aes == nullptr)
+        PODOFO_RAISE_ERROR(PdfErrorCode::OutOfMemory);
+
+    // "Compute the 32-byte hash using algorithm 2.B with an input string consisting
+    // of the UTF-8 password concatenated with the User Key Salt. Using this hash
+    // as the key, encrypt the file encryption key using AES-256 in CBC mode with
+    // no padding and an initialization vector of zero. The resulting 32-byte string
+    // is stored as the UE key"
+    unsigned char iv[AES_IV_LENGTH] = { 0 };
+    if (EVP_EncryptInit_ex(aes.get(), ssl::Aes256_CBC(), nullptr, hashValue, iv) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
+    EVP_CIPHER_CTX_set_padding(aes.get(), 0);
 
-    EVP_CIPHER_CTX_set_padding(aes.get(), 0); // disable padding
-
-    int dataOutMoved;
+    int outLen;
     PODOFO_INVARIANT(keyLength <= 32);
-    rc = EVP_EncryptUpdate(aes.get(), ueValue, &dataOutMoved, encryptionKey, (int)keyLength);
-    if (rc != 1)
+    if (EVP_EncryptUpdate(aes.get(), ueValue, &outLen, encryptionKey, (int)keyLength) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 
-    rc = EVP_EncryptFinal_ex(aes.get(), &ueValue[dataOutMoved], &dataOutMoved);
-    if (rc != 1)
+    if (EVP_EncryptFinal_ex(aes.get(), ueValue + outLen, &outLen) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 }
 
@@ -1561,43 +1564,51 @@ void PdfEncryptAESV3::computeOwnerKey(const unsigned char* ownerpswd, unsigned l
     unsigned keyLength, const unsigned char encryptionKey[32], const unsigned char uValue[48],
     unsigned char oValue[48], unsigned char oeValue[32])
 {
-    // Generate Owner Salts
-    unsigned char vSalt[8];
-    unsigned char kSalt[8];
+    // ISO 32000-2:2020 "7.6.4.4.8 Algorithm 9: Computing the encryption dictionary’s O
+    // (owner password) and OE (owner encryption) values (Security handlers of revision 6)"
+    // "Generate 16 random bytes of data using a strong random number generator. The first
+    // 8 bytes are the Owner Validation Salt. The second 8 bytes are the Owner Key Salt"
 
-    if (RAND_bytes(vSalt, sizeof(vSalt)) != 1 || RAND_bytes(kSalt, sizeof(kSalt)) != 1)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error generating random salt bytes");
+    if (RAND_bytes(oValue + 32, 8) != 1)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error generating random owner validation salt");
+    if (RAND_bytes(oValue + 40, 8) != 1)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error generating random owner key salt");
 
-    // Generate hash for O
+    // "Compute the 32-byte hash using algorithm 2.B with an input string consisting of
+    // the UTF-8 password concatenated with the Owner Validation Salt and then concatenated
+    // with the 48-byte U string as generated in Algorithm 8. The 48-byte string consisting
+    // of the 32-byte hash followed by the Owner Validation Salt followed by the Owner Key
+    // Salt is stored as the O key"
+
     unsigned char hashValue[32];
-    computeHash(ownerpswd, len, revision, vSalt, uValue, hashValue);
-
-    // O = hash + validation salt + key salt
+    computeHash(ownerpswd, len, revision, oValue + 32, uValue, hashValue);
     std::memcpy(oValue, hashValue, 32);
-    std::memcpy(oValue + 32, vSalt, 8);
-    std::memcpy(oValue + 32 + 8, kSalt, 8);
 
-    // Generate hash for OE
-    computeHash(ownerpswd, len, revision, kSalt, uValue, hashValue);
+    computeHash(ownerpswd, len, revision, oValue + 40, uValue, hashValue);
 
-    // OE = AES-256 encoded file encryption key with key=hash
-    // CBC mode, no padding, init vector=0
-
-    int rc;
     unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> aes(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
-    if (aes == nullptr || (rc = EVP_EncryptInit_ex(aes.get(), ssl::Aes256(), nullptr, hashValue, nullptr)) != 1)
+    if (aes == nullptr)
+        PODOFO_RAISE_ERROR(PdfErrorCode::OutOfMemory);
+
+    // "Compute the 32-byte hash using 7.6.4.3.4, "Algorithm 2.B: Computing a hash (revision
+    // 6 and later)" with an input string consisting of the UTF-8 password concatenated with
+    // the Owner Key Salt and then concatenated with the 48-byte U string as generated in
+    // 7.6.4.4.7, "Algorithm 8: Computing the encryption dictionary’s U (user password) and
+    // UE (user encryption) values (Security handlers of revision 6)". Using this hash as
+    // the key, encrypt the file encryption key using AES-256 in CBC mode with no padding and
+    // an initialization vector of zero. The resulting 32-byte string is stored as the OE key"
+
+    unsigned char iv[AES_IV_LENGTH] = { 0 };
+    if (EVP_EncryptInit_ex(aes.get(), ssl::Aes256_CBC(), nullptr, hashValue, iv) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
+    EVP_CIPHER_CTX_set_padding(aes.get(), 0);
 
-    EVP_CIPHER_CTX_set_padding(aes.get(), 0); // disable padding
-
-    int dataOutMoved;
+    int outLen;
     PODOFO_INVARIANT(keyLength <= 32);
-    rc = EVP_EncryptUpdate(aes.get(), oeValue, &dataOutMoved, encryptionKey, (int)keyLength);
-    if (rc != 1)
+    if (EVP_EncryptUpdate(aes.get(), oeValue, &outLen, encryptionKey, (int)keyLength) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 
-    rc = EVP_EncryptFinal_ex(aes.get(), &oeValue[dataOutMoved], &dataOutMoved);
-    if (rc != 1)
+    if (EVP_EncryptFinal_ex(aes.get(), oeValue + outLen, &outLen) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 }
 
@@ -1674,65 +1685,75 @@ void PdfEncryptAESV3::GenerateEncryptionKey(
                 // the context supplied cipher context here
                 // in OpenSSL 3.3. Doing so will break tests
 
-    // Prepare passwords
-    unsigned char userpswd[127];
-    unsigned char ownerpswd[127];
-    unsigned userpswdLen;
-    unsigned ownerpswdLen;
-    preprocessPassword(GetUserPassword(), userpswd, userpswdLen);
-    preprocessPassword(GetOwnerPassword(), ownerpswd, ownerpswdLen);
+    // ISO 32000-2:2020 7.6.4 Standard security handler
+    // "All passwords for revision 6 shall be based on Unicode. Preprocessing
+    // of a user-provided password consists first of normalizing its
+    // representation by applying the "SASLPrep" profile(Internet RFC 4013)
+    // of the "stringprep" algorithm(Internet RFC 3454) to the supplied
+    // password using the Normalize and BiDi options.Next, the password
+    // string shall be converted to UTF-8 encoding, and then truncated to
+    // the first 127 bytes if the string is longer than 127 bytes"
 
+    // Preprocess passwords
+    unsigned char userPsw[127];
+    unsigned char ownerPsw[127];
+    unsigned userPswLen;
+    unsigned ownerPswLen;
+    preprocessPassword(GetUserPassword(), userPsw, userPswLen);
+    preprocessPassword(GetOwnerPassword(), ownerPsw, ownerPswLen);
+
+    // Compute encryption key, /U, /UE, /O, /OE values
     unsigned keyLength = GetKeyLengthBytes();
-
-    // Compute encryption key
     computeEncryptionKey(keyLength, encryptionKey);
+    computeUserKey(userPsw, userPswLen, GetRevision(), keyLength, encryptionKey, uValue, m_ueValue);
+    computeOwnerKey(ownerPsw, ownerPswLen, GetRevision(), keyLength, encryptionKey, uValue, oValue, m_oeValue);
 
-    // Compute U and UE values
-    computeUserKey(userpswd, userpswdLen, GetRevision(), keyLength, encryptionKey, uValue, m_ueValue);
-
-    // Compute O and OE value
-    computeOwnerKey(ownerpswd, ownerpswdLen, GetRevision(), keyLength, encryptionKey, uValue, oValue, m_oeValue);
-
-    // Compute Perms value
+    // ISO 32000-2:2020 "7.6.4.4.9 Algorithm 10: Computing the encryption dictionary’s
+    // Perms (permissions) value (Security handlers of revision 6)"
     unsigned char perms[16];
-    // First 4 bytes = 32bits permissions
-    perms[3] = ((unsigned)GetPValue() >> 24) & 0xFF;
-    perms[2] = ((unsigned)GetPValue() >> 16) & 0xFF;
-    perms[1] = ((unsigned)GetPValue() >> 8) & 0xFF;
-    perms[0] = ((unsigned)GetPValue() >> 0) & 0xFF;
-    // Placeholder for future versions that may need 64-bit permissions
+    // "Record the 8 bytes of permission in the bytes 0-7 of the block, low order byte first"
+    uint32_t p = static_cast<uint32_t>(GetPValue());
+    perms[0] = (unsigned char)(p & 0xFF);
+    perms[1] = (unsigned char)((p >> 8) & 0xFF);
+    perms[2] = (unsigned char)((p >> 16) & 0xFF);
+    perms[3] = (unsigned char)((p >> 24) & 0xFF);
+    // "Extend the permissions (contents of the P integer) to 64 bits by setting the upper 32 bits to all 1s."
     perms[4] = 0xFF;
     perms[5] = 0xFF;
     perms[6] = 0xFF;
     perms[7] = 0xFF;
-    // if EncryptMetadata is false, this value should be set to 'F'
+    // "Set byte 8 to the ASCII character "T" or "F" according to the EncryptMetadata boolean"
     perms[8] = IsMetadataEncrypted() ? 'T' : 'F';
-    // Next 3 bytes are mandatory
+    // Set bytes 9 - 11 to the ASCII characters 'a, 'd', 'b'
     perms[9] = 'a';
     perms[10] = 'd';
     perms[11] = 'b';
-    // Next 4 bytes are ignored
+    // "Set bytes 12-15 to 4 bytes of random data, which will be ignored."
+    // TODO: Actually randomize data, and provide a way to make it deterministic
     perms[12] = 0;
     perms[13] = 0;
     perms[14] = 0;
     perms[15] = 0;
 
-    // Encrypt Perms value
-
-    int rc;
+    // (From Errata Collection 2) "Encrypt the 16-byte block using AES-256 in ECB mode using the file encryption key
+    // as the key. The result (16 bytes) is stored as the Perms string, and checked for validity
+    // when the file is opened"
     unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> aes(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
-    if ((rc = EVP_EncryptInit_ex(aes.get(), ssl::Aes256(), nullptr, encryptionKey, nullptr)) != 1)
+    if (aes == nullptr)
+        PODOFO_RAISE_ERROR(PdfErrorCode::OutOfMemory);
+
+    if (EVP_EncryptInit_ex(aes.get(), ssl::Aes256_ECB(), nullptr, encryptionKey, nullptr) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
 
-    EVP_CIPHER_CTX_set_padding(aes.get(), 0); // disable padding
+    // NOTE: Since we the expected results is 16 byte, this implies that we must disable padding,
+    // otherwise the output will be 32 byte, corrupting the heap
+    EVP_CIPHER_CTX_set_padding(aes.get(), 0);
 
-    int dataOutMoved;
-    rc = EVP_EncryptUpdate(aes.get(), m_permsValue, &dataOutMoved, perms, 16);
-    if (rc != 1)
+    int outLen;
+    if (EVP_EncryptUpdate(aes.get(), m_permsValue, &outLen, perms, std::size(perms)) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 
-    rc = EVP_EncryptFinal_ex(aes.get(), &m_permsValue[dataOutMoved], &dataOutMoved);
-    if (rc != 1)
+    if (EVP_EncryptFinal_ex(aes.get(), m_permsValue + outLen, &outLen) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 }
 
@@ -1744,58 +1765,70 @@ PdfAuthResult PdfEncryptAESV3::Authenticate(const string_view& password, const s
                 // the context supplied cipher context here
                 // in OpenSSL 3.3. Doing so will break tests
 
-    PdfAuthResult ret = PdfAuthResult::Failed;
-
-    // Prepare password
+    // ISO 32000-2:2020 "7.6.4.3.3 Algorithm 2.A: Retrieving the file encryption key from
+    // an encrypted document in order to decrypt it (revision 6 and later)"
+    // "a) The UTF - 8 password string shall be generated from Unicode input by processing
+    // the input string with the SASLprep(Internet RFC 4013) profile of stringprep (Internet
+    // RFC 3454) using the Normalize and BiDi options, and then converting to a UTF-8 representation.
+    // b) Truncate the UTF - 8 representation to 127 bytes if it is longer than 127 bytes"
     unsigned char pswd_sasl[127];
     unsigned pswdLen;
     preprocessPassword(password, pswd_sasl, pswdLen);
 
-    // Test 1: is it the user key ?
+    // "Test the password against the owner key by computing a hash using algorithm 2.B
+    // with an input string consisting of the UTF-8 password concatenated with the 8 bytes
+    // of owner Validation Salt, concatenated with the 48-byte U string. If the 32-byte
+    // result matches the first 32 bytes of the O string, this is the owner password"
     unsigned char hashValue[32];
     computeHash(pswd_sasl, pswdLen, GetRevision(), GetUValueRaw() + 32, nullptr, hashValue); // user Validation Salt
 
     bool success = CheckKey(hashValue, GetUValueRaw());
+    PdfAuthResult ret;
+    const unsigned char* salt;
+    const unsigned char* uValue;
+    const unsigned char* decryptIn;
     if (success)
     {
         ret = PdfAuthResult::User;
-        // ISO 32000: "Compute an intermediate user key by computing the SHA-256 hash of
-        // the UTF-8 password concatenated with the 8 bytes of user Key Salt"
-        computeHash(pswd_sasl, pswdLen, GetRevision(), GetUValueRaw() + 40, nullptr, hashValue); // user Key Salt
-
-        // ISO 32000: "The 32-byte result is the key used to decrypt the 32-byte UE string using
-        // AES-256 in CBC mode with no padding and an initialization vector of zero.
-        // The 32-byte result is the file encryption key"
-        unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> aes(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
-        EVP_DecryptInit_ex(aes.get(), ssl::Aes256(), nullptr, hashValue, 0); // iv zero
-        EVP_CIPHER_CTX_set_padding(aes.get(), 0); // no padding
-        int lOutLen;
-        EVP_DecryptUpdate(aes.get(), encryptionKey, &lOutLen, m_ueValue, 32);
+        salt = GetUValueRaw() + 40;
+        uValue = nullptr;
+        decryptIn = m_ueValue;
     }
     else
     {
-        // Test 2: is it the owner key ?
+        // Secondly, check if it is the owner key
         computeHash(pswd_sasl, pswdLen, GetRevision(), GetOValueRaw() + 32, GetUValueRaw(), hashValue); // owner Validation Salt
 
         success = CheckKey(hashValue, GetOValueRaw());
-        if (success)
-        {
-            ret = PdfAuthResult::Owner;
+        if (!success)
+            return PdfAuthResult::Failed;
 
-            // ISO 32000: "Compute an intermediate owner key by computing the SHA-256 hash of
-            // the UTF-8 password concatenated with the 8 bytes of owner Key Salt, concatenated with the 48-byte U string."
-            computeHash(pswd_sasl, pswdLen, GetRevision(), GetOValueRaw() + 40, GetUValueRaw(), hashValue); // owner Key Salt
-
-            // ISO 32000: "The 32-byte result is the key used to decrypt the 32-byte OE string using
-            // AES-256 in CBC mode with no padding and an initialization vector of zero.
-            // The 32-byte result is the file encryption key"
-            unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> aes(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
-            EVP_DecryptInit_ex(aes.get(), ssl::Aes256(), nullptr, hashValue, 0); // iv zero
-            EVP_CIPHER_CTX_set_padding(aes.get(), 0); // no padding
-            int lOutLen;
-            EVP_DecryptUpdate(aes.get(), encryptionKey, &lOutLen, m_oeValue, 32);
-        }
+        ret = PdfAuthResult::Owner;
+        salt = GetOValueRaw() + 40;
+        uValue = GetUValueRaw();
+        decryptIn = m_oeValue;
     }
+
+    // Compute an intermediate user/owner key by computing a hash using algorithm 2.B with an input
+    // string consisting of the UTF-8 user/owner password concatenated with the 8 bytes of user/owner Key
+    // Salt, concatenated with the 48-byte U/O string"
+    computeHash(pswd_sasl, pswdLen, GetRevision(), salt, uValue, hashValue);
+
+    unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> aes(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
+    if (aes == nullptr)
+        PODOFO_RAISE_ERROR(PdfErrorCode::OutOfMemory);
+
+    // "The 32-byte result is the key used to decrypt the 32-byte UE/OE string using AES-256 in
+    // CBC mode with no padding and an initialization vector of zero. The 32-byte result is the
+    // file encryption key"
+    unsigned char iv[AES_IV_LENGTH] = { 0 };
+    if (EVP_DecryptInit_ex(aes.get(), ssl::Aes256_CBC(), nullptr, hashValue, iv) != 1)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
+    EVP_CIPHER_CTX_set_padding(aes.get(), 0);
+
+    int outLen;
+    if (EVP_DecryptUpdate(aes.get(), encryptionKey, &outLen, decryptIn, 32) != 1)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error during AES decryption");
 
     // TODO Validate permissions (or not...)
 

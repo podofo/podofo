@@ -26,7 +26,7 @@ OpenSSLMain::OpenSSLMain() :
 #if OPENSSL_VERSION_MAJOR >= 3
     m_libCtx{ }, m_legacyProvider{ }, m_defaultProvider{ },
 #endif // OPENSSL_VERSION_MAJOR >= 3
-    m_Rc4{ }, m_Aes128{ }, m_Aes256{ }, m_MD5{ },
+    m_Rc4{ }, m_Aes128{ }, m_Aes256_CBC{ }, m_Aes256_ECB{ }, m_MD5{ },
     m_SHA1{ }, m_SHA256{ }, m_SHA384{ }, m_SHA512{ }
 {
 }
@@ -50,7 +50,8 @@ void OpenSSLMain::Init()
     if (m_legacyProvider != nullptr)
         m_Rc4 = EVP_CIPHER_fetch(m_libCtx, "RC4", "provider=legacy");
     m_Aes128 = EVP_CIPHER_fetch(m_libCtx, "AES-128-CBC", "provider=default");
-    m_Aes256 = EVP_CIPHER_fetch(m_libCtx, "AES-256-CBC", "provider=default");
+    m_Aes256_CBC = EVP_CIPHER_fetch(m_libCtx, "AES-256-CBC", "provider=default");
+    m_Aes256_ECB = EVP_CIPHER_fetch(m_libCtx, "AES-256-ECB", "provider=default");
     m_MD5 = EVP_MD_fetch(m_libCtx, "MD5", "provider=default");
     m_SHA1 = EVP_MD_fetch(m_libCtx, "SHA1", "provider=default");
     m_SHA256 = EVP_MD_fetch(m_libCtx, "SHA2-256", "provider=default");
@@ -59,7 +60,8 @@ void OpenSSLMain::Init()
 #else // OPENSSL_VERSION_MAJOR < 3
     m_Rc4 = EVP_rc4();
     m_Aes128 = EVP_aes_128_cbc();
-    m_Aes256 = EVP_aes_256_cbc();
+    m_Aes256_CBC = EVP_aes_256_cbc();
+    m_Aes256_ECB = EVP_aes_256_ecb();
     m_MD5 = EVP_md5();
     m_SHA1 = EVP_sha1();
     m_SHA256 = EVP_sha256();
@@ -367,10 +369,16 @@ const EVP_CIPHER* ssl::Aes128()
     return s_SSL.GetAes128();
 }
 
-const EVP_CIPHER* ssl::Aes256()
+const EVP_CIPHER* ssl::Aes256_CBC()
 {
     ssl::Init();
-    return s_SSL.GetAes256();
+    return s_SSL.GetAes256_CBC();
+}
+
+const EVP_CIPHER* ssl::Aes256_ECB()
+{
+    ssl::Init();
+    return s_SSL.GetAes256_ECB();
 }
 
 const EVP_MD* ssl::MD5()
