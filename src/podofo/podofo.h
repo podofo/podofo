@@ -106,6 +106,7 @@
 #include "main/PdfPainterTextObject.h"
 #include "main/PdfPainterPath.h"
 #include "main/PdfPainter.h"
+#include "main/PdfPainterSaveGuard.h"
 #include "main/PdfStreamedDocument.h"
 #include "main/PdfXObject.h"
 #include "main/PdfXObjectForm.h"
