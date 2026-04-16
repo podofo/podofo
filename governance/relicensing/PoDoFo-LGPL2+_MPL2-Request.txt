@@ -1,0 +1,62 @@
+Subject: Request for permission to dual-license your PoDoFo contributions (LGPL-2+/MPL-2.0)
+
+Dear <contributor>,
+
+We are contacting you because you previously contributed to
+the PoDoFo[1] library.
+
+Following a discussion that began in February 2022, the PoDoFo
+project decided in December 2022[2] to migrate its entire library
+code base to a dual-licensing model under the GNU Lesser
+General  Public License version 2 or later (LGPL-2+, the current
+license) and the Mozilla Public License version 2.0[3] (MPL-2.0).
+The main motivation for this change was to provide the library
+in licensing terms that are more business-friendly in certain
+deployment scenarios, while still maintaining the copyleft
+requirement as in LGPL.
+
+After the release of PoDoFo 1.0 last year, we were able to review
+the project's contribution history in order to identify all
+copyright holders. This process identified the attached list
+("commits-<contributor>.txt") of Git revisions authored by you.
+
+We kindly ask you to review these contributions and, if you agree,
+grant permission to re-license your library code under the above
+mentioned LGPL-2+/MPL-2.0 dual-license terms. If you contributed
+any PoDoFo tools or tests code we ask you:
+- Tools: the permission to dual-license your contributions
+GPL-2+/MPL-2.0 (current is GPL-2+)
+- Tests: the permission to single license your contributions
+to MIT-0[4] (current is GPL-2+)
+
+You can reply by returning the following snippet:
+
+------------------------------
+I, <contributor>, hereby grant permission to Dominik Seichter and
+Francesco Pretto, representing the PoDoFo project, to re-license all
+of my contributions to the PoDoFo repository
+(https://github.com/podofo/podofo) for which I am eligible to claim
+copyright, up to and including revision
+5330728ad30ee12ecd5d1c86f464bd20eb3679d8 (dated December 9, 2022),
+under the:
+
+- LGPL-2+ / MPL-2.0 dual-licensing terms, for library code residing in
+the "src/" directory
+- GPL-2+ / MPL-2.0 dual-licensing terms, for tools code residing in
+the "tools/" directory
+- MIT-0 licensing terms, for test code residing in the "test/" directory
+------------------------------
+
+We would greatly appreciate a prompt response. If you have any
+questions, concerns, or objections, please do not hesitate to
+to contact us by email.
+
+[1] https://github.com/podofo/podofo
+[2] https://sourceforge.net/p/podofo/mailman/message/37746122/
+[3] https://opensource.org/license/mpl-2-0
+[4] https://opensource.org/license/mit-0
+
+Kind regards,
+
+Francesco Pretto
+Dominik Seichter
