@@ -331,20 +331,30 @@ void PdfPainter::DrawText(const string_view& str, double x, double y,
     checkStatus(StatusDefault);
     checkFont();
 
+    // Pre-resolve all throwable operations before emitting any stream operators:
+    // encoding and font resource registration can both throw, so we do them
+    // before save()/BT to keep the content stream valid on exception
+    auto& font = *m_StateStack.Current->TextState.Font;
+    auto expStr = this->expandTabs(str);
+    auto encoded = font.GetEncoding().ConvertToEncoded(expStr);
+    tryAddResource(font.GetObject(), PdfResourceType::Font);
+
     vector<array<double, 4>> linesToDraw;
     save();
     PoDoFo::WriteOperator_BT(m_stream);
     writeTextState();
-    drawText(str, x, y,
+    drawText(expStr, x, y,
         (style & PdfDrawTextStyle::Underline) != PdfDrawTextStyle::Regular,
-        (style & PdfDrawTextStyle::StrikeThrough) != PdfDrawTextStyle::Regular, linesToDraw);
+        (style & PdfDrawTextStyle::StrikeThrough) != PdfDrawTextStyle::Regular, linesToDraw,
+        encoded);
     PoDoFo::WriteOperator_ET(m_stream);
     drawLines(linesToDraw);
     restore();
 }
 
 void PdfPainter::drawText(const string_view& str, double x, double y,
-    bool isUnderline, bool isStrikeThrough, vector<array<double, 4>>& linesToDraw)
+    bool isUnderline, bool isStrikeThrough, vector<array<double, 4>>& linesToDraw,
+    const charbuff& encoded)
 {
     auto& textState = m_StateStack.Current->TextState;
     auto& font = *textState.Font;
@@ -376,7 +386,7 @@ void PdfPainter::drawText(const string_view& str, double x, double y,
 
     PoDoFo::WriteOperator_Td(m_stream, x, y);
 
-    PoDoFo::WriteOperator_Tj(m_stream, font.GetEncoding().ConvertToEncoded(str),
+    PoDoFo::WriteOperator_Tj(m_stream, encoded,
         !font.GetEncoding().IsSimpleEncoding());
 }
 
@@ -411,11 +421,19 @@ void PdfPainter::DrawTextAligned(const string_view& str, double x, double y, dou
     checkStatus(StatusDefault | StatusTextObject);
     checkFont();
 
+    // Pre-resolve all throwable operations before emitting any stream operators:
+    // encoding and font resource registration can both throw, so we do them
+    // before save()/BT to keep the content stream valid on exception
+    auto& font = *m_StateStack.Current->TextState.Font;
+    auto expStr = this->expandTabs(str);
+    auto encoded = font.GetEncoding().ConvertToEncoded(expStr);
+    tryAddResource(font.GetObject(), PdfResourceType::Font);
+
     save();
     PoDoFo::WriteOperator_BT(m_stream);
     writeTextState();
     vector<array<double, 4>> linesToDraw;
-    drawTextAligned(str, x, y, width, hAlignment, style, linesToDraw);
+    drawTextAligned(expStr, x, y, width, hAlignment, style, linesToDraw, encoded);
     PoDoFo::WriteOperator_ET(m_stream);
     drawLines(linesToDraw);
     restore();
@@ -428,15 +446,22 @@ void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, d
     auto& textState = m_StateStack.Current->TextState;
     auto& font = *textState.Font;
 
+    // Pre-resolve all throwable operations BEFORE touching the stream: encoding,
+    // line splitting, and font resource registration can all throw, so we do them
+    // before save()/BT to keep the content stream completely unmodified on exception
+    vector<string> lines = textState.SplitTextAsLines(str, width, preserveTrailingSpaces);
+    vector<charbuff> encodedLines;
+    encodedLines.reserve(lines.size());
+    for (auto& line : lines)
+        encodedLines.push_back(line.empty() ? charbuff{} : font.GetEncoding().ConvertToEncoded(line));
+    tryAddResource(font.GetObject(), PdfResourceType::Font);
+
     this->save();
     if (!skipClip)
         this->SetClipRect(x, y, width, height);
 
-    auto expanded = this->expandTabs(str);
-
     PoDoFo::WriteOperator_BT(m_stream);
     writeTextState();
-    vector<string> lines = m_StateStack.Current->TextState.SplitTextAsLines(str, width, preserveTrailingSpaces);
     double lineGap = font.GetLineSpacing(textState) - font.GetAscent(textState) + font.GetDescent(textState);
     // Do vertical alignment
     switch (vAlignment)
@@ -455,10 +480,10 @@ void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, d
 
     y -= font.GetAscent(textState) + lineGap / 2;
     vector<array<double, 4>> linesToDraw;
-    for (auto& line : lines)
+    for (unsigned i = 0; i < lines.size(); i++)
     {
-        if (line.length() != 0)
-            this->drawTextAligned(line, x, y, width, hAlignment, style, linesToDraw);
+        if (lines[i].length() != 0)
+            this->drawTextAligned(lines[i], x, y, width, hAlignment, style, linesToDraw, encodedLines[i]);
 
         x = 0;
         switch (hAlignment)
@@ -467,10 +492,10 @@ void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, d
             case PdfHorizontalAlignment::Left:
                 break;
             case PdfHorizontalAlignment::Center:
-                x = -(width - textState.Font->GetStringLength(line, textState)) / 2.0;
+                x = -(width - textState.Font->GetStringLength(lines[i], textState)) / 2.0;
                 break;
             case PdfHorizontalAlignment::Right:
-                x = -(width - textState.Font->GetStringLength(line, textState));
+                x = -(width - textState.Font->GetStringLength(lines[i], textState));
                 break;
         }
         y = -font.GetLineSpacing(textState);
@@ -481,7 +506,8 @@ void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, d
 }
 
 void PdfPainter::drawTextAligned(const string_view& str, double x, double y, double width,
-    PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style, vector<array<double, 4>>& linesToDraw)
+    PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style, vector<array<double, 4>>& linesToDraw,
+    const charbuff& encoded)
 {
     auto& textState = m_StateStack.Current->TextState;
     switch (hAlignment)
@@ -500,7 +526,7 @@ void PdfPainter::drawTextAligned(const string_view& str, double x, double y, dou
     this->drawText(str, x, y,
         (style & PdfDrawTextStyle::Underline) != PdfDrawTextStyle::Regular,
         (style & PdfDrawTextStyle::StrikeThrough) != PdfDrawTextStyle::Regular,
-        linesToDraw);
+        linesToDraw, encoded);
 }
 
 void PdfPainter::DrawImage(const PdfImage& obj, double x, double y, double scaleX, double scaleY)
@@ -513,9 +539,12 @@ void PdfPainter::DrawImage(const PdfImage& obj, double x, double y, double scale
 void PdfPainter::DrawXObject(const PdfXObject& obj, double x, double y, double scaleX, double scaleY)
 {
     checkStream();
+    // Pre-resolve resource before emitting any stream operators: if resource
+    // registration throws, the stream remains untouched (no orphan q/cm)
+    auto resName = tryAddResource(obj.GetObject(), PdfResourceType::XObject);
     PoDoFo::WriteOperator_q(m_stream);
     PoDoFo::WriteOperator_cm(m_stream, scaleX, 0, 0, scaleY, x, y);
-    PoDoFo::WriteOperator_Do(m_stream, tryAddResource(obj.GetObject(), PdfResourceType::XObject));
+    PoDoFo::WriteOperator_Do(m_stream, resName);
     PoDoFo::WriteOperator_Q(m_stream);
 }
 
@@ -631,6 +660,12 @@ void PdfPainter::BeginText()
 {
     checkStream();
     checkStatus(StatusDefault | StatusTextObject);
+    // Pre-resolve font resource before BT: writeTextState() calls setFont()
+    // which calls tryAddResource(), and that can throw on first font use.
+    // By warming the cache here, the later call inside the BT block is safe.
+    auto& textState = m_StateStack.Current->TextState;
+    if (textState.Font != nullptr)
+        tryAddResource(textState.Font->GetObject(), PdfResourceType::Font);
     PoDoFo::WriteOperator_BT(m_stream);
     enterTextObject();
     writeTextState();
@@ -650,7 +685,10 @@ void PdfPainter::AddText(const string_view& str)
     checkFont();
     auto expStr = this->expandTabs(str);
     auto& font = *m_StateStack.Current->TextState.Font;
-    PoDoFo::WriteOperator_Tj(m_stream, font.GetEncoding().ConvertToEncoded(expStr),
+    // Pre-encode before the stream write: if this throws, the stream has not
+    // been modified in this call, and the caller's open BT block remains valid
+    auto encoded = font.GetEncoding().ConvertToEncoded(expStr);
+    PoDoFo::WriteOperator_Tj(m_stream, encoded,
         !font.GetEncoding().IsSimpleEncoding());
 }
 

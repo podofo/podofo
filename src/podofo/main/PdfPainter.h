@@ -678,10 +678,12 @@ private:
 
 private:
     void drawTextAligned(const std::string_view& str, double x, double y, double width,
-        PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style, std::vector<std::array<double, 4>>& linesToDraw);
+        PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style, std::vector<std::array<double, 4>>& linesToDraw,
+        const charbuff& encoded);
 
     void drawText(const std::string_view& str, double x, double y,
-        bool isUnderline, bool isStrikeThrough, std::vector<std::array<double, 4>>& linesToDraw);
+        bool isUnderline, bool isStrikeThrough, std::vector<std::array<double, 4>>& linesToDraw,
+        const charbuff& encoded);
 
     void drawMultiLineText(const std::string_view& str, double x, double y, double width, double height,
         PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool skipClip, bool preserveTrailingSpaces,
