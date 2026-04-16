@@ -685,6 +685,158 @@ TEST_CASE("TestDrawTextMultipleTimes")
         REQUIRE((!data.HasErrors() && !data.HasWarnings()));
 }
 
+// Helper: count non-overlapping occurrences of a substring
+static size_t countOccurrences(const string& haystack, const string& needle)
+{
+    size_t count = 0;
+    size_t pos = 0;
+    while ((pos = haystack.find(needle, pos)) != string::npos)
+    {
+        count++;
+        pos += needle.length();
+    }
+    return count;
+}
+
+// DrawText with unencodable characters must throw without orphaning BT/q
+// in the stream. Before the fix, ConvertToEncoded() was called after BT was
+// already written, leaving the content stream permanently corrupted.
+TEST_CASE("DrawTextExceptionSafety_StreamClean")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+
+    PdfFontCreateParams params;
+    params.Encoding = PdfEncoding(PdfEncodingMapFactory::GetWinAnsiEncodingInstancePtr());
+    auto& font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica, params);
+
+    PdfPainter painter;
+    painter.SetCanvas(page);
+    painter.TextState.SetFont(font, 12);
+
+    // CJK characters are outside WinAnsi — triggers PdfErrorCode::InvalidFontData
+    ASSERT_THROW_WITH_ERROR_CODE(
+        painter.DrawText("Hello \xe4\xb8\x96\xe7\x95\x8c", 100, 500),
+        PdfErrorCode::InvalidFontData);
+
+    painter.FinishDrawing();
+    auto out = getContents(page);
+
+    // Stream must be clean: only the FinishDrawing q/Q wrapper, no orphan BT or inner q
+    REQUIRE(out == "q\nQ\n"sv);
+}
+
+// After a failed DrawText, a subsequent valid DrawText must produce a well-formed
+// content stream. Before the fix, the orphaned BT from the first call would nest
+// inside the second call's BT/ET block, producing invalid PDF.
+TEST_CASE("DrawTextExceptionSafety_SubsequentDrawSucceeds")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+
+    PdfFontCreateParams params;
+    params.Encoding = PdfEncoding(PdfEncodingMapFactory::GetWinAnsiEncodingInstancePtr());
+    auto& font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica, params);
+
+    PdfPainter painter;
+    painter.SetCanvas(page);
+    painter.TextState.SetFont(font, 12);
+
+    try
+    {
+        painter.DrawText("Hello \xe4\xb8\x96\xe7\x95\x8c", 100, 500);
+    }
+    catch (const PdfError&) { }
+
+    REQUIRE_NOTHROW(painter.DrawText("Hello", 100, 500));
+    painter.FinishDrawing();
+    auto out = getContents(page);
+
+    // Every BT must have a matching ET — no orphans
+    REQUIRE(countOccurrences(out, "BT") == countOccurrences(out, "ET"));
+    REQUIRE(countOccurrences(out, "BT") == 1);
+}
+
+// DrawTextAligned with unencodable characters must not corrupt the stream
+TEST_CASE("DrawTextAlignedExceptionSafety_StreamClean")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+
+    PdfFontCreateParams params;
+    params.Encoding = PdfEncoding(PdfEncodingMapFactory::GetWinAnsiEncodingInstancePtr());
+    auto& font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica, params);
+
+    PdfPainter painter;
+    painter.SetCanvas(page);
+    painter.TextState.SetFont(font, 12);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        painter.DrawTextAligned("Hello \xe4\xb8\x96\xe7\x95\x8c", 100, 500, 200,
+            PdfHorizontalAlignment::Left),
+        PdfErrorCode::InvalidFontData);
+
+    painter.FinishDrawing();
+    auto out = getContents(page);
+    REQUIRE(out == "q\nQ\n"sv);
+}
+
+// DrawTextMultiLine with unencodable characters must not corrupt the stream
+TEST_CASE("DrawTextMultiLineExceptionSafety_StreamClean")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+
+    PdfFontCreateParams params;
+    params.Encoding = PdfEncoding(PdfEncodingMapFactory::GetWinAnsiEncodingInstancePtr());
+    auto& font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica, params);
+
+    PdfPainter painter;
+    painter.SetCanvas(page);
+    painter.TextState.SetFont(font, 12);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        painter.DrawTextMultiLine("Hello \xe4\xb8\x96\xe7\x95\x8c", 100, 500, 200, 100),
+        PdfErrorCode::InvalidFontData);
+
+    painter.FinishDrawing();
+    auto out = getContents(page);
+    REQUIRE(out == "q\nQ\n"sv);
+}
+
+// TextObject.AddText with unencodable characters must not write partial operators
+// to the stream. The BT block remains open (user-managed), and a subsequent valid
+// AddText must succeed.
+TEST_CASE("TextObjectAddTextExceptionSafety_Usable")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+
+    PdfFontCreateParams params;
+    params.Encoding = PdfEncoding(PdfEncodingMapFactory::GetWinAnsiEncodingInstancePtr());
+    auto& font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica, params);
+
+    PdfPainter painter;
+    painter.SetCanvas(page);
+    painter.TextState.SetFont(font, 12);
+    painter.TextObject.Begin();
+    painter.TextObject.MoveTo(100, 500);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        painter.TextObject.AddText("Hello \xe4\xb8\x96\xe7\x95\x8c"),
+        PdfErrorCode::InvalidFontData);
+
+    // After the throw, the BT is still open — user must call End() to close it.
+    // A subsequent valid AddText should succeed without corrupting the stream.
+    REQUIRE_NOTHROW(painter.TextObject.AddText("Hello"));
+    painter.TextObject.End();
+    painter.FinishDrawing();
+    auto out = getContents(page);
+
+    REQUIRE(countOccurrences(out, "BT") == countOccurrences(out, "ET"));
+    REQUIRE(out.find("Hello") != string::npos);
+}
+
 static void drawSample(PdfPainter& painter)
 {
     painter.DrawCircle(100, 500, 20, PdfPathDrawMode::Fill);

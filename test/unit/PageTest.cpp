@@ -87,21 +87,19 @@ static void testFillFromPage(const Rect& mediaBox, int rotation,
     auto xobj = dstDoc.CreateXObjectForm(Rect());
     xobj->FillFromPage(srcPage);
 
-    const PdfArray* bboxArr;
-    REQUIRE(xobj->GetDictionary().TryFindKeyAs("BBox", bboxArr));
-    REQUIRE((*bboxArr)[0].GetReal() == Catch::Detail::Approx(expected.bboxX1));
-    REQUIRE((*bboxArr)[1].GetReal() == Catch::Detail::Approx(expected.bboxY1));
-    REQUIRE((*bboxArr)[2].GetReal() == Catch::Detail::Approx(expected.bboxX2));
-    REQUIRE((*bboxArr)[3].GetReal() == Catch::Detail::Approx(expected.bboxY2));
+    auto& bboxArr = xobj->GetDictionary().FindKeyAs<PdfArray>("BBox");
+    REQUIRE(bboxArr[0].GetReal() == Catch::Detail::Approx(expected.bboxX1));
+    REQUIRE(bboxArr[1].GetReal() == Catch::Detail::Approx(expected.bboxY1));
+    REQUIRE(bboxArr[2].GetReal() == Catch::Detail::Approx(expected.bboxX2));
+    REQUIRE(bboxArr[3].GetReal() == Catch::Detail::Approx(expected.bboxY2));
 
-    const PdfArray* matrixArr;
-    REQUIRE(xobj->GetDictionary().TryFindKeyAs("Matrix", matrixArr));
-    REQUIRE((*matrixArr)[0].GetReal() == Catch::Detail::Approx(expected.matA).margin(1e-10));
-    REQUIRE((*matrixArr)[1].GetReal() == Catch::Detail::Approx(expected.matB).margin(1e-10));
-    REQUIRE((*matrixArr)[2].GetReal() == Catch::Detail::Approx(expected.matC).margin(1e-10));
-    REQUIRE((*matrixArr)[3].GetReal() == Catch::Detail::Approx(expected.matD).margin(1e-10));
-    REQUIRE((*matrixArr)[4].GetReal() == Catch::Detail::Approx(expected.matE).margin(1e-6));
-    REQUIRE((*matrixArr)[5].GetReal() == Catch::Detail::Approx(expected.matF).margin(1e-6));
+    auto& matrixArr = xobj->GetDictionary().FindKeyAs<PdfArray>("Matrix");
+    REQUIRE(matrixArr[0].GetReal() == Catch::Detail::Approx(expected.matA).margin(1e-10));
+    REQUIRE(matrixArr[1].GetReal() == Catch::Detail::Approx(expected.matB).margin(1e-10));
+    REQUIRE(matrixArr[2].GetReal() == Catch::Detail::Approx(expected.matC).margin(1e-10));
+    REQUIRE(matrixArr[3].GetReal() == Catch::Detail::Approx(expected.matD).margin(1e-10));
+    REQUIRE(matrixArr[4].GetReal() == Catch::Detail::Approx(expected.matE).margin(1e-6));
+    REQUIRE(matrixArr[5].GetReal() == Catch::Detail::Approx(expected.matF).margin(1e-6));
 }
 
 TEST_CASE("FillFromPage rotation at origin", "[PdfXObjectForm]")
