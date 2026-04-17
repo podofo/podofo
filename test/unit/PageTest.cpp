@@ -85,3 +85,40 @@ TEST_CASE("TestFlattening")
         REQUIRE(child.GetDictionary().MustGetKey("Parent").GetReference() == pageRootRef);
     }
 }
+
+TEST_CASE("TestFillFromPageCopiesTransparencyGroup")
+{
+    // FillFromPage must propagate /Group so compositing (isolated/knockout
+    // flags, color space) matches the source page — see GitHub issue #337
+    PdfMemDocument sourceDoc;
+    auto& sourcePage = sourceDoc.GetPages().CreatePage(PdfPageSize::A4);
+
+    PdfDictionary groupDict;
+    groupDict.AddKey("Type"_n, PdfName("Group"));
+    groupDict.AddKey("S"_n, PdfName("Transparency"));
+    groupDict.AddKey("I"_n, PdfObject(true));
+    groupDict.AddKey("K"_n, PdfObject(false));
+    sourcePage.GetDictionary().AddKey("Group"_n, groupDict);
+
+    PdfMemDocument destDoc;
+    auto xobj = destDoc.CreateXObjectForm(sourcePage.GetMediaBox());
+    xobj->FillFromPage(sourcePage);
+
+    auto* copiedGroup = xobj->GetDictionary().FindKey("Group");
+    REQUIRE(copiedGroup != nullptr);
+    REQUIRE(copiedGroup->GetDictionary().GetKey("S")->GetName() == "Transparency");
+    REQUIRE(copiedGroup->GetDictionary().GetKey("I")->GetBool() == true);
+    REQUIRE(copiedGroup->GetDictionary().GetKey("K")->GetBool() == false);
+}
+
+TEST_CASE("TestFillFromPageWithoutGroupDoesNotCreateOne")
+{
+    PdfMemDocument sourceDoc;
+    auto& sourcePage = sourceDoc.GetPages().CreatePage(PdfPageSize::A4);
+
+    PdfMemDocument destDoc;
+    auto xobj = destDoc.CreateXObjectForm(sourcePage.GetMediaBox());
+    xobj->FillFromPage(sourcePage);
+
+    REQUIRE(xobj->GetDictionary().FindKey("Group") == nullptr);
+}

@@ -378,6 +378,10 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
     if (pageObj.IsDictionary() && pageObj.GetDictionary().HasKey("Resources"))
         xobj.GetDictionary().AddKey("Resources"_n, *pageObj.GetDictionary().GetKey("Resources"));
 
+    // preserve transparency group so compositing matches the source page
+    if (pageObj.IsDictionary() && pageObj.GetDictionary().HasKey("Group"))
+        xobj.GetDictionary().AddKey("Group"_n, *pageObj.GetDictionary().GetKey("Group"));
+
     // copy top-level content from external doc to x-object
     if (pageObj.IsDictionary() && pageObj.GetDictionary().HasKey("Contents"))
     {
