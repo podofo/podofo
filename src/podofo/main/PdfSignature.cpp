@@ -1,9 +1,7 @@
-/**
- * SPDX-FileCopyrightText: (C) 2011 Dominik Seichter <domseichter@web.de>
- * SPDX-FileCopyrightText: (C) 2011 Petr Pytelka
- * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
- * SPDX-License-Identifier: LGPL-2.0-or-later
- */
+// SPDX-FileCopyrightText: 2011 Dominik Seichter <domseichter@web.de>
+// SPDX-FileCopyrightText: 2011 Petr Pytelka
+// SPDX-FileCopyrightText: 2020 Francesco Pretto <ceztko@gmail.com>
+// SPDX-License-Identifier: LGPL-2.0-or-later OR MPL-2.0
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfSignature.h"

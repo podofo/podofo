@@ -1,8 +1,5 @@
-/**
- * SPDX-FileCopyrightText: (C) 2024 Kira Backes <kira.backes@nrwsoft.de>
- * SPDX-License-Identifier: LGPL-2.0-or-later
- * SPDX-License-Identifier: MPL-2.0
- */
+// SPDX-FileCopyrightText: 2024 Kira Backes <kira.backes@nrwsoft.de>
+// SPDX-License-Identifier: LGPL-2.0-or-later OR MPL-2.0
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfTextState.h"

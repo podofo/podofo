@@ -1,8 +1,6 @@
-/**
- * SPDX-FileCopyrightText: (C) 2008 Dominik Seichter <domseichter@web.de>
- * SPDX-FileCopyrightText: (C) 2021 Francesco Pretto <ceztko@gmail.com>
- * SPDX-License-Identifier: LGPL-2.0-or-later
- */
+// SPDX-FileCopyrightText: 2008 Dominik Seichter <domseichter@web.de>
+// SPDX-FileCopyrightText: 2021 Francesco Pretto <ceztko@gmail.com>
+// SPDX-License-Identifier: LGPL-2.0-or-later OR MPL-2.0
 
 // The code was initially based on work by ZhangYang
 // (张杨.国际) <zhang_yang@founder.com>

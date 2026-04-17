@@ -1,8 +1,6 @@
-/**
- * SPDX-FileCopyrightText: (C) 2011 Dominik Seichter <domseichter@web.de>
- * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
- * SPDX-License-Identifier: LGPL-2.0-or-later
- */
+// SPDX-FileCopyrightText: 2011 Dominik Seichter <domseichter@web.de>
+// SPDX-FileCopyrightText: 2020 Francesco Pretto <ceztko@gmail.com>
+// SPDX-License-Identifier: LGPL-2.0-or-later OR MPL-2.0
 
 #ifndef PDF_FONT_CONFIG_WRAPPER_H
 #define PDF_FONT_CONFIG_WRAPPER_H

@@ -1,8 +1,6 @@
-/**
- * SPDX-FileCopyrightText: (C) 2007 Dominik Seichter <domseichter@web.de>
- * SPDX-FileCopyrightText: (C) 2022 Francesco Pretto <ceztko@gmail.com>
- * SPDX-License-Identifier: LGPL-2.0-or-later
- */
+// SPDX-FileCopyrightText: 2007 Dominik Seichter <domseichter@web.de>
+// SPDX-FileCopyrightText: 2022 Francesco Pretto <ceztko@gmail.com>
+// SPDX-License-Identifier: LGPL-2.0-or-later OR MPL-2.0
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfColor.h"

@@ -1,7 +1,5 @@
-/**
- * SPDX-FileCopyrightText: (C) 2007 Dominik Seichter <domseichter@web.de>
- * SPDX-License-Identifier: LGPL-2.0-or-later
- */
+// SPDX-FileCopyrightText: 2007 Dominik Seichter <domseichter@web.de>
+// SPDX-License-Identifier: LGPL-2.0-or-later OR MPL-2.0
 
 #ifndef PDF_STREAMED_OBJECT_STREAM_H
 #define PDF_STREAMED_OBJECT_STREAM_H

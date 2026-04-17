@@ -1,7 +1,5 @@
-/**
- * SPDX-FileCopyrightText: (C) 2006 Dominik Seichter <domseichter@web.de>
- * SPDX-License-Identifier: LGPL-2.0-or-later
- */
+// SPDX-FileCopyrightText: 2006 Dominik Seichter <domseichter@web.de>
+// SPDX-License-Identifier: LGPL-2.0-or-later OR MPL-2.0
 
 #include "PdfDeclarationsPrivate.h"
 #include "PdfFilterFactory.h"

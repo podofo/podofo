@@ -1,4 +1,5 @@
 ## Version 1.1.0-dev
+- PoDoFo is now licensed under the MPL-2.0 or LGPLv2+ license terms
 - Added support for ECDSA encryption
 - Added resumable signing context feature with functions `PdfSigningContext::DumpInPlace()` and `PdfSigningContext::Restore()`
 - Added `PdfXMPPAcket::PruneAndValidate(pdfaLevel)`
