@@ -376,6 +376,15 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
     if (pageObj.IsDictionary() && pageObj.GetDictionary().HasKey("Resources"))
         xobj.GetDictionary().AddKey("Resources"_n, *pageObj.GetDictionary().GetKey("Resources"));
 
+    // without /Group the viewer resets to default compositing, dropping the
+    // page's isolated/knockout flags and color space (ISO 32000-1 §11.6.6)
+    if (pageObj.IsDictionary())
+    {
+        auto* groupObj = pageObj.GetDictionary().GetKey("Group");
+        if (groupObj != nullptr)
+            xobj.GetDictionary().AddKey("Group"_n, *groupObj);
+    }
+
     // copy top-level content from external doc to x-object
     if (pageObj.IsDictionary() && pageObj.GetDictionary().HasKey("Contents"))
     {
