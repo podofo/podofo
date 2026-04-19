@@ -1,7 +1,5 @@
-/**
- * Licensed under GNU Library General Public 2.0 or later.
- * Some rights reserved. See COPYING, AUTHORS.
- */
+// SPDX-FileCopyrightText: 2026 Christopher Creutzig <ccreutzi@mathworks.com>
+// SPDX-License-Identifier: MIT-0
 
 #include <PdfTest.h>
 

@@ -10,13 +10,11 @@ The PoDoFo library in the "src/" directory is licensed under:
 - Mozilla Public License v2.0 (MPL-2.0)
 - GNU Lesser General Public License v2.0 or later (LGPL-2.0-or-later)
 
-The examples in the "examples/" directory are licensed under:
+The examples in the "examples/" directory and tests in the "test/"
+directory are licensed under:
 - MIT No Attribution License (MIT-0)
 
 The tools in the "tools/" directory are licensed under:
-- GNU General Public License v2.0 or later (GPL-2.0-or-later)
-
-The tests in the "test/" directory are licensed under:
 - GNU General Public License v2.0 or later (GPL-2.0-or-later)
 
 Third-Party Components

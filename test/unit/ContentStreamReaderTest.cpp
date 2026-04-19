@@ -1,7 +1,5 @@
-/**
- * SPDX-FileCopyrightText: (C) 2026 by the PoDoFo authors
- * SPDX-License-Identifier: MIT-0
- */
+// SPDX-FileCopyrightText: 2026 PoDoFo contributors
+// SPDX-License-Identifier: MIT-0
 
 #include <PdfTest.h>
 

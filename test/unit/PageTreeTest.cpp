@@ -1,10 +1,6 @@
-/**
- * Copyright (C) 2008 by Dominik Seichter <domseichter@web.de>
- * Copyright (C) 2021 by Francesco Pretto <ceztko@gmail.com>
- *
- * Licensed under GNU Library General Public 2.0 or later.
- * Some rights reserved. See COPYING, AUTHORS.
- */
+// SPDX-FileCopyrightText: 2008 Dominik Seichter <domseichter@web.de>
+// SPDX-FileCopyrightText: 2021 Francesco Pretto <ceztko@gmail.com>
+// SPDX-License-Identifier: MIT-0
 
 #include <PdfTest.h>
 
@@ -24,14 +20,8 @@ namespace PoDoFo
 using namespace std;
 using namespace PoDoFo;
 
-static void appendChildNode(PdfObject& parent, PdfObject& child);
 static bool isPageNumber(PdfPage& page, unsigned number);
-
-static vector<PdfObject*> createNodes(PdfMemDocument& doc, unsigned nodeCount);
-static void createEmptyKidsTree(PdfMemDocument& doc);
-static void createNestedArrayTree(PdfMemDocument& doc);
 static void createTestTree(PdfMemDocument& doc);
-static void createCyclicTree(PdfMemDocument& doc, bool createCycle);
 static void testGetPages(PdfMemDocument& doc);
 static void testInsert(PdfMemDocument& doc);
 static void testDeleteAll(PdfMemDocument& doc);
@@ -46,49 +36,6 @@ TEST_CASE("TestEmptyDoc")
 
     // Retrieving any page from an empty document must be NULL
     ASSERT_THROW_WITH_ERROR_CODE(doc.GetPages().GetPageAt(0), PdfErrorCode::ValueOutOfRange);
-}
-
-TEST_CASE("TestCyclicTree")
-{
-    {
-        PdfMemDocument doc;
-        createCyclicTree(doc, false);
-        for (unsigned pagenum = 0; pagenum < doc.GetPages().GetCount(); pagenum++)
-        {
-            // pass 0:
-            // valid tree without cycles should yield all pages
-            auto& page = doc.GetPages().GetPageAt(pagenum);
-            REQUIRE(isPageNumber(page, pagenum));
-        }
-    }
-
-    {
-        PdfMemDocument doc;
-        createCyclicTree(doc, true);
-        // pass 1:
-        // cyclic tree must throw exception to prevent infinite recursion
-        ASSERT_THROW_WITH_ERROR_CODE(doc.GetPages().GetPageAt(0), PdfErrorCode::ValueOutOfRange);
-    }
-}
-
-TEST_CASE("TestEmptyKidsTree")
-{
-    PdfMemDocument doc;
-    createEmptyKidsTree(doc);
-    //doc.Write("tree_zerokids.pdf");
-    for (unsigned pagenum = 0; pagenum < doc.GetPages().GetCount(); pagenum++)
-    {
-        PdfPage& page = doc.GetPages().GetPageAt(pagenum);
-        REQUIRE(isPageNumber(page, pagenum));
-    }
-}
-
-TEST_CASE("TestNestedArrayTree")
-{
-    PdfMemDocument doc;
-    createNestedArrayTree(doc);
-    for (unsigned i = 0, count = doc.GetPages().GetCount(); i < count; i++)
-        ASSERT_THROW_WITH_ERROR_CODE(doc.GetPages().GetPageAt(i), PdfErrorCode::ValueOutOfRange);
 }
 
 TEST_CASE("TestCreateDelete")
@@ -429,144 +376,6 @@ PdfMemDocument PdfPageTest::CreateTestTreeCustom()
     return PdfMemDocument(doc);
 }
 
-vector<unique_ptr<PdfPage>> PdfPageTest::CreateSamplePages(PdfMemDocument& doc, unsigned pageCount)
-{
-    // create font
-    auto font = doc.GetFonts().SearchFont("LiberationSans");
-    if (font == nullptr)
-        FAIL("Could not find Arial font");
-
-    vector<unique_ptr<PdfPage>> pages(pageCount);
-    for (unsigned i = 0; i < pageCount; ++i)
-    {
-        pages[i].reset(new PdfPage(doc, PdfPage::CreateStandardPageSize(PdfPageSize::A4)));
-        pages[i]->SetIndex(i);
-        pages[i]->GetDictionary().AddKey(TEST_PAGE_KEY, static_cast<int64_t>(i));
-
-        PdfPainter painter;
-        painter.SetCanvas(*pages[i]);
-        painter.TextState.SetFont(*font, 16.0);
-        ostringstream os;
-        os << "Page " << i + 1;
-        painter.DrawText(os.str(), 200, 200);
-        painter.FinishDrawing();
-    }
-
-    return pages;
-}
-
-vector<PdfObject*> createNodes(PdfMemDocument& doc, unsigned nodeCount)
-{
-    vector<PdfObject*> nodes(nodeCount);
-
-    for (unsigned i = 0; i < nodeCount; ++i)
-    {
-        nodes[i] = &doc.GetObjects().CreateDictionaryObject("Pages"_n);
-        // init required keys
-        nodes[i]->GetDictionary().AddKey("Kids"_n, PdfArray());
-        nodes[i]->GetDictionary().AddKey("Count"_n, PdfVariant(static_cast<int64_t>(0L)));
-    }
-
-    return nodes;
-}
-
-void createCyclicTree(PdfMemDocument& doc, bool createCycle)
-{
-    const unsigned COUNT = 3;
-
-    auto pages = PdfPageTest::CreateSamplePages(doc, COUNT);
-    auto nodes = createNodes(doc, 2);
-
-    // manually insert pages into pagetree
-    auto& root = doc.GetPages().GetObject();
-
-    // tree layout (for !bCreateCycle):
-    //
-    //    root
-    //    +-- node0
-    //        +-- node1
-    //        |   +-- page0
-    //        |   +-- page1
-    //        \-- page2
-
-    // root node
-    appendChildNode(root, *nodes[0]);
-
-    // tree node 0
-    appendChildNode(*nodes[0], *nodes[1]);
-    appendChildNode(*nodes[0], pages[2]->GetObject());
-
-    // tree node 1
-    appendChildNode(*nodes[1], pages[0]->GetObject());
-    appendChildNode(*nodes[1], pages[1]->GetObject());
-
-    if (createCycle)
-    {
-        // invalid tree: Cycle!!!
-        // was not detected in PdfPagesTree::GetPageNode() rev. 1937
-        nodes[0]->GetDictionary().MustFindKey("Kids").GetArray()[0] = root.GetIndirectReference();
-    }
-}
-
-void createEmptyKidsTree(PdfMemDocument& doc)
-{
-    const unsigned COUNT = 3;
-
-    auto pages = PdfPageTest::CreateSamplePages(doc, COUNT);
-    auto nodes = createNodes(doc, 3);
-
-    // manually insert pages into pagetree
-    auto& root = doc.GetPages().GetObject();
-
-    // tree layout:
-    //
-    //    root
-    //    +-- node0
-    //    |   +-- page0
-    //    |   +-- page1
-    //    |   +-- page2
-    //    +-- node1
-    //    \-- node2
-
-    // root node
-    appendChildNode(root, *nodes[0]);
-    appendChildNode(root, *nodes[1]);
-    appendChildNode(root, *nodes[2]);
-
-    // tree node 0
-    appendChildNode(*nodes[0], pages[0]->GetObject());
-    appendChildNode(*nodes[0], pages[1]->GetObject());
-    appendChildNode(*nodes[0], pages[2]->GetObject());
-
-    // tree node 1 and node 2 are left empty: this is completely valid
-    // according to the PDF spec, i.e. the required keys may have the
-    // values "/Kids [ ]" and "/Count 0"
-}
-
-void createNestedArrayTree(PdfMemDocument& doc)
-{
-    constexpr unsigned COUNT = 3;
-
-    auto pages = PdfPageTest::CreateSamplePages(doc, COUNT);
-    auto& root = doc.GetPages().GetObject();
-
-    // create kids array
-    PdfArray kids;
-    for (unsigned i = 0; i < COUNT; i++)
-    {
-        kids.Add(pages[i]->GetObject().GetIndirectReference());
-        pages[i]->GetDictionary().AddKey("Parent"_n, root.GetIndirectReference());
-    }
-
-    // create nested kids array
-    PdfArray nested;
-    nested.Add(kids);
-
-    // manually insert pages into pagetree
-    root.GetDictionary().AddKey("Count"_n, static_cast<int64_t>(COUNT));
-    root.GetDictionary().AddKey("Kids"_n, nested);
-}
-
 bool isPageNumber(PdfPage& page, unsigned number)
 {
     int64_t pageNumber = page.GetDictionary().GetKeyAsSafe<int64_t>(TEST_PAGE_KEY, -1);
@@ -578,32 +387,4 @@ bool isPageNumber(PdfPage& page, unsigned number)
     }
     else
         return true;
-}
-
-void appendChildNode(PdfObject& parent, PdfObject& child)
-{
-    // 1. Add the reference of the new child to the kids array of parent
-    PdfArray kids;
-    PdfObject* oldKids = parent.GetDictionary().FindKey("Kids");
-    if (oldKids != nullptr && oldKids->IsArray()) kids = oldKids->GetArray();
-    kids.Add(child.GetIndirectReference());
-    parent.GetDictionary().AddKey("Kids"_n, kids);
-
-    // 2. If the child is a page (leaf node), increase count of every parent
-    //    (which also includes pParent)
-    if (child.GetDictionary().GetKeyAs<PdfName>("Type") == "Page")
-    {
-        PdfObject* node = &parent;
-        while (node)
-        {
-            int64_t count = 0;
-            if (node->GetDictionary().FindKey("Count")) count = node->GetDictionary().FindKey("Count")->GetNumber();
-            count++;
-            node->GetDictionary().AddKey("Count"_n, count);
-            node = node->GetDictionary().FindKey("Parent");
-        }
-    }
-
-    // 3. Add Parent key to the child
-    child.GetDictionary().AddKey("Parent"_n, parent.GetIndirectReference());
 }

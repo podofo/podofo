@@ -1,11 +1,5 @@
-/**
- * SPDX-FileCopyrightText: (C) 2026 PoDoFo contributors
- * SPDX-License-Identifier: LGPL-2.0-or-later
- *
- * Tests for bounded growth in parsing routines.
- * These verify that oversized or malformed inputs are rejected
- * rather than causing unbounded memory or CPU consumption.
- */
+ // SPDX-FileCopyrightText: 2026 PoDoFo contributors
+ // SPDX-License-Identifier: MIT-0
 
 #include <PdfTest.h>
 
