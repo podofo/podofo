@@ -573,6 +573,26 @@ TEST_CASE("BigDynamicCMAPTest")
     }
 }
 
+TEST_CASE("TestDrawTextMultipleTimes")
+{
+    PdfMemDocument document;
+    auto font = document.GetFonts().SearchFont("Arial");
+    auto& page = document.GetPages().CreatePage(PoDoFo::PdfPageSize::A4);
+    for (int i = 0; i < 3; i++)
+    {
+        PdfPainter painter;
+        painter.SetCanvas(page);
+        painter.TextState.SetFont(*font, 10);
+        painter.DrawText("M", 0, 0);
+        painter.FinishDrawing();
+    }
+
+    PdfContent data;
+    PdfContentStreamReader reader(page);
+    while (reader.TryReadNext(data))
+        REQUIRE((!data.HasErrors() && !data.HasWarnings()));
+}
+
 static void drawSample(PdfPainter& painter)
 {
     painter.DrawCircle(100, 500, 20, PdfPathDrawMode::Fill);
