@@ -130,6 +130,7 @@ bool PdfContentStreamReader::tryReadNextContent(PdfContent& content)
                 if (!TryConvertTo(content.Data.Keyword, content.Data.Operator))
                 {
                     content.Type = PdfContentType::UnexpectedKeyword;
+                    content.Errors |= PdfContentErrors::InvalidOperator;
                     return true;
                 }
 
@@ -157,6 +158,7 @@ bool PdfContentStreamReader::tryReadNextContent(PdfContent& content)
             case PdfPostScriptTokenType::ProcedureExit:
             {
                 content.Type = PdfContentType::UnexpectedKeyword;
+                content.Errors |= PdfContentErrors::UnexpectedToken;
                 return true;
             }
             default:

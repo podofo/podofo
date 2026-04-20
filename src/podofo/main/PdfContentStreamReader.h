@@ -41,6 +41,7 @@ enum class PdfContentErrors : uint16_t
     None = 0,
     InvalidOperator = 1,                ///< Unknown operator or insufficient operand count. Applies to Operator
     InvalidXObject = 2,                 ///< Invalid or not found XObject
+    UnexpectedToken = 4,                ///< Token encountered in an invalid context (e.g., misplaced PostScript brace delimiter '{' or '}')
 };
 
 /** Content as read from content streams
