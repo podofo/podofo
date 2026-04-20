@@ -112,6 +112,8 @@ public:
     void ReadNextVariant(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt = { });
     bool TryReadNextVariant(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt = { });
 
+    void Reset();
+
 public:
     /** Returns true if the given character is a whitespace
      *  according to the pdf reference

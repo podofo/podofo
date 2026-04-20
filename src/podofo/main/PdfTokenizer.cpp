@@ -235,6 +235,11 @@ bool PdfTokenizer::TryReadNextVariant(InputStreamDevice& device, PdfVariant& var
     return PdfTokenizer::TryReadNextVariant(device, token, tokenType, variant, encrypt);
 }
 
+void PdfTokenizer::Reset()
+{
+    m_tokenQueque.clear();
+}
+
 void PdfTokenizer::ReadNextVariant(InputStreamDevice& device, const string_view& token, PdfTokenType tokenType, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     if (!TryReadNextVariant(device, token, tokenType, variant, encrypt))
