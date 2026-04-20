@@ -134,6 +134,9 @@ void PdfContents::copyTo(OutputStream& stream, const PdfArray& arr) const
 {
     for (unsigned i = 0; i < arr.GetSize(); i++)
     {
+        if (i != 0)
+            stream.Write("\n");
+
         const PdfObjectStream* objStream;
         auto streamObj = arr.FindAt(i);
         if (streamObj != nullptr && (objStream = streamObj->GetStream()) != nullptr)
