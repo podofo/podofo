@@ -73,7 +73,7 @@ PdfIndirectObjectList::PdfIndirectObjectList() :
 PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document) :
     m_Document(&document),
     m_CanReuseObjectNumbers(true),
-    m_ObjectCount(0),
+    m_ObjectCount(1),
     m_StreamFactory(nullptr)
 {
 }
@@ -107,7 +107,10 @@ void PdfIndirectObjectList::Clear()
         delete obj;
 
     m_Objects.clear();
-    m_ObjectCount = 0;
+    if (m_Document == nullptr)
+        m_ObjectCount = 0;
+    else
+        m_ObjectCount = 1;
     m_FreeObjects.clear();
     m_unavailableObjects.clear();
     m_compressedObjectStreams.clear();
