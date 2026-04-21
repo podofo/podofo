@@ -1,8 +1,6 @@
-/**
- * SPDX-FileCopyrightText: (C) 2006 Dominik Seichter <domseichter@web.de>
- * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
- * SPDX-License-Identifier: LGPL-2.0-or-later
- */
+// SPDX-FileCopyrightText: 2006 Dominik Seichter <domseichter@web.de>
+// SPDX-FileCopyrightText: 2020 Francesco Pretto <ceztko@gmail.com>
+// SPDX-License-Identifier: LGPL-2.0-or-later OR MPL-2.0
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfContents.h"
@@ -123,6 +121,9 @@ void PdfContents::copyTo(OutputStream& stream, const PdfArray& arr) const
 {
     for (unsigned i = 0; i < arr.GetSize(); i++)
     {
+        if (i != 0)
+            stream.Write("\n");
+
         const PdfObjectStream* objStream;
         auto streamObj = arr.FindAt(i);
         if (streamObj != nullptr && (objStream = streamObj->GetStream()) != nullptr)

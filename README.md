@@ -76,8 +76,8 @@ GCC 8.1 support [broke](https://github.com/podofo/podofo/issues/116), but it cou
 
 ## Licensing
 
-PoDoFo library is licensed under the [LGPL 2.0](https://spdx.org/licenses/LGPL-2.0-or-later.html) or later terms.
-PoDoFo tools are licensed under the [GPL 2.0](https://spdx.org/licenses/GPL-2.0-or-later.html) or later terms.
+The PoDoFo library is licensed under the [MPL 2.0](https://spdx.org/licenses/MPL-2.0.html) terms or, at your option, [LGPL 2.0 or later](https://spdx.org/licenses/LGPL-2.0-or-later.html).
+PoDoFo tools are licensed under the [GPL 2.0 or later](https://spdx.org/licenses/GPL-2.0-or-later.html) terms.
 
 ## Development quickstart
 

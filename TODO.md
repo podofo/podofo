@@ -1,7 +1,7 @@
 ### 1.1
-- Complete the LGPLv2+/MPL-2.0 relicensing
 - Throw by default when signing a document with invalid XRef sections
-- Examine https://github.com/podofo/podofo/issues/317
+- Enable PODOFO_HAVE_RNG_VALIDATION_RECOVERY for LibXml2 >= 2.15
+- Issues in https://github.com/podofo/podofo/milestone/2
 
 ### After 1.1
 - PdfPredictorDecoder: Support BitsPerComponent != 8

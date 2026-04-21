@@ -1,10 +1,6 @@
-/**
- * Copyright (C) 2007 by Dominik Seichter <domseichter@web.de>
- * Copyright (C) 2021 by Francesco Pretto <ceztko@gmail.com>
- *
- * Licensed under GNU Library General Public 2.0 or later.
- * Some rights reserved. See COPYING, AUTHORS.
- */
+// SPDX-FileCopyrightText: 2007 Dominik Seichter <domseichter@web.de>
+// SPDX-FileCopyrightText: 2021 Francesco Pretto <ceztko@gmail.com>
+// SPDX-License-Identifier: MIT-0
 
 /*
     Notes:
@@ -2011,70 +2007,6 @@ void PdfParserTest::TestIsPdfFile()
         FAIL("Wrong exception type");
     }
     REQUIRE(expectedFail);
-}
-
-TEST_CASE("TestSaveIncrementalRoundTrip")
-{
-    ostringstream oss;
-    oss << "%PDF-1.1\n";
-    unsigned currObj = 1;
-    streamoff objPos[20];
-
-    // Pages
-
-    unsigned pagesObj = currObj;
-    objPos[currObj] = oss.tellp();
-    oss << currObj++ << " 0 obj\n";
-    oss << "<</Type /Pages /Count 0 /Kids []>>\n";
-    oss << "endobj\n";
-
-    // Root catalog
-
-    unsigned rootObj = currObj;
-    objPos[currObj] = oss.tellp();
-    oss << currObj++ << " 0 obj\n";
-    oss << "<</Type /Catalog /Pages " << pagesObj << " 0 R>>\n";
-    oss << "endobj\n";
-
-    // ID
-    unsigned idObj = currObj;
-    objPos[currObj] = oss.tellp();
-    oss << currObj++ << " 0 obj\n";
-    oss << "[<F1E375363A6314E3766EDF396D614748> <F1E375363A6314E3766EDF396D614748>]\n";
-    oss << "endobj\n";
-
-    streamoff xrefPos = oss.tellp();
-    oss << "xref\n";
-    oss << "0 " << currObj << "\n";
-    oss << "0000000000 65535 f \n";
-    for (unsigned i = 1; i < currObj; i++)
-        oss << utls::Format("{:010d} 00000 n \n", objPos[i]);
-
-    oss << "trailer <<\n"
-        << "  /Size " << currObj << "\n"
-        << "  /Root " << rootObj << " 0 R\n"
-        << "  /ID " << idObj << " 0 R\n" // indirect ID
-        << ">>\n"
-        << "startxref\n"
-        << xrefPos << "\n"
-        << "%%EOF\n";
-
-    string docBuff = oss.str();
-    try
-    {
-        PdfMemDocument doc;
-        // load for update
-        doc.LoadFromBuffer(docBuff);
-
-        StringStreamDevice outDev(docBuff);
-
-        doc.SaveUpdate(outDev);
-        doc.LoadFromBuffer(docBuff);
-    }
-    catch (PdfError&)
-    {
-        FAIL("Unexpected PdfError");
-    }
 }
 
 // CVE-2018-8002, CVE-2021-30470

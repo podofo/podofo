@@ -1,10 +1,6 @@
-/**
- * Copyright (C) 2011 by Dominik Seichter <domseichter@web.de>
- * Copyright (C) 2021 by Francesco Pretto <ceztko@gmail.com>
- *
- * Licensed under GNU Library General Public 2.0 or later.
- * Some rights reserved. See COPYING, AUTHORS.
- */
+// SPDX-FileCopyrightText: 2011 Dominik Seichter <domseichter@web.de>
+// SPDX-FileCopyrightText: 2021 Francesco Pretto <ceztko@gmail.com>
+// SPDX-License-Identifier: MIT-0
 
 #include <PdfTest.h>
 
@@ -785,6 +781,26 @@ TEST_CASE("SaveGuard_ExplicitRestoreThrows_AfterManualRestore")
     REQUIRE(painter.GetStateStack().GetSize() == 1);
 
     REQUIRE_THROWS(guard.Restore());
+}
+  
+TEST_CASE("TestDrawTextMultipleTimes")
+{
+    PdfMemDocument document;
+    auto font = document.GetFonts().SearchFont("Arial");
+    auto& page = document.GetPages().CreatePage(PoDoFo::PdfPageSize::A4);
+    for (int i = 0; i < 3; i++)
+    {
+        PdfPainter painter;
+        painter.SetCanvas(page);
+        painter.TextState.SetFont(*font, 10);
+        painter.DrawText("M", 0, 0);
+        painter.FinishDrawing();
+    }
+
+    PdfContent data;
+    PdfContentStreamReader reader(page);
+    while (reader.TryReadNext(data))
+        REQUIRE((!data.HasErrors() && !data.HasWarnings()));
 }
 
 static void drawSample(PdfPainter& painter)

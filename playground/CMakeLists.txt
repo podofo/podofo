@@ -79,6 +79,10 @@ add_compile_definitions(LIBXML_STATIC)
 # See https://gitlab.gnome.org/GNOME/libxml2/-/merge_requests/334
 set(PODOFO_HAVE_RNG_VALIDATION_RECOVERY TRUE)
 
+# Enable GPL2 only tests
+# TODO: Remove me
+add_compile_definitions(PODOFO_ENABLE_GPL2_TESTS)
+
 # Don't search dependencies in sysroot. This avoid
 # potential mismatches
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY NEVER)

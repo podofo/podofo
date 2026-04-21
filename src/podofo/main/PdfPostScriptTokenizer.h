@@ -1,8 +1,5 @@
-/**
- * SPDX-FileCopyrightText: (C) 2021 Francesco Pretto <ceztko@gmail.com>
- * SPDX-License-Identifier: LGPL-2.0-or-later
- * SPDX-License-Identifier: MPL-2.0
- */
+// SPDX-FileCopyrightText: 2021 Francesco Pretto <ceztko@gmail.com>
+// SPDX-License-Identifier: LGPL-2.0-or-later OR MPL-2.0
 
 #ifndef PDF_POSTSCRIPT_TOKENIZER_H
 #define PDF_POSTSCRIPT_TOKENIZER_H
@@ -20,8 +17,8 @@ enum class PdfPostScriptTokenType : uint8_t
     Unknown = 0,
     Keyword, ///< The token is a PDF keyword.
     Variant, ///< The token is a PDF variant. A variant is usually a parameter to a keyword
-    ProcedureEnter, ///< Procedure enter delimiter
-    ProcedureExit, ///< Procedure enter delimiter
+    ProcedureEnter, ///< Procedure enter delimiter '{'
+    ProcedureExit, ///< Procedure enter delimiter '}'
 };
 
 /** This class is a parser for general PostScript content in PDF documents.

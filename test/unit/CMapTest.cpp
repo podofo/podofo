@@ -1,8 +1,5 @@
-/**
- * SPDX-FileCopyrightText: (C) 2025 Francesco Pretto <ceztko@gmail.com>
- * SPDX-License-Identifier: MIT-0
- */
-
+// SPDX-FileCopyrightText: 2025 Francesco Pretto <ceztko@gmail.com>
+// SPDX-License-Identifier: MIT-0
 
 #include <PdfTest.h>
 

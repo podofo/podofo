@@ -1,7 +1,5 @@
-/**
- * SPDX-FileCopyrightText: (C) 2025 Francesco Pretto <ceztko@gmail.com>
- * SPDX-License-Identifier: MIT
- */
+// SPDX-FileCopyrightText: (C) 2025 Francesco Pretto <ceztko@gmail.com>
+// SPDX-License-Identifier: MIT
 
 #include <string>
 #include <string_view>

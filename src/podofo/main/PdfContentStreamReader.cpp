@@ -1,8 +1,5 @@
-/**
- * SPDX-FileCopyrightText: (C) 2022 Francesco Pretto <ceztko@gmail.com>
- * SPDX-License-Identifier: LGPL-2.0-or-later
- * SPDX-License-Identifier: MPL-2.0
- */
+// SPDX-FileCopyrightText: 2022 Francesco Pretto <ceztko@gmail.com>
+// SPDX-License-Identifier: LGPL-2.0-or-later OR MPL-2.0
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfContentStreamReader.h"
@@ -133,6 +130,7 @@ bool PdfContentStreamReader::tryReadNextContent(PdfContent& content)
                 if (!TryConvertTo(content.Data.Keyword, content.Data.Operator))
                 {
                     content.Type = PdfContentType::UnexpectedKeyword;
+                    content.Errors |= PdfContentErrors::InvalidOperator;
                     return true;
                 }
 
@@ -160,6 +158,7 @@ bool PdfContentStreamReader::tryReadNextContent(PdfContent& content)
             case PdfPostScriptTokenType::ProcedureExit:
             {
                 content.Type = PdfContentType::UnexpectedKeyword;
+                content.Errors |= PdfContentErrors::UnexpectedToken;
                 return true;
             }
             default:

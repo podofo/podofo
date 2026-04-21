@@ -1,0 +1,85 @@
+PoDoFo Notice
+=============
+
+This product includes software developed by the PoDoFo Project
+(https://github.com/podofo/podofo).
+
+Project Licenses
+----------------
+The PoDoFo library in the "src/" directory is licensed under:
+- Mozilla Public License v2.0 (MPL-2.0)
+- GNU Lesser General Public License v2.0 or later (LGPL-2.0-or-later)
+
+The examples in the "examples/" directory and tests in the "test/"
+directory are licensed under:
+- MIT No Attribution License (MIT-0)
+
+The tools in the "tools/" directory are licensed under:
+- GNU General Public License v2.0 or later (GPL-2.0-or-later)
+
+Third-Party Components
+----------------------
+
+PoDoFo bundles or includes code from the following third-party projects:
+
+1. SASLprep implementation
+   - Location: src/podofo/private/SASLprep*
+   - License: MIT
+   - Copyright (c) 2025 Francesco Pretto
+
+2. OpenSSL excerpts
+   - Location: src/podofo/private/OpenSSLInternal_Ripped.cpp
+   - License: OpenSSL License
+   - Copyright (c) 1998-2022 The OpenSSL Project. All rights reserved.
+
+3. Adobe AFDKO (Adobe Font Development Kit for OpenType)
+   - Location: 3rdparty/adobe/afdko, src/podofo/private/FontUtils_AFDKO.cpp
+   - License: Apache License 2.0
+   - Copyright (c) 2014-2021 Adobe. All rights reserved.
+
+4. Google PDFium
+   - Location: 3rdparty/chromium/pdfium
+   - License: Apache License 2.0 (and BSD-3-Clause)
+   - Copyright (c) 2014-2017 The PDFium Authors
+
+5. Chromium Numerics
+   - Location: 3rdparty/chromium/numerics
+   - License: BSD-3-Clause
+   - Copyright (c) 2017-2021 The Chromium Authors. All rights reserved.
+
+7. Liberation Fonts
+   - Location: extern/resources/Fonts/Liberation*
+   - License: SIL Open Font License 1.1
+   - Digitized data copyright (c) 2010 Google Corporation with Reserved Font Arimo, Tinos and Cousine.
+   - Copyright (c) 2012 Red Hat, Inc. with Reserved Font Name Liberation.
+
+8. tcb-span
+   - Location: 3rdparty/tcbspan, src/podofo/3rdparty/span.hpp
+   - License: Boost Software License 1.0
+   - Copyright (c) Tristan Brindle 2018.
+
+9. fast_float
+   - Location: 3rdparty/fastfloat
+   - License: Apache License 2.0 / MIT / Boost (Multi-licensed)
+   - Copyright (c) 2021 The fast_float authors
+
+10. fmtlib (fmt)
+    - Location: 3rdparty/fmtlib
+    - License: MIT (with optional exception)
+    - Copyright (c) 2012 - present, Victor Zverovich
+
+11. Howard Hinnant's date library
+    - Location: 3rdparty/date
+    - License: MIT
+    - Copyright (c) 2015 - 2019 Howard Hinnant et al.
+
+12. utf8proc
+    - Location: 3rdparty/utf8proc
+    - License: MIT
+    - Copyright (c) 2014-2021 Steven G. Johnson, Jiahao Chen, Peter Colberg, Tony Kelman, Scott P. Jones, and other contributors.
+    - Copyright (c) 2009 Public Software Group e. V., Berlin, Germany
+
+13. utf8cpp
+    - Location: 3rdparty/utf8cpp
+    - License: Boost Software License 1.0
+    - Copyright 2006 Nemanja Trifunovic
