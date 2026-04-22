@@ -912,7 +912,7 @@ void PdfImage::loadFromTiff(const string_view& filename, const PdfImageLoadParam
 struct TiffMemoryBuffer
 {
     const unsigned char* Data;
-    tsize_t Size;
+    size_t Size;
     toff_t Offset;
 };
 
@@ -984,7 +984,7 @@ void PdfImage::loadFromTiffData(const unsigned char* data, size_t len, const Pdf
     TIFFSetErrorHandler(TIFFErrorWarningHandler);
     TIFFSetWarningHandler(TIFFErrorWarningHandler);
 
-    TiffMemoryBuffer memBuffer{ data, (tsize_t)len, 0 };
+    TiffMemoryBuffer memBuffer{ data, len, 0 };
     auto handle = TIFFClientOpen("Memory", "r", (thandle_t)&memBuffer,
         tiffReadProc, tiffWriteProc, tiffSeekProc, tiffCloseProc, tiffSizeProc, tiffMapProc, tiffUnmapProc);
 
