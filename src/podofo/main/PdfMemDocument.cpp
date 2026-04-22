@@ -71,6 +71,7 @@ void PdfMemDocument::reset()
     m_Version = PdfVersionDefault;
     m_InitialVersion = PdfVersionDefault;
     m_HasXRefStream = false;
+    m_MagicOffset = 0;
     m_PrevXRefOffset = 0;
 }
 
