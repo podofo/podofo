@@ -224,6 +224,12 @@ endif()
 find_package(LibXml2 REQUIRED)
 message("Found libxml2 library at ${LIBXML2_LIBRARIES}, headers ${LIBXML2_INCLUDE_DIRS}")
 
+# Enable RelaxNG validation recovery for LibXml2 >= 2.15
+# See https://gitlab.gnome.org/GNOME/libxml2/-/merge_requests/334
+if(LIBXML2_VERSION_STRING VERSION_GREATER_EQUAL "2.15.0")
+    set(PODOFO_HAVE_RNG_VALIDATION_RECOVERY TRUE)
+endif()
+
 if (PODOFO_DEVENDOR_FMT_HEADER_ONLY)
     # Implies PODOFO_DEVENDOR_FMT
     set(PODOFO_DEVENDOR_FMT TRUE)

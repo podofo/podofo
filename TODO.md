@@ -1,6 +1,5 @@
 ### 1.1
 - Throw by default when signing a document with invalid XRef sections
-- Enable PODOFO_HAVE_RNG_VALIDATION_RECOVERY for LibXml2 >= 2.15
 - Issues in https://github.com/podofo/podofo/milestone/2
 
 ### After 1.1
