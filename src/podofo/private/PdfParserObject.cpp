@@ -274,11 +274,14 @@ ReadStream:
     // the following operation may also adjust the position
     auto filters = PdfFilterFactory::CreateFilterList(*this);
 
-    m_device->Seek(streamOffset);
     if (size < 0)
     {
+        m_device->Seek(streamOffset);
         if (!shallow)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidStream, "Invalid stream length");
+        {
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, "Oject {} {} R has invalid stream length",
+                GetIndirectReference().ObjectNumber(), GetIndirectReference().GenerationNumber());
+        }
 
         size = (ssize_t)determineStreamSize(*m_device, streamOffset);
     }
@@ -289,6 +292,8 @@ ReadStream:
     }
     else
     {
+        m_device->Seek(streamOffset);
+
         // Set stream raw data without marking the object dirty
         // NOTE: /Metadata objects may be unencrypted even if the
         // whole document is encrypted

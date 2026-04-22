@@ -82,9 +82,10 @@ static void testReferenceImage(const PdfDocument& doc)
         TestUtils::ReadTestInputFile("ReferenceImage.ppm", expectedImage);
 
         REQUIRE(ppmbuffer == expectedImage);
-
-        break;
+        return;
     }
+
+    FAIL("Reference image not found");
 }
 
 TEST_CASE("TestImage3")
@@ -107,6 +108,14 @@ TEST_CASE("TestImage3")
         doc.Load(outputFile);
         testReferenceImage(doc);
     }
+}
+
+TEST_CASE("TestImageInvalidLength")
+{
+    auto inputFile = TestUtils::GetTestInputFilePath("TestImageInvalidLength.pdf");
+    PdfMemDocument doc;
+    doc.Load(inputFile);
+    testReferenceImage(doc);
 }
 
 TEST_CASE("TestImage4")
