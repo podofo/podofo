@@ -81,3 +81,75 @@ TEST_CASE("TestFlattening")
         REQUIRE(child.GetDictionary().MustGetKey("Parent").GetReference() == pageRootRef);
     }
 }
+
+TEST_CASE("TestFillFromPageCopiesTransparencyGroup")
+{
+    // Without the fix, FillFromPage dropped /Group, causing viewers to reset
+    // compositing to defaults and ignore isolation/knockout flags (issue #337)
+    PdfMemDocument sourceDoc;
+    auto& sourcePage = sourceDoc.GetPages().CreatePage(PdfPageSize::A4);
+
+    PdfDictionary groupDict;
+    groupDict.AddKey("Type"_n, PdfName("Group"));
+    groupDict.AddKey("S"_n, PdfName("Transparency"));
+    groupDict.AddKey("I"_n, PdfObject(true));
+    groupDict.AddKey("K"_n, PdfObject(false));
+    groupDict.AddKey("CS"_n, PdfName("DeviceRGB"));
+    sourcePage.GetDictionary().AddKey("Group"_n, groupDict);
+
+    PdfMemDocument destDoc;
+    auto xobj = destDoc.CreateXObjectForm(sourcePage.GetMediaBox());
+    xobj->FillFromPage(sourcePage);
+
+    auto* copiedGroup = xobj->GetDictionary().FindKey("Group");
+    REQUIRE(copiedGroup != nullptr);
+    REQUIRE(copiedGroup->GetDictionary().GetKey("S")->GetName() == "Transparency");
+    REQUIRE(copiedGroup->GetDictionary().GetKey("I")->GetBool() == true);
+    REQUIRE(copiedGroup->GetDictionary().GetKey("K")->GetBool() == false);
+    REQUIRE(copiedGroup->GetDictionary().GetKey("CS")->GetName() == "DeviceRGB");
+}
+
+TEST_CASE("TestFillFromPageCopiesGroupSameDocument")
+{
+    // The same-document path skips object remapping, so it exercises a
+    // different branch in FillXObjectFromPage than the cross-document test
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+
+    PdfDictionary groupDict;
+    groupDict.AddKey("Type"_n, PdfName("Group"));
+    groupDict.AddKey("S"_n, PdfName("Transparency"));
+    groupDict.AddKey("CS"_n, PdfName("DeviceCMYK"));
+    page.GetDictionary().AddKey("Group"_n, groupDict);
+
+    auto xobj = doc.CreateXObjectForm(page.GetMediaBox());
+    xobj->FillFromPage(page);
+
+    auto* copiedGroup = xobj->GetDictionary().FindKey("Group");
+    REQUIRE(copiedGroup != nullptr);
+    REQUIRE(copiedGroup->GetDictionary().GetKey("S")->GetName() == "Transparency");
+    REQUIRE(copiedGroup->GetDictionary().GetKey("CS")->GetName() == "DeviceCMYK");
+}
+
+TEST_CASE("TestFillFromPageWithoutGroupDoesNotCreateOne")
+{
+    PdfMemDocument sourceDoc;
+    auto& sourcePage = sourceDoc.GetPages().CreatePage(PdfPageSize::A4);
+
+    PdfMemDocument destDoc;
+    auto xobj = destDoc.CreateXObjectForm(sourcePage.GetMediaBox());
+    xobj->FillFromPage(sourcePage);
+
+    REQUIRE(xobj->GetDictionary().FindKey("Group") == nullptr);
+}
+
+TEST_CASE("TestFillFromPageWithoutGroupSameDocument")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+
+    auto xobj = doc.CreateXObjectForm(page.GetMediaBox());
+    xobj->FillFromPage(page);
+
+    REQUIRE(xobj->GetDictionary().FindKey("Group") == nullptr);
+}
