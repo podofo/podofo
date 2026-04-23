@@ -30,7 +30,8 @@ private:
 
 public:
     /** Create a new XObject from a page of another document
-     *  in a given document
+     *  in a given document. /BBox is set in form space (the content-stream
+     *  coordinate system); /Matrix applies the source page's /Rotate if present.
      *
      *  \param page the document to create the XObject from
      *	\param useTrimBox if true try to use trimbox for size of xobject
