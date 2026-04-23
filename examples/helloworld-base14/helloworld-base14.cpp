@@ -1,9 +1,5 @@
-/**
- * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
- *
- * Licensed under GNU General Public License 2.0 or later.
- * Some rights reserved. See COPYING, AUTHORS.
- */
+// SPDX-FileCopyrightText: 2006 Dominik Seichter <domseichter@web.de>
+// SPDX-License-Identifier: MIT-0
 
 // Include the standard headers for cout to write
 // some output to the console.

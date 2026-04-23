@@ -1,8 +1,6 @@
-/**
- * SPDX-FileCopyrightText: (C) 2005 Dominik Seichter <domseichter@web.de>
- * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
- * SPDX-License-Identifier: LGPL-2.0-or-later
- */
+// SPDX-FileCopyrightText: 2005 Dominik Seichter <domseichter@web.de>
+// SPDX-FileCopyrightText: 2020 Francesco Pretto <ceztko@gmail.com>
+// SPDX-License-Identifier: LGPL-2.0-or-later OR MPL-2.0
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfImage.h"
@@ -51,7 +49,6 @@ using namespace PoDoFo;
 
 #ifdef PODOFO_HAVE_PNG_LIB
 #include <png.h>
-static void pngReadData(png_structp pngPtr, png_bytep data, png_size_t length);
 static void createPngContext(png_structp& png, png_infop& pnginfo);
 #endif // PODOFO_HAVE_PNG_LIB
 
@@ -488,24 +485,16 @@ Success:
 
 PdfImageInfo PdfImage::LoadFromBuffer(const bufferview& buffer, const PdfImageLoadParams& params)
 {
-    unsigned char magic[4];
+    if (buffer.size() < 4)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "Buffer too small for magic number");
+
     PdfImageInfo info;
     charbuff dstbuff;
     unique_ptr<InputStream> stream;
-    if (buffer.size() <= 4)
-        goto Fail;
-
-    memcpy(magic, buffer.data(), 4);
 
 #ifdef PODOFO_HAVE_TIFF_LIB
-    if ((magic[0] == 0x4D &&
-        magic[1] == 0x4D &&
-        magic[2] == 0x00 &&
-        magic[3] == 0x2A) ||
-        (magic[0] == 0x49 &&
-            magic[1] == 0x49 &&
-            magic[2] == 0x2A &&
-            magic[3] == 0x00))
+    if ((buffer[0] == '\x49' && buffer[1] == '\x49' && buffer[2] == '\x2A' && buffer[3] == '\x00') ||
+        (buffer[0] == '\x4D' && buffer[1] == '\x4D' && buffer[2] == '\x00' && buffer[3] == '\x2A'))
     {
         loadFromTiffData((const unsigned char*)buffer.data(), buffer.size(), params, dstbuff, info);
         stream.reset(new SpanStreamDevice(dstbuff));
@@ -514,8 +503,7 @@ PdfImageInfo PdfImage::LoadFromBuffer(const bufferview& buffer, const PdfImageLo
 #endif
 
 #ifdef PODOFO_HAVE_JPEG_LIB
-    if (magic[0] == 0xFF &&
-        magic[1] == 0xD8)
+    if (buffer[0] == '\xFF' && buffer[1] == '\xD8' && buffer[2] == '\xFF')
     {
         loadFromJpegData((const unsigned char*)buffer.data(), buffer.size(), info);
         stream.reset(new SpanStreamDevice(buffer));
@@ -524,10 +512,7 @@ PdfImageInfo PdfImage::LoadFromBuffer(const bufferview& buffer, const PdfImageLo
 #endif
 
 #ifdef PODOFO_HAVE_PNG_LIB
-    if (magic[0] == 0x89 &&
-        magic[1] == 0x50 &&
-        magic[2] == 0x4E &&
-        magic[3] == 0x47)
+    if (buffer[0] == '\x89' && buffer[1] == '\x50' && buffer[2] == '\x4E' && buffer[3] == '\x47')
     {
         loadFromPngData((const unsigned char*)buffer.data(), buffer.size(), dstbuff, info);
         stream.reset(new SpanStreamDevice(dstbuff));
@@ -535,7 +520,6 @@ PdfImageInfo PdfImage::LoadFromBuffer(const bufferview& buffer, const PdfImageLo
     }
 #endif
 
-Fail:
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "Unknown magic number");
 
 Success:
@@ -925,135 +909,100 @@ void PdfImage::loadFromTiff(const string_view& filename, const PdfImageLoadParam
     TIFFClose(handle);
 }
 
-struct TiffData
+struct TiffMemoryBuffer
 {
-    TiffData(const unsigned char* data, tsize_t size) :m_data(data), m_pos(0), m_size(size) {}
-
-    tsize_t read(tdata_t data, tsize_t length)
-    {
-        tsize_t bytesRead = 0;
-        if (length > m_size - static_cast<tsize_t>(m_pos))
-        {
-            memcpy(data, &m_data[m_pos], m_size - (tsize_t)m_pos);
-            bytesRead = m_size - (tsize_t)m_pos;
-            m_pos = m_size;
-        }
-        else
-        {
-            memcpy(data, &m_data[m_pos], length);
-            bytesRead = length;
-            m_pos += length;
-        }
-        return bytesRead;
-    }
-
-    toff_t size()
-    {
-        return m_size;
-    }
-
-    toff_t seek(toff_t pos, int whence)
-    {
-        if (pos == 0xFFFFFFFF)
-            return 0xFFFFFFFF;
-
-        switch (whence)
-        {
-            case SEEK_SET:
-            {
-                if (static_cast<tsize_t>(pos) > m_size)
-                    m_pos = m_size;
-                else
-                    m_pos = pos;
-                break;
-            }
-            case SEEK_CUR:
-            {
-                if (static_cast<tsize_t>(pos + m_pos) > m_size)
-                    m_pos = m_size;
-                else
-                    m_pos += pos;
-                break;
-            }
-            case SEEK_END:
-            {
-                if (static_cast<tsize_t>(pos) > m_size)
-                    m_pos = 0;
-                else
-                    m_pos = m_size - pos;
-                break;
-            }
-        }
-        return m_pos;
-    }
-
-private:
-    const unsigned char* m_data;
-    toff_t m_pos;
-    tsize_t m_size;
+    const unsigned char* Data;
+    size_t Size;
+    toff_t Offset;
 };
-tsize_t tiff_Read(thandle_t st, tdata_t buffer, tsize_t size)
+
+static tsize_t tiffReadProc(thandle_t handle, tdata_t buf, tsize_t size)
 {
-    TiffData* data = (TiffData*)st;
-    return data->read(buffer, size);
-};
-tsize_t tiff_Write(thandle_t st, tdata_t buffer, tsize_t size)
-{
-    (void)st;
-    (void)buffer;
-    (void)size;
-    return 0;
-};
-int tiff_Close(thandle_t)
+    TiffMemoryBuffer* buffer = (TiffMemoryBuffer*)handle;
+    tsize_t readBytes = std::min(size, (tsize_t)(buffer->Size - buffer->Offset));
+    if (readBytes > 0)
+    {
+        memcpy(buf, buffer->Data + buffer->Offset, readBytes);
+        buffer->Offset += readBytes;
+    }
+    return readBytes;
+}
+
+static tsize_t tiffWriteProc(thandle_t, tdata_t, tsize_t)
 {
     return 0;
-};
-toff_t tiff_Seek(thandle_t st, toff_t pos, int whence)
+}
+
+static toff_t tiffSeekProc(thandle_t handle, toff_t off, int whence)
 {
-    TiffData* data = (TiffData*)st;
-    return data->seek(pos, whence);
-};
-toff_t tiff_Size(thandle_t st)
-{
-    TiffData* data = (TiffData*)st;
-    return data->size();
-};
-int tiff_Map(thandle_t, tdata_t*, toff_t*)
+    TiffMemoryBuffer* buffer = (TiffMemoryBuffer*)handle;
+    toff_t nextOffset;
+    switch (whence)
+    {
+        case SEEK_SET:
+            nextOffset = off;
+            break;
+        case SEEK_CUR:
+            nextOffset = buffer->Offset + off;
+            break;
+        case SEEK_END:
+            nextOffset = buffer->Size + off;
+            break;
+        default:
+            return (toff_t)-1;
+    }
+
+    if (nextOffset > buffer->Size)
+        return (toff_t)-1;
+
+    buffer->Offset = nextOffset;
+    return buffer->Offset;
+}
+
+static int tiffCloseProc(thandle_t)
 {
     return 0;
-};
-void tiff_Unmap(thandle_t, tdata_t, toff_t)
+}
+
+static toff_t tiffSizeProc(thandle_t handle)
 {
-    return;
-};
+    TiffMemoryBuffer* buffer = (TiffMemoryBuffer*)handle;
+    return (toff_t)buffer->Size;
+}
+
+static int tiffMapProc(thandle_t, tdata_t*, toff_t*)
+{
+    return 0;
+}
+
+static void tiffUnmapProc(thandle_t, tdata_t, toff_t)
+{
+}
+
 void PdfImage::loadFromTiffData(const unsigned char* data, size_t len, const PdfImageLoadParams& params, charbuff& buffer, PdfImageInfo& info)
 {
     TIFFSetErrorHandler(TIFFErrorWarningHandler);
     TIFFSetWarningHandler(TIFFErrorWarningHandler);
 
-    if (data == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+    TiffMemoryBuffer memBuffer{ data, len, 0 };
+    auto handle = TIFFClientOpen("Memory", "r", (thandle_t)&memBuffer,
+        tiffReadProc, tiffWriteProc, tiffSeekProc, tiffCloseProc, tiffSizeProc, tiffMapProc, tiffUnmapProc);
 
-    TiffData tiffData(data, (tsize_t)len);
-    TIFF* hInHandle = TIFFClientOpen("Memory", "r", (thandle_t)&tiffData,
-        tiff_Read, tiff_Write, tiff_Seek, tiff_Close, tiff_Size,
-        tiff_Map, tiff_Unmap);
-    if (hInHandle == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+    if (handle == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "Could not open TIFF from memory");
 
     try
     {
-        loadFromTiffHandle(hInHandle, params, buffer, info);
+        loadFromTiffHandle(handle, params, buffer, info);
     }
     catch (...)
     {
-        TIFFClose(hInHandle);
+        TIFFClose(handle);
         throw;
     }
 
-    TIFFClose(hInHandle);
+    TIFFClose(handle);
 }
-
 #endif // PODOFO_HAVE_TIFF_LIB
 
 #ifdef PODOFO_HAVE_PNG_LIB
@@ -1106,48 +1055,38 @@ void PdfImage::loadFromPngHandle(FILE* stream, charbuff& buffer, PdfImageInfo& i
     png_destroy_read_struct(&png, &pnginfo, (png_infopp)nullptr);
 }
 
-struct PngData
+struct PngMemoryBuffer
 {
-    PngData(const unsigned char* data, png_size_t size) :
-        m_data(data), m_pos(0), m_size(size) {}
+    const unsigned char* Data;
+    size_t Size;
+    size_t Offset;
+};
 
-    void read(png_bytep data, png_size_t length)
+static void pngReadFromMemory(png_structp png, png_bytep data, png_size_t length)
+{
+    auto buffer = (PngMemoryBuffer*)png_get_io_ptr(png);
+    if (length > buffer->Size - buffer->Offset) // overflow-safe check
     {
-        if (length > m_size - m_pos)
-        {
-            memcpy(data, &m_data[m_pos], m_size - m_pos);
-            m_pos = m_size;
-        }
-        else
-        {
-            memcpy(data, &m_data[m_pos], length);
-            m_pos += length;
-        }
+        // NOTE: png_error call sets a longjmp, so no need to return after it
+        png_error(png, "Attempt to read beyond end of buffer");
     }
 
-private:
-    const unsigned char* m_data;
-    png_size_t m_pos;
-    png_size_t m_size;
-};
+    memcpy(data, buffer->Data + buffer->Offset, length);
+    buffer->Offset += length;
+}
 
 void PdfImage::loadFromPngData(const unsigned char* data, size_t len, charbuff& buffer, PdfImageInfo& info)
 {
-    if (data == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+    if (len < 8 || png_sig_cmp((png_bytep)data, 0, 8))
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The buffer could not be recognized as a PNG file");
 
-    PngData pngData(data, len);
-    png_byte header[8];
-    pngData.read(header, 8);
-    if (png_sig_cmp(header, 0, 8))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The file could not be recognized as a PNG file");
-
+    PngMemoryBuffer memBuffer = { data, len, 8 };
     png_structp png;
     png_infop pnginfo;
     try
     {
         createPngContext(png, pnginfo);
-        png_set_read_fn(png, (png_voidp)&pngData, pngReadData);
+        png_set_read_fn(png, &memBuffer, pngReadFromMemory);
         loadFromPngContent(png, pnginfo, buffer, info);
     }
     catch (...)
@@ -1343,12 +1282,6 @@ void createPngContext(png_structp& png, png_infop& pnginfo)
 
     if (setjmp(png_jmpbuf(png)))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Error when reading the image");
-}
-
-void pngReadData(png_structp pngPtr, png_bytep data, png_size_t length)
-{
-    PngData* a = (PngData*)png_get_io_ptr(pngPtr);
-    a->read(data, length);
 }
 
 #endif // PODOFO_HAVE_PNG_LIB

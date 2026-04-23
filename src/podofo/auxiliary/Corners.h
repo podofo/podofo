@@ -1,8 +1,5 @@
-/**
- * SPDX-FileCopyrightText: (C) 2025 Francesco Pretto <ceztko@gmail.com>
- * SPDX-License-Identifier: LGPL-2.0-or-later
- * SPDX-License-Identifier: MPL-2.0
- */
+// SPDX-FileCopyrightText: 2025 Francesco Pretto <ceztko@gmail.com>
+// SPDX-License-Identifier: LGPL-2.0-or-later OR MPL-2.0
 
 #ifndef AUX_CORNERS_H
 #define AUX_CORNERS_H

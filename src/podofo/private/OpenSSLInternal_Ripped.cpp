@@ -1,7 +1,5 @@
-/**
- * SPDX-FileCopyrightText: (C) 2023 Francesco Pretto <ceztko@gmail.com>
- * SPDX-License-Identifier: OpenSSL
- */
+// SPDX-FileCopyrightText: (C) 2023 Francesco Pretto <ceztko@gmail.com>
+// SPDX-License-Identifier: OpenSSL
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "OpenSSLInternal.h"

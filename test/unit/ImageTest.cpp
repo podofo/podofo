@@ -1,10 +1,6 @@
-/**
- * Copyright (C) 2008 by Dominik Seichter <domseichter@web.de>
- * Copyright (C) 2021 by Francesco Pretto <ceztko@gmail.com>
- *
- * Licensed under GNU Library General Public 2.0 or later.
- * Some rights reserved. See COPYING, AUTHORS.
- */
+// SPDX-FileCopyrightText: 2008 Dominik Seichter <domseichter@web.de>
+// SPDX-FileCopyrightText: 2021 Francesco Pretto <ceztko@gmail.com>
+// SPDX-License-Identifier: MIT-0
 
 #include <PdfTest.h>
 
@@ -86,9 +82,10 @@ static void testReferenceImage(const PdfDocument& doc)
         TestUtils::ReadTestInputFile("ReferenceImage.ppm", expectedImage);
 
         REQUIRE(ppmbuffer == expectedImage);
-
-        break;
+        return;
     }
+
+    FAIL("Reference image not found");
 }
 
 TEST_CASE("TestImage3")
@@ -111,6 +108,14 @@ TEST_CASE("TestImage3")
         doc.Load(outputFile);
         testReferenceImage(doc);
     }
+}
+
+TEST_CASE("TestImageInvalidLength")
+{
+    auto inputFile = TestUtils::GetTestInputFilePath("TestImageInvalidLength.pdf");
+    PdfMemDocument doc;
+    doc.Load(inputFile);
+    testReferenceImage(doc);
 }
 
 TEST_CASE("TestImage4")
