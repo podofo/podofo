@@ -149,6 +149,8 @@ public:
 
     inline bool HasXRefStream() const { return m_HasXRefStream; }
 
+    inline bool HasCorruptedXRefSections() const { return m_HasCorruptedXRefSections; }
+
     inline void SetLoadStreamsEagerly(bool value) { m_LoadStreamsEagerly = value; }
 
     inline const PdfEncryptSession* GetEncrypt() const { return m_Encrypt.get(); }
@@ -293,6 +295,7 @@ private:
     PdfVersion m_PdfVersion;
     bool m_LoadStreamsEagerly;
     bool m_HasXRefStream;
+    bool m_HasCorruptedXRefSections;
 
     size_t m_MagicOffset;
     size_t m_StartXRefTokenPos;

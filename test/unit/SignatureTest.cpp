@@ -466,8 +466,18 @@ TEST_CASE("TestSignatureCorrupted")
         auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
 
         PdfSignerCms signer(x509certbuffer, pkeybuffer);
-        PoDoFo::SignDocument(doc, *inputOutput, signer, signature, PdfSaveOptions::NoMetadataUpdate);
 
+        try
+        {
+            PoDoFo::SignDocument(doc, *inputOutput, signer, signature, PdfSaveOptions::NoMetadataUpdate);
+            throw runtime_error("Signing should have failed with corrupted document");
+        }
+        catch (const PdfError& e)
+        {
+            REQUIRE(e.GetCode() == PdfErrorCode::InvalidXRef);
+        }
+
+        PoDoFo::SignDocument(doc, *inputOutput, signer, signature, PdfSaveOptions::NoMetadataUpdate | PdfSaveOptions::IgnoreXRefErrors);
         utls::WriteTo(TestUtils::GetTestOutputFilePath(outFilename), currBuffer);
 
         // Try to reload the document

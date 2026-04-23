@@ -1,5 +1,4 @@
 ### 1.1
-- Throw by default when signing a document with invalid XRef sections
 - Issues in https://github.com/podofo/podofo/milestone/2
 
 ### After 1.1

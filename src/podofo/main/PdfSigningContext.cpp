@@ -222,6 +222,7 @@ void PdfSigningContext::StartSigning(PdfMemDocument& doc, shared_ptr<StreamDevic
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The output device must be not null");
 
     ensureNotStarted();
+    checkDocument(doc, saveOptions);
     if (m_signers.size() == 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "No signers were configured");
 
@@ -433,6 +434,7 @@ bool PdfSigningContext::IsEmpty() const
 void PdfSigningContext::Sign(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions saveOptions)
 {
     ensureNotStarted();
+    checkDocument(doc, saveOptions);
     if (m_signers.size() == 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "No signers were configured");
 
@@ -485,6 +487,15 @@ void PdfSigningContext::ensureNotStarted() const
 {
     if (m_status != Status::Config)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "A deferred signing has already been started");
+}
+
+void PdfSigningContext::checkDocument(PdfMemDocument& doc, PdfSaveOptions saveOptions) const
+{
+    if (doc.HasBrokenXRef() && (saveOptions & PdfSaveOptions::IgnoreXRefErrors) == PdfSaveOptions::None)
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef, "Signing a document with corrupted xref sections. "
+            "Use PdfSaveOptions::IgnoreXRefErrorsOnSigning to ignore this error");
+    }
 }
 
 // Prepare signature contexts, running dry-run signature computation

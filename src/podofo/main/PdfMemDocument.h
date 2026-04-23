@@ -158,6 +158,8 @@ public:
 
     inline size_t GetMagicOffset() const { return m_MagicOffset; }
 
+    inline bool HasBrokenXRef() const { return m_HasBrokenXRef; }
+
 protected:
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.
@@ -194,6 +196,7 @@ private:
     PdfVersion m_Version;
     PdfVersion m_InitialVersion;
     bool m_HasXRefStream;
+    bool m_HasBrokenXRef;
     size_t m_MagicOffset;
     size_t m_PrevXRefOffset;
     std::unique_ptr<PdfEncryptSession> m_Encrypt;

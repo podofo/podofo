@@ -155,6 +155,7 @@ namespace PoDoFo
         PdfSignerId addSigner(const PdfSignature& signature, PdfSigner* signer,
             std::shared_ptr<PdfSigner>&& storage);
         void ensureNotStarted() const;
+        void checkDocument(PdfMemDocument& doc, PdfSaveOptions saveOptions) const;
         std::vector<SignerContext> prepareSignatureContexts(PdfMemDocument& doc, bool deferredSigning);
         void saveDocForSigning(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions saveOptions);
         void appendDataForSigning(PdfMemDocument& doc, StreamDevice& device, std::vector<SignerContext>& contexts,

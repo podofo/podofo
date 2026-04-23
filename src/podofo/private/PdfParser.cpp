@@ -50,6 +50,7 @@ void PdfParser::init()
 {
     m_PdfVersion = PdfVersion::Unknown;
     m_HasXRefStream = false;
+    m_HasCorruptedXRefSections = false;
     m_MagicOffset = 0;
     m_StartXRefTokenPos = 0;
     m_XRefOffset = 0; // 0 is a sentinel for invalid XRef offset
@@ -81,6 +82,8 @@ void PdfParser::Parse(InputStreamDevice& device)
         {
             throw;
         }
+
+        m_HasCorruptedXRefSections = true;
     }
 
     if (m_LoadStreamsEagerly)
