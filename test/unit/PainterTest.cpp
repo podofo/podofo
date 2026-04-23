@@ -573,6 +573,216 @@ TEST_CASE("BigDynamicCMAPTest")
     }
 }
 
+static size_t countOccurrences(const string& haystack, const string& needle)
+{
+    size_t count = 0;
+    size_t pos = 0;
+    while ((pos = haystack.find(needle, pos)) != string::npos)
+    {
+        count++;
+        pos += needle.length();
+    }
+    return count;
+}
+
+// Without automatic Restore() on scope exit, forgetting to call Restore()
+// leaves an unmatched q in the content stream, corrupting all later content
+TEST_CASE("SaveGuard_NormalDestruction")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    PdfPainter painter;
+    painter.SetCanvas(page);
+
+    {
+        PdfPainterSaveGuard guard(painter);
+        painter.DrawLine(10, 10, 50, 50);
+    }
+
+    REQUIRE(painter.GetStateStack().GetSize() == 1);
+    painter.FinishDrawing();
+    auto out = getContents(page);
+    REQUIRE(countOccurrences(out, "q\n") == countOccurrences(out, "Q\n"));
+}
+
+// A second Restore() from the destructor after an explicit one would
+// double-pop the state stack, corrupting graphics state for later draws
+TEST_CASE("SaveGuard_EarlyRestore")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    PdfPainter painter;
+    painter.SetCanvas(page);
+
+    {
+        PdfPainterSaveGuard guard(painter);
+        painter.DrawLine(10, 10, 50, 50);
+        guard.Restore();
+        REQUIRE(painter.GetStateStack().GetSize() == 1);
+        painter.DrawLine(60, 60, 100, 100);
+    }
+
+    REQUIRE(painter.GetStateStack().GetSize() == 1);
+    painter.FinishDrawing();
+    auto out = getContents(page);
+    REQUIRE(countOccurrences(out, "q\n") == countOccurrences(out, "Q\n"));
+}
+
+// User code may defensively call Restore() more than once — without the
+// idempotency guard this would throw on the second call (stack underflow)
+TEST_CASE("SaveGuard_EarlyRestoreIdempotent")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    PdfPainter painter;
+    painter.SetCanvas(page);
+
+    PdfPainterSaveGuard guard(painter);
+    guard.Restore();
+    REQUIRE_NOTHROW(guard.Restore());
+    REQUIRE(painter.GetStateStack().GetSize() == 1);
+    painter.FinishDrawing();
+}
+
+// FinishDrawing() resets the canvas to nullptr; without a null guard the
+// destructor would call Restore() → checkStream() → throw from noexcept,
+// terminating the process
+TEST_CASE("SaveGuard_SafeAfterFinishDrawing")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    PdfPainter painter;
+    painter.SetCanvas(page);
+
+    {
+        PdfPainterSaveGuard guard(painter);
+        painter.DrawLine(10, 10, 50, 50);
+        painter.FinishDrawing();
+    }
+
+    REQUIRE(painter.GetCanvas() == nullptr);
+}
+
+// Misordered q/Q from nested scopes produces invalid PDF — inner guard must
+// restore before outer to maintain the stack invariant
+TEST_CASE("SaveGuard_NestedGuards")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    PdfPainter painter;
+    painter.SetCanvas(page);
+
+    {
+        PdfPainterSaveGuard outer(painter);
+        REQUIRE(painter.GetStateStack().GetSize() == 2);
+        {
+            PdfPainterSaveGuard inner(painter);
+            REQUIRE(painter.GetStateStack().GetSize() == 3);
+            painter.DrawLine(10, 10, 50, 50);
+        }
+        REQUIRE(painter.GetStateStack().GetSize() == 2);
+    }
+
+    REQUIRE(painter.GetStateStack().GetSize() == 1);
+    painter.FinishDrawing();
+    auto out = getContents(page);
+    REQUIRE(countOccurrences(out, "q\n") == countOccurrences(out, "Q\n"));
+}
+
+// Primary regression test for issue #338: an exception thrown between
+// Save() and Restore() must leave the state stack balanced so the painter
+// can continue drawing afterwards
+TEST_CASE("SaveGuard_ExceptionSafety")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    PdfPainter painter;
+    painter.SetCanvas(page);
+
+    try
+    {
+        PdfPainterSaveGuard guard(painter);
+        painter.DrawLine(10, 10, 50, 50);
+        throw runtime_error("simulated error");
+    }
+    catch (const runtime_error&)
+    {
+    }
+
+    REQUIRE(painter.GetStateStack().GetSize() == 1);
+    painter.DrawLine(0, 0, 100, 100);
+    REQUIRE_NOTHROW(painter.FinishDrawing());
+
+    auto out = getContents(page);
+    REQUIRE(countOccurrences(out, "q\n") == countOccurrences(out, "Q\n"));
+}
+
+// If Save() throws (no canvas), the guard must not be constructed — a
+// partially constructed guard with a dangling destructor would corrupt state
+TEST_CASE("SaveGuard_ConstructorThrows_NoCanvas")
+{
+    PdfPainter painter;
+    REQUIRE_THROWS([&]() { PdfPainterSaveGuard guard(painter); }());
+    REQUIRE(painter.GetCanvas() == nullptr);
+}
+
+// q/Q inside a BT/ET block produces invalid PDF — Save() rejects this, and
+// the guard must not leave the text object or state stack in a broken state
+TEST_CASE("SaveGuard_ConstructorThrows_InsideTextObject")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    PdfPainter painter;
+    painter.SetCanvas(page);
+
+    auto& font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica);
+    painter.TextState.SetFont(font, 12);
+    painter.TextObject.Begin();
+
+    REQUIRE_THROWS([&]() { PdfPainterSaveGuard guard(painter); }());
+    REQUIRE(painter.GetStateStack().GetSize() == 1);
+
+    painter.TextObject.End();
+    painter.FinishDrawing();
+}
+
+// User code bypassing the guard via direct painter.Restore() drains the stack;
+// without the catch(...) in the destructor, the noexcept violation from the
+// resulting stack-underflow exception would call std::terminate
+TEST_CASE("SaveGuard_DestructorSwallowsException_ManualRestore")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    PdfPainter painter;
+    painter.SetCanvas(page);
+
+    {
+        PdfPainterSaveGuard guard(painter);
+        painter.Restore();
+        REQUIRE(painter.GetStateStack().GetSize() == 1);
+    }
+
+    REQUIRE(painter.GetStateStack().GetSize() == 1);
+    REQUIRE_NOTHROW(painter.FinishDrawing());
+}
+
+// After user bypasses the guard, explicit Restore() hits stack underflow —
+// without the flag-before-call ordering in Restore(), the destructor would
+// retry the failed Restore() and terminate (noexcept + throw)
+TEST_CASE("SaveGuard_ExplicitRestoreThrows_AfterManualRestore")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    PdfPainter painter;
+    painter.SetCanvas(page);
+
+    PdfPainterSaveGuard guard(painter);
+    painter.Restore();
+    REQUIRE(painter.GetStateStack().GetSize() == 1);
+
+    REQUIRE_THROWS(guard.Restore());
+}
+  
 TEST_CASE("TestDrawTextMultipleTimes")
 {
     PdfMemDocument document;
