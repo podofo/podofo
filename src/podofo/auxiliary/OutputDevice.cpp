@@ -18,6 +18,12 @@ OutputStreamDevice::OutputStreamDevice(bool init)
         SetAccess(DeviceAccess::Write);
 }
 
+void OutputStreamDevice::Truncate()
+{
+    checkWrite();
+    truncate();
+}
+
 void OutputStreamDevice::checkWrite() const
 {
     EnsureAccess(DeviceAccess::Write);

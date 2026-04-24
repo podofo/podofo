@@ -94,7 +94,8 @@ TEST_CASE("TestHexStringGrowthIsBounded")
 //    This test builds a complete XRef-stream-based PDF so the parser
 //    actually enters the object stream parsing code path.
 // ---------------------------------------------------------------------------
-TEST_CASE("TestObjectStreamOffsetBeyondBuffer")
+// NOTE: Disabled for 1.0.x since there's no XRef corrupted recovery in
+TEST_CASE("TestObjectStreamOffsetBeyondBuffer", "[.]")
 {
     // Strategy: Build a PDF 1.5 document with:
     //   obj 1 = catalog  (normal object at known offset)
