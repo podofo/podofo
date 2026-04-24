@@ -21,7 +21,13 @@ protected:
     OutputStreamDevice();
     OutputStreamDevice(bool init);
 
+public:
+    /** Truncate the file at this position by discarding subsequent bytes
+     */
+    void Truncate();
+
 protected:
+    virtual void truncate() = 0;
     void checkWrite() const override;
 };
 

@@ -102,7 +102,7 @@ TEST_CASE("TextExtraction5")
     auto& page = doc.GetPages().GetPageAt(0);
     vector<PdfTextEntry> entries;
     page.ExtractTextTo(entries);
-    ASSERT_EQUAL(entries.size(),4);
+    REQUIRE(entries.size() == 4);
     REQUIRE(entries[0].Text == "Line 1");
     ASSERT_EQUAL(entries[0].X, 10.0);
     ASSERT_EQUAL(entries[0].Y, 112.0);

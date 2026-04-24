@@ -97,6 +97,8 @@ public:
     void ReadNextVariant(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt = { });
     bool TryReadNextVariant(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt = { });
 
+    void Reset();
+
 protected:
     // This enum differs from regular PdfDataType in the sense
     // it enumerates only data types that can be determined literally

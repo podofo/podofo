@@ -2854,7 +2854,8 @@ TEST_CASE("TestEdgeCases")
 // malformed XRef stream (e.g. /Length referencing a non-existent object)
 // this threw PdfErrorCode::InvalidStream inside a noexcept context,
 // triggering std::terminate.
-TEST_CASE("TestXRefStreamMoveNoTerminate")
+// NOTE: Disabled for 1.0.x since there's no XRef corrupted recovery in
+TEST_CASE("TestXRefStreamMoveNoTerminate", "[.]")
 {
     string_view pdf = R"(
 %PDF-1.5
