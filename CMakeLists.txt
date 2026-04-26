@@ -94,6 +94,12 @@ if (DEFINED PODOFO_BUILD_SHARED)
 endif()
 
 option(PODOFO_BUILD_STATIC "Build static libraries (.a/.lib)" FALSE)
+option(PODOFO_WITH_AFDKO "Enable AFDKO support" ON)
+
+if(PODOFO_WITH_AFDKO)
+    set(PODOFO_ENABLE_AFDKO TRUE)
+endif()
+
 if(PODOFO_BUILD_STATIC)
     set(PODOFO_BUILD_SHARED FALSE)
     add_compile_definitions(PODOFO_STATIC)

@@ -8,7 +8,9 @@
 #include "PdfFontMetrics.h"
 
 #include <podofo/private/FreetypePrivate.h>
-#include <podofo/private/FontUtils.h>
+#ifdef PODOFO_ENABLE_AFDKO
+#include <podofo/private/FontUtilsAFDKO.h>
+#endif
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
@@ -91,15 +93,17 @@ unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateMergedMetrics(bool skipNo
         auto fontType = GetFontFileType();
         if (fontType == PdfFontFileType::Type1)
         {
+#ifdef PODOFO_ENABLE_AFDKO
             // Unconditionally convert the Type1 font to CFF: this allow
             // the font file to be insterted in a CID font
             charbuff cffDest;
-            PoDoFo::ConvertFontType1ToCFF(GetOrLoadFontFileData(), cffDest);
+            afdko::ConvertFontType1ToCFF(GetOrLoadFontFileData(), cffDest);
             unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> face(FT::CreateFaceFromBuffer(cffDest), FT_Done_Face);
             auto ret = unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(
                 face.get(), datahandle(std::move(cffDest)), this));
             (void)face.release();
             return ret;
+#endif
         }
     }
 
@@ -118,14 +122,16 @@ unique_ptr<PdfFontMetrics> PdfFontMetrics::CreateFromFace(FT_Face face, unique_p
     if (!FT::TryGetFontFileFormat(face, fontType))
         return nullptr;
 
+#ifdef PODOFO_ENABLE_AFDKO
     if (!skipNormalization)
     {
         if (fontType == PdfFontFileType::Type1)
         {
+
             // Unconditionally convert the Type1 font to CFF: this allow
             // the font file to be insterted in a CID font
             charbuff cffDest;
-            PoDoFo::ConvertFontType1ToCFF(*buffer, cffDest);
+            afdko::ConvertFontType1ToCFF(*buffer, cffDest);
             unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> newface(FT::CreateFaceFromBuffer(cffDest), FT_Done_Face);
             auto ret = unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(
                 newface.get(), datahandle(std::move(cffDest)), refMetrics));
@@ -133,6 +139,9 @@ unique_ptr<PdfFontMetrics> PdfFontMetrics::CreateFromFace(FT_Face face, unique_p
             return ret;
         }
     }
+#else
+    (void)skipNormalization;
+#endif // PODOFO_ENABLE_AFDKO
 
     return unique_ptr<PdfFontMetrics>(new PdfFontMetricsFreetype(face, datahandle(std::move(buffer)), refMetrics));
 }

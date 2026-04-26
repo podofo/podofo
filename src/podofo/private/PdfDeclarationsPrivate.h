@@ -23,6 +23,8 @@
 #include <algorithm>
 #include <iostream>
 
+#include "podofo_config_private.h"
+
 #include "Format.h"
 #include "numbers_compat.h"
 #include "charconv_compat.h"

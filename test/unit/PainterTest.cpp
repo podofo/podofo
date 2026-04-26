@@ -133,6 +133,7 @@ TEST_CASE("TestPainter3")
     painter.FinishDrawing();
     doc.Save(TestUtils::GetTestOutputFilePath("TestPainter3.pdf"));
 
+#ifdef PODOFO_ENABLE_AFDKO
     auto expectedContent = R"(q
 q
 BT
@@ -150,9 +151,13 @@ S
 Q
 Q
 )"sv;
-
     auto out = getContents(page);
     REQUIRE(out == expectedContent);
+
+    auto expectedW = R"([ 0 1 250 2[ 722 444 278 500 722 333 500]]
+)"sv;
+    auto& wObj = font.GetDescendantFontObject().GetDictionary().MustFindKey("W");
+    REQUIRE(wObj.ToString() == expectedW);
 
     auto expectedToUnicode = R"(/CIDInit /ProcSet findresource begin
 12 dict begin
@@ -181,7 +186,6 @@ endcmap
 CMapName currentdict /CMap defineresource pop
 end
 end)";
-
     auto& toUnicodeObj = font.GetDictionary().MustFindKey("ToUnicode");
     REQUIRE(toUnicodeObj.MustGetStream().GetCopy() == expectedToUnicode);
 
@@ -212,9 +216,97 @@ endcmap
 CMapName currentdict /CMap defineresource pop
 end
 end)";
+    auto& encodingObj = font.GetDictionary().MustFindKey("Encoding");
+    REQUIRE(encodingObj.MustGetStream().GetCopy() == expectedEncoding);
+
+#else // PODOFO_ENABLE_AFDKO
+    auto expectedContent = R"(q
+q
+BT
+/Ft0 15 Tf
+0.75 w
+100 500 Td
+<0001020203040503060207> Tj
+ET
+100 498.5 m
+172.075 498.5 l
+S
+100 503.93 m
+172.075 503.93 l
+S
+Q
+Q
+)"sv;
+    auto out = getContents(page);
+    REQUIRE(out == expectedContent);
+
+    auto expectedW = R"([ 0[ 250] 41[ 722] 70[ 444] 77[ 278] 80[ 500] 1[ 250] 88[ 722] 83[ 333] 69[ 500]]
+)"sv;
+    auto& wObj = font.GetDescendantFontObject().GetDictionary().MustFindKey("W");
+    REQUIRE(wObj.ToString() == expectedW);
+
+    auto expectedToUnicode = R"(/CIDInit /ProcSet findresource begin
+12 dict begin
+begincmap
+/CIDSystemInfo <<
+   /Registry (Adobe)
+   /Ordering (UCS)
+   /Supplement 0
+>> def
+/CMapName /Adobe-Identity-UCS def
+/CMapType 2 def
+1 begincodespacerange
+<00><7F>
+endcodespacerange
+8 beginbfchar
+<00> <0048>
+<01> <0065>
+<02> <006C>
+<03> <006F>
+<04> <0020>
+<05> <0077>
+<06> <0072>
+<07> <0064>
+endbfchar
+endcmap
+CMapName currentdict /CMap defineresource pop
+end
+end)";
+
+    auto& toUnicodeObj = font.GetDictionary().MustFindKey("ToUnicode");
+    REQUIRE(toUnicodeObj.MustGetStream().GetCopy() == expectedToUnicode);
+
+    auto expectedEncoding = R"(/CIDInit /ProcSet findresource begin
+12 dict begin
+begincmap
+/CIDSystemInfo <<
+   /Registry (PoDoFo)
+   /Ordering (Times-Roman)
+   /Supplement 0
+>> def
+/CMapName /CMap-Times-Roman def
+/CMapType 1 def
+1 begincodespacerange
+<00><7F>
+endcodespacerange
+8 begincidchar
+<00> 41
+<01> 70
+<02> 77
+<03> 80
+<04> 1
+<05> 88
+<06> 83
+<07> 69
+endcidchar
+endcmap
+CMapName currentdict /CMap defineresource pop
+end
+end)";
 
     auto& encodingObj = font.GetDictionary().MustFindKey("Encoding");
     REQUIRE(encodingObj.MustGetStream().GetCopy() == expectedEncoding);
+#endif // PODOFO_ENABLE_AFDKO
 }
 
 TEST_CASE("TestPainter4")

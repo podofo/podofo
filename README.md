@@ -183,7 +183,9 @@ the relevant [section](https://github.com/podofo/podofo/#podofo-tools) in the Re
 This unconditionally disable building tests, examples and tools;
 
 - `PODOFO_BUILD_STATIC`: If TRUE, build the library as a static object and use it in tests,
-examples and tools. By default a shared library is built.
+examples and tools. By default a shared library is built;
+
+- `PODOFO_WITH_AFDKO`: Enable the [Adobe Font Development Kit for OpenType](https://github.com/adobe-type-tools/afdko) integration, defaults to ON.
 
 ### Static linking
 
