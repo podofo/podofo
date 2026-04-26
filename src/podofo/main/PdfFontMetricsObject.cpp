@@ -204,8 +204,8 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             unsigned pos = 0;
             while (pos < widthsArr.GetSize())
             {
-                unsigned start = (unsigned)widthsArr[pos++].GetNumberLenient();
-                PdfObject* second = &widthsArr[pos];
+                unsigned start = (unsigned)widthsArr.MustFindAt(pos++).GetNumberLenient();
+                auto second = &widthsArr[pos];
                 if (second->IsReference())
                 {
                     // second do not have an associated owner; use the one in pw
@@ -222,11 +222,11 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
                         m_Widths.resize(length, m_DefaultWidth);
 
                     for (unsigned i = 0; i < arr.GetSize(); i++)
-                        m_Widths[start + i] = arr[i].GetReal() * m_Matrix[0];
+                        m_Widths[start + i] = arr.FindAtAsSafe<double>(i, 0) * m_Matrix[0];
                 }
                 else
                 {
-                    unsigned end = (unsigned)widthsArr[pos++].GetNumberLenient();
+                    unsigned end = (unsigned)widthsArr.MustFindAt(pos++).GetNumberLenient();
                     unsigned length = end + 1;
                     PODOFO_ASSERT(length >= start);
                     if (length > m_Widths.size())
