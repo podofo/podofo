@@ -184,13 +184,16 @@ void PdfFont::InitImported(bool wantEmbed, bool wantSubset, bool isProxy)
 {
     PODOFO_ASSERT(!IsObjectLoaded());
 
-    // Init the subset maps
-    m_subsetCIDMap.reset(new CIDSubsetMap());
-    m_subsetGIDToCIDMap.reset(new unordered_map<unsigned, unsigned>());
-
     // No embedding implies no subsetting
     m_EmbeddingEnabled = wantEmbed;
     m_SubsettingEnabled = wantEmbed && wantSubset && SupportsSubsetting();
+    if (m_SubsettingEnabled)
+    {
+        // Init the subset maps
+        m_subsetCIDMap.reset(new CIDSubsetMap());
+        m_subsetGIDToCIDMap.reset(new unordered_map<unsigned, unsigned>());
+    }
+
     m_IsProxy = isProxy;
     if (m_SubsettingEnabled && !isProxy)
     {
@@ -1018,7 +1021,22 @@ vector<PdfCharGIDInfo> PdfFont::GetCharGIDInfos() const
     vector<PdfCharGIDInfo> ret;
     if (m_subsetCIDMap == nullptr)
     {
-        PODOFO_ASSERT(!IsSubsettingEnabled());
+        PODOFO_ASSERT(!m_SubsettingEnabled);
+
+        if (m_DynamicCIDMap != nullptr)
+        {
+            // Create a cid/gid map from the dynamic mapping
+            ret.resize(m_DynamicCIDMap->GetMappings().size());
+            unsigned i = 0;
+            for (auto& pair : m_DynamicCIDMap->GetMappings())
+            {
+                auto s = pair.first;
+                ret[i] = { *pair.second, *pair.second, PdfGID(*pair.second)};
+                i++;
+            }
+            return ret;
+        }
+
         // Create an identity cid/gid map
         unsigned gidCount = GetMetrics().GetGlyphCount();
         ret.resize(gidCount);
