@@ -3,6 +3,9 @@
   [#290](https://github.com/podofo/podofo/issues/290), [#295](https://github.com/podofo/podofo/issues/295),
   [#314](https://github.com/podofo/podofo/issues/314), [#317](https://github.com/podofo/podofo/issues/317),
   [#318](https://github.com/podofo/podofo/issues/318)
+- `PdfFontMetricsObject`: Handle scalars in the widths array that are cross references
+- `PdfEncodingMapSimple`: Fix skipping `beginbfrange` unmapped codes in `AppendToUnicodeEntries()`
+- `PdfCMapEncoding`: Handle `beginbfrange` declared size bigger than actual array
 - `PdfContents`: Fixed painting to the same page more than twice (#317)
 - `PdfTokenizer`: Fixed infinite loop for "Unknown" keyword
 - `PdfDate`: Fixed OOB read in date parsing
