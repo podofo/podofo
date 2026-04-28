@@ -159,6 +159,7 @@ void compute_hash_to_sign(CMS_SignerInfo* si, unsigned char hash[], unsigned& ha
     if (EVP_DigestUpdate(mctx, buf, len) <= 0)
         goto Error;
     OPENSSL_free(buf);
+    buf = nullptr;
 
     if (EVP_DigestFinal(mctx, hash, &hashlen) <= 0)
         goto Error;
