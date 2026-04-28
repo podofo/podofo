@@ -1,7 +1,7 @@
 /**
  * SPDX-FileCopyrightText: (C) 2006 Dominik Seichter <domseichter@web.de>
  * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
- * SPDX-License-Identifier: LGPL-2.0-or-later
+ * SPDX-License-Identifier: LGPL-2.0-or-later WITH cryptsetup-OpenSSL-exception
  */
 
 // ---------------------------
