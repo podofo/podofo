@@ -40,7 +40,44 @@ void PdfXObjectForm::FillFromPage(const PdfPage& page, bool useTrimBox)
 {
     // After filling, set correct BBox and Matrix accounting for page rotation
     m_Rect = GetDocument().FillXObjectFromPage(*this, page, useTrimBox);
-    initAfterPageInsertion(page);
+
+    // BBox must be in form space (ISO 32000-2:2020 8.10.2 "Form dictionaries"),
+    // but m_Rect arrives post-rotation from GetMediaBox() with W/H already swapped
+    switch (page.GetRotation())
+    {
+        case 90:
+        case 270:
+        {
+            double temp = m_Rect.Width;
+            m_Rect.Width = m_Rect.Height;
+            m_Rect.Height = temp;
+            break;
+        }
+        default:
+            break;
+    }
+
+    PdfArray bbox;
+    m_Rect.ToArray(bbox);
+    GetDictionary().AddKey("BBox"_n, bbox);
+
+    // Account for page rotation in form's /Matrix, so that content is drawn with the
+    // same orientation as on the page. Also account for page's position on the media box,
+    // if not at the origin
+    double teta;
+    if (page.TryGetRotationRadians(teta))
+    {
+        auto matrix = GetFrameRotationTransform(m_Rect, teta);
+        if (m_Rect.X != 0 || m_Rect.Y != 0)
+            matrix = matrix * Matrix::CreateTranslation(Vector2(-m_Rect.X, -m_Rect.Y));
+
+        SetMatrix(matrix);
+    }
+    else
+    {
+        if (m_Rect.X != 0 || m_Rect.Y != 0)
+            SetMatrix(Matrix::CreateTranslation(Vector2(-m_Rect.X, -m_Rect.Y)));
+    }
 }
 
 bool PdfXObjectForm::TryGetRotationRadians(double& teta) const
@@ -154,44 +191,4 @@ void PdfXObjectForm::initXObject(const Rect& rect)
     GetDictionary().AddKey("BBox"_n, bbox);
     GetDictionary().AddKey("FormType"_n, PdfVariant(static_cast<int64_t>(1))); // only 1 is only defined in the specification.
     GetDictionary().AddKey("Matrix"_n, arr);
-}
-
-void PdfXObjectForm::initAfterPageInsertion(const PdfPage& page)
-{
-    // BBox must be in form space (ISO 32000-1 §8.10.2), but m_Rect arrives
-    // post-rotation from GetMediaBox() with W/H already swapped
-    switch (page.GetRotation())
-    {
-        case 90:
-        case 270:
-        {
-            double temp = m_Rect.Width;
-            m_Rect.Width = m_Rect.Height;
-            m_Rect.Height = temp;
-            break;
-        }
-        default:
-            break;
-    }
-
-    PdfArray bbox;
-    m_Rect.ToArray(bbox);
-    GetDictionary().AddKey("BBox"_n, bbox);
-
-    double teta;
-    if (!page.TryGetRotationRadians(teta))
-    {
-        if (m_Rect.X != 0 || m_Rect.Y != 0)
-            SetMatrix(Matrix::CreateTranslation(Vector2(-m_Rect.X, -m_Rect.Y)));
-
-        return;
-    }
-
-    auto matrix = GetFrameRotationTransform(m_Rect, teta);
-
-    // Shift so DrawXObject(xobj, px, py) places content at (px, py) not (px+X, py+Y)
-    if (m_Rect.X != 0 || m_Rect.Y != 0)
-        matrix = matrix * Matrix::CreateTranslation(Vector2(-m_Rect.X, -m_Rect.Y));
-
-    SetMatrix(matrix);
 }

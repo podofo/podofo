@@ -74,7 +74,6 @@ private:
     PdfObjectStream& ResetContentsStream() override;
     void CopyContentsTo(OutputStream& stream) const override;
     void initXObject(const Rect& rect);
-    void initAfterPageInsertion(const PdfPage& page);
 
 private:
     // Remove some PdfCanvas methods to maintain the class API surface clean
