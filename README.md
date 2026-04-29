@@ -74,8 +74,11 @@ GCC 8.1 support [broke](https://github.com/podofo/podofo/issues/116), but it cou
 
 ## Licensing
 
-PoDoFo library is licensed under the [LGPL 2.0](https://spdx.org/licenses/LGPL-2.0-or-later.html) or later terms.
-PoDoFo tools are licensed under the [GPL 2.0](https://spdx.org/licenses/GPL-2.0-or-later.html) or later terms.
+The PoDoFo library is licensed under the [LGPL 2.0 or later](https://spdx.org/licenses/LGPL-2.0-or-later.html) terms.
+
+PoDoFo tools are licensed under the [GPL 2.0 or later](https://spdx.org/licenses/GPL-2.0-or-later.html) terms.
+
+Please refer to the [NOTICE](https://github.com/podofo/podofo/blob/master/NOTICE) file for the use of 3rd party components. Consider disabling the [AFDKO](https://github.com/adobe-type-tools/afdko) integration if you plan to distribute the PoDoFo library with [GPL 2.0-only](https://spdx.org/licenses/GPL-2.0-only.html) projects.
 
 ## Development quickstart
 
@@ -185,7 +188,7 @@ This unconditionally disable building tests, examples and tools;
 - `PODOFO_BUILD_STATIC`: If TRUE, build the library as a static object and use it in tests,
 examples and tools. By default a shared library is built;
 
-- `PODOFO_WITH_AFDKO`: Enable the [Adobe Font Development Kit for OpenType](https://github.com/adobe-type-tools/afdko) integration, defaults to ON.
+- `PODOFO_WITH_AFDKO`: Enable the [Adobe Font Development Kit for OpenType](https://github.com/adobe-type-tools/afdko) integration (used in Type1/OpenType font subsetting), defaults to ON.
 
 ### Static linking
 
