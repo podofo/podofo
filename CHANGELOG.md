@@ -1,3 +1,34 @@
+## Version 1.0.4
+- Fixed [#314](https://github.com/podofo/podofo/issues/314), [#317](https://github.com/podofo/podofo/issues/317),
+  [#318](https://github.com/podofo/podofo/issues/318), [#335](https://github.com/podofo/podofo/issues/335),
+  [#336](https://github.com/podofo/podofo/issues/336), [#337](https://github.com/podofo/podofo/issues/337)
+- `OpenSSLInternal`: Fixed potential double-free in `compute_hash_to_sign()`
+- CMS signing: Fixed minor/potential memory leaks
+- `FillXObjectFromPage`: Copy `/Group` dictionary to preserve transparency compositing (#337)
+- `PdfPainter`: Fix exception-safety for text drawing and XObject operations (#336)
+- `PdfXObjectForm`: Fix incorrect `BBox` and `Matrix` for rotated source pages in `FillFromPage` (#335)
+- `PdfContents`: Fixed painting to the same page more than twice (#317)
+- `PdfFontMetricsObject`: Handle scalars in the widths array that are cross references
+- `PdfTokenizer`: Fixed infinite loop for "Unknown" keyword
+- `PdfDate`: Fixed OOB read in date parsing
+- Fix CFF font subsetting leak
+- `PdfEncodingMapSimple`: Fix skipping `beginbfrange` unmapped codes in `AppendToUnicodeEntries()`
+- `PdfCMapEncoding`: Handle `beginbfrange` declared size bigger than actual array
+- `PdfFlateFilter`: Detect error condition treated as warning during inflate
+- `basedefs`: Aggressively remove offending `<Windows.h>` macros and fix `<zlib.h>` conflict (#314)
+- `getCodeFromVariant`: Avoid invalid arithmetical shifts
+- CMap parser: Fixed infinite loop on negative character codes
+- Document keywords: Fixed retrieving doc keyword list (#318)
+- `PdfParser`: Fix `std::terminate` on malformed XRef stream during document load
+- `PdfFont`: Fixed `GetCharGIDInfos()` when font program subsetting is not enabled
+- `PdfFontMetricsFreetype`: Fixed retrieval of ascent/descent
+- `PdfCharCodeMap`: Fix UB in `PushRange` when duplicate range is at begin
+- `PdfDestination`: Removed spurious check for `PdfMemDocument` in `TryCreateFromObject`
+- `PdfAnnotationActionBase`: Fixed segfault in `getAction()`
+- `InputStream`: Try to ignore `/FlateDecode` errors
+- AFDKO: Integration made optional (still enabled by default)
+- Build: Fix link issues when client links against PoDoFo and pdfium
+
 ## Version 1.0.3
 - Fixed [#278](https://github.com/podofo/podofo/issues/278), [#288](https://github.com/podofo/podofo/issues/288), [#292](https://github.com/podofo/podofo/issues/292), [#290](https://github.com/podofo/podofo/issues/290), [#295](https://github.com/podofo/podofo/issues/295)
 - PdfParser: Fix the /Prev offsets by adding the %PDF- magic offset
@@ -65,6 +96,32 @@
 - Fixed `PdfStreamedDocument`, see #88
 - Tons of API improvements (see [API-MIGRATION.md](https://github.com/podofo/podofo/blob/master/API-MIGRATION.md))
 - Tons of other bug fixes
+
+## Version 0.10.6
+- Fix [#260](https://github.com/podofo/podofo/issues/260), [#278](https://github.com/podofo/podofo/issues/278),
+  [#290](https://github.com/podofo/podofo/issues/290), [#295](https://github.com/podofo/podofo/issues/295),
+  [#314](https://github.com/podofo/podofo/issues/314), [#317](https://github.com/podofo/podofo/issues/317),
+  [#318](https://github.com/podofo/podofo/issues/318)
+- `PdfFontMetricsObject`: Handle scalars in the widths array that are cross references
+- `PdfEncodingMapSimple`: Fix skipping `beginbfrange` unmapped codes in `AppendToUnicodeEntries()`
+- `PdfCMapEncoding`: Handle `beginbfrange` declared size bigger than actual array
+- `PdfContents`: Fixed painting to the same page more than twice (#317)
+- `PdfTokenizer`: Fixed infinite loop for "Unknown" keyword
+- `PdfDate`: Fixed OOB read in date parsing
+- `PdfXRefStreamParserObject`: Permit `/W` [1 8 2]
+- `PdfMemDocument`: Fixed upgrade to PDF 2.0 in incremental updates
+- `PdfIndirectObjectList`: Fixed incorrect collecting of `/Length` objects in compressed object streams
+- `PdfPage`: Concatenate form XObject matrix to CTM during text extraction
+- `PdfDictionary`: Small optimization in `findKey()`
+- `PdfFlateFilter`: Detect error condition treated as warning during inflate
+- CMap parser: Fixed infinite loop on negative character codes
+- `getCodeFromVariant`: Avoid invalid arithmetical shifts
+- Text operators: Fixed order of operations for `'` and `"` operators (#278)
+- `charconv_compat`: Fixed support for older MacOS and newer Xcode (#290, #295, libc++ 20+)
+- `basedefs`: Aggressively remove offending `<Windows.h>` macros and fix `<zlib.h>` conflict (#314)
+- Document keywords: Fixed retrieving doc keyword list (#318)
+- Increased minimum GCC version requirement (#260)
+- Various compilation and warning fixes
 
 ## Version 0.10.5
 - Fix [#191](https://github.com/podofo/podofo/issues/191), [#197](https://github.com/podofo/podofo/issues/197),
