@@ -2,7 +2,7 @@
 - Fixed [#314](https://github.com/podofo/podofo/issues/314), [#317](https://github.com/podofo/podofo/issues/317),
   [#318](https://github.com/podofo/podofo/issues/318), [#335](https://github.com/podofo/podofo/issues/335),
   [#336](https://github.com/podofo/podofo/issues/336), [#337](https://github.com/podofo/podofo/issues/337)
-- `OpenSSLInternal`: Fixed potential double-free in `compute_hash_to_sign()`
+- `OpenSSLInternal`: Fixed potential double-free in `compute_hash_to_sign()`, [GHSA](https://github.com/podofo/podofo/security/advisories/GHSA-8fq6-rqpv-xq72)
 - CMS signing: Fixed minor/potential memory leaks
 - `FillXObjectFromPage`: Copy `/Group` dictionary to preserve transparency compositing (#337)
 - `PdfPainter`: Fix exception-safety for text drawing and XObject operations (#336)
