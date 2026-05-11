@@ -191,6 +191,8 @@ examples and tools. By default a shared library is built;
 
 - `PODOFO_WITH_AFDKO`: Enable the [Adobe Font Development Kit for OpenType](https://github.com/adobe-type-tools/afdko) integration (used in Type1/OpenType font subsetting), defaults to ON;
 
+- `PODOFO_WITH_WIN32GDI_FONT_SEARCH`: In Windows, enable use of Win32 GDI for font search (Fontconfig is always prefered, is available), defaults to OFF;
+
 - `PODOFO_DEVENDOR_TCBSPAN`: If TRUE, the [`tcb::span`](https://github.com/tcbrindle/span) library will be devendored;
 
 - `PODOFO_DEVENDOR_DATE`: If TRUE, the [`date`](https://github.com/howardhinnant/date) library will be devendored;

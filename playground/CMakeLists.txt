@@ -17,6 +17,7 @@ set(PODOFO_PLAYGROUND TRUE)
 if ("${ARCH}" STREQUAL "")
     message(FATAL_ERROR "ARCH is not set. Run the bootstrap scripts")
 endif()
+set(ARCH "${ARCH}" CACHE STRING "" FORCE)
 
 if ("${PODOFO_DIR}" STREQUAL "")
     get_filename_component(PODOFO_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)

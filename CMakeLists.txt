@@ -120,6 +120,7 @@ endif()
 
 if(WIN32)
     # Core win32 libraries come with CMAKE_C(XX)_IMPLICIT_LINK_LIBRARIES
+    set(PODOFO_HAVE_WIN32GDI TRUE)
     list(APPEND PLATFORM_SYSTEM_LIBRARIES ws2_32 crypt32)
 endif()
 
@@ -173,7 +174,7 @@ message("Found zlib headers in ${ZLIB_INCLUDE_DIR}, library at ${ZLIB_LIBRARIES}
 find_package(OpenSSL REQUIRED)
 message("Found OpenSSL headers in ${OPENSSL_INCLUDE_DIR}, libraries at ${OPENSSL_LIBRARIES}")
 
-if (PODOFO_WANT_LCMS2)
+if (PODOFO_WITH_LCMS2)
     find_package(LCMS2)
     if(LCMS2_FOUND)
         message("Found little-cms2 headers in ${LCMS2_INCLUDE_DIR}, library at ${LCMS2_LIBRARIES}")
@@ -215,16 +216,30 @@ endif()
 find_package(Freetype REQUIRED)
 message("Found freetype library at ${FREETYPE_LIBRARIES}, headers ${FREETYPE_INCLUDE_DIRS}")
 
-find_package(Fontconfig)
-if(Fontconfig_FOUND)
-    set(PODOFO_HAVE_FONTCONFIG TRUE)
-    message("Found fontconfig headers in ${Fontconfig_INCLUDE_DIRS}, library at ${Fontconfig_LIBRARIES}")
-endif()
+option(PODOFO_WITH_FONTMANAGER "Enable font search mechanism" ON)
 
-if(WIN32 AND NOT PODOFO_HAVE_FONTCONFIG OR PODOFO_WANT_WIN32GDI)
-    # Fallback to GDI if FontConfig is missing in Windows
-    set(PODOFO_HAVE_WIN32GDI TRUE)
-    message("Enabled Windows GDI API")
+if(PODOFO_WITH_FONTMANAGER)
+    if(WIN32)
+        option(PODOFO_WITH_WIN32GDI_FONT_SEARCH "Enable Win32 GDI font search as alternative to FontConfig" OFF)
+    endif()
+
+    if(WIN32 AND PODOFO_WITH_WIN32GDI_FONT_SEARCH)
+        # Win32 font search enabled: FontConfig is optional
+        find_package(Fontconfig)
+        if(Fontconfig_FOUND)
+            set(PODOFO_HAVE_FONTCONFIG TRUE)
+            message("Found fontconfig headers in ${Fontconfig_INCLUDE_DIRS}, library at ${Fontconfig_LIBRARIES}")
+        else()
+            message("Fontconfig not found, using Win32 GDI font search only")
+        endif()
+        set(PODOFO_ENABLE_WIN32GDI_FONT_SEARCH TRUE)
+        message("Enabled Windows GDI font search")
+    else()
+        # FontConfig is required on all platforms
+        find_package(Fontconfig REQUIRED)
+        set(PODOFO_HAVE_FONTCONFIG TRUE)
+        message("Found fontconfig headers in ${Fontconfig_INCLUDE_DIRS}, library at ${Fontconfig_LIBRARIES}")
+    endif()
 endif()
 
 find_package(LibXml2 REQUIRED)

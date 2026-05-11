@@ -213,11 +213,6 @@ private:
     PdfFont* addImported(std::vector<PdfFont*>& fonts, std::unique_ptr<PdfFont>&& font);
     PdfFont& getOrCreateFontHashed(PdfFontMetricsConstPtr&& metrics, const PdfFontCreateParams& params);
 
-#if defined(_WIN32) && defined(PODOFO_HAVE_WIN32GDI)
-    static std::unique_ptr<charbuff> getWin32FontData(const std::string_view& fontName,
-        const PdfFontSearchParams& params);
-#endif
-
 private:
     PdfFontManager(const PdfFontManager&) = delete;
     PdfFontManager& operator=(const PdfFontManager&) = delete;
