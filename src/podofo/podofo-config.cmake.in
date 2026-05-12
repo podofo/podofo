@@ -2,6 +2,9 @@
 
 if("@PODOFO_BUILD_STATIC@")
     include(CMakeFindDependencyMacro)
+    if("@PODOFO_DEVENDOR_UTF8PROC@")
+        find_dependency(utf8proc CONFIG)
+    endif()
     if("@Fontconfig_FOUND@")
         find_dependency(Fontconfig)
     endif()
