@@ -2,7 +2,13 @@
 #define AUX_SPAN_H
 #pragma once
 
+#include "podofo_config.h"
+
+#ifdef PODOFO_DEVENDOR_TCBSPAN
+#include <tcb/span.hpp>
+#else
 #include <podofo/3rdparty/span.hpp>
+#endif
 
 namespace PoDoFo
 {
