@@ -189,9 +189,11 @@ This unconditionally disable building tests, examples and tools;
 - `PODOFO_BUILD_STATIC`: If TRUE, build the library as a static object and use it in tests,
 examples and tools. By default a shared library is built;
 
-- `PODOFO_WITH_AFDKO`: Enable the [Adobe Font Development Kit for OpenType](https://github.com/adobe-type-tools/afdko) integration (used in Type1/OpenType font subsetting), defaults to ON;
+- `PODOFO_WITH_FONTMANAGER`: Enable search of fonts in the system. It generally requires Fontconfig, unless specific platforms fallbacks are enabled. Defaults to ON;
 
 - `PODOFO_WITH_WIN32GDI_FONT_SEARCH`: In Windows, enable use of Win32 GDI for font search (Fontconfig is always prefered, is available), defaults to OFF;
+
+- `PODOFO_WITH_AFDKO`: Enable the [Adobe Font Development Kit for OpenType](https://github.com/adobe-type-tools/afdko) integration (used in Type1/OpenType font subsetting), defaults to ON;
 
 - `PODOFO_DEVENDOR_TCBSPAN`: If TRUE, the [`tcb::span`](https://github.com/tcbrindle/span) library will be devendored;
 
