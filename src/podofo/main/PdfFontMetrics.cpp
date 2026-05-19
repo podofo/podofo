@@ -592,7 +592,7 @@ PdfEncodingMapConstPtr PdfFontMetrics::getDefaultEncoding(bool tryFetchCidToGidM
         if (cidToGidMap != nullptr)
         {
             // NOTE: We just take the inferred builtin CID to GID map and we create
-            // a identity encoding of the maximum code size. It should always be 1
+            // an identity encoding of the maximum code size. It should always be 1
             // anyway
             // CHECK-ME: Is this really correct?
 

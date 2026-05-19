@@ -169,7 +169,7 @@ TEST_CASE("TestComments")
 
 TEST_CASE("TestLocale")
 {
-    // Test with a locale thate uses "," instead of "." for doubles 
+    // Test with a locale that uses "," instead of "." for doubles 
     char* old = setlocale(LC_ALL, "de_DE");
 
     Test("3.140000", PdfDataType::Real, "3.14");

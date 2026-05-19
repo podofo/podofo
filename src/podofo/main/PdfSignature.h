@@ -134,7 +134,7 @@ private:
      *
      * Structure of the PDF file - before signing:
      * <</ByteRange[ 0 1234567890 1234567890 1234567890]/Contents<signatureData>
-     * Have to be replaiced with the following structure:
+     * Have to be replaced with the following structure:
      * <</ByteRange[ 0 count pos count]/Contents<real signature ...0-padding>
      *
      * \param filter /Filter for this signature

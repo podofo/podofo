@@ -109,7 +109,7 @@ PdfMetadataStore PdfXMPPacket::GetMetadata() const
 {
     if (m_Description == nullptr)
     {
-        // The the XMP metadata is missing or has insufficient data
+        // The XMP metadata is missing or has insufficient data
         // to determine a PDF/A level
         return { };
     }

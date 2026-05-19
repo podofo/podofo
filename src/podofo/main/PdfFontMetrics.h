@@ -17,7 +17,7 @@ namespace PoDoFo {
 
 class PdfFontMetrics;
 
-// NOTE: Underlying type may may change in the future
+// NOTE: Underlying type may change in the future
 using GlyphMetricsListConstPtr = std::shared_ptr<const std::vector<double>>;
 
 /** Convenience typedef for a const PdfEncoding shared ptr

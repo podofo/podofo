@@ -490,7 +490,7 @@ enum class PdfSaveOptions
     SaveOnSigning = 64,
 
     /**
-     * This curently applies only during singing, and allows to
+     * This currently applies only during singing, and allows to
      * sign documents with broken xref sections. Use with caution.
      */
     IgnoreXRefErrors = 128, 

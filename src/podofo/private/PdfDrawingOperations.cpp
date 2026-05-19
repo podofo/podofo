@@ -672,14 +672,14 @@ void getArcBezierControlPoints(double xc, double yc, double x0, double y0, doubl
 
 void getControlPoint(double cx, double cy, double x0, double y0, double x2, double y2, double& x1, double& y1)
 {
-    // Compute the coefficients of the tantent to the point P0
+    // Compute the coefficients of the tangent to the point P0
     double a0 = cy - y0;
     double b0 = x0 - cx;
     double a0t = b0;
     double b0t = -a0;
     double c0t = -b0 * x0 + a0 * y0;
 
-    // Compute the coefficients of the tantent to the point P0
+    // Compute the coefficients of the tangent to the point P0
     double a2 = cy - y2;
     double b2 = x2 - cx;
     double a2t = b2;

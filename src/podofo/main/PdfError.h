@@ -39,7 +39,7 @@ enum class PdfErrorCode : uint8_t
     InvalidTrailer,           ///< The PDF file has no or an invalid trailer.
     InvalidNumber,            ///< A number was expected in the PDF file, but the read string is no number.
     InvalidEncoding,          ///< Invalid encoding information
-    InvalidObject,            ///< Invalid object or none none was found.
+    InvalidObject,            ///< Invalid object or none was found.
     InvalidEOFToken,          ///< The PDF file has no or an invalid EOF marker.
     InvalidDataType,          ///< The passed datatype is invalid or was not recognized
     InvalidXRef,              ///< The XRef table is invalid

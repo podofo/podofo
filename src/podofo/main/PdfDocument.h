@@ -254,7 +254,7 @@ public:
      */
     void PushPdfExtension(const PdfExtension& extension);
 
-    /** Checks whether the documents is tagged to imlpement a vendor-specific
+    /** Checks whether the documents is tagged to implement a vendor-specific
      *  extension to the current PDF version.
      *  \param ns  namespace of the extension
      *  \param level  level of the extension
@@ -288,7 +288,7 @@ public:
     /**
      * Get an iterator for all fields in the document. All widget annotation fields
      * in the pages will be returned, plus non annotation fields in the /AcroForm
-     * (eg. invisibile signatures)
+     * (eg. invisible signatures)
      */
     PdfDocumentFieldIterable GetFieldsIterator();
     PdfDocumentConstFieldIterable GetFieldsIterator() const;
@@ -571,7 +571,7 @@ void PdfDocumentFieldIterableBase<TField>::Iterator::increment()
     }
 }
 
-// Update the iterator for the current page index, or swith to form iteration
+// Update the iterator for the current page index, or switch to form iteration
 template<typename TField>
 void PdfDocumentFieldIterableBase<TField>::Iterator::stepIntoPageOrForm(PdfPageCollection& pages)
 {

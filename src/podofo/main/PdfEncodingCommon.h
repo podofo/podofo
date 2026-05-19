@@ -120,7 +120,7 @@ namespace PoDoFo
 
     /**
      * A convenient typedef for an unspecified codepoint
-     * The underlying type is convenientely char32_t so
+     * The underlying type is conveniently char32_t so
      * it's a 32 bit fixed sized type that is also compatible
      * with unicode code points
      */

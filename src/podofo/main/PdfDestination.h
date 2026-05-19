@@ -152,7 +152,7 @@ public:
     double GetDValue() const;
 
 private:
-    /** Adds this destination to an dictionary.
+    /** Adds this destination to a dictionary.
      *  This method handles the all the complexities of making sure it's added correctly
      *
      *  If this destination is empty. Nothing will be added.

@@ -181,7 +181,7 @@ void PdfDocument::append(const PdfDocument& doc, bool appendAll)
     }
 
     // TODO: merge name trees
-    // ToDictionary -> then iteratate over all keys and add them to the new one
+    // ToDictionary -> then iterative over all keys and add them to the new one
 }
 
 void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex)

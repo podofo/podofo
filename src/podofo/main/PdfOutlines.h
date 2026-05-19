@@ -25,7 +25,7 @@ enum class PdfOutlineFormat : uint8_t
 };
 
 /**
- * A PDF outline item has an title and a destination.
+ * A PDF outline item has a title and a destination.
  * It is an element in the documents outline which shows
  * its hierarchical structure.
  *

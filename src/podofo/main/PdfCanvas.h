@@ -19,7 +19,7 @@ enum class PdfStreamAppendFlags
     NoSaveRestorePrior = 2
 };
 
-/** A interface that provides the necessary features 
+/** An interface that provides the necessary features 
  *  for a painter to draw onto a PdfObject.
  */
 class PODOFO_API PdfCanvas

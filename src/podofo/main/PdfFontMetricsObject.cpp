@@ -317,7 +317,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfDictionary& fontDict,
             m_CapHeight = numeric_limits<double>::quiet_NaN();
 
         // ISO 32000-2:2020 "The value shall be a negative number"
-        // NOTE: StemV is measured horizzontally, StemH vertically
+        // NOTE: StemV is measured horizontally, StemH vertically
         if (descriptorDict->TryFindKeyAs("StemV", m_StemV) && m_StemV >= 0)
             m_StemV *= m_Matrix[0];
         else
@@ -445,7 +445,7 @@ void PdfFontMetricsObject::ExportType3GlyphData(PdfDictionary& fontDict, cspan<s
             auto obj = srcCharProcs.FindKey(glyphs[i]);
             if (obj->GetStream() == nullptr)
             {
-                // Create a object with a dummy stream
+                // Create an object with a dummy stream
                 auto& newObject = objects.CreateDictionaryObject();
                 newObject.ForceCreateStream();
                 obj = &newObject;
@@ -462,15 +462,15 @@ unsigned PdfFontMetricsObject::GetGlyphCountFontProgram() const
     if (m_FontFileType == PdfFontFileType::Type3)
     {
         // This is interesting. /Type3 fonts:
-        // - Don't have a /FontFile data where glyphs can can be read from;
+        // - Don't have a /FontFile data where glyphs can be read from;
         // - Glyphs are not random accessed by index but by glyph name
         // This means that we are in a situation similar to CID keyed fonts,
         // where we can't really random access glyphs in the storage.
         // Because glyph count from this instance will be mostly accessed
         // for metrics reading, which is allowed to span out of ranges
-        // with default values, wel'll arbitrarily return the maximum possible
+        // with default values, we'll arbitrarily return the maximum possible
         // glyph count for Type3 fonts, which is limited to one-byte encodings.
-        // Cross validation for glyphs data consitency will be performed at
+        // Cross validation for glyphs data consistency will be performed at
         // a later stage
         return 255U;
     }
@@ -504,7 +504,7 @@ bool PdfFontMetricsObject::TryGetGID(char32_t codePoint, unsigned& gid) const
 {
     (void)codePoint;
     // NOTE: We don't (and we won't) support retrieval of GID
-    // from loaded metrics froma a codepoint. If one just needs
+    // from loaded metrics from a codepoint. If one just needs
     // to retrieve the width of a codepoint then one map the
     // codepoint to a CID and retrieve the width directly
     gid = { };

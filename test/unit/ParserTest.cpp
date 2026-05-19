@@ -298,7 +298,7 @@ void PdfParserTest::TestReadXRefContents()
     {
         // generate an xref section and one XRef stream that references itself
         // via the /Prev entry (but use a slightly lower offset by linking to
-        // to whitespace discarded by the tokenizer just before the xref section)
+        // whitespace discarded by the tokenizer just before the xref section)
         // xref
         // 0 1
         // 000000000 65535

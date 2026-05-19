@@ -271,7 +271,7 @@ bool PdfEncoding::TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const
         else
         {
             // Retrieve the code point and get directly the
-            // a GID from the metrics
+            // GID from the metrics
             char32_t cp = GetCodePoint(codeUnit);
             unsigned gid;
             if (cp == U'\0' || !m_Font->GetMetrics().TryGetGID(cp, gid))

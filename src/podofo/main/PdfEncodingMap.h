@@ -65,7 +65,7 @@ public:
      */
     bool TryGetCharCode(unsigned cid, PdfCharCode& codeUnit) const;
 
-    /** Try decode next cid from from encoded string range
+    /** Try decode next cid from encoded string range
      */
     bool TryGetNextCID(std::string_view::iterator& it,
         const std::string_view::iterator& end, PdfCID& cid) const;
@@ -152,20 +152,20 @@ protected:
     virtual void AppendCodeSpaceRange(OutputStream& stream, charbuff& temp) const;
 
     /** During a WriteToUnicodeCMap append "beginbfchar" and "beginbfrange"
-     * entries. "bf" stands for Base Font, see Adobe tecnichal notes #5014
+     * entries. "bf" stands for Base Font, see Adobe technical notes #5014
      *
      * To be called by PdfEncoding
      */
     virtual void AppendToUnicodeEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const = 0;
 
     /** During a PdfEncoding::ExportToFont() append "begincidchar"
-     * and/or "begincidrange" entries. See Adobe tecnichal notes #5014\
+     * and/or "begincidrange" entries. See Adobe technical notes #5014\
      *
      * To be called by PdfEncoding
      */
     virtual void AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const = 0;
 
-    /** Get an intrisc CID to GID map, such as the ones implied by having
+    /** Get an intrinsic CID to GID map, such as the ones implied by having
      * a defined /Encoding entry with /TrueType, /Type3 fonts
      */
     virtual PdfCIDToGIDMapConstPtr GetIntrinsicCIDToGIDMap(const PdfDictionary& fontDict, const PdfFontMetrics& metrics) const;

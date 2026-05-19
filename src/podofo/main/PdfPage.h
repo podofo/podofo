@@ -268,7 +268,7 @@ public:
 
     /** Set the current page rotation.
      * \param rotation The rotation to set to the page. Must be a multiple of 90
-     * \remarks The actual stored rotation will be normalzed to 0, 90, 180 or 270
+     * \remarks The actual stored rotation will be normalized to 0, 90, 180 or 270
      */
     void SetRotation(int rotation);
 

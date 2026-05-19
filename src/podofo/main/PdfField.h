@@ -73,7 +73,7 @@ public:
     /** Set the highlighting mode which should be used when the user
      *  presses the mouse button over this widget.
      *
-     *  \param mode the highliting mode
+     *  \param mode the highlighting mode
      *
      *  The default value is PdfHighlightingMode::Invert
      */

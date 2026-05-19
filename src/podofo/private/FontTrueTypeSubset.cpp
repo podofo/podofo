@@ -231,7 +231,7 @@ void FontTrueTypeSubset::loadGlyphMetrics(const cspan<PdfCharGIDInfo>& infos)
 
     for (auto& pair : m_glyphDatas)
     {
-        // Iterate all loaded for coumpond glyphs to subset
+        // Iterate all loaded for compound glyphs to subset
         auto& glyphData = pair.second;
         if (!glyphData.IsCompound)
             continue;

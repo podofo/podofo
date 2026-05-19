@@ -353,7 +353,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                             else if (obj.TryGetReal(real))
                             {
                                 // pg. 408, Pdf Reference 1.7: "The number is expressed in thousandths of a unit
-                                // of text space. [...] This amount is subtracted from from the current horizontal or
+                                // of text space. [...] This amount is subtracted from the current horizontal or
                                 // vertical coordinate, depending on the writing mode"
                                 // It must be scaled by the font size
                                 double space = (-real / 1000) * context.States.Current->PdfState.FontSize;
@@ -695,7 +695,7 @@ bool decodeString(const PdfString &str, TextState &state, string &decoded,
         if (!str.IsHex())
         {
             // As a fallback try to retrieve the raw string
-            // CHECK-ME: Maybe intrepret them as PdfDocEncoding?
+            // CHECK-ME: Maybe interpret them as PdfDocEncoding?
             decoded = str.GetString();
             lengths.resize(decoded.length());
             positions.resize(decoded.length());

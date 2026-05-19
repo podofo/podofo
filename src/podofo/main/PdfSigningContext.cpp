@@ -28,7 +28,7 @@ constexpr uint8_t DumpFooterVersion = 1;
 namespace
 {
     /// <summary>
-    /// A footer that identifies the a signing context dump
+    /// A footer that identifies the signing context dump
     /// </summary>
     struct SigningContextDumpFooter
     {

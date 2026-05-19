@@ -430,7 +430,7 @@ vector<PdfSplittedString> PdfFont::SplitEncodedString(const PdfString& str) cons
 {
     (void)str;
     // TODO: retrieve space character codes with m_Encoding->GetToUnicodeMapSafe().TryGetCharCode(codePoint, codeUnit),
-    // then iterate char codes and return splitted strings
+    // then iterate char codes and return split strings
     PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 */

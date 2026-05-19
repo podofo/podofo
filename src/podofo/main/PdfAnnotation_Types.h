@@ -91,13 +91,13 @@ namespace PoDoFo {
         /** Set a file attachment for this annotation.
          *  The type of this annotation has to be
          *  PdfAnnotationType::FileAttachement for file
-         *  attachements to work.
+         *  attachments to work.
          *
          *  \param fileSpec a file specification
          */
         void SetFileAttachment(const nullable<PdfFileSpec&>& fileSpec);
 
-        /** Get a file attachement of this annotation.
+        /** Get a file attachment of this annotation.
          *  \returns a file specification object. The file specification object is owned
          *           by the PdfAnnotation.
          *

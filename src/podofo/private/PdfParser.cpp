@@ -617,7 +617,7 @@ void PdfParser::ReadXRefSubsection(InputStreamDevice& device, int64_t& firstObje
                 }
                 default:
                 {
-                    // This flow should have beeb already been cathed earlier
+                    // This flow should have beeb already been catched earlier
                     PODOFO_ASSERT(false);
                 }
             }

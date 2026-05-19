@@ -630,7 +630,7 @@ void PdfTokenizer::ReadString(InputStreamDevice& device, PdfVariant& variant, co
         }
     }
 
-    // In case the string ends with a octal escape sequence
+    // In case the string ends with an octal escape sequence
     if (octEscape)
         m_charBuffer.push_back(octValue);
 
