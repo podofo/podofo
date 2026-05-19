@@ -1148,7 +1148,7 @@ size_t utls::ReadBuffer(istream& stream, char* buffer, size_t size, bool& eof)
         (void)stream.rdstate();
 
         // On gcc (linux) 4.8.1 and VS2010/VS2013 (Windows 7) this consistently
-        // sets eofbit when stream is EOF for the consequences  of sgetn(). It
+        // sets eofbit when stream is EOF for the consequences of sgetn(). It
         // should also throw if exceptions are set, or return on the contrary,
         // and previous rdstate() restored a failbit on Windows. On Windows most
         // of the times it sets eofbit even on real read failure
