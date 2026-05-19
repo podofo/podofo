@@ -28,7 +28,7 @@ public:
 
     /** Parse a CMap encoding from an object
      * \remarks Throws if parse failed
-     * \returns The results may be a non null PdfCMapEncoding or PdfIdentityEncoding on succcess
+     * \returns The results may be a non null PdfCMapEncoding or PdfIdentityEncoding on success
      */
     static std::unique_ptr<PdfEncodingMap> ParseCMapEncoding(const PdfObject& cmapObj);
 
