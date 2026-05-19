@@ -477,7 +477,7 @@ namespace PoDoFo
             else
                 m_Parent->GetDictionary().AddKey("Kids"_n, kids);
 
-            // Important is to the limits
+            // It is important to set the limits
             // of the children first,
             // because SetLimits( parent )
             // depends on the /Limits key of all its children!
