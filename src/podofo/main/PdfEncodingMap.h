@@ -159,7 +159,7 @@ protected:
     virtual void AppendToUnicodeEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const = 0;
 
     /** During a PdfEncoding::ExportToFont() append "begincidchar"
-     * and/or "begincidrange" entries. See Adobe technical notes #5014\
+     * and/or "begincidrange" entries. See Adobe technical note #5014
      *
      * To be called by PdfEncoding
      */
