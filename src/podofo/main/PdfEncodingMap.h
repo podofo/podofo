@@ -152,7 +152,7 @@ protected:
     virtual void AppendCodeSpaceRange(OutputStream& stream, charbuff& temp) const;
 
     /** During a WriteToUnicodeCMap append "beginbfchar" and "beginbfrange"
-     * entries. "bf" stands for Base Font, see Adobe technical notes #5014
+     * entries. "bf" stands for Base Font, see Adobe technical note #5014
      *
      * To be called by PdfEncoding
      */
