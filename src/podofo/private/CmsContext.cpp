@@ -87,7 +87,7 @@ void CmsContext::ComputeHashToSign(charbuff& hashToSign)
     // Sign with external encryption
     // NOTE: Using openssl code would be CMS_dataFinal(m_cms, m_databio),
     // but we can't do that since in OpenSSL 1.1 there's not an
-    // easy way to plug an external encrypion so we do it manually
+    // easy way to plug an external encryption so we do it manually
     ssl::ComputeHashToSign(m_signer, m_databio, m_parameters.DoWrapDigest, hashToSign);
     m_status = CmsContextStatus::ComputedHash;
 }

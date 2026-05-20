@@ -47,7 +47,7 @@ static void extractFontHints(string& fontName, bool& isItalic, bool& isBold);
 static bool trimSuffix(string& name, const string_view& suffix);
 static double modulo(double a, double b);
 
-// Picked as the minimum size for small string optimizations withing GCC, MSVC, Clang
+// Picked as the minimum size for small string optimizations within GCC, MSVC, Clang
 constexpr unsigned FloatFormatDefaultSize = 15;
 
 struct VersionIdentity
@@ -622,7 +622,7 @@ unsigned char PoDoFo::GetSubsetPrefixLength(const string_view& fontName)
     return 0;
 }
 
-// NOTE: This function is condsidered to be slow. Avoid calling it frequently
+// NOTE: This function is considered to be slow. Avoid calling it frequently
 // https://github.com/podofo/podofo/issues/30
 void extractFontHints(string& name, bool& isItalic, bool& isBold)
 {
@@ -1148,7 +1148,7 @@ size_t utls::ReadBuffer(istream& stream, char* buffer, size_t size, bool& eof)
         (void)stream.rdstate();
 
         // On gcc (linux) 4.8.1 and VS2010/VS2013 (Windows 7) this consistently
-        // sets eofbit when stream is EOF for the conseguences  of sgetn(). It
+        // sets eofbit when stream is EOF for the consequences of sgetn(). It
         // should also throw if exceptions are set, or return on the contrary,
         // and previous rdstate() restored a failbit on Windows. On Windows most
         // of the times it sets eofbit even on real read failure

@@ -240,7 +240,7 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
                                     handleStringMapping(*str, mappedCodes);
                                     pushMapping(ret, srcCodeLo + i, codeSize, mappedCodes);
                                 }
-                                else if (dst.IsName()) // Not mentioned in tecnincal document #5014 but seems safe
+                                else if (dst.IsName()) // Not mentioned in technical document #5014 but seems safe
                                 {
                                     handleNameMapping(dst.GetName(), mappedCodes);
                                     pushMapping(ret, srcCodeLo + i, codeSize, mappedCodes);
@@ -260,7 +260,7 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
                         }
                         else if (var->IsName())
                         {
-                            // As found in tecnincal document #5014
+                            // As found in technical document #5014
                             handleNameMapping(var->GetName(), mappedCodes);
                             pushRangeMapping(ret, srcCodeLo, rangeSize, mappedCodes, codeSize);
                         }

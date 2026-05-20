@@ -83,7 +83,7 @@ namespace PoDoFo
          */
         static PdfEncoding Create(const PdfEncoding& ref, PdfToUnicodeMapConstPtr&& toUnicode);
 
-        /** Encoding shim that mocks an wrap existing encoding. Used by PdfFont
+        /** Encoding shim that mocks an existing encoding. Used by PdfFont
          */
         static std::unique_ptr<PdfEncoding> CreateSchim(const PdfEncoding& encoding, PdfFont& font);
 

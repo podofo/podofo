@@ -477,7 +477,7 @@ namespace PoDoFo
             else
                 m_Parent->GetDictionary().AddKey("Kids"_n, kids);
 
-            // Important is to the the limits
+            // It is important to set the limits
             // of the children first,
             // because SetLimits( parent )
             // depends on the /Limits key of all its children!
@@ -499,7 +499,7 @@ namespace PoDoFo
     // Tests whether a key is in the range of a limits entry of a name tree node
     // \returns PdfNameLimits::Inside if the key is inside of the range
     // \returns PdfNameLimits::After if the key is greater than the specified range
-    // \returns PdfNameLimits::Before if the key is smalelr than the specified range
+    // \returns PdfNameLimits::Before if the key is smaller than the specified range
     template <typename TKey>
     typename PdfTreeNode<TKey>::PdfNameLimits PdfTreeNode<TKey>::checkLimits(const PdfObject& obj, typename PdfTreeKeyAccess<TKey>::TLookup key)
     {

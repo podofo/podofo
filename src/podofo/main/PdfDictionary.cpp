@@ -117,7 +117,7 @@ PdfObject& PdfDictionary::addKey(const PdfName& key, PdfObject&& obj)
     else
     {
         // Manually setting dirty on the assigned object will
-        // implicity make this container dirty, but won't make
+        // implicitly make this container dirty, but won't make
         // dirty the moved "obj"
         inserted.first->second.AssignNoDirtySet(std::move(obj));
         inserted.first->second.SetDirty();

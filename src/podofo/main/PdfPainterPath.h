@@ -41,7 +41,7 @@ public:
      */
     void AddLine(double x1, double y1, double x2, double y2);
 
-    /** Append a cubic bezier curve from from the current point to the current path
+    /** Append a cubic bezier curve from the current point to the current path
      * Matches the PDF 'c' operator.
      * \param x1 x coordinate of the first control point
      * \param y1 y coordinate of the first control point

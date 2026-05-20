@@ -176,14 +176,14 @@ public:
     PdfAnnotationFlags GetFlags() const;
 
     /** Set the annotations border style.
-     *  \param hCorner horitzontal corner radius
+     *  \param hCorner horizontal corner radius
      *  \param vCorner vertical corner radius
      *  \param width width of border
      */
     void SetBorderStyle(double hCorner, double vCorner, double width);
 
     /** Set the annotations border style.
-     *  \param hCorner horitzontal corner radius
+     *  \param hCorner horizontal corner radius
      *  \param dVCorner vertical corner radius
      *  \param width width of border
      *  \param strokeStyle a custom stroke style pattern

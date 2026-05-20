@@ -13,7 +13,7 @@ class PdfDocument;
 
 enum class PdfAcroFormDefaulAppearance : uint8_t
 {
-    None = 0, ///< Do not add a default appearrance
+    None = 0, ///< Do not add a default appearance
     ArialBlack ///< Add a default appearance with Arial embedded and black text if no other DA key is present
 };
 
@@ -72,7 +72,7 @@ public:
 
     PdfField& CreateField(const std::string_view& name, PdfFieldType fieldType);
 
-    /** Get the field with index index of the form.
+    /** Get the field with index of the form.
      *  \param index the index of the field to retrieve
      *
      *  \returns a field object. The field object is owned by the PdfAcroForm.

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: (C) 2023 Francesco Pretto <ceztko@gmail.com>
 // SPDX-License-Identifier: (LGPL-2.0-or-later WITH cryptsetup-OpenSSL-exception) OR MPL-2.0
 
-// This file constains functions and data structures that were inspired
+// This file contains functions and data structures that were inspired
 // from OpenSSL 1.1 internal code, heavily adapted to extract the digest
 // to be signed before inserting it into the CMS structure
 
@@ -186,7 +186,7 @@ Error:
 
 // Inspired from "encode_pkcs1" in crypto/rsa/rsa_sign.c
 // Encodes a hash as described in RFC 3447 "9.2 EMSA-PKCS1-v1_5"
-// step 2, whitout padding. See https://datatracker.ietf.org/doc/html/rfc3447
+// step 2, without padding. See https://datatracker.ietf.org/doc/html/rfc3447
 void encodePKCS1(X509_ALGOR* digestAlg,
     const unsigned char* hash, unsigned int hashLen, charbuff& outbuff)
 {

@@ -149,7 +149,7 @@ private:
     static void AddFontDirectory(const std::string_view& path);
 
     /** NOTE: This overload doesn't perform normalization or Std14 font search
-     * \param skipNormalization the font search is not normalized for embedding purpouses
+     * \param skipNormalization the font search is not normalized for embedding purposes
      */
     static PdfFontMetricsConstPtr SearchFontMetrics(const std::string_view& fontPattern,
         const PdfFontSearchParams& params, const PdfFontMetrics& metrics, bool skipNormalization);
