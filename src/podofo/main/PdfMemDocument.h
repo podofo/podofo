@@ -49,32 +49,57 @@ public:
     /// Load a PdfMemDocument from a file
     ///
     /// @param filename filename of the file which is going to be parsed/opened
-    ///
-    /// When the bForUpdate is set to true, the filename is copied
-    /// for later use by WriteUpdate.
+    /// @param password optional password for encrypted documents
     ///
     /// @see WriteUpdate, LoadFromBuffer, LoadFromDevice
     void Load(const std::string_view& filename, const std::string_view& password);
+
+    /// Load a PdfMemDocument from a file
+    ///
+    /// @param filename filename of the file which is going to be parsed/opened
+    /// @param opts load options
+    /// @param password optional password for encrypted documents
+    ///
+    /// @see WriteUpdate, LoadFromBuffer, LoadFromDevice
     void Load(const std::string_view& filename, PdfLoadOptions opts = PdfLoadOptions::None, const std::string_view& password = { });
 
     /// Load a PdfMemDocument from a buffer in memory
     ///
     /// @param buffer a memory area containing the PDF data
+    /// @param password optional password for encrypted documents
     ///
     /// @see WriteUpdate, Load, LoadFromDevice
     void LoadFromBuffer(const bufferview& buffer, const std::string_view& password);
+
+    /// Load a PdfMemDocument from a buffer in memory
+    ///
+    /// @param buffer a memory area containing the PDF data
+    /// @param opts load options
+    /// @param password optional password for encrypted documents
+    ///
+    /// @see WriteUpdate, Load, LoadFromDevice
     void LoadFromBuffer(const bufferview& buffer, PdfLoadOptions opts = PdfLoadOptions::None, const std::string_view& password = { });
 
-    /// Load a PdfMemDocument from a PdfRefCountedInputDevice
+    /// Load a PdfMemDocument from an input device
     ///
     /// @param device the input device containing the PDF
+    /// @param password optional password for encrypted documents
     ///
     /// @see WriteUpdate, Load, LoadFromBuffer
     void Load(std::shared_ptr<InputStreamDevice> device, const std::string_view& password);
+
+    /// Load a PdfMemDocument from an input device
+    ///
+    /// @param device the input device containing the PDF
+    /// @param opts load options
+    /// @param password optional password for encrypted documents
+    ///
+    /// @see WriteUpdate, Load, LoadFromBuffer
     void Load(std::shared_ptr<InputStreamDevice> device, PdfLoadOptions opts = PdfLoadOptions::None, const std::string_view& password = { });
     /// Save the complete document to a file
     ///
     /// @param filename filename of the document
+    /// @param opts save options
     ///
     /// @see Save, SaveUpdate
     ///
@@ -84,6 +109,7 @@ public:
     /// Save the complete document to an output device
     ///
     /// @param device write to this output device
+    /// @param opts save options
     ///
     /// @see SaveUpdate
     void Save(OutputStreamDevice& device, PdfSaveOptions opts = PdfSaveOptions::None);
@@ -93,7 +119,8 @@ public:
     /// @param filename filename of the document
     ///
     /// Writes the document changes to a file as an incremental update.
-    /// The document should be loaded with bForUpdate = true, otherwise
+    /// @param opts save options
+    /// The document should be loaded from an existing PDF, otherwise
     /// an exception is thrown.
     ///
     /// Beware when overwriting existing files. Plain file overwrite is allowed
@@ -112,7 +139,8 @@ public:
     /// @param device write to this output device
     ///
     /// Writes the document changes to the output device as an incremental update.
-    /// The document should be loaded with bForUpdate = true, otherwise
+    /// @param opts save options
+    /// The document should be loaded from an existing PDF, otherwise
     /// an exception is thrown.
     ///
     /// @see Save, SaveUpdate

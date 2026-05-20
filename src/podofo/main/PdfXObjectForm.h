@@ -32,7 +32,7 @@ public:
     /// in a given document. /BBox is set in form space (the content-stream
     /// coordinate system); /Matrix applies the source page's /Rotate if present.
     ///
-    /// @param page the document to create the XObject from
+    /// @param page the page to create the XObject from
     /// @param useTrimBox if true try to use trimbox for size of xobject
     void FillFromPage(const PdfPage& page, bool useTrimBox = false);
 

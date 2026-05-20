@@ -43,6 +43,7 @@ namespace PoDoFo
         void SetUseFullScreen();
 
         /// Sets the page layout for a document.
+        /// @param layout page layout to set
         void SetPageLayout(nullable<PdfPageLayout> layout);
 
         /// Set the document's Viewer Preferences:
@@ -77,20 +78,24 @@ namespace PoDoFo
         /// Set the default print scaling of the document.
         ///
         /// TODO: DS use an enum here!
+        /// @param scalingType the print scaling type
         void SetPrintScaling(const PdfName& scalingType);
 
         /// Set the document's Viewer Preferences:
         /// Set the base URI of the document.
         ///
         /// TODO: DS document value!
+        /// @param baseURI the base URI string
         void SetBaseURI(const std::string_view& baseURI);
 
         /// Set the document's Viewer Preferences:
         /// Set the language of the document.
+        /// @param language the language identifier
         void SetLanguage(const std::string_view& language);
 
         /// Set the document's Viewer Preferences:
         /// Set the document's binding direction.
+        /// @param direction the binding direction
         void SetBindingDirection(const PdfName& direction);
 
         /// Get access to the Metadata stream

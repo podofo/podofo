@@ -169,6 +169,7 @@ protected:
     /// Throws UnexpectedEOF if there is nothing to read.
     ///
     /// @param variant store the name into this variable
+    /// @param device the input device to read from
     void ReadName(InputStreamDevice& device, PdfVariant& variant);
 
     /// Determine the possible datatype of a token.

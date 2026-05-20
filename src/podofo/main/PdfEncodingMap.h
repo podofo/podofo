@@ -46,10 +46,13 @@ public:
         const std::string_view::iterator& end, PdfCharCode& codeUnit) const;
 
     /// Try get next char code unit from unicode code point
+    /// @param codePoint a single code point
+    /// @param codeUnit the returned character code unit
     bool TryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const;
 
     /// Get the char code from a span of unicode code points
     /// @param codePoints it can be a single code point or a ligature
+    /// @param codeUnit the returned character code unit
     /// @return true if the code points match a character code
     bool TryGetCharCode(const unicodeview& codePoints, PdfCharCode& codeUnit) const;
 

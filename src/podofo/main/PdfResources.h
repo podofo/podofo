@@ -33,9 +33,21 @@ private:
 public:
     static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfResources>& resources);
 
+    /// Get a font from the resources
+    /// @param name the resource name of the font
+    /// @returns the font or nullptr if not found
     const PdfFont* GetFont(const std::string_view& name) const;
 
+    /// Get a resource from the resources
+    /// @param type the type of the resource
+    /// @param key the key of the resource
+    /// @returns the resource or nullptr if not found
     PdfObject* GetResource(PdfResourceType type, const std::string_view& key) override;
+
+    /// Get a resource from the resources
+    /// @param type the type of the resource
+    /// @param key the key of the resource
+    /// @returns the resource or nullptr if not found
     const PdfObject* GetResource(PdfResourceType type, const std::string_view& key) const override;
     PdfDictionaryIndirectIterable GetResourceIterator(PdfResourceType type) override;
     PdfDictionaryConstIndirectIterable GetResourceIterator(PdfResourceType type) const override;
