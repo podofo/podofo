@@ -61,18 +61,15 @@ minimum versions:
 
 * msvc++ 14.16 (VS 2017 15.9)
 * gcc 9.0
-* clang/llvm 7.0
+* clang/llvm 9.0
+* XCode 11.0
 
 It is regularly tested with the following IDE/toolchains versions:
 
-* Visual Studio 2017 15.9
-* Visual Studio 2019 16.11
-* Visual Studio 2022 17.3
+* Visual Studio 2022 17.14
 * gcc 9.3.1
-* XCode 13.3
-* NDK r23b
-
-GCC 8.1 support [broke](https://github.com/podofo/podofo/issues/116), but it could be reinstanced.
+* XCode 15.4
+* NDK r28
 
 ## Licensing
 
