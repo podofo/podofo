@@ -71,7 +71,7 @@ if(PODOFO_BUILD_STATIC)
     message("Building static podofo library")
     add_library(podofo_static STATIC ${PODOFO_SOURCES})
     add_library(podofo::podofo ALIAS podofo_static)
-    target_link_libraries(podofo_static podofo_private podofo_3rdparty ${PODOFO_LIB_DEPENDS})
+    target_link_libraries(podofo_static PRIVATE podofo_private podofo_3rdparty ${PODOFO_LIB_DEPENDS})
     set_target_properties(podofo_static PROPERTIES
         VERSION "${PODOFO_VERSION}"
         SOVERSION "${PODOFO_SOVERSION}"
