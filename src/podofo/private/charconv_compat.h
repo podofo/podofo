@@ -26,7 +26,7 @@
 #if (defined(__GNUC__) && !defined(__clang__) && !defined(__MINGW32__) &&  __GNUC__ < 11) || (defined(__MINGW32__) &&  __GNUC__ < 12) || (defined(__clang__) && defined(_LIBCPP_VERSION) && (_LIBCPP_VERSION < 200000)) || defined(FROM_CHARS_APPLE_TARGET_TOO_LOW)
 #define WANT_FROM_CHARS
 #endif
-#if (defined(__GNUC__) && !defined(__clang__) && !defined(__MINGW32__) &&  __GNUC__ < 11) || (defined(__MINGW32__) &&  __GNUC__ < 12) || (defined(__clang__) && ((defined(__apple_build_version__) && __apple_build_version__ < 15000000) || __clang_major__ < 14)) || defined(TO_CHARS_APPLE_TARGET_TOO_LOW)
+#if (defined(__GNUC__) && !defined(__clang__) && !defined(__MINGW32__) &&  __GNUC__ < 11) || (defined(__MINGW32__) &&  __GNUC__ < 12) || (defined(__clang__) && !defined(__apple_build_version__) && __clang_major__ < 14) || defined(TO_CHARS_APPLE_TARGET_TOO_LOW)
 #define WANT_TO_CHARS
 #endif
 
