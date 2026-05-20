@@ -300,13 +300,28 @@ const PdfXObjectForm* PdfImage::GetForm() const
 PdfImage::PdfImage(PdfObject& obj)
     : PdfXObject(obj, PdfXObjectType::Image)
 {
-    m_Width = static_cast<unsigned short>(this->GetDictionary().FindKeyAsSafe<int64_t>("Width"));
-    m_Height = static_cast<unsigned short>(this->GetDictionary().FindKeyAsSafe<int64_t>("Height"));
-    m_BitsPerComponent = static_cast<unsigned char>(this->GetDictionary().FindKeyAsSafe<int64_t>("BitsPerComponent"));
+    auto& dict = this->GetDictionary();
+    m_Width = static_cast<unsigned short>(dict.FindKeyAsSafe<int64_t>("Width"));
+    m_Height = static_cast<unsigned short>(dict.FindKeyAsSafe<int64_t>("Height"));
+    m_BitsPerComponent = static_cast<unsigned char>(dict.FindKeyAsSafe<int64_t>("BitsPerComponent"));
 
-    auto csObj = GetDictionary().FindKey("ColorSpace");
-    if (csObj == nullptr || !PdfColorSpaceFilterFactory::TryCreateFromObject(*csObj, m_ColorSpace))
-        m_ColorSpace = PdfColorSpaceFilterFactory::GetUnkownInstancePtr();
+    auto csObj = dict.FindKey("ColorSpace");
+    if (csObj == nullptr)
+    {
+        bool isImageMask;
+        if (dict.TryFindKeyAs("ImageMask"_n, isImageMask) && isImageMask)
+        {
+            // ISO 32000-2:2020 8.9.6.2 Stencil masking: "An image mask (an
+            // image XObject whose ImageMask entry is true) is a monochrome
+            // image in which each sample is specified by a single bit"
+            m_ColorSpace = PdfColorSpaceFilterFactory::GetDeviceGrayInstancePtr();
+        }
+    }
+    else
+    {
+        if (!PdfColorSpaceFilterFactory::TryCreateFromObject(*csObj, m_ColorSpace))
+            m_ColorSpace = PdfColorSpaceFilterFactory::GetUnkownInstancePtr();
+    }
 }
 
 void PdfImage::SetSoftMask(const PdfImage& softmask)
