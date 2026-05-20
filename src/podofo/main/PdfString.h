@@ -137,12 +137,11 @@ private:
     // Delete constructor with nullptr
     PdfString(std::nullptr_t) = delete;
 
-    /// Construct a new PdfString from a 0-terminated string.
-    ///
-    /// The input string will be copied.
-    /// if m_Hex is true the copied data will be hex-encoded.
+    /// Initialize from a UTF-8 string
     ///
     /// @param str the string to copy, must not be nullptr
+    /// @param length length of the string
+    /// @param literal true if the string should be treated as literal
     ///
     void initFromUtf8String(const char* str, size_t length, bool literal);
     void ensureCharsEvaluated() const;

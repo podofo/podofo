@@ -281,8 +281,12 @@ class PODOFO_API PdfActionJavaScript final : public PdfAction
 
     PdfActionJavaScript(const PdfActionJavaScript&) = default;
 public:
+    /// Set the JavaScript code of an PdfActionType::JavaScript
+    /// @param script must be a correct JavaScript string as PdfString
     void SetScript(nullable<const PdfString&> script);
 
+    /// Get the JavaScript code of an PdfActionType::JavaScript
+    /// @returns the JavaScript code as PdfString
     nullable<const PdfString&> GetScript() const;
 };
 

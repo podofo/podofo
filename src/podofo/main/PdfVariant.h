@@ -66,7 +66,7 @@ public:
     PdfVariant(const PdfName& name);
 
     /// Construct a PdfVariant that is a name.
-    /// @param ref the value of the name
+    /// @param ref the value of the reference
     PdfVariant(const PdfReference& ref);
 
     /// Construct a PdfVariant object with array data.

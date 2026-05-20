@@ -90,7 +90,7 @@ protected:
     void SetPdfVersion(PdfVersion version) override;
 
 private:
-    /// Initialize the PdfStreamedDocument with an output device
+    /// Initialize the PdfStreamedDocument.
     /// @param version the PDF version of the document to write.
     ///                  The PDF version can only be set in the constructor
     ///                  as it is the first item written to the document on disk.

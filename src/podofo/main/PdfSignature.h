@@ -126,7 +126,7 @@ private:
     ///
     /// @param filter /Filter for this signature
     /// @param subFilter /SubFilter for this signature
-    /// @param subFilter /Type for this signature
+    /// @param type /Type for this signature
     /// @param beacons Shared sentinels that will updated
     ///                during writing of the document
     void PrepareForSigning(const std::string_view& filter,

@@ -223,7 +223,6 @@ class PODOFO_API PdfPainter final : public PdfContentStreamOperators
 public:
     /// Create a new PdfPainter object.
     ///
-    /// @param saveRestore do save/restore state before appending
     PdfPainter();
 
     ~PdfPainter() noexcept(false);
@@ -235,6 +234,7 @@ public:
     /// Calls FinishPage() on the last page if it was not yet called.
     ///
     /// @param canvas a PdfCanvas object (most likely a PdfPage or PdfXObject).
+    /// @param flags flags for the painting session
     ///
     /// @see PdfPage @see PdfXObject
     /// @see FinishPage()
@@ -248,12 +248,12 @@ public:
     /// Set the stoke style for all stroking operations.
     /// @param strokeStyle style of the stroking operations
     /// @param inverted inverted dash style (gaps for drawn spaces),
-    ///                  it is ignored for None, Solid and Custom styles
+    ///   it is ignored for None, Solid and Custom styles
     /// @param scale scale factor of the stroke style
-    ///                  it is ignored for None, Solid and Custom styles
+    ///   it is ignored for None, Solid and Custom styles
     /// @param subtractJoinCap if true, subtracts scaled width on filled parts,
-    ///                       thus the line capability still draws into the cell;
-    ///                        is used only if scale is not 1.0
+    ///   thus the line capability still draws into the cell;
+    ///   is used only if scale is not 1.0
     ///
     /// Possible values:
     ///    PdfStrokeStyle::None
@@ -384,7 +384,7 @@ public:
     /// Draw an image on the current page.
     /// @param x the x coordinate (left position of the image)
     /// @param y the y coordinate (bottom position of the image)
-    /// @param obj an PdfXObject
+    /// @param obj the image object
     /// @param scaleX option scaling factor in x direction
     /// @param scaleY option scaling factor in y direction
     void DrawImage(const PdfImage& obj, double x, double y, double scaleX = 1.0, double scaleY = 1.0);
@@ -393,7 +393,7 @@ public:
     ///
     /// @param x the x coordinate (left position of the XObject)
     /// @param y the y coordinate (bottom position of the XObject)
-    /// @param obj an PdfXObject
+    /// @param obj the XObject
     /// @param scaleX option scaling factor in x direction
     /// @param scaleY option scaling factor in y direction
     ///

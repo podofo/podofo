@@ -21,6 +21,7 @@ public:
     /// encoding name or an encoding dictionary.
     ///
     /// @param fontObj font object
+    /// @param metrics the font metrics
     ///
     /// @returns a PdfEncoding or nullptr
     static PdfEncoding CreateEncoding(

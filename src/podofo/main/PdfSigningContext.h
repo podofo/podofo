@@ -78,6 +78,9 @@ namespace PoDoFo
 
         /// Start a deferred (aka "async") signing procedure
         /// @param results instance where intermediate results will be stored
+        /// @param doc the document to be signed
+        /// @param device device where to perform the operation
+        /// @param saveOptions document saving options
         void StartSigning(PdfMemDocument& doc, std::shared_ptr<StreamDevice> device, PdfSigningResults& results,
             PdfSaveOptions saveOptions = PdfSaveOptions::None);
 

@@ -161,7 +161,7 @@ public:
 
     /// @returns true if this field can be exported by submit actions
     ///
-    /// @see SetExport
+    /// @see SetNoExport
     bool IsNoExport() const;
 
     void SetMouseEnterAction(const PdfAction& action);

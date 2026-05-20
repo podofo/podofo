@@ -56,6 +56,8 @@ public:
 
     /// This constructor is reserved for read-only string
     /// literals, use with caution
+    /// @param str reference to the first character of the literal
+    /// @param length length of the literal
     PdfName(const char& str, size_t length);
 
     /// Create a copy of an existing PdfName object.
@@ -121,7 +123,13 @@ private:
     PdfName(std::nullptr_t) = delete;
 
     void expandUtf8String();
+    /// Initialize from a UTF-8 string.
+    /// @param str the string to initialize from
+    /// @param length length of the string
     void initFromUtf8String(const char* str, size_t length);
+
+    /// Initialize from a UTF-8 string view.
+    /// @param view the string view to initialize from
     void initFromUtf8String(const std::string_view& view);
     void moveFrom(PdfName&& rhs);
 

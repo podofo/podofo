@@ -109,7 +109,7 @@ public:
     double GetZoom() const;
 
     /// Get the destination rect
-    /// Destination must be of type FirR
+    /// Destination must be of type FitR
     /// otherwise exception is thrown
     ///
     /// @returns the destination rect

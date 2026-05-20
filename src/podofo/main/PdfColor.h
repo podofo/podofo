@@ -54,6 +54,8 @@ public:
     /// Creates a color object from a PdfArray which represents a color.
     ///
     /// @param obj an object that must be a color PdfArray
+    /// @param color output color object
+    /// @returns true if the color was successfully created
     static bool TryCreateFromObject(const PdfObject& obj, PdfColor& color);
     static PdfColor CreateFromObject(const PdfObject& obj);
 
