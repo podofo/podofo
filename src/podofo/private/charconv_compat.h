@@ -20,7 +20,7 @@
 #include <charconv>
 
 // Older gcc and clang may have not have floating point std::from_chars/std::to_chars
-#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 10
+#if defined(__GNUC__) && ((!defined(__clang__) && __GNUC__ < 10) || (defined(__clang__) && __clang_major__ < 11))
 #define WANT_CHARS_FORMAT
 #endif
 #if (defined(__GNUC__) && !defined(__clang__) && !defined(__MINGW32__) &&  __GNUC__ < 11) || (defined(__MINGW32__) &&  __GNUC__ < 12) || (defined(__clang__) && defined(_LIBCPP_VERSION) && (_LIBCPP_VERSION < 200000)) || defined(FROM_CHARS_APPLE_TARGET_TOO_LOW)
