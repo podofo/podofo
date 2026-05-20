@@ -56,6 +56,7 @@ public:
 
     /// Get the glyph count with the given glyph access
     /// @param access the desired access for retrieving the glyph count
+    /// @returns the glyph count
     unsigned GetGlyphCount(PdfGlyphAccess access) const;
 
     /// Get the width of a single glyph id. It tries to access parsed pdf metrics first,
@@ -64,6 +65,12 @@ public:
     /// @param gid id of the glyph
     /// @returns the width of a single glyph id
     double GetGlyphWidth(unsigned gid) const;
+    /// Try to get the width of a single glyph id.
+    ///
+    /// @param gid id of the glyph
+    /// @param width output width
+    /// @returns true if the width was successfully retrieved
+    ///
     bool TryGetGlyphWidth(unsigned gid, double& width) const;
 
     /// Get the width of a single glyph id
@@ -72,6 +79,13 @@ public:
     /// @param access the desired access for retrieving the metrics
     /// @returns the width of a single glyph id
     double GetGlyphWidth(unsigned gid, PdfGlyphAccess access) const;
+    /// Try to get the width of a single glyph id
+    ///
+    /// @param gid id of the glyph
+    /// @param access the desired access for retrieving the metrics
+    /// @param width output width
+    /// @returns true if the width was successfully retrieved
+    ///
     bool TryGetGlyphWidth(unsigned gid, PdfGlyphAccess access, double& width) const;
 
     /// Some fonts provides a glyph substitution list, eg. for ligatures.

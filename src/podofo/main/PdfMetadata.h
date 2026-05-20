@@ -45,7 +45,7 @@ namespace PoDoFo
         void SetSubject(nullable<const PdfString&> subject);
 
         /// Get the subject of the document
-        /// @returns the subject
+        /// @returns the keywords
         nullable<const PdfString&> GetSubject() const;
 
         /// Get the raw keywords of the document

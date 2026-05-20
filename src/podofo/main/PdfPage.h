@@ -152,9 +152,16 @@ private:
     PdfPage(PdfObject& obj, std::vector<PdfObject*>&& parents);
 
 public:
+    /// Extract text from the page
+    /// @param entries output vector of text entries
+    /// @param params extraction parameters
     void ExtractTextTo(std::vector<PdfTextEntry>& entries,
         const PdfTextExtractParams& params) const;
 
+    /// Extract text from the page
+    /// @param entries output vector of text entries
+    /// @param pattern a regex pattern to match
+    /// @param params extraction parameters
     void ExtractTextTo(std::vector<PdfTextEntry>& entries,
         const std::string_view& pattern = { },
         const PdfTextExtractParams& params = { }) const;
@@ -251,6 +258,7 @@ public:
     void SetRotation(int rotation);
 
     /// Move the page to the given index
+     ///  @param index the new index of the page
     bool MoveTo(unsigned index);
 
     template <typename TField>
@@ -302,11 +310,21 @@ private:
 
     /// Get the bounds of a specified page box in PDF units.
     /// This function is internal, since there are wrappers for all standard boxes
+    /// @param inBox the name of the box
+    /// @param isInheritable whether the box is inheritable
     /// @returns Rect the page box
     Rect getPageBox(const std::string_view& inBox, bool isInheritable) const;
 
+    /// Get the bounds of a specified page box in PDF units.
+    /// This function is internal, since there are wrappers for all standard boxes
+    /// @param inBox the name of the box
+    /// @param isInheritable whether the box is inheritable
+    /// @returns Corners the page box
     Corners getPageBoxRaw(const std::string_view& inBox, bool isInheritable) const;
 
+    /// Set the bounds of a specified page box in PDF units.
+    /// @param inBox the name of the box
+    /// @param rect the rectangle to set
     void setPageBox(const PdfName& inBox, const Rect& rect);
 
     void adjustRectToCurrentRotation(Rect& rect) const;

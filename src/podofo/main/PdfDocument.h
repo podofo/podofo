@@ -119,8 +119,6 @@ public:
     /// Get access to the Outlines (Bookmarks) dictionary
     /// The returned outlines object is owned by the PdfDocument.
     ///
-    /// @param create create the object if it does not exist (ePdfCreateObject)
-    ///                 or return nullptr if it does not exist
     /// @returns the Outlines/Bookmarks dictionary
     PdfOutlines& GetOrCreateOutlines();
 
@@ -243,6 +241,7 @@ public:
     /// extension to the current PDF version.
     /// @param ns  namespace of the extension
     /// @param level  level of the extension
+    /// @returns true if the extension is implemented
     bool HasPdfExtension(const std::string_view& ns, int64_t level) const;
 
     /// Remove a vendor-specific extension to the current PDF version.
@@ -251,8 +250,7 @@ public:
     void RemovePdfExtension(const std::string_view& ns, int64_t level);
 
     /// Return the list of all vendor-specific extensions to the current PDF version.
-    /// @param ns  namespace of the extension
-    /// @param level  level of the extension
+    /// @returns a vector of PdfExtension
     std::vector<PdfExtension> GetPdfExtensions() const;
 
     PdfAcroForm& MustGetAcroForm();
@@ -315,13 +313,13 @@ public:
     /// Get access to the internal trailer dictionary
     /// or root object.
     ///
-    /// @returns PdfObject the documents catalog
+    /// @returns PdfTrailer the document's trailer
     PdfTrailer &GetTrailer() { return *m_Trailer; }
 
     /// Get access to the internal trailer dictionary
     /// or root object.
     ///
-    /// @returns PdfObject the documents catalog
+    /// @returns PdfTrailer the document's trailer
     const PdfTrailer& GetTrailer() const { return *m_Trailer; }
 
     /// Get access to the internal Info dictionary

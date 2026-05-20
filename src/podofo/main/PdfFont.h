@@ -122,6 +122,7 @@ public:
     /// Get the GID by the codePoint
     ///
     /// @param codePoint unicode codepoint
+    /// @param access glyph access mode
     /// @returns the GID
     /// @remarks throw if not found
     unsigned GetGID(char32_t codePoint, PdfGlyphAccess access) const;
@@ -130,21 +131,28 @@ public:
     /// Retrieve the width of a given text string in PDF units when
     /// drawn with the current font
     /// @param str a utf8 string of which the width should be calculated
+    /// @param state current text state
     /// @returns the width in PDF units
     /// @remarks Doesn't throw if string glyphs could not be partially or totally found
     double GetStringLength(const std::string_view& str, const PdfTextState& state) const;
 
     /// @param str a utf8 string of which the width should be calculated
+    /// @param state current text state
+    /// @param width output width
     /// @remarks Produces a partial result also in case of failures
     bool TryGetStringLength(const std::string_view& str, const PdfTextState& state, double& width) const;
 
     /// Retrieve the width of a given encoded PdfString in PDF units when
     /// drawn with the current font
     /// @param encodedStr a text string of which the width should be calculated
+    /// @param state current text state
     /// @returns the width in PDF units
     /// @remarks Doesn't throw if string glyphs could not be partially or totally found
     double GetEncodedStringLength(const PdfString& encodedStr, const PdfTextState& state) const;
 
+    /// @param encodedStr a text string of which the width should be calculated
+    /// @param state current text state
+    /// @param length output length
     /// @remarks Produces a partial result also in case of failures
     bool TryGetEncodedStringLength(const PdfString& encodedStr, const PdfTextState& state, double& length) const;
 
@@ -174,12 +182,28 @@ public:
     double GetSpaceCharLength(const PdfTextState& state) const;
 
     /// @remarks Doesn't throw if character glyph could not be found
+    /// @param codePoint unicode codepoint
+    /// @param state current text state
+    /// @param ignoreCharSpacing if true, ignore character spacing
+    /// @returns the character length
     double GetCharLength(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing = false) const;
 
+    /// @param codePoint unicode codepoint
+    /// @param state current text state
+    /// @param ignoreCharSpacing if true, ignore character spacing
+    /// @param width output width
+    /// @returns true if the character length was successfully retrieved
     bool TryGetCharLength(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing, double& width) const;
 
+    /// @param codePoint unicode codepoint
+    /// @param state current text state
+    /// @param width output width
+    /// @returns true if the character length was successfully retrieved
     bool TryGetCharLength(char32_t codePoint, const PdfTextState& state, double& width) const;
 
+    /// @param state current text state
+    /// @param ignoreCharSpacing if true, ignore character spacing
+    /// @returns the default character length
     double GetDefaultCharLength(const PdfTextState& state, bool ignoreCharSpacing = false) const;
 
     // TODO: Implement me

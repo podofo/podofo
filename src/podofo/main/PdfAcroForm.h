@@ -60,6 +60,8 @@ public:
     bool GetNeedAppearances() const;
 
     /// Get the value of the /SigFlags document-level characteristics related to signature fields
+     ///
+     ///  @returns The signature flags.
     PdfAcroFormSigFlags GetSigFlags() const;
 
     template <typename TField>
@@ -72,7 +74,7 @@ public:
     ///
     /// @returns a field object. The field object is owned by the PdfAcroForm.
     ///
-    /// @see GetAnnotationCount
+    /// @see GetFieldCount
     PdfField& GetFieldAt(unsigned index);
 
     const PdfField& GetFieldAt(unsigned index) const;

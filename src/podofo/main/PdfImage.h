@@ -88,7 +88,7 @@ public:
     bool TryFetchRawImageInfo(PdfImageInfo& info);
 
     /// Set a softmask for this image.
-    /// @param softmask a PdfImage pointer to the image, which is to be set as softmask, must be 8-Bit-Grayscale
+    /// @param softmask the image to be set as softmask, must be 8-Bit-Grayscale
     ///
     void SetSoftMask(const PdfImage& softmask);
 
@@ -125,16 +125,18 @@ public:
     /// @param info parameters describing the encoded image data
     void SetDataRaw(InputStream& stream, const PdfImageInfo& info);
 
-    /// Load the image data from bytes
+    /// Load the image data from a file
+    /// @param filepath path to the image file
     /// @param params parameters like index to be fed to multi image/page
     ///   formats (eg. TIFF)
-    /// @returns image the information used to load the image, retrieved from codecs or inferred
+    /// @returns the information used to load the image, retrieved from codecs or inferred
     PdfImageInfo Load(const std::string_view& filepath, const PdfImageLoadParams& params = { });
 
     /// Load the image data from bytes
+    /// @param buffer buffer containing the image data
     /// @param params parameters like index to be fed to multi image/page
     ///   formats (eg. TIFF)
-    /// @returns image the information used to load the image, retrieved from codecs or inferred
+    /// @returns the information used to load the image, retrieved from codecs or inferred
     PdfImageInfo LoadFromBuffer(const bufferview& buffer, const PdfImageLoadParams& params = { });
 
     void ExportTo(charbuff& buff, PdfExportFormat format, PdfArray args = {}) const;

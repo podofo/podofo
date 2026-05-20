@@ -69,8 +69,8 @@ namespace PoDoFo {
         /// The returned page is owned by the pages tree and will get deleted along
         /// with it!
         ///
+        /// @param atIndex index where to insert the new pages (0-based)
         /// @param size a Rect specifying the size of the page (i.e the /MediaBox key) in PDF units
-        /// @param atIndex index where to insert the new page (0-based)
         /// @returns a pointer to a PdfPage object
         PdfPage& CreatePageAt(unsigned atIndex, const nullable<Rect>& size = nullptr);
         PdfPage& CreatePageAt(unsigned atIndex, PdfPageSize pageSize);

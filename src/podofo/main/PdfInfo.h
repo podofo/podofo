@@ -34,7 +34,7 @@ public:
     void SetTitle(nullable<const PdfString&> title);
 
     /// Get the title of the document
-    /// @returns the title
+    /// @returns the trapping state
     nullable<const PdfString&> GetTitle() const;
 
     /// Set the author of the document.
