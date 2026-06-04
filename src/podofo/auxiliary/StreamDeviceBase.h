@@ -31,17 +31,15 @@ protected:
     StreamDeviceBase();
 
 public:
-    /** Seek the device to the position offset from the beginning
-     *  \param offset from the beginning of the file
-     */
+    /// Seek the device to the position offset from the beginning
+    /// @param offset from the beginning of the file
     void Seek(size_t offset);
 
-    /** Seek the device to the position offset from the beginning
-     *  \param offset from the beginning of the file
-     *  \param direction where to start (Begin, Current, End)
-     *
-     *  A non-seekable input device will throw an InvalidDeviceOperation.
-     */
+    /// Seek the device to the position offset from the beginning
+    /// @param offset from the beginning of the file
+    /// @param direction where to start (Begin, Current, End)
+    ///
+    /// A non-seekable input device will throw an InvalidDeviceOperation.
     void Seek(ssize_t offset, SeekDirection direction);
 
     void Close();
@@ -49,21 +47,17 @@ public:
 public:
     DeviceAccess GetAccess() const { return m_Access; }
 
-    /**
-     * \return True if the stream is at EOF
-     */
+    /// @return True if the stream is at EOF
     virtual bool Eof() const = 0;
 
-    /** The number of bytes written to this object.
-     *  \returns the number of bytes written to this object.
-     *
-     *  \see Init
-     */
+    /// The number of bytes written to this object.
+    /// @returns the number of bytes written to this object.
+    ///
+    /// @see Init
     virtual size_t GetLength() const = 0;
 
-    /** Get the current offset from the beginning of the file.
-     *  \return the offset form the beginning of the file.
-     */
+    /// Get the current offset from the beginning of the file.
+    /// @return the offset form the beginning of the file.
     virtual size_t GetPosition() const = 0;
 
     virtual bool CanSeek() const;

@@ -14,12 +14,11 @@ namespace PoDoFo
     // TODO: Add missing properties ISO 32000-1:2008 "9.3 Text State Parameters and Operators"
     struct PODOFO_API PdfTextState final
     {
-        /** Split text into individual lines, using the current font state and width.
-         *
-         *  \param str the text which should be split
-         *  \param width width of the text area
-         *  \param preserveTrailingSpaces whether trailing whitespaces should be preserved. The default is false, so lines can't start or end with whitespace
-         */
+        /// Split text into individual lines, using the current font state and width.
+        ///
+        /// @param str the text which should be split
+        /// @param width width of the text area
+        /// @param preserveTrailingSpaces whether trailing whitespaces should be preserved. The default is false, so lines can't start or end with whitespace
         std::vector<std::string> SplitTextAsLines(const std::string_view& str, double width, bool preserveTrailingSpaces = false) const;
 
         const PdfFont* Font = nullptr;

@@ -26,8 +26,7 @@ namespace PoDoFo
         nullable<PdfRenderingIntent> RenderingIntent;
     };
 
-    /** Convenience alias for a constant PdfExtGStateDefinition shared ptr
-     */
+    /// Convenience alias for a constant PdfExtGStateDefinition shared ptr
     using PdfExtGStateDefinitionPtr = std::shared_ptr<const PdfExtGStateDefinition>;
 }
 

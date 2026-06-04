@@ -17,8 +17,7 @@ using namespace PoDoFo;
 
 namespace PoDoFo
 {
-    /** A built-in encoding for a /Type1 font program
-     */
+    /// A built-in encoding for a /Type1 font program
     class PdfFontBuiltinType1Encoding final : public PdfEncodingMapSimple
     {
     public:

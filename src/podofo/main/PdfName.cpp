@@ -209,14 +209,13 @@ void PdfName::expandUtf8String()
     m_data->IsUtf8Expanded = true;
 }
 
-/** Escape the input string according to the PDF name
- *  escaping rules and return the result.
- *
- *  \param it Iterator referring to the start of the input string
- *            ( eg a `const char *' or a `std::string::iterator' )
- *  \param length Length of input string
- *  \returns Escaped string
- */
+/// Escape the input string according to the PDF name
+/// escaping rules and return the result.
+///
+/// @param it Iterator referring to the start of the input string
+///            ( eg a `const char *' or a `std::string::iterator' )
+/// @param length Length of input string
+/// @returns Escaped string
 void escapeNameTo(string& dst, bufferview view)
 {
     // Scan the input string once to find out how much memory we need
@@ -261,14 +260,13 @@ void escapeNameTo(string& dst, bufferview view)
     }
 }
 
-/** Interpret the passed string as an escaped PDF name
- *  and return the unescaped form.
- *
- *  \param it Iterator referring to the start of the input string
- *            ( eg a `const char *' or a `std::string::iterator' )
- *  \param length Length of input string
- *  \returns Unescaped string
- */
+/// Interpret the passed string as an escaped PDF name
+/// and return the unescaped form.
+///
+/// @param it Iterator referring to the start of the input string
+///            ( eg a `const char *' or a `std::string::iterator' )
+/// @param length Length of input string
+/// @returns Unescaped string
 charbuff unescapeName(string_view view)
 {
     // We know the decoded string can be AT MOST
@@ -377,19 +375,17 @@ PdfName::operator string_view() const
         return m_Utf8View;
 }
 
-/**
- * This function writes a hex encoded representation of the character
- * `ch' to `buf', advancing the iterator by two steps.
- *
- * \warning no buffer length checking is performed, so MAKE SURE
- *          you have enough room for the two characters that
- *          will be written to the buffer.
- *
- * \param ch The character to write a hex representation of
- * \param buf An iterator (eg a char* or std::string::iterator) to write the
- *            characters to.  Must support the postfix ++, operator=(char) and
- *            dereference operators.
- */
+/// This function writes a hex encoded representation of the character
+/// `ch' to `buf', advancing the iterator by two steps.
+///
+/// @warning no buffer length checking is performed, so MAKE SURE
+///          you have enough room for the two characters that
+///          will be written to the buffer.
+///
+/// @param ch The character to write a hex representation of
+/// @param buf An iterator (eg a char* or std::string::iterator) to write the
+///            characters to.  Must support the postfix ++, operator=(char) and
+///            dereference operators.
 template<typename T>
 void hexchr(const unsigned char ch, T& it)
 {

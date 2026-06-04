@@ -9,10 +9,9 @@
 
 namespace PoDoFo
 {
-    /** A specialized Pdf output string stream
-     * It supplies an iostream-like operator<< interface,
-     * while still inheriting OutputStream
-     */
+    /// A specialized Pdf output string stream
+    /// It supplies an iostream-like operator<< interface,
+    /// while still inheriting OutputStream
     class PODOFO_API PdfStringStream final : public OutputStream
     {
     public:

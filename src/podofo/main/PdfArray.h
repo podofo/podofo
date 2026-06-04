@@ -13,9 +13,7 @@ namespace PoDoFo {
 class PdfArray;
 using PdfArrayList = std::vector<PdfObject>;
 
-/**
- * Helper class to iterate through array indirect objects
- */
+/// Helper class to iterate through array indirect objects
 template <typename TObject, typename TListIterator>
 class PdfArrayIndirectIterableBase final : public PdfIndirectIterableBase
 {
@@ -68,13 +66,12 @@ private:
 using PdfArrayIndirectIterable = PdfArrayIndirectIterableBase<PdfObject, PdfArrayList::iterator>;
 using PdfArrayConstIndirectIterable = PdfArrayIndirectIterableBase<const PdfObject, PdfArrayList::const_iterator>;
 
-/** This class represents a PdfArray
- *  Use it for all arrays that are written to a PDF file.
- *
- *  A PdfArray can hold any PdfVariant.
- *
- *  \see PdfVariant
- */
+/// This class represents a PdfArray
+/// Use it for all arrays that are written to a PDF file.
+///
+/// A PdfArray can hold any PdfVariant.
+///
+/// @see PdfVariant
 class PODOFO_API PdfArray final : public PdfDataContainer
 {
     friend class PdfObject;
@@ -90,14 +87,12 @@ public:
     using reverse_iterator = PdfArrayList::reverse_iterator;
     using const_reverse_iterator = PdfArrayList::const_reverse_iterator;
 
-    /** Create an empty array
-     */
+    /// Create an empty array
     PdfArray();
 
-    /** Deep copy an existing PdfArray
-     *
-     *  \param rhs the array to copy
-     */
+    /// Deep copy an existing PdfArray
+    ///
+    /// @param rhs the array to copy
     PdfArray(const PdfArray& rhs);
     PdfArray(PdfArray&& rhs) noexcept;
 
@@ -109,25 +104,19 @@ public:
 
     static PdfArray FromBools(cspan<bool> bools);
 
-    /** assignment operator
-     *
-     *  \param rhs the array to assign
-     */
+    /// assignment operator
+    ///
+    /// @param rhs the array to assign
     PdfArray& operator=(const PdfArray& rhs);
     PdfArray& operator=(PdfArray&& rhs) noexcept;
 
-    /**
-     *  \returns the size of the array
-     */
+    /// @returns the size of the array
     unsigned GetSize() const;
 
-    /**
-     *  \returns true if is empty
-     */
+    /// @returns true if is empty
     bool IsEmpty() const;
 
-    /** Remove all elements from the array
-     */
+    /// Remove all elements from the array
     void Clear();
 
     void Write(OutputStream& stream, PdfWriteFlags writeMode,
@@ -151,15 +140,14 @@ public:
     template <typename T>
     bool TryGetAtAs(unsigned idx, T& value);
 
-    /** Get the object at the given index out of the array.
-     *
-     * Lookup in the indirect objects as well, if the shallow object was a reference.
-     * The returned value is a pointer to the internal object in the dictionary
-     * so it MUST not be deleted.
-     *
-     *  \param idx
-     *  \returns pointer to the found value. nullptr if the index was out of the boundaries
-     */
+    /// Get the object at the given index out of the array.
+    ///
+    /// Lookup in the indirect objects as well, if the shallow object was a reference.
+    /// The returned value is a pointer to the internal object in the dictionary
+    /// so it MUST not be deleted.
+    ///
+    /// @param idx
+    /// @returns pointer to the found value. nullptr if the index was out of the boundaries
     const PdfObject* FindAt(unsigned idx) const;
     PdfObject* FindAt(unsigned idx);
 
@@ -206,11 +194,9 @@ public:
 
     PdfArrayConstIndirectIterable GetIndirectIterator() const;
 
-    /**
-     * Resize the internal vector.
-     * \param count new size
-     * \param value reference value
-     */
+    /// Resize the internal vector.
+    /// @param count new size
+    /// @param val reference value
     void Resize(unsigned count, const PdfObject& val = PdfObject());
 
     void Reserve(unsigned n);
@@ -220,68 +206,50 @@ public:
     void MoveTo(unsigned atIndex, unsigned toIndex);
 
 public:
-    /**
-     *  \returns the size of the array
-     */
+    /// @returns the size of the array
     size_t size() const;
 
     PdfObject& operator[](size_type idx);
     const PdfObject& operator[](size_type idx) const;
 
-    /**
-     *  Returns a read/write iterator that points to the first
-     *  element in the array.  Iteration is done in ordinary
-     *  element order.
-     */
+    /// Returns a read/write iterator that points to the first
+    /// element in the array.  Iteration is done in ordinary
+    /// element order.
     iterator begin();
 
-    /**
-     *  Returns a read-only (constant) iterator that points to the
-     *  first element in the array.  Iteration is done in ordinary
-     *  element order.
-     */
+    /// Returns a read-only (constant) iterator that points to the
+    /// first element in the array.  Iteration is done in ordinary
+    /// element order.
     const_iterator begin() const;
 
-    /**
-     *  Returns a read/write iterator that points one past the last
-     *  element in the array.  Iteration is done in ordinary
-     *  element order.
-     */
+    /// Returns a read/write iterator that points one past the last
+    /// element in the array.  Iteration is done in ordinary
+    /// element order.
     iterator end();
 
-    /**
-     *  Returns a read-only (constant) iterator that points one past
-     *  the last element in the array.  Iteration is done in
-     *  ordinary element order.
-     */
+    /// Returns a read-only (constant) iterator that points one past
+    /// the last element in the array.  Iteration is done in
+    /// ordinary element order.
     const_iterator end() const;
 
-    /**
-     *  Returns a read/write reverse iterator that points to the
-     *  last element in the array.  Iteration is done in reverse
-     *  element order.
-     */
+    /// Returns a read/write reverse iterator that points to the
+    /// last element in the array.  Iteration is done in reverse
+    /// element order.
     reverse_iterator rbegin();
 
-    /**
-     *  Returns a read-only (constant) reverse iterator that points
-     *  to the last element in the array.  Iteration is done in
-     *  reverse element order.
-     */
+    /// Returns a read-only (constant) reverse iterator that points
+    /// to the last element in the array.  Iteration is done in
+    /// reverse element order.
     const_reverse_iterator rbegin() const;
 
-    /**
-     *  Returns a read/write reverse iterator that points to one
-     *  before the first element in the array.  Iteration is done
-     *  in reverse element order.
-     */
+    /// Returns a read/write reverse iterator that points to one
+    /// before the first element in the array.  Iteration is done
+    /// in reverse element order.
     reverse_iterator rend();
 
-    /**
-     *  Returns a read-only (constant) reverse iterator that points
-     *  to one before the first element in the array.  Iteration
-     *  is done in reverse element order.
-     */
+    /// Returns a read-only (constant) reverse iterator that points
+    /// to one before the first element in the array.  Iteration
+    /// is done in reverse element order.
     const_reverse_iterator rend() const;
 
     void resize(size_t size);
@@ -297,28 +265,20 @@ public:
     void erase(const iterator& pos);
     void erase(const iterator& first, const iterator& last);
 
-    /**
-     *  \returns a read/write reference to the data at the first
-     *           element of the array.
-     */
+    /// @returns a read/write reference to the data at the first
+    ///           element of the array.
     reference front();
 
-    /**
-     *  \returns a read-only (constant) reference to the data at the first
-     *           element of the array.
-     */
+    /// @returns a read-only (constant) reference to the data at the first
+    ///           element of the array.
     const_reference front() const;
 
-    /**
-     *  \returns a read/write reference to the data at the last
-     *           element of the array.
-     */
+    /// @returns a read/write reference to the data at the last
+    ///           element of the array.
     reference back();
 
-    /**
-     *  \returns a read-only (constant) reference to the data at the
-     *           last element of the array.
-     */
+    /// @returns a read-only (constant) reference to the data at the
+    ///           last element of the array.
     const_reference back() const;
 
 public:

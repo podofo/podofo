@@ -35,8 +35,7 @@ namespace PoDoFo
 
 namespace std
 {
-    /** Overload hasher for PdfSignerId
-     */
+    /// Overload hasher for PdfSignerId
     template<>
     struct hash<PoDoFo::PdfSignerId>
     {
@@ -50,21 +49,17 @@ namespace std
 
 namespace PoDoFo
 {
-    /**
-     * Interchange signing procedure results. Used when starting and finishing a deferred (aka "async") signing
-     */
+    /// Interchange signing procedure results. Used when starting and finishing a deferred (aka "async") signing
     struct PODOFO_API PdfSigningResults final
     {
         std::unordered_map<PdfSignerId, charbuff> Intermediate;
     };
 
-    /**
-     * A context that can be used to customize the signing process.
-     * It also enables the deferred (aka "async") signing, which is a mean to separately process
-     * the intermediate results of signing (normally a hash to sign) that doesn't
-     * require a streamlined event based processing. It can be issued by starting
-     * the process with StartSigning() and finishing it with FinishSigning()
-     */
+    /// A context that can be used to customize the signing process.
+    /// It also enables the deferred (aka "async") signing, which is a mean to separately process
+    /// the intermediate results of signing (normally a hash to sign) that doesn't
+    /// require a streamlined event based processing. It can be issued by starting
+    /// the process with StartSigning() and finishing it with FinishSigning()
     class PODOFO_API PdfSigningContext final
     {
         friend PODOFO_API void SignDocument(PdfMemDocument& doc, StreamDevice& device, PdfSigner& signer,
@@ -72,46 +67,37 @@ namespace PoDoFo
     public:
         PdfSigningContext();
 
-        /** Restore a dumped signing context from an input stream device
-         */
+        /// Restore a dumped signing context from an input stream device
         std::unique_ptr<PdfMemDocument> Restore(std::shared_ptr<StreamDevice> device);
 
-        /** Configure a signer on the specific signature field
-         */
+        /// Configure a signer on the specific signature field
         PdfSignerId AddSigner(const PdfSignature& signature, std::shared_ptr<PdfSigner> signer);
 
-        /** Start a blocking event-driven signing procedure
-         */
+        /// Start a blocking event-driven signing procedure
         void Sign(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions options = PdfSaveOptions::None);
 
-        /** Start a deferred (aka "async") signing procedure
-         * \param results instance where intermediate results will be stored
-         */
+        /// Start a deferred (aka "async") signing procedure
+        /// @param results instance where intermediate results will be stored
         void StartSigning(PdfMemDocument& doc, std::shared_ptr<StreamDevice> device, PdfSigningResults& results,
             PdfSaveOptions saveOptions = PdfSaveOptions::None);
 
-        /** Finish a deferred (aka "async") signing procedure
-         * \param processedResults results that will be used to finalize the signatures
-         */
+        /// Finish a deferred (aka "async") signing procedure
+        /// @param processedResults results that will be used to finalize the signatures
         void FinishSigning(const PdfSigningResults& processedResults);
 
-        /** Dump the signing context so it can be resumed later
-         * \remarks Can be used only after starting a deferred (aka "async") signing
-         * operation. This will effectively disable further operations on this context
-         */
+        /// Dump the signing context so it can be resumed later
+        /// @remarks Can be used only after starting a deferred (aka "async") signing
+        /// operation. This will effectively disable further operations on this context
         void DumpInPlace();
 
-        /** Get the fist signer from the context for the given input signature
-         */
+        /// Get the fist signer from the context for the given input signature
         std::shared_ptr<PdfSigner> GetSigner(const PdfReference& signatureRef);
 
-        /** Get the fist signer from the context for the given input signature
-         */
+        /// Get the fist signer from the context for the given input signature
         std::shared_ptr<PdfSigner> GetSigner(const std::string_view& fullName,
             PdfReference& signatureRef);
 
-        /** Retrieve all the references for the signers configured in this context
-         */
+        /// Retrieve all the references for the signers configured in this context
         void GetSignerReferences(std::vector<PdfReference>& signatureRefs) const;
 
         unsigned GetSignerCount() const;

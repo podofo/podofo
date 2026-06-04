@@ -1113,36 +1113,29 @@ static const char s_XMPSchemaRNG[] =
 
 namespace PoDoFo
 {
-    /** This is the generated "Merged_XMP_Packet.rng", as produced by
-     * https://github.com/ceztko/XMP-RNG-Schema
-     */
+    /// This is the generated "Merged_XMP_Packet.rng", as produced by
+    /// https://github.com/ceztko/XMP-RNG-Schema
     string_view GetXMPSchemaTemplateDeflated()
     {
         return string_view(s_XMPSchemaRNG, std::size(s_XMPSchemaRNG) - 1);
     }
 
-    /**
-     * PDF/UA Id schema as coming from: https://pdfa.org/resource/xmp-extension-schema-templates/
-     * This snippet is normalized accordingly to ISO 16684-2:2014
-     */
+    /// PDF/UA Id schema as coming from: https://pdfa.org/resource/xmp-extension-schema-templates/
+    /// This snippet is normalized accordingly to ISO 16684-2:2014
     string_view GetPdfUAIdSchema()
     {
         return string_view(s_PdfUAIdSchema, std::size(s_PdfUAIdSchema) - 1);
     }
 
-    /**
-     * PDF/VT Id schema as coming from: https://pdfa.org/resource/xmp-extension-schema-templates/
-     * This snippet is normalized accordingly to ISO 16684-2:2014
-     */
+    /// PDF/VT Id schema as coming from: https://pdfa.org/resource/xmp-extension-schema-templates/
+    /// This snippet is normalized accordingly to ISO 16684-2:2014
     string_view GetPdfVTIdSchema()
     {
         return string_view(s_PdfVTIdSchema, std::size(s_PdfVTIdSchema) - 1);
     }
 
-    /**
-     * PDF/X Id schema as coming from: https://pdfa.org/resource/xmp-extension-schema-templates/
-     * This snippet is normalized accordingly to ISO 16684-2:2014
-     */
+    /// PDF/X Id schema as coming from: https://pdfa.org/resource/xmp-extension-schema-templates/
+    /// This snippet is normalized accordingly to ISO 16684-2:2014
     string_view GetPdfXIdSchema()
     {
         return string_view(s_PdfXIdSchema, std::size(s_PdfXIdSchema) - 1);

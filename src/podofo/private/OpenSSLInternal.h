@@ -103,12 +103,10 @@ namespace ssl
     void cmsAddSigningTime(CMS_SignerInfo* si, const date::sys_seconds& timestamp);
     void cmsComputeHashToSign(CMS_SignerInfo* si, BIO* chain, PoDoFo::charbuff& hashToSign);
 
-    /** Init the OpenSSL engine. NOTE: To be called by OpenSSLInternal only
-     */
+    /// Init the OpenSSL engine. NOTE: To be called by OpenSSLInternal only
     PODOFO_EXPORT void Init();
 
-    /** Class to be initialized only once as a singleton
-     */
+    /// Class to be initialized only once as a singleton
     class OpenSSLMain
     {
     public:

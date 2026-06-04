@@ -39,7 +39,8 @@ Some examples of expected coding style can be found at the following permalinks:
   ```
 
 ### Comments and documentation
-- `/** */` is used for Doxygen-style documentation comments on public methods
+- `///` with at-sign `@` tags is used for Doxygen-style documentation comments on public methods
+- Don't indent at-sign tags, put just one space after `///`
 - Comments should be concise and avoid repetition
 
 ### Brace and statement style

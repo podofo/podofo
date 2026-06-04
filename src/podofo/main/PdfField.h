@@ -63,129 +63,105 @@ private:
 
 public:
 
-    /** Try create a field from an object, in the absence of an annotation
-     */
+    /// Try create a field from an object, in the absence of an annotation
     static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfField>& field);
 
     PdfField* GetParentSafe();
     const PdfField* GetParentSafe() const;
 
-    /** Set the highlighting mode which should be used when the user
-     *  presses the mouse button over this widget.
-     *
-     *  \param mode the highlighting mode
-     *
-     *  The default value is PdfHighlightingMode::Invert
-     */
+    /// Set the highlighting mode which should be used when the user
+    /// presses the mouse button over this widget.
+    ///
+    /// @param mode the highlighting mode
+    ///
+    /// The default value is PdfHighlightingMode::Invert
     void SetHighlightingMode(PdfHighlightingMode mode);
 
-    /**
-     * \returns the highlighting mode to be used when the user
-     *          presses the mouse button over this widget
-     */
+    /// @returns the highlighting mode to be used when the user
+    ///          presses the mouse button over this widget
     PdfHighlightingMode GetHighlightingMode() const;
 
-    /** Sets the field name of this PdfField
-     *
-     *  PdfFields require a field name to work correctly in acrobat reader!
-     *  This name can be used to access the field in JavaScript actions.
-     *
-     *  \param name the field name of this pdf field
-     */
+    /// Sets the field name of this PdfField
+    ///
+    /// PdfFields require a field name to work correctly in acrobat reader!
+    /// This name can be used to access the field in JavaScript actions.
+    ///
+    /// @param name the field name of this pdf field
     void SetName(nullable<const PdfString&> name);
 
-    /** Returns signature object for this signature field.
-     *  It can be nullptr, when the signature field was created
-     *  from an existing annotation and it didn't have set it.
-     *
-     *  \returns associated signature object, or nullptr
-     */
+    /// Returns signature object for this signature field.
+    /// It can be nullptr, when the signature field was created
+    /// from an existing annotation and it didn't have set it.
+    ///
+    /// @returns associated signature object, or nullptr
     PdfObject* GetValueObject();
     const PdfObject* GetValueObject() const;
 
-    /** \returns the field name of this PdfField
-     */
+    /// @returns the field name of this PdfField
     nullable<const PdfString&> GetName() const;
 
-    /** \returns the field name of this PdfField at this level of the hierarchy
-     */
+    /// @returns the field name of this PdfField at this level of the hierarchy
     nullable<const PdfString&> GetNameRaw() const;
 
-    /** \returns the parents qualified name of this PdfField
-     *
-     *  \param skipEscapePartialName don't escape non compliant partial names that have dots with ESC character
-     */
+    /// @returns the parents qualified name of this PdfField
+    ///
+    /// @param skipEscapePartialName don't escape non compliant partial names that have dots with ESC character
     std::string GetFullName(bool skipEscapePartialName = false) const;
 
-    /**
-     * Set the alternate name of this field which
-     * is used to display the fields name to the user
-     * (e.g. in error messages).
-     *
-     * \param name a name that can be displayed to the user
-     */
+    /// Set the alternate name of this field which
+    /// is used to display the fields name to the user
+    /// (e.g. in error messages).
+    ///
+    /// @param name a name that can be displayed to the user
     void SetAlternateName(nullable<const PdfString&> name);
 
-    /** \returns the fields alternate name
-     */
+    /// @returns the fields alternate name
     nullable<const PdfString&> GetAlternateName() const;
 
-    /**
-     * Sets the fields mapping name which is used when exporting
-     * the fields data
-     *
-     * \param name the mapping name of this PdfField
-     */
+    /// Sets the fields mapping name which is used when exporting
+    /// the fields data
+    ///
+    /// @param name the mapping name of this PdfField
     void SetMappingName(nullable<const PdfString&> name);
 
-    /** \returns the mapping name of this field
-     */
+    /// @returns the mapping name of this field
     nullable<const PdfString&> GetMappingName() const;
 
-    /** Set this field to be readonly.
-     *  I.e. it will not interact with the user
-     *  and respond to mouse button events.
-     *
-     *  This is useful for fields that are pure calculated.
-     *
-     *  \param readOnly specifies if this field is read-only.
-     */
+    /// Set this field to be readonly.
+    /// I.e. it will not interact with the user
+    /// and respond to mouse button events.
+    ///
+    /// This is useful for fields that are pure calculated.
+    ///
+    /// @param readOnly specifies if this field is read-only.
     void SetReadOnly(bool readOnly);
 
-    /**
-     * \returns true if this field is read-only
-     *
-     * \see SetReadOnly
-     */
+    /// @returns true if this field is read-only
+    ///
+    /// @see SetReadOnly
     bool IsReadOnly() const;
 
-    /** Required fields must have a value
-     *  at the time the value is exported by a submit action
-     *
-     *  \param required if true this field requires a value for submit actions
-     */
+    /// Required fields must have a value
+    /// at the time the value is exported by a submit action
+    ///
+    /// @param required if true this field requires a value for submit actions
     void SetRequired(bool required);
 
-    /**
-     * \returns true if this field is required for submit actions
-     *
-     * \see SetRequired
-     */
+    /// @returns true if this field is required for submit actions
+    ///
+    /// @see SetRequired
     bool IsRequired() const;
 
-    /** Sets if this field can be exported by a submit action
-     *
-     *  Fields can be exported by default.
-     *
-     *  \param exprt if false this field cannot be exported by submit actions
-     */
+    /// Sets if this field can be exported by a submit action
+    ///
+    /// Fields can be exported by default.
+    ///
+    /// @param exprt if false this field cannot be exported by submit actions
     void SetNoExport(bool exprt);
 
-    /**
-     * \returns true if this field can be exported by submit actions
-     *
-     * \see SetExport
-     */
+    /// @returns true if this field can be exported by submit actions
+    ///
+    /// @see SetExport
     bool IsNoExport() const;
 
     void SetMouseEnterAction(const PdfAction& action);
@@ -221,32 +197,26 @@ public:
     const PdfFieldChildrenCollectionBase& GetChildren() const;
 
 protected:
-    /**
-     *  Set a bit in the field flags value of the fields dictionary.
-     *
-     *  \param value the value specifying the bits to set
-     *  \param set if true the value will be set otherwise
-     *              they will be cleared.
-     *
-     *  \see GetFieldFlag
-     */
+    /// Set a bit in the field flags value of the fields dictionary.
+    ///
+    /// @param value the value specifying the bits to set
+    /// @param set if true the value will be set otherwise
+    ///              they will be cleared.
+    ///
+    /// @see GetFieldFlag
     void SetFieldFlag(int64_t value, bool set);
 
-    /**
-     *  \param value it is checked if these bits are set
-     *  \param defvalue the returned value if no field flags are specified
-     *
-     *  \returns true if given bits are set in the field flags
-     *
-     *  \see SetFieldFlag
-     */
+    /// @param value it is checked if these bits are set
+    /// @param defvalue the returned value if no field flags are specified
+    ///
+    /// @returns true if given bits are set in the field flags
+    ///
+    /// @see SetFieldFlag
     bool GetFieldFlag(int64_t value, bool defvalue) const;
 
-    /**
-    *  \param obj the object to test for field flags
-    *  \param value is set with the flag if found
-    *  \returns true if flag is found
-    */
+    /// @param obj the object to test for field flags
+    /// @param value is set with the flag if found
+    /// @returns true if flag is found
     static bool GetFieldFlags(const PdfObject& obj, int64_t& value);
 
     virtual PdfObject* getValueObject() const;

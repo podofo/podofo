@@ -35,9 +35,7 @@ namespace PoDoFo
         InvalidPrefix = 4
     };
 
-    /**
-     * \remarks the store is not cleared: the function sets only read properties
-     */
+    /// @remarks the store is not cleared: the function sets only read properties
     void GetXMPMetadata(xmlNodePtr description, PdfMetadataStore& metadata);
     void SetXMPMetadata(xmlDocPtr doc, xmlNodePtr description, const PdfMetadataStore& metadata);
     void PruneAndValidate(xmlDocPtr doc, xmlNodePtr description, PdfALevel level,

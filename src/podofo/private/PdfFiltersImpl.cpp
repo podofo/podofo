@@ -18,12 +18,10 @@ namespace PoDoFo {
 // evaluation.
 const unsigned s_Powers85[] = { 85 * 85 * 85 * 85, 85 * 85 * 85, 85 * 85, 85, 1 };
 
-/**
- * This structure contains all necessary values
- * for a FlateDecode and LZWDecode Predictor.
- * These values are normally stored in the /DecodeParams
- * key of a PDF dictionary.
- */
+/// This structure contains all necessary values
+/// for a FlateDecode and LZWDecode Predictor.
+/// These values are normally stored in the /DecodeParams
+/// key of a PDF dictionary.
 class PdfPredictorDecoder
 {
 public:

@@ -13,8 +13,7 @@ class PODOFO_API PdfFontObject final : public PdfFont
     friend class PdfFont;
 
 private:
-    /** Create a PdfFontObject based on an existing PdfObject
-     */
+    /// Create a PdfFontObject based on an existing PdfObject
     PdfFontObject(PdfObject& obj, PdfFontMetricsConstPtr&& metrics,
         const PdfEncoding& encoding);
 

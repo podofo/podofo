@@ -18,13 +18,12 @@
 
 namespace PoDoFo {
 
-/** This class provides an output device which operates
- *  either on a file or on a buffer in memory.
- *  Additionally it can count the bytes written to the device.
- *
- *  This class is suitable for inheritance to provide output
- *  devices of your own. Just override the required virtual methods.
- */
+/// This class provides an output device which operates
+/// either on a file or on a buffer in memory.
+/// Additionally it can count the bytes written to the device.
+///
+/// This class is suitable for inheritance to provide output
+/// devices of your own. Just override the required virtual methods.
 class PODOFO_API StreamDevice : public InputStreamDevice, public OutputStreamDevice
 {
 protected:
@@ -37,18 +36,16 @@ protected:
 class PODOFO_API StandardStreamDevice : public StreamDevice
 {
 public:
-    /** Construct a new StreamDevice that writes all data to a std::ostream.
-     *
-     *  \param stream write to this std::ostream
-     */
+    /// Construct a new StreamDevice that writes all data to a std::ostream.
+    ///
+    /// @param stream write to this std::ostream
     StandardStreamDevice(std::ostream& stream);
 
     StandardStreamDevice(std::istream& stream);
 
-    /** Construct a new StreamDevice that writes all data to a std::iostream
-     *  and reads from it as well.
-     *  \param stream read/write from/to this std::iostream
-     */
+    /// Construct a new StreamDevice that writes all data to a std::iostream
+    /// and reads from it as well.
+    /// @param stream read/write from/to this std::iostream
     StandardStreamDevice(std::iostream& stream);
 
     ~StandardStreamDevice();
@@ -99,16 +96,13 @@ enum class FileMode : uint8_t
 class PODOFO_API FileStreamDevice : public StreamDevice
 {
 public:
-    /** Open for reading the supplied filepath
-     */
+    /// Open for reading the supplied filepath
     FileStreamDevice(const std::string_view & filepath);
 
-    /** Open for reading/writing the supplied filepath with the given filemode
-     */
+    /// Open for reading/writing the supplied filepath with the given filemode
     FileStreamDevice(const std::string_view & filepath, FileMode mode);
 
-    /** Open for the supplied filepath with the given filemode and access
-     */
+    /// Open for the supplied filepath with the given filemode and access
     FileStreamDevice(const std::string_view& filepath, FileMode mode,
         DeviceAccess access);
 
@@ -150,15 +144,11 @@ public:
         m_container(&container),
         m_Position(ate ? container.size() : 0) { }
 
-    /**
-     * \remarks by default it set the current position at the begin of the container
-     */
+    /// @remarks by default it set the current position at the begin of the container
     ContainerStreamDevice(const TContainer& container) :
         ContainerStreamDevice(const_cast<TContainer&>(container), DeviceAccess::Read, false) { }
 
-    /**
-     * \remarks by default it set the current position at the end of the container 
-     */
+    /// @remarks by default it set the current position at the end of the container
     ContainerStreamDevice(TContainer& container) :
         ContainerStreamDevice(container, DeviceAccess::ReadWrite, true) { }
 
@@ -233,9 +223,8 @@ private:
 class PODOFO_API SpanStreamDevice : public StreamDevice
 {
 public:
-    /** Construct a new StreamDevice that reads all data from a memory buffer.
-     *  The buffer is temporarily bound
-     */
+    /// Construct a new StreamDevice that reads all data from a memory buffer.
+    /// The buffer is temporarily bound
     SpanStreamDevice(const char* buffer, size_t size);
     SpanStreamDevice(const bufferview& buffer);
     SpanStreamDevice(const std::string_view& view);
@@ -274,9 +263,7 @@ private:
     size_t m_Position;
 };
 
-/**
- * An StreamDevice device that does nothing
- */
+/// An StreamDevice device that does nothing
 class PODOFO_API NullStreamDevice final : public StreamDevice
 {
 public:

@@ -10,8 +10,7 @@
 
 namespace PoDoFo {
 
-/** An enum describing the type of a read token
- */
+/// An enum describing the type of a read token
 enum class PdfPostScriptTokenType : uint8_t
 {
     Unknown = 0,
@@ -21,15 +20,12 @@ enum class PdfPostScriptTokenType : uint8_t
     ProcedureExit, ///< Procedure enter delimiter '}'
 };
 
-/** This class is a parser for general PostScript content in PDF documents.
- */
+/// This class is a parser for general PostScript content in PDF documents.
 class PODOFO_API PdfPostScriptTokenizer final : private PdfTokenizer
 {
 public:
     PdfPostScriptTokenizer(PdfPostScriptLanguageLevel level = PdfPostScriptLanguageLevel::L2);
-    /**
-     * \param buffer a shareable internal/temporary buffer. It's not the buffer where the contents will be read!
-     */
+    /// @param buffer a shareable internal/temporary buffer. It's not the buffer where the contents will be read!
     PdfPostScriptTokenizer(std::shared_ptr<charbuff> buffer,
         PdfPostScriptLanguageLevel level = PdfPostScriptLanguageLevel::L2);
 public:

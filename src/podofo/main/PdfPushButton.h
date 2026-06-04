@@ -9,9 +9,8 @@
 
 namespace PoDoFo
 {
-    /** A push button is a button which has no state and value
-     *  but can toggle actions.
-     */
+    /// A push button is a button which has no state and value
+    /// but can toggle actions.
     class PODOFO_API PdfPushButton final : public PdfButton
     {
         friend class PdfField;
@@ -24,29 +23,23 @@ namespace PoDoFo
         PdfPushButton(PdfObject& obj, PdfAcroForm* acroform);
 
     public:
-        /** Set the rollover caption of this button
-         *  which is displayed when the cursor enters the field
-         *  without the mouse button being pressed
-         *
-         *  \param text the caption
-         */
+        /// Set the rollover caption of this button
+        /// which is displayed when the cursor enters the field
+        /// without the mouse button being pressed
+        ///
+        /// @param text the caption
         void SetRolloverCaption(nullable<const PdfString&> text);
 
-        /**
-         *  \returns the rollover caption of this button
-         */
+        /// @returns the rollover caption of this button
         nullable<const PdfString&> GetRolloverCaption() const;
 
-        /** Set the alternate caption of this button
-         *  which is displayed when the button is pressed.
-         *
-         *  \param text the caption
-         */
+        /// Set the alternate caption of this button
+        /// which is displayed when the button is pressed.
+        ///
+        /// @param text the caption
         void SetAlternateCaption(nullable<const PdfString&> text);
 
-        /**
-         *  \returns the rollover caption of this button
-         */
+        /// @returns the rollover caption of this button
         nullable<const PdfString&> GetAlternateCaption() const;
 
         PdfPushButton* GetParent();

@@ -8,12 +8,10 @@
 
 namespace PoDoFo
 {
-    /**
-     * Represents a predefined ToUnicode CMap as the ones described in
-     * ISO 32000-2:2020 "9.10.2 Mapping character codes to Unicode values"
-     * that can be downloaded from https://github.com/adobe-type-tools/mapping-resources-pdf,
-     * folder "pdf2unicode"
-     */
+    /// Represents a predefined ToUnicode CMap as the ones described in
+    /// ISO 32000-2:2020 "9.10.2 Mapping character codes to Unicode values"
+    /// that can be downloaded from https://github.com/adobe-type-tools/mapping-resources-pdf,
+    /// folder "pdf2unicode"
     class PODOFO_API PdfPredefinedToUnicodeCMap final : public PdfEncodingMap
     {
         friend class PdfEncodingFactory;

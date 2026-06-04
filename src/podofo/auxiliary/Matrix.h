@@ -17,8 +17,7 @@ namespace PoDoFo
         static Matrix Identity;
 
     public:
-        /** Constructs an identity matrix
-         */
+        /// Constructs an identity matrix
         Matrix();
         Matrix(double a, double b, double c, double d, double e, double f);
 

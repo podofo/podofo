@@ -90,21 +90,20 @@ private:
 using PdfDocumentFieldIterable = PdfDocumentFieldIterableBase<PdfField>;
 using PdfDocumentConstFieldIterable = PdfDocumentFieldIterableBase<const PdfField>;
 
-/** PdfDocument is the core interface for working with PDF documents.
- *
- *  PdfDocument provides easy access to the individual pages
- *  in the PDF file and to certain special dictionaries.
- *
- *  PdfDocument cannot be used directly.
- *  Use PdfMemDocument whenever you want to change the object structure
- *  of a PDF file.
- *
- *  When you are only creating PDF files, please use PdfStreamedDocument
- *  which is usually faster for creating PDFs.
- *
- *  \see PdfStreamedDocument
- *  \see PdfMemDocument
- */
+/// PdfDocument is the core interface for working with PDF documents.
+///
+/// PdfDocument provides easy access to the individual pages
+/// in the PDF file and to certain special dictionaries.
+///
+/// PdfDocument cannot be used directly.
+/// Use PdfMemDocument whenever you want to change the object structure
+/// of a PDF file.
+///
+/// When you are only creating PDF files, please use PdfStreamedDocument
+/// which is usually faster for creating PDFs.
+///
+/// @see PdfStreamedDocument
+/// @see PdfMemDocument
 class PODOFO_API PdfDocument
 {
     friend class PdfMetadata;
@@ -114,42 +113,37 @@ class PODOFO_API PdfDocument
     friend class PdfStreamedDocument;
 
 public:
-    /** Close down/destruct the PdfDocument
-     */
+    /// Close down/destruct the PdfDocument
     virtual ~PdfDocument();
 
-    /** Get access to the Outlines (Bookmarks) dictionary
-     *  The returned outlines object is owned by the PdfDocument.
-     *
-     *  \param create create the object if it does not exist (ePdfCreateObject)
-     *                 or return nullptr if it does not exist
-     *  \returns the Outlines/Bookmarks dictionary
-     */
+    /// Get access to the Outlines (Bookmarks) dictionary
+    /// The returned outlines object is owned by the PdfDocument.
+    ///
+    /// @param create create the object if it does not exist (ePdfCreateObject)
+    ///                 or return nullptr if it does not exist
+    /// @returns the Outlines/Bookmarks dictionary
     PdfOutlines& GetOrCreateOutlines();
 
-    /** Get access to the Names dictionary (where all the named objects are stored)
-     *  The returned PdfNameTrees object is owned by the PdfDocument.
-     *
-     *  \param create create the object if it does not exist (ePdfCreateObject)
-     *                 or return nullptr if it does not exist
-     *  \returns the Names dictionary
-     */
+    /// Get access to the Names dictionary (where all the named objects are stored)
+    /// The returned PdfNameTrees object is owned by the PdfDocument.
+    ///
+    /// @param create create the object if it does not exist (ePdfCreateObject)
+    ///                 or return nullptr if it does not exist
+    /// @returns the Names dictionary
     PdfNameTrees& GetOrCreateNames();
 
-    /** Get access to the AcroForm dictionary
-     *
-     *  \param create create the object if it does not exist (ePdfCreateObject)
-     *                 or return nullptr if it does not exist
-     *  \param eDefaultAppearance specifies if a default appearance shall be created
-     *
-     *  \returns PdfObject the AcroForm dictionary
-     */
+    /// Get access to the AcroForm dictionary
+    ///
+    /// @param eDefaultAppearance create the object if it does not exist (ePdfCreateObject)
+    ///                 or return nullptr if it does not exist
+    /// @param eDefaultAppearance specifies if a default appearance shall be created
+    ///
+    /// @returns PdfObject the AcroForm dictionary
     PdfAcroForm& GetOrCreateAcroForm(PdfAcroFormDefaulAppearance eDefaultAppearance = PdfAcroFormDefaulAppearance::ArialBlack);
 
     void CollectGarbage();
 
-    /** Construct a new PdfImage object
-     */
+    /// Construct a new PdfImage object
     std::unique_ptr<PdfImage> CreateImage();
 
     std::unique_ptr<PdfXObjectForm> CreateXObjectForm(const Rect& rect);
@@ -177,100 +171,88 @@ public:
 
     std::unique_ptr<PdfFileSpec> CreateFileSpec();
 
-    /** Checks if printing this document is allowed.
-     *  Every PDF-consuming application has to adhere to this value!
-     *
-     *  \returns true if you are allowed to print this document
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if printing this document is allowed.
+    /// Every PDF-consuming application has to adhere to this value!
+    ///
+    /// @returns true if you are allowed to print this document
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     bool IsPrintAllowed() const;
 
-    /** Checks if modifying this document (besides annotations, form fields or substituting pages) is allowed.
-     *  Every PDF-consuming application has to adhere to this value!
-     *
-     *  \returns true if you are allowed to modify this document
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if modifying this document (besides annotations, form fields or substituting pages) is allowed.
+    /// Every PDF-consuming application has to adhere to this value!
+    ///
+    /// @returns true if you are allowed to modify this document
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     bool IsEditAllowed() const;
 
-    /** Checks if text and graphics extraction is allowed.
-     *  Every PDF-consuming application has to adhere to this value!
-     *
-     *  \returns true if you are allowed to extract text and graphics from this document
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if text and graphics extraction is allowed.
+    /// Every PDF-consuming application has to adhere to this value!
+    ///
+    /// @returns true if you are allowed to extract text and graphics from this document
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     bool IsCopyAllowed() const;
 
-    /** Checks if it is allowed to add or modify annotations or form fields.
-     *  Every PDF-consuming application has to adhere to this value!
-     *
-     *  \returns true if you are allowed to add or modify annotations or form fields
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if it is allowed to add or modify annotations or form fields.
+    /// Every PDF-consuming application has to adhere to this value!
+    ///
+    /// @returns true if you are allowed to add or modify annotations or form fields
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     bool IsEditNotesAllowed() const;
 
-    /** Checks if it is allowed to fill in existing form or signature fields.
-     *  Every PDF-consuming application has to adhere to this value!
-     *
-     *  \returns true if you are allowed to fill in existing form or signature fields
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if it is allowed to fill in existing form or signature fields.
+    /// Every PDF-consuming application has to adhere to this value!
+    ///
+    /// @returns true if you are allowed to fill in existing form or signature fields
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     bool IsFillAndSignAllowed() const;
 
-    /** Checks if it is allowed to extract text and graphics to support users with disabilities.
-     *  Every PDF-consuming application has to adhere to this value!
-     *
-     *  \returns true if you are allowed to extract text and graphics to support users with disabilities
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if it is allowed to extract text and graphics to support users with disabilities.
+    /// Every PDF-consuming application has to adhere to this value!
+    ///
+    /// @returns true if you are allowed to extract text and graphics to support users with disabilities
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     bool IsAccessibilityAllowed() const;
 
-    /** Checks if it is allowed to insert, create, rotate, or delete pages or add bookmarks.
-     *  Every PDF-consuming application has to adhere to this value!
-     *
-     *  \returns true if you are allowed  to insert, create, rotate, or delete pages or add bookmarks
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if it is allowed to insert, create, rotate, or delete pages or add bookmarks.
+    /// Every PDF-consuming application has to adhere to this value!
+    ///
+    /// @returns true if you are allowed  to insert, create, rotate, or delete pages or add bookmarks
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     bool IsDocAssemblyAllowed() const;
 
-    /** Checks if it is allowed to print a high quality version of this document
-     *  Every PDF-consuming application has to adhere to this value!
-     *
-     *  \returns true if you are allowed to print a high quality version of this document
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if it is allowed to print a high quality version of this document
+    /// Every PDF-consuming application has to adhere to this value!
+    ///
+    /// @returns true if you are allowed to print a high quality version of this document
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     bool IsHighPrintAllowed() const;
 
-    /** Add a vendor-specific extension to the current PDF version.
-     *  \param extension extension to add
-     */
+    /// Add a vendor-specific extension to the current PDF version.
+    /// @param extension extension to add
     void PushPdfExtension(const PdfExtension& extension);
 
-    /** Checks whether the documents is tagged to implement a vendor-specific
-     *  extension to the current PDF version.
-     *  \param ns  namespace of the extension
-     *  \param level  level of the extension
-     */
+    /// Checks whether the documents is tagged to implement a vendor-specific
+    /// extension to the current PDF version.
+    /// @param ns  namespace of the extension
+    /// @param level  level of the extension
     bool HasPdfExtension(const std::string_view& ns, int64_t level) const;
 
-    /** Remove a vendor-specific extension to the current PDF version.
-     *  \param ns  namespace of the extension
-     *  \param level  level of the extension
-     */
+    /// Remove a vendor-specific extension to the current PDF version.
+    /// @param ns  namespace of the extension
+    /// @param level  level of the extension
     void RemovePdfExtension(const std::string_view& ns, int64_t level);
 
-    /** Return the list of all vendor-specific extensions to the current PDF version.
-     *  \param ns  namespace of the extension
-     *  \param level  level of the extension
-     */
+    /// Return the list of all vendor-specific extensions to the current PDF version.
+    /// @param ns  namespace of the extension
+    /// @param level  level of the extension
     std::vector<PdfExtension> GetPdfExtensions() const;
 
     PdfAcroForm& MustGetAcroForm();
@@ -285,99 +267,84 @@ public:
 
     const PdfOutlines& MustGetOutlines() const;
 
-    /**
-     * Get an iterator for all fields in the document. All widget annotation fields
-     * in the pages will be returned, plus non annotation fields in the /AcroForm
-     * (eg. invisible signatures)
-     */
+    /// Get an iterator for all fields in the document. All widget annotation fields
+    /// in the pages will be returned, plus non annotation fields in the /AcroForm
+    /// (eg. invisible signatures)
     PdfDocumentFieldIterable GetFieldsIterator();
     PdfDocumentConstFieldIterable GetFieldsIterator() const;
 
-    /** Clear all internal structures and reset PdfDocument to an empty state.
-      */
+    /// Clear all internal structures and reset PdfDocument to an empty state.
     void Reset();
 
 public:
-    /** Checks if document has been opened with full owner privileges.
-     *  This implies that the document can be modified, printed, copied, etc.,
-     *  regardless of listed permissions
-     *
-     *  \returns true if document is not protected or has been opened with owner password
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if document has been opened with full owner privileges.
+    /// This implies that the document can be modified, printed, copied, etc.,
+    /// regardless of listed permissions
+    ///
+    /// @returns true if document is not protected or has been opened with owner password
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     virtual bool HasOwnerPermissions() const = 0;
 
     virtual const PdfEncrypt* GetEncrypt() const = 0;
 
-    /**
-     * \returns true if this PdfMemDocument creates an encrypted PDF file
-     */
+    /// @returns true if this PdfMemDocument creates an encrypted PDF file
     bool IsEncrypted() const;
 
 public:
-    /** Get access to the internal Catalog dictionary
-     *  or root object.
-     *
-     *  \returns PdfObject the documents catalog
-     */
+    /// Get access to the internal Catalog dictionary
+    /// or root object.
+    ///
+    /// @returns PdfObject the documents catalog
     PdfCatalog& GetCatalog() { return *m_Catalog; }
 
-    /** Get access to the internal Catalog dictionary
-     *  or root object.
-     *
-     *  \returns PdfObject the documents catalog
-     */
+    /// Get access to the internal Catalog dictionary
+    /// or root object.
+    ///
+    /// @returns PdfObject the documents catalog
     const PdfCatalog& GetCatalog() const { return *m_Catalog; }
 
-    /** Get access to the page tree.
-     *  \returns the PdfPageTree of this document.
-     */
+    /// Get access to the page tree.
+    /// @returns the PdfPageTree of this document.
     PdfPageCollection& GetPages() { return *m_Pages; }
 
-    /** Get access to the page tree.
-     *  \returns the PdfPageTree of this document.
-     */
+    /// Get access to the page tree.
+    /// @returns the PdfPageTree of this document.
     const PdfPageCollection& GetPages() const { return *m_Pages; }
 
-    /** Get access to the internal trailer dictionary
-     *  or root object.
-     *
-     *  \returns PdfObject the documents catalog
-     */
+    /// Get access to the internal trailer dictionary
+    /// or root object.
+    ///
+    /// @returns PdfObject the documents catalog
     PdfTrailer &GetTrailer() { return *m_Trailer; }
 
-    /** Get access to the internal trailer dictionary
-     *  or root object.
-     *
-     *  \returns PdfObject the documents catalog
-     */
+    /// Get access to the internal trailer dictionary
+    /// or root object.
+    ///
+    /// @returns PdfObject the documents catalog
     const PdfTrailer& GetTrailer() const { return *m_Trailer; }
 
-    /** Get access to the internal Info dictionary
-     *  You can set the author, title etc. of the
-     *  document using the info dictionary.
-     *
-     *  \returns the info dictionary
-     */
+    /// Get access to the internal Info dictionary
+    /// You can set the author, title etc. of the
+    /// document using the info dictionary.
+    ///
+    /// @returns the info dictionary
     const PdfInfo* GetInfo() const { return m_Info.get(); }
 
     PdfMetadata& GetMetadata() { return m_Metadata; }
 
     const PdfMetadata& GetMetadata() const { return m_Metadata; }
 
-    /** Get access to the internal vector of objects
-     *  or root object.
-     *
-     *  \returns the vector of objects
-     */
+    /// Get access to the internal vector of objects
+    /// or root object.
+    ///
+    /// @returns the vector of objects
     PdfIndirectObjectList& GetObjects() { return m_Objects; }
 
-    /** Get access to the internal vector of objects
-     *  or root object.
-     *
-     *  \returns the vector of objects
-     */
+    /// Get access to the internal vector of objects
+    /// or root object.
+    ///
+    /// @returns the vector of objects
     const PdfIndirectObjectList& GetObjects() const { return m_Objects; }
 
     PdfAcroForm* GetAcroForm() { return m_AcroForm.get(); }
@@ -395,40 +362,34 @@ public:
     PdfFontManager& GetFonts() { return m_FontManager; }
 
 protected:
-    /** Set the trailer of this PdfDocument
-     *  deleting the old one.
-     *
-     *  \param obj the new trailer object
-     *         It will be owned by PdfDocument.
-     */
+    /// Set the trailer of this PdfDocument
+    /// deleting the old one.
+    ///
+    /// @param obj the new trailer object
+    ///         It will be owned by PdfDocument.
     void SetTrailer(std::unique_ptr<PdfObject> obj);
 
-    /** Internal method for initializing the pages tree for this document
-     */
+    /// Internal method for initializing the pages tree for this document
     void Init();
 
     virtual void reset();
 
-    /** Clear all variables that have internal memory usage
-      */
+    /// Clear all variables that have internal memory usage
     void Clear();
 
     virtual void clear();
 
-    /** Get the PDF version of the document
-     *  \returns PdfVersion version of the pdf document
-     */
+    /// Get the PDF version of the document
+    /// @returns PdfVersion version of the pdf document
     virtual PdfVersion GetPdfVersion() const = 0;
 
-    /** Get the PDF version of the document
-     *  \returns PdfVersion version of the pdf document
-     */
+    /// Get the PDF version of the document
+    /// @returns PdfVersion version of the pdf document
     virtual void SetPdfVersion(PdfVersion version) = 0;
 
 private:
-    /** Construct a new (empty) PdfDocument
-     *  \param empty if true NO default objects (such as catalog) are created.
-     */
+    /// Construct a new (empty) PdfDocument
+    /// @param empty if true NO default objects (such as catalog) are created.
     PdfDocument(bool empty = false);
 
     PdfDocument(const PdfDocument& doc);
@@ -447,13 +408,12 @@ private:
 
 private:
     void append(const PdfDocument& doc, bool appendAll);
-    /** Recursively changes every PdfReference in the PdfObject and in any child
-     *  that is either an PdfArray or a direct object.
-     *  The reference is changed so that difference is added to the object number
-     *  of the reference.
-     *  \param obj object to change
-     *  \param difference add this value to every reference that is encountered
-     */
+    /// Recursively changes every PdfReference in the PdfObject and in any child
+    /// that is either an PdfArray or a direct object.
+    /// The reference is changed so that difference is added to the object number
+    /// of the reference.
+    /// @param obj object to change
+    /// @param difference add this value to every reference that is encountered
     void fixObjectReferences(PdfObject& obj, int difference);
 
     void deletePages(unsigned atIndex, unsigned pageCount);

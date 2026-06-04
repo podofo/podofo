@@ -12,26 +12,22 @@ namespace PoDoFo {
 class InputStreamDevice;
 class OutputStream;
 
-/**
- * This class is able to build a new TTF font with only
- * certain glyphs from an existing font.
- *
- */
+/// This class is able to build a new TTF font with only
+/// certain glyphs from an existing font.
+///
 class FontTrueTypeSubset final
 {
 private:
     FontTrueTypeSubset(InputStreamDevice& device, const PdfFontMetrics& metrics);
 
 public:
-    /**
-     * Actually generate the subsetted font
-     * Create a new PdfFontTrueTypeSubset from an existing
-     * TTF font file retrieved from a font metrics
-     *
-     * \param output write the font to this buffer
-     * \param metrics the metrics of the font to subset
-     * \param gids a list of glyphs to subset
-     */
+    /// Actually generate the subsetted font
+    /// Create a new PdfFontTrueTypeSubset from an existing
+    /// TTF font file retrieved from a font metrics
+    ///
+    /// @param output write the font to this buffer
+    /// @param metrics the metrics of the font to subset
+    /// @param infos a list of glyphs to subset
     static void BuildFont(const PdfFontMetrics& metrics, const cspan<PdfCharGIDInfo>& infos, charbuff& output);
 
 private:
@@ -54,9 +50,8 @@ private:
         unsigned GlyphIndex = 0;
     };
 
-    /** GlyphData contains the glyph address relative
-     *  to the beginning of the "glyf" table.
-     */
+    /// GlyphData contains the glyph address relative
+    /// to the beginning of the "glyf" table.
     struct GlyphData
     {
         bool IsCompound = false;
@@ -100,8 +95,7 @@ private:
     void writeTables(charbuff& output);
     void readGlyphCompoundData(GlyphCompoundData& data, unsigned offset);
 
-    /** Information of TrueType tables.
-     */
+    /// Information of TrueType tables.
     struct TrueTypeTable
     {
         uint32_t Tag = 0;

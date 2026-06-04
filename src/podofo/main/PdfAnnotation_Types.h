@@ -19,16 +19,15 @@ namespace PoDoFo {
         friend class PdfAnnotationRedact;
 
     public:
-        /** Get the quad points associated with the annotation (if appropriate).
-         *  This array is used in text markup annotations to describe the
-         *  regions affected by the markup (i.e. the highlighted words, one
-         *  quadrilateral per word)
-         *
-         *  \returns a PdfArray of 8xn numbers describing the
-         *           x,y coordinates of BL BR TR TL corners of the
-         *           quadrilaterals. If inappropriate, returns
-         *           an empty array.
-         */
+        /// Get the quad points associated with the annotation (if appropriate).
+        /// This array is used in text markup annotations to describe the
+        /// regions affected by the markup (i.e. the highlighted words, one
+        /// quadrilateral per word)
+        ///
+        /// @returns a PdfArray of 8xn numbers describing the
+        ///           x,y coordinates of BL BR TR TL corners of the
+        ///           quadrilaterals. If inappropriate, returns
+        ///           an empty array.
         nullable<const PdfArray&> GetQuadPoints() const
         {
             auto& dict = static_cast<const T&>(*this).GetDictionary();
@@ -40,15 +39,14 @@ namespace PoDoFo {
             return *arr;
         }
 
-        /** Set the quad points associated with the annotation (if appropriate).
-         *  This array is used in text markup annotations to describe the
-         *  regions affected by the markup (i.e. the highlighted words, one
-         *  quadrilateral per word)
-         *
-         *  \param quadPoints a PdfArray of 8xn numbers describing the
-         *           x,y coordinates of BL BR TR TL corners of the
-         *           quadrilaterals.
-         */
+        /// Set the quad points associated with the annotation (if appropriate).
+        /// This array is used in text markup annotations to describe the
+        /// regions affected by the markup (i.e. the highlighted words, one
+        /// quadrilateral per word)
+        ///
+        /// @param quadPoints a PdfArray of 8xn numbers describing the
+        ///           x,y coordinates of BL BR TR TL corners of the
+        ///           quadrilaterals.
         void SetQuadPoints(nullable<const PdfArray&> quadPoints)
         {
             auto& dict = static_cast<T&>(*this).GetDictionary();
@@ -88,21 +86,19 @@ namespace PoDoFo {
         PdfAnnotationFileAttachment(PdfObject& obj);
 
     public:
-        /** Set a file attachment for this annotation.
-         *  The type of this annotation has to be
-         *  PdfAnnotationType::FileAttachement for file
-         *  attachments to work.
-         *
-         *  \param fileSpec a file specification
-         */
+        /// Set a file attachment for this annotation.
+        /// The type of this annotation has to be
+        /// PdfAnnotationType::FileAttachement for file
+        /// attachments to work.
+        ///
+        /// @param fileSpec a file specification
         void SetFileAttachment(const nullable<PdfFileSpec&>& fileSpec);
 
-        /** Get a file attachment of this annotation.
-         *  \returns a file specification object. The file specification object is owned
-         *           by the PdfAnnotation.
-         *
-         *  \see SetFileAttachement
-         */
+        /// Get a file attachment of this annotation.
+        /// @returns a file specification object. The file specification object is owned
+        ///           by the PdfAnnotation.
+        ///
+        /// @see SetFileAttachement
         nullable<PdfFileSpec&> GetFileAttachment();
         nullable<const PdfFileSpec&> GetFileAttachment() const;
 
@@ -152,18 +148,16 @@ namespace PoDoFo {
         PdfAnnotationLink(PdfPage& page, const Rect& rect);
         PdfAnnotationLink(PdfObject& obj);
     public:
-        /** Set the destination for link annotations
-         *  \param destination target of the link
-         *
-         *  \see GetDestination
-         */
+        /// Set the destination for link annotations
+        /// @param destination target of the link
+        ///
+        /// @see GetDestination
         void SetDestination(nullable<const PdfDestination&> destination);
 
-        /** Get the destination of a link annotations
-         *
-         *  \returns a destination object
-         *  \see SetDestination
-         */
+        /// Get the destination of a link annotations
+        ///
+        /// @returns a destination object
+        /// @see SetDestination
         nullable<PdfDestination&> GetDestination();
         nullable<const PdfDestination&> GetDestination() const;
 
@@ -214,16 +208,13 @@ namespace PoDoFo {
         PdfAnnotationPopup(PdfPage& page, const Rect& rect);
         PdfAnnotationPopup(PdfObject& obj);
     public:
-        /** Sets whether this annotation is initially open.
-         *  You should always set this true for popup annotations.
-         *  \param b if true open it
-         */
+        /// Sets whether this annotation is initially open.
+        /// You should always set this true for popup annotations.
+        /// @param value if true open it
         void SetOpen(const nullable<bool>& value);
 
-        /**
-         * \returns true if this annotation should be opened immediately
-         *          by the viewer
-         */
+        /// @returns true if this annotation should be opened immediately
+        ///          by the viewer
         bool GetOpen() const;
     };
 
@@ -301,16 +292,13 @@ namespace PoDoFo {
         PdfAnnotationText(PdfPage& page, const Rect& rect);
         PdfAnnotationText(PdfObject& obj);
     public:
-        /** Sets whether this annotation is initially open.
-         *  You should always set this true for popup annotations.
-         *  \param b if true open it
-         */
+        /// Sets whether this annotation is initially open.
+        /// You should always set this true for popup annotations.
+        /// @param value if true open it
         void SetOpen(const nullable<bool>& value);
 
-        /**
-         * \returns true if this annotation should be opened immediately
-         *          by the viewer
-         */
+        /// @returns true if this annotation should be opened immediately
+        ///          by the viewer
         bool GetOpen() const;
     };
 

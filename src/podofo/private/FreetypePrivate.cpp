@@ -225,7 +225,7 @@ unordered_map<string_view, unsigned> FT::GetPostMap(FT_Face face)
     return ret;
 }
 
-/// <param name="bare">True if the smart pointer </param>
+/// @param bare True if the smart pointerF
 FT::FT_FacePtr createFaceFromBuffer(const bufferview& view, unsigned faceIndex, bool bare)
 {
     FT_Error rc;

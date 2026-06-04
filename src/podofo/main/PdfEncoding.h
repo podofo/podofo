@@ -15,9 +15,8 @@ namespace PoDoFo
     class PdfEncoding;
     class PdfFontSimple;
 
-    /** A PDF string context to iteratively scan a string
-     * and collect both CID and unicode codepoints
-     */
+    /// A PDF string context to iteratively scan a string
+    /// and collect both CID and unicode codepoints
     class PODOFO_API PdfStringScanContext
     {
         friend class PdfEncoding;
@@ -28,9 +27,8 @@ namespace PoDoFo
     public:
         bool IsEndOfString() const;
 
-        /** Advance string reading
-         * \return true if success
-         */
+        /// Advance string reading
+        /// @return true if success
         bool TryScan(PdfCID& cid, std::string& utf8str, CodePointSpan& codepoints);
 
         bool TryScan(PdfCID& cid, std::string& utf8str, std::vector<unsigned>& positions, CodePointSpan& codepoints);
@@ -43,14 +41,12 @@ namespace PoDoFo
         const PdfEncodingMap* m_toUnicode;
     };
 
-    /**
-     * A PdfEncoding is in PdfFont to transform a text string
-     * into a representation so that it can be displayed in a
-     * PDF file.
-     *
-     * PdfEncoding can also be used to convert strings from a
-     * PDF file back into a PdfString.
-     */
+    /// A PdfEncoding is in PdfFont to transform a text string
+    /// into a representation so that it can be displayed in a
+    /// PDF file.
+    ///
+    /// PdfEncoding can also be used to convert strings from a
+    /// PDF file back into a PdfString.
     class PODOFO_API PdfEncoding final
     {
         friend class PdfEncodingFactory;
@@ -60,9 +56,8 @@ namespace PoDoFo
         friend class PdfFontSimple;
 
     public:
-        /** Null encoding, when used as an actual encoding a dynamic
-         * encoding will be constructed instead
-         */
+        /// Null encoding, when used as an actual encoding a dynamic
+        /// encoding will be constructed instead
         PdfEncoding();
         PdfEncoding(PdfEncodingMapConstPtr encoding, PdfToUnicodeMapConstPtr toUnicode = nullptr);
         PdfEncoding(const PdfEncoding&) = default;
@@ -74,136 +69,105 @@ namespace PoDoFo
             PdfEncodingMapConstPtr&& encoding, PdfEncodingMapConstPtr&& toUnicode,
             PdfCIDToGIDMapConstPtr&& cidToGidMap);
 
-        /** Create an encoding from object parsed information
-         */
+        /// Create an encoding from object parsed information
         static PdfEncoding Create(const PdfEncodingLimits& parsedLimits, PdfEncodingMapConstPtr&& encoding,
             PdfEncodingMapConstPtr&& toUnicode, PdfCIDToGIDMapConstPtr&& cidToGidMap);
 
-        /** Create a proxy encoding with a supplied /ToUnicode map
-         */
+        /// Create a proxy encoding with a supplied /ToUnicode map
         static PdfEncoding Create(const PdfEncoding& ref, PdfToUnicodeMapConstPtr&& toUnicode);
 
-        /** Encoding shim that mocks an existing encoding. Used by PdfFont
-         */
+        /// Encoding shim that mocks an existing encoding. Used by PdfFont
         static std::unique_ptr<PdfEncoding> CreateSchim(const PdfEncoding& encoding, PdfFont& font);
 
-        /** Encoding with an external encoding map storage
-         * Used by PdfFont in case of dynamic encoding requested
-         */
+        /// Encoding with an external encoding map storage
+        /// Used by PdfFont in case of dynamic encoding requested
         static std::unique_ptr<PdfEncoding> CreateDynamicEncoding(std::shared_ptr<PdfCharCodeMap>&& cidMap,
             std::shared_ptr<PdfCharCodeMap>&& toUnicodeMap, PdfFont& font);
 
     public:
-        /**
-         * \remarks Doesn't throw if conversion failed, totally or partially
-         */
+        /// @remarks Doesn't throw if conversion failed, totally or partially
         std::string ConvertToUtf8(const PdfString& encodedStr) const;
 
-        /**
-         * \remarks Produces a partial result also in case of failure
-         */
+        /// @remarks Produces a partial result also in case of failure
         bool TryConvertToUtf8(const PdfString& encodedStr, std::string& str) const;
 
-        /**
-         * \remarks It throws if conversion failed, totally or partially
-         */
+        /// @remarks It throws if conversion failed, totally or partially
         charbuff ConvertToEncoded(const std::string_view& str) const;
 
         bool TryConvertToEncoded(const std::string_view& str, charbuff& encoded) const;
 
-        /**
-         * \remarks Doesn't throw if conversion failed, totally or partially
-         */
+        /// @remarks Doesn't throw if conversion failed, totally or partially
         std::vector<PdfCID> ConvertToCIDs(const PdfString& encodedStr) const;
 
-        /**
-         * \remarks Produces a partial result also in case of failure
-         */
+        /// @remarks Produces a partial result also in case of failure
         bool TryConvertToCIDs(const PdfString& encodedStr, std::vector<PdfCID>& cids) const;
 
-        /** Get code point from char code unit
-         *
-         * \returns the found code point or U'\0' if missing or
-         *      multiple matched codepoints
-         */
+        /// Get code point from char code unit
+        ///
+        /// @returns the found code point or U'\0' if missing or
+        ///      multiple matched codepoints
         char32_t GetCodePoint(const PdfCharCode& codeUnit) const;
 
-        /** Get code point from char code
-         *
-         * \returns the found code point or U'\0' if missing or
-         *      multiple matched codepoints
-         * \remarks it will iterate available code sizes
-         */
+        /// Get code point from char code
+        ///
+        /// @returns the found code point or U'\0' if missing or
+        ///      multiple matched codepoints
+        /// @remarks it will iterate available code sizes
         char32_t GetCodePoint(unsigned charCode) const;
 
         PdfStringScanContext StartStringScan(const PdfString& encodedStr);
 
     public:
-        /** This return the first char code used in the encoding
-         * \remarks Mostly useful for non cid-keyed fonts to export /FirstChar
-         */
+        /// This return the first char code used in the encoding
+        /// @remarks Mostly useful for non cid-keyed fonts to export /FirstChar
         const PdfCharCode& GetFirstChar() const;
 
-        /** This return the last char code used in the encoding
-         * \remarks Mostly useful for non cid-keyed fonts to export /LastChar
-         */
+        /// This return the last char code used in the encoding
+        /// @remarks Mostly useful for non cid-keyed fonts to export /LastChar
         const PdfCharCode& GetLastChar() const;
 
-        /** Return true if the encoding is a dummy null encoding
-         */
+        /// Return true if the encoding is a dummy null encoding
         bool IsNull() const;
 
-        /** Return true if the encoding does CID mapping
-         */
+        /// Return true if the encoding does CID mapping
         bool HasCIDMapping() const;
 
-        /** Return true if the encoding is simple
-         * and has a non-CID mapping /Encoding entry
-         */
+        /// Return true if the encoding is simple
+        /// and has a non-CID mapping /Encoding entry
         bool IsSimpleEncoding() const;
 
-        /** Returns true if /FirstChar and /LastChar were parsed from object
-         */
+        /// Returns true if /FirstChar and /LastChar were parsed from object
         bool HasParsedLimits() const;
 
-        /** Return true if the encoding is a dynamic CID mapping
-         */
+        /// Return true if the encoding is a dynamic CID mapping
         bool IsDynamicEncoding() const;
 
-        /**
-         * Return an Id to be used in hashed containers
-         */
+        /// Return an Id to be used in hashed containers
         unsigned GetId() const { return m_Id; }
 
-        /**
-         * True if the encoding is constructed from object loaded information
-         */
+        /// True if the encoding is constructed from object loaded information
         bool IsObjectLoaded() const { return m_IsObjectLoaded; }
 
-        /** Get actual limits of the encoding
-         *
-         * May be the limits inferred from /Encoding or the limits inferred by /FirstChar, /LastChar
-         */
+        /// Get actual limits of the encoding
+        ///
+        /// May be the limits inferred from /Encoding or the limits inferred by /FirstChar, /LastChar
         const PdfEncodingLimits& GetLimits() const;
 
         bool HasValidToUnicodeMap() const;
 
-        /** Get the ToUnicode map, throws if missing
-         */
+        /// Get the ToUnicode map, throws if missing
         const PdfEncodingMap& GetToUnicodeMap() const;
 
-        /** Get the ToUnicode map, fallback to the normal encoding if missing
-         *
-         * \param toUnicode the retrieved map
-         * \return true if the retrieved map is valid, false otherwise
-         */
+        /// Get the ToUnicode map, fallback to the normal encoding if missing
+        ///
+        /// @param toUnicode the retrieved map
+        /// @return true if the retrieved map is valid, false otherwise
         bool GetToUnicodeMapSafe(const PdfEncodingMap*& toUnicode) const;
 
-        /** Get the ToUnicode map, fallback to the normal encoding if missing
-         *
-         * \return the retrieved map
-         * \remark As a general rule, we always use this method when converting encoded -> Unicode
-         */
+        /// Get the ToUnicode map, fallback to the normal encoding if missing
+        ///
+        /// @return the retrieved map
+        /// @remark As a general rule, we always use this method when converting encoded -> Unicode
         const PdfEncodingMap& GetToUnicodeMapSafe() const;
 
         const PdfEncodingMap& GetEncodingMap() const { return *m_Encoding; }

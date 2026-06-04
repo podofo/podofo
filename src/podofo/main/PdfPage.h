@@ -31,8 +31,7 @@ struct PODOFO_API PdfTextEntry final
     nullable<Rect> BoundingBox;
 };
 
-/** A structure with status progress attributes of certain operations
- */
+/// A structure with status progress attributes of certain operations
 struct PODOFO_API AbortCheckInfo final
 {
     unsigned ReadCount = 0;
@@ -127,10 +126,9 @@ private:
 using PdfPageFieldIterable = PdfPageFieldIterableBase<PdfField>;
 using PdfPageConstFieldIterable = PdfPageFieldIterableBase<const PdfField>;
 
-/** PdfPage is one page in the pdf document.
- *  It is possible to draw on a page using a PdfPainter object.
- *  Every document needs at least one page.
- */
+/// PdfPage is one page in the pdf document.
+/// It is possible to draw on a page using a PdfPainter object.
+/// Every document needs at least one page.
 class PODOFO_API PdfPage final : public PdfDictionaryElement, public PdfCanvas
 {
     PODOFO_PRIVATE_FRIEND(class PdfPageTest);
@@ -138,20 +136,18 @@ class PODOFO_API PdfPage final : public PdfDictionaryElement, public PdfCanvas
     friend class PdfDocument;
 
 private:
-    /** Create a new PdfPage object.
-     *  \param size a Rect specifying the size of the page (i.e the /MediaBox key) in PDF units
-     *  \param parent add the page to this parent
-     */
+    /// Create a new PdfPage object.
+    /// @param size a Rect specifying the size of the page (i.e the /MediaBox key) in PDF units
+    /// @param parent add the page to this parent
     PdfPage(PdfDocument& parent, const Rect& size);
 
-    /** Create a PdfPage based on an existing PdfObject
-     *  \param obj an existing PdfObject
-     *  \param listOfParents a list of PdfObjects that are
-     *                       parents of this page and can be
-     *                       queried for inherited attributes.
-     *                       The last object in the list is the
-     *                       most direct parent of this page.
-     */
+    /// Create a PdfPage based on an existing PdfObject
+    /// @param obj an existing PdfObject
+    /// @param parents a list of PdfObjects that are
+    ///                       parents of this page and can be
+    ///                       queried for inherited attributes.
+    ///                       The last object in the list is the
+    ///                       most direct parent of this page.
     PdfPage(PdfObject& obj);
     PdfPage(PdfObject& obj, std::vector<PdfObject*>&& parents);
 
@@ -163,14 +159,12 @@ public:
         const std::string_view& pattern = { },
         const PdfTextExtractParams& params = { }) const;
 
-    /** Get the rectangle of this page.
-     *  \returns a rectangle. It's oriented according to the canonical PDF coordinate system
-     */
+    /// Get the rectangle of this page.
+    /// @returns a rectangle. It's oriented according to the canonical PDF coordinate system
     Rect GetRect() const { return m_Rect; }
 
-    /** Set the rectangle of this annotation.
-     * \param rect rectangle to set. It's oriented according to the canonical PDF coordinate system
-     */
+    /// Set the rectangle of this annotation.
+    /// @param rect rectangle to set. It's oriented according to the canonical PDF coordinate system
     void SetRect(const Rect& rect);
 
     Corners GetRectRaw() const override;
@@ -179,101 +173,84 @@ public:
 
     bool TryGetRotationRadians(double& teta) const override;
 
-    /** Get the current page rotation in radians
-     * \returns a counterclockwise rotation in radians
-     */
+    /// Get the current page rotation in radians
+    /// @returns a counterclockwise rotation in radians
     double GetRotationRadians() const;
 
-    /** Set the /MediaBox in PDF Units
-     * \param rect a Rect in PDF units
-     */
+    /// Set the /MediaBox in PDF Units
+    /// @param rect a Rect in PDF units
     void SetMediaBox(const Rect& rect);
 
-    /** Set the /CropBox in PDF Units
-     * \param rect a Rect in PDF units
-     */
+    /// Set the /CropBox in PDF Units
+    /// @param rect a Rect in PDF units
     void SetCropBox(const Rect& rect);
 
-    /** Set the /TrimBox in PDF Units
-     * \param rect a Rect in PDF units
-     */
+    /// Set the /TrimBox in PDF Units
+    /// @param rect a Rect in PDF units
     void SetTrimBox(const Rect& rect);
 
-    /** Set the /BleedBox in PDF Units
-     * \param rect a Rect in PDF units
-     */
+    /// Set the /BleedBox in PDF Units
+    /// @param rect a Rect in PDF units
     void SetBleedBox(const Rect& rect);
 
-    /** Set the /ArtBox in PDF Units
-     * \param rect a Rect in PDF units
-     */
+    /// Set the /ArtBox in PDF Units
+    /// @param rect a Rect in PDF units
     void SetArtBox(const Rect& rect);
 
-    /** Page number inside of the document. The  first page
-     *  has the number 1
-     *
-     *  \returns the number of the page inside of the document
-     */
+    /// Page number inside of the document. The  first page
+    /// has the number 1
+    ///
+    /// @returns the number of the page inside of the document
     unsigned GetPageNumber() const;
 
-    /** Creates a Rect with the page size as values which is needed to create a PdfPage object
-     *  from an enum which are defined for a few standard page sizes.
-     *
-     *  \param pageSize the page size you want
-     *  \param landscape create a landscape pagesize instead of portrait (by exchanging width and height)
-     *  \returns a Rect object which can be passed to the PdfPage constructor
-     */
+    /// Creates a Rect with the page size as values which is needed to create a PdfPage object
+    /// from an enum which are defined for a few standard page sizes.
+    ///
+    /// @param pageSize the page size you want
+    /// @param landscape create a landscape pagesize instead of portrait (by exchanging width and height)
+    /// @returns a Rect object which can be passed to the PdfPage constructor
     static Rect CreateStandardPageSize(const PdfPageSize pageSize, bool landscape = false);
 
-    /** Get the current MediaBox (physical page size) in PDF units.
-     *  \returns Rect the page box
-     */
+    /// Get the current MediaBox (physical page size) in PDF units.
+    /// @returns Rect the page box
     Rect GetMediaBox() const;
     Corners GetMediaBoxRaw() const;
 
-    /** Get the current CropBox (visible page size) in PDF units.
-     *  \returns Rect the page box
-     */
+    /// Get the current CropBox (visible page size) in PDF units.
+    /// @returns Rect the page box
     Rect GetCropBox() const;
     Corners GetCropBoxRaw() const;
 
-    /** Get the current TrimBox (cut area) in PDF units.
-     *  \returns Rect the page box
-     */
+    /// Get the current TrimBox (cut area) in PDF units.
+    /// @returns Rect the page box
     Rect GetTrimBox() const;
     Corners GetTrimBoxRaw() const;
 
-    /** Get the current BleedBox (extra area for printing purposes) in PDF units.
-     *  \returns Rect the page box
-     */
+    /// Get the current BleedBox (extra area for printing purposes) in PDF units.
+    /// @returns Rect the page box
     Rect GetBleedBox() const;
     Corners GetBleedBoxRaw() const;
 
-    /** Get the current ArtBox in PDF units.
-     *  \returns Rect the page box
-     */
+    /// Get the current ArtBox in PDF units.
+    /// @returns Rect the page box
     Rect GetArtBox() const;
     Corners GetArtBoxRaw() const;
 
-    /** Get the normalized page rotation (0, 90, 180 or 270)
-     * \returns a clockwise rotation in degrees
-     */
+    /// Get the normalized page rotation (0, 90, 180 or 270)
+    /// @returns a clockwise rotation in degrees
     unsigned GetRotation() const { return m_Rotation; }
 
-    /** Get the raw page rotation (if any)
-     * \param rotation a clockwise rotation in degrees
-     * \remarks it may return an invalid page rotation
-     */
+    /// Get the raw page rotation (if any)
+    /// @param rotation a clockwise rotation in degrees
+    /// @remarks it may return an invalid page rotation
     bool TryGetRotationRaw(double& rotation) const;
 
-    /** Set the current page rotation.
-     * \param rotation The rotation to set to the page. Must be a multiple of 90
-     * \remarks The actual stored rotation will be normalized to 0, 90, 180 or 270
-     */
+    /// Set the current page rotation.
+    /// @param rotation The rotation to set to the page. Must be a multiple of 90
+    /// @remarks The actual stored rotation will be normalized to 0, 90, 180 or 270
     void SetRotation(int rotation);
 
-    /** Move the page to the given index
-     */
+    /// Move the page to the given index
     bool MoveTo(unsigned index);
 
     template <typename TField>
@@ -281,10 +258,8 @@ public:
 
     PdfField& CreateField(const std::string_view& name, PdfFieldType fieldType, const Rect& rect);
 
-    /**
-     * Get an iterator for all fields in the page. All widget annotation fields
-     * in the pages will be returned
-     */
+    /// Get an iterator for all fields in the page. All widget annotation fields
+    /// in the pages will be returned
     PdfPageFieldIterable GetFieldsIterator();
     PdfPageConstFieldIterable GetFieldsIterator() const;
 
@@ -325,10 +300,9 @@ private:
 
     void ensureContentsCreated();
 
-    /** Get the bounds of a specified page box in PDF units.
-     * This function is internal, since there are wrappers for all standard boxes
-     *  \returns Rect the page box
-     */
+    /// Get the bounds of a specified page box in PDF units.
+    /// This function is internal, since there are wrappers for all standard boxes
+    /// @returns Rect the page box
     Rect getPageBox(const std::string_view& inBox, bool isInheritable) const;
 
     Corners getPageBoxRaw(const std::string_view& inBox, bool isInheritable) const;

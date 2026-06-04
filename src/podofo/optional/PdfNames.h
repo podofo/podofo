@@ -8,9 +8,7 @@
 
 namespace PoDoFo
 {
-/**
- * A storage class for several known PdfName entries
- */
+/// A storage class for several known PdfName entries
 class PdfNames final
 {
 private:

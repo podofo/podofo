@@ -20,22 +20,20 @@ class PODOFO_API PdfXObjectForm final : public PdfXObject, public PdfCanvas
     friend class PdfAnnotation;
 
 private:
-    /** Create a new XObject with a specified dimension
-     *  in a given document
-     *
-     *  \param doc the parent document of the XObject
-     *  \param rect the size of the XObject
-     */
+    /// Create a new XObject with a specified dimension
+    /// in a given document
+    ///
+    /// @param doc the parent document of the XObject
+    /// @param rect the size of the XObject
     PdfXObjectForm(PdfDocument& doc, const Rect& rect);
 
 public:
-    /** Create a new XObject from a page of another document
-     *  in a given document. /BBox is set in form space (the content-stream
-     *  coordinate system); /Matrix applies the source page's /Rotate if present.
-     *
-     *  \param page the document to create the XObject from
-     *	\param useTrimBox if true try to use trimbox for size of xobject
-     */
+    /// Create a new XObject from a page of another document
+    /// in a given document. /BBox is set in form space (the content-stream
+    /// coordinate system); /Matrix applies the source page's /Rotate if present.
+    ///
+    /// @param page the document to create the XObject from
+    /// @param useTrimBox if true try to use trimbox for size of xobject
     void FillFromPage(const PdfPage& page, bool useTrimBox = false);
 
 public:
@@ -43,9 +41,8 @@ public:
 
     Rect GetRect() const override;
 
-    /** Set the rectangle of this xobject
-     *  \param rect a rectangle
-     */
+    /// Set the rectangle of this xobject
+    /// @param rect a rectangle
     void SetRect(const Rect& rect);
 
     void SetMatrix(const Matrix& m);

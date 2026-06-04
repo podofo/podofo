@@ -15,14 +15,12 @@
 
 namespace utls
 {
-    /** Fetch a RGB image and write it to the stream
-     */
+    /// Fetch a RGB image and write it to the stream
     void FetchImage(PoDoFo::OutputStream& stream, PoDoFo::PdfPixelFormat format, int scanLineSize,
         const unsigned char* imageData, unsigned width, unsigned heigth, unsigned bitsPerComponent,
         const PoDoFo::PdfColorSpaceFilter& filter, const PoDoFo::charbuff& smaskData);
 
-    /** Fetch a Black and White image and write it to the stream
-     */
+    /// Fetch a Black and White image and write it to the stream
     void FetchImageCCITT(PoDoFo::OutputStream& stream, PoDoFo::PdfPixelFormat format, int scanLineSize,
         chromium::ScanlineDecoder& decoder, unsigned width, unsigned heigth, const PoDoFo::charbuff& smaskData);
 

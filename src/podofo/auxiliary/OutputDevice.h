@@ -20,8 +20,7 @@ protected:
     OutputStreamDevice(bool init);
 
 public:
-    /** Truncate the file at this position by discarding subsequent bytes
-     */
+    /// Truncate the file at this position by discarding subsequent bytes
     void Truncate();
 
 protected:

@@ -89,16 +89,14 @@ namespace PoDoFo
         }
     }
 
-    /** Checks if a character is neither whitespace or delimiter
-     */
+    /// Checks if a character is neither whitespace or delimiter
     inline bool IsCharRegular(char ch)
     {
         return !(IsCharWhitespace(ch) || IsCharDelimiter(ch));
     }
 
-    /** Check if the character is within the range of
-     * non control code ASCII characters
-     */
+    /// Check if the character is within the range of
+    /// non control code ASCII characters
     inline bool IsCharASCIIPrintable(char ch)
     {
         return ch > 32 && ch < 127;

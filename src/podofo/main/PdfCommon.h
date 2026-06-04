@@ -16,20 +16,17 @@ class PODOFO_API PdfCommon final
 public:
     static void AddFontDirectory(const std::string_view& path);
 
-    /** Set a global static LogMessageCallback functor to replace stderr output in LogMessageInternal.
-     *  \param logMessageCallback the pointer to the new callback functor object
-     *  \returns the pointer to the previous callback functor object
-     */
+    /// Set a global static LogMessageCallback functor to replace stderr output in LogMessageInternal.
+    /// @param logMessageCallback the pointer to the new callback functor object
+    /// @returns the pointer to the previous callback functor object
     static void SetLogMessageCallback(const LogMessageCallback& logMessageCallback);
 
-    /** Set the maximum logging severity.
-     * The higher the maximum (enum integral value), the more is logged
-     */
+    /// Set the maximum logging severity.
+    /// The higher the maximum (enum integral value), the more is logged
     static void SetMaxLoggingSeverity(PdfLogSeverity logSeverity);
 
-    /** Get the maximum logging severity
-     * The higher the maximum (enum integral value), the more is logged
-     */
+    /// Get the maximum logging severity
+    /// The higher the maximum (enum integral value), the more is logged
     static PdfLogSeverity GetMaxLoggingSeverity();
 
     // set maximum recursion depth (set to 0 to disable recursion check)
@@ -37,8 +34,7 @@ public:
 
     static unsigned GetMaxRecursionDepth();
 
-    /** The if the given logging severity enabled or not
-     */
+    /// The if the given logging severity enabled or not
     static bool IsLoggingSeverityEnabled(PdfLogSeverity logSeverity);
 
     static unsigned GetMaxObjectCount();

@@ -15,12 +15,10 @@ namespace PoDoFo
         PdfStatefulEncrypt(const PdfEncrypt& encrypt, PdfEncryptContext& context, const PdfReference& objref);
 
     public:
-        /** Encrypt a character span
-         */
+        /// Encrypt a character span
         void EncryptTo(charbuff& out, const bufferview& view) const;
 
-        /** Decrypt a character span
-         */
+        /// Decrypt a character span
         void DecryptTo(charbuff& out, const bufferview& view) const;
 
         size_t CalculateStreamLength(size_t length) const;

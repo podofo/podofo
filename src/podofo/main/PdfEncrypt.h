@@ -33,8 +33,7 @@ class OutputStream;
  * Licence:     wxWindows licence
  */
 
-/** A enum specifying a valid keylength for a PDF encryption key
- */
+/// A enum specifying a valid keylength for a PDF encryption key
 enum class PdfKeyLength : uint16_t
 {
     Unknown = 0,
@@ -53,8 +52,7 @@ enum class PdfKeyLength : uint16_t
     L256 = 256
 };
 
-/** Set user permissions/restrictions on a document
- */
+/// Set user permissions/restrictions on a document
 // ISO 32000-2:2020 7.6.4.2 "Standard encryption dictionary":
 // "The value of the P entry shall be interpreted as an unsigned
 // 32-bit quantity containing a set of flags."
@@ -79,9 +77,7 @@ enum class PdfPermissions : uint32_t
         | HighPrint
 };
 
-/**
- * The encryption algorithm.
- */
+/// The encryption algorithm.
 enum class PdfEncryptionAlgorithm : uint8_t
 {
     None = 0,
@@ -102,16 +98,15 @@ enum class PdfAuthResult : uint8_t
 
 class PdfEncryptContext;
 
-/** A class that is used to encrypt a PDF file and
- *  set document permissions on the PDF file.
- *
- *  As a user of this class, you have only to instantiate a
- *  object of this class and pass it to PdfWriter, PdfMemDocument,
- *  PdfStreamedDocument or PdfImmediateWriter.
- *  You do not have to call any other method of this class. The above
- *  classes know how to handle encryption using PdfEncrypt.
- *
- */
+/// A class that is used to encrypt a PDF file and
+/// set document permissions on the PDF file.
+///
+/// As a user of this class, you have only to instantiate a
+/// object of this class and pass it to PdfWriter, PdfMemDocument,
+/// PdfStreamedDocument or PdfImmediateWriter.
+/// You do not have to call any other method of this class. The above
+/// classes know how to handle encryption using PdfEncrypt.
+///
 class PODOFO_API PdfEncrypt
 {
     friend class PdfEncryptMD5Base;
@@ -121,240 +116,208 @@ class PODOFO_API PdfEncrypt
 public:
     virtual ~PdfEncrypt();
 
-    /** Create a PdfEncrypt object which can be used to encrypt a PDF file.
-     *
-     *  \param userPassword the user password (if empty the user does not have
-     *                      to enter a password to open the document)
-     *  \param ownerPassword the owner password
-     *  \param protection several PdfPermissions values or'ed together to set
-     *                    the users permissions for this document
-     *  \param algorithm the revision of the encryption algorithm to be used
-     *  \param keyLength the length of the encryption key ranging from 40 to 128 bits
-     *                    (only used if algorithm == PdfEncryptAlgorithm::RC4V2)
-     *
-     *  \see EnsureEncryptionInitialized with the documentID to generate the real
-     *       encryption key using this information
-     */
+    /// Create a PdfEncrypt object which can be used to encrypt a PDF file.
+    ///
+    /// @param userPassword the user password (if empty the user does not have
+    ///                      to enter a password to open the document)
+    /// @param ownerPassword the owner password
+    /// @param protection several PdfPermissions values or'ed together to set
+    ///                    the users permissions for this document
+    /// @param algorithm the revision of the encryption algorithm to be used
+    /// @param keyLength the length of the encryption key ranging from 40 to 128 bits
+    ///                    (only used if algorithm == PdfEncryptAlgorithm::RC4V2)
+    ///
+    /// @see EnsureEncryptionInitialized with the documentID to generate the real
+    ///       encryption key using this information
     static std::unique_ptr<PdfEncrypt> Create(const std::string_view& userPassword,
         const std::string_view& ownerPassword,
         PdfPermissions protection = PdfPermissions::Default,
         PdfEncryptionAlgorithm algorithm = PdfEncryptionAlgorithm::AESV3R6,
         PdfKeyLength keyLength = PdfKeyLength::Unknown);
 
-    /** Initialize a PdfEncrypt object from an encryption dictionary in a PDF file.
-     *
-     *  This is required for encrypting a PDF file, but handled internally in PdfParser
-     *  for you.
-     *
-     *  Will use only encrypting algorithms that are enabled.
-     *
-     *  \param obj a PDF encryption dictionary
-     *
-     *  \see GetEnabledEncryptionAlgorithms
-     */
+    /// Initialize a PdfEncrypt object from an encryption dictionary in a PDF file.
+    ///
+    /// This is required for encrypting a PDF file, but handled internally in PdfParser
+    /// for you.
+    ///
+    /// Will use only encrypting algorithms that are enabled.
+    ///
+    /// @param obj a PDF encryption dictionary
+    ///
+    /// @see GetEnabledEncryptionAlgorithms
     static std::unique_ptr<PdfEncrypt> CreateFromObject(const PdfObject& obj);
 
-    /**
-     * Retrieve the list of encryption algorithms that are used
-     * when loading a PDF document.
-     *
-     * By default all algorithms are enabled.
-     *
-     * \see IsEncryptionEnabled
-     * \see SetEnabledEncryptionAlgorithms
-     *
-     * \return an or'ed together list of all enabled encryption algorithms
-     */
+    /// Retrieve the list of encryption algorithms that are used
+    /// when loading a PDF document.
+    ///
+    /// By default all algorithms are enabled.
+    ///
+    /// @see IsEncryptionEnabled
+    /// @see SetEnabledEncryptionAlgorithms
+    ///
+    /// @return an or'ed together list of all enabled encryption algorithms
     static PdfEncryptionAlgorithm GetEnabledEncryptionAlgorithms();
 
-    /**
-     * Test if a certain encryption algorithm is enabled for loading PDF documents.
-     *
-     * \returns true if the encryption algorithm is enabled
-     * \see GetEnabledEncryptionAlgorithms
-     * \see SetEnabledEncryptionAlgorithms
-     */
+    /// Test if a certain encryption algorithm is enabled for loading PDF documents.
+    ///
+    /// @returns true if the encryption algorithm is enabled
+    /// @see GetEnabledEncryptionAlgorithms
+    /// @see SetEnabledEncryptionAlgorithms
     static bool IsEncryptionEnabled(PdfEncryptionAlgorithm algorithm);
 
-    /** Ensure encryption key and /O, /U, /OE, /UE values are initialized
-     *
-     *  \param documentId the documentId of the current document
-     */
+    /// Ensure encryption key and /O, /U, /OE, /UE values are initialized
+    ///
+    /// @param documentId the documentId of the current document
     void EnsureEncryptionInitialized(const PdfString& documentId, PdfEncryptContext& context);
 
-    /**
-     * Tries to authenticate a user using either the user or owner password
-     *
-     * \param password owner or user password
-     * \param documentId the documentId of the PDF file
-     *
-     * \returns true if either the owner or user password matches password
-     */
+    /// Tries to authenticate a user using either the user or owner password
+    ///
+    /// @param password owner or user password
+    /// @param documentId the documentId of the PDF file
+    ///
+    /// @returns true if either the owner or user password matches password
     void Authenticate(const std::string_view& password, const PdfString& documentId, PdfEncryptContext& context) const;
 
-    /** Fill all keys into a encryption dictionary.
-     *  This dictionary is usually added to the PDF files trailer
-     *  under the /Encryption key.
-     *
-     *  \param dictionary an empty dictionary which is filled with information about
-     *                     the used encryption algorithm
-     */
+    /// Fill all keys into a encryption dictionary.
+    /// This dictionary is usually added to the PDF files trailer
+    /// under the /Encryption key.
+    ///
+    /// @param dictionary an empty dictionary which is filled with information about
+    ///                     the used encryption algorithm
     virtual void CreateEncryptionDictionary(PdfDictionary& dictionary) const = 0;
 
-    /** Create an InputStream that decrypts all data read from
-     *  it using the current settings of the PdfEncrypt object.
-     *
-     *  Warning: Currently only RC4 based encryption is supported using output streams!
-     *
-     *  \param inputStream the created InputStream reads all decrypted
-     *         data to this input stream.
-     *
-     *  \returns an InputStream that decrypts all data.
-     */
+    /// Create an InputStream that decrypts all data read from
+    /// it using the current settings of the PdfEncrypt object.
+    ///
+    /// Warning: Currently only RC4 based encryption is supported using output streams!
+    ///
+    /// @param inputStream the created InputStream reads all decrypted
+    ///         data to this input stream.
+    ///
+    /// @returns an InputStream that decrypts all data.
     virtual std::unique_ptr<InputStream> CreateEncryptionInputStream(InputStream& inputStream, size_t inputLen,
         PdfEncryptContext& context, const PdfReference& objref) const = 0;
 
-    /** Create an OutputStream that encrypts all data written to
-     *  it using the current settings of the PdfEncrypt object.
-     *
-     *  Warning: Currently only RC4 based encryption is supported using output streams!
-     *
-     *  \param outputStream the created OutputStream writes all encrypted
-     *         data to this output stream.
-     *
-     *  \returns a OutputStream that encrypts all data.
-     */
+    /// Create an OutputStream that encrypts all data written to
+    /// it using the current settings of the PdfEncrypt object.
+    ///
+    /// Warning: Currently only RC4 based encryption is supported using output streams!
+    ///
+    /// @param outputStream the created OutputStream writes all encrypted
+    ///         data to this output stream.
+    ///
+    /// @returns a OutputStream that encrypts all data.
     virtual std::unique_ptr<OutputStream> CreateEncryptionOutputStream(OutputStream& outputStream,
         PdfEncryptContext& context, const PdfReference& objref) const = 0;
 
-    /** Get the encryption algorithm of this object.
-     * \returns the PdfEncryptAlgorithm of this object
-     */
+    /// Get the encryption algorithm of this object.
+    /// @returns the PdfEncryptAlgorithm of this object
     inline PdfEncryptionAlgorithm GetEncryptAlgorithm() const { return m_Algorithm; }
 
-    /** Checks if an owner password is set.
-     *  An application reading PDF must adhere to permissions for printing,
-     *  copying, etc., unless the owner password was used to open it.
-     *
-     *  \returns true if the owner password is set, in which case
-     *  IsPrintAllowed etc. should be ignored
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if an owner password is set.
+    /// An application reading PDF must adhere to permissions for printing,
+    /// copying, etc., unless the owner password was used to open it.
+    ///
+    /// @returns true if the owner password is set, in which case
+    /// IsPrintAllowed etc. should be ignored
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     bool IsOwnerPasswordSet() const;
 
-    /** Checks if printing this document is allowed.
-     *  Every PDF consuming applications has to adhere this value!
-     *
-     *  \returns true if you are allowed to print this document
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if printing this document is allowed.
+    /// Every PDF consuming applications has to adhere this value!
+    ///
+    /// @returns true if you are allowed to print this document
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     bool IsPrintAllowed() const;
 
-    /** Checks if modifying this document (besides annotations, form fields or changing pages) is allowed.
-     *  Every PDF consuming applications has to adhere this value!
-     *
-     *  \returns true if you are allowed to modify this document
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if modifying this document (besides annotations, form fields or changing pages) is allowed.
+    /// Every PDF consuming applications has to adhere this value!
+    ///
+    /// @returns true if you are allowed to modify this document
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     bool IsEditAllowed() const;
 
-    /** Checks if text and graphics extraction is allowed.
-     *  Every PDF consuming applications has to adhere this value!
-     *
-     *  \returns true if you are allowed to extract text and graphics from this document
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if text and graphics extraction is allowed.
+    /// Every PDF consuming applications has to adhere this value!
+    ///
+    /// @returns true if you are allowed to extract text and graphics from this document
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     bool IsCopyAllowed() const;
 
-    /** Checks if it is allowed to add or modify annotations or form fields
-     *  Every PDF consuming applications has to adhere this value!
-     *
-     *  \returns true if you are allowed to add or modify annotations or form fields
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if it is allowed to add or modify annotations or form fields
+    /// Every PDF consuming applications has to adhere this value!
+    ///
+    /// @returns true if you are allowed to add or modify annotations or form fields
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     bool IsEditNotesAllowed() const;
 
-    /** Checks if it is allowed to fill in existing form or signature fields
-     *  Every PDF consuming applications has to adhere this value!
-     *
-     *  \returns true if you are allowed to fill in existing form or signature fields
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if it is allowed to fill in existing form or signature fields
+    /// Every PDF consuming applications has to adhere this value!
+    ///
+    /// @returns true if you are allowed to fill in existing form or signature fields
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     bool IsFillAndSignAllowed() const;
 
-    /** Checks if it is allowed to extract text and graphics to support users with disabilities
-     *  Every PDF consuming applications has to adhere this value!
-     *
-     *  \returns true if you are allowed to extract text and graphics to support users with disabilities
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if it is allowed to extract text and graphics to support users with disabilities
+    /// Every PDF consuming applications has to adhere this value!
+    ///
+    /// @returns true if you are allowed to extract text and graphics to support users with disabilities
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     bool IsAccessibilityAllowed() const;
 
-    /** Checks if it is allowed to insert, create, rotate, delete pages or add bookmarks
-     *  Every PDF consuming applications has to adhere this value!
-     *
-     *  \returns true if you are allowed  to insert, create, rotate, delete pages or add bookmarks
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if it is allowed to insert, create, rotate, delete pages or add bookmarks
+    /// Every PDF consuming applications has to adhere this value!
+    ///
+    /// @returns true if you are allowed  to insert, create, rotate, delete pages or add bookmarks
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     bool IsDocAssemblyAllowed() const;
 
-    /** Checks if it is allowed to print a high quality version of this document
-     *  Every PDF consuming applications has to adhere this value!
-     *
-     *  \returns true if you are allowed to print a high quality version of this document
-     *
-     *  \see PdfEncrypt to set own document permissions.
-     */
+    /// Checks if it is allowed to print a high quality version of this document
+    /// Every PDF consuming applications has to adhere this value!
+    ///
+    /// @returns true if you are allowed to print a high quality version of this document
+    ///
+    /// @see PdfEncrypt to set own document permissions.
     bool IsHighPrintAllowed() const;
 
-    /** Encrypt a character span
-     */
+    /// Encrypt a character span
     void EncryptTo(charbuff& out, const bufferview& view, PdfEncryptContext& context, const PdfReference& objref) const;
 
-    /** Decrypt a character span
-     */
+    /// Decrypt a character span
     void DecryptTo(charbuff& out, const bufferview& view, PdfEncryptContext& context, const PdfReference& objref) const;
 
-    /** Calculate stream size
-     */
+    /// Calculate stream size
     virtual size_t CalculateStreamLength(size_t length) const = 0;
 
-    /** Calculate stream offset
-     */
+    /// Calculate stream offset
     virtual size_t CalculateStreamOffset() const = 0;
 
-    /** Get the encryption key length in bytes
-     * \remarks The maximum is 32 bytes
-     */
+    /// Get the encryption key length in bytes
+    /// @remarks The maximum is 32 bytes
     unsigned GetKeyLengthBytes() const;
 
-    /** Get the U object value (user)
-     */
+    /// Get the U object value (user)
     bufferview GetUValue() const;
 
-    /** Get the O object value (owner)
-     */
+    /// Get the O object value (owner)
     bufferview GetOValue() const;
 
 public:
-    /** Get the length of the encryption key in bits
-     */
+    /// Get the length of the encryption key in bits
     PdfKeyLength GetKeyLength() const { return m_KeyLength; }
 
-    /** Get the P object value (protection)
-     */
+    /// Get the P object value (protection)
     inline PdfPermissions GetPValue() const { return m_pValue; }
 
-    /** Get the revision number of the encryption method
-     */
+    /// Get the revision number of the encryption method
     inline unsigned GetRevision() const { return m_rValue; }
 
     inline bool IsMetadataEncrypted() const { return m_EncryptMetadata; }
@@ -373,17 +336,13 @@ protected:
     int64_t GetPValueForSerialization() const;
 
 protected:
-    /**
-     * Init from parsed values
-     */
+    /// Init from parsed values
     void InitFromValues(PdfEncryptionAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision,
         PdfPermissions pValue, const bufferview& uValue, const bufferview& oValue,
         bool encryptedMetadata);
 
-    /**
-     * Init from scratch with user/owner password. Requires full
-     * initialization with EnsureEncryptionInitialized
-     */
+    /// Init from scratch with user/owner password. Requires full
+    /// initialization with EnsureEncryptionInitialized
     void InitFromScratch(const std::string_view& userPassword, const std::string_view& ownerPassword,
         PdfEncryptionAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision,
         PdfPermissions pValue, bool encryptedMetadata);
@@ -495,13 +454,12 @@ private:
 };
 
 
-/** A pure virtual class that is used to encrypt a PDF file (RC4, AES-128)
- *  This class is the base for classes that implement algorithms based on MD5 hashes
- *
- *  Client code is working only with PdfEncrypt class and knows nothing
- *	about PdfEncrypt*, it is created through CreatePdfEncrypt factory method
- *
- */
+/// A pure virtual class that is used to encrypt a PDF file (RC4, AES-128)
+/// This class is the base for classes that implement algorithms based on MD5 hashes
+///
+/// Client code is working only with PdfEncrypt class and knows nothing
+/// about PdfEncrypt*, it is created through CreatePdfEncrypt factory method
+///
 class PdfEncryptMD5Base : public PdfEncrypt
 {
     friend class PdfEncryptRC4;
@@ -534,21 +492,19 @@ protected:
         bool encryptMetadata, PODOFO_CRYPT_CTX* ctx,
         unsigned char userKey[32], unsigned char encryptionKey[32]);
 
-    /** Create the encryption key for the current object.
-     *
-     *  \param objkey pointer to an array of at least MD5_HASHBYTES (=16) bytes length
-     *  \param pnKeyLen pointer to an integer where the actual keylength is stored.
-     */
+    /// Create the encryption key for the current object.
+    ///
+    /// @param objkey pointer to an array of at least MD5_HASHBYTES (=16) bytes length
+    /// @param pnKeyLen pointer to an integer where the actual keylength is stored.
     void CreateObjKey(unsigned char objkey[16], unsigned& pnKeyLen,
         const unsigned char m_encryptionKey[32], const PdfReference& objref) const;
 };
 
-/** A class that is used to encrypt a PDF file (AES-128)
- *
- *  Client code is working only with PdfEncrypt class and knows nothing
- *	about PdfEncryptAES*, it is created through CreatePdfEncrypt factory method
- *
- */
+/// A class that is used to encrypt a PDF file (AES-128)
+///
+/// Client code is working only with PdfEncrypt class and knows nothing
+/// about PdfEncryptAES*, it is created through CreatePdfEncrypt factory method
+///
 class PdfEncryptAESV2 final : public PdfEncryptMD5Base
 {
     friend class PdfEncrypt;
@@ -585,12 +541,11 @@ private:
     void generateInitialVector(const std::string_view& documentId, unsigned char iv[]) const;
 };
 
-/** A class that is used to encrypt a PDF file (AES-256)
- *
- *  Client code is working only with PdfEncrypt class and knows nothing
- *	about PdfEncryptAES*, it is created through CreatePdfEncrypt factory method
- *
- */
+/// A class that is used to encrypt a PDF file (AES-256)
+///
+/// Client code is working only with PdfEncrypt class and knows nothing
+/// about PdfEncryptAES*, it is created through CreatePdfEncrypt factory method
+///
 class PdfEncryptAESV3 final : public PdfEncrypt
 {
     friend class PdfEncrypt;
@@ -667,12 +622,11 @@ private:
     unsigned char m_permsValue[16];     // Perms entry in pdf document
 };
 
-/** A class that is used to encrypt a PDF file (RC4 40-bit and 128-bit)
- *
- *  Client code is working only with PdfEncrypt class and knows nothing
- *	about PdfEncryptRC4, it is created through CreatePdfEncrypt factory method
- *
- */
+/// A class that is used to encrypt a PDF file (RC4 40-bit and 128-bit)
+///
+/// Client code is working only with PdfEncrypt class and knows nothing
+/// about PdfEncryptRC4, it is created through CreatePdfEncrypt factory method
+///
 class PdfEncryptRC4 final : public PdfEncryptMD5Base
 {
     friend class PdfEncrypt;

@@ -13,8 +13,7 @@ namespace PoDoFo {
 class OutputStream;
 class PdfStatefulEncrypt;
 
-/** A class to inherit for classes that are stored as union members in a PdfVariant
- */
+/// A class to inherit for classes that are stored as union members in a PdfVariant
 class PODOFO_API PdfDataMember
 {
     friend class PdfString;
@@ -28,11 +27,10 @@ private:
     PdfDataType m_DataType;
 };
 
-/** An helper class to inherit to provide common serialization methods
- *  
- *  \see PdfName \see PdfArray \see PdfReference 
- *  \see PdfVariant \see PdfDictionary \see PdfString
- */
+/// An helper class to inherit to provide common serialization methods
+///
+/// @see PdfName @see PdfArray @see PdfReference
+/// @see PdfVariant @see PdfDictionary @see PdfString
 template <typename T>
 class PdfDataProvider
 {
@@ -46,10 +44,9 @@ private:
     PdfDataProvider() { }
 
 public:
-    /** Converts the current object into a string representation
-     *  which can be written directly to a PDF file on disc.
-     *  \param str the object string is returned in this object.
-     */
+    /// Converts the current object into a string representation
+    /// which can be written directly to a PDF file on disc.
+    /// @param flags the object string is returned in this object.
     std::string ToString(PdfWriteFlags flags = PdfWriteFlags::None) const
     {
         std::string ret;

@@ -10,8 +10,7 @@
 
 namespace PoDoFo
 {
-    /** A checkbox can be checked or unchecked by the user
-     */
+    /// A checkbox can be checked or unchecked by the user
     class PODOFO_API PdfCheckBox final : public PdfToggleButton
     {
         friend class PdfField;

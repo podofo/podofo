@@ -9,14 +9,12 @@
 
 namespace PoDoFo
 {
-    /** A backing storage for a CID to GID map
-     * \remarks It must preserve ordering
-     */
+    /// A backing storage for a CID to GID map
+    /// @remarks It must preserve ordering
     using CIDToGIDMap = std::map<unsigned, unsigned>;
 
-    /** Helper class to handle the /CIDToGIDMap entry in a Type2 CID font
-     * or /TrueType fonts implicit CID to GID mapping
-     */
+    /// Helper class to handle the /CIDToGIDMap entry in a Type2 CID font
+    /// or /TrueType fonts implicit CID to GID mapping
     class PdfCIDToGIDMap final
     {
     public:

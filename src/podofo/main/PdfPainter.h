@@ -34,9 +34,7 @@ enum class PdfPainterFlags
     RawCoordinates = 8,     ///< Does nothing for now
 };
 
-/**
- * An enum describing modes to draw paths and figures
- */
+/// An enum describing modes to draw paths and figures
 enum class PdfPathDrawMode : uint8_t
 {
     Stroke = 1,
@@ -86,54 +84,41 @@ private:
     PdfGraphicsStateWrapper(PdfPainter& painter, PdfGraphicsState& state);
 
 public:
-    /** Apply the given matrix to the current transformation matrix (CTM)
-     * \remarks Corresponds to the PDF 'cm' operator 
-     */
+    /// Apply the given matrix to the current transformation matrix (CTM)
+    /// @remarks Corresponds to the PDF 'cm' operator
     void ConcatenateTransformationMatrix(const Matrix& matrix);
     void SetLineWidth(double lineWidth);
     void SetMiterLevel(double value);
     void SetLineCapStyle(PdfLineCapStyle capStyle);
     void SetLineJoinStyle(PdfLineJoinStyle joinStyle);
     void SetRenderingIntent(const std::string_view& intent);
-    /** Set the color for PDF "nonstroking" operations (including "fill")
-     */
+    /// Set the color for PDF "nonstroking" operations (including "fill")
     void SetNonStrokingColorSpace(PdfColorSpaceInitializer&& colorSpace);
-    /** Set the color for PDF "stroking" operations
-     */
+    /// Set the color for PDF "stroking" operations
     void SetStrokingColorSpace(PdfColorSpaceInitializer&& color);
-    /** Set the color for PDF "nonstroking" operations (including "fill")
-     */
+    /// Set the color for PDF "nonstroking" operations (including "fill")
     void SetNonStrokingColor(const PdfColor& color);
-    /** Set the color for PDF "nonstroking" operations (including "fill")
-     */
+    /// Set the color for PDF "nonstroking" operations (including "fill")
     void SetStrokingColor(const PdfColor& color);
-    /** Set the color for PDF "nonstroking" operations (including "fill")
-     */
+    /// Set the color for PDF "nonstroking" operations (including "fill")
     void SetNonStrokingColor(const PdfColorRaw& color);
-    /** Set the color for PDF "stroking" operations
-     */
+    /// Set the color for PDF "stroking" operations
     void SetStrokingColor(const PdfColorRaw& color);
     void SetExtGState(const PdfExtGState& extGState);
-    /** Set a stroking uncoloured tiling pattern
-     */
+    /// Set a stroking uncoloured tiling pattern
     void SetStrokingUncolouredTilingPattern(const PdfUncolouredTilingPattern& pattern, const PdfColorRaw& color);
 
-    /** Set a non stroking uncoloured tiling pattern
-     */
+    /// Set a non stroking uncoloured tiling pattern
     void SetNonStrokingUncolouredTilingPattern(const PdfUncolouredTilingPattern& pattern, const PdfColorRaw& color);
-    /** Set a stroking coloured tiling pattern
-     */
+    /// Set a stroking coloured tiling pattern
     void SetStrokingPattern(const PdfPattern& pattern);
-    /** Set a non stroking coloured tiling pattern
-     */
+    /// Set a non stroking coloured tiling pattern
     void SetNonStrokingPattern(const PdfPattern& pattern);
-    /** Set a shading dictionary
-     */
+    /// Set a shading dictionary
     void SetShadingDictionary(const PdfShadingDictionary& shading);
 
 public:
-    /** Get the current transformation matrix (CTM)
-     */
+    /// Get the current transformation matrix (CTM)
     const Matrix& GetCurrentMatrix() { return m_state->CTM; }
     double GetLineWidth() const { return m_state->LineWidth; }
     double GetMiterLevel() const { return m_state->MiterLimit; }
@@ -166,50 +151,42 @@ private:
 public:
     void SetFont(const PdfFont& font, double fontSize);
 
-    /** Set the current horizontal scaling (operator Tz)
-     *
-     *  \param scale scaling in [0,1]
-     */
+    /// Set the current horizontal scaling (operator Tz)
+    ///
+    /// @param scale scaling in [0,1]
     void SetFontScale(double scale);
 
-    /** Set the character spacing (operator Tc)
-     *  \param charSpace character spacing in percent
-     */
+    /// Set the character spacing (operator Tc)
+    /// @param charSpacing character spacing in percent
     void SetCharSpacing(double charSpacing);
 
-    /** Set the word spacing (operator Tw)
-     *  \param wordSpacing word spacing in PDF units
-     */
+    /// Set the word spacing (operator Tw)
+    /// @param wordSpacing word spacing in PDF units
     void SetWordSpacing(double wordSpacing);
 
     void SetRenderingMode(PdfTextRenderingMode mode);
 
-    /** Set the text spacing (operator Tw)
-     *  \param fWordSpace word spacing in PDF units
-     */
+    /// Set the text matrix (operator Tm)
+    /// @param matrix the text matrix
     void SetMatrix(const Matrix& matrix);
 
 public:
     inline const PdfFont* GetFont() const { return m_State->Font; }
 
-    /** Retrieve the current font size (operator Tf, controlling Tfs)
-     *  \returns the current font size
-     */
+    /// Retrieve the current font size (operator Tf, controlling Tfs)
+    /// @returns the current font size
     inline double GetFontSize() const { return m_State->FontSize; }
 
-    /** Retrieve the current horizontal scaling (operator Tz)
-     *  \returns the current font scaling in [0,1]
-     */
+    /// Retrieve the current horizontal scaling (operator Tz)
+    /// @returns the current font scaling in [0,1]
     inline double GetFontScale() const { return m_State->FontScale; }
 
-    /** Retrieve the character spacing (operator Tc)
-     *  \returns the current font character spacing
-     */
+    /// Retrieve the character spacing (operator Tc)
+    /// @returns the current font character spacing
     inline double GetCharSpacing() const { return m_State->CharSpacing; }
 
-    /** Retrieve the current word spacing (operator Tw)
-     *  \returns the current font word spacing in PDF units
-     */
+    /// Retrieve the current word spacing (operator Tw)
+    /// @returns the current font word spacing in PDF units
     inline double GetWordSpacing() const { return m_State->WordSpacing; }
 
     inline PdfTextRenderingMode GetRenderingMode() const { return m_State->RenderingMode; }
@@ -226,18 +203,16 @@ private:
     PdfTextState* m_State;
 };
 
-/**
- * This class provides an easy to use painter object which allows you to draw on a PDF page
- * object.
- *
- * During all drawing operations, you are still able to access the stream of the object you are
- * drawing on directly.
- *
- * All functions that take coordinates expect these to be in PDF User Units. Keep in mind that PDF has
- * its coordinate system origin at the bottom left corner.
- * \remarks It should not be generally needed but you can cast the instance to
- * PdfContentStreamOperators to access low level PDF operators
- */
+/// This class provides an easy to use painter object which allows you to draw on a PDF page
+/// object.
+///
+/// During all drawing operations, you are still able to access the stream of the object you are
+/// drawing on directly.
+///
+/// All functions that take coordinates expect these to be in PDF User Units. Keep in mind that PDF has
+/// its coordinate system origin at the bottom left corner.
+/// @remarks It should not be generally needed but you can cast the instance to
+/// PdfContentStreamOperators to access low level PDF operators
 class PODOFO_API PdfPainter final : public PdfContentStreamOperators
 {
     friend class PdfGraphicsStateWrapper;
@@ -246,292 +221,254 @@ class PODOFO_API PdfPainter final : public PdfContentStreamOperators
     friend class PdfPainterTextObject;
 
 public:
-    /** Create a new PdfPainter object.
-     *
-     *  \param saveRestore do save/restore state before appending
-     */
+    /// Create a new PdfPainter object.
+    ///
+    /// @param saveRestore do save/restore state before appending
     PdfPainter();
 
     ~PdfPainter() noexcept(false);
 
-    /** Set the page on which the painter should draw.
-     *  The painter will draw of course on the pages
-     *  contents object.
-     *
-     *  Calls FinishPage() on the last page if it was not yet called.
-     *
-     *  \param page a PdfCanvas object (most likely a PdfPage or PdfXObject).
-     *
-     *  \see PdfPage \see PdfXObject
-     *  \see FinishPage()
-     */
+    /// Set the page on which the painter should draw.
+    /// The painter will draw of course on the pages
+    /// contents object.
+    ///
+    /// Calls FinishPage() on the last page if it was not yet called.
+    ///
+    /// @param canvas a PdfCanvas object (most likely a PdfPage or PdfXObject).
+    ///
+    /// @see PdfPage @see PdfXObject
+    /// @see FinishPage()
     void SetCanvas(PdfCanvas& canvas, PdfPainterFlags flags = PdfPainterFlags::None);
 
-    /** Finish drawing onto a canvas.
-     *
-     *  This has to be called whenever a page has been drawn complete.
-     */
+    /// Finish drawing onto a canvas.
+    ///
+    /// This has to be called whenever a page has been drawn complete.
     void FinishDrawing();
 
-    /** Set the stoke style for all stroking operations.
-     *  \param strokeStyle style of the stroking operations
-     *  \param custom a custom stroking style which is used when
-     *                   strokeStyle == PdfStrokeStyle::Custom.
-      *  \param inverted inverted dash style (gaps for drawn spaces),
-      *                  it is ignored for None, Solid and Custom styles
-      *  \param scale scale factor of the stroke style
-      *                  it is ignored for None, Solid and Custom styles
-      *  \param subtractJoinCap if true, subtracts scaled width on filled parts,
-      *                       thus the line capability still draws into the cell;
-      *                        is used only if scale is not 1.0
-     *
-     *  Possible values:
-     *    PdfStrokeStyle::None
-     *    PdfStrokeStyle::Solid
-     *    PdfStrokeStyle::Dash
-     *    PdfStrokeStyle::Dot
-     *    PdfStrokeStyle::DashDot
-     *    PdfStrokeStyle::DashDotDot
-     *
-     */
+    /// Set the stoke style for all stroking operations.
+    /// @param strokeStyle style of the stroking operations
+    /// @param inverted inverted dash style (gaps for drawn spaces),
+    ///                  it is ignored for None, Solid and Custom styles
+    /// @param scale scale factor of the stroke style
+    ///                  it is ignored for None, Solid and Custom styles
+    /// @param subtractJoinCap if true, subtracts scaled width on filled parts,
+    ///                       thus the line capability still draws into the cell;
+    ///                        is used only if scale is not 1.0
+    ///
+    /// Possible values:
+    ///    PdfStrokeStyle::None
+    ///    PdfStrokeStyle::Solid
+    ///    PdfStrokeStyle::Dash
+    ///    PdfStrokeStyle::Dot
+    ///    PdfStrokeStyle::DashDot
+    ///    PdfStrokeStyle::DashDotDot
+    ///
     void SetStrokeStyle(PdfStrokeStyle strokeStyle, bool inverted = false, double scale = 1.0, bool subtractJoinCap = false);
 
     void SetStrokeStyle(const cspan<double>& dashArray, double phase);
 
-    /** Set a clipping rectangle
-     *
-     *  \param x x coordinate of the rectangle (left coordinate)
-     *  \param y y coordinate of the rectangle (bottom coordinate)
-     *  \param width width of the rectangle
-     *  \param height absolute height of the rectangle
-     */
+    /// Set a clipping rectangle
+    ///
+    /// @param x x coordinate of the rectangle (left coordinate)
+    /// @param y y coordinate of the rectangle (bottom coordinate)
+    /// @param width width of the rectangle
+    /// @param height absolute height of the rectangle
     void SetClipRect(double x, double y, double width, double height);
 
-    /** Set a clipping rectangle
-     *
-     *  \param rect rectangle
-     */
+    /// Set a clipping rectangle
+    ///
+    /// @param rect rectangle
     void SetClipRect(const Rect& rect);
 
-    /** Stroke a line with current color and line settings.
-     *  \param x1 x coordinate of the starting point
-     *  \param y1 y coordinate of the starting point
-     *  \param x2 x coordinate of the ending point
-     *  \param y2 y coordinate of the ending point
-     */
+    /// Stroke a line with current color and line settings.
+    /// @param x1 x coordinate of the starting point
+    /// @param y1 y coordinate of the starting point
+    /// @param x2 x coordinate of the ending point
+    /// @param y2 y coordinate of the ending point
     void DrawLine(double x1, double y1, double x2, double y2);
 
-    /** Stroke a cubic bezier with current color and line settings.
-     *  \param x1 x coordinate of the starting point
-     *  \param y1 y coordinate of the starting point
-     *  \param x2 x coordinate of the first control point
-     *  \param y2 y coordinate of the first control point
-     *  \param x3 x coordinate of the second control point
-     *  \param y3 y coordinate of the second control point
-     *  \param x4 x coordinate of the end point, which is the new current point
-     *  \param y5 y coordinate of the end point, which is the new current point
-     */
+    /// Stroke a cubic bezier with current color and line settings.
+    /// @param x1 x coordinate of the starting point
+    /// @param y1 y coordinate of the starting point
+    /// @param x2 x coordinate of the first control point
+    /// @param y2 y coordinate of the first control point
+    /// @param x3 x coordinate of the second control point
+    /// @param y3 y coordinate of the second control point
+    /// @param x4 x coordinate of the end point, which is the new current point
+    /// @param y4 y coordinate of the end point, which is the new current point
     void DrawCubicBezier(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4);
 
-    /** Stroke a counterclockwise arc to the given coordinate spanning from given angles and radius
-     *  This is the equivalent of the "arc"/"arcn" operators in PostScript
-     *  \param x x coordinate of the center of the arc (left coordinate)
-     *  \param y y coordinate of the center of the arc (top coordinate)
-     *	\param radius radius
-     *	\param startAngle startAngle in radians measured counterclockwise from the origin
-     *	\param endAngle endAngle in radians measured counterclockwise from the origin
-     *	\param clockwise The arc is drawn clockwise instead
-     */
+    /// Stroke a counterclockwise arc to the given coordinate spanning from given angles and radius
+    /// This is the equivalent of the "arc"/"arcn" operators in PostScript
+    /// @param x x coordinate of the center of the arc (left coordinate)
+    /// @param y y coordinate of the center of the arc (top coordinate)
+    /// @param radius radius
+    /// @param startAngle startAngle in radians measured counterclockwise from the origin
+    /// @param endAngle endAngle in radians measured counterclockwise from the origin
+    /// @param clockwise The arc is drawn clockwise instead
     void DrawArc(double x, double y, double radius, double startAngle, double endAngle, bool clockwise = false);
 
-    /** Draw a circle
-     *  \param x x center coordinate of the circle
-     *  \param y y coordinate of the circle
-     *  \param radius radius of the circle
-     */
+    /// Draw a circle
+    /// @param x x center coordinate of the circle
+    /// @param y y coordinate of the circle
+    /// @param radius radius of the circle
     void DrawCircle(double x, double y, double radius, PdfPathDrawMode mode = PdfPathDrawMode::Stroke);
 
-    /** Draw an ellipse to the given coordinates
-     *  \param x x coordinate of the ellipse (left coordinate)
-     *  \param y y coordinate of the ellipse (top coordinate)
-     *  \param width width of the ellipse
-     *  \param height absolute height of the ellipse
-     */
+    /// Draw an ellipse to the given coordinates
+    /// @param x x coordinate of the ellipse (left coordinate)
+    /// @param y y coordinate of the ellipse (top coordinate)
+    /// @param width width of the ellipse
+    /// @param height absolute height of the ellipse
     void DrawEllipse(double x, double y, double width, double height,
         PdfPathDrawMode mode = PdfPathDrawMode::Stroke);
 
-    /** Draw a rectangle to the given coordinates
-     *  \param x x coordinate of the rectangle (left coordinate)
-     *  \param y y coordinate of the rectangle (bottom coordinate)
-     *  \param width width of the rectangle
-     *  \param height absolute height of the rectangle
-     *  \param roundX rounding factor, x direction
-     *  \param roundY rounding factor, y direction
-     */
+    /// Draw a rectangle to the given coordinates
+    /// @param x x coordinate of the rectangle (left coordinate)
+    /// @param y y coordinate of the rectangle (bottom coordinate)
+    /// @param width width of the rectangle
+    /// @param height absolute height of the rectangle
+    /// @param roundX rounding factor, x direction
+    /// @param roundY rounding factor, y direction
     void DrawRectangle(double x, double y, double width, double height,
         PdfPathDrawMode mode = PdfPathDrawMode::Stroke, double roundX = 0.0, double roundY = 0.0);
 
-    /** Draw a rectangle into the current path to the given coordinates
-     *  \param rect the rectangle area
-     *  \param roundX rounding factor, x direction
-     *  \param roundY rounding factor, y direction
-     */
+    /// Draw a rectangle into the current path to the given coordinates
+    /// @param rect the rectangle area
+    /// @param roundX rounding factor, x direction
+    /// @param roundY rounding factor, y direction
     void DrawRectangle(const Rect& rect, PdfPathDrawMode mode = PdfPathDrawMode::Stroke,
         double roundX = 0.0, double roundY = 0.0);
 
-    /** Draw a single-line text string on a page using a given font object.
-     *  You have to call SetFont before calling this function.
-     *  \param str the text string which should be printed
-     *  \param x the x coordinate
-     *  \param y the y coordinate
-     */
+    /// Draw a single-line text string on a page using a given font object.
+    /// You have to call SetFont before calling this function.
+    /// @param str the text string which should be printed
+    /// @param x the x coordinate
+    /// @param y the y coordinate
     void DrawText(const std::string_view& str, double x, double y,
         PdfDrawTextStyle style = PdfDrawTextStyle::Regular);
 
-    /** Draw multiline text into a rectangle doing automatic wordwrapping.
-     *  The current font is used and SetFont has to be called at least once
-     *  before using this function
-     *
-     *  \param str the text which should be drawn
-     *  \param x the x coordinate of the text area (left)
-     *  \param y the y coordinate of the text area (bottom)
-     *  \param width width of the text area
-     *  \param height height of the text area
-     *  \param params parameters of the draw operation
-     */
+    /// Draw multiline text into a rectangle doing automatic wordwrapping.
+    /// The current font is used and SetFont has to be called at least once
+    /// before using this function
+    ///
+    /// @param str the text which should be drawn
+    /// @param x the x coordinate of the text area (left)
+    /// @param y the y coordinate of the text area (bottom)
+    /// @param width width of the text area
+    /// @param height height of the text area
+    /// @param params parameters of the draw operation
     void DrawTextMultiLine(const std::string_view& str, double x, double y, double width, double height,
         const PdfDrawTextMultiLineParams& params = { });
 
-    /** Draw multiline text into a rectangle doing automatic wordwrapping.
-     *  The current font is used and SetFont has to be called at least once
-     *  before using this function
-     *
-     *  \param str the text which should be drawn
-     *  \param rect bounding rectangle of the text
-     *  \param params parameters of the draw operation
-     */
+    /// Draw multiline text into a rectangle doing automatic wordwrapping.
+    /// The current font is used and SetFont has to be called at least once
+    /// before using this function
+    ///
+    /// @param str the text which should be drawn
+    /// @param rect bounding rectangle of the text
+    /// @param params parameters of the draw operation
     void DrawTextMultiLine(const std::string_view& str, const Rect& rect,
         const PdfDrawTextMultiLineParams& params = { });
 
-    /** Draw a single line of text horizontally aligned.
-     *  \param str the text to draw
-     *  \param x the x coordinate of the text line
-     *  \param y the y coordinate of the text line
-     *  \param width the width of the text line
-     *  \param hAlignment alignment of the text line
-     *  \param style style of the draw text operation
-     */
+    /// Draw a single line of text horizontally aligned.
+    /// @param str the text to draw
+    /// @param x the x coordinate of the text line
+    /// @param y the y coordinate of the text line
+    /// @param width the width of the text line
+    /// @param hAlignment alignment of the text line
+    /// @param style style of the draw text operation
     void DrawTextAligned(const std::string_view& str, double x, double y,
         double width, PdfHorizontalAlignment hAlignment,
         PdfDrawTextStyle style = PdfDrawTextStyle::Regular);
 
-    /** Draw an image on the current page.
-     *  \param x the x coordinate (left position of the image)
-     *  \param y the y coordinate (bottom position of the image)
-     *  \param obj an PdfXObject
-     *  \param scaleX option scaling factor in x direction
-     *  \param scaleY option scaling factor in y direction
-     */
+    /// Draw an image on the current page.
+    /// @param x the x coordinate (left position of the image)
+    /// @param y the y coordinate (bottom position of the image)
+    /// @param obj an PdfXObject
+    /// @param scaleX option scaling factor in x direction
+    /// @param scaleY option scaling factor in y direction
     void DrawImage(const PdfImage& obj, double x, double y, double scaleX = 1.0, double scaleY = 1.0);
 
-    /** Draw an XObject on the current page. For PdfImage use DrawImage.
-     *
-     *  \param x the x coordinate (left position of the XObject)
-     *  \param y the y coordinate (bottom position of the XObject)
-     *  \param obj an PdfXObject
-     *  \param scaleX option scaling factor in x direction
-     *  \param scaleY option scaling factor in y direction
-     *
-     *  \see DrawImage
-     */
+    /// Draw an XObject on the current page. For PdfImage use DrawImage.
+    ///
+    /// @param x the x coordinate (left position of the XObject)
+    /// @param y the y coordinate (bottom position of the XObject)
+    /// @param obj an PdfXObject
+    /// @param scaleX option scaling factor in x direction
+    /// @param scaleY option scaling factor in y direction
+    ///
+    /// @see DrawImage
     void DrawXObject(const PdfXObject& obj, double x, double y, double scaleX = 1.0, double scaleY = 1.0);
 
-    /**
-     * Draw the current path with the given
-     */
+    /// Draw the current path with the given
     void DrawPath(const PdfPainterPath& path, PdfPathDrawMode drawMode = PdfPathDrawMode::Stroke);
 
-    /** Clip the current path. Matches the PDF 'W' operator.
-     *  \param useEvenOddRule select even-odd rule instead of nonzero winding number rule
-     */
+    /// Clip the current path. Matches the PDF 'W' operator.
+    /// @param useEvenOddRule select even-odd rule instead of nonzero winding number rule
     void ClipPath(const PdfPainterPath& path, bool useEvenOddRule = false);
 
-    /**
-     * Begin a marked-content sequence (operator BMC) 
-     */
+    /// Begin a marked-content sequence (operator BMC)
     void BeginMarkedContent(const std::string_view& tag);
 
-    /**
-     * End a marked-content sequence begun by a BMC or BDC operator
-     */ 
+    /// End a marked-content sequence begun by a BMC or BDC operator 
     void EndMarkedContent();
 
-    /** Save the current graphics settings onto the graphics
-     *  stack. Operator 'q' in PDF.
-     *  This call has to be balanced with a corresponding call
-     *  to Restore()!
-     *
-     *  \see Restore
-     */
+    /// Save the current graphics settings onto the graphics
+    /// stack. Operator 'q' in PDF.
+    /// This call has to be balanced with a corresponding call
+    /// to Restore()!
+    ///
+    /// @see Restore
     void Save();
 
-    /** Restore the current graphics settings from the graphics
-     *  stack. Operator 'Q' in PDF.
-     *  This call has to be balanced with a corresponding call
-     *  to Save()!
-     *
-     *  \see Save
-     */
+    /// Restore the current graphics settings from the graphics
+    /// stack. Operator 'Q' in PDF.
+    /// This call has to be balanced with a corresponding call
+    /// to Save()!
+    ///
+    /// @see Save
     void Restore();
 
-    /** Set the floating point precision.
-     *
-     *  \param precision write this many decimal places
-     */
+    /// Set the floating point precision.
+    ///
+    /// @param precision write this many decimal places
     void SetPrecision(unsigned short precision);
 
-    /** Get the currently set floating point precision
-     *  \returns how many decimal places will be written out for any floating point value
-     */
+    /// Get the currently set floating point precision
+    /// @returns how many decimal places will be written out for any floating point value
     unsigned short GetPrecision() const;
 
-    /**
-     * Get a string view of the current content stream being built
-     */
+    /// Get a string view of the current content stream being built
     std::string_view GetContent() const;
 
 public:
     inline const PdfPainterStateStack& GetStateStack() const { return m_StateStack; }
 
-    /** Set the tab width for the DrawText operation.
-     *  Every tab '\\t' is replaced with tabWidth
-     *  spaces before drawing text. Default is a value of 4
-     *
-     *  \param tabWidth replace every tabulator by this much spaces
-     *
-     *  \see DrawText
-     *  \see TabWidth
-     */
+    /// Set the tab width for the DrawText operation.
+    /// Every tab '\\t' is replaced with tabWidth
+    /// spaces before drawing text. Default is a value of 4
+    ///
+    /// @param tabWidth replace every tabulator by this much spaces
+    ///
+    /// @see DrawText
+    /// @see TabWidth
     inline void SetTabWidth(unsigned short tabWidth) { m_TabWidth = tabWidth; }
 
-    /** Get the currently set tab width
-     *  \returns by how many spaces a tabulator will be replaced
-     *
-     *  \see DrawText
-     *  \see TabWidth
-     */
+    /// Get the currently set tab width
+    /// @returns by how many spaces a tabulator will be replaced
+    ///
+    /// @see DrawText
+    /// @see TabWidth
     inline unsigned short GetTabWidth() const { return m_TabWidth; }
 
-    /** Return the current page that is that on the painter.
-     *
-     *  \returns the current page of the painter or nullptr if none is set
-     */
+    /// Return the current page that is that on the painter.
+    ///
+    /// @returns the current page of the painter or nullptr if none is set
     inline PdfCanvas* GetCanvas() const { return m_canvas; }
 
-    /** Return the current canvas stream that is set on the painter.
-     *
-     *  \returns the current page canvas stream of the painter or nullptr if none is set
-     */
+    /// Return the current canvas stream that is set on the painter.
+    ///
+    /// @returns the current page canvas stream of the painter or nullptr if none is set
     inline PdfObjectStream* GetStream() const { return m_objStream; }
 
 private:
@@ -689,15 +626,12 @@ private:
 
     void setLineWidth(double width);
 
-    /** Expand all tab characters in a string
-     *  using spaces.
-     *
-     *  \param str expand all tabs in this string using spaces
-     *  \param len use only len characters of the string. If negative use all
-     *      string length
-     *  \returns an expanded copy of the passed string
-     *  \see SetTabWidth
-     */
+    /// Expand all tab characters in a string
+    /// using spaces.
+    ///
+    /// @param str expand all tabs in this string using spaces
+    /// @returns an expanded copy of the passed string
+    /// @see SetTabWidth
     std::string expandTabs(const std::string_view& str) const;
     void checkStream();
     void openPath(double x, double y);
@@ -725,24 +659,20 @@ public:
     PdfPainterTextObject TextObject;
 
 private:
-    /** All drawing operations work on this stream.
-     *  This object may not be nullptr. If it is nullptr any function accessing it should
-     *  return ERROR_PDF_INVALID_HANDLE
-     */
+    /// All drawing operations work on this stream.
+    /// This object may not be nullptr. If it is nullptr any function accessing it should
+    /// return ERROR_PDF_INVALID_HANDLE
     PdfObjectStream* m_objStream;
 
-    /** The page object is needed so that fonts etc. can be added
-     *  to the page resource dictionary as appropriate.
-     */
+    /// The page object is needed so that fonts etc. can be added
+    /// to the page resource dictionary as appropriate.
     PdfCanvas* m_canvas;
 
-    /** Every tab '\\t' is replaced with m_TabWidth
-     *  spaces before drawing text. Default is a value of 4
-     */
+    /// Every tab '\\t' is replaced with m_TabWidth
+    /// spaces before drawing text. Default is a value of 4
     unsigned short m_TabWidth;
 
-    /** temporary stream buffer
-     */
+    /// temporary stream buffer
     PdfStringStream m_stream;
 
     std::unordered_map<PdfReference, PdfName> m_resNameCache;

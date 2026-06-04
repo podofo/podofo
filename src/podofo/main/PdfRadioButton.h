@@ -9,9 +9,8 @@
 
 namespace PoDoFo
 {
-    /** A radio button
-     * TODO: This is just a stub
-     */
+    /// A radio button
+    /// TODO: This is just a stub
     class PODOFO_API PdfRadioButton final : public PdfToggleButton
     {
         friend class PdfField;

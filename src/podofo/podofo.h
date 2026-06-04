@@ -5,10 +5,9 @@
 #ifndef PODOFO_H
 #define PODOFO_H
 
-/**
- * This file can be used in client applications to include
- * all files required by podofo at once.
- */
+/// @file podofo.h
+/// This file can be used in client applications to include
+/// all files required by podofo at once.
 
  // Auxiliary headers
 #include "auxiliary/StreamDeviceBase.h"

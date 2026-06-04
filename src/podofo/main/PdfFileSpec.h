@@ -13,11 +13,9 @@ namespace PoDoFo {
 
 class PdfDocument;
 
-/**
- *  A file specification is used in the PDF file to refer to another file.
- *  The other file can be a file outside of the PDF or can be embedded into
- *  the PDF file itself.
- */
+/// A file specification is used in the PDF file to refer to another file.
+/// The other file can be a file outside of the PDF or can be embedded into
+/// the PDF file itself.
 class PODOFO_API PdfFileSpec final : public PdfDictionaryElement
 {
     friend class PdfDocument;
@@ -34,9 +32,8 @@ private:
 public:
     bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfFileSpec>& filespec);
 
-    /** Gets file name for the FileSpec
-     *  \returns the filename of this file specification
-     */
+    /// Gets file name for the FileSpec
+    /// @returns the filename of this file specification
     nullable<const PdfString&> GetFilename() const;
 
     void SetFilename(nullable<const PdfString&> filename);

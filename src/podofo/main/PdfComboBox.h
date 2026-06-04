@@ -9,8 +9,7 @@
 
 namespace PoDoFo
 {
-    /** A combo box with a drop down list of items.
-     */
+    /// A combo box with a drop down list of items.
     class PODOFO_API PdfComboBox final : public PdChoiceField
     {
         friend class PdfField;
@@ -23,18 +22,14 @@ namespace PoDoFo
         PdfComboBox(PdfObject& obj, PdfAcroForm* acroform);
 
     public:
-        /**
-         * Sets the combobox to be editable
-         *
-         * \param edit if true the combobox can be edited by the user
-         *
-         * By default a combobox is not editable
-         */
+        /// Sets the combobox to be editable
+        ///
+        /// @param edit if true the combobox can be edited by the user
+        ///
+        /// By default a combobox is not editable
         void SetEditable(bool edit);
 
-        /**
-         *  \returns true if this is an editable combobox
-         */
+        /// @returns true if this is an editable combobox
         bool IsEditable() const;
 
         PdfComboBox* GetParent();

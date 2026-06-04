@@ -50,8 +50,7 @@ namespace PoDoFo
         PdfFunctionType m_Type;
     };
 
-    /** Convenience alias for a constant PdfFunction shared ptr
-     */
+    /// Convenience alias for a constant PdfFunction shared ptr
     using PdfFunctionDefinitionPtr = std::shared_ptr<const PdfFunctionDefinition>;
 
     class PODOFO_API PdfFunctionListInitializer final
@@ -122,10 +121,8 @@ namespace PoDoFo
     class PODOFO_API PdfExponentialFunctionDefinition final : public PdfFunctionDefinition
     {
     public:
-        /**
-         * \param c0 an array of n numbers that shall define the function result when x = 0.0
-         * \param c1 an array of n numbers that shall define the function result when x = 1.0
-         */
+        /// @param c0 an array of n numbers that shall define the function result when x = 0.0
+        /// @param c1 an array of n numbers that shall define the function result when x = 1.0
         PdfExponentialFunctionDefinition(double interpolationExponent, std::vector<double> domain,
             std::vector<double> c0 = { },
             std::vector<double> c1 = { },
@@ -152,9 +149,7 @@ namespace PoDoFo
             std::vector<double> bounds, std::vector<double> encode,
             std::vector<double> domain, std::vector<double> range = { });
 
-        /**
-         * \remarks Deserialization constructor
-         */
+        /// @remarks Deserialization constructor
         PdfStitchingFunctionDefinition(std::vector<PdfFunctionDefinitionPtr>&& functions,
             std::vector<double>&& bounds, std::vector<double>&& encode,
             std::vector<double>&& domain, std::vector<double>&& range);

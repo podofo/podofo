@@ -9,9 +9,8 @@
 
 namespace PoDoFo
 {    
-    /** PdfExtension is a simple class that describes a vendor-specific extension to
-     *  the official specifications.
-     */
+    /// PdfExtension is a simple class that describes a vendor-specific extension to
+    /// the official specifications.
     class PODOFO_API PdfExtension final
     {
     public:
@@ -22,12 +21,10 @@ namespace PoDoFo
         PdfVersion GetBaseVersion() const { return m_BaseVersion; }
         const PdfName& GetNamespace() const { return m_Namespace; }
         int64_t GetLevel() const { return m_Level; }
-        /** A URL that refers to the documentation for this extension (PDF2.0)
-         */
+        /// A URL that refers to the documentation for this extension (PDF2.0)
         const nullable<PdfString>& GetUrl() const { return m_Url; }
-        /** An optional text string that provides additional revision
-         * information on the extension level being used (PDF2.0)
-         */
+        /// An optional text string that provides additional revision
+        /// information on the extension level being used (PDF2.0)
         const nullable<PdfString>& GetExtensionRevision() const { return m_ExtensionRevision; }
         
     private:

@@ -11,16 +11,15 @@
 
 namespace PoDoFo {
 
-/** A PDF stream can be appended to any PdfObject
- *  and can contain arbitrary data.
- *
- *  A PDF memory stream is held completely in memory.
- *
- *  Most of the time it will contain either drawing commands
- *  to draw onto a page or binary data like a font or an image.
- *
- *  A PdfMemoryObjectStream is implicitly shared and can therefore be copied very quickly.
- */
+/// A PDF stream can be appended to any PdfObject
+/// and can contain arbitrary data.
+///
+/// A PDF memory stream is held completely in memory.
+///
+/// Most of the time it will contain either drawing commands
+/// to draw onto a page or binary data like a font or an image.
+///
+/// A PdfMemoryObjectStream is implicitly shared and can therefore be copied very quickly.
 class PODOFO_API PdfMemoryObjectStream final : public PdfObjectStreamProvider
 {
     friend class PdfObject;

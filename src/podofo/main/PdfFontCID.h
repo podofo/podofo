@@ -9,8 +9,7 @@
 
 namespace PoDoFo {
 
-/** A PdfFont that represents a CID-keyed font
- */
+/// A PdfFont that represents a CID-keyed font
 class PODOFO_API PdfFontCID : public PdfFont
 {
     friend class PdfFont;

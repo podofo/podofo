@@ -25,32 +25,26 @@ struct PODOFO_API PdfFontConfigSearchParams final
     std::string FontFamilyPattern;
 };
 
-/**
- * This class initializes and destroys the FontConfig library.
- * 
- * As initializing fontconfig can take a long time, you 
- * can create a wrapper by yourself to cache initialization of
- * fontconfig.
- *
- * This class is reference counted. The last user of the fontconfig library
- * will destroy the fontconfig handle.
- *
- * The fontconfig library is initialized on first used (lazy loading!)
- */
+/// This class initializes and destroys the FontConfig library.
+///
+/// As initializing fontconfig can take a long time, you
+/// can create a wrapper by yourself to cache initialization of
+/// fontconfig.
+///
+/// This class is reference counted. The last user of the fontconfig library
+/// will destroy the fontconfig handle.
+///
+/// The fontconfig library is initialized on first used (lazy loading!)
 class PODOFO_API PdfFontConfigWrapper final
 {
 public:
-    /**
-     * Create a new FontConfigWrapper from a XML config string
-     */
+    /// Create a new FontConfigWrapper from a XML config string
     PdfFontConfigWrapper(const std::string_view& configStr);
 
     PdfFontConfigWrapper();
 
 #ifdef PODOFO_3RDPARTY_INTEROP_ENABLED
-    /**
-     * Create a new FontConfigWrapper and initialize the fontconfig library.
-     */
+    /// Create a new FontConfigWrapper and initialize the fontconfig library.
     PdfFontConfigWrapper(FcConfig* fcConfig);
 
     FcConfig* GetFcConfig();
@@ -58,17 +52,15 @@ public:
 
     ~PdfFontConfigWrapper();
 
-    /** Get the path of a font file on a Unix system using fontconfig
-     *
-     *  This method is only available if PoDoFo was compiled with
-     *  fontconfig support. Make sure to lock any FontConfig mutexes before
-     *  calling this method by yourself!
-     *
-     *  \param fontPattern search pattern of the requested font
-     *  \param style font style
-     *  \param faceIndex index of the face
-     *  \returns the path to the fontfile or an empty string
-     */
+    /// Get the path of a font file on a Unix system using fontconfig
+    ///
+    /// This method is only available if PoDoFo was compiled with
+    /// fontconfig support. Make sure to lock any FontConfig mutexes before
+    /// calling this method by yourself!
+    ///
+    /// @param fontPattern search pattern of the requested font
+    /// @param faceIndex index of the face
+    /// @returns the path to the fontfile or an empty string
     std::string SearchFontPath(const std::string_view fontPattern, unsigned& faceIndex);
     std::string SearchFontPath(const std::string_view fontPattern, const PdfFontConfigSearchParams& params,
         unsigned& faceIndex);

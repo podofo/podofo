@@ -94,19 +94,17 @@ namespace PoDoFo {
         PdfAnnotationActionBase(PdfObject& obj, PdfAnnotationType annotType);
 
     public:
-        /** Set the action that is executed for this annotation
-         *  \param action an action object
-         *
-         *  \see GetAction
-         */
+        /// Set the action that is executed for this annotation
+        /// @param action an action object
+        ///
+        /// @see GetAction
         void SetAction(nullable<const PdfAction&> action);
 
-        /** Get the action that is executed for this annotation
-         *  \returns an action object. The action object is owned
-         *           by the PdfAnnotation.
-         *
-         *  \see SetAction
-         */
+        /// Get the action that is executed for this annotation
+        /// @returns an action object. The action object is owned
+        ///           by the PdfAnnotation.
+        ///
+        /// @see SetAction
         nullable<PdfAction&> GetAction();
         nullable<const PdfAction&> GetAction() const;
 

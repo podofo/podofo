@@ -7,19 +7,17 @@
 
 #include <podofo/main/PdfDeclarations.h>
 
-/** \file PdfError.h
- *  Error information and logging is implemented in this file.
- */
+/// @file PdfError.h
+/// Error information and logging is implemented in this file.
 
 namespace PoDoFo {
 
-/** Error Code enum values which are used in PdfError to describe the error.
- *
- *  If you add an error code to this enum, please also add it
- *  to PdfError::ErrorName() and PdfError::ErrorMessage().
- *
- *  \see PdfError
- */
+/// Error Code enum values which are used in PdfError to describe the error.
+///
+/// If you add an error code to this enum, please also add it
+/// to PdfError::ErrorName() and PdfError::ErrorMessage().
+///
+/// @see PdfError
 enum class PdfErrorCode : uint8_t
 {
     Unknown = 0,              ///< Unknown error
@@ -84,9 +82,8 @@ public:
     PdfErrorInfo& operator=(const PdfErrorInfo& rhs) = default;
 
 public:
-    /** Get the file path of the error info relative to
-     * source directory path
-     */
+    /// Get the file path of the error info relative to
+    /// source directory path
     std::string_view GetFilePath() const;
     const std::string& GetFullFilePath() const { return m_FilePath; }
     inline unsigned GetLine() const { return m_Line; }
@@ -100,107 +97,94 @@ private:
 
 using PdErrorInfoStack = std::deque<PdfErrorInfo>;
 
-/** The error handling class of the PoDoFo library.
- *  If a method encounters an error,
- *  a PdfError object is thrown as a C++ exception.
- *
- *  This class does not inherit from std::exception.
- *
- *  This class also provides meaningful error descriptions
- *  for the error codes which are values of the enum PdfErrorCode,
- *  which are all codes PoDoFo uses (except the first and last one).
- */
+/// The error handling class of the PoDoFo library.
+/// If a method encounters an error,
+/// a PdfError object is thrown as a C++ exception.
+///
+/// This class does not inherit from std::exception.
+///
+/// This class also provides meaningful error descriptions
+/// for the error codes which are values of the enum PdfErrorCode,
+/// which are all codes PoDoFo uses (except the first and last one).
 class PODOFO_API PdfError final : public std::exception
 {
     PODOFO_PRIVATE_FRIEND(void AddToCallStack(PdfError& err, std::string filepath, unsigned line, std::string information));
 
 public:
-    /** Create a PdfError object with a given error code.
-     *  \param code the error code of this object
-     *  \param filepath the file in which the error has occurred.
-     *         Use the compiler macro __FILE__ to initialize the field.
-     *  \param line the line in which the error has occurred.
-     *         Use the compiler macro __LINE__ to initialize the field.
-     *  \param information additional information on this error
-     */
+    /// Create a PdfError object with a given error code.
+    /// @param code the error code of this object
+    /// @param filepath the file in which the error has occurred.
+    ///         Use the compiler macro __FILE__ to initialize the field.
+    /// @param line the line in which the error has occurred.
+    ///         Use the compiler macro __LINE__ to initialize the field.
+    /// @param information additional information on this error
     PdfError(PdfErrorCode code, std::string filepath, unsigned line,
         std::string information = { });
 
-    /** Copy constructor
-     *  \param rhs copy the contents of rhs into this object
-     */
+    /// Copy constructor
+    /// @param rhs copy the contents of rhs into this object
     PdfError(const PdfError& rhs) = default;
 
-    /** Assignment operator
-     *  \param rhs another PdfError object
-     *  \returns this object
-     */
+    /// Assignment operator
+    /// @param rhs another PdfError object
+    /// @returns this object
     PdfError& operator=(const PdfError& rhs) = default;
 
-    /** Compares this PdfError object
-     *  with an error code
-     *  \param code an error code (value of the enum PdfErrorCode)
-     *  \returns true if this object has the same error code.
-     */
+    /// Compares this PdfError object
+    /// with an error code
+    /// @param code an error code (value of the enum PdfErrorCode)
+    /// @returns true if this object has the same error code.
     bool operator==(PdfErrorCode code);
 
-    /** Compares this PdfError object
-     *  with an error code
-     *  \param code an error code (value of the enum PdfErrorCode)
-     *  \returns true if this object has a different error code.
-     */
+    /// Compares this PdfError object
+    /// with an error code
+    /// @param code an error code (value of the enum PdfErrorCode)
+    /// @returns true if this object has a different error code.
     bool operator!=(PdfErrorCode code);
 
     std::string_view GetName() const;
 
-    /** Return the error code of this object.
-     *  \returns the error code of this object
-     */
+    /// Return the error code of this object.
+    /// @returns the error code of this object
     inline PdfErrorCode GetCode() const { return m_Code; }
 
-    /** Get access to the internal callstack of this error.
-     *  \returns the callstack deque of PdfErrorInfo objects.
-     */
+    /// Get access to the internal callstack of this error.
+    /// @returns the callstack deque of PdfErrorInfo objects.
     inline const PdErrorInfoStack& GetCallStack() const { return m_CallStack; }
 
-    /** Print an error message to stderr. This includes callstack
-     *  and extra info, if any of either was set.
-     */
+    /// Print an error message to stderr. This includes callstack
+    /// and extra info, if any of either was set.
     void PrintErrorMsg() const;
 
-    /** Obtain error description.
-     *  \returns a C string describing the error.
-     */
+    /// Obtain error description.
+    /// @returns a C string describing the error.
     const char* what() const noexcept override;
 
 public:
-    /** Get the name for a certain error code.
-     *  \returns the name or nullptr if no name for the specified
-     *           error code is available.
-     */
+    /// Get the name for a certain error code.
+    /// @returns the name or nullptr if no name for the specified
+    ///           error code is available.
     static std::string_view ErrorName(PdfErrorCode code);
 
-    /** Get the error message for a certain error code.
-     *  \returns the error message or nullptr if no error
-     *           message for the specified error code
-     *           is available.
-     */
+    /// Get the error message for a certain error code.
+    /// @returns the error message or nullptr if no error
+    ///           message for the specified error code
+    ///           is available.
     static std::string_view ErrorMessage(PdfErrorCode code);
 
 private:
-    /** Add callstack information to an error object. Always call this function
-     *  if you get an error object but do not handle the error but throw it again.
-     *
-     *  \param filepath the filename of the source file causing
-     *                 the error or nullptr. Typically you will use
-     *                 the gcc macro __FILE__ here.
-     *  \param line    the line of source causing the error
-     *                 or 0. Typically you will use the gcc
-     *                 macro __LINE__ here.
-     *  \param information additional information on the error,
-     *         e.g. how to fix the error. This string is intended to
-     *         be shown to the user.
-     */
+    /// Add callstack information to an error object. Always call this function
+    /// if you get an error object but do not handle the error but throw it again.
+    ///
+    /// @param filepath the filename of the source file causing
+    ///                 the error or nullptr. Typically you will use
+    ///                 the gcc macro __FILE__ here.
+    /// @param line    the line of source causing the error
+    ///                 or 0. Typically you will use the gcc
+    ///                 macro __LINE__ here.
+    /// @param information additional information on the error,
+    ///         e.g. how to fix the error. This string is intended to
+    ///         be shown to the user.
     void AddToCallStack(std::string&& filepath, unsigned line, std::string&& information);
 
     void initFullDescription();

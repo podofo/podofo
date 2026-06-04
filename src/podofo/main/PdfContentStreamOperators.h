@@ -10,10 +10,8 @@
 
 namespace PoDoFo
 {
-/**
- * Pdf content stream callble operator interface
- * ISO 32000 - 1:2008 "A.2 PDF Content Stream Operators"
- */
+/// Pdf content stream callble operator interface
+/// ISO 32000 - 1:2008 "A.2 PDF Content Stream Operators"
 // TODO: Add missing operators
 class PODOFO_API PdfContentStreamOperators
 {

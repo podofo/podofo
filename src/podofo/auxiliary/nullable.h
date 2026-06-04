@@ -18,9 +18,7 @@ namespace PoDoFo
             : std::runtime_error("nullable object doesn't have a value") { }
     };
 
-    /**
-     * Alternative to std::optional that supports reference (but not pointer) types
-     */
+    /// Alternative to std::optional that supports reference (but not pointer) types
     template <typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
     class nullable final
     {
@@ -95,9 +93,8 @@ namespace PoDoFo
             return *this;
         }
 
-        /** This is same as operator=(T value), but allows
-         * to avoid ambiguities or picking wrong overload
-         */
+        /// This is same as operator=(T value), but allows
+        /// to avoid ambiguities or picking wrong overload
         nullable& operator*=(T value)
         {
             if (m_hasValue)

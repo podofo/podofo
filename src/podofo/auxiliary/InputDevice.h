@@ -13,9 +13,8 @@
 
 namespace PoDoFo {
 
-/** This class represents an input device
- * It optionally supports peeking
- */
+/// This class represents an input device
+/// It optionally supports peeking
 class PODOFO_API InputStreamDevice : virtual public StreamDeviceBase, public InputStream
 {
 protected:
@@ -23,16 +22,14 @@ protected:
     InputStreamDevice(bool init);
 
 public:
-    /** Peek at next char in stream.
-     * /returns true if success, false if EOF is encountered
-     * before peeking the character
-     */
+    /// Peek at next char in stream.
+    /// @returns true if success, false if EOF is encountered
+    /// before peeking the character
     bool Peek(char& ch) const;
 
 protected:
-    /** Peek at next char in stream.
-     *  /returns true if success, false if EOF
-     */
+    /// Peek at next char in stream.
+    /// @returns true if success, false if EOF
     virtual bool peek(char& ch) const = 0;
 
     void checkRead() const override;

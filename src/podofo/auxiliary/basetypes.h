@@ -11,25 +11,20 @@
 
 namespace PoDoFo
 {
-    /** Convenient read-only char buffer span
-     */
+    /// Convenient read-only char buffer span
     using bufferview = cspan<char>;
 
-    /** Convenient writable char buffer span
-     */
+    /// Convenient writable char buffer span
     using bufferspan = mspan<char>;
 
-    /** Unicode code point view
-     */
+    /// Unicode code point view
     using unicodeview = cspan<char32_t>;
 
     // TODO: Optimize, maintaining string compatibility
     // Use basic_string::resize_and_overwrite in C++23
     // https://en.cppreference.com/w/cpp/string/basic_string/resize_and_overwrite
-    /**
-     * Convenient type for char array storage and/or buffer with
-     * std::string compatibility
-     */
+    /// Convenient type for char array storage and/or buffer with
+    /// std::string compatibility
     template <typename = void>
     class charbuff_t final : public std::string
     {
@@ -132,10 +127,9 @@ namespace PoDoFo
 
     using charbuff = charbuff_t<>;
 
-    /** A const data provider that can hold a view to a
-     * static segments or a shared buffer
-     *
-     */
+    /// A const data provider that can hold a view to a
+    /// static segments or a shared buffer
+    ///
     template <typename = void>
     class datahandle_t final
     {

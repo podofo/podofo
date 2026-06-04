@@ -11,8 +11,7 @@ namespace PoDoFo
 {
     class PdfCMapEncoding;
 
-    /** Convenience typedef for a const CMap encoding shared ptr
-     */
+    /// Convenience typedef for a const CMap encoding shared ptr
     using PdfCMapEncodingConstPtr = std::shared_ptr<const PdfCMapEncoding>;
 
     class PODOFO_API PdfCMapEncoding final : public PdfEncodingMapBase
@@ -21,8 +20,7 @@ namespace PoDoFo
         PODOFO_PRIVATE_FRIEND(class PdfCMapEncodingFactory);
 
     public:
-        /** Construct a PdfCMapEncoding from a map
-         */
+        /// Construct a PdfCMapEncoding from a map
         PdfCMapEncoding(PdfCharCodeMap&& map);
         PdfCMapEncoding(PdfCharCodeMap&& map, const PdfName& name, const PdfCIDSystemInfo& info, PdfWModeKind wMode);
 

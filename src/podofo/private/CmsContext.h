@@ -33,8 +33,7 @@ namespace PoDoFo
         nullable<std::chrono::seconds> SigningTimeUTC;
     };
 
-    /** This class computes a CMS signature according to RFC 5652
-     */
+    /// This class computes a CMS signature according to RFC 5652
     class CmsContext final
     {
     public:

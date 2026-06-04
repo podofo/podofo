@@ -73,14 +73,13 @@
 #define FROM_BIG_ENDIAN(n) n
 #endif
 
-/** \def VERBOSE_DEBUG_DISABLED
- *  Debug define. Enable it, if you need
- *  more debug output to the command line from PoDoFo
- *
- *  Setting VERBOSE_DEBUG_DISABLED will make PoDoFo
- *  EXTREMELY slow and verbose, so it's not practical
- *  even for regular debugging.
- */
+/// @def VERBOSE_DEBUG_DISABLED
+/// Debug define. Enable it, if you need
+/// more debug output to the command line from PoDoFo
+///
+/// Setting VERBOSE_DEBUG_DISABLED will make PoDoFo
+/// EXTREMELY slow and verbose, so it's not practical
+/// even for regular debugging.
 #define VERBOSE_DEBUG_DISABLED
 
 // Should we do lots of extra (expensive) sanity checking?  You should not
@@ -108,40 +107,35 @@
 
 #define CMAP_REGISTRY_NAME "PoDoFo"
 
-/** \def PODOFO_RAISE_ERROR(code)
- *
- *  Throw an exception of type PdfError with the error code x, which should be
- *  one of the values of the enum PdfErrorCode. File and line info are included.
- */
+/// @def PODOFO_RAISE_ERROR(code)
+///
+/// Throw an exception of type PdfError with the error code x, which should be
+/// one of the values of the enum PdfErrorCode. File and line info are included.
 #define PODOFO_RAISE_ERROR(code) throw ::PoDoFo::PdfError(code, __FILE__, __LINE__)
 
- /** \def PODOFO_RAISE_ERROR_INFO(code, msg)
-  *
-  *  Throw an exception of type PdfError with the error code, which should be
-  *  one of the values of the enum PdfErrorCode. File and line info are included.
-  *  Additionally extra information on the error, msg is set, which will also be
-  *  output by PdfError::PrintErrorMsg().
-  *  msg can be a C string, but can also be a C++ std::string.
-  */
+ /// @def PODOFO_RAISE_ERROR_INFO(code, msg)
+ ///
+ /// Throw an exception of type PdfError with the error code, which should be
+ /// one of the values of the enum PdfErrorCode. File and line info are included.
+ /// Additionally extra information on the error, msg is set, which will also be
+ /// output by PdfError::PrintErrorMsg().
+ /// msg can be a C string, but can also be a C++ std::string.
 #define PODOFO_RAISE_ERROR_INFO(code, msg, ...) throw ::PoDoFo::PdfError(code, __FILE__, __LINE__, COMMON_FORMAT(msg, ##__VA_ARGS__))
 
-  /** \def PODOFO_PUSH_FRAME(err, msg)
-   *
-   * Add frame to error callastack
-   */
+  /// @def PODOFO_PUSH_FRAME(err, msg)
+  ///
+  /// Add frame to error callastack
 #define PODOFO_PUSH_FRAME(err) AddToCallStack(err, __FILE__, __LINE__, { })
 
-   /** \def PODOFO_PUSH_FRAME_INFO(err, msg)
-    *
-    * Add frame to error callastack with msg information
-    */
+   /// @def PODOFO_PUSH_FRAME_INFO(err, msg)
+   ///
+   /// Add frame to error callastack with msg information
 #define PODOFO_PUSH_FRAME_INFO(err, msg, ...) AddToCallStack(err, __FILE__, __LINE__, COMMON_FORMAT(msg, ##__VA_ARGS__))
 
-    /** \def PODOFO_PUSH_FRAME(err, msg)
-     *
-     *  Evaluate `cond' as a binary predicate and if it is true, raise a logic error with the
-     *  info string `msg' .
-     */
+    /// @def PODOFO_PUSH_FRAME(err, msg)
+    ///
+    /// Evaluate `cond' as a binary predicate and if it is true, raise a logic error with the
+    /// info string `msg' .
 #define PODOFO_RAISE_LOGIC_IF(cond, msg, ...) {\
     if (cond)\
         throw ::PoDoFo::PdfError(PdfErrorCode::InternalLogic, __FILE__, __LINE__, COMMON_FORMAT(msg, ##__VA_ARGS__));\
@@ -157,9 +151,7 @@ namespace PoDoFo
     constexpr double DEG2RAD = std::numbers::pi / 180;
     constexpr double RAD2DEG = 180 / std::numbers::pi;
 
-    /**
-     * Transform the given raw rect accordingly to the page rotation
-     */
+    /// Transform the given raw rect accordingly to the page rotation
     Rect TransformCornersPage(const Corners& rect, const PdfPage& page);
 
     PdfVersion GetPdfVersion(const std::string_view& str);
@@ -168,19 +160,15 @@ namespace PoDoFo
 
     bool IsAccessibiltyProfile(PdfALevel pdfaLevel);
 
-    /** Normalize base font name, removing known bold/italic/subset prefixes/suffixes
-     */
+    /// Normalize base font name, removing known bold/italic/subset prefixes/suffixes
     std::string ExtractBaseFontName(const std::string_view& fontName, bool skipTrimSubset = false);
 
-    /** Extract base font name, removing known bold/italic/subset prefixes/suffixes
-     * \returns normalized font name
-     */
+    /// Extract base font name, removing known bold/italic/subset prefixes/suffixes
+    /// @returns normalized font name
     std::string ExtractFontHints(const std::string_view& fontName,
         bool& isItalic, bool& isBold);
 
-    /**
-     * Get the end index of a subset prefix (eg. "AAAAAA+")
-     */
+    /// Get the end index of a subset prefix (eg. "AAAAAA+")
     unsigned char GetSubsetPrefixLength(const std::string_view& fontName);
 
     void CreateObjectStructElement(PdfDictionaryElement& elem, PdfPage& page, const PdfName& elementType);
@@ -194,10 +182,9 @@ namespace PoDoFo
 
     std::string_view FilterToNameShort(PdfFilterType filterType);
 
-    /** Log a message to the logging system defined for PoDoFo.
-     *  \param logSeverity the severity of the log message
-     *  \param msg       the message to be logged
-     */
+    /// Log a message to the logging system defined for PoDoFo.
+    /// @param logSeverity the severity of the log message
+    /// @param msg       the message to be logged
     void LogMessage(PdfLogSeverity logSeverity, const std::string_view& msg);
 
     template <typename... Args>
@@ -211,18 +198,15 @@ namespace PoDoFo
 
     void AddToCallStack(PdfError& err, std::string filepath, unsigned line, std::string information);
 
-    /** Get the operands count of the operator
-     * \returns count the number of operand, -1 means variadic number of operands
-     */
+    /// Get the operands count of the operator
+    /// @returns count the number of operand, -1 means variadic number of operands
     int GetOperandCount(PdfOperator op);
 
-    /** Get the operands count of the operator
-     * \param count the number of operand, -1 means variadic number of operands
-     */
+    /// Get the operands count of the operator
+    /// @param count the number of operand, -1 means variadic number of operands
     bool TryGetOperandCount(PdfOperator op, int& count);
 
-    /** Helper type to serialize 3 byte integers
-     */
+    /// Helper type to serialize 3 byte integers
     struct uint24_t final
     {
         uint24_t();
@@ -235,20 +219,16 @@ namespace PoDoFo
     };
 }
 
-/**
- * \namespace utls
- *
- * Namespace for private utilities and common functions
- */
+/// @namespace utls
+///
+/// Namespace for private utilities and common functions
 namespace utls
 {
-    /**
-     * RAII recursion guard ensures recursion depth is always decremented
-     * because the destructor is always called when control leaves a method
-     * via return or an exception.
-     * It's used like this:
-     * RecursionGuard guard;
-     */
+    /// RAII recursion guard ensures recursion depth is always decremented
+    /// because the destructor is always called when control leaves a method
+    /// via return or an exception.
+    /// It's used like this:
+    /// RecursionGuard guard;
     class RecursionGuard
     {
     public:
@@ -266,16 +246,13 @@ namespace utls
         return std::round(value / precision) * precision;
     }
 
-    /** Normalize the coordinate so the first corner is left-bottom, and the second right-top
-     */
+    /// Normalize the coordinate so the first corner is left-bottom, and the second right-top
     void NormalizeCoordinates(double& x1, double& y1, double& x2, double& y2);
 
     void SerializeEncodedString(PoDoFo::OutputStream& stream, const std::string_view& encoded, bool wantHex, bool skipDelimiters = false);
 
-    /**
-     * Check if multiplying two numbers will overflow. This is crucial when calculating buffer sizes that are the product of two numbers/
-     * \returns true if multiplication will overflow
-     */
+    /// Check if multiplying two numbers will overflow. This is crucial when calculating buffer sizes that are the product of two numbers/
+    /// @returns true if multiplication will overflow
     bool DoesMultiplicationOverflow(size_t op1, size_t op2);
 
     const std::locale& GetInvariantLocale();
@@ -296,35 +273,33 @@ namespace utls
 
     std::string TrimSpacesEnd(const std::string_view& str);
 
-    /** Convert an enum or index to its string representation
-     *  which can be written to the PDF file.
-     *
-     *  This is a helper function for various classes
-     *  that need strings and enums for their SubTypes keys.
-     *
-     *  \param index the index or enum value
-     *  \param types an array of strings containing
-     *         the string mapping of the index
-     *  \param len the length of the string array
-     *
-     *  \returns the string representation or nullptr for
-     *           values out of range
-     */
+    /// Convert an enum or index to its string representation
+    /// which can be written to the PDF file.
+    ///
+    /// This is a helper function for various classes
+    /// that need strings and enums for their SubTypes keys.
+    ///
+    /// @param index the index or enum value
+    /// @param types an array of strings containing
+    ///         the string mapping of the index
+    /// @param len the length of the string array
+    ///
+    /// @returns the string representation or nullptr for
+    ///           values out of range
     const char* TypeNameForIndex(unsigned index, const char** types, unsigned len);
 
-    /** Convert a string type to an array index or enum.
-     *
-     *  This is a helper function for various classes
-     *  that need strings and enums for their SubTypes keys.
-     *
-     *  \param type the type as string
-     *  \param types an array of strings containing
-     *         the string mapping of the index
-     *  \param len the length of the string array
-     *  \param unknownValue the value that is returned when the type is unknown
-     *
-     *  \returns the index of the string in the array
-     */
+    /// Convert a string type to an array index or enum.
+    ///
+    /// This is a helper function for various classes
+    /// that need strings and enums for their SubTypes keys.
+    ///
+    /// @param type the type as string
+    /// @param types an array of strings containing
+    ///         the string mapping of the index
+    /// @param len the length of the string array
+    /// @param unknownValue the value that is returned when the type is unknown
+    ///
+    /// @returns the index of the string in the array
     int TypeNameToIndex(const char* type, const char** types, unsigned len, int unknownValue);
 
     bool TryGetHexValue(char ch, unsigned char& value);
@@ -495,15 +470,11 @@ namespace utls
     void WriteTo(const std::string_view& filepath, const PoDoFo::bufferview& view);
     void WriteTo(std::ostream& stream, const PoDoFo::bufferview& view);
 
-    /**
-     * \returns number or read bytes
-     * \param eof true if the stream reached EOF during read
-     */
+    /// @returns number or read bytes
+    /// @param eof true if the stream reached EOF during read
     size_t ReadBuffer(std::istream& stream, char* buffer, size_t size, bool& eof);
 
-    /**
-     * \returns true if success, false if eof
-     */
+    /// @returns true if success, false if eof
     bool ReadChar(std::istream& stream, char& ch);
 
     std::ifstream open_ifstream(const std::string_view& filename, std::ios_base::openmode mode);
@@ -627,15 +598,13 @@ namespace utls
     double NormalizeCircularRange(double value, double start, double end);
 }
 
-/**
- * \page <PoDoFo PdfDefinesPrivate Header>
- *
- * <b>PdfDeclarationsPrivate.h</b> contains preprocessor definitions, inline functions, templates,
- * compile-time const variables, and other things that must be visible across the entirety of
- * the PoDoFo library code base but should not be visible to users of the library's headers.
- *
- * This header is private to the library build. It is not installed with PoDoFo and must not be
- * referenced in any way from any public, installed header.
- */
+/// @page <PoDoFo PdfDefinesPrivate Header>
+///
+/// PdfDeclarationsPrivate.h contains preprocessor definitions, inline functions, templates,
+/// compile-time const variables, and other things that must be visible across the entirety of
+/// the PoDoFo library code base but should not be visible to users of the library's headers.
+///
+/// This header is private to the library build. It is not installed with PoDoFo and must not be
+/// referenced in any way from any public, installed header.
 
 #endif // PDF_DEFINES_PRIVATE_H

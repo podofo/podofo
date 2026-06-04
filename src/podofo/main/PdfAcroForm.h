@@ -32,39 +32,34 @@ class PODOFO_API PdfAcroForm final : public PdfDictionaryElement
     friend class PdfSignature;
 
 private:
-    /** Create a new PdfAcroForm dictionary object
-     *  \param doc parent of this action
-     *  \param defaultAppearance specifies if a default appearance should be added
-     */
+    /// Create a new PdfAcroForm dictionary object
+    /// @param doc parent of this action
+    /// @param defaultAppearance specifies if a default appearance should be added
     PdfAcroForm(PdfDocument & doc,
                  PdfAcroFormDefaulAppearance defaultAppearance = PdfAcroFormDefaulAppearance::ArialBlack);
 
-    /** Create a PdfAcroForm dictionary object from an existing PdfObject
-     *	\param obj the object to create from
-     */
+    /// Create a PdfAcroForm dictionary object from an existing PdfObject
+    /// @param obj the object to create from
     PdfAcroForm(PdfObject& obj);
 
 public:
-    /** Set the value of the NeedAppearances key in the interactive forms
-     *  dictionary.
-     *
-     *  \param bNeedAppearances A flag specifying whether to construct appearance streams
-     *                          and appearance dictionaries for all widget annotations in
-     *                          the document. Default value is false.
-     */
+    /// Set the value of the NeedAppearances key in the interactive forms
+    /// dictionary.
+    ///
+    /// @param needAppearances A flag specifying whether to construct appearance streams
+    ///                          and appearance dictionaries for all widget annotations in
+    ///                          the document. Default value is false.
     void SetNeedAppearances(bool needAppearances);
 
-    /** Retrieve the value of the NeedAppearances key in the interactive forms
-     *  dictionary.
-     *
-     *  \returns value of the NeedAppearances key
-     *
-     *  \see SetNeedAppearances
-     */
+    /// Retrieve the value of the NeedAppearances key in the interactive forms
+    /// dictionary.
+    ///
+    /// @returns value of the NeedAppearances key
+    ///
+    /// @see SetNeedAppearances
     bool GetNeedAppearances() const;
 
-    /** Get the value of the /SigFlags document-level characteristics related to signature fields
-     */
+    /// Get the value of the /SigFlags document-level characteristics related to signature fields
     PdfAcroFormSigFlags GetSigFlags() const;
 
     template <typename TField>
@@ -72,13 +67,12 @@ public:
 
     PdfField& CreateField(const std::string_view& name, PdfFieldType fieldType);
 
-    /** Get the field with index of the form.
-     *  \param index the index of the field to retrieve
-     *
-     *  \returns a field object. The field object is owned by the PdfAcroForm.
-     *
-     *  \see GetAnnotationCount
-     */
+    /// Get the field with index of the form.
+    /// @param index the index of the field to retrieve
+    ///
+    /// @returns a field object. The field object is owned by the PdfAcroForm.
+    ///
+    /// @see GetAnnotationCount
     PdfField& GetFieldAt(unsigned index);
 
     const PdfField& GetFieldAt(unsigned index) const;
@@ -87,14 +81,12 @@ public:
 
     const PdfField& GetField(const PdfReference& ref) const;
 
-    /** Delete the field with index index from this page.
-     *  \param index the index of the field to delete
-     */
+    /// Delete the field with index index from this page.
+    /// @param index the index of the field to delete
     void RemoveFieldAt(unsigned index);
 
-    /** Delete the field with the given object reference
-     *  \param ref the object reference
-     */
+    /// Delete the field with the given object reference
+    /// @param ref the object reference
     void RemoveField(const PdfReference& ref);
 
     unsigned GetFieldCount() const;
@@ -169,10 +161,9 @@ private:
     void SetSigFlags(PdfAcroFormSigFlags flags);
 
 private:
-    /** Initialize this object
-     *  with a default appearance
-     *  \param defaultAppearance specifies if a default appearance should be added
-     */
+    /// Initialize this object
+    /// with a default appearance
+    /// @param defaultAppearance specifies if a default appearance should be added
     void init(PdfAcroFormDefaulAppearance defaultAppearance);
 
     PdfArray* getFieldArray() const;

@@ -14,9 +14,7 @@ namespace PoDoFo {
 
 struct Standard14FontData;
 
-/**
- * This is the main class to handle the Standard14 metric data.
- */
+/// This is the main class to handle the Standard14 metric data.
 class PODOFO_API PdfFontMetricsStandard14 final : public PdfFontMetricsBase
 {
     friend class PdfFont;
@@ -26,9 +24,8 @@ private:
         GlyphMetricsListConstPtr parsedWidths = { });
 
 public:
-    /** Create a Standard14 font metrics
-     * \param fontObj optionally try to read a /Widths entry from the supplied
-     */
+    /// Create a Standard14 font metrics
+    /// @param fontType optionally try to read a /Widths entry from the supplied
     static std::unique_ptr<const PdfFontMetricsStandard14> Create(
         PdfStandard14FontType fontType);
     static std::unique_ptr<const PdfFontMetricsStandard14> Create(

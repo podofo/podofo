@@ -13,11 +13,9 @@ namespace PoDoFo {
 class PdfCanvas;
 class PdfObject;
 
-/**
- * There are Pdfs spanning delimiters or begin/end tags into
- * contents streams. Let's create a device correctly spanning
- * I/O reads into these
- */
+/// There are Pdfs spanning delimiters or begin/end tags into
+/// contents streams. Let's create a device correctly spanning
+/// I/O reads into these
 class PODOFO_API PdfCanvasInputDevice final : public InputStreamDevice
 {
 public:

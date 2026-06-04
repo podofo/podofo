@@ -9,8 +9,7 @@
 
 namespace PoDoFo
 {
-    /** A list box
-     */
+    /// A list box
     class PODOFO_API PdfListBox final : public PdChoiceField
     {
         friend class PdfField;

@@ -8,11 +8,10 @@
 
 namespace PoDoFo
 {
-    /** A character code unit
-     *
-     * For generic terminology see https://en.wikipedia.org/wiki/Character_encoding#Terminology
-     * See also 5014.CIDFont_Spec, 2.1 Terminology
-     */
+    /// A character code unit
+    ///
+    /// For generic terminology see https://en.wikipedia.org/wiki/Character_encoding#Terminology
+    /// See also 5014.CIDFont_Spec, 2.1 Terminology
     struct PODOFO_API PdfCharCode final
     {
         unsigned Code;
@@ -22,8 +21,7 @@ namespace PoDoFo
 
         PdfCharCode();
 
-        /** Create a code of minimum size
-         */
+        /// Create a code of minimum size
         explicit PdfCharCode(unsigned code);
 
         PdfCharCode(unsigned code, unsigned char codeSpaceSize);
@@ -40,8 +38,7 @@ namespace PoDoFo
         void WriteHexTo(std::string& str, bool wrap = true) const;
     };
 
-    /** Represent a CID (Character ID) with full code unit information
-     */
+    /// Represent a CID (Character ID) with full code unit information
     struct PODOFO_API PdfCID final
     {
         unsigned Id;
@@ -49,21 +46,16 @@ namespace PoDoFo
 
         PdfCID();
 
-        /**
-         * Create a CID that has an identical code unit of minimum size
-         */
+        /// Create a CID that has an identical code unit of minimum size
         explicit PdfCID(unsigned id);
 
         PdfCID(unsigned id, const PdfCharCode& unit);
 
-        /**
-         * Create a CID that has an identical code as a code unit representation
-         */
+        /// Create a CID that has an identical code as a code unit representation
         PdfCID(const PdfCharCode& unit);
     };
 
-    /** Represents a GID (Glyph ID) with PDF metrics identifier
-     */
+    /// Represents a GID (Glyph ID) with PDF metrics identifier
     struct PODOFO_API PdfGID final
     {
         unsigned Id = 0;            ///< The id of the glyph in the font program
@@ -76,8 +68,7 @@ namespace PoDoFo
         PdfGID(unsigned id, unsigned metricsId);
     };
 
-    /** Represents a bundle of a CID and GID information
-     */
+    /// Represents a bundle of a CID and GID information
     struct PODOFO_API PdfCharGIDInfo
     {
         unsigned Cid = 0;           ///< The new assigned identifier of the character
@@ -91,18 +82,15 @@ namespace PoDoFo
         PdfEncodingLimits(unsigned char minCodeSize, unsigned char maxCodeSize,
             const PdfCharCode& firstCharCode, const PdfCharCode& lastCharCode);
 
-        /** Create invalid limits
-         */
+        /// Create invalid limits
         PdfEncodingLimits();
 
-        /** Determines if the limits are valid
-         * This happens when FirstChar is <= LastChar and MinCodeSize <= MaxCodeSize
-         */
+        /// Determines if the limits are valid
+        /// This happens when FirstChar is <= LastChar and MinCodeSize <= MaxCodeSize
         bool AreValid() const;
 
-        /** Determines if the limits code size range is valid
-         * This happens when MinCodeSize <= MaxCodeSize
-         */
+        /// Determines if the limits code size range is valid
+        /// This happens when MinCodeSize <= MaxCodeSize
         bool HaveValidCodeSizeRange() const;
 
         PdfCharCode FirstChar;     // The first defined character code
@@ -118,19 +106,15 @@ namespace PoDoFo
         int Supplement = 0;
     };
 
-    /**
-     * A convenient typedef for an unspecified codepoint
-     * The underlying type is conveniently char32_t so
-     * it's a 32 bit fixed sized type that is also compatible
-     * with unicode code points
-     */
+    /// A convenient typedef for an unspecified codepoint
+    /// The underlying type is conveniently char32_t so
+    /// it's a 32 bit fixed sized type that is also compatible
+    /// with unicode code points
     using codepoint = char32_t;
     using codepointview = cspan<codepoint>;
 
-    /**
-     * A memory owning immutable block of code points, optimized for small
-     * segments as up to 3 elements can stay in the stack
-     */
+    /// A memory owning immutable block of code points, optimized for small
+    /// segments as up to 3 elements can stay in the stack
     class PODOFO_API CodePointSpan final
     {
     public:
@@ -150,10 +134,8 @@ namespace PoDoFo
 
         operator codepointview() const;
 
-        /**
-         * Return the first element in the block
-         * \remarks if the size is 0 it will always return U'\0'
-         */
+        /// Return the first element in the block
+        /// @remarks if the size is 0 it will always return U'\0'
         codepoint operator*() const;
 
     private:
@@ -180,8 +162,7 @@ namespace PoDoFo
 
 namespace std
 {
-    /** Overload hasher for PdfCharCode
-     */
+    /// Overload hasher for PdfCharCode
     template<>
     struct hash<PoDoFo::PdfCharCode>
     {

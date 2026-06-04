@@ -8,9 +8,7 @@
 
 namespace PoDoFo {
 
-/**
- * A bundle of the encrypt object together a context
- */
+/// A bundle of the encrypt object together a context
 class PODOFO_API PdfEncryptSession final
 {
     friend class PdfMemDocument;
@@ -18,8 +16,7 @@ class PODOFO_API PdfEncryptSession final
     PODOFO_PRIVATE_FRIEND(class PdfImmediateWriter);
 
 private:
-    /** A copy constructor that does deep copy of PdfEncrypt as well
-     */
+    /// A copy constructor that does deep copy of PdfEncrypt as well
     PdfEncryptSession(const PdfEncrypt& encrypt, const PdfEncryptContext& context);
     PdfEncryptSession(std::shared_ptr<PdfEncrypt>&& encrypt);
     PdfEncryptSession(const PdfEncryptSession&) = default;

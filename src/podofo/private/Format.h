@@ -3,10 +3,9 @@
 
 #include "format_compat.h"
 
-/** \def COMMON_FORMAT(fmt, ...)
- *
-  * Format the string, if needed
- */
+/// @def COMMON_FORMAT(fmt, ...)
+///
+/// Format the string, if needed
 #define COMMON_FORMAT(fmt, ...) ::utls::FormatHelper::TryFormat(fmt, ##__VA_ARGS__)
 
 namespace utls
@@ -30,8 +29,7 @@ namespace utls
         std::format_to_n(dst, n, fmt, args...);
     }
 
-    /** Helper class. Use COMMON_FORMAT macro instead
-     */
+    /// Helper class. Use COMMON_FORMAT macro instead
     class FormatHelper
     {
     public:

@@ -10,21 +10,18 @@
 
 namespace PoDoFo {
 
-/**
- * Creates an XRef table that is a stream object.
- * Requires at least PDF 1.5. XRef streams are more
- * compact than normal XRef tables.
- *
- * This is an internal class of PoDoFo used by PdfWriter.
- */
+/// Creates an XRef table that is a stream object.
+/// Requires at least PDF 1.5. XRef streams are more
+/// compact than normal XRef tables.
+///
+/// This is an internal class of PoDoFo used by PdfWriter.
 class PdfXRefStream final : public PdfXRef
 {
 public:
-    /** Create a new XRef table
-     *
-     *  \param writer is needed to fill the trailer directory
-     *                 correctly which is included into the XRef
-     */
+    /// Create a new XRef table
+    ///
+    /// @param writer is needed to fill the trailer directory
+    ///                 correctly which is included into the XRef
     PdfXRefStream(PdfWriter& writer);
 
 public:

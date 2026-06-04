@@ -44,12 +44,10 @@ namespace PoDoFo
 
     using CodeUnitRanges = std::set<CodeUnitRange, CodeUnitRangeInequality>;
 
-    /**
-     * Represent a range in the "begincodespacerange" section
-     * \remarks Lo/Hi codes for different ranges can't be compared linearly, unless
-     * they are 1-byte codes. See Adobe CMap specification, pages 48-50:
-     * https://adobe-type-tools.github.io/font-tech-notes/pdfs/5014.CIDFont_Spec.pdf
-     */
+    /// Represent a range in the "begincodespacerange" section
+    /// @remarks Lo/Hi codes for different ranges can't be compared linearly, unless
+    /// they are 1-byte codes. See Adobe CMap specification, pages 48-50:
+    /// https://adobe-type-tools.github.io/font-tech-notes/pdfs/5014.CIDFont_Spec.pdf
     struct PODOFO_API CodeSpaceRange final
     {
         CodeSpaceRange();
@@ -63,15 +61,13 @@ namespace PoDoFo
         PdfCharCode GetSrcCodeHi() const;
     };
 
-    /**
-     * A bidirectional map from character code units to unspecified code points
-     *
-     * \remarks The actual code point nature is unspecified, but
-     * it can either be unicode code points or CID(s) as used
-     * in CID keyed fonts. For generic terminology see
-     * https://en.wikipedia.org/wiki/Character_encoding#Terminology
-     * See also 5014.CIDFont_Spec, 2.1 Terminology
-     */
+    /// A bidirectional map from character code units to unspecified code points
+    ///
+    /// @remarks The actual code point nature is unspecified, but
+    /// it can either be unicode code points or CID(s) as used
+    /// in CID keyed fonts. For generic terminology see
+    /// https://en.wikipedia.org/wiki/Character_encoding#Terminology
+    /// See also 5014.CIDFont_Spec, 2.1 Terminology
     class PODOFO_API PdfCharCodeMap final
     {
         PODOFO_PRIVATE_FRIEND(class PdfCMapEncodingFactory);
@@ -87,46 +83,38 @@ namespace PoDoFo
         PdfCharCodeMap(CodeUnitMap&& mapping, CodeUnitRanges&& ranges, const PdfEncodingLimits& limits);
 
     public:
-        /** Method to push a mapping.
-         * Given string can be a ligature, es "ffi"
-         * \remarks The mapping is ignored if codePoints is empty
-         */
+        /// Method to push a mapping.
+        /// Given string can be a ligature, es "ffi"
+        /// @remarks The mapping is ignored if codePoints is empty
         void PushMapping(const PdfCharCode& codeUnit, const codepointview& codePoints);
 
-        /** Convenience method to push a single code point mapping
-         */
+        /// Convenience method to push a single code point mapping
         void PushMapping(const PdfCharCode& codeUnit, codepoint codePoint);
 
-        /** Push a range mapping in the form "srcCodeLo srcCodeHi dstCodeLo".
-         * See 5014.CIDFont_Spec, 7.2 Operator summary for begincidrange specifications
-         * \remarks The range is ignored if srcCodeHi < srcCodeLo
-         */
+        /// Push a range mapping in the form "srcCodeLo srcCodeHi dstCodeLo".
+        /// See 5014.CIDFont_Spec, 7.2 Operator summary for begincidrange specifications
+        /// @remarks The range is ignored if srcCodeHi < srcCodeLo
         void PushRange(const PdfCharCode& srcCodeLo, unsigned size, codepoint dstCodeLo);
 
-        /** Push a range mapping in the form "srcCodeLo srcCodeHi dstCodeLo".
-         * See 5014.CIDFont_Spec, 7.2 Operator summary for beginbfrange specifications
-         * \remarks The range is ignored if srcCodeHi < srcCodeLo or dstCodeLo is empty
-         */
+        /// Push a range mapping in the form "srcCodeLo srcCodeHi dstCodeLo".
+        /// See 5014.CIDFont_Spec, 7.2 Operator summary for beginbfrange specifications
+        /// @remarks The range is ignored if srcCodeHi < srcCodeLo or dstCodeLo is empty
         void PushRange(const PdfCharCode& srcCodeLo, unsigned size, const codepointview& dstCodeLo);
 
-        /** Returns false when no mapped identifiers are not found in the map
-         */
+        /// Returns false when no mapped identifiers are not found in the map
         bool TryGetCodePoints(const PdfCharCode& codeUnit, CodePointSpan& codePoints) const;
 
-        /** Try get char code from utf8 encoded range
-         * \remarks It assumes it != and it will consumes the iterator
-         * also when returning false
-         */
+        /// Try get char code from utf8 encoded range
+        /// @remarks It assumes it != and it will consumes the iterator
+        /// also when returning false
         bool TryGetNextCharCode(std::string_view::iterator& it,
             const std::string_view::iterator& end, PdfCharCode& code) const;
 
-        /** Try get char code from unicode code points
-         * \param codePoints sequence of unicode code points. All the sequence must match
-         */
+        /// Try get char code from unicode code points
+        /// @param codePoints sequence of unicode code points. All the sequence must match
         bool TryGetCharCode(const codepointview& codePoints, PdfCharCode& code) const;
 
-        /** Try get char code from unicode code point
-         */
+        /// Try get char code from unicode code point
         bool TryGetCharCode(codepoint codePoint, PdfCharCode& code) const;
 
         PdfCharCodeMap& operator=(PdfCharCodeMap&& map) noexcept;
@@ -135,19 +123,16 @@ namespace PoDoFo
 
         bool IsEmpty() const;
 
-        /** Determines if the map is a trivial identity
-         */
+        /// Determines if the map is a trivial identity
         bool IsTrivialIdentity() const;
 
         std::vector<CodeSpaceRange> GetCodeSpaceRanges() const;
 
     public:
-        /** Provides direct mappings
-         */
+        /// Provides direct mappings
         const CodeUnitMap& GetMappings() const { return m_Mappings; }
 
-        /** Provides range mappings
-         */
+        /// Provides range mappings
         const CodeUnitRanges& GetRanges() const { return m_Ranges; }
 
     private:

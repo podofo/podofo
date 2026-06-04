@@ -10,8 +10,7 @@
 
 namespace PoDoFo {
 
-/** Orientation for predefined CID identity encodings
- */
+/// Orientation for predefined CID identity encodings
 enum class PdfIdentityOrientation : uint8_t
 {
     Unkwnown = 0,
@@ -19,12 +18,11 @@ enum class PdfIdentityOrientation : uint8_t
     Vertical,   // Corresponds to /Identity-V
 };
 
-/** PdfIdentityEncoding is a two-byte encoding which can be
- *  used with TrueType fonts to represent all characters
- *  present in a font. If the font contains all unicode
- *  glyphs, PdfIdentityEncoding will support all unicode
- *  characters.
- */
+/// PdfIdentityEncoding is a two-byte encoding which can be
+/// used with TrueType fonts to represent all characters
+/// present in a font. If the font contains all unicode
+/// glyphs, PdfIdentityEncoding will support all unicode
+/// characters.
 class PODOFO_API PdfIdentityEncoding final : public PdfEncodingMap
 {
     friend class PdfEncodingMapFactory;
@@ -33,16 +31,12 @@ class PODOFO_API PdfIdentityEncoding final : public PdfEncodingMap
     PODOFO_PRIVATE_FRIEND(class PdfEncodingTest);
 
 private:
-    /**
-     *  Create a new PdfIdentityEncoding.
-     *
-     *  \param codeSpaceSize size of the codespace size
-     */
+    /// Create a new PdfIdentityEncoding.
+    ///
+    /// @param codeSpaceSize size of the codespace size
     PdfIdentityEncoding(PdfEncodingMapType type, unsigned char codeSpaceSize);
 
-    /**
-     *  Create a standard 2 bytes CID PdfIdentityEncoding
-     */
+    /// Create a standard 2 bytes CID PdfIdentityEncoding
     PdfIdentityEncoding(PdfIdentityOrientation orientation);
 
     PdfIdentityEncoding(PdfEncodingMapType type, const PdfEncodingLimits& limits,

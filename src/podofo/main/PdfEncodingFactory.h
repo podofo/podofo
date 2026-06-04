@@ -10,45 +10,39 @@ namespace PoDoFo {
 
 class PdfFontMetrics;
 
-/** This factory creates a PdfEncoding
- *  from an existing object in the PDF.
- */
+/// This factory creates a PdfEncoding
+/// from an existing object in the PDF.
 class PODOFO_API PdfEncodingFactory final
 {
     friend class PdfFont;
 
 public:
-    /** Create a new PdfEncoding from either an
-     *  encoding name or an encoding dictionary.
-     *
-     *  \param fontObj font object
-     *  \param toUnicode the optional ToUnicode dictionary
-     *
-     *  \returns a PdfEncoding or nullptr
-     */
+    /// Create a new PdfEncoding from either an
+    /// encoding name or an encoding dictionary.
+    ///
+    /// @param fontObj font object
+    ///
+    /// @returns a PdfEncoding or nullptr
     static PdfEncoding CreateEncoding(
         const PdfObject& fontObj, const PdfFontMetrics& metrics);
 
 public:
-    /** Singleton method which returns a global instance
-     *  of WinAnsiEncoding.
-     *
-     *  \returns global instance of WinAnsiEncoding
-     */
+    /// Singleton method which returns a global instance
+    /// of WinAnsiEncoding.
+    ///
+    /// @returns global instance of WinAnsiEncoding
     static PdfEncoding CreateWinAnsiEncoding();
 
-    /** Singleton method which returns a global instance
-     *  of MacRomanEncoding.
-     *
-     *  \returns global instance of MacRomanEncoding
-     */
+    /// Singleton method which returns a global instance
+    /// of MacRomanEncoding.
+    ///
+    /// @returns global instance of MacRomanEncoding
     static PdfEncoding CreateMacRomanEncoding();
 
-    /** Singleton method which returns a global instance
-     *  of MacExpertEncoding.
-     *
-     *  \returns global instance of MacExpertEncoding
-     */
+    /// Singleton method which returns a global instance
+    /// of MacExpertEncoding.
+    ///
+    /// @returns global instance of MacExpertEncoding
     static PdfEncoding CreateMacExpertEncoding();
 
 private:

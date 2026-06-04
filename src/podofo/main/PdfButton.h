@@ -24,30 +24,21 @@ namespace PoDoFo
         PdfButton(PdfObject& obj, PdfAcroForm* acroform, PdfFieldType fieldType);
 
     public:
-        /**
-         * \returns true if this is a pushbutton
-         */
+        /// @returns true if this is a pushbutton
         bool IsPushButton() const;
 
-        /**
-         * \returns true if this is a checkbox
-         */
+        /// @returns true if this is a checkbox
         bool IsCheckBox() const;
 
-        /**
-         * \returns true if this is a radiobutton
-         */
+        /// @returns true if this is a radiobutton
         bool IsRadioButton() const;
 
-        /** Set the normal caption of this button
-         *
-         *  \param text the caption
-         */
+        /// Set the normal caption of this button
+        ///
+        /// @param text the caption
         void SetCaption(nullable<const PdfString&> text);
 
-        /**
-         *  \returns the caption of this button
-         */
+        /// @returns the caption of this button
         nullable<const PdfString&> GetCaption() const;
     };
 
@@ -66,29 +57,24 @@ namespace PoDoFo
         PdfToggleButton(PdfObject& obj, PdfAcroForm* acroform, PdfFieldType fieldType);
 
     public:
-        /** Sets the state of this toggle button
-         *
-         *  \param isChecked if true the toggle button will be checked
-         */
+        /// Sets the state of this toggle button
+        ///
+        /// @param isChecked if true the toggle button will be checked
         void SetChecked(bool isChecked);
 
-        /**
-         * \returns true if the toggle button is checked
-         */
+        /// @returns true if the toggle button is checked
         bool IsChecked() const;
 
-        /** Set the appearance stream which is displayed when the checkbox
-         *  is checked.
-         *
-         *  \param rXObject an xobject which contains the drawing commands for a checked checkbox
-         */
+        /// Set the appearance stream which is displayed when the checkbox
+        /// is checked.
+        ///
+        /// @param xobj an xobject which contains the drawing commands for a checked checkbox
         void SetAppearanceChecked(const PdfXObject& xobj);
 
-        /** Set the appearance stream which is displayed when the checkbox
-         *  is unchecked.
-         *
-         *  \param rXObject an xobject which contains the drawing commands for an unchecked checkbox
-         */
+        /// Set the appearance stream which is displayed when the checkbox
+        /// is unchecked.
+        ///
+        /// @param xobj an xobject which contains the drawing commands for an unchecked checkbox
         void SetAppearanceUnchecked(const PdfXObject& xobj);
     };
 }

@@ -53,10 +53,9 @@ static void RC4Encrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned k
 
 namespace
 {
-/** A class that can encrypt/decrpyt streamed data block wise
- *  This is used in the input and output stream encryption implementation.
- *  Only the RC4 encryption algorithm is supported
- */
+/// A class that can encrypt/decrpyt streamed data block wise
+/// This is used in the input and output stream encryption implementation.
+/// Only the RC4 encryption algorithm is supported
 class PdfRC4Stream
 {
 public:
@@ -91,11 +90,10 @@ public:
         }
     }
 
-    /** Encrypt or decrypt a block
-     *
-     *  \param buffer the input/output buffer. Data is read from this buffer and also stored here
-     *  \param len    the size of the buffer
-     */
+    /// Encrypt or decrypt a block
+    ///
+    /// @param buffer the input/output buffer. Data is read from this buffer and also stored here
+    /// @param len    the size of the buffer
     size_t Encrypt(char* buffer, size_t len)
     {
         unsigned char k;
@@ -127,9 +125,8 @@ private:
     int m_b;
 };
 
-/** An OutputStream that encrypt all data written
- *  using the RC4 encryption algorithm
- */
+/// An OutputStream that encrypt all data written
+/// using the RC4 encryption algorithm
 class PdfRC4OutputStream : public OutputStream
 {
 public:
@@ -153,9 +150,8 @@ private:
     PdfRC4Stream m_stream;
 };
 
-/** An InputStream that decrypts all data read
- *  using the RC4 encryption algorithm
- */
+/// An InputStream that decrypts all data read
+/// using the RC4 encryption algorithm
 class PdfRC4InputStream : public InputStream
 {
 public:
@@ -183,9 +179,8 @@ private:
     PdfRC4Stream m_stream;
 };
 
-/** A PdfAESInputStream that decrypts all data read
- *  using the AES encryption algorithm
- */
+/// A PdfAESInputStream that decrypts all data read
+/// using the AES encryption algorithm
 class PdfAESInputStream : public InputStream
 {
 public:

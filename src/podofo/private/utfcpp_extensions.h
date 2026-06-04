@@ -7,10 +7,9 @@
 
 namespace utf8
 {
-    /** Create an iterable structure that will yield characters
-     * from an octet buffer encoded as an unaligned big-endian
-     * utf-16 string
-     */
+    /// Create an iterable structure that will yield characters
+    /// from an octet buffer encoded as an unaligned big-endian
+    /// utf-16 string
     template <typename ByteT>
     class u16beoctetiterable final
     {
@@ -85,10 +84,9 @@ namespace utf8
         size_t m_size;
     };
 
-    /** Create an iterable structure that will yield characters
-     * from an octet buffer encoded as an unaligned little-endian
-     * utf-16 string
-     */
+    /// Create an iterable structure that will yield characters
+    /// from an octet buffer encoded as an unaligned little-endian
+    /// utf-16 string
     template <typename ByteT>
     class u16leoctetiterable final
     {

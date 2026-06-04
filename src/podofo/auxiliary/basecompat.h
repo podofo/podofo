@@ -5,9 +5,7 @@
 #ifndef PODOFO_BASE_COMPAT_H
 #define PODOFO_BASE_COMPAT_H
 
-/**
- * \file base_compat.h Some base platform specific defines
- */
+/// @file base_compat.h Some base platform specific defines
 
  // Declare ssize_t as a signed alternative to size_t,
  // useful for example to provide optional size argument

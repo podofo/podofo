@@ -13,15 +13,14 @@ namespace PoDoFo {
 
 class PdfDocument;
 
-/** The type of the action.
- *  PDF supports different action types, each of
- *  them has different keys and properties.
- *
- *  Not all action types listed here are supported yet.
- *
- *  Please make also sure that the action type you use is
- *  supported by the PDF version you are using.
- */
+/// The type of the action.
+/// PDF supports different action types, each of
+/// them has different keys and properties.
+///
+/// Not all action types listed here are supported yet.
+///
+/// Please make also sure that the action type you use is
+/// supported by the PDF version you are using.
 enum class PdfActionType : uint8_t
 {
     Unknown = 0,
@@ -46,8 +45,7 @@ enum class PdfActionType : uint8_t
     RichMediaExecute,
 };
 
-/** An action that can be performed in a PDF document
- */
+/// An action that can be performed in a PDF document
 class PODOFO_API PdfAction : public PdfDictionaryElement
 {
     friend class PdfDocument;
@@ -82,9 +80,8 @@ protected:
     PdfAction(const PdfAction&) = default;
 
 public:
-    /** Get the type of this action
-     *  \returns the type of this action
-     */
+    /// Get the type of this action
+    /// @returns the type of this action
     inline PdfActionType GetType() const { return m_Type; }
 
     static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfAction>& action);
@@ -97,13 +94,12 @@ private:
     template <typename TAction>
     static constexpr PdfActionType GetActionType();
 
-    /** Adds this action to an dictionary.
-     *  This method handles the all the complexities of making sure it's added correctly
-     *
-     *  If this action is empty. Nothing will be added.
-     *
-     *  \param dictionary the action will be added to this dictionary
-     */
+    /// Adds this action to an dictionary.
+    /// This method handles the all the complexities of making sure it's added correctly
+    ///
+    /// If this action is empty. Nothing will be added.
+    ///
+    /// @param dictionary the action will be added to this dictionary
     void AddToDictionary(PdfDictionary& dictionary) const;
 
 private:
@@ -182,14 +178,12 @@ class PODOFO_API PdfActionURI final : public PdfAction
     PdfActionURI(const PdfActionURI&) = default;
 
 public:
-    /** Set the URI of an PdfActionType::URI
-     *  \param sUri must be a correct URI as PdfString
-     */
+    /// Set the URI of an PdfActionType::URI
+    /// @param uri must be a correct URI as PdfString
     void SetURI(nullable<const PdfString&> uri);
 
-    /** Get the URI of an PdfActionType::URI
-     *  \returns an URI
-     */
+    /// Get the URI of an PdfActionType::URI
+    /// @returns an URI
     nullable<const PdfString&> GetURI() const;
 };
 

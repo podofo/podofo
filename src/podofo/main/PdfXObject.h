@@ -17,14 +17,13 @@ class PdfXObjectForm;
 class PdfXObjectPostScript;
 class PdfAnnotation;
 
-/** A XObject is a content stream with several drawing commands and data
- *  which can be used throughout a PDF document.
- *
- *  You can draw on a XObject like you would draw onto a page and can draw
- *  this XObject later again using a PdfPainter.
- *
- *  \see PdfPainter
- */
+/// A XObject is a content stream with several drawing commands and data
+/// which can be used throughout a PDF document.
+///
+/// You can draw on a XObject like you would draw onto a page and can draw
+/// this XObject later again using a PdfPainter.
+///
+/// @see PdfPainter
 class PODOFO_API PdfXObject : public PdfDictionaryElement
 {
     friend class PdfXObjectForm;
