@@ -75,6 +75,12 @@ Some examples of expected coding style can be found at the following permalinks:
 - `using namespace std;` and `using namespace PoDoFo;` are used in implementation files (.cpp) for brevity
 - `using namespace` is not used in header files
 
+### PoDoFo specifics
+
+- `PdfElement` inheritors shall not have a public constructor accepting `PdfDocument` as an argument. Such constructors are infrastructural only
+- `PdfDictionary` and other methods doing lookups on `PdfName` with keys known at compile time: `GetKey`, `FindKey`, `FindKeyHas`, `HasKey`, `RemoveKey` methods (and in general non addition lookup methods) take string literals or `string_view`. For `AddKey`, `AddKeyIndirect`, `AddKeyIndirectSafe` the `_n` user literal is used
+- `std::string_view` are always passed by const reference in the public API
+
 ### Friend declarations
 - `friend` declarations are used to grant access to related classes (e.g., `friend class PdfDocument;`)
 - The `PODOFO_PRIVATE_FRIEND` macro is used for private (not part of the public API) implementation classes
@@ -96,7 +102,7 @@ Some examples of expected coding style can be found at the following permalinks:
 - Translation-unit-local types are placed in an anonymous `namespace { ... }`; translation-unit-local free functions are marked `static`
 
 ### Enums
-- An explicit underlying type (typically `uint8_t`) is always declared, e.g. `enum class PdfXxx : uint8_t`
+- An explicit underlying type is always declared, e.g. `enum class PdfXxx : uint8_t`. The minimum size required should be used for regular enums, while flags shall use `uint32_t` 
 - The first enumerator is conventionally a sentinel: `Unknown = 0` for value enums, `None = 0` for flag enums
 - For bitmask-style enums, the operators are declared by placing `ENABLE_BITMASK_OPERATORS(PoDoFo::PdfXxxFlags);` outside the `PoDoFo` namespace, near the bottom of the header
 
@@ -110,9 +116,9 @@ Some examples of expected coding style can be found at the following permalinks:
 - Logging goes through `PoDoFo::LogMessage(PdfLogSeverity::..., "msg {}", ...)`
 
 ### Comment markers
-- `// NOTE:` is used for explanatory notes, `// TODO:` for planned work, `// FIXME:` for known defects, `// CHECK-ME:` for code that should be reviewed/validated. They should be kept short (one or two lines)
+- `// NOTE:` explanatory notes worthy of attention
+- `// TODO:` for planned work
+- `// FIXME:` for known defects
+- `// CHECK-ME:` for code that should be reviewed/validated
 
-### PoDoFo specifics
-
-- `PdfDictionary` and other methods doing lookups on `PdfName` with keys known at compile time: `GetKey`, `FindKey`, `FindKeyHas`, `HasKey`, `RemoveKey` methods (and in general non addition lookup methods) take string literals or `string_view`. For `AddKey`, `AddKeyIndirect`, `AddKeyIndirectSafe` the `_n` user literal is used
-- `std::string_view` are always passed by const reference in the public API
+ They should be kept short (one or two lines).

@@ -85,7 +85,7 @@ PoDoFo is known to compile through a multitude of package managers (including [A
 [Windows](https://github.com/podofo/podofo/blob/master/.github/workflows/build-win.yml), bootstrapping the CMake project, building and testing the library. It's highly recommended to build PoDoFo using such package managers. 
 
 There's also a playground area in the repository where you can have
-access to pre-build dependencies for some popular architectures/operating systems:
+access to pre-built dependencies for some popular architectures/operating systems:
 the playground is the recommended setting to develop the library and reproduce bugs,
 while it's not recommended for the deployment of your application using PoDoFo.
 Have a look to the [Readme](https://github.com/podofo/podofo/tree/master/playground) there.

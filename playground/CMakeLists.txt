@@ -14,8 +14,23 @@ enable_testing() # Needed to enable "make test" from binary dir
 # An useful variable to check if we are running from playground
 set(PODOFO_PLAYGROUND TRUE)
 
-if ("${ARCH}" STREQUAL "")
-    message(FATAL_ERROR "ARCH is not set. Run the bootstrap scripts")
+# Always build unsupported tools in the playground
+option(PODOFO_BUILD_UNSUPPORTED_TOOLS "Build unsupported tools" TRUE)
+
+# Enable Win32 GDI font search on Windows
+if(WIN32)
+    option(PODOFO_WITH_WIN32GDI_FONT_SEARCH "Use Win32 GDI for font search" ON)
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(ARCH "Win64")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    execute_process(COMMAND uname -m OUTPUT_VARIABLE UNAME_M OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set(ARCH "macos-${UNAME_M}")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(ARCH "linux-x86_64")
+else()
+    message(FATAL_ERROR "Unsupported operating system ${CMAKE_SYSTEM_NAME}")
 endif()
 set(ARCH "${ARCH}" CACHE STRING "" FORCE)
 
