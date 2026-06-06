@@ -191,7 +191,7 @@ void PdfParserObject::ParseData(PdfTokenizer& tokenizer)
             }
             else
             {
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidObject, token);
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidObject, "Found invalid token \"{}\" while trying to parse stream", token);
             }
         }
     }

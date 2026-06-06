@@ -329,7 +329,7 @@ public:
     /// document using the info dictionary.
     ///
     /// @returns the info dictionary
-    const PdfInfo* GetInfo() const { return m_Info.get(); }
+    const PdfInfo* GetInfo() const;
 
     PdfMetadata& GetMetadata() { return m_Metadata; }
 
@@ -420,7 +420,8 @@ private:
 
     void resetPrivate();
 
-    void initOutlines();
+    void lazyLoadOutlines();
+    void lazyLoadInfo();
 
 private:
     PdfDocument& operator=(const PdfDocument&) = delete;
@@ -429,13 +430,15 @@ private:
     PdfIndirectObjectList m_Objects;
     PdfMetadata m_Metadata;
     PdfFontManager m_FontManager;
+    bool m_InfoLazyLoaded;
+    bool m_OutlinesLazyLoaded;
     std::unique_ptr<PdfObject> m_TrailerObj;
     std::unique_ptr<PdfTrailer> m_Trailer;
     std::unique_ptr<PdfCatalog> m_Catalog;
     std::unique_ptr<PdfInfo> m_Info;
     std::unique_ptr<PdfPageCollection> m_Pages;
     std::unique_ptr<PdfAcroForm> m_AcroForm;
-    nullable<std::unique_ptr<PdfOutlines>> m_Outlines;
+    std::unique_ptr<PdfOutlines> m_Outlines;
     std::unique_ptr<PdfNameTrees> m_NameTrees;
 };
 

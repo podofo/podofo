@@ -16,7 +16,9 @@ using namespace PoDoFo;
 PdfDocument::PdfDocument(bool empty) :
     m_Objects(*this),
     m_Metadata(*this),
-    m_FontManager(*this)
+    m_FontManager(*this),
+    m_InfoLazyLoaded(false),
+    m_OutlinesLazyLoaded(false)
 {
     if (!empty)
         resetPrivate();
@@ -25,7 +27,9 @@ PdfDocument::PdfDocument(bool empty) :
 PdfDocument::PdfDocument(const PdfDocument& doc) :
     m_Objects(*this, doc.m_Objects),
     m_Metadata(*this),
-    m_FontManager(*this)
+    m_FontManager(*this),
+    m_InfoLazyLoaded(false),
+    m_OutlinesLazyLoaded(false)
 {
     SetTrailer(std::make_unique<PdfObject>(doc.GetTrailer().GetObject()));
     Init();
@@ -60,6 +64,8 @@ void PdfDocument::Clear()
     m_AcroForm = nullptr;
     m_Outlines = nullptr;
     m_NameTrees = nullptr;
+    m_InfoLazyLoaded = false;
+    m_OutlinesLazyLoaded = false;
     m_Objects.Clear();
     clear();
 }
@@ -311,24 +317,46 @@ void PdfDocument::resetPrivate()
     m_Info.reset(new PdfInfo(info,
         PdfInfoInitial::WriteProducer | PdfInfoInitial::WriteCreationTime));
     m_TrailerObj->GetDictionary().AddKeyIndirect("Info"_n, info);
+    m_InfoLazyLoaded = true;
 
     Init();
 }
 
-void PdfDocument::initOutlines()
+void PdfDocument::lazyLoadOutlines()
 {
-    if (m_Outlines != nullptr)
+    if (m_OutlinesLazyLoaded)
         return;
 
+    PODOFO_INVARIANT(m_Catalog != nullptr);
     auto outlinesObj = m_Catalog->GetDictionary().FindKey("Outlines");
-    if (outlinesObj == nullptr)
-        m_Outlines *= nullptr;
-    else
+    if (outlinesObj != nullptr)
         m_Outlines = unique_ptr<PdfOutlines>(new PdfOutlines(*outlinesObj));
+
+    m_OutlinesLazyLoaded = true;
+}
+
+void PdfDocument::lazyLoadInfo()
+{
+    if (m_InfoLazyLoaded)
+        return;
+
+    PODOFO_INVARIANT(m_Catalog != nullptr);
+    auto infoObj = m_TrailerObj->GetDictionary().FindKey("Info");
+    if (infoObj != nullptr)
+        m_Info = unique_ptr<PdfInfo>(new PdfInfo(*infoObj));
+
+    m_InfoLazyLoaded = true;
+}
+
+const PdfInfo* PdfDocument::GetInfo() const
+{
+    const_cast<PdfDocument&>(*this).lazyLoadInfo();
+    return m_Info.get();
 }
 
 PdfInfo& PdfDocument::GetOrCreateInfo()
 {
+    lazyLoadInfo();
     if (m_Info == nullptr)
     {
         auto info = &m_Objects.CreateDictionaryObject();
@@ -502,13 +530,13 @@ void PdfDocument::CollectGarbage()
 
 PdfOutlines& PdfDocument::GetOrCreateOutlines()
 {
-    initOutlines();
-    if (*m_Outlines != nullptr)
-        return **m_Outlines;
+    lazyLoadOutlines();
+    if (m_Outlines != nullptr)
+        return *m_Outlines;
 
     m_Outlines = unique_ptr<PdfOutlines>(new PdfOutlines(*this));
-    m_Catalog->GetDictionary().AddKey("Outlines"_n, (*m_Outlines)->GetObject().GetIndirectReference());
-    return **m_Outlines;
+    m_Catalog->GetDictionary().AddKey("Outlines"_n, m_Outlines->GetObject().GetIndirectReference());
+    return *m_Outlines;
 }
 
 PdfNameTrees& PdfDocument::GetOrCreateNames()
@@ -535,6 +563,7 @@ PdfAcroForm& PdfDocument::GetOrCreateAcroForm(PdfAcroFormDefaulAppearance defaul
 
 void PdfDocument::SetTrailer(unique_ptr<PdfObject> obj)
 {
+    PODOFO_ASSERT(!(m_InfoLazyLoaded || m_OutlinesLazyLoaded));
     if (obj == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
@@ -547,10 +576,6 @@ void PdfDocument::SetTrailer(unique_ptr<PdfObject> obj)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ObjectNotFound, "Catalog object not found!");
 
     m_Catalog.reset(new PdfCatalog(*catalog));
-
-    auto info = m_TrailerObj->GetDictionary().FindKey("Info");
-    if (info != nullptr)
-        m_Info.reset(new PdfInfo(*info));
 }
 
 bool PdfDocument::IsEncrypted() const
@@ -722,32 +747,32 @@ const PdfNameTrees& PdfDocument::MustGetNames() const
 
 PdfOutlines* PdfDocument::GetOutlines()
 {
-    initOutlines();
-    return (*m_Outlines).get();
+    lazyLoadOutlines();
+    return m_Outlines.get();
 }
 
 const PdfOutlines* PdfDocument::GetOutlines() const
 {
-    const_cast<PdfDocument&>(*this).initOutlines();
-    return (*m_Outlines).get();
+    const_cast<PdfDocument&>(*this).lazyLoadOutlines();
+    return m_Outlines.get();
 }
 
 PdfOutlines& PdfDocument::MustGetOutlines()
 {
-    initOutlines();
-    if (*m_Outlines == nullptr)
+    lazyLoadOutlines();
+    if (m_Outlines == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Outlines are not present");
 
-    return **m_Outlines;
+    return *m_Outlines;
 }
 
 const PdfOutlines& PdfDocument::MustGetOutlines() const
 {
-    const_cast<PdfDocument&>(*this).initOutlines();
-    if (*m_Outlines == nullptr)
+    const_cast<PdfDocument&>(*this).lazyLoadOutlines();
+    if (m_Outlines == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Outlines are not present");
 
-    return **m_Outlines;
+    return *m_Outlines;
 }
 
 PdfDocumentFieldIterable PdfDocument::GetFieldsIterator()
