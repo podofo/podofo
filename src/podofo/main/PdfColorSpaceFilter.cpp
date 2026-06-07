@@ -221,8 +221,12 @@ void PdfColorSpaceFilterIndexed::FetchScanLine(unsigned char* dstScanLine, const
             {
                 for (unsigned i = 0; i < width; i++)
                 {
-                    PODOFO_INVARIANT(srcScanLine[i] < m_MapSize);
-                    const unsigned char* mappedColor = (const unsigned char*)(m_lookup.data() + srcScanLine[i] * 3);
+                    // Clamp the index on out-of-bounds palette access
+                    unsigned colorIndex = srcScanLine[i];
+                    if (colorIndex >= m_MapSize)
+                        colorIndex = m_MapSize - 1;
+
+                    const unsigned char* mappedColor = (const unsigned char*)(m_lookup.data() + colorIndex * 3);
                     *(dstScanLine + i * 3 + 0) = mappedColor[0];
                     *(dstScanLine + i * 3 + 1) = mappedColor[1];
                     *(dstScanLine + i * 3 + 2) = mappedColor[2];
@@ -775,7 +779,7 @@ bool PdfColorSpaceFilterFactory::TryCreateFromObject(const PdfObject& obj, PdfCo
                 if (!TryCreateFromObject(arr->MustFindAt(1), baseColorSpace))
                     goto InvalidIndexed;
 
-                if (!arr->MustFindAt(2).TryGetNumber(maxIndex) && maxIndex < 1)
+                if (!arr->MustFindAt(2).TryGetNumber(maxIndex) || maxIndex < 1 || maxIndex > 255)
                     goto InvalidIndexed;
 
                 stream = arr->MustFindAt(3).GetStream();
