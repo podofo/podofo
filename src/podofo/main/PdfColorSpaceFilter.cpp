@@ -194,18 +194,20 @@ PdfColorSpacePixelFormat PdfColorSpaceFilterIndexed::GetPixelFormat() const
 
 unsigned PdfColorSpaceFilterIndexed::GetSourceScanLineSize(unsigned width, unsigned bitsPerComponent) const
 {
-    // bitsPerComponent Ignored in /Indexed source scan line size. The "lookup" table
-    // always map to color components that are 8 bits size long
-    (void)bitsPerComponent;
-    return width;
+    // The source samples are index values packed at /BitsPerComponent bits each.
+    // Rows are byte-aligned.
+    return (width * bitsPerComponent + 8 - 1) / 8;
 }
 
 unsigned PdfColorSpaceFilterIndexed::GetScanLineSize(unsigned width, unsigned bitsPerComponent) const
 {
+    // The output is always 8-bit components of the base color space, regardless
+    // of the source /BitsPerComponent used to pack the indices
+    (void)bitsPerComponent;
     switch (m_BaseColorSpace->GetPixelFormat())
     {
         case PdfColorSpacePixelFormat::RGB:
-            return (3 * width * bitsPerComponent + 8 - 1) / 8;
+            return 3 * width;
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Unsupported base color space in /Indexed color space");
     }
@@ -217,32 +219,60 @@ void PdfColorSpaceFilterIndexed::FetchScanLine(unsigned char* dstScanLine, const
     {
         case PdfColorSpaceType::DeviceRGB:
         {
-            if (bitsPerComponent == 8)
+            auto lookup = (const unsigned char*)m_lookup.data();
+            // For /Indexed images only 1, 2, 4 and 8 are valid, since "hival shall be no
+            // greater than 255", as stated in ISO 32000-2:2020 8.6.6.3 "Indexed colour spaces"
+            switch (bitsPerComponent)
             {
-                for (unsigned i = 0; i < width; i++)
+                case 8:
                 {
-                    // Clamp the index on out-of-bounds palette access
-                    unsigned colorIndex = srcScanLine[i];
-                    if (colorIndex >= m_MapSize)
-                        colorIndex = m_MapSize - 1;
+                    // Fast path: one index per byte, direct lookup
+                    for (unsigned i = 0; i < width; i++)
+                    {
+                        // Clamp the index on out-of-bounds palette access
+                        unsigned index = srcScanLine[i];
+                        if (index >= m_MapSize)
+                            index = m_MapSize - 1;
 
-                    const unsigned char* mappedColor = (const unsigned char*)(m_lookup.data() + colorIndex * 3);
-                    *(dstScanLine + i * 3 + 0) = mappedColor[0];
-                    *(dstScanLine + i * 3 + 1) = mappedColor[1];
-                    *(dstScanLine + i * 3 + 2) = mappedColor[2];
+                        auto mappedColor = lookup + index * 3;
+                        dstScanLine[i * 3 + 0] = mappedColor[0];
+                        dstScanLine[i * 3 + 1] = mappedColor[1];
+                        dstScanLine[i * 3 + 2] = mappedColor[2];
+                    }
+                    break;
                 }
-            }
-            else
-            {
-                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "/BitsPerComponent != 8");
+                case 4:
+                case 2:
+                case 1:
+                {
+                    // Indices packed most significant bit first within each byte, rows byte-aligned
+                    const unsigned mask = (1u << bitsPerComponent) - 1u; // Eg. for 4bpc, mask is 111b -> 0x0F
+                    unsigned bitOffset = 0;
+                    for (unsigned i = 0; i < width; i++)
+                    {
+                        unsigned inPixelShift = 8 - bitsPerComponent - (bitOffset % 8);
+                        unsigned index = (srcScanLine[bitOffset >> 3] >> inPixelShift) & mask;
+                        bitOffset += bitsPerComponent;
+
+                        // Clamp the index on out-of-bounds palette access
+                        if (index >= m_MapSize)
+                            index = m_MapSize - 1;
+
+                        auto mappedColor = lookup + index * 3;
+                        dstScanLine[i * 3 + 0] = mappedColor[0];
+                        dstScanLine[i * 3 + 1] = mappedColor[1];
+                        dstScanLine[i * 3 + 2] = mappedColor[2];
+                    }
+                    break;
+                }
+                default:
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Unsupported {} /BitsPerComponent in /Indexed color space", bitsPerComponent);
             }
             break;
         }
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Unsupported base color space in /Indexed color space");
     }
-
-
 }
 
 PdfVariant PdfColorSpaceFilterIndexed::GetExportObject(PdfIndirectObjectList& objects) const

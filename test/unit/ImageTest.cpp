@@ -284,11 +284,47 @@ TEST_CASE("TestImage8")
     doc.Save(outputFile);
 }
 
+TEST_CASE("TestImage9")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TestIndexedRGB.pdf"));
+
+    auto& obj = doc.GetObjects().MustGetObject(PdfReference(27, 0));
+    unique_ptr<PdfImage> image;
+    REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(obj, image));
+
+    charbuff buffer;
+    image->DecodeTo(buffer, PdfPixelFormat::BGRA);
+    charbuff ppmbuffer;
+    TestUtils::SaveFramePPM(ppmbuffer, buffer.data(),
+        PdfPixelFormat::BGRA, image->GetWidth(), image->GetHeight());
+
+    REQUIRE(ssl::ComputeMD5Str(buffer) == "87A5BA219A8429733A1704044617F331");
+}
+
+TEST_CASE("TestImage10")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TestIndexedRGB_OutOfPalette.pdf"));
+
+    auto& obj = doc.GetObjects().MustGetObject(PdfReference(20, 0));
+    unique_ptr<PdfImage> image;
+    REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(obj, image));
+
+    charbuff buffer;
+    image->DecodeTo(buffer, PdfPixelFormat::BGRA);
+    charbuff ppmbuffer;
+    TestUtils::SaveFramePPM(ppmbuffer, buffer.data(),
+        PdfPixelFormat::BGRA, image->GetWidth(), image->GetHeight());
+
+    REQUIRE(ssl::ComputeMD5Str(buffer) == "2548A8F48BC5FC9521D689239259AC48");
+}
+
 TEST_CASE("TestBitsPerComponent1")
 {
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("TestBitsPerComponent1.pdf"));
-    PdfPainter painter;
+
     auto& obj = doc.GetObjects().MustGetObject(PdfReference(27, 0));
     unique_ptr<PdfImage> image;
     REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(obj, image));
