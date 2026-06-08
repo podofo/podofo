@@ -1,3 +1,13 @@
+## Version 1.1.1
+- `PdfColorSpaceFilterIndexed`: Added support for fetching `/DeviceRGB` images with `/BitsPerComponent` != 8
+- `PdfColorSpaceIndexed`: Fixed handling of palette out-of-bounds access
+- `PdfDocument`: Make `PdfInfo` lazy-loadable
+- `PdfImage`: Handle color space for `/ImageMask` images
+- Added `PODOFO_WITH_FONTMANAGER` CMake option to control enablement of Fontconfig/Win32 GDI font search
+- Fixed devendoring of `tcbspan` and `utf8proc`
+- `charconv_compat`: Fixed compilation targeting macOS 13 on older Xcode
+- Increased minimum compiler/toolchain requirements
+
 ## Version 1.1.0
 - `OpenSSLInternal`: Fixed potential double-free in `compute_hash_to_sign()`, [GHSA](https://github.com/podofo/podofo/security/advisories/GHSA-8fq6-rqpv-xq72)
 - PoDoFo is now licensed under the LGPLv2+ or MPL-2.0 license terms. Refer to the [licensing](https://github.com/podofo/podofo#licensing) section in the README for more details
