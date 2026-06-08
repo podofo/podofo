@@ -1,6 +1,6 @@
 ## Version 1.1.1
 - `PdfColorSpaceFilterIndexed`: Added support for fetching `/DeviceRGB` images with `/BitsPerComponent` != 8
-- `PdfColorSpaceIndexed`: Fixed handling of palette out-of-bounds access
+- `PdfColorSpaceIndexed`: Fixed handling of palette out-of-bounds access, [GHSA](https://github.com/podofo/podofo/security/advisories/GHSA-f3j2-7846-h5gg)
 - `PdfDocument`: Make `PdfInfo` lazy-loadable
 - `PdfImage`: Handle color space for `/ImageMask` images
 - Added `PODOFO_WITH_FONTMANAGER` CMake option to control enablement of Fontconfig/Win32 GDI font search
