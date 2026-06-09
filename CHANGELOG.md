@@ -3,7 +3,7 @@
 - `PdfColorSpaceIndexed`: Fixed handling of palette out-of-bounds access, [GHSA](https://github.com/podofo/podofo/security/advisories/GHSA-f3j2-7846-h5gg)
 - `PdfDocument`: Make `PdfInfo` lazy-loadable
 - `PdfImage`: Handle color space for `/ImageMask` images
-- Added `PODOFO_WITH_FONTMANAGER` CMake option to control enablement of Fontconfig/Win32 GDI font search
+- Added `PODOFO_WITH_FONTMANAGER` CMake option to control enablement of Fontconfig: now Fontconfig is a requirement also for Windows builds, unless Win32 GDI font search is enabled with `PODOFO_WITH_WIN32GDI_FONT_SEARCH`
 - Fixed devendoring of `tcbspan` and `utf8proc`
 - `charconv_compat`: Fixed compilation targeting macOS 13 on older Xcode
 - Increased minimum compiler/toolchain requirements
