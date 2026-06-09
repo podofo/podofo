@@ -100,9 +100,11 @@ Refer to `CODING-STYLE.md`, but don't follow any hyperlink there. In addition:
 ## Developing steering
 
 - No excess tests: one or two simple tests per small fix/feature are usually fine, unless exhaustive coverage is genuinely needed
+- When you fix a bug don't add unnecessary comments, like "fixed the bug..." or "before the change..."
 - If a PDF fixture is needed in a test, it should be precomputed as a constant string, not assembled on the fly with text-writing operations
 - Catch2 `SECTION(s)` should be avoided in tests when possible
 - No long, repetitive comments. If a comment must be repeated it should fit on one or two lines at most
+- The best comments are the ones that clarify a potential doubt before it even emerge
 - Test files live in `test/unit/` and follow the naming pattern `<Topic>Test.cpp`
 - Tests include `<PdfTest.h>` (which pulls in Catch2, PoDoFo headers, and `TestUtils`). The macros `ASSERT_EQUAL` and `ASSERT_THROW_WITH_ERROR_CODE` are available for common assertions
 - Test resource files are read via `TestUtils::GetTestInputFilePath(...)` and output goes to `TestUtils::GetTestOutputFilePath(...)`
