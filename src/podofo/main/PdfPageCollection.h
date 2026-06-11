@@ -180,17 +180,17 @@ namespace PoDoFo {
     private:
         /// Insert page at the given index
         /// @remarks Can be used by PdfDocument
-        void InsertPageAt(unsigned atIndex, PdfPage& page);
+        void InsertPageAt(unsigned atIndex, std::unique_ptr<PdfPage> page);
 
         /// Insert pages at the given index
         /// @remarks Can be used by PdfDocument
-        void InsertPagesAt(unsigned atIndex, cspan<PdfPage*> pages);
+        void InsertPagesAt(unsigned atIndex, mspan<std::unique_ptr<PdfPage>> pages);
 
         bool TryMovePageTo(unsigned atIndex, unsigned toIndex);
 
     private:
-        void insertPageAt(unsigned atIndex, PdfPage& page);
-        void insertPagesAt(unsigned atIndex, cspan<PdfPage*> pages);
+        void insertPageAt(unsigned atIndex, std::unique_ptr<PdfPage> page);
+        void insertPagesAt(unsigned atIndex, mspan<std::unique_ptr<PdfPage>> pages);
         Rect getActualRect(const nullable<Rect>& size);
 
         PdfPage& getPage(const PdfReference& ref) const;

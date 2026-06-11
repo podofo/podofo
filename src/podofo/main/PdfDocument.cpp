@@ -166,7 +166,7 @@ void PdfDocument::append(const PdfDocument& doc, bool appendAll)
                 inherited++;
             }
 
-            m_Pages->InsertPageAt(m_Pages->GetCount(), *new PdfPage(obj));
+            m_Pages->InsertPageAt(m_Pages->GetCount(), unique_ptr<PdfPage>(new PdfPage(obj)));
         }
 
         // Append all outlines
@@ -251,7 +251,7 @@ void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc,
         inherited++;
     }
 
-    m_Pages->InsertPageAt(atIndex, *new PdfPage(obj));
+    m_Pages->InsertPageAt(atIndex, unique_ptr<PdfPage>(new PdfPage(obj)));
 
     // TODO: merge name trees
     // ToDictionary -> then iteratate over all keys and add them to the new one
