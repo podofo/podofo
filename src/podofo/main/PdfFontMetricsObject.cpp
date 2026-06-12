@@ -135,9 +135,19 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfDictionary& fontDict,
             {
                 m_FontFileObject = descriptorDict->FindKey("FontFile2");
             }
+            else if (m_FontType == PdfFontType::Type3)
+            {
+                auto charProcs = fontDict.FindKeyAsSafe<const PdfDictionary*>("CharProcs");
+                if (charProcs != nullptr)
+                    m_Type3FontData->CharProcsObj = charProcs->GetOwner();
+            }
 
-            if (m_FontType != PdfFontType::Type3 && m_FontFileObject == nullptr)
+            if (m_FontFileObject == nullptr && m_FontType != PdfFontType::Type3)
+            {
+                // If we didn't find a font file fora Type1/TrueType font,
+                // try to find it leniently in /FontFile3
                 m_FontFileObject = descriptorDict->FindKey("FontFile3");
+            }
 
             missingWidthRaw = descriptorDict->FindKeyAsSafe<double>("MissingWidth", 0);
         }
