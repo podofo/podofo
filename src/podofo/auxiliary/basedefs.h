@@ -38,6 +38,7 @@
 #define PODOFO_IMPORT
 
 #else // PODOFO_SHARED
+
 #ifndef PODOFO_SHARED
 #define PODOFO_SHARED
 #endif
@@ -56,6 +57,13 @@
     #define PODOFO_IMPORT __attribute__ ((visibility("default")))
     #define PODOFO_DEPRECATED __attribute__((__deprecated__))
 #endif
+
+#if defined(PODOFO_BUILD)
+#define PODOFO_API PODOFO_EXPORT
+#else
+#define PODOFO_API PODOFO_IMPORT
+#endif
+
 #endif
 
 // If detected, undefine some macros that are defined by Windows
@@ -82,12 +90,6 @@
 #ifdef DrawText
 #undef DrawText
 #endif // DrawText
-#endif
-
-#if defined(PODOFO_BUILD)
-#define PODOFO_API PODOFO_EXPORT
-#else
-#define PODOFO_API PODOFO_IMPORT
 #endif
 
 // Set up some other compiler-specific but not platform-specific macros
