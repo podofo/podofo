@@ -61,7 +61,6 @@ private:
     static std::unique_ptr<PdfXObject> CreateFromObject(const PdfObject& obj, PdfXObjectType reqType, PdfXObjectType& detectedType);
 
     static PdfXObject* createFromObject(const PdfObject& obj, PdfXObjectType reqType, PdfXObjectType& detectedType);
-    static PdfXObjectType getPdfXObjectType(const PdfObject& obj);
     template <typename TXObject>
     static constexpr PdfXObjectType GetXObjectType();
 
