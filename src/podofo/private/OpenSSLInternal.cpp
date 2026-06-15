@@ -92,7 +92,8 @@ void ssl::AddSigningCertificateV2(CMS_SignerInfo* signer, const bufferview& hash
     unsigned char* buf = nullptr;
     MY_ESS_SIGNING_CERT_V2 certV2{ };
     ASN1_OCTET_STRING hashstr{ };
-    ASN1_OCTET_STRING_set(&hashstr, (const unsigned char*)hash.data(), (int)hash.size());
+    hashstr.data = (unsigned char*)hash.data();
+    hashstr.length = (int)hash.size();
     MY_ESS_CERT_ID_V2 certIdV2{ };
 
     certIdV2.hash_alg = x509Algor.get();
