@@ -196,7 +196,9 @@ void encodePKCS1(X509_ALGOR* digestAlg,
     MY_X509_SIG sig;
     X509_ALGOR algor{ };
     ASN1_TYPE parameter{ };
-    ASN1_OCTET_STRING digest{ };
+    unique_ptr<ASN1_OCTET_STRING, decltype(&ASN1_OCTET_STRING_free)> digest(ASN1_OCTET_STRING_new(), ASN1_OCTET_STRING_free);
+    if (digest == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error ASN1_OCTET_STRING_new: Out of memory");
 
     sig.algor = digestAlg;
     sig.algor = &algor;
@@ -205,9 +207,8 @@ void encodePKCS1(X509_ALGOR* digestAlg,
     parameter.value.ptr = NULL;
     sig.algor->parameter = &parameter;
 
-    sig.digest = &digest;
-    sig.digest->data = const_cast<unsigned char*>(hash);
-    sig.digest->length = hashLen;
+    ASN1_OCTET_STRING_set(digest.get(), hash, (int)hashLen);
+    sig.digest = digest.get();
 
     // This is the expansion of IMPLEMENT_ASN1_FUNCTIONS
     // NOTE: buf must be a local null pointer otherwise

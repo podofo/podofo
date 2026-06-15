@@ -4,6 +4,7 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "OpenSSLInternal.h"
 
+#include <openssl/rsa.h>
 #if OPENSSL_VERSION_MAJOR >= 3
 #include <openssl/provider.h>
 #endif // OPENSSL_VERSION_MAJOR >= 3
@@ -91,13 +92,14 @@ void ssl::AddSigningCertificateV2(CMS_SignerInfo* signer, const bufferview& hash
 
     unsigned char* buf = nullptr;
     MY_ESS_SIGNING_CERT_V2 certV2{ };
-    ASN1_OCTET_STRING hashstr{ };
-    hashstr.data = (unsigned char*)hash.data();
-    hashstr.length = (int)hash.size();
-    MY_ESS_CERT_ID_V2 certIdV2{ };
+    unique_ptr<ASN1_OCTET_STRING, decltype(&ASN1_OCTET_STRING_free)> hashstr(ASN1_OCTET_STRING_new(), ASN1_OCTET_STRING_free);
+    if (hashstr == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error ASN1_OCTET_STRING_new: Out of memory");
+    ASN1_OCTET_STRING_set(hashstr.get(), (const unsigned char*)hash.data(), (int)hash.size());
 
+    MY_ESS_CERT_ID_V2 certIdV2{ };
     certIdV2.hash_alg = x509Algor.get();
-    certIdV2.hash = &hashstr;
+    certIdV2.hash = hashstr.get();
     certV2.cert_ids = sk_MY_ESS_CERT_ID_V2_new_null();
     if (!sk_MY_ESS_CERT_ID_V2_push(certV2.cert_ids, &certIdV2))
     {
@@ -159,14 +161,12 @@ unsigned ssl::GetSignedHashSize(EVP_PKEY* pkey)
 void ssl::cmsAddSigningTime(CMS_SignerInfo* si, const date::sys_seconds& timestamp)
 {
     auto time = chrono::system_clock::to_time_t(timestamp);
-    auto ans1time = X509_time_adj(nullptr, 0, &time);
+    unique_ptr<ASN1_TIME, decltype(&ASN1_TIME_free)> asn1time(X509_time_adj(nullptr, 0, &time), ASN1_TIME_free);
     if (CMS_signed_add1_attr_by_NID(si, NID_pkcs9_signingTime,
-        ans1time->type, ans1time, -1) <= 0)
+        ASN1_STRING_type(asn1time.get()), asn1time.get(), -1) <= 0)
     {
-        ASN1_TIME_free(ans1time);
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error setting SigningTime");
     }
-    ASN1_TIME_free(ans1time);
 }
 
 void ssl::DoSign(const bufferview& input, const bufferview& pkey,
