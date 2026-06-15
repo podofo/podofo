@@ -165,6 +165,7 @@ void ssl::cmsAddSigningTime(CMS_SignerInfo* si, const date::sys_seconds& timesta
         ASN1_TIME_free(ans1time);
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error setting SigningTime");
     }
+    ASN1_TIME_free(ans1time);
 }
 
 void ssl::DoSign(const bufferview& input, const bufferview& pkey,
