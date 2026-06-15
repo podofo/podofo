@@ -11,10 +11,18 @@
 using namespace std;
 using namespace PoDoFo;
 
+static Matrix readMatrixFromDict(const PdfDictionary& dict);
+static Rect readBBoxFromDict(const PdfDictionary& dict);
+
 PdfPatternDefinition::PdfPatternDefinition(nullable<const Matrix&> matrix)
 {
     if (matrix.has_value())
         m_Matrix = *matrix;
+}
+
+PdfPatternDefinition::PdfPatternDefinition(const Matrix& matrix)
+    : m_Matrix(matrix)
+{
 }
 
 PdfPatternDefinition::~PdfPatternDefinition() { }
@@ -39,6 +47,15 @@ PdfTilingPatternDefinition::PdfTilingPatternDefinition(PdfTilingSpacingType spac
     m_BBox(bbox),
     m_XStep(xStep),
     m_YStep(yStep)
+{
+}
+
+PdfTilingPatternDefinition::PdfTilingPatternDefinition(const PdfDictionary& dict) :
+    PdfPatternDefinition(readMatrixFromDict(dict)),
+    m_SpacingType(static_cast<PdfTilingSpacingType>(static_cast<int>(dict.FindKeyAs<int64_t>("TilingType")))),
+    m_BBox(readBBoxFromDict(dict)),
+    m_XStep(dict.FindKeyAs<double>("XStep")),
+    m_YStep(dict.FindKeyAs<double>("YStep"))
 {
 }
 
@@ -68,12 +85,10 @@ PdfShadingPatternDefinition::PdfShadingPatternDefinition(const PdfShadingDiction
 {
 }
 
-PdfShadingPatternDefinition::PdfShadingPatternDefinition(PdfShadingDefinitionPtr&& shading, const Matrix& matrix,
-		PdfExtGStateDefinitionPtr&& extGState) :
-    PdfPatternDefinition(matrix),
-    m_Shading(std::move(shading)),
-    m_ExtGState(std::move(extGState))
+PdfShadingPatternDefinition::PdfShadingPatternDefinition(const PdfDictionary& dict) :
+    PdfPatternDefinition(readMatrixFromDict(dict))
 {
+    // TODO: Deserialize m_Shading and m_ExtGState from the dictionary
 }
 
 void PdfShadingPatternDefinition::fillExportDictionary(PdfDictionary& dict) const
@@ -99,6 +114,11 @@ PdfColouredTilingPatternDefinition::PdfColouredTilingPatternDefinition(PdfTiling
 {
 }
 
+PdfColouredTilingPatternDefinition::PdfColouredTilingPatternDefinition(const PdfDictionary& dict) :
+    PdfTilingPatternDefinition(dict)
+{
+}
+
 PdfTilingPaintType PdfColouredTilingPatternDefinition::GetPaintType() const
 {
     return PdfTilingPaintType::Coloured;
@@ -107,6 +127,11 @@ PdfTilingPaintType PdfColouredTilingPatternDefinition::GetPaintType() const
 PdfUncolouredTilingPatternDefinition::PdfUncolouredTilingPatternDefinition(PdfTilingSpacingType spacingType,
         const Rect& bbox, double xStep, double yStep, nullable<const Matrix&> matrix) :
     PdfTilingPatternDefinition(spacingType, bbox, xStep, yStep, matrix)
+{
+}
+
+PdfUncolouredTilingPatternDefinition::PdfUncolouredTilingPatternDefinition(const PdfDictionary& dict) :
+    PdfTilingPatternDefinition(dict)
 {
 }
 
@@ -446,4 +471,22 @@ void PdfTensorProductMeshShadingDefinition::fillExportDictionary(PdfDictionary& 
 PdfShadingType PdfTensorProductMeshShadingDefinition::GetShadingType() const
 {
     return PdfShadingType::TensorProductMesh;
+}
+
+Matrix readMatrixFromDict(const PdfDictionary& dict)
+{
+    const PdfArray* arr;
+    if (dict.TryFindKeyAs("Matrix", arr))
+        return Matrix::FromArray(*arr);
+
+    return Matrix::Identity;
+}
+
+Rect readBBoxFromDict(const PdfDictionary& dict)
+{
+    const PdfArray* arr;
+    if (dict.TryFindKeyAs("BBox", arr))
+        return Rect::FromArray(*arr);
+
+    return Rect();
 }

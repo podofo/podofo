@@ -32,6 +32,9 @@ namespace PoDoFo
         virtual ~PdfPatternDefinition();
     private:
         PdfPatternDefinition(nullable<const Matrix&> matrix);
+
+        /// @remarks Deserialization constructor
+        PdfPatternDefinition(const Matrix& matrix);
     public:
         virtual PdfPatternType GetType() const = 0;
         const Matrix& GetMatrix() { return m_Matrix; }
@@ -69,6 +72,10 @@ namespace PoDoFo
         PdfTilingPatternDefinition(PdfTilingSpacingType spacingType, const Rect& bbox,
             double xStep, double yStep, nullable<const Matrix&> matrix);
 
+    protected:
+        /// @remarks Deserialization constructor
+        PdfTilingPatternDefinition(const PdfDictionary& dict);
+
     public:
         PdfPatternType GetType() const override;
 
@@ -90,18 +97,28 @@ namespace PoDoFo
 
     class PODOFO_API PdfColouredTilingPatternDefinition final : public PdfTilingPatternDefinition
     {
+        friend class PdfColouredTilingPattern;
     public:
         PdfColouredTilingPatternDefinition(PdfTilingSpacingType spacingType,
             const Rect& bbox, double xStep, double yStep, nullable<const Matrix&> matrix = { });
+
+    private:
+        /// @remarks Deserialization constructor
+        PdfColouredTilingPatternDefinition(const PdfDictionary& dict);
     public:
         PdfTilingPaintType GetPaintType() const override;
     };
 
     class PODOFO_API PdfUncolouredTilingPatternDefinition final : public PdfTilingPatternDefinition
     {
+        friend class PdfUncolouredTilingPattern;
     public:
         PdfUncolouredTilingPatternDefinition(PdfTilingSpacingType spacingType,
             const Rect& bbox, double xStep, double yStep, nullable<const Matrix&> matrix = { });
+
+    private:
+        /// @remarks Deserialization constructor
+        PdfUncolouredTilingPatternDefinition(const PdfDictionary& dict);
     public:
         PdfTilingPaintType GetPaintType() const override;
     };
@@ -164,13 +181,14 @@ namespace PoDoFo
 
     class PODOFO_API PdfShadingPatternDefinition final : public PdfPatternDefinition
     {
+        friend class PdfShadingPattern;
     public:
         PdfShadingPatternDefinition(const PdfShadingDictionary& shading, nullable<const Matrix&> matrix = { },
             nullable<const PdfExtGState&> extGState = { });
 
-        /// @remarks Deserialization constructor
-        PdfShadingPatternDefinition(PdfShadingDefinitionPtr&& shading, const Matrix& matrix,
-            PdfExtGStateDefinitionPtr&& extGState);
+    private:
+        /// @remarks Deserialization constructor from dictionary
+        PdfShadingPatternDefinition(const PdfDictionary& dict);
 
     public:
         PdfPatternType GetType() const override;
