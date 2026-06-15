@@ -17,6 +17,7 @@
 using namespace std;
 using namespace PoDoFo;
 
+static PdfXObjectType getPdfXObjectType(const PdfObject& obj);
 static string_view toString(PdfXObjectType type);
 static PdfXObjectType fromString(const string_view& str);
 
@@ -74,7 +75,12 @@ PdfXObject* PdfXObject::createFromObject(const PdfObject& obj, PdfXObjectType re
     }
 }
 
-PdfXObjectType PdfXObject::getPdfXObjectType(const PdfObject& obj)
+const Matrix& PdfXObject::GetMatrix() const
+{
+    return Matrix::Identity;
+}
+
+PdfXObjectType getPdfXObjectType(const PdfObject& obj)
 {
     // Table 93 of ISO 32000-2:2020(E), the /Type key is optional,
     // so we don't check for it. If present it should be "XObject"
@@ -92,11 +98,6 @@ PdfXObjectType PdfXObject::getPdfXObjectType(const PdfObject& obj)
     }
 
     return fromString(name->GetString());
-}
-
-const Matrix& PdfXObject::GetMatrix() const
-{
-    return Matrix::Identity;
 }
 
 string_view toString(PdfXObjectType type)
