@@ -171,7 +171,7 @@ public:
     unsigned GetHeight() const { return m_Height; }
 
 protected:
-    const PdfXObjectForm* GetForm() const override;
+    PdfXObjectForm* getForm() const override;
 
 private:
     /// Construct an image from an existing PdfObject

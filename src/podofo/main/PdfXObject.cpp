@@ -1,3 +1,4 @@
+
 // SPDX-FileCopyrightText: 2006 Dominik Seichter <domseichter@web.de>
 // SPDX-FileCopyrightText: 2020 Francesco Pretto <ceztko@gmail.com>
 // SPDX-License-Identifier: LGPL-2.0-or-later OR MPL-2.0
@@ -46,7 +47,7 @@ bool PdfXObject::TryCreateFromObject(const PdfObject& obj, unique_ptr<const PdfX
     return xobj != nullptr;
 }
 
-const PdfXObjectForm* PdfXObject::GetForm() const
+PdfXObjectForm* PdfXObject::getForm() const
 {
     return nullptr;
 }

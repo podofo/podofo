@@ -169,20 +169,43 @@ unique_ptr<PdfAnnotation> PdfAnnotation::Create(PdfPage& page, PdfAnnotationType
     }
 }
 
+void PdfAnnotation::SetAppearanceStream(const PdfXObject& xobj, PdfSetAppearanceFlags flags,
+    PdfAppearanceType appearance, const PdfName& state)
+{
+    if ((flags & PdfSetAppearanceFlags::InplaceRotation) != PdfSetAppearanceFlags::None)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "In-place rotation requires a mutable PdfXObject to be passed");
+
+    setAppearanceStream(const_cast<PdfXObject&>(xobj), flags, appearance, state);
+}
+
+void PdfAnnotation::SetAppearanceStream(PdfXObject& xobj, PdfSetAppearanceFlags flags,
+    PdfAppearanceType appearance, const PdfName& state)
+{
+    setAppearanceStream(const_cast<PdfXObject&>(xobj), flags, appearance, state);
+}
+
+void PdfAnnotation::SetAppearanceStream(const PdfXObject& xobj, PdfAppearanceType appearance, const PdfName& state)
+{
+    // No behaviors need mutable reference, forward directly to the main impl with no extra checks.
+    setAppearanceStream(const_cast<PdfXObject&>(xobj), PdfSetAppearanceFlags::None, appearance, state);
+}
+
 void PdfAnnotation::SetAppearanceStream(const PdfXObject& xobj, PdfAppearanceType appearance,
     const PdfName& state, bool skipSelectedState)
 {
-    PushAppearanceStream(xobj, appearance, state, false);
-    if (!state.IsNull() && !skipSelectedState)
-        GetDictionary().AddKey("AS"_n, state);
+    // No behaviors need mutable reference, forward directly to the main impl with no extra checks.
+    setAppearanceStream(const_cast<PdfXObject&>(xobj), skipSelectedState
+        ? PdfSetAppearanceFlags::SkipSelectedState
+        : PdfSetAppearanceFlags::None, appearance, state);
 }
 
 void PdfAnnotation::SetAppearanceStreamRaw(const PdfXObject& xobj, PdfAppearanceType appearance,
     const PdfName& state, bool skipSelectedState)
 {
-    PushAppearanceStream(xobj, appearance, state, true);
-    if (!state.IsNull() && !skipSelectedState)
-        GetDictionary().AddKey("AS"_n, state);
+    // No behaviors need mutable reference, forward directly to the main impl with no extra checks.
+    setAppearanceStream(const_cast<PdfXObject&>(xobj), skipSelectedState
+        ? PdfSetAppearanceFlags::Raw | PdfSetAppearanceFlags::SkipSelectedState
+        : PdfSetAppearanceFlags::Raw, appearance, state);
 }
 
 void PdfAnnotation::GetAppearanceStreams(vector<PdfAppearanceStream>& states) const
@@ -385,54 +408,65 @@ bool PdfAnnotation::TryCreateFromObject(const PdfObject& obj, unique_ptr<const P
     return true;
 }
 
-void PdfAnnotation::PushAppearanceStream(const PdfXObject& xobj, PdfAppearanceType appearance, const PdfName& state, bool raw)
+void PdfAnnotation::setAppearanceStream(PdfXObject& xobj, PdfSetAppearanceFlags flags,
+    PdfAppearanceType appearance, const PdfName& state)
 {
-    auto form = xobj.GetForm();
+    auto actualForm = xobj.GetForm();
 
     const PdfObject* apObj;
     double teta;
-    if (raw || !MustGetPage().TryGetRotationRadians(teta))
+    if ((flags & PdfSetAppearanceFlags::Raw) != PdfSetAppearanceFlags::None || !MustGetPage().TryGetRotationRadians(teta))
     {
-        if (form == nullptr)
+        if (actualForm == nullptr)
         {
-            // Create a preamble form that just draw the xobject
-            auto actualXobj = GetDocument().CreateXObjectForm(xobj.GetRect());
-            static_cast<PdfResourceOperations&>(actualXobj->GetOrCreateResources())
+            // Create a trampoline form that just draw the xobject
+            auto tempXobj = GetDocument().CreateXObjectForm(xobj.GetRect());
+            static_cast<PdfResourceOperations&>(tempXobj->GetOrCreateResources())
                 .AddResource(PdfResourceType::XObject, "XOb1"_n, xobj.GetObject());
             PdfStringStream sstream;
             PoDoFo::WriteOperator_Do(sstream, "XOb1");
-            actualXobj->GetObject().GetOrCreateStream().SetData(sstream.GetString());
-            form = actualXobj.get();
+            tempXobj->GetObject().GetOrCreateStream().SetData(sstream.GetString());
+            actualForm = tempXobj.get();
         }
 
-        apObj = &form->GetObject();
+        apObj = &actualForm->GetObject();
     }
     else
     {
-        // If the page has a rotation, add a preamble from that
+        // If the page has a rotation, add a trampoline form that
         // will transform the input xobject and adjust the orientation
-        unique_ptr<PdfXObjectForm> actualXobj;
+        unique_ptr<PdfXObjectForm> tempXobj;
         Matrix newMat;
-        if (form == nullptr)
+        PdfStringStream sstream;
+        if (actualForm == nullptr)
         {
-            actualXobj = GetDocument().CreateXObjectForm(xobj.GetRect());
-            static_cast<PdfResourceOperations&>(actualXobj->GetOrCreateResources())
+            tempXobj = GetDocument().CreateXObjectForm(xobj.GetRect());
+            static_cast<PdfResourceOperations&>(tempXobj->GetOrCreateResources())
                 .AddResource(PdfResourceType::XObject, "XOb1"_n, xobj.GetObject());
             newMat = PoDoFo::GetFrameRotationTransform(xobj.GetRect(), -teta);
+            actualForm = tempXobj.get();
         }
         else
         {
-            actualXobj = GetDocument().CreateXObjectForm(form->GetRect());
-            static_cast<PdfResourceOperations&>(actualXobj->GetOrCreateResources())
-                .AddResource(PdfResourceType::XObject, "XOb1"_n, form->GetObject());
-            newMat = PoDoFo::GetFrameRotationTransform(form->GetRect(), -teta);
+            if ((flags & PdfSetAppearanceFlags::InplaceRotation) != PdfSetAppearanceFlags::None)
+            {
+                // Concatenate the rotation transform with the existing matrix of the form
+                newMat = PoDoFo::GetFrameRotationTransform(actualForm->GetRect(), -teta) * actualForm->GetMatrix();
+                goto SkipPreamble;
+            }
+
+            tempXobj = GetDocument().CreateXObjectForm(actualForm->GetRect());
+            static_cast<PdfResourceOperations&>(tempXobj->GetOrCreateResources())
+                .AddResource(PdfResourceType::XObject, "XOb1"_n, actualForm->GetObject());
+            newMat = PoDoFo::GetFrameRotationTransform(actualForm->GetRect(), -teta);
+            actualForm = tempXobj.get();
         }
 
-        PdfStringStream sstream;
         PoDoFo::WriteOperator_Do(sstream, "XOb1");
-        actualXobj->GetObject().GetOrCreateStream().SetData(sstream.GetString());
-        actualXobj->SetMatrix(newMat);
-        apObj = &actualXobj->GetObject();
+        actualForm->GetObject().GetOrCreateStream().SetData(sstream.GetString());
+    SkipPreamble:
+        actualForm->SetMatrix(newMat);
+        apObj = &actualForm->GetObject();
     }
 
     PdfName name;
@@ -459,6 +493,9 @@ void PdfAnnotation::PushAppearanceStream(const PdfXObject& xobj, PdfAppearanceTy
             apInnerObj = &apDictObj->GetDictionary().AddKey(name, PdfDictionary());
 
         apInnerObj->GetDictionary().AddKeyIndirectSafe(state, *apObj);
+
+        if ((flags & PdfSetAppearanceFlags::SkipSelectedState) == PdfSetAppearanceFlags::None)
+            GetDictionary().AddKey("AS"_n, state);
     }
 }
 

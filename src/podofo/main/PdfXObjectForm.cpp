@@ -168,9 +168,9 @@ PdfResources& PdfXObjectForm::GetOrCreateResources()
     return *m_Resources;
 }
 
-const PdfXObjectForm* PdfXObjectForm::GetForm() const
+PdfXObjectForm* PdfXObjectForm::getForm() const
 {
-    return this;
+    return const_cast<PdfXObjectForm*>(this);
 }
 
 void PdfXObjectForm::initXObject(const Rect& rect)

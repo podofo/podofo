@@ -54,7 +54,7 @@ public:
     inline const PdfResources* GetResources() const { return m_Resources.get(); }
 
 protected:
-    const PdfXObjectForm* GetForm() const override;
+    PdfXObjectForm* getForm() const override;
 
 private:
     PdfXObjectForm(PdfObject& obj);

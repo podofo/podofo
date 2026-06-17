@@ -51,6 +51,15 @@ struct PODOFO_API PdfAppearanceStream final
     PdfName State;
 };
 
+enum class PdfSetAppearanceFlags : uint32_t
+{
+    None = 0,
+    Raw =               1 << 0,     ///< Insert the appearance stream without handling page rotations
+    SkipSelectedState = 1 << 1,     ///< Skip setting the selected state
+    InplaceRotation =   1 << 2,     ///< Try skip inserting a XObject trampoline for the appearance stream in case of page rotations.
+                                    ///< Requires a mutable PdfXObject to be passed to SetAppearanceStream
+};
+
 /// An annotation to a PdfPage
 /// To create an annotation use PdfPage::CreateAnnotation
 ///
@@ -111,9 +120,22 @@ public:
     /// @param xobj an XObject form
     /// @param appearance an appearance type to set
     /// @param state the state for which set it the obj; states depend on the annotation type
+    /// @param flags flags to control the appearance stream setting
+    void SetAppearanceStream(const PdfXObject& xobj, PdfSetAppearanceFlags flags = PdfSetAppearanceFlags::None,
+        PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = { });
+    void SetAppearanceStream(PdfXObject& xobj, PdfSetAppearanceFlags flags,
+        PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = { });
+    void SetAppearanceStream(const PdfXObject& xobj, PdfAppearanceType appearance, const PdfName& state = { });
+
+    /// Set an appearance stream for this object
+    /// to specify its visual appearance
+    /// @param xobj an XObject form
+    /// @param appearance an appearance type to set
+    /// @param state the state for which set it the obj; states depend on the annotation type
     /// @param skipSelectedState skip setting the selected state, if non null
-    void SetAppearanceStream(const PdfXObject& xobj, PdfAppearanceType appearance = PdfAppearanceType::Normal,
-        const PdfName& state = { }, bool skipSelectedState = false);
+    [[deprecated("Use the SetAppearanceStream methods with flags instead")]]
+    void SetAppearanceStream(const PdfXObject& xobj, PdfAppearanceType appearance,
+        const PdfName& state, bool skipSelectedState);
 
     /// Set an appearance stream for this object
     /// to specify its visual appearance without handling page rotations
@@ -121,6 +143,7 @@ public:
     /// @param appearance an appearance type to set
     /// @param state the state for which set it the obj; states depend on the annotation type
     /// @param skipSelectedState skip setting the selected state, if non null
+    [[deprecated("Use the SetAppearanceStream methods with flags instead")]]
     void SetAppearanceStreamRaw(const PdfXObject& xobj, PdfAppearanceType appearance = PdfAppearanceType::Normal,
         const PdfName& state = { }, bool skipSelectedState = false);
 
@@ -236,9 +259,8 @@ private:
 
     void SetPage(PdfPage& page) { m_Page = &page; }
 
-    void PushAppearanceStream(const PdfXObject& xobj, PdfAppearanceType appearance, const PdfName& state, bool raw);
-
 private:
+    void setAppearanceStream(PdfXObject& xobj, PdfSetAppearanceFlags flags, PdfAppearanceType appearance, const PdfName& state);
     static bool tryCreateFromObject(const PdfObject& obj, PdfAnnotationType targetType, PdfAnnotation*& xobj);
     static PdfAnnotationType getAnnotationType(const PdfObject& obj);
     PdfObject* getAppearanceStream(PdfAppearanceType appearance, const std::string_view& state) const;
@@ -337,5 +359,7 @@ constexpr PdfAnnotationType PdfAnnotation::GetAnnotationType()
 }
 
 };
+
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfSetAppearanceFlags);
 
 #endif // PDF_ANNOTATION_H

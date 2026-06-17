@@ -292,7 +292,7 @@ bool PdfImage::TryFetchRawImageInfo(PdfImageInfo& info)
     }
 }
 
-const PdfXObjectForm* PdfImage::GetForm() const
+PdfXObjectForm* PdfImage::getForm() const
 {
     return m_Transformation.get();
 }

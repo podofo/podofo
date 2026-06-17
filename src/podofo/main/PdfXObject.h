@@ -54,7 +54,7 @@ public:
     inline PdfXObjectType GetType() const { return m_Type; }
 
 protected:
-    virtual const PdfXObjectForm* GetForm() const;
+    virtual PdfXObjectForm* getForm() const;
 
 private:
     // To be called from PdfContentStreamReader
@@ -63,6 +63,10 @@ private:
     static PdfXObject* createFromObject(const PdfObject& obj, PdfXObjectType reqType, PdfXObjectType& detectedType);
     template <typename TXObject>
     static constexpr PdfXObjectType GetXObjectType();
+
+    PdfXObjectForm* GetForm() { return getForm(); }
+
+    const PdfXObjectForm* GetForm() const { return getForm(); }
 
 private:
     PdfXObjectType m_Type;
