@@ -74,14 +74,42 @@ const PdfPage& PdfPageCollection::GetPageAt(unsigned index) const
 
 PdfPage& PdfPageCollection::GetPage(const PdfReference& ref)
 {
-    const_cast<PdfPageCollection&>(*this).initPages();
-    return getPage(ref);
+    initPages();
+    auto ret = getPage(ref);
+    if (ret == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Page with reference {} {} R not found", ref.ObjectNumber(), ref.GenerationNumber());
+
+    return *ret;
 }
 
 const PdfPage& PdfPageCollection::GetPage(const PdfReference& ref) const
 {
     const_cast<PdfPageCollection&>(*this).initPages();
-    return getPage(ref);
+    auto ret = getPage(ref);
+    if (ret == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Page with reference {} {} R not found", ref.ObjectNumber(), ref.GenerationNumber());
+
+    return *ret;
+}
+
+bool PdfPageCollection::TryGetPage(const PdfReference& ref, PdfPage*& page)
+{
+    initPages();
+    page = getPage(ref);
+    if (page != nullptr)
+        return true;
+
+    return false;
+}
+
+bool PdfPageCollection::TryGetPage(const PdfReference& ref, const PdfPage*& page) const
+{
+    const_cast<PdfPageCollection&>(*this).initPages();
+    page = getPage(ref);
+    if (page != nullptr)
+        return true;
+
+    return false;
 }
 
 Rect PdfPageCollection::getActualRect(const nullable<Rect>& size)
@@ -99,19 +127,19 @@ Rect PdfPageCollection::getActualRect(const nullable<Rect>& size)
     }
 }
 
-PdfPage& PdfPageCollection::getPage(const PdfReference& ref) const
+PdfPage* PdfPageCollection::getPage(const PdfReference& ref) const
 {
     // We have to search through all pages,
     // as this is the only way
     // to instantiate the PdfPage with a correct list of parents
     for (unsigned i = 0; i < m_Pages.size(); i++)
     {
-        auto& page = *m_Pages[i];
-        if (page.GetObject().GetIndirectReference() == ref)
+        auto page = m_Pages[i];
+        if (page->GetObject().GetIndirectReference() == ref)
             return page;
     }
 
-    PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
+    return nullptr;
 }
 
 PdfPageCollection::iterator PdfPageCollection::begin()

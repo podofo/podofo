@@ -54,6 +54,8 @@ namespace PoDoFo {
         /// @returns a pointer to the requested page
         PdfPage& GetPage(const PdfReference& ref);
         const PdfPage& GetPage(const PdfReference& ref) const;
+        bool TryGetPage(const PdfReference& ref, PdfPage*& page);
+        bool TryGetPage(const PdfReference& ref, const PdfPage*& page) const;
 
         /// Creates a new page object and inserts it into the internal
         /// page tree.
@@ -193,7 +195,7 @@ namespace PoDoFo {
         void insertPagesAt(unsigned atIndex, mspan<std::unique_ptr<PdfPage>> pages);
         Rect getActualRect(const nullable<Rect>& size);
 
-        PdfPage& getPage(const PdfReference& ref) const;
+        PdfPage* getPage(const PdfReference& ref) const;
 
         void initPages();
 
