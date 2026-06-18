@@ -1317,7 +1317,7 @@ double computeLength(const vector<const StatefulString*>& strings, const vector<
         // NOTE: Include the last glyph
         auto str = strings[fromAddr.StringIndex];
         double length = 0;
-        for (unsigned i = 0; i <= toAddr.GlyphIndex; i++)
+        for (unsigned i = fromAddr.GlyphIndex; i <= toAddr.GlyphIndex; i++)
             length += str->Lengths[i];
 
         return length;
