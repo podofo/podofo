@@ -145,7 +145,7 @@ public:
     StringChunkList Chunks;
     TextStateStack States;
     vector<XObjectState> XObjectStateIndices;
-    double CurrentEntryT_rm_y = NaN;    // Tracks line changing
+    double CurrentEntryLineCoord = NaN;    // Tracks line changing
     Vector2 PrevChunkT_rm_Pos;          // Tracks space separation
     bool BlockOpen = false;
 };
@@ -159,6 +159,7 @@ struct GlyphAddress
 static bool decodeString(const PdfString &str, TextState &state, string &decoded,
     vector<double> &lengths, vector<unsigned>& positions);
 static bool areEqual(double lhs, double rhs);
+static double getLineCoordinate(const Matrix& T_rm);
 static bool isWhiteSpaceChunk(const StringChunk &chunk);
 static void splitChunkBySpaces(vector<StringChunkPtr> &splittedChunks, const StringChunk &chunk);
 static void splitStringBySpaces(vector<StatefulString> &separatedStrings, const StatefulString &string);
@@ -664,6 +665,10 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
     {
         Vector2 rawp(strPosition.X, strPosition.Y);
         auto p_1 = rawp * (*rotation);
+        // Also transform bbox to canonical frame
+        if (bbox.has_value())
+            bbox = *bbox * (*rotation);
+
         textEntries.push_back(PdfTextEntry{ str, pageIndex,
             p_1.X, p_1.Y, strLength, bbox });
     }
@@ -967,16 +972,16 @@ void ExtractionContext::AdvanceSpace(double tx)
 void ExtractionContext::PushString(const StatefulString &str, bool pushchunk)
 {
     PODOFO_ASSERT(str.String.length() != 0);
-    if (std::isnan(CurrentEntryT_rm_y))
+    if (std::isnan(CurrentEntryLineCoord))
     {
         // Initialize tracking for line
-        CurrentEntryT_rm_y = States.Current->T_rm.Get<Ty>();
+        CurrentEntryLineCoord = getLineCoordinate(States.Current->T_rm);
     }
 
     tryAddEntry(str);
 
     // Set current line tracking
-    CurrentEntryT_rm_y = States.Current->T_rm.Get<Ty>();
+    CurrentEntryLineCoord = getLineCoordinate(States.Current->T_rm);
     Chunk->push_back(str);
     if (pushchunk)
         pushChunk();
@@ -1040,7 +1045,7 @@ void ExtractionContext::tryAddEntry(const StatefulString& currStr)
     PODOFO_INVARIANT(Chunk != nullptr);
     if (Chunks.size() > 0 || Chunk->size() > 0)
     {
-        if (areEqual(States.Current->T_rm.Get<Ty>(), CurrentEntryT_rm_y))
+        if (areEqual(getLineCoordinate(States.Current->T_rm), CurrentEntryLineCoord))
         {
             double distance;
             if (areChunksSpaced(distance))
@@ -1077,19 +1082,32 @@ bool ExtractionContext::areChunksSpaced(double& distance)
     // TODO
     // 1) Handle the word spacing Tw state
     // 2) Handle the char spacing Tc state (is it actually needed?)
-    // 3) Handle arbitrary rotations
-    // 4) Handle vertical scripts (HARD)
-    // 5) Try to avoid computing GetLength() and use only dot product
+    // 3) Handle vertical scripts (HARD)
+    // 4) Try to avoid computing GetLength() and use only dot product
     auto curr = States.Current->T_rm.GetTranslationVector();
     auto prev_curr = curr - PrevChunkT_rm_Pos;
     distance = prev_curr.GetLength();
-    double dot1 = prev_curr.Dot(Vector2(1, 0)); // Hardcoded for horizontal text
+
+    // Use actual text direction from T_rm instead of hardcoded (1,0)
+    Vector2 textDir(States.Current->T_rm[0], States.Current->T_rm[1]);
+    double textDirLen = textDir.GetLength();
+    if (textDirLen > 0)
+    {
+        textDir.X /= textDirLen;
+        textDir.Y /= textDirLen;
+    }
+    else
+    {
+        textDir = Vector2(1, 0);
+    }
+
+    double dot1 = prev_curr.Dot(textDir);
     bool spaced = distance + SEPARATION_EPSILON >= States.Current->WordSpacingLength;
     if (dot1 < 0 && spaced)
     {
         auto& prevString = getPreviouString();
         auto prev_init = prevString.Position - PrevChunkT_rm_Pos;
-        double dot2 = prev_init.Dot(Vector2(1, 0));
+        double dot2 = prev_init.Dot(textDir);
         return dot1 < dot2;
     }
 
@@ -1243,6 +1261,25 @@ bool areEqual(double lhs, double rhs)
     return std::abs(lhs - rhs) < SAME_LINE_THRESHOLD;
 }
 
+// Compute a scalar "line coordinate" by projecting the T_rm position
+// onto the normalized perpendicular of the text direction. Two positions
+// on the same text line yield the same value regardless of rotation.
+static double getLineCoordinate(const Matrix& T_rm)
+{
+    // Text direction in page space: (T_rm[0], T_rm[1])
+    // Perpendicular (line-normal): (-T_rm[1], T_rm[0])
+    double perpX = -T_rm[1];
+    double perpY = T_rm[0];
+    double perpLen = std::sqrt(perpX * perpX + perpY * perpY);
+    if (perpLen > 0)
+    {
+        perpX /= perpLen;
+        perpY /= perpLen;
+    }
+    auto pos = T_rm.GetTranslationVector();
+    return perpX * pos.X + perpY * pos.Y;
+}
+
 void TextState::ComputeDependentState()
 {
     ComputeSpaceDescriptors();
@@ -1327,15 +1364,34 @@ double computeLength(const vector<const StatefulString*>& strings, const vector<
         auto fromStr = strings[fromAddr.StringIndex];
         auto toStr = strings[toAddr.StringIndex];
 
+        // Compute text direction from T_rm for proper advancement
+        auto& fromT_rm = fromStr->State.T_rm;
+        Vector2 fromTextDir(fromT_rm[0], fromT_rm[1]);
+        double fromDirLen = fromTextDir.GetLength();
+        if (fromDirLen > 0)
+        {
+            fromTextDir.X /= fromDirLen;
+            fromTextDir.Y /= fromDirLen;
+        }
+
+        auto& toT_rm = toStr->State.T_rm;
+        Vector2 toTextDir(toT_rm[0], toT_rm[1]);
+        double toDirLen = toTextDir.GetLength();
+        if (toDirLen > 0)
+        {
+            toTextDir.X /= toDirLen;
+            toTextDir.Y /= toDirLen;
+        }
+
         // Advance the position before the first glyph
         auto fromPosition = fromStr->Position;
         for (unsigned i = 0; i < fromAddr.GlyphIndex; i++)
-            fromPosition += Vector2(fromStr->Lengths[i], 0);
+            fromPosition += Vector2(fromTextDir.X * fromStr->Lengths[i], fromTextDir.Y * fromStr->Lengths[i]);
 
         // NOTE: Include the last glyph
         auto toPosition = toStr->Position;
         for (unsigned i = 0; i <= toAddr.GlyphIndex; i++)
-            toPosition += Vector2(toStr->Lengths[i], 0);
+            toPosition += Vector2(toTextDir.X * toStr->Lengths[i], toTextDir.Y * toStr->Lengths[i]);
 
         return (fromPosition - toPosition).GetLength();
     }
@@ -1393,17 +1449,49 @@ Rect computeBoundingBox(const TextState& textState, double boxWidth)
     double ascent = 0;
     auto& pdfState = textState.PdfState;
     auto font = pdfState.Font;
-    auto transform = textState.T_rm.GetScalingRotation();
+    auto scalingRotation = textState.T_rm.GetScalingRotation();
     if (font != nullptr)
     {
         descend = (Vector2(0, font->GetMetrics().GetDescent() * pdfState.FontSize * pdfState.FontScale)
-            * transform).GetLength();
+            * scalingRotation).GetLength();
         ascent = (Vector2(0, font->GetMetrics().GetAscent() * pdfState.FontSize * pdfState.FontScale)
-            * transform).GetLength();
+            * scalingRotation).GetLength();
     }
 
+    // Compute text direction and perpendicular from T_rm
+    Vector2 textDir(textState.T_rm[0], textState.T_rm[1]);
+    double textDirLen = textDir.GetLength();
+    if (textDirLen > 0)
+    {
+        textDir.X /= textDirLen;
+        textDir.Y /= textDirLen;
+    }
+    else
+    {
+        textDir = Vector2(1, 0);
+    }
+
+    // Perpendicular direction (points from descent to ascent)
+    Vector2 perpDir(-textDir.Y, textDir.X);
+
+    // Build oriented box corners from baseline origin
+    // This fits the text also in case of non-orthogonal rotations
     auto position = textState.T_rm.GetTranslationVector();
-    return Rect(position.X, position.Y - descend, boxWidth, descend + ascent);
+    // Four corners: baseline-start, baseline-end, top-start, top-end
+    Vector2 c1(position.X + perpDir.X * (-descend), position.Y + perpDir.Y * (-descend));
+    Vector2 c2(position.X + textDir.X * boxWidth + perpDir.X * (-descend),
+               position.Y + textDir.Y * boxWidth + perpDir.Y * (-descend));
+    Vector2 c3(position.X + perpDir.X * ascent, position.Y + perpDir.Y * ascent);
+    Vector2 c4(position.X + textDir.X * boxWidth + perpDir.X * ascent,
+               position.Y + textDir.Y * boxWidth + perpDir.Y * ascent);
+
+    // Compute axis-aligned bounding box enclosing all corners
+    double minX = std::min({ c1.X, c2.X, c3.X, c4.X });
+    double minY = std::min({ c1.Y, c2.Y, c3.Y, c4.Y });
+    double maxX = std::max({ c1.X, c2.X, c3.X, c4.X });
+    double maxY = std::max({ c1.Y, c2.Y, c3.Y, c4.Y });
+
+    return Rect(minX, minY, maxX - minX, maxY - minY);
 }
 
 void getSubstringIndices(const vector<unsigned>& positions, unsigned lowerPos, unsigned upperPosLim,

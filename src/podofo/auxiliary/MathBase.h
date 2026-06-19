@@ -35,6 +35,7 @@ namespace PoDoFo
         static void Apply(double m[6], double value)
         {
             m[4] = value * m[0] + m[4];
+            m[5] = value * m[1] + m[5];
         }
     };
 
@@ -53,6 +54,7 @@ namespace PoDoFo
 
         static void Apply(double m[6], double value)
         {
+            m[4] = value * m[2] + m[4];
             m[5] = value * m[3] + m[5];
         }
     };
