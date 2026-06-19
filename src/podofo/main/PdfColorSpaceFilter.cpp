@@ -373,35 +373,65 @@ PdfColorSpaceType PdfColorSpaceFilterSeparation::GetType() const
 
 bool PdfColorSpaceFilterSeparation::IsRawEncoded() const
 {
-    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+    // The tint component needs to be mapped through FetchScanLine
+    return false;
 }
 
 PdfColorSpacePixelFormat PdfColorSpaceFilterSeparation::GetPixelFormat() const
 {
-    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+    return PdfColorSpacePixelFormat::Grayscale;
 }
 
 unsigned PdfColorSpaceFilterSeparation::GetSourceScanLineSize(unsigned width, unsigned bitsPerComponent) const
 {
-    (void)width;
-    (void)bitsPerComponent;
-    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+    // The source is a single tint component packed at /BitsPerComponent bits, rows byte-aligned
+    return (width * bitsPerComponent + 8 - 1) / 8;
 }
 
 unsigned PdfColorSpaceFilterSeparation::GetScanLineSize(unsigned width, unsigned bitsPerComponent) const
 {
-    (void)width;
+    // The output is a single 8-bit grayscale component per pixel
     (void)bitsPerComponent;
-    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+    return width;
 }
 
 void PdfColorSpaceFilterSeparation::FetchScanLine(unsigned char* dstScanLine, const unsigned char* srcScanLine, unsigned width, unsigned bitsPerComponent) const
 {
-    (void)dstScanLine;
-    (void)srcScanLine;
-    (void)width;
-    (void)bitsPerComponent;
-    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+    // HACK: Treat the single tint component as an inverted grayscale value (tint 1 -> black)
+    // without evaluating the tint transform function
+    switch (bitsPerComponent)
+    {
+        case 16:
+        {
+            // Keep only the most significant byte of each 16-bit sample
+            for (unsigned i = 0; i < width; i++)
+                dstScanLine[i] = (unsigned char)(255 - srcScanLine[i * 2]);
+            break;
+        }
+        case 8:
+        {
+            for (unsigned i = 0; i < width; i++)
+                dstScanLine[i] = (unsigned char)(255 - srcScanLine[i]);
+            break;
+        }
+        case 4:
+        case 2:
+        case 1:
+        {
+            const unsigned mask = (1u << bitsPerComponent) - 1u;
+            unsigned bitOffset = 0;
+            for (unsigned i = 0; i < width; i++)
+            {
+                unsigned inPixelShift = 8 - bitsPerComponent - (bitOffset % 8);
+                unsigned tint = (srcScanLine[bitOffset >> 3] >> inPixelShift) & mask;
+                bitOffset += bitsPerComponent;
+                dstScanLine[i] = (unsigned char)(255 - (tint * 255 / mask));
+            }
+            break;
+        }
+        default:
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Unsupported {} /BitsPerComponent in /Separation color space", bitsPerComponent);
+    }
 }
 
 PdfVariant PdfColorSpaceFilterSeparation::GetExportObject(PdfIndirectObjectList& objects) const
@@ -826,6 +856,24 @@ bool PdfColorSpaceFilterFactory::TryCreateFromObject(const PdfObject& obj, PdfCo
             InvalidIndexed:
                 PoDoFo::LogMessage(PdfLogSeverity::Warning, "Invalid /Indexed color space name");
                 return false;
+            }
+            case PdfColorSpaceType::Separation:
+            {
+                // A /Separation color space is [/Separation name alternateSpace tintTransform]
+                const PdfName* sepName;
+                if (arr->GetSize() < 4 || !arr->MustFindAt(1).TryGetName(sepName))
+                {
+                    PoDoFo::LogMessage(PdfLogSeverity::Warning, "Invalid /Separation color space array");
+                    return false;
+                }
+
+                // HACK: We don't evaluate the tint transform function (the 4th array
+                // entry) nor map to the alternate color space (the 3rd entry). The single
+                // tint component is decoded as an inverted grayscale value (tint 1 -> black).
+                // This is exact for subtractive colorants like /Black mapping to (0,0,0,tint)
+                // in DeviceCMYK and a reasonable approximation for other spot colors
+                colorSpace.reset(new PdfColorSpaceFilterSeparation(sepName->GetString(), PdfColor(0.0)));
+                return true;
             }
             default:
                 PoDoFo::LogMessage(PdfLogSeverity::Warning, "Unsupported color space filter {}", name->GetString());

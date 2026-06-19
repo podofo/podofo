@@ -320,6 +320,30 @@ TEST_CASE("TestImage10")
     REQUIRE(ssl::ComputeMD5Str(buffer) == "2548A8F48BC5FC9521D689239259AC48");
 }
 
+TEST_CASE("TestImage11")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TestImageSeparation.pdf"));
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto& resources = page.GetResources();
+    auto imageObj = resources.GetResource(PdfResourceType::XObject, "R17");
+    unique_ptr<PdfImage> image;
+    REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(*imageObj, image));
+
+    charbuff buffer;
+    image->DecodeTo(buffer, PdfPixelFormat::BGRA);
+    charbuff ppmbuffer;
+    TestUtils::SaveFramePPM(ppmbuffer, buffer.data(),
+        PdfPixelFormat::BGRA, image->GetWidth(), image->GetHeight());
+
+    auto outputFile = TestUtils::GetTestOutputFilePath("TestImage11.ppm");
+    utls::WriteTo(outputFile, ppmbuffer);
+
+    REQUIRE(image->GetWidth() == 367);
+    REQUIRE(image->GetHeight() == 367);
+    REQUIRE(ssl::ComputeMD5Str(buffer) == "5A8439C551C2772A70722843F0DCEF31");
+}
+
 TEST_CASE("TestBitsPerComponent1")
 {
     PdfMemDocument doc;

@@ -248,6 +248,10 @@ namespace PoDoFo
         ///
         /// @param name Name of the separation color
         /// @param alternateColor the alternate color, must be of type gray, rgb, cmyk or cie
+		// TODO: This constructor was meant as a convience to define a simple linear tint transform
+		// To represent the full semantic of the Separation color space we would need to remove
+		// the m_AlternateColor field and substitute with m_AlternateColorSpace (filter) + m_TintTransform (function),
+		// as per the specification that define Separation as an array [/Separation name alternateSpace tintTransform]
         PdfColorSpaceFilterSeparation(const std::string_view& name, const PdfColor& alternateColor);
 
         /// Create a new PdfColor object with
