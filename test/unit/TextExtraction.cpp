@@ -156,19 +156,12 @@ TEST_CASE("TextExtractionAllRotations")
         ASSERT_EQUAL(bbox.Width, expected[i].BoundingBox.Width);
         ASSERT_EQUAL(bbox.Height, expected[i].BoundingBox.Height);
 
-        // The extracted bounding box is in the canonical (unrotated) frame, while the painter
-        // draws into the page raw content stream frame. Map it back before drawing.
-        // TODO: Finally settle PdfPainter to handle automatically page rotations.
-        // We can ignore then ignore them with PdfPainterFlags::RawCoordinates
-        double teta;
-        Rect drawBox = bbox;
-        if (page.TryGetRotationRadians(teta))
-            drawBox = bbox * GetFrameRotationTransformInverse((Rect)page.GetRectRaw(), teta);
-
+        // The painter aligns supplied coordinates to the canonical frame by default,
+        // so the extracted bounding box can be drawn directly on rotated pages
         PdfPainter painter;
         painter.SetCanvas(page);
         painter.GraphicsState.SetStrokingColor(PdfColor(1.0, 0.0, 0.0));
-        painter.DrawRectangle(drawBox, PdfPathDrawMode::Stroke);
+        painter.DrawRectangle(bbox, PdfPathDrawMode::Stroke);
         painter.FinishDrawing();
     }
 
@@ -214,8 +207,9 @@ ET
 
 Q
 q
+0 1 -1 0 595.304 -0 cm
 1 0 0 RG
-68.1655 81.8325 16.188 58.08 re
+81.8325 510.9505 58.08 16.188 re
 S
 Q
 )");
@@ -232,8 +226,9 @@ ET
 
 Q
 q
+-1 0 -0 -1 595.304 841.89 cm
 1 0 0 RG
-445.3915 78.1655 58.08 16.188 re
+91.8325 747.5365 58.08 16.188 re
 S
 Q
 )");
@@ -250,8 +245,9 @@ ET
 
 Q
 q
+-0 -1 1 -0 0 841.89 cm
 1 0 0 RG
-490.9505 681.9775 16.188 58.08 re
+101.8325 490.9505 58.08 16.188 re
 S
 Q
 )");
