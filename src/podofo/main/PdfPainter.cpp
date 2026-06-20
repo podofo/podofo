@@ -14,6 +14,7 @@
 #include "PdfFontMetrics.h"
 #include "PdfImage.h"
 #include "PdfDocument.h"
+#include "PdfMath.h"
 
 using namespace std;
 using namespace PoDoFo;
@@ -24,6 +25,7 @@ PdfPainter::PdfPainter() :
     m_flags(PdfPainterFlags::None),
     m_painterStatus(StatusDefault),
     m_textStackCount(0),
+    m_rotationPending(false),
     GraphicsState(*this, m_StateStack.Current->GraphicsState),
     TextState(*this, m_StateStack.Current->TextState),
     TextObject(*this),
@@ -63,6 +65,7 @@ void PdfPainter::SetCanvas(PdfCanvas& canvas, PdfPainterFlags flags)
     m_canvas = &canvas;
     m_flags = flags;
     m_objStream = nullptr;
+    initRotation();
 }
 
 void PdfPainter::FinishDrawing()
@@ -137,6 +140,7 @@ void PdfPainter::reset()
     m_canvas = nullptr;
     m_stream.Clear();
     m_resNameCache.clear();
+    m_rotationPending = false;
 }
 
 void PdfPainter::SetStrokeStyle(PdfStrokeStyle strokeStyle, bool inverted, double scale, bool subtractJoinCap)
@@ -1041,6 +1045,52 @@ void PdfPainter::checkStream()
 
     PODOFO_RAISE_LOGIC_IF(m_canvas == nullptr, "Call SetCanvas() first before doing drawing operations");
     m_objStream = &m_canvas->GetOrCreateContentsStream((PdfStreamAppendFlags)(m_flags & (~PdfPainterFlags::NoSaveRestore)));
+
+    if (m_rotationPending)
+    {
+        // Emit the canvas rotation alignment as the first operator
+        Matrix rotation;
+        if (tryGetRotation(rotation))
+        {
+            PoDoFo::WriteOperator_cm(m_stream, rotation[0], rotation[1],
+                rotation[2], rotation[3], rotation[4], rotation[5]);
+        }
+
+        m_rotationPending = false;
+    }
+}
+
+bool PdfPainter::tryGetRotation(Matrix& rotation) const
+{
+    // By default the painter pre-sets a transformation that aligns supplied coordinates
+    // to the canonical (rotation normalized) frame of the canvas, so the caller can draw
+    // assuming the same frame as used in other parts of the API (e.g. text extraction or
+    // PdfCanvas::GetRect(). This relies on a clean baseline  graphics state, which the
+    // default Save/Restore of prior content guarantees. It is skipped with RawCoordinates
+    // (the caller wants raw page coordinates) or NoSaveRestorePrior (no clean baseline is
+    // established, caller is supposed to know the current situation of the content stream)
+    if ((m_flags & PdfPainterFlags::RawCoordinates) != PdfPainterFlags::None
+        || (m_flags & PdfPainterFlags::NoSaveRestorePrior) != PdfPainterFlags::None)
+    {
+        return false;
+    }
+
+    double teta;
+    if (!m_canvas->TryGetRotationRadians(teta))
+        return false;
+
+    rotation = GetFrameRotationTransformInverse((Rect)m_canvas->GetRectRaw(), teta);
+    return true;
+}
+
+void PdfPainter::initRotation()
+{
+    Matrix rotation;
+    if (!tryGetRotation(rotation))
+        return;
+
+    m_StateStack.Current->GraphicsState.CTM = rotation;
+    m_rotationPending = true;
 }
 
 void PdfPainter::openPath(double x, double y)

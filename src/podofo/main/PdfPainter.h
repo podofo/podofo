@@ -29,9 +29,9 @@ enum class PdfPainterFlags
 {
     None = 0,
     Prepend = 1,            ///< Does nothing for now
-    NoSaveRestorePrior = 2, ///< Do not perform a Save/Restore or previous content. Implies RawCoordinates
+    NoSaveRestorePrior = 2, ///< Do not perform a Save/Restore of previous content. Implies RawCoordinates
     NoSaveRestore = 4,      ///< Do not perform a Save/Restore of added content in this painting session
-    RawCoordinates = 8,     ///< Does nothing for now
+    RawCoordinates = 8,     ///< Coordinates are in the raw content stream frame, skip the canvas rotation alignment transform
 };
 
 /// An enum describing modes to draw paths and figures
@@ -634,6 +634,8 @@ private:
     /// @see SetTabWidth
     std::string expandTabs(const std::string_view& str) const;
     void checkStream();
+    void initRotation();
+    bool tryGetRotation(Matrix& rotation) const;
     void openPath(double x, double y);
     void resetPath();
     void checkPathOpened() const;
@@ -652,6 +654,12 @@ private:
     PainterStatus m_painterStatus;
     PdfPainterStateStack m_StateStack;
     unsigned m_textStackCount;
+
+    /// True if the transformation that aligns supplied coordinates to the canonical
+    /// (rotation normalized) frame of the canvas still has to be emitted as a 'cm'.
+    /// It stays pending until the content stream is created. The matrix itself is
+    /// recomputed on demand by tryGetRotation(), so it's not stored here
+    bool m_rotationPending;
 
 public:
     PdfGraphicsStateWrapper GraphicsState;
