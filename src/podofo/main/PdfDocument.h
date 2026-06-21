@@ -405,16 +405,10 @@ private:
     void createAction(PdfActionType type, std::unique_ptr<PdfAction>& action);
 
 private:
-    void append(const PdfDocument& doc, bool appendAll);
-    /// Recursively changes every PdfReference in the PdfObject and in any child
-    /// that is either an PdfArray or a direct object.
-    /// The reference is changed so that difference is added to the object number
-    /// of the reference.
-    /// @param obj object to change
-    /// @param difference add this value to every reference that is encountered
-    void fixObjectReferences(PdfObject& obj, int difference);
-
     void deletePages(unsigned atIndex, unsigned pageCount);
+
+    void appendOutlineItems(PdfOutlineItem& destParent, const PdfOutlineItem* srcItem,
+        const PdfIndirectObjectList& srcObjects, std::unordered_map<PdfReference, PdfObject*>& mappedObjects);
 
     void resetPrivate();
 
