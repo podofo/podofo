@@ -141,8 +141,9 @@ private:
     /// @param skipFollowPrevious don't follow previous incremental update
     void ReadDocumentStructure(InputStreamDevice& device, ssize_t eofSearchOffset = -1, bool skipFollowPrevious = false);
 
-    /// Reads the xref table from a pdf file.
-    /// If there is no xref table, ReadXRefStreamContents() is called.
+    /// Reads the xref table from a pdf file, iterating over the whole
+    /// /Prev chain of incremental updates. For each revision, if there is
+    /// no "xref" table, ReadXRefStreamContents() is called instead.
     /// @param offset read the table from this offset
     /// @param skipFollowPrevious don't follow previous incremental update
     void ReadXRefContents(InputStreamDevice& device, size_t offset, bool skipFollowPrevious);
@@ -159,9 +160,8 @@ private:
 
     /// Reads an XRef stream contents object
     /// @param offset read the stream from this offset
-    /// @param skipFollowPrevious only the trailer is skipped over, the contents
-    ///         of the xref stream are not parsed
-    void ReadXRefStreamContents(InputStreamDevice& device, size_t offset, bool skipFollowPrevious);
+    /// @param prevOffset returns the /Prev offset of the stream, if any
+    void ReadXRefStreamContents(InputStreamDevice& device, size_t offset, nullable<size_t>& prevOffset);
 
     /// Reads objects offsets and references into memory
     void ReadObjectEntries(InputStreamDevice& device);
@@ -216,7 +216,7 @@ private:
     ///
     void readCompressedObjectFromStream(uint32_t objNo, const std::unordered_set<uint32_t>& objectList);
 
-    void readNextTrailer(InputStreamDevice& device, bool skipFollowPrevious);
+    void readNextTrailer(InputStreamDevice& device, nullable<size_t>& prevOffset);
 
 
     /// Checks for the existence of the %%EOF marker at the end of the file.

@@ -64,7 +64,10 @@ namespace PoDoFo
 
         void ReadXRefStreamContents(size_t offset, bool skipFollowPrevious)
         {
-            PdfParser::ReadXRefStreamContents(*m_device, offset, skipFollowPrevious);
+            nullable<size_t> prevOffset;
+            PdfParser::ReadXRefStreamContents(*m_device, offset, prevOffset);
+            if (!skipFollowPrevious && prevOffset != nullptr)
+                PdfParser::ReadXRefContents(*m_device, *prevOffset, false);
         }
 
         void ReadDocumentStructure()
@@ -2776,31 +2779,20 @@ TEST_CASE("TestReset")
 
 TEST_CASE("TestManyTrailer")
 {
-    try
-    {
-        PdfCommon::SetMaxRecursionDepth(256);
-        PdfMemDocument doc;
-        doc.Load(TestUtils::GetTestInputFilePath("Empty160trailer.pdf"));
-    }
-    catch (PdfError&)
-    {
-        return;
-    }
-    FAIL("Should fail with stack overflow");
+    // A document with a long chain of incremental updates must be parsed
+    // iteratively without overflowing the stack
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("Empty160trailer.pdf"));
+    REQUIRE(doc.GetPages().GetCount() == 1);
 }
 
 TEST_CASE("TestManyTrailerXRefStream")
 {
-    try
-    {
-        PdfMemDocument doc;
-        doc.Load(TestUtils::GetTestInputFilePath("EmptyXRefStream225Trailer.pdf"));
-    }
-    catch (PdfError&)
-    {
-        return;
-    }
-    FAIL("Should fail with stack overflow");
+    // A document with a long chain of XRef streams must be parsed
+    // iteratively without overflowing the stack
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("EmptyXRefStream225Trailer.pdf"));
+    REQUIRE(doc.GetPages().GetCount() == 1);
 }
 
 TEST_CASE("TestXRefPDF10")
