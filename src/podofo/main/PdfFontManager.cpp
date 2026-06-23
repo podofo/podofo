@@ -69,6 +69,7 @@ PdfFontManager::PdfFontManager(PdfDocument& doc)
 void PdfFontManager::Clear()
 {
     m_cachedQueries.clear();
+    m_cachedPaths.clear();
     m_fonts.clear();
 }
 
@@ -420,6 +421,7 @@ void PdfFontManager::EmbedFonts()
     // Clear imported font cache
     // TODO: Don't clean standard14 and full embedded fonts
     m_cachedQueries.clear();
+    m_cachedPaths.clear();
 }
 
 #if defined(_WIN32) && defined(PODOFO_HAVE_WIN32GDI)
