@@ -389,10 +389,16 @@ void PdfParser::readNextTrailer(InputStreamDevice& device, bool skipFollowPrevio
     if (trailerPtr->GetDictionary().TryFindKeyAs<int64_t>("XRefStm", xrefStmOffset))
     {
         // The trailer is hybrid-reference file's trailer with a
-        // separate XRef stream: just read it
+        // separate XRef stream: just read it. Note that we shall
+        // not follow a /Prev entry in the XRef stream. ISO 32000-2:2020 says in
+        // 7.5.8.4 Compatibility with applications that do not support compressed
+        // reference streams "...the search shall proceed to a cross-reference
+        // stream specified by the XRefStm entry before looking in the previous
+        // cross-reference section (the Prev entry in the trailer)", implying that
+        // the main cross-reference section is still the legacy one
         try
         {
-            ReadXRefStreamContents(device, static_cast<size_t>(xrefStmOffset), skipFollowPrevious);
+            ReadXRefStreamContents(device, static_cast<size_t>(xrefStmOffset), true);
         }
         catch (PdfError& e)
         {
