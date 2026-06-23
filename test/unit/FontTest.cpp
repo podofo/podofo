@@ -303,3 +303,18 @@ bool getFontInfo(FcPattern* font, string& fontFamily, string& fontPath,
 }
 
 #endif // PODOFO_HAVE_FONTCONFIG
+
+TEST_CASE("TestGetOrCreateFontAfterEmbedAndReset")
+{
+    auto fontPath = TestUtils::GetTestInputFilePath("Fonts", "LiberationSans-Regular.ttf");
+
+    PdfMemDocument doc;
+    auto& font1 = doc.GetFonts().GetOrCreateFont(fontPath);
+    REQUIRE(font1.GetMetrics().GetFontName() == "LiberationSans");
+
+    doc.GetFonts().EmbedFonts();
+    doc.Reset();
+
+    auto& font2 = doc.GetFonts().GetOrCreateFont(fontPath);
+    REQUIRE(font2.GetMetrics().GetFontName() == "LiberationSans");
+}
