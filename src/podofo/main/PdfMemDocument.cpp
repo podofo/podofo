@@ -88,13 +88,6 @@ void PdfMemDocument::initFromParser(PdfParser& parser)
     m_MagicOffset = parser.GetMagicOffset();
     this->SetTrailer(parser.TakeTrailer());
 
-    if (PdfCommon::IsLoggingSeverityEnabled(PdfLogSeverity::Debug))
-    {
-        auto debug = GetTrailer().GetObject().ToString();
-        debug.push_back('\n');
-        PoDoFo::LogMessage(PdfLogSeverity::Debug, debug);
-    }
-
     auto encrypt = parser.GetEncrypt();
     if (encrypt != nullptr)
         m_Encrypt.reset(new PdfEncryptSession(*encrypt));
