@@ -230,7 +230,17 @@ void PdfDocument::lazyLoadInfo()
     PODOFO_INVARIANT(m_Catalog != nullptr);
     auto infoObj = m_TrailerObj->GetDictionary().FindKey("Info");
     if (infoObj != nullptr)
-        m_Info = unique_ptr<PdfInfo>(new PdfInfo(*infoObj));
+    {
+        try
+        {
+            m_Info = unique_ptr<PdfInfo>(new PdfInfo(*infoObj));
+        }
+        catch (PdfError& ex)
+        {
+            PoDoFo::LogMessage(PdfLogSeverity::Warning,
+                "Failed to load /Info dictionary: {}", ex.what());
+        }
+    }
 
     m_InfoLazyLoaded = true;
 }
