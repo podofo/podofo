@@ -11,7 +11,6 @@
 
 #include <string>
 #include <map>
-#include <set>
 #include <vector>
 #include <sstream>
 #include <istream>
@@ -28,11 +27,9 @@ namespace PoDoFo::Impose
     in content stream rather than in resources, you'll get a huge file.
     Usage is something like :
     p = new PdfTranslator;
-    p->setSource("mydoc.pdf");
-    p->setTarget("myimposeddoc.pdf");
-    p->loadPlan("in4-32p.plan");
-    p->impose();
-    p->mailItToMyPrinterShop("job@proprint.com");//Would be great, doesn't it ?
+    p->SetInputOutput("mydoc.pdf", "myimposeddoc.pdf");
+    p->LoadPlan("in4-32p.plan");
+    p->Impose();
     */
     class PdfTranslator
     {
@@ -40,15 +37,12 @@ namespace PoDoFo::Impose
         PdfTranslator();
 
         /**
-        Set the source document(s) to be imposed.
-        Argument source is the path of the PDF file, or the path of a file containing a list of paths of PDF files...
+        Set the source document(s) to be imposed and the path of the file where the
+        imposed PDF document will be saved.
+        Argument input is the path of a PDF file, or the path of a file containing a list
+        of PDF file paths. Argument output is the path of the file to be written.
         */
-        void SetSource(const std::string_view& source);
-
-        /**
-        Set the path of the file where the imposed PDF doc will be save.
-        */
-        void SetTarget(const std::string_view& target);
+        void SetInputOutput(const std::string_view& input, const std::string_view& output);
 
         /**
         Load an imposition plan file of form:
@@ -64,10 +58,6 @@ namespace PoDoFo::Impose
         void Impose();
 
     private:
-        bool checkIsPDF(const std::string_view& path);
-        PdfObject* getInheritedResources(PdfPage& page);
-        PdfObject* migrateResource(PdfObject* obj);
-
         std::vector<double> transformMatrix;
         void transform(double a, double b, double c, double d, double e, double f);
         void translate(double dx, double dy);
@@ -76,7 +66,6 @@ namespace PoDoFo::Impose
         void rotate_and_translate(double theta, double dx, double dy);
 
     private:
-        std::unique_ptr<PdfMemDocument> m_sourceDoc;
         std::unique_ptr<PdfMemDocument> m_targetDoc;
 
         std::string m_outFilePath;
@@ -84,16 +73,10 @@ namespace PoDoFo::Impose
         std::unique_ptr<ImpositionPlan> m_planImposition;
 
         std::map<int, std::unique_ptr<PdfXObjectForm>> m_xobjects;
-        std::map<int, PdfObject*> m_resources;
         std::map<int, Rect> m_cropRect;
         std::map<int, Rect> m_bleedRect;
         std::map<int, Rect> m_trimRect;
         std::map<int, Rect> m_artRect;
-
-        std::vector<std::string> m_multiSource;
-
-        std::map<std::string, PdfObject*> m_migrateMap;
-        std::set<PdfObject*> m_setMigrationPending;
 
         unsigned m_pageCount;
         double m_sourceWidth;

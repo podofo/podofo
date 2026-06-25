@@ -78,8 +78,7 @@ void Main(const cspan<string_view>& args)
     cerr << "Plan   : " << params.planFilePath << endl;
 
     PdfTranslator translator;
-    translator.SetSource(params.inFilePath);
-    translator.SetTarget(params.outFilePath);
+    translator.SetInputOutput(params.inFilePath, params.outFilePath);
     translator.LoadPlan(params.planFilePath, params.planReader);
     translator.Impose();
 }

@@ -20,12 +20,8 @@ using namespace std;
 using namespace PoDoFo;
 using namespace PoDoFo::Impose;
 
-bool PdfTranslator::checkIsPDF(const string_view& path)
-{
-    FileStreamDevice device(path);
-    PdfVersion version;
-    return PdfParser::TryReadHeader(device, version);
-}
+static bool checkIsPDF(const string_view& path);
+static Rect toFormSpace(const Rect& rect, unsigned rotation);
 
 PdfTranslator::PdfTranslator()
 {
@@ -37,22 +33,23 @@ PdfTranslator::PdfTranslator()
     m_destHeight = 0;
 }
 
-void PdfTranslator::SetSource(const string_view& source)
+void PdfTranslator::SetInputOutput(const string_view& input, const string_view& output)
 {
-    if (checkIsPDF(source))
+    vector<string> sources;
+    if (checkIsPDF(input))
     {
-        m_multiSource.push_back((string)source);
+        sources.emplace_back(input);
     }
     else
     {
-        ifstream in = utls::open_ifstream(source, ifstream::in);
+        ifstream in = utls::open_ifstream(input, ifstream::in);
         if (!in.good())
-            throw runtime_error("setSource() failed to open input file");
+            throw runtime_error("SetInputOutput() failed to open input file");
 
         string filename;
         while (true)
         {
-            if (!std::getline(in, filename))
+            if (std::getline(in, filename).fail())
             {
                 if (in.eof())
                     break;
@@ -64,246 +61,71 @@ void PdfTranslator::SetSource(const string_view& source)
                 continue;
 
             if (filename.size() > 4) // at least ".pdf" because just test if ts is empty doesn't work.
-                m_multiSource.push_back(filename);
+                sources.push_back(filename);
         }
         in.close();
     }
 
-    if (m_multiSource.empty())
+    if (sources.empty())
         throw runtime_error("No recognized source given");
 
-    m_sourceDoc.reset(new PdfMemDocument());
-    m_sourceDoc->Load(m_multiSource.front());
+    m_outFilePath = output;
+    m_pageCount = 0;
 
-    for (unsigned i = 1; i < m_multiSource.size(); i++)
+    for (size_t i1 = 0; i1 < sources.size(); i1++)
     {
-        PdfMemDocument doc;
-        doc.Load(m_multiSource[i]);
-        m_sourceDoc->GetPages().AppendDocumentPages(doc, 0, doc.GetPages().GetCount());
-    }
+        const bool isFirst = (i1 == 0);
+        PdfMemDocument tmpDoc;
+        PdfMemDocument* workingDoc;
 
-    m_pageCount = m_sourceDoc->GetPages().GetCount();
-    if (m_pageCount > 0) // only here to avoid possible segfault, but PDF without page is not conform IIRC
-    {
-        auto& firstPage = m_sourceDoc->GetPages().GetPageAt(0);
-
-        Rect rect(firstPage.GetMediaBox());
-        // keep in mind it’s just a hint since PDF can have different page sizes in a same doc
-        m_sourceWidth = rect.Width - rect.X;
-        m_sourceHeight = rect.Height - rect.Y;
-    }
-}
-
-PdfObject* PdfTranslator::migrateResource(PdfObject* obj)
-{
-    PdfObject* ret = nullptr;
-
-    if (obj == nullptr)
-    {
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "migrateResource called"
-            " with nullptr object");
-    }
-
-    switch (obj->GetDataType())
-    {
-        case PdfDataType::Dictionary:
+        if (isFirst)
         {
-            if (obj->GetIndirectReference().IsIndirect())
-                ret = &m_targetDoc->GetObjects().CreateObject(*obj);
-            else
-                ret = new PdfObject(*obj);
-
-            for (auto& pair : obj->GetDictionary())
-            {
-                PdfObject* o = &pair.second;
-                auto res = m_setMigrationPending.insert(o);
-                if (!res.second)
-                {
-                    ostringstream oss;
-                    oss << "Cycle detected: Object with ref " << o->GetIndirectReference().ToString()
-                        << " is already pending migration to the target.\n";
-                    PoDoFo::LogMessage(PdfLogSeverity::Warning, oss.str());
-                    continue;
-                }
-                PdfObject* migrated = migrateResource(o);
-                if (migrated != nullptr)
-                {
-                    ret->GetDictionary().AddKey(pair.first, *migrated);
-                    if (!(migrated->GetIndirectReference().IsIndirect()))
-                        delete migrated;
-                }
-            }
-
-            if (obj->HasStream())
-            {
-                *(ret->GetStream()) = *(obj->GetStream());
-            }
-            break;
+            m_targetDoc.reset(new PdfMemDocument());
+            m_targetDoc->Load(sources[i1]);
+            workingDoc = m_targetDoc.get();
         }
-        case PdfDataType::Array:
+        else
         {
-            PdfArray carray(obj->GetArray());
-            PdfArray narray;
-            for (unsigned ci = 0; ci < carray.GetSize(); ci++)
-            {
-                PdfObject* co(migrateResource(&carray[ci]));
-                if (co == nullptr)
-                    continue;
-
-                narray.Add(*co);
-                if (!(co->GetIndirectReference().IsIndirect()))
-                {
-                    delete co;
-                }
-            }
-            if (obj->GetIndirectReference().IsIndirect())
-            {
-                ret = &m_targetDoc->GetObjects().CreateObject(narray);
-            }
-            else
-            {
-                ret = new PdfObject(narray);
-            }
-
-            break;
+            tmpDoc.Load(sources[i1]);
+            workingDoc = &tmpDoc;
         }
-        case PdfDataType::Reference:
-        {
-            if (m_migrateMap.find(obj->GetReference().ToString()) != m_migrateMap.end())
-            {
-                ostringstream oss;
-                oss << "Referenced object " << obj->GetReference().ToString()
-                    << " already migrated." << endl;
-                PoDoFo::LogMessage(PdfLogSeverity::Debug, oss.str());
 
-                const PdfObject* const found = m_migrateMap[obj->GetReference().ToString()];
-                return new PdfObject(found->GetIndirectReference());
-            }
+        unsigned pageCount = workingDoc->GetPages().GetCount();
 
-            PdfObject* to_migrate = m_sourceDoc->GetObjects().GetObject(obj->GetReference());
+        if (isFirst && pageCount > 0)
+        {
+            // Keep in mind it's just a hint since PDF can have different page sizes in a same doc
+            Rect rect = workingDoc->GetPages().GetPageAt(0).GetMediaBox();
+            m_sourceWidth = rect.Width - rect.X;
+            m_sourceHeight = rect.Height - rect.Y;
+        }
 
-            pair<set<PdfObject*>::iterator, bool> res
-                = m_setMigrationPending.insert(to_migrate);
-            if (!res.second)
-            {
-                ostringstream oss;
-                oss << "Cycle detected: Object with ref " << obj->GetReference().ToString()
-                    << " is already pending migration to the target.\n";
-                PoDoFo::LogMessage(PdfLogSeverity::Warning, oss.str());
-                return nullptr; // skip this migration
-            }
-            PdfObject* o(migrateResource(to_migrate));
-            if (nullptr != o)
-                ret = new PdfObject(o->GetIndirectReference());
-            else
-                return nullptr; // avoid going through rest of method
-            break;
-        }
-        case PdfDataType::Name:
+        for (unsigned i2 = 0; i2 < pageCount; i2++)
         {
-            ret = &m_targetDoc->GetObjects().CreateObject(obj->GetName());
-            break;
+            auto& page = workingDoc->GetPages().GetPageAt(i2);
+
+            auto xobj = m_targetDoc->CreateXObjectForm(Rect());
+            xobj->FillFromPage(page, false);
+
+            unsigned key = m_pageCount + 1;
+            unsigned rot = page.GetRotation();
+            m_cropRect[key] = toFormSpace(page.GetCropBox(), rot);
+            m_bleedRect[key] = toFormSpace(page.GetBleedBox(), rot);
+            m_trimRect[key] = toFormSpace(page.GetTrimBox(), rot);
+            m_artRect[key] = toFormSpace(page.GetArtBox(), rot);
+            m_xobjects[key] = std::move(xobj);
+
+            m_pageCount++;
         }
-        case PdfDataType::Number:
+
+        if (isFirst)
         {
-            ret = &m_targetDoc->GetObjects().CreateObject(obj->GetNumber());
-            break;
-        }
-        case PdfDataType::Null:
-        {
-            ret = &m_targetDoc->GetObjects().CreateDictionaryObject();
-            break;
-        }
-        default:
-        {
-            ret = new PdfObject(*obj);
-            break;
+            // The original pages of the first doc have been captured as xobjects
+            // and are no longer needed in the page tree
+            for (unsigned i2 = pageCount; i2 > 0; i2--)
+                m_targetDoc->GetPages().RemovePageAt(i2 - 1);
         }
     }
-
-    if (obj->GetIndirectReference().IsIndirect())
-    {
-        m_migrateMap.insert(pair<string, PdfObject*>(obj->GetIndirectReference().ToString(), ret));
-    }
-
-    return ret;
-}
-
-PdfObject* PdfTranslator::getInheritedResources(PdfPage& page)
-{
-    PdfObject* res(0);
-    // mabri: resources are inherited as whole dict, not at all if the page has the dict
-    // mabri: specified in PDF32000_2008.pdf section 7.7.3.4 Inheritance of Page Attributes
-    // mabri: and in section 7.8.3 Resource Dictionaries
-    PdfObject* sourceRes = page.GetDictionary().FindKeyParent("Resources");
-    if (sourceRes != nullptr)
-        res = migrateResource(sourceRes);
-
-    return res;
-}
-
-void PdfTranslator::SetTarget(const string_view& target)
-{
-    if (m_sourceDoc == nullptr)
-        throw logic_error("setTarget() called before setSource()");
-
-    m_targetDoc.reset(new PdfMemDocument);
-    m_outFilePath = target;
-
-    for (unsigned i = 0; i < m_pageCount; i++)
-    {
-        auto& page = m_sourceDoc->GetPages().GetPageAt(i);
-        charbuff buff;
-        BufferStreamDevice outMemStream(buff);
-
-        auto xobj = m_sourceDoc->CreateXObjectForm(page.GetMediaBox());
-        if (page.GetContents() != nullptr)
-            page.GetContents()->CopyTo(outMemStream);
-
-        /// Its time to manage other keys of the page dictionary.
-        vector<string> pageKeys;
-        pageKeys.push_back("Group");
-        for (auto& key : pageKeys)
-        {
-            PdfName keyname(key);
-            if (page.GetDictionary().HasKey(keyname))
-            {
-                PdfObject* migObj = migrateResource(page.GetDictionary().GetKey(keyname));
-                if (nullptr == migObj)
-                    continue;
-                xobj->GetDictionary().AddKey(keyname, *migObj);
-            }
-        }
-
-        outMemStream.Close();
-
-        xobj->GetObject().GetOrCreateStream().SetData(buff);
-
-        m_resources[i + 1] = getInheritedResources(page);
-        m_xobjects[i + 1] = std::move(xobj);
-        m_cropRect[i + 1] = page.GetCropBox();
-        m_bleedRect[i + 1] = page.GetBleedBox();
-        m_trimRect[i + 1] = page.GetTrimBox();
-        m_artRect[i + 1] = page.GetArtBox();
-    }
-
-    m_targetDoc->GetMetadata().SetPdfVersion(m_sourceDoc->GetMetadata().GetPdfVersion());
-
-    auto& sourceMetadata = m_sourceDoc->GetMetadata();
-    auto& targetMetadata = m_targetDoc->GetMetadata();
-
-    if (sourceMetadata.GetAuthor().has_value())
-        targetMetadata.SetAuthor(*sourceMetadata.GetAuthor());
-    if (sourceMetadata.GetCreator().has_value())
-        targetMetadata.SetCreator(*sourceMetadata.GetCreator());
-    if (sourceMetadata.GetSubject().has_value())
-        targetMetadata.SetSubject(*sourceMetadata.GetSubject());
-    if (sourceMetadata.GetTitle().has_value())
-        targetMetadata.SetTitle(*sourceMetadata.GetTitle());
-    if (sourceMetadata.GetKeywords().size() != 0)
-        targetMetadata.SetKeywords(sourceMetadata.GetKeywords());
-    if (sourceMetadata.GetTrapped().has_value())
-        targetMetadata.SetTrapped(*sourceMetadata.GetTrapped());
 }
 
 void PdfTranslator::transform(double a, double b, double c, double d, double e, double f)
@@ -452,22 +274,6 @@ void PdfTranslator::Impose()
                 op << "OriginalPage" << resourceIndex;
                 xdict.AddKey(PdfName(op.str()), xo->GetObject().GetIndirectReference());
 
-                if (m_resources[resourceIndex] != nullptr)
-                {
-                    if (m_resources[resourceIndex]->IsDictionary())
-                    {
-                        for (auto& resPair : m_resources[resourceIndex]->GetDictionary())
-                            xo->GetOrCreateResources().GetDictionary().AddKey(resPair.first, resPair.second);
-                    }
-                    else if (m_resources[resourceIndex]->IsReference())
-                    {
-                        xo->GetDictionary().AddKey("Resources", *m_resources[resourceIndex]);
-                    }
-                    else
-                    {
-                        cerr << "ERROR Unknown type resource " << m_resources[resourceIndex]->GetDataTypeString() << endl;
-                    }
-                }
                 // Make sure we start with an empty transformMatrix.
                 transformMatrix.clear();
                 translate(0, 0);
@@ -494,5 +300,19 @@ void PdfTranslator::Impose()
     }
 
     m_targetDoc->Save(m_outFilePath);
-    m_resources.clear();
+}
+
+bool checkIsPDF(const string_view& path)
+{
+    FileStreamDevice device(path);
+    PdfVersion version;
+    return PdfParser::TryReadHeader(device, version);
+}
+
+Rect toFormSpace(const Rect& rect, unsigned rotation)
+{
+    Rect out = rect;
+    if (rotation == 90 || rotation == 270)
+        std::swap(out.Width, out.Height);
+    return out;
 }
