@@ -327,9 +327,9 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
     return box;
 }
 
-void PdfDocument::CollectGarbage()
+void PdfDocument::CollectGarbage(PdfGarbageCollectionFlags flags)
 {
-    m_Objects.CollectGarbage();
+    m_Objects.CollectGarbage(flags);
 }
 
 PdfOutlines& PdfDocument::GetOrCreateOutlines()

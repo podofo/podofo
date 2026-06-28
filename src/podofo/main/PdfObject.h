@@ -463,7 +463,7 @@ protected:
 private:
     // To be called privately by various classes
     PdfVariant& GetVariantUnsafe() { return m_Variant; }
-    PdfReference GetReferenceUnsafe() const { return m_Variant.GetReferenceUnsafe(); }
+    const PdfReference& GetReferenceUnsafe() const { return m_Variant.GetReferenceUnsafe(); }
     const PdfDictionary& GetDictionaryUnsafe() const { return m_Variant.GetDictionaryUnsafe(); }
     const PdfArray& GetArrayUnsafe() const { return m_Variant.GetArrayUnsafe(); }
     PdfDictionary& GetDictionaryUnsafe() { return m_Variant.GetDictionaryUnsafe(); }

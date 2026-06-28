@@ -13,6 +13,12 @@ class PdfObjectStreamProvider;
 using PdfFreeObjectList = std::deque<PdfReference>;
 using PdfObjectNumSet = std::set<uint32_t>;
 
+enum class PdfGarbageCollectionFlags : uint32_t
+{
+    None = 0,
+    SkipFixInvalidRefs = 1,      ///< Do not fix references pointing to missing objects by forcing them to 0 0 R
+};
+
 /// A list of PdfObjects that constitutes the indirect object list
 /// of the document
 /// The PdfParser will read the PdfFile into memory and create
@@ -83,7 +89,7 @@ public:
     /// Deletes all objects that are not references by other objects
     /// besides the trailer (which references the root dictionary, which in
     /// turn should reference all other objects).
-    void CollectGarbage();
+    void CollectGarbage(PdfGarbageCollectionFlags flags = PdfGarbageCollectionFlags::None);
 
 public:
     /// @returns the size of the internal object list
@@ -176,7 +182,7 @@ private:
     PdfIndirectObjectList& operator=(const PdfIndirectObjectList&) = delete;
 
 private:
-    void CollectGarbage(PdfObject& trailer);
+    void CollectGarbage(PdfObject& trailer, bool fixInvalidReference);
 
     /// Creates a stream object
     /// This method is a factory for PdfObjectStream objects.
@@ -281,7 +287,7 @@ private:
     /// @returns the next free object reference
     PdfReference getNextFreeObject();
 
-    void visitObject(const PdfObject& obj, std::unordered_set<PdfReference>& referencedObj);
+    void visitObject(PdfObject& obj, std::unordered_set<PdfReference>& referencedObj, bool fixInvalidReference);
 
     /// Set the object count so that the object described this reference
     /// is contained in the object count.
@@ -303,5 +309,7 @@ private:
 };
 
 };
+
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfGarbageCollectionFlags);
 
 #endif // PDF_INDIRECT_OBJECT_LIST_H

@@ -347,18 +347,19 @@ void PdfIndirectObjectList::pushObject(const ObjectList::const_iterator& hintpos
     tryIncrementLastObjectNumber(obj->GetIndirectReference().ObjectNumber());
 }
 
-void PdfIndirectObjectList::CollectGarbage()
+void PdfIndirectObjectList::CollectGarbage(PdfGarbageCollectionFlags flags)
 {
     if (m_Document == nullptr)
         return;
 
-    CollectGarbage(m_Document->GetTrailer().GetObject());
+    CollectGarbage(m_Document->GetTrailer().GetObject(),
+        (flags & PdfGarbageCollectionFlags::SkipFixInvalidRefs) == PdfGarbageCollectionFlags::None);
 }
 
-void PdfIndirectObjectList::CollectGarbage(PdfObject& trailer)
+void PdfIndirectObjectList::CollectGarbage(PdfObject& trailer, bool fixInvalidReference)
 {
     unordered_set<PdfReference> referencedOjects;
-    visitObject(trailer, referencedOjects);
+    visitObject(trailer, referencedOjects, fixInvalidReference);
     for (auto objId : m_compressedObjectStreams)
     {
         PdfReference ref(objId, 0);
@@ -367,7 +368,7 @@ void PdfIndirectObjectList::CollectGarbage(PdfObject& trailer)
 
         // If the compressed object streams are not referenced,
         // visit them as well as they won't be deleted
-        visitObject(*GetObject(ref), referencedOjects);
+        visitObject(*GetObject(ref), referencedOjects, fixInvalidReference);
     }
 
     vector<PdfObject*> objectsToDelete;
@@ -393,40 +394,53 @@ void PdfIndirectObjectList::CollectGarbage(PdfObject& trailer)
     m_Objects.swap(newlist);
 }
 
-void PdfIndirectObjectList::visitObject(const PdfObject& obj, unordered_set<PdfReference>& referencedObjects)
+void PdfIndirectObjectList::visitObject(PdfObject& obj, unordered_set<PdfReference>& referencedObjects, bool fixInvalidReference)
 {
     switch (obj.GetDataType())
     {
         case PdfDataType::Reference:
         {
             // Try to check if the object has been already visited
-            auto indirectReference = obj.GetReferenceUnsafe();
-            auto inserted = referencedObjects.insert(indirectReference);
+            auto& reference = obj.GetReferenceUnsafe();
+            auto childObj = GetObject(reference);
+            if (childObj == nullptr)
+            {
+                if (fixInvalidReference)
+                {
+                    // Unconditionally reset the reference to
+                    // a null "0 0 R" reference. This is helpful
+                    // to prevent silent corruptions of the document
+                    // in case a reference is pointing to a unexisting
+                    // object and a new object with the same reference
+                    // is added later by other means
+                    obj.SetReference(PdfReference());
+                }
+
+                break;
+            }
+
+            auto inserted = referencedObjects.insert(reference);
             if (!inserted.second)
             {
                 // The object has been visited, just return
                 break;
             }
 
-            auto childObj = GetObject(indirectReference);
-            if (childObj == nullptr)
-                break;
-
-            visitObject(*childObj, referencedObjects);
+            visitObject(*childObj, referencedObjects, fixInvalidReference);
             break;
         }
         case PdfDataType::Array:
         {
             auto& arr = obj.GetArrayUnsafe();
             for (auto& child : arr)
-                visitObject(child, referencedObjects);
+                visitObject(child, referencedObjects, fixInvalidReference);
             break;
         }
         case PdfDataType::Dictionary:
         {
             auto& dict = obj.GetDictionaryUnsafe();
             for (auto& pair : dict)
-                visitObject(pair.second, referencedObjects);
+                visitObject(pair.second, referencedObjects, fixInvalidReference);
             break;
         }
         default:

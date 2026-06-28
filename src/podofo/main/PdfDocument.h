@@ -139,7 +139,7 @@ public:
     /// @returns PdfObject the AcroForm dictionary
     PdfAcroForm& GetOrCreateAcroForm(PdfAcroFormDefaulAppearance eDefaultAppearance = PdfAcroFormDefaulAppearance::ArialBlack);
 
-    void CollectGarbage();
+    void CollectGarbage(PdfGarbageCollectionFlags flags = PdfGarbageCollectionFlags::None);
 
     /// Construct a new PdfImage object
     std::unique_ptr<PdfImage> CreateImage();

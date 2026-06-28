@@ -324,7 +324,7 @@ bool PdfParser::tryRebuildCrossReference(InputStreamDevice& device)
             return false;
 
         // Finally, remove spurious objects, eg. objects with outdated generations
-        m_Objects->CollectGarbage(*m_Trailer);
+        m_Objects->CollectGarbage(*m_Trailer, true);
 
         // Restore the header
         m_PdfVersion = version;
