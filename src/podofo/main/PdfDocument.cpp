@@ -706,19 +706,29 @@ static void copyReferencedObjects(PdfObject& obj, const PdfIndirectObjectList& s
             if (pair.second.TryGetReference(srcRef))
             {
                 auto it = mappedObjects.find(srcRef);
-                if (it != mappedObjects.end())
-                {
-                    pair.second = PdfObject(it->second->GetIndirectReference());
-                }
-                else
+                if (it == mappedObjects.end())
                 {
                     auto* srcChild = src.GetObject(srcRef);
-                    if (srcChild != nullptr)
+                    if (srcChild == nullptr)
+                    {
+                        // Unconditionally reset the reference to
+                        // a null "0 0 R" reference. This is helpful
+                        // to prevent silent corruptions of the document
+                        // in case a reference is pointing to a unexisting
+                        // object and a new object with the same reference
+                        // is added later by other means
+                        pair.second.SetReference(PdfReference());
+                    }
+                    else
                     {
                         auto& copied = copyIndirectObject(dest, *srcChild, mappedObjects);
                         pair.second = PdfObject(copied.GetIndirectReference());
                         copyReferencedObjects(copied, src, dest, mappedObjects);
                     }
+                }
+                else
+                {
+                    pair.second = PdfObject(it->second->GetIndirectReference());
                 }
             }
             else if (pair.second.IsDictionary() || pair.second.IsArray())
@@ -734,19 +744,29 @@ static void copyReferencedObjects(PdfObject& obj, const PdfIndirectObjectList& s
             if (child.TryGetReference(srcRef))
             {
                 auto it = mappedObjects.find(srcRef);
-                if (it != mappedObjects.end())
-                {
-                    child = PdfObject(it->second->GetIndirectReference());
-                }
-                else
+                if (it == mappedObjects.end())
                 {
                     auto* srcChild = src.GetObject(srcRef);
-                    if (srcChild != nullptr)
+                    if (srcChild == nullptr)
+                    {
+                        // Unconditionally reset the reference to
+                        // a null "0 0 R" reference. This is helpful
+                        // to prevent silent corruptions of the document
+                        // in case a reference is pointing to a unexisting
+                        // object and a new object with the same reference
+                        // is added later by other means
+                        child.SetReference(PdfReference());
+                    }
+                    else
                     {
                         auto& copied = copyIndirectObject(dest, *srcChild, mappedObjects);
                         child = PdfObject(copied.GetIndirectReference());
                         copyReferencedObjects(copied, src, dest, mappedObjects);
                     }
+                }
+                else
+                {
+                    child = PdfObject(it->second->GetIndirectReference());
                 }
             }
             else if (child.IsDictionary() || child.IsArray())
