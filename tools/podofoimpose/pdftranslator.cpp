@@ -82,6 +82,7 @@ void PdfTranslator::SetInputOutput(const string_view& input, const string_view& 
         {
             m_targetDoc.reset(new PdfMemDocument());
             m_targetDoc->Load(sources[i1]);
+            m_targetDoc->CollectGarbage();
             workingDoc = m_targetDoc.get();
         }
         else
