@@ -273,7 +273,11 @@ private:
 
     PdfVariant(PdfArray* arr);
 
-    PdfReference GetReferenceUnsafe() const;
+    const PdfReference& GetReferenceUnsafe() const
+    {
+        return m_Reference;
+    }
+
     const PdfDictionary& GetDictionaryUnsafe() const;
     const PdfArray& GetArrayUnsafe() const;
     PdfDictionary& GetDictionaryUnsafe();

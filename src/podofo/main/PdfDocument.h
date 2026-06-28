@@ -143,6 +143,8 @@ public:
 
     void CollectGarbage();
 
+    void CollectGarbage(PdfGarbageCollectionFlags flags);
+
     /// Construct a new PdfImage object
     std::unique_ptr<PdfImage> CreateImage();
 

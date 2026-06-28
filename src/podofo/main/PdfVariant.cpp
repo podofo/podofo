@@ -872,11 +872,6 @@ bool PdfVariant::tryGetArray(PdfArray*& arr) const
     return true;
 }
 
-PdfReference PdfVariant::GetReferenceUnsafe() const
-{
-    return m_Reference;
-}
-
 const PdfDictionary& PdfVariant::GetDictionaryUnsafe() const
 {
     return *(const PdfDictionary*)m_Dictionary.Value;
