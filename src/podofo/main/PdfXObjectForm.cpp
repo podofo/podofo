@@ -41,7 +41,7 @@ void PdfXObjectForm::FillFromPage(const PdfPage& page, bool useTrimBox)
 
 void PdfXObjectForm::FillFromPage(const PdfPage& page, PdfObjectRelocationMap* map)
 {
-    FillFromPage(page, PdfFillFormFlags::None, nullptr);
+    FillFromPage(page, PdfFillFormFlags::None, map);
 }
 
 void PdfXObjectForm::FillFromPage(const PdfPage& page, PdfFillFormFlags flags, PdfObjectRelocationMap* map)
