@@ -36,8 +36,18 @@ PdfXObjectForm::PdfXObjectForm(PdfObject& obj)
 
 void PdfXObjectForm::FillFromPage(const PdfPage& page, bool useTrimBox)
 {
+    FillFromPage(page, useTrimBox ? PdfFillFormFlags::UseTrimBox : PdfFillFormFlags::None, nullptr);
+}
+
+void PdfXObjectForm::FillFromPage(const PdfPage& page, PdfObjectRelocationMap* map)
+{
+    FillFromPage(page, PdfFillFormFlags::None, nullptr);
+}
+
+void PdfXObjectForm::FillFromPage(const PdfPage& page, PdfFillFormFlags flags, PdfObjectRelocationMap* map)
+{
     // After filling, set correct BBox and Matrix accounting for page rotation
-    m_Rect = GetDocument().FillXObjectFromPage(*this, page, useTrimBox);
+    m_Rect = GetDocument().FillXObjectFromPage(*this, page, flags, map == nullptr ? nullptr : &map->Map);
 
     // BBox must be in form space (ISO 32000-2:2020 8.10.2 "Form dictionaries"),
     // but m_Rect arrives post-rotation from GetMediaBox() with W/H already swapped

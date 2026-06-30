@@ -285,12 +285,36 @@ void PdfPageCollection::AppendDocumentPages(const PdfDocument& doc)
 
 void PdfPageCollection::AppendDocumentPages(const PdfDocument& doc, unsigned pageIndex, unsigned pageCount)
 {
-    return GetDocument().AppendDocumentPages(doc, pageIndex, pageCount);
+    return AppendDocumentPages(doc, pageIndex, pageCount, nullptr);
+}
+
+void PdfPageCollection::AppendDocumentPages(const PdfDocument& doc, unsigned pageIndex, unsigned pageCount, PdfObjectRelocationMap* map)
+{
+    if (map == nullptr)
+    {
+        // If a map is not supplied create one now
+        unordered_map<PdfReference, PdfObject*> mappedObjects;
+        return GetDocument().AppendDocumentPages(doc, pageIndex, pageCount, mappedObjects);
+    }
+
+    return GetDocument().AppendDocumentPages(doc, pageIndex, pageCount, map->Map);
 }
 
 void PdfPageCollection::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex)
 {
-    return GetDocument().InsertDocumentPageAt(atIndex, doc, pageIndex);
+    return InsertDocumentPageAt(atIndex, doc, pageIndex, nullptr);
+}
+
+void PdfPageCollection::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex, PdfObjectRelocationMap* map)
+{
+    if (map == nullptr)
+    {
+        // If a map is not supplied create one now
+        unordered_map<PdfReference, PdfObject*> mappedObjects;
+        return GetDocument().InsertDocumentPageAt(atIndex, doc, pageIndex, mappedObjects);
+    }
+
+    return GetDocument().InsertDocumentPageAt(atIndex, doc, pageIndex, map->Map);
 }
 
 void PdfPageCollection::RemovePageAt(unsigned atIndex)
@@ -439,4 +463,11 @@ unsigned getChildCount(const PdfObject& nodeObj)
         return 1;
 
     return (unsigned)num;
+}
+
+PdfObjectRelocationMap::PdfObjectRelocationMap() { }
+
+void PdfObjectRelocationMap::Clear()
+{
+    Map.clear();
 }
