@@ -72,6 +72,7 @@ void PdfTranslator::SetInputOutput(const string_view& input, const string_view& 
     m_outFilePath = output;
     m_pageCount = 0;
 
+    PdfObjectRelocationMap map;
     for (size_t i1 = 0; i1 < sources.size(); i1++)
     {
         const bool isFirst = (i1 == 0);
@@ -106,7 +107,7 @@ void PdfTranslator::SetInputOutput(const string_view& input, const string_view& 
             auto& page = workingDoc->GetPages().GetPageAt(i2);
 
             auto xobj = m_targetDoc->CreateXObjectForm(Rect());
-            xobj->FillFromPage(page, false);
+            xobj->FillFromPage(page, &map);
 
             unsigned key = m_pageCount + 1;
             unsigned rot = page.GetRotation();
@@ -126,6 +127,8 @@ void PdfTranslator::SetInputOutput(const string_view& input, const string_view& 
             for (unsigned i2 = pageCount; i2 > 0; i2--)
                 m_targetDoc->GetPages().RemovePageAt(i2 - 1);
         }
+
+        map.Clear();
     }
 }
 
