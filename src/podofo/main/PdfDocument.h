@@ -394,11 +394,11 @@ private:
 
     // Called by PdfPageCollection
     void AppendDocumentPages(const PdfDocument& doc);
-    void InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex);
-    void AppendDocumentPages(const PdfDocument& doc, unsigned pageIndex, unsigned pageCount);
+    void InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex, std::unordered_map<PdfReference, PdfObject*>& map);
+    void AppendDocumentPages(const PdfDocument& doc, unsigned pageIndex, unsigned pageCount, std::unordered_map<PdfReference, PdfObject*>& map);
 
     // Called by PdfXObjectForm
-    Rect FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page, bool useTrimBox);
+    Rect FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page, PdfFillFormFlags flags, std::unordered_map<PdfReference, PdfObject*>* map);
 
     PdfInfo& GetOrCreateInfo();
 

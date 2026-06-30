@@ -13,6 +13,22 @@
 
 namespace PoDoFo {
 
+    class PODOFO_API PdfObjectRelocationMap final
+    {
+        friend class PdfXObjectForm;
+        friend class PdfPageCollection;
+    public:
+        PdfObjectRelocationMap();
+
+        void Clear();
+    private:
+        PdfObjectRelocationMap(const PdfObjectRelocationMap&) = delete;
+        PdfObjectRelocationMap& operator=(const PdfObjectRelocationMap& rhs) = delete;
+
+    private:
+        std::unordered_map<PdfReference, PdfObject*> Map;
+    };
+
     /// Class for managing the tree of Pages in a PDF document
     /// Don't use this class directly. Use PdfDocument instead.
     ///
@@ -94,13 +110,15 @@ namespace PoDoFo {
         /// @param doc the document to append
         /// @param pageIndex the first page number to copy (0-based)
         /// @param pageCount the number of pages to copy
-        void AppendDocumentPages(const PdfDocument& doc, unsigned pageIndex, unsigned pageCount);
+        /// @param map a map accumulating relocation entries, which prevents spurious copies on separate imports
+        void AppendDocumentPages(const PdfDocument& doc, unsigned pageIndex, unsigned pageCount, PdfObjectRelocationMap* map = nullptr);
 
         /// Inserts existing page from another PdfDocument to this document.
         /// @param atIndex index at which to add the page in this document
         /// @param doc the document to append from
         /// @param pageIndex index of page to append from doc
-        void InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex);
+        /// @param map a map accumulating relocation entries, which prevents spurious copies on separate imports
+        void InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex, PdfObjectRelocationMap* map = nullptr);
 
         /// Delete the specified page object from the internal pages tree.
         ///   It does NOT remove any PdfObjects from memory - just the reference from the tree

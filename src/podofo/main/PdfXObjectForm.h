@@ -12,6 +12,16 @@
 namespace PoDoFo {
 
 class PdfPage;
+class PdfObjectRelocationMap;
+
+enum class PdfFillFormFlags
+{
+    None = 0,           ///< Default, intersects with /CropBox
+    _Reserved1 = 1,
+    _Reserved2 = 2,
+    UseTrimBox = 4,     ///< Default, intersects with /TrimBox
+    _Reserved8 = 8,
+};
 
 class PODOFO_API PdfXObjectForm final : public PdfXObject, public PdfCanvas
 {
@@ -28,13 +38,18 @@ private:
     PdfXObjectForm(PdfDocument& doc, const Rect& rect);
 
 public:
+    [[deprecated("Use the FillFromPage methods with flags instead")]]
+    void FillFromPage(const PdfPage& page, bool useTrimBox);
+
     /// Create a new XObject from a page of another document
     /// in a given document. /BBox is set in form space (the content-stream
     /// coordinate system); /Matrix applies the source page's /Rotate if present.
     ///
     /// @param page the page to create the XObject from
-    /// @param useTrimBox if true try to use trimbox for size of xobject
-    void FillFromPage(const PdfPage& page, bool useTrimBox = false);
+    /// @param flags flags to control the form filling
+    /// @param map a map accumulating relocation entries, which prevents spurious copies on separate fillings
+    void FillFromPage(const PdfPage& page, PdfFillFormFlags flags = PdfFillFormFlags::None, PdfObjectRelocationMap* map = nullptr);
+    void FillFromPage(const PdfPage& page, PdfObjectRelocationMap* map);
 
 public:
     PdfResources& GetOrCreateResources() override;
@@ -84,5 +99,7 @@ private:
 };
 
 }
+
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfFillFormFlags);
 
 #endif // PDF_XOBJECT_FORM_H

@@ -311,14 +311,28 @@ void PdfPageCollection::AppendDocumentPages(const PdfDocument& doc)
     return GetDocument().AppendDocumentPages(doc);
 }
 
-void PdfPageCollection::AppendDocumentPages(const PdfDocument& doc, unsigned pageIndex, unsigned pageCount)
+void PdfPageCollection::AppendDocumentPages(const PdfDocument& doc, unsigned pageIndex, unsigned pageCount, PdfObjectRelocationMap* map)
 {
-    return GetDocument().AppendDocumentPages(doc, pageIndex, pageCount);
+    if (map == nullptr)
+    {
+        // If a map is not supplied create one now
+        unordered_map<PdfReference, PdfObject*> mappedObjects;
+        return GetDocument().AppendDocumentPages(doc, pageIndex, pageCount, mappedObjects);
+    }
+
+    return GetDocument().AppendDocumentPages(doc, pageIndex, pageCount, map->Map);
 }
 
-void PdfPageCollection::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex)
+void PdfPageCollection::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex, PdfObjectRelocationMap* map)
 {
-    return GetDocument().InsertDocumentPageAt(atIndex, doc, pageIndex);
+    if (map == nullptr)
+    {
+        // If a map is not supplied create one now
+        unordered_map<PdfReference, PdfObject*> mappedObjects;
+        return GetDocument().InsertDocumentPageAt(atIndex, doc, pageIndex, mappedObjects);
+    }
+
+    return GetDocument().InsertDocumentPageAt(atIndex, doc, pageIndex, map->Map);
 }
 
 void PdfPageCollection::RemovePageAt(unsigned atIndex)
@@ -467,4 +481,11 @@ unsigned getChildCount(const PdfObject& nodeObj)
         return 1;
 
     return (unsigned)num;
+}
+
+PdfObjectRelocationMap::PdfObjectRelocationMap() { }
+
+void PdfObjectRelocationMap::Clear()
+{
+    Map.clear();
 }

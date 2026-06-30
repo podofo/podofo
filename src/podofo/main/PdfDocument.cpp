@@ -128,18 +128,18 @@ void PdfDocument::AppendDocumentPages(const PdfDocument& doc)
     // TODO: merge name trees
 }
 
-void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex)
+void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex,
+    unordered_map<PdfReference, PdfObject*>& mappedObjects)
 {
-    unordered_map<PdfReference, PdfObject*> mappedObjects;
     auto& newObj = copyPageObject(m_Objects, doc.GetPages().GetPageAt(pageIndex).GetObject(), mappedObjects);
     m_Pages->InsertPageAt(atIndex, unique_ptr<PdfPage>(new PdfPage(newObj)));
 
     // TODO: merge name trees
 }
 
-void PdfDocument::AppendDocumentPages(const PdfDocument& doc, unsigned pageIndex, unsigned pageCount)
+void PdfDocument::AppendDocumentPages(const PdfDocument& doc, unsigned pageIndex, unsigned pageCount,
+    unordered_map<PdfReference, PdfObject*>& mappedObjects)
 {
-    unordered_map<PdfReference, PdfObject*> mappedObjects;
     for (unsigned i = 0; i < pageCount; i++)
     {
         auto& newObj = copyPageObject(m_Objects, doc.GetPages().GetPageAt(pageIndex + i).GetObject(), mappedObjects);
@@ -269,7 +269,8 @@ void PdfDocument::createAction(PdfActionType type, unique_ptr<PdfAction>& action
     action = PdfAction::Create(*this, type);
 }
 
-Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page, bool useTrimBox)
+Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page, PdfFillFormFlags flags,
+    unordered_map<PdfReference, PdfObject*>* mappedObjects)
 {
     Rect box = page.GetMediaBox();
 
@@ -277,7 +278,7 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
     box.Intersect(page.GetCropBox());
 
     // Intersect with trim-box according to parameter
-    if (useTrimBox)
+    if ((flags & PdfFillFormFlags::UseTrimBox) != PdfFillFormFlags::None)
         box.Intersect(page.GetTrimBox());
 
     auto& sourceDoc = page.GetDocument();
@@ -298,14 +299,20 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
     }
     else
     {
-        // Cross-document: selectively copy referenced objects
-        unordered_map<PdfReference, PdfObject*> mappedObjects;
+        unique_ptr<unordered_map<PdfReference, PdfObject*>> temp;
+        if (mappedObjects == nullptr)
+        {
+            // If a map is not supplied create one now
+            temp.reset(new unordered_map<PdfReference, PdfObject*>());
+            mappedObjects = temp.get();
+        }
 
+        // Cross-document: selectively copy referenced objects
         auto* resourcesObj = page.GetDictionary().FindKeyParent("Resources");
         if (resourcesObj != nullptr)
         {
             PdfObject resourcesCopy(*resourcesObj);
-            copyReferencedObjects(resourcesCopy, sourceDoc.GetObjects(), m_Objects, mappedObjects);
+            copyReferencedObjects(resourcesCopy, sourceDoc.GetObjects(), m_Objects, *mappedObjects);
             xobj.GetDictionary().AddKey("Resources"_n, std::move(resourcesCopy));
         }
 
@@ -315,7 +322,7 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
         if (groupObj != nullptr)
         {
             PdfObject groupCopy(*groupObj);
-            copyReferencedObjects(groupCopy, sourceDoc.GetObjects(), m_Objects, mappedObjects);
+            copyReferencedObjects(groupCopy, sourceDoc.GetObjects(), m_Objects, *mappedObjects);
             xobj.GetDictionary().AddKey("Group"_n, std::move(groupCopy));
         }
     }
