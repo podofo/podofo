@@ -1142,7 +1142,7 @@ void PdfParser::updateDocumentVersion()
                     m_PdfVersion = version;
                 }
             }
-            else if (IsStrictParsing())
+            else if (m_StrictParsing)
             {
                 // Version must be of type name, according to PDF Specification
                 PODOFO_RAISE_ERROR(PdfErrorCode::InvalidName);
@@ -1160,7 +1160,7 @@ void PdfParser::checkEOFMarker(InputStreamDevice& device)
     char buff[EOFTokenLen + 1];
 
     device.Seek(-static_cast<ssize_t>(EOFTokenLen), SeekDirection::End);
-    if (IsStrictParsing())
+    if (m_StrictParsing)
     {
         // For strict mode EOF marker must be at the very end of the file
         device.Read(buff, EOFTokenLen);
@@ -1192,9 +1192,9 @@ void PdfParser::checkEOFMarker(InputStreamDevice& device)
         // Try and deal with garbage by offsetting the buffer reads in PdfParser from now on
         if (!found)
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEOFToken);
-
-        m_lastEOFOffsetHint = device.GetPosition() - EOFTokenLen;
     }
+
+    m_lastEOFOffsetHint = device.GetPosition() - EOFTokenLen;
 }
 
 void PdfParser::clear()
