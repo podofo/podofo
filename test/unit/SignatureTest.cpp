@@ -503,3 +503,30 @@ TEST_CASE("TestSignatureCorrupted")
         throw;
     }
 }
+
+TEST_CASE("TestAcroFormSignatureGetWidget")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+
+    auto& signature = page.CreateField<PdfSignature>("TestSig", Rect(10, 10, 50, 20));
+
+    REQUIRE(signature.GetWidget() != nullptr);
+
+    auto* form = doc.GetAcroForm();
+    REQUIRE(form != nullptr);
+
+    PdfSignature* foundSig = nullptr;
+    for (auto* field : *form)
+    {
+        if (field->GetType() == PdfFieldType::Signature)
+        {
+            foundSig = static_cast<PdfSignature*>(field);
+            break;
+        }
+    }
+
+    REQUIRE(foundSig != nullptr);
+    REQUIRE(foundSig->GetWidget() != nullptr);
+    REQUIRE(&foundSig->GetWidget()->GetObject() == &signature.GetObject());
+}

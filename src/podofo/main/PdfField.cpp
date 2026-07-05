@@ -16,6 +16,9 @@
 #include "PdfTextBox.h"
 #include "PdfComboBox.h"
 #include "PdfListBox.h"
+#include "PdfPage.h"
+#include "PdfPageCollection.h"
+#include "PdfAnnotationWidget.h"
 
  // https://en.wikipedia.org/wiki/Escape_character#ASCII_escape_character
 #define ESCAPE_CHARACTER "\033"
@@ -520,8 +523,46 @@ void PdfField::AssertTerminalField() const
     }
 }
 
+PdfAnnotationWidget* PdfField::GetWidget()
+{
+    resolveWidget();
+    return m_Widget;
+}
+
+const PdfAnnotationWidget* PdfField::GetWidget() const
+{
+    const_cast<PdfField&>(*this).resolveWidget();
+    return m_Widget;
+}
+
+void PdfField::resolveWidget()
+{
+    if (m_Widget != nullptr)
+        return;
+
+    auto* subtype = GetDictionary().FindKey("Subtype");
+    if (subtype == nullptr || !subtype->IsName() || subtype->GetName() != "Widget")
+        return;
+
+    auto& pages = GetDocument().GetPages();
+    for (unsigned i = 0; i < pages.GetCount(); i++)
+    {
+        auto& annots = pages.GetPageAt(i).GetAnnotations();
+        for (unsigned j = 0; j < annots.GetCount(); j++)
+        {
+            auto& annot = annots.GetAnnotAt(j);
+            if (&annot.GetObject() == &GetObject())
+            {
+                m_Widget = &static_cast<PdfAnnotationWidget&>(annot);
+                return;
+            }
+        }
+    }
+}
+
 PdfAnnotationWidget& PdfField::MustGetWidget()
 {
+    resolveWidget();
     if (m_Widget == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Expected to retrieve a field with a linked widget annotation");
 
@@ -530,6 +571,7 @@ PdfAnnotationWidget& PdfField::MustGetWidget()
 
 const PdfAnnotationWidget& PdfField::MustGetWidget() const
 {
+    const_cast<PdfField&>(*this).resolveWidget();
     if (m_Widget == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Expected to retrieve a field with a linked widget annotation");
 

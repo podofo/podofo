@@ -184,9 +184,9 @@ public:
 public:
     PdfFieldType GetType() const { return m_FieldType; }
 
-    PdfAnnotationWidget* GetWidget() { return m_Widget; }
+    PdfAnnotationWidget* GetWidget();
 
-    const PdfAnnotationWidget* GetWidget() const { return m_Widget; }
+    const PdfAnnotationWidget* GetWidget() const;
 
     PdfAnnotationWidget& MustGetWidget();
 
@@ -276,6 +276,7 @@ private:
     std::shared_ptr<PdfField> GetPtr();
     PdfField* getParentTyped(PdfFieldType type) const;
     std::string_view getFieldTypeDisplayName() const;
+    void resolveWidget();
 
 private:
     PdfAnnotationWidget* m_Widget;
