@@ -25,7 +25,8 @@ PdfDocument::PdfDocument(bool empty) :
     m_Metadata(*this),
     m_FontManager(*this),
     m_InfoLazyLoaded(false),
-    m_OutlinesLazyLoaded(false)
+    m_OutlinesLazyLoaded(false),
+    m_IsStrictParsing(false)
 {
     if (!empty)
         resetPrivate();
@@ -36,7 +37,8 @@ PdfDocument::PdfDocument(const PdfDocument& doc) :
     m_Metadata(*this),
     m_FontManager(*this),
     m_InfoLazyLoaded(false),
-    m_OutlinesLazyLoaded(false)
+    m_OutlinesLazyLoaded(false),
+    m_IsStrictParsing(false)
 {
     SetTrailer(std::make_unique<PdfObject>(doc.GetTrailer().GetObject()));
     Init();
@@ -71,6 +73,7 @@ void PdfDocument::Clear()
     m_AcroForm = nullptr;
     m_Outlines = nullptr;
     m_NameTrees = nullptr;
+    m_IsStrictParsing = false;
     m_InfoLazyLoaded = false;
     m_OutlinesLazyLoaded = false;
     m_Objects.Clear();
@@ -231,14 +234,13 @@ void PdfDocument::lazyLoadInfo()
     auto infoObj = m_TrailerObj->GetDictionary().FindKey("Info");
     if (infoObj != nullptr)
     {
-        try
+        if (!PdfInfo::TryCreateFromObject(*infoObj, m_Info))
         {
-            m_Info = unique_ptr<PdfInfo>(new PdfInfo(*infoObj));
-        }
-        catch (PdfError& ex)
-        {
+            if (m_IsStrictParsing)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Failed to load /Info dictionary: invalid object type");
+
             PoDoFo::LogMessage(PdfLogSeverity::Warning,
-                "Failed to load /Info dictionary: {}", ex.what());
+                "Failed to load /Info dictionary: invalid object type");
         }
     }
 
@@ -392,6 +394,11 @@ void PdfDocument::SetTrailer(unique_ptr<PdfObject> obj)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ObjectNotFound, "Catalog object not found!");
 
     m_Catalog.reset(new PdfCatalog(*catalog));
+}
+
+void PdfDocument::SetStrictParsing(bool value)
+{
+    m_IsStrictParsing = value;
 }
 
 bool PdfDocument::IsEncrypted() const

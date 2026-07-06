@@ -294,6 +294,8 @@ public:
     bool IsEncrypted() const;
 
 public:
+    bool IsStrictParsing() const { return m_IsStrictParsing; }
+
     /// Get access to the internal Catalog dictionary
     /// or root object.
     ///
@@ -371,6 +373,8 @@ protected:
     ///         It will be owned by PdfDocument.
     void SetTrailer(std::unique_ptr<PdfObject> obj);
 
+    void SetStrictParsing(bool value);
+
     /// Internal method for initializing the pages tree for this document
     void Init();
 
@@ -428,6 +432,7 @@ private:
     PdfFontManager m_FontManager;
     bool m_InfoLazyLoaded;
     bool m_OutlinesLazyLoaded;
+    bool m_IsStrictParsing;
     std::unique_ptr<PdfObject> m_TrailerObj;
     std::unique_ptr<PdfTrailer> m_Trailer;
     std::unique_ptr<PdfCatalog> m_Catalog;

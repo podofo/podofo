@@ -176,7 +176,8 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
     // used elsewhere. Assuming the CMap(s) uses only PS Level 1, which
     // doesn't, support << syntax, is a workaround to read these CMap(s)
     // without crashing.
-    PdfPostScriptTokenizer tokenizer(PdfPostScriptLanguageLevel::L1);
+    PdfPostScriptTokenizer tokenizer;
+    tokenizer.SetParameters({ PdfPostScriptLanguageLevel::L1 });
     CodeLimits codeLimits;
     deque<unique_ptr<PdfVariant>> tokens;
     const PdfString* str;

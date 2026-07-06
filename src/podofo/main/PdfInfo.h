@@ -29,6 +29,9 @@ public:
     ///         writing initially to the information
     PdfInfo(PdfObject& obj, PdfInfoInitial initial);
 
+    static bool TryCreateFromObject(const PdfObject& obj, std::unique_ptr<const PdfInfo>& info);
+    static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfInfo>& info); 
+
     /// Set the title of the document.
     /// @param title title
     void SetTitle(nullable<const PdfString&> title);

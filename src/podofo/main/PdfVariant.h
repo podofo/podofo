@@ -292,7 +292,7 @@ private:
     void moveFrom(PdfVariant&& rhs);
 
 private:
-    // Reset the variant to "null" type. To be called by PdfTokenizer
+    /// Reset the variant to "null" type. To be called by PdfTokenizer
     void Reset();
 
     /// It's an easy mistake to pass a pointer to a PdfVariant when trying to

@@ -41,7 +41,7 @@ TEST_CASE("TestStringGrowthIsBounded")
     // the maximum allowed length
     try
     {
-        tokenizer.ReadString(device, variant, nullptr);
+        tokenizer.ReadString(device, variant, nullptr, { true, false });
         FAIL("Expected PdfError to be thrown");
     }
     catch (const PdfError& e)
@@ -70,7 +70,7 @@ TEST_CASE("TestHexStringGrowthIsBounded")
 
     try
     {
-        tokenizer.ReadHexString(device, variant, nullptr);
+        tokenizer.ReadHexString(device, variant, nullptr, { true, false });
         FAIL("Expected PdfError to be thrown");
     }
     catch (const PdfError& e)
