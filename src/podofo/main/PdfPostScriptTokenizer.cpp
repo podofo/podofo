@@ -7,18 +7,35 @@
 using namespace std;
 using namespace PoDoFo;
 
-static PdfTokenizerOptions getPostScriptOptions(PdfPostScriptLanguageLevel level);
+static PdfTokenizerParams getPostScriptParams(PdfPostScriptLanguageLevel level);
+
+PdfPostScriptTokenizer::PdfPostScriptTokenizer()
+{
+    // Enforce SkipReferences for PostScript tokenizer, as PostScript has no indirect references
+    m_Params.Flags |= PdfTokenizerFlags::SkipReferences;
+}
+
+PdfPostScriptTokenizer::PdfPostScriptTokenizer(std::shared_ptr<charbuff> buffer)
+    : PdfTokenizer(std::in_place, std::move(buffer))
+{
+    // Enforce SkipReferences for PostScript tokenizer, as PostScript has no indirect references
+    m_Params.Flags |= PdfTokenizerFlags::SkipReferences;
+}
 
 PdfPostScriptTokenizer::PdfPostScriptTokenizer(PdfPostScriptLanguageLevel level)
-    : PdfTokenizer(getPostScriptOptions(level)) { }
+{
+    m_Params = getPostScriptParams(level);
+}
 
 PdfPostScriptTokenizer::PdfPostScriptTokenizer(shared_ptr<charbuff> buffer, PdfPostScriptLanguageLevel level)
-    : PdfTokenizer(std::in_place, std::move(buffer), getPostScriptOptions(level)) {}
+    : PdfTokenizer(std::in_place, std::move(buffer))
+{
+    m_Params = getPostScriptParams(level);
+}
 
 void PdfPostScriptTokenizer::ReadNextVariant(InputStreamDevice& device, PdfVariant& variant)
 {
-    if (!PdfTokenizer::TryReadNextVariant(device, variant, { }))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant");
+    PdfTokenizer::ReadNextVariant(device, variant, { });
 }
 
 bool PdfPostScriptTokenizer::TryReadNextVariant(InputStreamDevice& device, PdfVariant& variant)
@@ -26,7 +43,27 @@ bool PdfPostScriptTokenizer::TryReadNextVariant(InputStreamDevice& device, PdfVa
     return PdfTokenizer::TryReadNextVariant(device, variant, { });
 }
 
-bool PdfPostScriptTokenizer::TryReadNext(InputStreamDevice& device, PdfPostScriptTokenType& psTokenType, string_view& keyword, PdfVariant& variant)
+void PdfPostScriptTokenizer::ReadNext(InputStreamDevice& device, PdfPostScriptTokenType& tokenType, std::string_view& keyword, PdfVariant& variant)
+{
+    ParsingOptions opts{ true, (GetParameters().Flags & PdfTokenizerFlags::StrictParsing) != PdfTokenizerFlags::None };
+    (void)readNext(device, tokenType, keyword, opts, variant);
+}
+
+bool PdfPostScriptTokenizer::TryReadNext(InputStreamDevice& device, PdfPostScriptTokenType& tokenType, string_view& keyword, PdfVariant& variant)
+{
+    ParsingOptions opts{ false, (GetParameters().Flags & PdfTokenizerFlags::StrictParsing) != PdfTokenizerFlags::None };
+    return readNext(device, tokenType, keyword, opts, variant);
+}
+
+void PdfPostScriptTokenizer::SetParameters(const PdfTokenizerParams& params)
+{
+    m_Params = params;
+    // Enforce SkipReferences for PostScript tokenizer, as PostScript has no indirect references
+    m_Params.Flags |= PdfTokenizerFlags::SkipReferences;
+}
+
+bool PdfPostScriptTokenizer::readNext(InputStreamDevice& device, PdfPostScriptTokenType& psTokenType,
+    string_view& keyword, ParsingOptions opts, PdfVariant& variant)
 {
     PdfTokenType tokenType;
     string_view token;
@@ -52,7 +89,7 @@ bool PdfPostScriptTokenizer::TryReadNext(InputStreamDevice& device, PdfPostScrip
             break;
     }
 
-    PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, variant);
+    PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, variant, opts);
 
     // assume we read a variant unless we discover otherwise later.
     psTokenType = PdfPostScriptTokenType::Variant;
@@ -66,19 +103,24 @@ bool PdfPostScriptTokenizer::TryReadNext(InputStreamDevice& device, PdfPostScrip
             break;
 
         case PdfLiteralDataType::Dictionary:
-            this->ReadDictionary(device, variant, { });
+            if (!this->ReadDictionary(device, variant, { }, opts))
+                return false;
             break;
         case PdfLiteralDataType::Array:
-            this->ReadArray(device, variant, { });
+            if (!this->ReadArray(device, variant, { }, opts))
+                return false;
             break;
         case PdfLiteralDataType::String:
-            this->ReadString(device, variant, { });
+            if (!this->ReadString(device, variant, { }, opts))
+                return false;
             break;
         case PdfLiteralDataType::HexString:
-            this->ReadHexString(device, variant, { });
+            if (!this->ReadHexString(device, variant, { }, opts))
+                return false;
             break;
         case PdfLiteralDataType::Name:
-            this->ReadName(device, variant);
+            if (!this->ReadName(device, variant, opts))
+                return false;
             break;
         case PdfLiteralDataType::Reference:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unsupported reference datatype at this context");
@@ -95,10 +137,10 @@ bool PdfPostScriptTokenizer::TryReadNext(InputStreamDevice& device, PdfPostScrip
     return true;
 }
 
-PdfTokenizerOptions getPostScriptOptions(PdfPostScriptLanguageLevel level)
+PdfTokenizerParams getPostScriptParams(PdfPostScriptLanguageLevel level)
 {
-    PdfTokenizerOptions tokenizerOpts;
-    tokenizerOpts.LanguageLevel = level;
-    tokenizerOpts.ReadReferences = false;
-    return tokenizerOpts;
+    PdfTokenizerParams tokenizerParams;
+    tokenizerParams.LanguageLevel = level;
+    tokenizerParams.Flags = PdfTokenizerFlags::SkipReferences;
+    return tokenizerParams;
 }

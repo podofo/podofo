@@ -177,7 +177,42 @@ void PdfObject::DelayedLoad() const
     if (m_IsDelayedLoadDone)
         return;
 
-    const_cast<PdfObject&>(*this).delayedLoad();
+    DelayedLoad(m_Document == nullptr ? true : m_Document->IsStrictParsing());
+}
+
+void PdfObject::DelayedLoad(bool throwOnError) const
+{
+    try
+    {
+        const_cast<PdfObject&>(*this).delayedLoad();
+    }
+    catch (PdfError& err)
+    {
+        // Mark the object as loaded anyway, then throw or warn.
+        // Acrobat and other readers are also similarly lenient.
+        // NOTE: For dictionary and array objects, parsing errors
+        // on descendant objects will preserve the container type.
+        // Parsing errors on other primitive data types will
+        // likely result in the object being reset to "null" type
+        m_IsDelayedLoadDone = true;
+        const_cast<PdfObject&>(*this).SetVariantOwner();
+        if (throwOnError)
+            throw;
+
+        PoDoFo::LogMessage(PdfLogSeverity::Warning, "Exception while parsing object: {}", err.GetCallStack().front().GetInformation());
+        return;
+    }
+    catch (...)
+    {
+        m_IsDelayedLoadDone = true;
+        const_cast<PdfObject&>(*this).SetVariantOwner();
+        if (throwOnError)
+            throw;
+
+        PoDoFo::LogMessage(PdfLogSeverity::Warning, "Non-PdfError exception while parsing object");
+        return;
+    }
+
     m_IsDelayedLoadDone = true;
     const_cast<PdfObject&>(*this).SetVariantOwner();
 }
@@ -393,8 +428,41 @@ void PdfObject::DelayedLoadStream() const
     if (m_IsDelayedLoadStreamDone)
         return;
 
-    DelayedLoad();
-    const_cast<PdfObject&>(*this).delayedLoadStream();
+    DelayedLoadStream(m_Document == nullptr ? true : m_Document->IsStrictParsing());
+}
+
+void PdfObject::DelayedLoadStream(bool throwOnError) const
+{
+    if (!m_IsDelayedLoadDone)
+        DelayedLoad(throwOnError);
+
+    try
+    {
+        const_cast<PdfObject&>(*this).delayedLoadStream();
+    }
+    catch (PdfError& err)
+    {
+        // Remove the stream and mark the object stream as loaded anyway, then throw
+        // or warn. Acrobat and other readers are also similarly lenient
+        const_cast<PdfObject&>(*this).removeStream();
+        m_IsDelayedLoadStreamDone = true;
+        if (throwOnError)
+            throw;
+
+        PoDoFo::LogMessage(PdfLogSeverity::Warning, "Exception while parsing object stream: {}", err.GetCallStack().front().GetInformation());
+        return;
+    }
+    catch (...)
+    {
+        const_cast<PdfObject&>(*this).removeStream();
+        m_IsDelayedLoadStreamDone = true;
+        if (throwOnError)
+            throw;
+
+        PoDoFo::LogMessage(PdfLogSeverity::Warning, "Non-PdfError exception while parsing object stream");
+        return;
+    }
+
     m_IsDelayedLoadStreamDone = true;
 }
 
@@ -523,22 +591,9 @@ void PdfObject::assign(const PdfObject& rhs)
 void PdfObject::moveFrom(PdfObject&& rhs) noexcept
 {
     // NOTE: move should not throw, as it's used in "noexcept" moethods
-    try
-    {
-        rhs.DelayedLoadStream();
-    }
-    catch (...)
-    {
-        if (!rhs.IsDelayedLoadDone())
-        {
-            // Reset the variant as well if the data section
-            // didn't complete
-            rhs.m_Variant.Reset();
-        }
+    if (!rhs.m_IsDelayedLoadStreamDone)
+        rhs.DelayedLoadStream(false);
 
-        // Unconditionally remove the stream
-        rhs.removeStream();
-    }
     m_Variant = std::move(rhs.m_Variant);
     SetVariantOwner();
     m_IsDelayedLoadDone = true;

@@ -18,21 +18,34 @@ using namespace std;
 using namespace PoDoFo;
 
 static bool tryGetEscapedCharacter(char ch, char& escapedChar);
-static void readHexString(InputStreamDevice& device, charbuff& buffer);
+static bool readHexString(InputStreamDevice& device, charbuff& buffer, bool throwOnError);
 static bool isOctalChar(char ch);
+static PdfTokenizerParams optionsToParams(const PdfTokenizerOptions& opts);
+
+PdfTokenizer::PdfTokenizer()
+    : PdfTokenizer(std::in_place, std::make_shared<charbuff>(BufferSize))
+{
+}
+
+PdfTokenizer::PdfTokenizer(std::shared_ptr<charbuff> buffer)
+    : PdfTokenizer(std::in_place, std::move(buffer))
+{
+}
 
 PdfTokenizer::PdfTokenizer(const PdfTokenizerOptions& options)
-    : PdfTokenizer(std::in_place, std::make_shared<charbuff>(BufferSize), options)
+    : PdfTokenizer(std::in_place, std::make_shared<charbuff>(BufferSize))
 {
+    m_Params = optionsToParams(options);
 }
 
 PdfTokenizer::PdfTokenizer(shared_ptr<charbuff> buffer, const PdfTokenizerOptions& options)
-    : PdfTokenizer(std::in_place, std::move(buffer), options)
+    : PdfTokenizer(std::in_place, std::move(buffer))
 {
+    m_Params = optionsToParams(options);
 }
 
-PdfTokenizer::PdfTokenizer(std::in_place_t, shared_ptr<charbuff>&& buffer, const PdfTokenizerOptions& options)
-    : m_buffer(std::move(buffer)), m_options(options)
+PdfTokenizer::PdfTokenizer(std::in_place_t, shared_ptr<charbuff>&& buffer)
+    : m_buffer(std::move(buffer))
 {
     if (m_buffer == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
@@ -118,7 +131,7 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
             {
                 (void)device.ReadChar();
                 buffer[count++] = ch2;
-                if ((int)m_options.LanguageLevel < 2)
+                if ((int)m_Params.LanguageLevel < 2)
                     continue;
 
                 if (ch1 == '<')
@@ -222,8 +235,12 @@ bool PdfTokenizer::TryReadNextNumber(InputStreamDevice& device, int64_t& value)
 
 void PdfTokenizer::ReadNextVariant(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt)
 {
-    if (!TryReadNextVariant(device, variant, encrypt))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant");
+    PdfTokenType tokenType;
+    string_view token;
+    if (!TryReadNextToken(device, token, tokenType))
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected token");
+
+    ReadNextVariant(device, token, tokenType, variant, encrypt);
 }
 
 bool PdfTokenizer::TryReadNextVariant(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt)
@@ -238,15 +255,18 @@ bool PdfTokenizer::TryReadNextVariant(InputStreamDevice& device, PdfVariant& var
 
 void PdfTokenizer::ReadNextVariant(InputStreamDevice& device, const string_view& token, PdfTokenType tokenType, PdfVariant& variant, const PdfStatefulEncrypt* encrypt)
 {
-    if (!TryReadNextVariant(device, token, tokenType, variant, encrypt))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Could not read a variant");
+    utls::RecursionGuard guard;
+    ParsingOptions flags{ true, (m_Params.Flags & PdfTokenizerFlags::StrictParsing) != PdfTokenizerFlags::None };
+    PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, variant, flags);
+    (void)readDataType(device, dataType, variant, encrypt, flags);
 }
 
 bool PdfTokenizer::TryReadNextVariant(InputStreamDevice& device, const string_view& token, PdfTokenType tokenType, PdfVariant& variant, const PdfStatefulEncrypt* encrypt)
 {
     utls::RecursionGuard guard;
-    PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, variant);
-    return tryReadDataType(device, dataType, variant, encrypt);
+    ParsingOptions flags{ false, (m_Params.Flags & PdfTokenizerFlags::StrictParsing) != PdfTokenizerFlags::None };
+    PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, variant, flags);
+    return readDataType(device, dataType, variant, encrypt, flags);
 }
 
 void PdfTokenizer::Reset()
@@ -255,20 +275,22 @@ void PdfTokenizer::Reset()
 }
 
 PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevice& device,
-    const string_view& token, PdfTokenType tokenType, PdfVariant& variant)
+    const string_view& token, PdfTokenType tokenType, PdfVariant& variant, ParsingOptions flags)
 {
+    // Put the variant in a valid Null state up front so any subsequent throw
+    // or early return leaves it safely destructible
+    variant.Reset();
+
     switch (tokenType)
     {
         case PdfTokenType::Literal:
         {
-            variant.~PdfVariant();
-
             // check for the two special datatypes
             // null and boolean.
             // check for numbers
             if (token == "null")
             {
-                new(&variant.m_Null)PdfVariant::NullMember();
+                // Already Null from the Reset() above
                 return PdfLiteralDataType::Null;
             }
             else if (token == "true")
@@ -306,8 +328,11 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevi
                 {
                     // Don't consume the token
                     this->EnqueueToken(token, tokenType);
+                    if (flags.ThrowOnError)
+                        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidNumber, "Invalid real while parsing content");
+
                     PoDoFo::LogMessage(PdfLogSeverity::Warning, "Invalid real while parsing content");
-                    goto Recovery;
+                    return PdfLiteralDataType::Unknown;
                 }
 
                 new(&variant.m_Real)PdfVariant::PrimitiveMember(val);
@@ -320,11 +345,14 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevi
                 {
                     // Don't consume the token
                     this->EnqueueToken(token, tokenType);
+                    if (flags.ThrowOnError)
+                        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidNumber, "Invalid number while parsing content");
+
                     PoDoFo::LogMessage(PdfLogSeverity::Warning, "Invalid number while parsing content");
-                    goto Recovery;
+                    return PdfLiteralDataType::Unknown;
                 }
 
-                if (!m_options.ReadReferences)
+                if ((m_Params.Flags & PdfTokenizerFlags::SkipReferences) != PdfTokenizerFlags::None)
                 {
                     new(&variant.m_Number)PdfVariant::PrimitiveMember(num1);
                     return PdfLiteralDataType::Number;
@@ -385,52 +413,46 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevi
             }
             else
             {
-            Recovery:
-                new(&variant.m_Null)PdfVariant::NullMember();
+                // Character scan flagged the token as non-numeric; variant is
+                // already Null from the Reset() at the top
                 return PdfLiteralDataType::Unknown;
             }
         }
-        // Following types just reset the variant to "null",
-        // they will be properly initialized later
+        // Following types leave the variant Null; the caller will properly
+        // initialize it in the corresponding Read... method
         case PdfTokenType::DoubleAngleBracketsLeft:
-            variant.Reset();
             return PdfLiteralDataType::Dictionary;
         case PdfTokenType::SquareBracketLeft:
-            variant.Reset();
             return PdfLiteralDataType::Array;
         case PdfTokenType::ParenthesisLeft:
-            variant.Reset();
             return PdfLiteralDataType::String;
         case PdfTokenType::AngleBracketLeft:
-            variant.Reset();
             return PdfLiteralDataType::HexString;
         case PdfTokenType::Slash:
-            variant.Reset();
             return PdfLiteralDataType::Name;
         default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported token at this context");
+            if (flags.ThrowOnError)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported token at this context");
+
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, "Unsupported token at this context");
+            return PdfLiteralDataType::Unknown;
     }
 }
 
-bool PdfTokenizer::tryReadDataType(InputStreamDevice& device, PdfLiteralDataType dataType, PdfVariant& variant, const PdfStatefulEncrypt* encrypt)
+bool PdfTokenizer::readDataType(InputStreamDevice& device, PdfLiteralDataType dataType, PdfVariant& variant, const PdfStatefulEncrypt* encrypt, ParsingOptions opts)
 {
     switch (dataType)
     {
         case PdfLiteralDataType::Dictionary:
-            this->ReadDictionary(device, variant, encrypt);
-            return true;
+            return this->ReadDictionary(device, variant, encrypt, opts);
         case PdfLiteralDataType::Array:
-            this->ReadArray(device, variant, encrypt);
-            return true;
+            return this->ReadArray(device, variant, encrypt, opts);
         case PdfLiteralDataType::String:
-            this->ReadString(device, variant, encrypt);
-            return true;
+            return this->ReadString(device, variant, encrypt, opts);
         case PdfLiteralDataType::HexString:
-            this->ReadHexString(device, variant, encrypt);
-            return true;
+            return this->ReadHexString(device, variant, encrypt, opts);
         case PdfLiteralDataType::Name:
-            this->ReadName(device, variant);
-            return true;
+            return this->ReadName(device, variant, opts);
         // The following datatypes are not handled by read datatype
         // but are already parsed by DetermineDatatype
         case PdfLiteralDataType::Null:
@@ -440,11 +462,14 @@ bool PdfTokenizer::tryReadDataType(InputStreamDevice& device, PdfLiteralDataType
         case PdfLiteralDataType::Reference:
             return true;
         default:
+            if (opts.ThrowOnError)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Could not read a variant");
+
             return false;
     }
 }
 
-void PdfTokenizer::ReadDictionary(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt)
+bool PdfTokenizer::ReadDictionary(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt, ParsingOptions opts)
 {
     PODOFO_ASSERT(variant.GetDataType() == PdfDataType::Null);
 
@@ -455,40 +480,68 @@ void PdfTokenizer::ReadDictionary(InputStreamDevice& device, PdfVariant& variant
 
     new(&variant.m_Dictionary)PdfVariant::PrimitiveMember(new PdfDictionary());
     auto& dict = variant.GetDictionaryUnsafe();
+    constexpr auto endDelim = PdfTokenType::DoubleAngleBracketsRight;
+
+    // In non-strict mode inner reads must stay non-throwing so we can drain
+    // the container on failure instead of propagating the exception.
+    ParsingOptions innerOpts = opts;
+    if (!opts.Strict)
+        innerOpts.ThrowOnError = false;
 
     while (true)
     {
         bool gotToken = this->TryReadNextToken(device, token, tokenType);
         if (!gotToken)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected dictionary key name or >> delim");
+            return handleContainerTruncation(opts, PdfErrorCode::UnexpectedEOF, "Expected dictionary key name or >> delim");
 
-        if (tokenType == PdfTokenType::DoubleAngleBracketsRight)
+        if (tokenType == endDelim)
             break;
 
-        this->ReadNextVariant(device, token, tokenType, nameVar, encrypt);
-        // Convert the read variant to a name; throws InvalidDataType if not a name.
-        auto& key = nameVar.GetName();
+        bool success;
+        if (innerOpts.ThrowOnError)
+        {
+            this->ReadNextVariant(device, token, tokenType, nameVar, encrypt);
+            success = true;
+        }
+        else
+        {
+            success = this->TryReadNextVariant(device, token, tokenType, nameVar, encrypt);
+        }
 
+        if (!success || nameVar.GetDataType() != PdfDataType::Name)
+            return handleContainerInnerError(device, endDelim, opts, PdfErrorCode::InvalidDataType, "Expected a name as dictionary key");
+
+        auto& key = nameVar.GetName();
         gotToken = this->TryReadNextToken(device, token, tokenType);
         if (!gotToken)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant");
+            return handleContainerTruncation(opts, PdfErrorCode::UnexpectedEOF, "Expected variant");
 
-        // Try to get the next variant
         auto& emplaced = dict.EmplaceNoDirtySet(key);
-        PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, emplaced.GetVariantUnsafe());
+        // Wire the parent link up front so it's set uniformly on every
+        // exit path (success, lenient recovery via handleContainerInnerError,
+        // and the Contents-key "continue" path below). The owner cascade
+        // (dict.m_Owner and recursive descent) still happens at the top
+        // level via SetVariantOwner when the variant becomes part of a
+        // PdfObject: SetDocument here short-circuits because the enclosing
+        // dictionary has no owner yet during parsing.
+        emplaced.SetParent(dict);
+
+        PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, emplaced.GetVariantUnsafe(), innerOpts);
+        if (dataType == PdfLiteralDataType::Unknown)
+            return handleContainerInnerError(device, endDelim, opts, PdfErrorCode::InvalidDataType, "Unsupported token in dictionary value");
+
         if (key == "Contents" && dataType == PdfLiteralDataType::HexString)
         {
             // 'Contents' key in signature dictionaries is an unencrypted Hex string:
             // save the string buffer for later check if it needed decryption
             contentsHexBuffer = std::unique_ptr<charbuff>(new charbuff());
-            readHexString(device, *contentsHexBuffer);
+            if (!readHexString(device, *contentsHexBuffer, innerOpts.ThrowOnError))
+                return handleContainerInnerError(device, endDelim, opts, PdfErrorCode::InvalidDataType, "Could not read Contents hex string");
             continue;
         }
 
-        if (!tryReadDataType(device, dataType, emplaced.GetVariantUnsafe(), encrypt))
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Could not read variant");
-
-        emplaced.SetParent(dict);
+        if (!readDataType(device, dataType, emplaced.GetVariantUnsafe(), encrypt, innerOpts))
+            return handleContainerInnerError(device, endDelim, opts, PdfErrorCode::InvalidDataType, "Could not read variant");
     }
 
     if (contentsHexBuffer.get() != nullptr)
@@ -506,9 +559,11 @@ void PdfTokenizer::ReadDictionary(InputStreamDevice& device, PdfVariant& variant
         new(&dict.EmplaceNoDirtySet("Contents"_n).GetVariantUnsafe().m_String)PdfString(
             PdfString::FromHexData({ contentsHexBuffer->size() ? contentsHexBuffer->data() : "", contentsHexBuffer->size() }, actualEncrypt));
     }
+
+    return true;
 }
 
-void PdfTokenizer::ReadArray(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt)
+bool PdfTokenizer::ReadArray(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt, ParsingOptions opts)
 {
     PODOFO_ASSERT(variant.GetDataType() == PdfDataType::Null);
 
@@ -516,23 +571,44 @@ void PdfTokenizer::ReadArray(InputStreamDevice& device, PdfVariant& variant, con
     PdfTokenType tokenType;
     new(&variant.m_Array)PdfVariant::PrimitiveMember(new PdfArray());
     auto& arr = variant.GetArrayUnsafe();
+    constexpr auto endDelim = PdfTokenType::SquareBracketRight;
+
+    ParsingOptions innerOpts = opts;
+    if (!opts.Strict)
+        innerOpts.ThrowOnError = false;
 
     while (true)
     {
         bool gotToken = this->TryReadNextToken(device, token, tokenType);
         if (!gotToken)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected array item or ] delim");
+            return handleContainerTruncation(opts, PdfErrorCode::UnexpectedEOF, "Expected array item or ] delim");
 
-        if (tokenType == PdfTokenType::SquareBracketRight)
+        if (tokenType == endDelim)
             break;
 
         auto& newobj = arr.EmplaceBackNoDirtySet();
-        this->ReadNextVariant(device, token, tokenType, newobj.GetVariantUnsafe(), encrypt);
+        // See ReadDictionary for rationale on the up-front parent link
         newobj.SetParent(arr);
+
+        bool success;
+        if (innerOpts.ThrowOnError)
+        {
+            this->ReadNextVariant(device, token, tokenType, newobj.GetVariantUnsafe(), encrypt);
+            success = true;
+        }
+        else
+        {
+            success = this->TryReadNextVariant(device, token, tokenType, newobj.GetVariantUnsafe(), encrypt);
+        }
+
+        if (!success)
+            return handleContainerInnerError(device, endDelim, opts, PdfErrorCode::InvalidDataType, "Could not read a variant");
     }
+
+    return true;
 }
 
-void PdfTokenizer::ReadString(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt)
+bool PdfTokenizer::ReadString(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt, ParsingOptions opts)
 {
     PODOFO_ASSERT(variant.GetDataType() == PdfDataType::Null);
 
@@ -547,7 +623,13 @@ void PdfTokenizer::ReadString(InputStreamDevice& device, PdfVariant& variant, co
     while (device.Read(ch))
     {
         if (m_charBuffer.size() >= MaxStringLength)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "String length exceeds maximum allowed size");
+        {
+            if (opts.ThrowOnError)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "String length exceeds maximum allowed size");
+
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, "String length exceeds maximum allowed size");
+            return false;
+        }
 
         if (escape)
         {
@@ -653,17 +735,23 @@ void PdfTokenizer::ReadString(InputStreamDevice& device, PdfVariant& variant, co
         // initialized as a raw buffer first
         new(&variant.m_String)PdfString(charbuff(), false);
     }
+
+    return true;
 }
 
-void PdfTokenizer::ReadHexString(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt)
+bool PdfTokenizer::ReadHexString(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt, ParsingOptions opts)
 {
     PODOFO_ASSERT(variant.GetDataType() == PdfDataType::Null);
-    readHexString(device, m_charBuffer);
+    if (!readHexString(device, m_charBuffer, opts.ThrowOnError))
+        return false;
+
     new(&variant.m_String)PdfString(PdfString::FromHexData({ m_charBuffer.size() ? m_charBuffer.data() : "", m_charBuffer.size() }, encrypt));
+    return true;
 }
 
-void PdfTokenizer::ReadName(InputStreamDevice& device, PdfVariant& variant)
+bool PdfTokenizer::ReadName(InputStreamDevice& device, PdfVariant& variant, ParsingOptions opts)
 {
+    (void)opts;
     PODOFO_ASSERT(variant.GetDataType() == PdfDataType::Null);
 
     // Do special checking for empty names
@@ -677,7 +765,7 @@ void PdfTokenizer::ReadName(InputStreamDevice& device, PdfVariant& variant)
         // We have an empty PdfName
         // NOTE: Delimiters are handled correctly by tryReadNextToken
         new(&variant.m_Name)PdfName();
-        return;
+        return true;
     }
 
     PdfTokenType tokenType;
@@ -697,11 +785,82 @@ void PdfTokenizer::ReadName(InputStreamDevice& device, PdfVariant& variant)
     {
         new(&variant.m_Name)PdfName(PdfName::FromEscaped(token));
     }
+
+    return true;
 }
 
 void PdfTokenizer::EnqueueToken(const string_view& token, PdfTokenType tokenType)
 {
     m_tokenQueue.push_back(TokenizerPair(string(token), tokenType));
+}
+
+bool PdfTokenizer::drainContainer(InputStreamDevice& device, PdfTokenType endToken)
+{
+    // Consume tokens until we hit endToken at the same nesting level we
+    // entered. Nested containers, strings and hex strings are skipped so a
+    // stray '>>' or ']' inside them does not fool the depth counter.
+    // Returns true when endToken was found, false on EOF (truncated container).
+    string_view token;
+    PdfTokenType tokenType;
+    unsigned depth = 0;
+    while (this->TryReadNextToken(device, token, tokenType))
+    {
+        if (depth == 0 && tokenType == endToken)
+            return true;
+
+        switch (tokenType)
+        {
+            case PdfTokenType::DoubleAngleBracketsLeft:
+            case PdfTokenType::SquareBracketLeft:
+                depth++;
+                break;
+            case PdfTokenType::DoubleAngleBracketsRight:
+            case PdfTokenType::SquareBracketRight:
+                if (depth > 0)
+                    depth--;
+                break;
+            case PdfTokenType::ParenthesisLeft:
+            {
+                // Consume the string body and discard it
+                PdfVariant discard;
+                (void)this->ReadString(device, discard, nullptr, { false, false });
+                break;
+            }
+            case PdfTokenType::AngleBracketLeft:
+                // Consume the hex string body and discard it
+                (void)readHexString(device, m_charBuffer, false);
+                break;
+            default:
+                break;
+        }
+    }
+    return false;
+}
+
+bool PdfTokenizer::handleContainerTruncation(ParsingOptions opts, PdfErrorCode code, string_view msg)
+{
+    if (opts.ThrowOnError)
+        PODOFO_RAISE_ERROR_INFO(code, msg);
+
+    PoDoFo::LogMessage(PdfLogSeverity::Error, msg);
+    return false;
+}
+
+bool PdfTokenizer::handleContainerInnerError(InputStreamDevice& device, PdfTokenType endDelim,
+    ParsingOptions opts, PdfErrorCode code, string_view msg)
+{
+    if (opts.ThrowOnError)
+        PODOFO_RAISE_ERROR_INFO(code, msg);
+
+    PoDoFo::LogMessage(PdfLogSeverity::Warning, msg);
+    if (opts.Strict)
+        return false;
+
+    if (drainContainer(device, endDelim))
+        return true;
+
+    PoDoFo::LogMessage(PdfLogSeverity::Error, endDelim == PdfTokenType::DoubleAngleBracketsRight ? "The dictionary is unterminated" : "The array is unterminated");
+    return false;
 }
 
 bool tryGetEscapedCharacter(char ch, char& escapedChar)
@@ -735,14 +894,20 @@ bool tryGetEscapedCharacter(char ch, char& escapedChar)
     }
 }
 
-void readHexString(InputStreamDevice& device, charbuff& buffer)
+bool readHexString(InputStreamDevice& device, charbuff& buffer, bool throwOnError)
 {
     buffer.clear();
     char ch;
     while (device.Read(ch))
     {
         if (buffer.size() >= PdfTokenizer::MaxStringLength)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Hex string length exceeds maximum allowed size");
+        {
+            if (throwOnError)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Hex string length exceeds maximum allowed size");
+
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, "Hex string length exceeds maximum allowed size");
+            return false;
+        }
 
         // end of stream reached
         if (ch == '>')
@@ -758,6 +923,8 @@ void readHexString(InputStreamDevice& device, charbuff& buffer)
     // pad to an even length if necessary
     if (buffer.size() % 2)
         buffer.push_back('0');
+
+    return true;
 }
 
 bool isOctalChar(char ch)
@@ -783,4 +950,9 @@ bool isOctalChar(char ch)
         default:
             return false;
     }
+}
+
+PdfTokenizerParams optionsToParams(const PdfTokenizerOptions& opts)
+{
+    return PdfTokenizerParams{ opts.LanguageLevel, opts.ReadReferences ? PdfTokenizerFlags::None : PdfTokenizerFlags::SkipReferences };
 }

@@ -12,6 +12,7 @@
 #include "PdfParser.h"
 
 #include <podofo/main/PdfDictionary.h>
+#include <podofo/main/PdfDocument.h>
 #include <podofo/main/PdfIndirectObjectList.h>
 #include <podofo/auxiliary/StreamDevice.h>
 
@@ -45,7 +46,14 @@ void PdfObjectStreamParser::readObjectsFromStream(char* buffer, size_t bufferLen
     unsigned num, size_t first, const unordered_set<uint32_t>* objectList)
 {
     SpanStreamDevice device(buffer, bufferLen);
+
+    PdfTokenizerParams params;
+    if (m_Parser->GetDocument() != nullptr && m_Parser->GetDocument()->IsStrictParsing())
+        params.Flags |= PdfTokenizerFlags::StrictParsing;
+
     PdfTokenizer tokenizer(m_buffer);
+    tokenizer.SetParameters(params);
+
     PdfVariant var;
     for (unsigned i = 0; i < num; i++)
     {
@@ -72,6 +80,7 @@ void PdfObjectStreamParser::readObjectsFromStream(char* buffer, size_t bufferLen
 
         // use a second tokenizer here so that anything that gets dequeued isn't left in the tokenizer that reads the offsets and lengths
         PdfTokenizer variantTokenizer(m_buffer);
+        variantTokenizer.SetParameters(params);
         variantTokenizer.ReadNextVariant(device, var); // NOTE: The stream is already decrypted
 
         bool shouldRead = objectList == nullptr || objectList->find(static_cast<uint32_t>(objNo)) != objectList->end();

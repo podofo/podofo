@@ -9,6 +9,7 @@
 #include <podofo/main/PdfDictionary.h>
 
 #include "PdfFilterFactory.h"
+#include <podofo/main/PdfDocument.h>
 
 namespace
 {
@@ -101,6 +102,13 @@ void PdfParserObject::ParseStream(bool shallow)
 void PdfParserObject::delayedLoad()
 {
     PdfTokenizer tokenizer;
+    if (GetDocument() != nullptr && GetDocument()->IsStrictParsing())
+    {
+        PdfTokenizerParams params;
+        params.Flags |= PdfTokenizerFlags::StrictParsing;
+        tokenizer.SetParameters(params);
+    }
+
     m_device->Seek(m_Offset);
     if (!m_isLegacyTrailer)
         checkReference(tokenizer);
@@ -279,6 +287,13 @@ ReadStream:
         m_device->Seek(streamOffset);
         if (!shallow)
         {
+            PODOFO_INVARIANT(GetDocument() != nullptr);
+            if (GetDocument()->IsStrictParsing())
+            {
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidStream, "Oject {} {} R has invalid stream length",
+                    GetIndirectReference().ObjectNumber(), GetIndirectReference().GenerationNumber());
+            }
+
             PoDoFo::LogMessage(PdfLogSeverity::Warning, "Oject {} {} R has invalid stream length",
                 GetIndirectReference().ObjectNumber(), GetIndirectReference().GenerationNumber());
         }

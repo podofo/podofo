@@ -2330,7 +2330,7 @@ TEST_CASE("TestNestedNameTree")
     try
     {
         PdfMemDocument doc;
-        doc.LoadFromBuffer(buffer);
+        doc.LoadFromBuffer(buffer, PdfLoadOptions::StrictParsing);
 
         auto names = doc.GetNames();
         if (names != nullptr)
@@ -2513,7 +2513,7 @@ TEST_CASE("TestNestedPageTree")
     try
     {
         PdfMemDocument doc;
-        doc.LoadFromBuffer(buffer);
+        doc.LoadFromBuffer(buffer, PdfLoadOptions::StrictParsing);
 
         auto& pages = doc.GetPages();
         for (unsigned pageNo = 0; pageNo < pages.GetCount(); pageNo++)
@@ -2676,7 +2676,7 @@ TEST_CASE("TestNestedOutlines")
     try
     {
         PdfMemDocument doc;
-        doc.LoadFromBuffer(buffer);
+        doc.LoadFromBuffer(buffer, PdfLoadOptions::StrictParsing);
 
         // load should succeed, then GetOutlines goes recursive due to /Outlines deep nesting
         (void)doc.GetOutlines();

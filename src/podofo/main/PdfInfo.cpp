@@ -25,6 +25,23 @@ PdfInfo::PdfInfo(PdfObject& obj, PdfInfoInitial initial)
     init(initial);
 }
 
+bool PdfInfo::TryCreateFromObject(const PdfObject& obj, unique_ptr<const PdfInfo>& info)
+{
+    return TryCreateFromObject(const_cast<PdfObject&>(obj), reinterpret_cast<unique_ptr<PdfInfo>&>(info));
+}
+
+bool PdfInfo::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfInfo>& info)
+{
+    if (obj.GetDataType() == PdfDataType::Dictionary)
+    {
+        info.reset(new PdfInfo(obj));
+        return true;
+    }
+
+    info.reset();
+    return false;
+}
+
 void PdfInfo::init(PdfInfoInitial initial)
 {
     auto now = PdfDate::LocalNow();

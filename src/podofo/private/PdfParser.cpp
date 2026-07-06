@@ -303,7 +303,7 @@ bool PdfParser::tryRebuildCrossReference(InputStreamDevice& device)
                 {
                     // CHECK-ME: PDFium seems to handle spurious strings
                     // found at random places in the PDF. Does it make sense at all?
-                    m_tokenizer.ReadString(device, variant, nullptr);
+                    m_tokenizer.ReadString(device, variant, nullptr, { true, m_StrictParsing });
                     variant.Reset();
                     break;
                 }
@@ -311,7 +311,7 @@ bool PdfParser::tryRebuildCrossReference(InputStreamDevice& device)
                 {
                     // CHECK-ME: PDFium seems to handle spurious strings
                     // found at random places in the PDF. Does it make sense at all?
-                    m_tokenizer.ReadHexString(device, variant, nullptr);
+                    m_tokenizer.ReadHexString(device, variant, nullptr, { true, m_StrictParsing });
                     variant.Reset();
                     break;
                 }
@@ -1203,6 +1203,15 @@ void PdfParser::clear()
     m_Objects->Clear();
     m_tokenizer.Reset();
     init();
+}
+
+void PdfParser::SetStrictParsing(bool value)
+{
+    m_StrictParsing = value;
+    PdfTokenizerParams params;
+    if (value)
+        params.Flags |= PdfTokenizerFlags::StrictParsing;
+    m_tokenizer.SetParameters(params);
 }
 
 const PdfObject& PdfParser::GetTrailer() const

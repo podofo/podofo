@@ -143,11 +143,13 @@ void PdfMemDocument::loadFromDevice(shared_ptr<InputStreamDevice>&& device,
     this->Clear();
     m_device = std::move(device);
 
+    bool strictParsing = (opts & PdfLoadOptions::StrictParsing) != PdfLoadOptions::None;
+    SetStrictParsing(strictParsing);
+
     // Call parse file instead of using the constructor
     // so that m_Parser is initialized for encrypted documents
     PdfParser parser(PdfDocument::GetObjects());
-    if ((opts & PdfLoadOptions::StrictParsing) != PdfLoadOptions::None)
-        parser.SetStrictParsing(true);
+    parser.SetStrictParsing(strictParsing);
     if ((opts & PdfLoadOptions::SkipXRefRecovery) != PdfLoadOptions::None)
         parser.SetSkipXRefRecovery(true);
     if ((opts & PdfLoadOptions::LoadStreamsEagerly) != PdfLoadOptions::None)

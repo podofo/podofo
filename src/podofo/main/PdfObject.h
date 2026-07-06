@@ -409,6 +409,8 @@ protected:
     /// so be careful what you mess with.
     virtual void delayedLoad();
 
+    void DelayedLoadStream() const;
+
     virtual void delayedLoadStream();
 
     /// @returns true if the stream was removed
@@ -439,8 +441,6 @@ protected:
 
     PdfObjectStream* getStream();
 
-    void DelayedLoadStream() const;
-
     void EnableDelayedLoadingStream();
 
     void MakeDelayedLoadingStreamDone();
@@ -461,6 +461,9 @@ protected:
     virtual void SetRevised();
 
 private:
+    void DelayedLoad(bool throwOnError) const;
+    void DelayedLoadStream(bool throwOnError) const;
+
     // To be called privately by various classes
     PdfVariant& GetVariantUnsafe() { return m_Variant; }
     const PdfReference& GetReferenceUnsafe() const { return m_Variant.GetReferenceUnsafe(); }

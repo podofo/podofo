@@ -9,6 +9,7 @@
 
 #include <podofo/main/PdfArray.h>
 #include <podofo/main/PdfDictionary.h>
+#include <podofo/main/PdfDocument.h>
 
 #include "PdfParser.h"
 
@@ -30,8 +31,13 @@ PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfDocument* doc, InputStre
 void PdfXRefStreamParserObject::delayedLoad()
 {
     // NOTE: Ignore the encryption in the XREF as the XREF stream must no be encrypted (see PDF Reference 3.4.7)
-
     PdfTokenizer tokenizer;
+    if (GetDocument() != nullptr && GetDocument()->IsStrictParsing())
+    {
+        PdfTokenizerParams params;
+        params.Flags |= PdfTokenizerFlags::StrictParsing;
+        tokenizer.SetParameters(params);
+    }
     auto reference = ReadReference(tokenizer);
     SetIndirectReference(reference);
     PdfParserObject::ParseData(tokenizer);

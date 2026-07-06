@@ -1,4 +1,5 @@
 ### After 1.1
+- PdfTokenizer: Evaluate making sure data type is set also in case of errors, in DetermineDataType/tryReadDataType. This would help leaving the object operable with the right type even in case of parsing errors. This is done already for dictionaries/arrays, see ReadDictionary/ReadArray
 - PdfPredictorDecoder: Support BitsPerComponent != 8
 - PdfColorSpaceFilterIndexed::GetSourceScanLineSize() handle bitsPerComponent != 8
 - Cleanup PdfTreeNode

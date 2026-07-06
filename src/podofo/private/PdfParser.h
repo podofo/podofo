@@ -118,7 +118,7 @@ public:
     /// tables.
     ///
     /// @param value new setting for strict parsing mode.
-    inline void SetStrictParsing(bool value) { m_StrictParsing = value; }
+    void SetStrictParsing(bool value);
 
     inline void SetSkipXRefRecovery(bool value) { m_SkipXRefRecovery = value; }
 
