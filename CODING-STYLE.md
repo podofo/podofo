@@ -13,7 +13,7 @@ Some language specific programming stylistic choices will be hard enforced, name
 - `m_` and `s_` prefixes shall be used respectively for instance member and static fields/variables. For example `m_Value` or `s_instance`. No other Hungarian notation prefixes will be accepted
 - Implicit conversion from pointer types to bool (eg. `if (!ptr)` or `while (ptr)` conditionals) shall be converted to check for `nullptr`, eg. `if (ptr == nullptr)` or `while (ptr != nullptr)`
 - There should be no comparison against literal boolean
-- In if-then statements with trivial condition the check should always favor equalities over disequalities, also for null checks, e.g. `if (a == nullptr) { /*...*/ } else { /*...*/ }` shall be preferred over `if (a != nullptr) { /*...*/ } else { /*...*/ }
+- In if-then statements with trivial condition the check should always favor equalities over disequalities, e.g. `if (a == nullptr) { /*...*/ } else { /*...*/ }` shall be preferred over `if (a != nullptr) { /*...*/ } else { /*...*/ }`. . Another example: `if (it == container.end())` instead of `if (it != container.end())`
 - Increment/decrement operators shall always be postfixed in expressions as in `it++`, unless the prefixed operator is necessary for the correctness of an algorithm or allows to shorten/optimize the code
 
 The following rules are lenient and are not truly enforced in all the code base, but they are still recommended to follow:
