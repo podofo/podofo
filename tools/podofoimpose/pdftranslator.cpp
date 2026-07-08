@@ -84,6 +84,11 @@ void PdfTranslator::SetInputOutput(const string_view& input, const string_view& 
             m_targetDoc.reset(new PdfMemDocument());
             m_targetDoc->Load(sources[i1]);
             m_targetDoc->CollectGarbage();
+            // Remove some keys that are not needed or can't be recovered in the imposed document
+            m_targetDoc->GetCatalog().GetDictionary().RemoveKey("AcroForm");
+            m_targetDoc->GetCatalog().GetDictionary().RemoveKey("Outlines");
+            m_targetDoc->GetCatalog().GetDictionary().RemoveKey("OCProperties");
+            m_targetDoc->GetCatalog().GetDictionary().RemoveKey("StructTreeRoot");
             workingDoc = m_targetDoc.get();
         }
         else
@@ -107,6 +112,9 @@ void PdfTranslator::SetInputOutput(const string_view& input, const string_view& 
             auto& page = workingDoc->GetPages().GetPageAt(i2);
 
             auto xobj = m_targetDoc->CreateXObjectForm(Rect());
+            // Early initialize resources, so we can fill them low level while
+            // still being able to add entries with the high level API
+            xobj->GetOrCreateResources();
             xobj->FillFromPage(page, &map);
 
             unsigned key = m_pageCount + 1;
