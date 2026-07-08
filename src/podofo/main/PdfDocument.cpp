@@ -9,6 +9,7 @@
 #include "PdfExtGState.h"
 #include "PdfDestination.h"
 #include "PdfFileSpec.h"
+#include "PdfStringStream.h"
 
 using namespace std;
 using namespace PoDoFo;
@@ -286,6 +287,7 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
     auto& sourceDoc = page.GetDocument();
     bool isSameDoc = (this == &sourceDoc);
 
+    unique_ptr<unordered_map<PdfReference, PdfObject*>> tempMap;
     if (isSameDoc)
     {
         // Same document: just reference existing objects directly
@@ -301,12 +303,11 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
     }
     else
     {
-        unique_ptr<unordered_map<PdfReference, PdfObject*>> temp;
         if (mappedObjects == nullptr)
         {
             // If a map is not supplied create one now
-            temp.reset(new unordered_map<PdfReference, PdfObject*>());
-            mappedObjects = temp.get();
+            tempMap.reset(new unordered_map<PdfReference, PdfObject*>());
+            mappedObjects = tempMap.get();
         }
 
         // Cross-document: selectively copy referenced objects
@@ -332,7 +333,69 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
     // Copy the page content stream(s) into the xobject stream
     auto& xobjStream = xobj.GetObject().GetOrCreateStream();
     auto output = xobjStream.GetOutputStream({ PdfFilterType::FlateDecode });
+    output.Write("q\n");
     page.CopyContentsTo(output);
+    output.Write("\nQ\n");
+
+    auto& annots = page.GetAnnotations();
+    if (annots.GetCount() != 0)
+    {
+        for (auto annot : annots)
+        {
+            // Try to flatten annotation appearance streams into the xobject
+            auto annotRect = annot->GetRectRaw().GetNormalized();
+            unique_ptr<const PdfXObjectForm> annotAp;
+            const PdfObject* annotApObj = nullptr;
+            if (annotRect.Width < EPSILON || annotRect.Height < EPSILON
+                || (annotApObj = annot->GetAppearanceStream()) == nullptr
+                || !PdfXObject::TryCreateFromObject<PdfXObjectForm>(*annotApObj, annotAp))
+            {
+                // We don't flatten invisible/invalid annotations
+                continue;
+            }
+
+            auto& apObjCopy = m_Objects.CreateObject(*annotApObj);
+            if (!isSameDoc)
+                copyReferencedObjects(apObjCopy, sourceDoc.GetObjects(), m_Objects, *mappedObjects);
+
+            // Ensure it has a /Subtype /Form
+            apObjCopy.GetDictionary().AddKey("Subtype"_n, "Form"_n);
+
+            auto apRect = annotAp->GetRectRaw().GetNormalized();
+            auto objTransform = annotAp->GetMatrix();
+
+            Vector2 leftBottom(apRect.GetLeft(), apRect.GetBottom());
+            Vector2 rightTop(apRect.GetRight(), apRect.GetTop());
+
+            // Transform the appearance rect with the object trasform
+            // to compute a scale trasform
+            auto corner1 = leftBottom * objTransform;
+            auto corner2 = rightTop * objTransform;
+            apRect = Rect::FromCorners(corner1.X, corner1.Y, corner2.X, corner2.Y);
+
+            if (apRect.Width < EPSILON || apRect.Height < EPSILON)
+            {
+                // We don't scale/render if the appearance bounding box is too small
+                continue;
+            }
+
+            double scaleX = annotRect.Width / apRect.Width;
+            double scaleY = annotRect.Height / apRect.Height;
+            double tx = annotRect.GetLeft() - apRect.GetLeft() * scaleX;
+            double ty = annotRect.GetBottom() - apRect.GetBottom() * scaleY;
+
+            PdfStringStream stream;
+            stream << std::endl << "q" << std::endl
+                << scaleX << " 0 0 "
+                << scaleY << " "
+                << tx << " "
+                << ty << " cm" << std::endl
+                << "/" << static_cast<PdfResourceOperations&>(xobj.GetOrCreateResources()).AddResource(PdfResourceType::XObject, apObjCopy).GetString() << " Do" << std::endl << "Q" << std::endl;
+
+            output.Write(stream.GetString());
+        }
+    }
+
     return box;
 }
 

@@ -33,7 +33,9 @@ PdfStringStream& PdfStringStream::operator<<(double val)
 PdfStringStream& PdfStringStream::operator<<(
     std::ostream& (*pfn)(std::ostream&))
 {
-    pfn(*m_stream);
+    // Note that std::endl will itself append \n character and
+    // the underlying stream won't turn it to \r\n on Windows
+    (void)pfn(*m_stream);
     return *this;
 }
 
