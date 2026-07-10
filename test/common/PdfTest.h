@@ -105,10 +105,14 @@ namespace PoDoFo
         static std::string GetTestInputFilePath(const std::string_view& path1,
             Ts&&... paths);
 
+        template<typename ... Ts>
+        static void ReadTestInputFileTo(std::string& str, const std::string_view& path1,
+            Ts&&... paths);
+
         static const fs::path& GetTestInputPath();
         static const fs::path& GetTestOutputPath();
-        static void ReadTestInputFile(const std::string_view& filename, std::string& str);
-        static void WriteTestOutputFile(const std::string_view& filename, const std::string_view& view);
+        static void ReadTestInputFileTo(std::string& str, const std::string_view& filename);
+        static void WriteTestOutputFileTo(const std::string_view& filename, const std::string_view& view);
         static void AssertEqual(double expected, double actual, double threshold = THRESHOLD);
         static void SaveFramePPM(charbuff& buffer, const void* data,
             PdfPixelFormat srcPixelFormat, unsigned width, unsigned height);
@@ -118,6 +122,9 @@ namespace PoDoFo
         static bool IsBufferEqual(const bufferview& buffer, const std::string_view& filename);
 
         static bool AreFilesEqual(const std::string_view& filename1, const std::string_view& filename2);
+
+    private:
+        static void readTestInputFileTo(std::string& str, const std::string_view& filepath);
     };
 
     template<typename ...Ts>
@@ -134,6 +141,14 @@ namespace PoDoFo
         auto ret = GetTestInputPath() / std::filesystem::u8path(path1);
         utls::CombinePaths(ret, { paths... });
         return ret.u8string();
+    }
+
+    template<typename ...Ts>
+    inline void TestUtils::ReadTestInputFileTo(std::string& str, const std::string_view& path1, Ts && ...paths)
+    {
+        auto filepath = GetTestInputPath() / std::filesystem::u8path(path1);
+        utls::CombinePaths(filepath, { paths... });
+        readTestInputFileTo(str, filepath.u8string());
     }
 }
 

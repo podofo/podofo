@@ -11,14 +11,14 @@ using namespace PoDoFo;
 static void TestNormalizeXMP(string_view filename)
 {
     string sourceXmp;
-    TestUtils::ReadTestInputFile(string(filename) + ".xml", sourceXmp);
+    TestUtils::ReadTestInputFileTo(sourceXmp, string(filename) + ".xml");
 
     auto packet = PdfXMPPacket::Create(sourceXmp);
     auto metadata = packet->GetMetadata();
     auto normalizedXmp = packet->ToString();
 
     string expectedXmp;
-    TestUtils::ReadTestInputFile(string(filename) + "-Expected.xml", expectedXmp);
+    TestUtils::ReadTestInputFileTo(expectedXmp, string(filename) + "-Expected.xml");
 
     REQUIRE(normalizedXmp == expectedXmp);
 }
@@ -26,7 +26,7 @@ static void TestNormalizeXMP(string_view filename)
 TEST_CASE("TestAdditionalXMPMetatadata")
 {
     string sourceXmp;
-    TestUtils::ReadTestInputFile("TestXMP5.xml", sourceXmp);
+    TestUtils::ReadTestInputFileTo(sourceXmp, "TestXMP5.xml");
 
     auto packet = PdfXMPPacket::Create(sourceXmp);
     auto metadata = packet->GetMetadata();
@@ -69,7 +69,7 @@ TEST_CASE("TestPruneInvalid")
     };
 
     string xmp;
-    TestUtils::ReadTestInputFile("TestXMP1.xml", xmp);
+    TestUtils::ReadTestInputFileTo(xmp, "TestXMP1.xml");
 
     auto packet = PdfXMPPacket::Create(xmp);
     packet->PruneAndValidate(PdfALevel::L1B, reportWarnings);
@@ -84,7 +84,7 @@ TEST_CASE("TestPruneInvalid")
     REQUIRE(warnings.size() == 0);
 
     xmp.clear();
-    TestUtils::ReadTestInputFile("TestXMP1_PDFA4.xml", xmp);
+    TestUtils::ReadTestInputFileTo(xmp, "TestXMP1_PDFA4.xml");
 
     warnings.clear();
     packet = PdfXMPPacket::Create(xmp);
@@ -100,7 +100,7 @@ TEST_CASE("TestPruneInvalid")
     REQUIRE(warnings.size() == 0);
 
     xmp.clear();
-    TestUtils::ReadTestInputFile("TestXMP1_PDFA4_Invalid1.xml", xmp);
+    TestUtils::ReadTestInputFileTo(xmp, "TestXMP1_PDFA4_Invalid1.xml");
     packet = PdfXMPPacket::Create(xmp);
     packet->PruneAndValidate(PdfALevel::L4, reportWarnings);
     REQUIRE(warnings.size() == 1);
@@ -108,7 +108,7 @@ TEST_CASE("TestPruneInvalid")
     REQUIRE(warnings[0].IsDuplicated);
 
     xmp.clear();
-    TestUtils::ReadTestInputFile("TestXMP1_PDFA4_Invalid2.xml", xmp);
+    TestUtils::ReadTestInputFileTo(xmp, "TestXMP1_PDFA4_Invalid2.xml");
     warnings.clear();
     packet = PdfXMPPacket::Create(xmp);
     packet->PruneAndValidate(PdfALevel::L4, reportWarnings);
@@ -117,14 +117,14 @@ TEST_CASE("TestPruneInvalid")
     REQUIRE(warnings[0].HasInvalidPrefix);
 
     xmp.clear();
-    TestUtils::ReadTestInputFile("TestXMP8.xml", xmp);
+    TestUtils::ReadTestInputFileTo(xmp, "TestXMP8.xml");
     warnings.clear();
     packet = PdfXMPPacket::Create(xmp);
     packet->PruneAndValidate(PdfALevel::L2B, reportWarnings);
     REQUIRE(warnings.size() == 0);
 
     string expectedXmp;
-    TestUtils::ReadTestInputFile("TestXMP8-Expected.xml", expectedXmp);
+    TestUtils::ReadTestInputFileTo(expectedXmp, "TestXMP8-Expected.xml");
     packet->ToString(xmp);
     REQUIRE(xmp == expectedXmp);
 }
