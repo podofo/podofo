@@ -125,7 +125,7 @@ endif()
 if(WIN32)
     # Core win32 libraries come with CMAKE_C(XX)_IMPLICIT_LINK_LIBRARIES
     set(PODOFO_HAVE_WIN32GDI TRUE)
-    list(APPEND PLATFORM_SYSTEM_LIBRARIES ws2_32 crypt32)
+    list(APPEND PLATFORM_SYSTEM_LIBRARIES ws2_32 crypt32 Bcrypt)
 endif()
 
 # Set minimum required standard C++17, but also enforce it
