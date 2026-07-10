@@ -13,7 +13,7 @@ TEST_CASE("TestLoadCertificate")
 {
     // Load a PEM certificate now works
     string cert;
-    TestUtils::ReadTestInputFile("mycert.pem", cert);
+    TestUtils::ReadTestInputFileTo(cert, "mycert.pem");
 
     PdfSignerCms signer(cert);
     // Dummy data append to enforce certificate load
@@ -29,17 +29,17 @@ TEST_CASE("TestSignature1")
 
     // RSA Private key coefficients in der PKCS1 format (binary)
     string pkey1;
-    TestUtils::ReadTestInputFile("mykey-pkcs1.der", pkey1);
+    TestUtils::ReadTestInputFileTo(pkey1, "mykey-pkcs1.der");
 
     // RSA Private key coefficients in der PKCS8 format (binary)
     string pkey8;
-    TestUtils::ReadTestInputFile("mykey-pkcs8.der", pkey8);
+    TestUtils::ReadTestInputFileTo(pkey8, "mykey-pkcs8.der");
 
     auto testSignature = [&](const shared_ptr<StreamDevice>& stream, const bufferview& pkey)
     {
         // X509 Certificate
         string cert;
-        TestUtils::ReadTestInputFile("mycert.der", cert);
+        TestUtils::ReadTestInputFileTo(cert, "mycert.der");
 
         PdfMemDocument doc(stream);
         auto& page = doc.GetPages().GetPageAt(0);
@@ -88,11 +88,11 @@ TEST_CASE("TestSignature2")
 
     // X509 Certificate
     string cert;
-    TestUtils::ReadTestInputFile("mycert.der", cert);
+    TestUtils::ReadTestInputFileTo(cert, "mycert.der");
 
     // RSA Private key coefficients in der format (binary)
     string pkey;
-    TestUtils::ReadTestInputFile("mykey-pkcs1.der", pkey);
+    TestUtils::ReadTestInputFileTo(pkey, "mykey-pkcs1.der");
 
     PdfMemDocument doc(stream);
     auto& page = doc.GetPages().GetPageAt(0);
@@ -131,11 +131,11 @@ TEST_CASE("TestSignature3")
 
     // X509 Certificate
     string cert;
-    TestUtils::ReadTestInputFile("mycert.der", cert);
+    TestUtils::ReadTestInputFileTo(cert, "mycert.der");
 
     // RSA Private key coefficients in der format (binary)
     string pkey;
-    TestUtils::ReadTestInputFile("mykey-pkcs8.der", pkey);
+    TestUtils::ReadTestInputFileTo(pkey, "mykey-pkcs8.der");
 
     PdfMemDocument doc(stream);
     auto& page = doc.GetPages().GetPageAt(0);
@@ -167,11 +167,11 @@ TEST_CASE("TestSignatureDumpRestore")
 
     // X509 Certificate
     string cert;
-    TestUtils::ReadTestInputFile("mycert.der", cert);
+    TestUtils::ReadTestInputFileTo(cert, "mycert.der");
 
     // RSA Private key coefficients in der format (binary)
     string pkey;
-    TestUtils::ReadTestInputFile("mykey-pkcs8.der", pkey);
+    TestUtils::ReadTestInputFileTo(pkey, "mykey-pkcs8.der");
 
     charbuff hashToSign;
     PdfSignerId signerId;
@@ -221,7 +221,7 @@ TEST_CASE("TestCertificateRSA")
 {
     {
         string cert;
-        TestUtils::ReadTestInputFile("RSA1024Cert.pem", cert);
+        TestUtils::ReadTestInputFileTo(cert, "RSA1024Cert.pem");
 
         PdfSignerCmsParams params;
         PdfSignerCms signer(cert, params);
@@ -230,7 +230,7 @@ TEST_CASE("TestCertificateRSA")
 
     {
         string cert;
-        TestUtils::ReadTestInputFile("RSA3072Cert.pem", cert);
+        TestUtils::ReadTestInputFileTo(cert, "RSA3072Cert.pem");
 
         PdfSignerCmsParams params;
         PdfSignerCms signer(cert, params);
@@ -239,7 +239,7 @@ TEST_CASE("TestCertificateRSA")
 
     {
         string cert;
-        TestUtils::ReadTestInputFile("RSA4096Cert.pem", cert);
+        TestUtils::ReadTestInputFileTo(cert, "RSA4096Cert.pem");
 
         PdfSignerCmsParams params;
         PdfSignerCms signer(cert, params);
@@ -257,11 +257,11 @@ TEST_CASE("TestSignEncryptedDoc")
 
     // X509 Certificate
     string cert;
-    TestUtils::ReadTestInputFile("mycert.der", cert);
+    TestUtils::ReadTestInputFileTo(cert, "mycert.der");
 
     // RSA Private key coefficients in der format (binary)
     string pkey;
-    TestUtils::ReadTestInputFile("mykey-pkcs8.der", pkey);
+    TestUtils::ReadTestInputFileTo(pkey, "mykey-pkcs8.der");
 
     auto date = PdfDate::ParseW3C("2024-07-31T17:03:42+02:00");
 
@@ -290,10 +290,10 @@ TEST_CASE("TestSaveOnSigning")
     PdfMemDocument doc;
     auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
     string x509certbuffer;
-    TestUtils::ReadTestInputFile("mycert.der", x509certbuffer);
+    TestUtils::ReadTestInputFileTo(x509certbuffer, "mycert.der");
 
     string pkeybuffer;
-    TestUtils::ReadTestInputFile("mykey-pkcs8.der", pkeybuffer);
+    TestUtils::ReadTestInputFileTo(pkeybuffer, "mykey-pkcs8.der");
 
     auto& signature = page.CreateField<PdfSignature>("Signature", Rect(100, 600, 100, 100));
     signature.SetSignatureDate(PdfDate::LocalNow());
@@ -318,7 +318,7 @@ TEST_CASE("TestPdfSignerCms")
 {
     // X509 Certificate
     string cert;
-    TestUtils::ReadTestInputFile("mycert.der", cert);
+    TestUtils::ReadTestInputFileTo(cert, "mycert.der");
 
     charbuff buff;
     {
@@ -419,10 +419,10 @@ TEST_CASE("TestGetPreviousRevision")
 TEST_CASE("TestSignatureOffsetStart")
 {
     string x509certbuffer;
-    TestUtils::ReadTestInputFile("mycert.der", x509certbuffer);
+    TestUtils::ReadTestInputFileTo(x509certbuffer, "mycert.der");
 
     string pkeybuffer;
-    TestUtils::ReadTestInputFile("mykey-pkcs8.der", pkeybuffer);
+    TestUtils::ReadTestInputFileTo(pkeybuffer, "mykey-pkcs8.der");
 
     charbuff currBuffer;
     utls::ReadTo(currBuffer, TestUtils::GetTestInputFilePath("blank-with-offset-start.pdf"));
@@ -449,10 +449,10 @@ TEST_CASE("TestSignatureCorrupted")
     auto currentLogSeverity = PdfCommon::GetMaxLoggingSeverity();
     PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::None);
     string x509certbuffer;
-    TestUtils::ReadTestInputFile("mycert.der", x509certbuffer);
+    TestUtils::ReadTestInputFileTo(x509certbuffer, "mycert.der");
 
     string pkeybuffer;
-    TestUtils::ReadTestInputFile("mykey-pkcs8.der", pkeybuffer);
+    TestUtils::ReadTestInputFileTo(pkeybuffer, "mykey-pkcs8.der");
 
     charbuff currBuffer;
 

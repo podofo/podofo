@@ -26,7 +26,7 @@ TEST_CASE("TestImage1")
         PdfPixelFormat::BGRA, image->GetWidth(), image->GetHeight());
 
     string expectedImage;
-    TestUtils::ReadTestInputFile("ReferenceImage.ppm", expectedImage);
+    TestUtils::ReadTestInputFileTo(expectedImage, "ReferenceImage.ppm");
 
     REQUIRE(ppmbuffer == expectedImage);
 }
@@ -57,7 +57,7 @@ TEST_CASE("TestImage2")
     // NOTE: The following check may file using different,
     // jpeg libraries such as libjpeg-turbo
     string expectedImage;
-    TestUtils::ReadTestInputFile("ReferenceImage.ppm", expectedImage);
+    TestUtils::ReadTestInputFileTo(expectedImage, "ReferenceImage.ppm");
 
     REQUIRE(ppmbuffer == expectedImage);
 #endif // PODOFO_PLAYGROUND
@@ -79,7 +79,7 @@ static void testReferenceImage(const PdfDocument& doc)
             PdfPixelFormat::BGRA, image->GetWidth(), image->GetHeight());
 
         string expectedImage;
-        TestUtils::ReadTestInputFile("ReferenceImage.ppm", expectedImage);
+        TestUtils::ReadTestInputFileTo(expectedImage, "ReferenceImage.ppm");
 
         REQUIRE(ppmbuffer == expectedImage);
         return;
@@ -171,7 +171,7 @@ TEST_CASE("TestImage5")
         TestUtils::SaveFramePPM(ppmbuffer, buffer.data(),
             PdfPixelFormat::BGRA, image->GetWidth(), image->GetHeight());
 
-        TestUtils::WriteTestOutputFile(TestUtils::GetTestOutputFilePath("YCbCr-jpeg.ppm"), ppmbuffer);
+        TestUtils::WriteTestOutputFileTo(TestUtils::GetTestOutputFilePath("YCbCr-jpeg.ppm"), ppmbuffer);
     }
 
     {
@@ -189,7 +189,7 @@ TEST_CASE("TestImage5")
         TestUtils::SaveFramePPM(ppmbuffer, buffer.data(),
             PdfPixelFormat::BGRA, image->GetWidth(), image->GetHeight());
 
-        TestUtils::WriteTestOutputFile(TestUtils::GetTestOutputFilePath("YCCK-jpeg.ppm"), ppmbuffer);
+        TestUtils::WriteTestOutputFileTo(TestUtils::GetTestOutputFilePath("YCCK-jpeg.ppm"), ppmbuffer);
     }
 }
 
@@ -209,7 +209,7 @@ TEST_CASE("TestImage6")
     TestUtils::SaveFramePPM(ppmbuffer, buffer.data(),
         PdfPixelFormat::BGRA, image->GetWidth(), image->GetHeight());
 
-    TestUtils::WriteTestOutputFile(TestUtils::GetTestOutputFilePath("TestImage2.ppm"), ppmbuffer);
+    TestUtils::WriteTestOutputFileTo(TestUtils::GetTestOutputFilePath("TestImage2.ppm"), ppmbuffer);
 }
 
 TEST_CASE("TestImage7")

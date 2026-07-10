@@ -13,7 +13,6 @@
 using namespace std;
 using namespace PoDoFo;
 
-static void readTestInputFile(const string_view& filepath, string& str);
 static void writeTestOutputFile(const string_view& filepath, const string_view& view);
 
 static struct TestPaths
@@ -51,12 +50,12 @@ const fs::path& TestUtils::GetTestOutputPath()
     return s_paths.Output;
 }
 
-void TestUtils::ReadTestInputFile(const string_view& filename, string& str)
+void TestUtils::ReadTestInputFileTo(std::string& str, const string_view& filename)
 {
-    readTestInputFile(GetTestInputFilePath(filename), str);
+    readTestInputFileTo(str, GetTestInputFilePath(filename));
 }
 
-void TestUtils::WriteTestOutputFile(const string_view& filename, const string_view& view)
+void TestUtils::WriteTestOutputFileTo(const string_view& filename, const string_view& view)
 {
     writeTestOutputFile(GetTestOutputFilePath(filename), view);
 }
@@ -135,7 +134,7 @@ bool TestUtils::AreFilesEqual(const string_view& filename1, const string_view& f
     return tmp1 == tmp2;
 }
 
-void readTestInputFile(const string_view& filepath, string& str)
+void TestUtils::readTestInputFileTo(string& str, const string_view& filepath)
 {
 #ifdef _WIN32
     auto filepath16 = utf8::utf8to16((string)filepath);
