@@ -62,10 +62,10 @@ namespace ssl
     unsigned GetSignedHashSize(EVP_PKEY* pkey);
 
     // Sign a buffer with the supplied pkey, no encapsulation and deterministic padding
-    void DoSign(const PoDoFo::bufferview& input, const PoDoFo::bufferview& pkey,
-        PoDoFo::PdfHashingAlgorithm hashing, PoDoFo::charbuff& output);
-    void DoSign(const PoDoFo::bufferview& input, EVP_PKEY* pkey,
-        PoDoFo::PdfHashingAlgorithm hashing, PoDoFo::charbuff& output);
+    void DoSignHash(const PoDoFo::bufferview& hashToSign, const PoDoFo::bufferview& pkey,
+        PoDoFo::PdfHashingAlgorithm hashing, PoDoFo::charbuff& output, bool skipWrapHash = false);
+    void DoSignHash(const PoDoFo::bufferview& hashToSign, EVP_PKEY* pkey,
+        PoDoFo::PdfHashingAlgorithm hashing, PoDoFo::charbuff& output, bool skipWrapHash = false);
 
     // Returns ASN.1 encoded X509 certificate
     PoDoFo::charbuff GetEncoded(const X509* cert);

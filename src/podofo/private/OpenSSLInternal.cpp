@@ -169,17 +169,17 @@ void ssl::cmsAddSigningTime(CMS_SignerInfo* si, const date::sys_seconds& timesta
     }
 }
 
-void ssl::DoSign(const bufferview& input, const bufferview& pkey,
-    PoDoFo::PdfHashingAlgorithm hashing, charbuff& output)
+void ssl::DoSignHash(const bufferview& hashToSign, const bufferview& pkey,
+    PoDoFo::PdfHashingAlgorithm hashing, charbuff& output, bool skipWrapHash)
 {
     unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)> pkeyssl(ssl::LoadPrivateKey(pkey), EVP_PKEY_free);
-    ssl::DoSign(input, pkeyssl.get(), hashing, output);
+    ssl::DoSignHash(hashToSign, pkeyssl.get(), hashing, output, skipWrapHash);
 }
 
 // Note that signing is really encryption with the private key
 // and a deterministic padding
-void ssl::DoSign(const bufferview& input, EVP_PKEY* pkey,
-    PdfHashingAlgorithm hashing, charbuff& output)
+void ssl::DoSignHash(const bufferview& hashToSign, EVP_PKEY* pkey,
+    PdfHashingAlgorithm hashing, charbuff& output, bool skipWrapHash)
 {
     size_t siglen;
     unique_ptr<EVP_PKEY_CTX, decltype(&EVP_PKEY_CTX_free)> ctx(EVP_PKEY_CTX_new(pkey, nullptr), EVP_PKEY_CTX_free);
@@ -189,19 +189,19 @@ void ssl::DoSign(const bufferview& input, EVP_PKEY* pkey,
     if (EVP_PKEY_sign_init(ctx.get()) <= 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error EVP_PKEY_sign_init");
 
+    auto actualInput = hashToSign;
+    charbuff tempWrapped;
     if (EVP_PKEY_base_id(pkey) == EVP_PKEY_RSA)
     {
         // Set deterministic PKCS1 padding
         if (EVP_PKEY_CTX_set_rsa_padding(ctx.get(), RSA_PKCS1_PADDING) <= 0)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error EVP_PKEY_CTX_set_rsa_padding");
-    }
 
-    auto actualInput = input;
-    charbuff tempWrapped;
-    if (hashing != PdfHashingAlgorithm::Unknown)
-    {
-        ssl::WrapDigestPKCS1(input, hashing, tempWrapped);
-        actualInput = tempWrapped;
+        if (!skipWrapHash)
+        {
+            ssl::WrapDigestPKCS1(hashToSign, hashing, tempWrapped);
+            actualInput = tempWrapped;
+        }
     }
     
     if (EVP_PKEY_sign(ctx.get(), nullptr, &siglen, (const unsigned char*)actualInput.data(), actualInput.size()) <= 0)
