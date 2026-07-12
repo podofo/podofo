@@ -104,7 +104,7 @@ TEST_CASE("TestSignature2")
     params.SigningService = [&pkey, &params](bufferview hashToSign, bool dryrun, charbuff& signedHash)
     {
         (void)dryrun;
-        ssl::DoSign(hashToSign, pkey, params.Hashing, signedHash);
+        ssl::DoSignHash(hashToSign, pkey, params.Hashing, signedHash);
     };
     auto signer = PdfSignerCms(cert, params);
     PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
@@ -150,7 +150,7 @@ TEST_CASE("TestSignature3")
     PdfSigningResults results;
     ctx.StartSigning(doc, stream, results, PdfSaveOptions::NoMetadataUpdate);
     charbuff signedHash;
-    ssl::DoSign(results.Intermediate[signerId], pkey, params.Hashing, signedHash);
+    ssl::DoSignHash(results.Intermediate[signerId], pkey, params.Hashing, signedHash);
     results.Intermediate[signerId] = signedHash;
     ctx.FinishSigning(results);
     
@@ -207,7 +207,7 @@ TEST_CASE("TestSignatureDumpRestore")
     utls::WriteTo(TestUtils::GetTestOutputFilePath("TestSignatureDumpRestore1.pdf"), buff);
 
     charbuff signedHash;
-    ssl::DoSign(hashToSign, pkey, params.Hashing, signedHash);
+    ssl::DoSignHash(hashToSign, pkey, params.Hashing, signedHash);
     PdfSigningResults newResults;
     newResults.Intermediate[signerId] = signedHash;
     newCtx.FinishSigning(newResults);

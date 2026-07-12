@@ -390,7 +390,8 @@ void PdfSignerCms::resetContext()
 void PdfSignerCms::doSign(const bufferview& input, charbuff& output)
 {
     PODOFO_ASSERT(m_privKey != nullptr);
-    return ssl::DoSign(input, m_privKey, PdfHashingAlgorithm::Unknown, output);
+    // NOTE: We don't any hash wrapping because the CmsContext will do it for us, if neeeded
+    return ssl::DoSignHash(input, m_privKey, PdfHashingAlgorithm::Unknown, output, true);
 }
 
 void PdfSignerCms::tryEnlargeSignatureContents(charbuff& contents)
