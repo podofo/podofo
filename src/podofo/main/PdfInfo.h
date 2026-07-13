@@ -16,7 +16,8 @@ namespace PoDoFo
 /// about the PDF document.
 class PODOFO_API PdfInfo final : public PdfDictionaryElement
 {
-public:
+    friend class PdfDocument;
+private:
     /// Create a PdfInfo object from an existing
     /// object in the PDF file.
     /// @param obj must be an info dictionary
@@ -28,6 +29,7 @@ public:
     /// @param initial which information should be
     ///         writing initially to the information
     PdfInfo(PdfObject& obj, PdfInfoInitial initial);
+public:
 
     static bool TryCreateFromObject(const PdfObject& obj, std::unique_ptr<const PdfInfo>& info);
     static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfInfo>& info); 

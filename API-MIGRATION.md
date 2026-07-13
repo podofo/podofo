@@ -1,3 +1,9 @@
+# 1.1.* -> 1.2
+
+- `PdfInfo`: Removed the public constructors: accordingly to the 1.x API conventions
+they were not intended to be part of it. Use `PdfInfo::TryCreateFromObject` to
+parse a `PdfInfo` from an object
+
 # 1.0.* -> 1.1
 
 - `PdfFontFactory`: Removed, this was a leftover of a removed class,
