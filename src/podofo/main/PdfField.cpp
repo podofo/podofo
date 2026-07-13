@@ -32,15 +32,15 @@ PdfField::PdfField(PdfAnnotationWidget& widget,
     PdfDictionaryElement(widget.GetObject()),
     m_Widget(&widget),
     m_AcroForm(nullptr),
-    m_FieldType(fieldType),
-    m_Parent(std::move(parent))
+    m_FieldType(fieldType)
 {
-    if (*m_Parent == nullptr)
+    if (parent == nullptr)
     {
         init();
     }
     else
     {
+        m_Parent = std::move(parent);
         // Set /Parent key to newly created field
         GetDictionary().AddKey("Parent"_n, (*m_Parent)->GetObject().GetIndirectReference());
     }
@@ -51,15 +51,15 @@ PdfField::PdfField(PdfAcroForm& acroform, PdfFieldType fieldType,
     PdfDictionaryElement(acroform.GetDocument()),
     m_Widget(nullptr),
     m_AcroForm(&acroform),
-    m_FieldType(fieldType),
-    m_Parent(std::move(parent))
+    m_FieldType(fieldType)
 {
-    if (*m_Parent == nullptr)
+    if (parent == nullptr)
     {
         init();
     }
     else
     {
+        m_Parent = std::move(parent);
         // Set /Parent key to newly created field
         GetDictionary().AddKey("Parent"_n, (*m_Parent)->GetObject().GetIndirectReference());
     }
@@ -568,7 +568,13 @@ void PdfField::SetFieldFlag(int64_t value, bool set)
             curr ^= value;
     }
 
-    GetDictionary().AddKey("Ff"_n, curr);
+    // Field flags must be set on the parent, otherwise they won't
+    // be honored, e.g. ReadOnly. CHECK-ME: Does it apply to all flags?
+    auto parent = GetParentSafe();
+    if (parent == nullptr)
+        GetDictionary().AddKey("Ff"_n, curr);
+    else
+        parent->GetDictionary().AddKey("Ff"_n, curr);
 }
 
 bool PdfField::GetFieldFlag(int64_t value, bool defvalue) const
