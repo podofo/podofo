@@ -304,11 +304,7 @@ void CmsContext::loadX509Certificate(const bufferview& cert)
     if (pubkey == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Invalid public key");
 
-    m_encryption = PdfSignatureEncryption::Unknown;
-    if (EVP_PKEY_base_id(pubkey) == EVP_PKEY_RSA)
-        m_encryption = PdfSignatureEncryption::RSA;
-    else if (EVP_PKEY_base_id(pubkey) == EVP_PKEY_EC)
-        m_encryption = PdfSignatureEncryption::ECDSA;
+    m_encryption = ssl::GetSignatureEncryption(pubkey);
 }
 
 void CmsContext::computeCertificateHash()

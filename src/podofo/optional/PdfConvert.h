@@ -1250,8 +1250,14 @@ namespace PoDoFo
             {
                 case PdfSignatureEncryption::RSA:
                     return "RSA"sv;
+                case PdfSignatureEncryption::DSA:
+                    return "DSA"sv;
                 case PdfSignatureEncryption::ECDSA:
                     return "ECDSA"sv;
+                case PdfSignatureEncryption::ML_DSA:
+                    return "ML_DSA"sv;
+                case PdfSignatureEncryption::SLH_DSA:
+                    return "SLH_DSA"sv;
                 default:
                     throw PdfError(PdfErrorCode::InvalidEnumValue, __FILE__, __LINE__);
             }
@@ -1264,9 +1270,24 @@ namespace PoDoFo
                 value = PdfSignatureEncryption::RSA;
                 return true;
             }
+            if (str == "DSA")
+            {
+                value = PdfSignatureEncryption::DSA;
+                return true;
+            }
             else if (str == "ECDSA")
             {
                 value = PdfSignatureEncryption::ECDSA;
+                return true;
+            }
+            if (str == "ML_DSA")
+            {
+                value = PdfSignatureEncryption::ML_DSA;
+                return true;
+            }
+            if (str == "SLH_DSA")
+            {
+                value = PdfSignatureEncryption::SLH_DSA;
                 return true;
             }
 

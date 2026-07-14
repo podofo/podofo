@@ -3,6 +3,9 @@
 - `PdfInfo`: Removed the public constructors: accordingly to the 1.x API conventions
 they were not intended to be part of it. Use `PdfInfo::TryCreateFromObject` to
 parse a `PdfInfo` from an object
+- `PdfSignatureEncryption`: The values of the enums changed in a ABI incompatible
+way. This enum has currently no use in the public API, other than setting a
+deprecated and unused field in `PdfSignerCmsParams`
 
 # 1.0.* -> 1.1
 

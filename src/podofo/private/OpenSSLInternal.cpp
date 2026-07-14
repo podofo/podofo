@@ -25,7 +25,7 @@ OpenSSLMain::OpenSSLMain() :
     m_libCtx{ }, m_legacyProvider{ }, m_defaultProvider{ },
 #endif // OPENSSL_VERSION_MAJOR >= 3
     m_Rc4{ }, m_Aes128{ }, m_Aes256_CBC{ }, m_Aes256_ECB{ }, m_MD5{ },
-    m_SHA1{ }, m_SHA256{ }, m_SHA384{ }, m_SHA512{ }
+    m_SHA1{ }, m_SHA256{ }, m_SHA384{ }, m_SHA512{ }, m_SHAKE256{ }
 {
 }
 
@@ -55,6 +55,7 @@ void OpenSSLMain::Init()
     m_SHA256 = EVP_MD_fetch(m_libCtx, "SHA2-256", "provider=default");
     m_SHA384 = EVP_MD_fetch(m_libCtx, "SHA2-384", "provider=default");
     m_SHA512 = EVP_MD_fetch(m_libCtx, "SHA2-512", "provider=default");
+    m_SHAKE256 = EVP_MD_fetch(m_libCtx, "SHAKE256", "provider=default");
 #else // OPENSSL_VERSION_MAJOR < 3
     m_Rc4 = EVP_rc4();
     m_Aes128 = EVP_aes_128_cbc();
@@ -65,6 +66,7 @@ void OpenSSLMain::Init()
     m_SHA256 = EVP_sha256();
     m_SHA384 = EVP_sha384();
     m_SHA512 = EVP_sha512();
+    m_SHAKE256 = EVP_shake256();
 #endif // OPENSSL_VERSION_MAJOR >= 3
 }
 
@@ -126,15 +128,9 @@ void ssl::AddSigningCertificateV2(CMS_SignerInfo* signer, const bufferview& hash
 
 EVP_PKEY* ssl::LoadPrivateKey(const bufferview& input)
 {
-    // Try to load a RSA DER private key first
+    // Try to load a DER encoded key first
     const unsigned char* data = (const unsigned char*)input.data();
-    auto ret = d2i_PrivateKey(EVP_PKEY_RSA, nullptr, &data, (long)input.size());
-    if (ret != nullptr)
-        return ret;
-
-    // Then try to load a ECDSA DER private
-    data = (const unsigned char*)input.data(); // Reset the input as it may be used as an iterator
-    ret = d2i_PrivateKey(EVP_PKEY_EC, nullptr, &data, (long)input.size());
+    EVP_PKEY* ret = d2i_AutoPrivateKey(nullptr, &data, (long)input.size());
     if (ret != nullptr)
         return ret;
 
@@ -169,41 +165,111 @@ void ssl::cmsAddSigningTime(CMS_SignerInfo* si, const date::sys_seconds& timesta
     }
 }
 
-void ssl::DoSignHash(const bufferview& hashToSign, const bufferview& pkey,
-    PoDoFo::PdfHashingAlgorithm hashing, charbuff& output, bool skipWrapHash)
+void ssl::SignHash(const bufferview& hashToSign, const bufferview& pkey,
+    PoDoFo::PdfHashingAlgorithm hashing, charbuff& output, bool skipWrapHash, bool deterministic)
 {
     unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)> pkeyssl(ssl::LoadPrivateKey(pkey), EVP_PKEY_free);
-    ssl::DoSignHash(hashToSign, pkeyssl.get(), hashing, output, skipWrapHash);
+    ssl::SignHash(hashToSign, pkeyssl.get(), hashing, output, skipWrapHash, deterministic);
 }
 
 // Note that signing is really encryption with the private key
 // and a deterministic padding
-void ssl::DoSignHash(const bufferview& hashToSign, EVP_PKEY* pkey,
-    PdfHashingAlgorithm hashing, charbuff& output, bool skipWrapHash)
+void ssl::SignHash(const bufferview& hashToSign, EVP_PKEY* pkey,
+    PdfHashingAlgorithm hashing, charbuff& output, bool skipWrapHash, bool deterministic)
 {
     size_t siglen;
     unique_ptr<EVP_PKEY_CTX, decltype(&EVP_PKEY_CTX_free)> ctx(EVP_PKEY_CTX_new(pkey, nullptr), EVP_PKEY_CTX_free);
     if (ctx == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error EVP_PKEY_CTX_new");
 
-    if (EVP_PKEY_sign_init(ctx.get()) <= 0)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error EVP_PKEY_sign_init");
-
     auto actualInput = hashToSign;
+    auto encryption = GetSignatureEncryption(pkey);
     charbuff tempWrapped;
-    if (EVP_PKEY_base_id(pkey) == EVP_PKEY_RSA)
+    switch (encryption)
     {
-        // Set deterministic PKCS1 padding
-        if (EVP_PKEY_CTX_set_rsa_padding(ctx.get(), RSA_PKCS1_PADDING) <= 0)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error EVP_PKEY_CTX_set_rsa_padding");
-
-        if (!skipWrapHash)
+        case PdfSignatureEncryption::RSA:
+        case PdfSignatureEncryption::DSA:
+        case PdfSignatureEncryption::ECDSA:
         {
-            ssl::WrapDigestPKCS1(hashToSign, hashing, tempWrapped);
-            actualInput = tempWrapped;
+            // Legacy RSA, DSA, ECDSA
+            if (EVP_PKEY_sign_init(ctx.get()) <= 0)
+            {
+                string err;
+                GetOpenSSLError(err);
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, err);
+            }
+
+            if (encryption == PdfSignatureEncryption::RSA)
+            {
+                // Set deterministic PKCS1 padding
+                if (EVP_PKEY_CTX_set_rsa_padding(ctx.get(), RSA_PKCS1_PADDING) <= 0)
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error EVP_PKEY_CTX_set_rsa_padding");
+
+                if (!skipWrapHash)
+                {
+                    ssl::WrapDigestPKCS1(hashToSign, hashing, tempWrapped);
+                    actualInput = tempWrapped;
+                }
+            }
+
+            if (encryption == PdfSignatureEncryption::ECDSA && deterministic)
+            {
+#if OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 2)
+                OSSL_PARAM params[3];
+                unsigned int nonceType = 1;
+                // digest name must match whatever produced hashToSign, e.g. "SHA256"
+                auto digestName = ssl::GetDigestName(hashing);
+
+                params[0] = OSSL_PARAM_construct_uint(OSSL_SIGNATURE_PARAM_NONCE_TYPE, &nonceType);
+                params[1] = OSSL_PARAM_construct_utf8_string(OSSL_SIGNATURE_PARAM_DIGEST,
+                    const_cast<char*>(digestName.data()), 0);
+                params[2] = OSSL_PARAM_construct_end();
+
+                if (EVP_PKEY_CTX_set_params(ctx.get(), params) <= 0)
+                {
+                    string err;
+                    GetOpenSSLError(err);
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, err);
+                }
+#else // OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 2)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedOperation, "ECDSA deterministic signing requires OpenSSL >= 3.2");
+#endif // OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 2)
+            }
+
+            break;
         }
+
+#if OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 5)
+        // Support for ML_DSA, SLH_DSA was added in OpenSSL 3.5
+        case PdfSignatureEncryption::ML_DSA:
+        case PdfSignatureEncryption::SLH_DSA:
+        {
+            OSSL_PARAM params[2];
+            params[0] = OSSL_PARAM_construct_end();
+            if (deterministic)
+            {
+                int deterministicParam = 1;
+                params[0] = OSSL_PARAM_construct_int(OSSL_SIGNATURE_PARAM_DETERMINISTIC, &deterministicParam);
+                params[1] = OSSL_PARAM_construct_end();
+            }
+
+            // Pure SLH-DSA with default empty context string, as required by RFC 9814
+            // for CMS SignedData. The input is the full DER-encoded signed attributes;
+            // the algorithm computes the message representative Hmsg internally.
+            if (EVP_PKEY_sign_message_init(ctx.get(), nullptr, params) <= 0)
+            {
+                string err;
+                GetOpenSSLError(err);
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, err);
+            }
+
+            break;
+        }
+#endif // OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 5)
+        default:
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Unsupported signature encryption");
     }
-    
+
     if (EVP_PKEY_sign(ctx.get(), nullptr, &siglen, (const unsigned char*)actualInput.data(), actualInput.size()) <= 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error determining output size");
 
@@ -251,6 +317,28 @@ charbuff ssl::GetEncoded(const EVP_PKEY* pkey)
     charbuff ret;
     ret.assign(signatureData, signatureData + length);
     return ret;
+}
+
+PdfSignatureEncryption ssl::GetSignatureEncryption(EVP_PKEY* pkey)
+{
+    int id = EVP_PKEY_base_id(pkey);
+    const char* typeName;
+    (void)typeName;
+    string_view typeNameSv;
+    if (id == EVP_PKEY_RSA)
+        return PdfSignatureEncryption::RSA;
+    else if (id == EVP_PKEY_DSA)
+        return PdfSignatureEncryption::DSA;
+    else if (id == EVP_PKEY_EC)
+        return PdfSignatureEncryption::ECDSA;
+#if OPENSSL_VERSION_MAJOR >= 3
+    else if ((typeName = EVP_PKEY_get0_type_name(pkey)) != nullptr && ((typeNameSv) = typeName).length() > 7 && typeNameSv.substr(0, 7) == "ML-DSA-")
+        return PdfSignatureEncryption::ML_DSA;
+    else if (typeNameSv.length() > 8 && typeNameSv.substr(0, 8) == "SLH-DSA-")
+        return PdfSignatureEncryption::SLH_DSA;
+#endif // OPENSSL_VERSION_MAJOR >= 3
+    else
+        return PdfSignatureEncryption::Unknown;
 }
 
 unsigned ssl::GetEVP_Size(PdfHashingAlgorithm hashing)
@@ -342,6 +430,21 @@ void ssl::ComputeSHA1(const bufferview& data, unsigned char* hash)
     computeHash(data, ssl::SHA1(), hash, length);
 }
 
+string_view ssl::GetDigestName(PdfHashingAlgorithm hashing)
+{
+    switch (hashing)
+    {
+        case PdfHashingAlgorithm::SHA256:
+            return "SHA256"sv;
+        case PdfHashingAlgorithm::SHA384:
+            return "SHA384"sv;
+        case PdfHashingAlgorithm::SHA512:
+            return "SHA512"sv;
+        default:
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unknown digest name");
+    }
+}
+
 void ssl::GetOpenSSLError(string& err)
 {
     string ret;
@@ -408,6 +511,12 @@ const EVP_MD* ssl::SHA512()
 {
     ssl::Init();
     return s_SSL.GetSHA512();
+}
+
+const EVP_MD* ssl::SHAKE256()
+{
+    ssl::Init();
+    return s_SSL.GetSHAKE256();
 }
 
 void computeHash(const bufferview& data, const EVP_MD* type,

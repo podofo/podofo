@@ -35,6 +35,9 @@ namespace PoDoFo
         ///< When supplying an external PdfSigningService, specify if
         ///< the service should be called for a dry run
         ServiceDoDryRun = 2,
+        ///< For signature encryptions that have a random component, make it deterministic
+        ///< Applies to ECDSA, ML-DSA, SLH-DSA
+        Deterministic = 4,
     };
 
     struct PODOFO_API PdfSignerCmsParams final

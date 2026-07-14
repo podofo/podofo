@@ -23,12 +23,14 @@
 
 #include <date/date.h>
 
-#if OPENSSL_VERSION_MAJOR < 3
+#if OPENSSL_VERSION_MAJOR >=3
+#include <openssl/core_names.h>
+#else // OPENSSL_VERSION_MAJOR < 3
  // Fixes warning when compiling with OpenSSL 3
 #define EVP_MD_CTX_get0_md EVP_MD_CTX_md
 #define EVP_MD_get_type EVP_MD_type
 #define EVP_PKEY_get_id EVP_PKEY_id
-#endif // OPENSSL_VERSION_MAJOR < 3
+#endif // OPENSSL_VERSION_MAJOR >=3
 
 // This is a recreation of ESS_CERT_ID_V2 structure
 struct MY_ESS_CERT_ID_V2
@@ -62,16 +64,20 @@ namespace ssl
     unsigned GetSignedHashSize(EVP_PKEY* pkey);
 
     // Sign a buffer with the supplied pkey, no encapsulation and deterministic padding
-    void DoSignHash(const PoDoFo::bufferview& hashToSign, const PoDoFo::bufferview& pkey,
-        PoDoFo::PdfHashingAlgorithm hashing, PoDoFo::charbuff& output, bool skipWrapHash = false);
-    void DoSignHash(const PoDoFo::bufferview& hashToSign, EVP_PKEY* pkey,
-        PoDoFo::PdfHashingAlgorithm hashing, PoDoFo::charbuff& output, bool skipWrapHash = false);
+    void SignHash(const PoDoFo::bufferview& hashToSign, const PoDoFo::bufferview& pkey,
+        PoDoFo::PdfHashingAlgorithm hashing, PoDoFo::charbuff& output,
+        bool skipWrapHash = false, bool deterministic = false);
+    void SignHash(const PoDoFo::bufferview& hashToSign, EVP_PKEY* pkey,
+        PoDoFo::PdfHashingAlgorithm hashing, PoDoFo::charbuff& output,
+        bool skipWrapHash, bool deterministic);
 
     // Returns ASN.1 encoded X509 certificate
     PoDoFo::charbuff GetEncoded(const X509* cert);
 
     // Returns ASN.1 encoded private key
     PoDoFo::charbuff GetEncoded(const EVP_PKEY* pkey);
+
+    PoDoFo::PdfSignatureEncryption GetSignatureEncryption(EVP_PKEY* pkey);
 
     PoDoFo::charbuff ComputeHash(const PoDoFo::bufferview& data, PoDoFo::PdfHashingAlgorithm hashing);
     PoDoFo::charbuff ComputeMD5(const PoDoFo::bufferview& data);
@@ -88,6 +94,8 @@ namespace ssl
     void ComputeMD5(const PoDoFo::bufferview& data, unsigned char* hash);
     void ComputeSHA1(const PoDoFo::bufferview& data, unsigned char* hash);
 
+    std::string_view GetDigestName(PoDoFo::PdfHashingAlgorithm hashing);
+
     void GetOpenSSLError(std::string& err);
 
     const EVP_CIPHER* Rc4();
@@ -99,9 +107,9 @@ namespace ssl
     const EVP_MD* SHA256();
     const EVP_MD* SHA384();
     const EVP_MD* SHA512();
+    const EVP_MD* SHAKE256();
 
     void cmsAddSigningTime(CMS_SignerInfo* si, const date::sys_seconds& timestamp);
-    void cmsComputeHashToSign(CMS_SignerInfo* si, BIO* chain, PoDoFo::charbuff& hashToSign);
 
     /// Init the OpenSSL engine. NOTE: To be called by OpenSSLInternal only
     PODOFO_EXPORT void Init();
@@ -123,6 +131,7 @@ namespace ssl
         const EVP_MD* GetSHA256() const { return m_SHA256; }
         const EVP_MD* GetSHA384() const { return m_SHA384; }
         const EVP_MD* GetSHA512() const { return m_SHA512; }
+        const EVP_MD* GetSHAKE256() const { return m_SHAKE256; }
     private:
 #if OPENSSL_VERSION_MAJOR >= 3
         OSSL_LIB_CTX* m_libCtx;
@@ -138,6 +147,7 @@ namespace ssl
         const EVP_MD* m_SHA256;
         const EVP_MD* m_SHA384;
         const EVP_MD* m_SHA512;
+        const EVP_MD* m_SHAKE256;
     };
 }
 

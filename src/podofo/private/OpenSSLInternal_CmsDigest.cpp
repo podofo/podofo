@@ -18,7 +18,8 @@ struct MY_X509_SIG
     ASN1_OCTET_STRING* digest;
 };
 
-static void computeHashToSign(CMS_SignerInfo* si, unsigned char hash[], unsigned& len);
+static void computeHashToSign(CMS_SignerInfo* si, PdfSignatureEncryption encryption,
+    charbuff& hashToSign);
 static EVP_MD_CTX* findDigestContext(BIO* bio, X509_ALGOR* digestAlg);
 static void encodePKCS1(X509_ALGOR* digestAlg,
     const unsigned char* m, unsigned int m_len, charbuff& outbuff);
@@ -58,6 +59,10 @@ void ssl::ComputeHashToSign(CMS_SignerInfo* si, BIO* chain, bool doWrapDigest, c
     unsigned char hash[EVP_MAX_MD_SIZE];
     unsigned hashlen;
 
+    EVP_PKEY* key;
+    CMS_SignerInfo_get0_algs(si, &key, nullptr, nullptr, nullptr);
+    auto encryption = ssl::GetSignatureEncryption(key);
+
     // Extract the hash computed in the signer info using the
     // internal BIO chain, which allows streaming
     unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> digestCtx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
@@ -83,16 +88,14 @@ void ssl::ComputeHashToSign(CMS_SignerInfo* si, BIO* chain, bool doWrapDigest, c
         V_ASN1_OBJECT, ctype, -1) <= 0)
         goto Error;
 
-    computeHashToSign(si, hash, hashlen);
-    if (doWrapDigest)
+    computeHashToSign(si, encryption, hashToSign);
+    if (encryption == PdfSignatureEncryption::RSA && doWrapDigest)
     {
         // We also need to encode the digest in ANS1 structure
-        encodePKCS1(getDigestAlgorithm(si), hash, hashlen, hashToSign);
-    }
-    else
-    {
-        hashToSign.resize(hashlen);
-        std::memcpy(hashToSign.data(), hash, hashlen);
+        charbuff wrapped;
+        encodePKCS1(getDigestAlgorithm(si), (const unsigned char*)hashToSign.data(),
+            (unsigned)hashToSign.size(), wrapped);
+        hashToSign = std::move(wrapped);
     }
 
     return;
@@ -144,17 +147,35 @@ EVP_MD_CTX* findDigestContext(BIO* bio, X509_ALGOR* digestAlg)
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "No matching digest context found");
 }
 
-void computeHashToSign(CMS_SignerInfo* si, unsigned char hash[], unsigned& hashlen)
+void computeHashToSign(CMS_SignerInfo* si, PdfSignatureEncryption encryption, charbuff& hashToSign)
 {
     auto mctx = CMS_SignerInfo_get0_md_ctx(si);
     STACK_OF(X509_ATTRIBUTE)* signedAttrs = nullptr;
     unsigned char* buf = nullptr;
     unsigned len;
-    const EVP_MD* sign_md;
+    unsigned char hash[EVP_MAX_MD_SIZE];
+    unsigned hashlen;
 
-    sign_md = EVP_get_digestbyobj(getDigestAlgorithm(si)->algorithm);
-    if (EVP_DigestInit(mctx, sign_md) <= 0)
-        goto Error;
+    switch (encryption)
+    {
+        case PdfSignatureEncryption::RSA:
+        case PdfSignatureEncryption::DSA:
+        case PdfSignatureEncryption::ECDSA:
+        {
+            auto sign_md = EVP_get_digestbyobj(getDigestAlgorithm(si)->algorithm);
+            if (EVP_DigestInit(mctx, sign_md) <= 0)
+                goto Error;
+            break;
+        }
+        case PdfSignatureEncryption::ML_DSA:
+        case PdfSignatureEncryption::SLH_DSA:
+            // Nothing to do, these signatures won't be computed on
+            // the hashed signed attributes
+            break;
+        default:
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported signature encryption");
+
+    }
 
     // Prepare the DER structure to sign, reordering attributes.
     // We do a deep copy to avoid internally corrupting the signer info structures
@@ -166,7 +187,16 @@ void computeHashToSign(CMS_SignerInfo* si, unsigned char hash[], unsigned& hashl
     if (buf == nullptr)
         goto Error;
 
-    // Compute the hash to be signed
+    if (encryption == PdfSignatureEncryption::ML_DSA || encryption == PdfSignatureEncryption::SLH_DSA)
+    {
+        // Both RFC 9882 (CMS with ML-DSA)and RFC 9814 (CMS with SLH-DSA) specify
+        // that the message to be signed are the DER encoded signed attributes
+        hashToSign.assign((const char*)buf, len);
+        OPENSSL_free(buf);
+        return;
+    }
+
+    // RSA/DSA/ECDSA: hash DER(SignedAttributes) with the configured digest
     if (EVP_DigestUpdate(mctx, buf, len) <= 0)
         goto Error;
     OPENSSL_free(buf);
@@ -175,6 +205,7 @@ void computeHashToSign(CMS_SignerInfo* si, unsigned char hash[], unsigned& hashl
     if (EVP_DigestFinal(mctx, hash, &hashlen) <= 0)
         goto Error;
 
+    hashToSign.assign((const char*)hash, hashlen);
     EVP_MD_CTX_reset(mctx);
     return;
 

@@ -104,7 +104,7 @@ TEST_CASE("TestSignature2")
     params.SigningService = [&pkey, &params](bufferview hashToSign, bool dryrun, charbuff& signedHash)
     {
         (void)dryrun;
-        ssl::DoSignHash(hashToSign, pkey, params.Hashing, signedHash);
+        ssl::SignHash(hashToSign, pkey, params.Hashing, signedHash);
     };
     auto signer = PdfSignerCms(cert, params);
     PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
@@ -150,7 +150,7 @@ TEST_CASE("TestSignature3")
     PdfSigningResults results;
     ctx.StartSigning(doc, stream, results, PdfSaveOptions::NoMetadataUpdate);
     charbuff signedHash;
-    ssl::DoSignHash(results.Intermediate[signerId], pkey, params.Hashing, signedHash);
+    ssl::SignHash(results.Intermediate[signerId], pkey, params.Hashing, signedHash);
     results.Intermediate[signerId] = signedHash;
     ctx.FinishSigning(results);
     
@@ -207,7 +207,7 @@ TEST_CASE("TestSignatureDumpRestore")
     utls::WriteTo(TestUtils::GetTestOutputFilePath("TestSignatureDumpRestore1.pdf"), buff);
 
     charbuff signedHash;
-    ssl::DoSignHash(hashToSign, pkey, params.Hashing, signedHash);
+    ssl::SignHash(hashToSign, pkey, params.Hashing, signedHash);
     PdfSigningResults newResults;
     newResults.Intermediate[signerId] = signedHash;
     newCtx.FinishSigning(newResults);
@@ -503,3 +503,77 @@ TEST_CASE("TestSignatureCorrupted")
         throw;
     }
 }
+
+#if OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 2)
+
+// Deterministic ECDSA signatures require OpenSSL >= 3.5
+TEST_CASE("TestECDSA")
+{
+    charbuff buff;
+    auto inputPath = TestUtils::GetTestInputFilePath("blank.pdf");
+
+    auto outputPath = TestUtils::GetTestOutputFilePath(string("sha384ECDSA").append(".pdf"));
+    fs::copy_file(fs::u8path(inputPath), fs::u8path(outputPath), fs::copy_options::overwrite_existing);
+    auto stream = std::make_shared<FileStreamDevice>(outputPath, FileMode::Open);
+
+    string pkey;
+    TestUtils::ReadTestInputFileTo(pkey, string("sha384ECDSA").append("-key.pem"));
+
+    string cert;
+    TestUtils::ReadTestInputFileTo(cert, string("sha384ECDSA").append("-cert.pem"));
+
+    PdfMemDocument doc(stream);
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+    signature.SetSignatureDate(PdfDate::Parse("D:20260713192456+01'00'"));
+
+    PdfSignerCmsParams params;
+    params.Flags = PdfSignerCmsFlags::Deterministic;
+    auto signer = PdfSignerCms(cert, pkey, params);
+    PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
+
+    utls::ReadTo(buff, outputPath);
+    REQUIRE(ssl::ComputeMD5Str(buff) == "B8612BAB5056EE415CF5057E675DAF14");
+}
+
+#endif // OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 2)
+
+#if OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 5)
+
+// PQC signatures require OpenSSL >= 3.5
+TEST_CASE("TestPostQuantumCryptography")
+{
+    charbuff buff;
+    auto inputPath = TestUtils::GetTestInputFilePath("blank.pdf");
+
+    auto testSignature = [&](const string_view& algo, const string_view& refHash)
+        {
+            auto outputPath = TestUtils::GetTestOutputFilePath(string(algo).append(".pdf"));
+            fs::copy_file(fs::u8path(inputPath), fs::u8path(outputPath), fs::copy_options::overwrite_existing);
+            auto stream = std::make_shared<FileStreamDevice>(outputPath, FileMode::Open);
+
+            string pkey;
+            TestUtils::ReadTestInputFileTo(pkey, "PQC", string(algo).append("-key.pem"));
+
+            string cert;
+            TestUtils::ReadTestInputFileTo(cert, "PQC", string(algo).append("-cert.pem"));
+
+            PdfMemDocument doc(stream);
+            auto& page = doc.GetPages().GetPageAt(0);
+            auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+            signature.SetSignatureDate(PdfDate::Parse("D:20260713192456+01'00'"));
+
+            PdfSignerCmsParams params;
+            params.Flags = PdfSignerCmsFlags::Deterministic;
+            auto signer = PdfSignerCms(cert, pkey, params);
+            PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
+
+            utls::ReadTo(buff, outputPath);
+            REQUIRE(ssl::ComputeMD5Str(buff) == refHash);
+        };
+
+    testSignature("ML-DSA-44", "3D3640B9E7266412060E0A598F2D84E5");
+    testSignature("slh-dsa-sha2-128f", "10CCF0E4C922D191514ABC6CCA2C8010");
+}
+
+#endif // OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 5)
