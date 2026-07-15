@@ -114,7 +114,7 @@ void PdfField::initParent()
     auto parent = GetDictionary().FindKey("Parent");
     if (parent == nullptr)
     {
-        m_Parent = nullptr;
+        m_Parent *= nullptr;
         return;
     }
 
