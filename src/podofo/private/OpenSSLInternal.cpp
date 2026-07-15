@@ -22,7 +22,7 @@ static string computeHashStr(const bufferview& data, const EVP_MD* type);
 
 OpenSSLMain::OpenSSLMain() :
 #if OPENSSL_VERSION_MAJOR >= 3
-    m_libCtx{ }, m_legacyProvider{ }, m_defaultProvider{ },
+    m_LibCtx{ }, m_legacyProvider{ }, m_defaultProvider{ },
 #endif // OPENSSL_VERSION_MAJOR >= 3
     m_Rc4{ }, m_Aes128{ }, m_Aes256_CBC{ }, m_Aes256_ECB{ }, m_MD5{ },
     m_SHA1{ }, m_SHA256{ }, m_SHA384{ }, m_SHA512{ }, m_SHAKE256{ }
@@ -33,29 +33,29 @@ void OpenSSLMain::Init()
 {
     PODOFO_ASSERT(m_Rc4 == nullptr);
 #if OPENSSL_VERSION_MAJOR >= 3
-    m_libCtx = OSSL_LIB_CTX_new();
-    if (m_libCtx == nullptr)
+    m_LibCtx = OSSL_LIB_CTX_new();
+    if (m_LibCtx == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to create OpenSSL library context");
 
     // NOTE: Try to load required legacy providers, such as RC4, together regular ones,
     // as explained in https://wiki.openssl.org/index.php/OpenSSL_3.0#Providers
-    m_legacyProvider = OSSL_PROVIDER_load(m_libCtx, "legacy");
-    m_defaultProvider = OSSL_PROVIDER_load(m_libCtx, "default");
+    m_legacyProvider = OSSL_PROVIDER_load(m_LibCtx, "legacy");
+    m_defaultProvider = OSSL_PROVIDER_load(m_LibCtx, "default");
     if (m_defaultProvider == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to load default providers in OpenSSL >= 3.x.x");
 
     // https://www.openssl.org/docs/man3.0/man7/crypto.html#FETCHING-EXAMPLES
     if (m_legacyProvider != nullptr)
-        m_Rc4 = EVP_CIPHER_fetch(m_libCtx, "RC4", "provider=legacy");
-    m_Aes128 = EVP_CIPHER_fetch(m_libCtx, "AES-128-CBC", "provider=default");
-    m_Aes256_CBC = EVP_CIPHER_fetch(m_libCtx, "AES-256-CBC", "provider=default");
-    m_Aes256_ECB = EVP_CIPHER_fetch(m_libCtx, "AES-256-ECB", "provider=default");
-    m_MD5 = EVP_MD_fetch(m_libCtx, "MD5", "provider=default");
-    m_SHA1 = EVP_MD_fetch(m_libCtx, "SHA1", "provider=default");
-    m_SHA256 = EVP_MD_fetch(m_libCtx, "SHA2-256", "provider=default");
-    m_SHA384 = EVP_MD_fetch(m_libCtx, "SHA2-384", "provider=default");
-    m_SHA512 = EVP_MD_fetch(m_libCtx, "SHA2-512", "provider=default");
-    m_SHAKE256 = EVP_MD_fetch(m_libCtx, "SHAKE256", "provider=default");
+        m_Rc4 = EVP_CIPHER_fetch(m_LibCtx, "RC4", "provider=legacy");
+    m_Aes128 = EVP_CIPHER_fetch(m_LibCtx, "AES-128-CBC", "provider=default");
+    m_Aes256_CBC = EVP_CIPHER_fetch(m_LibCtx, "AES-256-CBC", "provider=default");
+    m_Aes256_ECB = EVP_CIPHER_fetch(m_LibCtx, "AES-256-ECB", "provider=default");
+    m_MD5 = EVP_MD_fetch(m_LibCtx, "MD5", "provider=default");
+    m_SHA1 = EVP_MD_fetch(m_LibCtx, "SHA1", "provider=default");
+    m_SHA256 = EVP_MD_fetch(m_LibCtx, "SHA2-256", "provider=default");
+    m_SHA384 = EVP_MD_fetch(m_LibCtx, "SHA2-384", "provider=default");
+    m_SHA512 = EVP_MD_fetch(m_LibCtx, "SHA2-512", "provider=default");
+    m_SHAKE256 = EVP_MD_fetch(m_LibCtx, "SHAKE256", "provider=default");
 #else // OPENSSL_VERSION_MAJOR < 3
     m_Rc4 = EVP_rc4();
     m_Aes128 = EVP_aes_128_cbc();
@@ -73,12 +73,12 @@ void OpenSSLMain::Init()
 OpenSSLMain::~OpenSSLMain()
 {
 #if OPENSSL_VERSION_MAJOR >= 3
-    if (m_libCtx == nullptr)
+    if (m_LibCtx == nullptr)
         return;
 
     OSSL_PROVIDER_unload(m_legacyProvider);
     OSSL_PROVIDER_unload(m_defaultProvider);
-    OSSL_LIB_CTX_free(m_libCtx);
+    OSSL_LIB_CTX_free(m_LibCtx);
 #endif // OPENSSL_VERSION_MAJOR >= 3
 }
 

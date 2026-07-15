@@ -111,8 +111,12 @@ namespace ssl
 
     void cmsAddSigningTime(CMS_SignerInfo* si, const date::sys_seconds& timestamp);
 
-    /// Init the OpenSSL engine. NOTE: To be called by OpenSSLInternal only
+    /// Init the OpenSSL engine
+#if OPENSSL_VERSION_MAJOR >= 3
+    PODOFO_EXPORT OSSL_LIB_CTX* Init();
+#else // OPENSSL_VERSION_MAJOR >= 3
     PODOFO_EXPORT void Init();
+#endif // OPENSSL_VERSION_MAJOR >= 3
 
     /// Class to be initialized only once as a singleton
     class OpenSSLMain
@@ -122,6 +126,9 @@ namespace ssl
         void Init();
         ~OpenSSLMain();
     public:
+#if OPENSSL_VERSION_MAJOR >= 3
+        OSSL_LIB_CTX* GetLibCtx() const { return m_LibCtx; }
+#endif // OPENSSL_VERSION_MAJOR >= 3
         const EVP_CIPHER* GetRc4() const { return m_Rc4; }
         const EVP_CIPHER* GetAes128() const { return m_Aes128; }
         const EVP_CIPHER* GetAes256_CBC() const { return m_Aes256_CBC; }
@@ -134,7 +141,7 @@ namespace ssl
         const EVP_MD* GetSHAKE256() const { return m_SHAKE256; }
     private:
 #if OPENSSL_VERSION_MAJOR >= 3
-        OSSL_LIB_CTX* m_libCtx;
+        OSSL_LIB_CTX* m_LibCtx;
         OSSL_PROVIDER* m_legacyProvider;
         OSSL_PROVIDER* m_defaultProvider;
 #endif // OPENSSL_VERSION_MAJOR >= 3
