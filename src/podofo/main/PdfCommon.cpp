@@ -36,7 +36,11 @@ PODOFO_EXPORT ssl::OpenSSLMain s_SSL;
 
 static unsigned s_MaxObjectCount = (1U << 23) - 1;
 
+#if OPENSSL_VERSION_MAJOR >= 3
+OSSL_LIB_CTX* ssl::Init()
+#else // OPENSSL_VERSION_MAJOR < 3
 void ssl::Init()
+#endif // OPENSSL_VERSION_MAJOR >= 3
 {
     // Initialize the OpenSSL singleton
     static struct InitOpenSSL
@@ -46,6 +50,9 @@ void ssl::Init()
             s_SSL.Init();
         }
     } s_init;
+#if OPENSSL_VERSION_MAJOR >= 3
+    return s_SSL.GetLibCtx();
+#endif // OPENSSL_VERSION_MAJOR >= 3
 }
 
 void PdfCommon::AddFontDirectory(const string_view& path)
