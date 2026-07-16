@@ -91,9 +91,6 @@ list(APPEND CMAKE_LIBRARY_PATH
 
 # Set use libxml2 static for fontconfig
 add_compile_definitions(LIBXML_STATIC)
-# Assume rng streaming validation recovery is available in libxml2
-# See https://gitlab.gnome.org/GNOME/libxml2/-/merge_requests/334
-set(PODOFO_HAVE_RNG_VALIDATION_RECOVERY TRUE)
 
 # Enable GPL2 only tests
 # TODO: Remove me
