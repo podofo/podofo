@@ -19,15 +19,15 @@ using namespace utls;
 #define ADDITIONAL_METADATA_OFFSET 20
 #define ASSERT_STREAMING_RNG(cond) if (!(cond)) PODOFO_RAISE_ERROR_INFO(PdfErrorCode::XmpMetadataError, "Unknown RNG error");
 
-#ifdef PODOFO_HAVE_RNG_VALIDATION_RECOVERY
+#if LIBXML_VERSION >= 21500
 #define assertHaveRngValidationRecovery()
-#else // !PODOFO_HAVE_RNG_VALIDATION_RECOVERY
+#else // LIBXML_VERSION < 21500
 static void assertHaveRngValidationRecovery()
 {
-    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "The libxml2 version used does not implement RELAX NG validation recovery");
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "This function requires RELAX NG validation recovery introduced in libxml2 2.15");
 }
 #define xmlRelaxNGValidCtxtClearErrors(ctx)
-#endif // PODOFO_HAVE_RNG_VALIDATION_RECOVERY
+#endif // LIBXML_VERSION >= 21500
 
 enum class XMPMetadataKind : uint8_t
 {

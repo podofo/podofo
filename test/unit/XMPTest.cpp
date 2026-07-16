@@ -51,7 +51,7 @@ TEST_CASE("TestPDFA1_PDFUA1")
     doc.Save(TestUtils::GetTestOutputFilePath("TestPDFA1_PDFUA1.pdf"));
 }
 
-#ifdef PODOFO_HAVE_RNG_VALIDATION_RECOVERY
+#if LIBXML_VERSION >= 21500
 
 TEST_CASE("TestPruneInvalid")
 {
@@ -177,4 +177,4 @@ void testPruneInvalid(const fs::path& path, PdfALevel level, const fs::path& ref
     }
 }
 
-#endif // PODOFO_HAVE_RNG_VALIDATION_RECOVERY
+#endif // LIBXML_VERSION >= 21500
