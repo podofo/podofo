@@ -5,6 +5,7 @@
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include <podofo/podofo.h>
+#include <podofo/optional/PdfConvert.h>
 
 #include <cstdlib>
 #include <cstdio>
@@ -23,184 +24,6 @@
 
 using namespace std;
 using namespace PoDoFo;
-
-class MySigner : public PdfSigner
-{
-public:
-    MySigner(X509* cert, EVP_PKEY* pkey, const EVP_MD* digest)
-        : m_cert(cert), m_pkey(pkey), m_digest(digest) { }
-
-protected:
-    void Reset() override
-    {
-        m_buffer.clear();
-    }
-
-    void AppendData(const bufferview& data) override
-    {
-        m_buffer.append(data.data(), data.size());
-    }
-
-    void ComputeSignature(charbuff& buffer, bool dryrun) override;
-
-    /**
-     * Should return the signature /Filter, for example "Adobe.PPKLite"
-     */
-    string GetSignatureFilter() const override
-    {
-        return "Adobe.PPKLite";
-    }
-
-    /**
-     * Should return the signature /SubFilter, for example "ETSI.CAdES.detached"
-     */
-    string GetSignatureSubFilter() const override
-    {
-        return "adbe.pkcs7.detached";
-    }
-
-    string GetSignatureType() const override
-    {
-        return "Sig";
-    }
-
-private:
-    charbuff m_buffer;
-    X509* m_cert;
-    EVP_PKEY* m_pkey;
-    const EVP_MD* m_digest;
-};
-
-static int print_errors_string(const char* str, size_t len, void* u)
-{
-    string* pstr = reinterpret_cast<string*>(u);
-
-    if (!pstr || !len || !str)
-        return 0;
-
-    if (!pstr->empty() && (*pstr)[pstr->length() - 1] != '\n')
-        *pstr += "\n";
-
-    *pstr += string(str, len);
-
-    // to continue
-    return 1;
-}
-
-static void raise_podofo_error_with_opensslerror(const char* detail)
-{
-    string err;
-
-    ERR_print_errors_cb(print_errors_string, &err);
-
-    if (err.empty())
-        err = "Unknown OpenSSL error";
-
-    err = ": " + err;
-    err = detail + err;
-
-    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, err.c_str());
-}
-
-static int pkey_password_cb(char* buf, int bufsize, int rwflag, void* userdata)
-{
-    (void)rwflag;
-    const char* password = reinterpret_cast<const char*>(userdata);
-
-    if (!password)
-        return 0;
-
-    int res = (int)strlen(password);
-
-    if (res > bufsize)
-        res = bufsize;
-
-    memcpy(buf, password, res);
-
-    return res;
-}
-
-static bool load_cert_and_key(const char* certfile, const char* pkeyfile, const char* pkey_password, X509** out_cert, EVP_PKEY** out_pkey)
-{
-    if (!certfile || !*certfile)
-    {
-        cerr << "Certificate file not specified" << endl;
-        return false;
-    }
-
-    if (!pkeyfile || !*pkeyfile)
-    {
-        cerr << "Private key file not specified" << endl;
-        return false;
-    }
-
-    // should not happen, but let's be paranoid
-    if (!out_cert || !out_pkey)
-    {
-        cerr << "Invalid call of load_cert_and_key" << endl;
-        return false;
-    }
-
-    FILE* fp;
-
-    fp = fopen(certfile, "rb");
-
-    if (!fp)
-    {
-        cerr << "Failed to open certificate file '" << certfile << "'" << endl;
-        return false;
-    }
-
-    *out_cert = PEM_read_X509(fp, NULL, NULL, NULL);
-
-    fclose(fp);
-
-    if (!*out_cert)
-    {
-        cerr << "Failed to decode certificate file '" << certfile << "'" << endl;
-        string err;
-
-        ERR_print_errors_cb(print_errors_string, &err);
-
-        if (!err.empty())
-            cerr << err.c_str() << endl;
-
-        return false;
-    }
-
-    fp = fopen(pkeyfile, "rb");
-
-    if (!fp)
-    {
-        X509_free(*out_cert);
-        *out_cert = NULL;
-
-        cerr << "Failed to private key file '" << pkeyfile << "'" << endl;
-        return false;
-    }
-
-    *out_pkey = PEM_read_PrivateKey(fp, NULL, pkey_password_cb, const_cast<char*>(pkey_password));
-
-    fclose(fp);
-
-    if (!*out_pkey)
-    {
-        X509_free(*out_cert);
-        *out_cert = NULL;
-
-        cerr << "Failed to decode private key file '" << pkeyfile << "'" << endl;
-        string err;
-
-        ERR_print_errors_cb(print_errors_string, &err);
-
-        if (!err.empty())
-            cerr << err.c_str() << endl;
-
-        return false;
-    }
-
-    return true;
-}
 
 static void print_help(bool bOnlyUsage)
 {
@@ -789,13 +612,6 @@ void Main(const cspan<string_view>& args)
 
     OPENSSL_init_crypto(0, NULL);
 
-    X509* cert = NULL;
-    EVP_PKEY* pkey = NULL;
-    if (!load_cert_and_key(certfile.data(), pkeyfile.data(), password.data(), &cert, &pkey))
-    {
-        exit(-9);
-    }
-
     PdfSignature* signature = NULL;
 
     const EVP_MD* md_digest;
@@ -933,77 +749,19 @@ void Main(const cspan<string_view>& args)
     signature->SetSignatureReason(PdfString(reason));
     signature->SetSignatureDate(PdfDate());
 
-    MySigner signer(cert, pkey, md_digest);
+    PdfSignerCmsParams params;
+    if (digest.length() != 0)
+        params.Hashing = PoDoFo::ConvertTo<PdfHashingAlgorithm>(digest);
+
+    charbuff cert;
+    utls::ReadTo(cert, certfile);
+
+    charbuff pkey;
+    utls::ReadTo(pkey, pkeyfile);
+    PdfSignerCms signer(cert, pkey, params);
 
     FileStreamDevice device(outputfile.empty() ? inputfile : outputfile, FileMode::Open, DeviceAccess::Write);
 
     PoDoFo::SignDocument(document, device, signer, *signature);
-
-    if (pkey)
-        EVP_PKEY_free(pkey);
-
-    if (cert)
-        X509_free(cert);
 }
 
-// TODO: Optimize so the process is buffered
-void MySigner::ComputeSignature(charbuff& buffer, bool dryrun)
-{
-    (void)dryrun;
-    int rc;
-    BIO* mem = BIO_new(BIO_s_mem());
-    if (!mem)
-        raise_podofo_error_with_opensslerror("Failed to create input BIO");
-
-    unsigned int flags = PKCS7_DETACHED | PKCS7_BINARY;
-    PKCS7* pkcs7 = PKCS7_sign(m_cert, m_pkey, NULL, mem, flags | PKCS7_PARTIAL);
-    if (!pkcs7)
-    {
-        BIO_free(mem);
-        raise_podofo_error_with_opensslerror("PKCS7_sign failed");
-    }
-
-    if (!PKCS7_sign_add_signer(pkcs7, m_cert, m_pkey, m_digest, 0))
-    {
-        BIO_free(mem);
-        PKCS7_free(pkcs7);
-        raise_podofo_error_with_opensslerror("PKCS7_sign_add_signer failed");
-    }
-
-    rc = BIO_write(mem, m_buffer.data(), (int)m_buffer.size());
-    if (rc != (int)m_buffer.size())
-    {
-        PKCS7_free(pkcs7);
-        BIO_free(mem);
-        raise_podofo_error_with_opensslerror("BIO_write failed");
-    }
-
-    if (PKCS7_final(pkcs7, mem, flags) <= 0)
-    {
-        PKCS7_free(pkcs7);
-        BIO_free(mem);
-        raise_podofo_error_with_opensslerror("PKCS7_final failed");
-    }
-
-    BIO* out = BIO_new(BIO_s_mem());
-    if (!out)
-    {
-        PKCS7_free(pkcs7);
-        BIO_free(mem);
-        raise_podofo_error_with_opensslerror("Failed to create output BIO");
-    }
-
-    char* outBuff = NULL;
-    long outLen;
-
-    i2d_PKCS7_bio(out, pkcs7);
-
-    outLen = BIO_get_mem_data(out, &outBuff);
-
-    buffer.resize(outLen);
-    std::memcpy(buffer.data(), outBuff, outLen);
-
-    PKCS7_free(pkcs7);
-    BIO_free(out);
-    BIO_free(mem);
-}
