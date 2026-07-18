@@ -618,7 +618,7 @@ void PdfFlateFilter::EndDecodeImpl()
 #pragma region PdfRLEFilter
 
 PdfRLEFilter::PdfRLEFilter()
-    : m_CodeLen(0)
+    : m_CodeLen(0), m_AwaitingControlByte(true)
 {
 }
 
@@ -630,31 +630,54 @@ void PdfRLEFilter::EncodeBlockImpl(const char*, size_t)
 void PdfRLEFilter::BeginDecodeImpl(const PdfDictionary*)
 {
     m_CodeLen = 0;
+    m_AwaitingControlByte = true;
 }
 
 void PdfRLEFilter::DecodeBlockImpl(const char* buffer, size_t len)
 {
+    // See ISO 32000-2:2020, 7.4.5 "RunLengthDecode filter"
     while (len-- != 0)
     {
-        if (m_CodeLen == 0)
+        if (m_AwaitingControlByte)
         {
-            m_CodeLen = static_cast<int>(*buffer);
+            // Cast through unsigned char, or a control byte >= 128 would
+            // sign-extend to a negative int and be misclassified below
+            m_CodeLen = static_cast<unsigned char>(*buffer);
+            if (m_CodeLen == 128)
+            {
+                // EOD marker
+                break;
+            }
+            else if (m_CodeLen <= 127)
+            {
+                // The next m_CodeLen + 1 (1 to 128) bytes are literal
+                m_CodeLen++;
+                m_AwaitingControlByte = false;
+            }
+            else
+            {
+                // 129 to 255: the next single byte shall be repeated
+                // 257 - m_CodeLen times. Keep the raw value until that
+                // byte arrives, possibly in a later call
+                m_AwaitingControlByte = false;
+            }
         }
-        else if (m_CodeLen == 128)
+        else if (m_CodeLen <= 128)
         {
-            break;
-        }
-        else if (m_CodeLen <= 127)
-        {
+            // Mid literal run: m_CodeLen holds the remaining byte count
             GetStream().Write(buffer, 1);
-            m_CodeLen--;
+            if (--m_CodeLen == 0)
+                m_AwaitingControlByte = true;
         }
-        else if (m_CodeLen >= 129)
+        else
         {
-            m_CodeLen = 257 - m_CodeLen;
-
-            while (m_CodeLen--)
+            // Mid repeat run: this is the single byte to be repeated
+            int repeatCount = 257 - m_CodeLen;
+            for (int i = 0; i < repeatCount; i++)
                 GetStream().Write(buffer, 1);
+
+            m_CodeLen = 0;
+            m_AwaitingControlByte = true;
         }
 
         buffer++;

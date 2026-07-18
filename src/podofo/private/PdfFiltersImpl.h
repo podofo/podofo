@@ -143,6 +143,7 @@ public:
 
 private:
     int m_CodeLen;
+    bool m_AwaitingControlByte;
 };
 
 /// The LZW filter.
