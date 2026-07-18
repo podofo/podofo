@@ -30,6 +30,26 @@ TEST_CASE("TestFilters")
     }
 }
 
+// RunLengthDecode can't encode, so it's never exercised by TestFilters above:
+// decode a stream combining a literal run, a repeat run and a single-byte
+// literal run (control byte 0) directly instead
+TEST_CASE("TestRunLengthDecodeFilter")
+{
+    const char input[] = {
+        0x02, 'A', 'B', 'C',
+        static_cast<char>(0xFE), 'Z',
+        0x00, 'Q',
+        static_cast<char>(0x80),
+    };
+
+    unique_ptr<PdfFilter> filter;
+    REQUIRE(PdfFilterFactory::TryCreate(PdfFilterType::RunLengthDecode, filter));
+
+    charbuff decoded;
+    filter->DecodeTo(decoded, bufferview(input, std::size(input)));
+    REQUIRE(decoded == "ABCZZZQ");
+}
+
 void testFilter(PdfFilterType filterType, const bufferview& view)
 {
     charbuff encoded;
