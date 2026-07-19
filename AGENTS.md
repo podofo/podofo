@@ -78,7 +78,7 @@ The test executable is `build-{win|linux|macos}-{Debug|Release}/target/podofo-un
 
 ## Coding style
 
-#[[file:CODING-STYLE.md]]
+@CODING-STYLE.md
 
 Refer to `CODING-STYLE.md`, but don't follow any hyperlink there. In addition:
 - never use Em Dash when writing, just the regular ASCII hyphen `-`
