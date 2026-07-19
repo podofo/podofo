@@ -58,12 +58,12 @@ namespace PoDoFo::Impose
         void Impose();
 
     private:
-        std::vector<double> transformMatrix;
-        void transform(double a, double b, double c, double d, double e, double f);
+        Matrix transformMatrix;
+        void transform(const Matrix& transform);
         void translate(double dx, double dy);
         void scale(double sx, double sy);
-        void rotate(double theta);
-        void rotate_and_translate(double theta, double dx, double dy);
+        void rotate(double angleDeg);
+        void rotateAndTranslate(double angleDeg, double dx, double dy);
 
     private:
         std::unique_ptr<PdfMemDocument> m_targetDoc;

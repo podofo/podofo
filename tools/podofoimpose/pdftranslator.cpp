@@ -140,58 +140,31 @@ void PdfTranslator::SetInputOutput(const string_view& input, const string_view& 
     }
 }
 
-void PdfTranslator::transform(double a, double b, double c, double d, double e, double f)
+void PdfTranslator::transform(const Matrix& transform)
 {
-    if (transformMatrix.empty()) {
-        transformMatrix.push_back(a);
-        transformMatrix.push_back(b);
-        transformMatrix.push_back(c);
-        transformMatrix.push_back(d);
-        transformMatrix.push_back(e);
-        transformMatrix.push_back(f);
-    }
-    else
-    {
-        vector<double> m0 = transformMatrix;
-        vector<double> m;
-
-        m.push_back(m0.at(0) * a + m0.at(1) * c);
-        m.push_back(m0.at(0) * b + m0.at(1) * d);
-        m.push_back(m0.at(2) * a + m0.at(3) * c);
-        m.push_back(m0.at(2) * b + m0.at(3) * d);
-
-        m.push_back(m0.at(4) * a + m0.at(5) * c + e);
-        m.push_back(m0.at(4) * b + m0.at(5) * d + f);
-
-        transformMatrix = m;
-    }
+    transformMatrix = transformMatrix * transform;
 }
 
-void PdfTranslator::rotate_and_translate(double theta, double dx, double dy)
+void PdfTranslator::rotateAndTranslate(double angleDeg, double dx, double dy)
 {
-    double cosR = cos(theta * 3.14159 / 180.0);
-    double sinR = sin(theta * 3.14159 / 180.0);
-    transform(cosR, sinR, -sinR, cosR, dx, dy);
+    // 1. Rotate (counter-clockwise), 2. Translate
+    transform(Matrix::CreateRotation(angleDeg * DEG2RAD) * Matrix::CreateTranslation({ dx, dy }));
 }
 
 void PdfTranslator::translate(double dx, double dy)
 {
-    transform(1, 0, 0, 1, dx, dy);
+    transform(Matrix::CreateTranslation({ dx, dy }));
 }
 
 void PdfTranslator::scale(double sx, double sy)
 {
-    transform(sx, 0, 0, sy, 0, 0);
+    transform(Matrix::CreateScale({ sx, sy }));
 }
 
-void PdfTranslator::rotate(double theta)
+void PdfTranslator::rotate(double angleDeg)
 {
-    double cosR = cos(theta * 3.14159 / 180.0);
-    double sinR = sin(theta * 3.14159 / 180.0);
-    // Counter-clockwise rotation (default):
-    transform(cosR, sinR, -sinR, cosR, 0, 0);
-    // Clockwise rotation:
-    // transform(cosR, -sinR, sinR, cosR, 0, 0);
+    // Counter-clockwise rotation
+    transform(Matrix::CreateRotation(angleDeg * DEG2RAD));
 }
 
 void PdfTranslator::LoadPlan(const string_view& planFile, PlanReader loader)
@@ -286,12 +259,11 @@ void PdfTranslator::Impose()
                 op << "OriginalPage" << resourceIndex;
                 xdict.AddKey(PdfName(op.str()), xo->GetObject().GetIndirectReference());
 
-                // Make sure we start with an empty transformMatrix.
-                transformMatrix.clear();
-                translate(0, 0);
+                // Make sure we start with an identity transformMatrix.
+                transformMatrix = Matrix::Identity;
                 // 1. Rotate, 2. Translate, 3. Scale
                 if (rot != 0 || tx != 0 || ty != 0) {
-                    rotate_and_translate(rot, tx, ty);
+                    rotateAndTranslate(rot, tx, ty);
                 }
                 scale(sx, sy);
 
