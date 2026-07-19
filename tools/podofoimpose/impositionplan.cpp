@@ -156,6 +156,11 @@ double PageRecord::calc(const vector<string>& tokens)
     vector<string> ops;
     ops.push_back("+");
 
+    // Tracks whether the next token may be a value (and so a leading '+'/'-'
+    // must be interpreted as a unary sign instead of a binary operator)
+    bool expectValue = true;
+    double sign = 1.0;
+
     for (unsigned vi = 0; vi < tokens.size(); vi++)
     {
         auto& t1 = tokens[vi];
@@ -181,24 +186,59 @@ double PageRecord::calc(const vector<string>& tokens)
                 tokens2.push_back(t2);
             }
 
-            values.push_back(calc(tokens2));
+            values.push_back(sign * calc(tokens2));
+            sign = 1.0;
+            expectValue = false;
+        }
+        else if (t1 == "+" && expectValue)
+        {
+            // unary plus: no-op
+        }
+        else if (t1 == "-" && expectValue)
+        {
+            sign = -sign;
         }
         else if (t1 == "+")
+        {
             ops.push_back("+");
+            expectValue = true;
+        }
         else if (t1 == "-")
+        {
             ops.push_back("-");
+            expectValue = true;
+        }
         else if (t1 == "*")
+        {
             ops.push_back("*");
+            expectValue = true;
+        }
         else if (t1 == "/")
+        {
             ops.push_back("/");
+            expectValue = true;
+        }
         else if (t1 == "%")
+        {
             ops.push_back("%");
+            expectValue = true;
+        }
         else if (t1 == "|")
+        {
             ops.push_back("|");
+            expectValue = true;
+        }
         else if (t1 == "\"")
+        {
             ops.push_back("\"");
+            expectValue = true;
+        }
         else
-            values.push_back(std::atof(t1.c_str()));
+        {
+            values.push_back(sign * std::atof(t1.c_str()));
+            sign = 1.0;
+            expectValue = false;
+        }
     }
 
     if (values.size() == 1)
