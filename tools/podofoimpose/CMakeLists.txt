@@ -17,6 +17,7 @@ if(PODOFO_HAVE_LUA)
 endif()
 
 add_executable(podofoimpose ${SOURCE_FILES})
+target_include_directories(podofoimpose PRIVATE "${PROJECT_SOURCE_DIR}/3rdparty/tclap")
 target_link_libraries(podofoimpose
 	${PODOFO_LIBRARIES}
 	podofo_private

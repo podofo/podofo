@@ -130,7 +130,7 @@ public:
      * you have a very good reason.
      */
     UnlabeledValueArg(const std::string &name, const std::string &desc,
-                      bool req, T value, Constraint<T> *constraint,
+                      bool req, T value, const Constraint<T> *constraint,
                       bool ignoreable = false, Visitor *v = NULL);
 
     /**
@@ -155,7 +155,7 @@ public:
      * you have a very good reason.
      */
     UnlabeledValueArg(const std::string &name, const std::string &desc,
-                      bool req, T value, Constraint<T> *constraint,
+                      bool req, T value, const Constraint<T> *constraint,
                       CmdLineInterface &parser, bool ignoreable = false,
                       Visitor *v = NULL);
 
@@ -229,7 +229,7 @@ UnlabeledValueArg<T>::UnlabeledValueArg(const std::string &name,
 template <class T>
 UnlabeledValueArg<T>::UnlabeledValueArg(const std::string &name,
                                         const std::string &desc, bool req,
-                                        T val, Constraint<T> *constraint,
+                                        T val, const Constraint<T> *constraint,
                                         bool ignoreable, Visitor *v)
     : ValueArg<T>("", name, desc, req, val, constraint, v) {
     _ignoreable = ignoreable;
@@ -239,7 +239,7 @@ UnlabeledValueArg<T>::UnlabeledValueArg(const std::string &name,
 template <class T>
 UnlabeledValueArg<T>::UnlabeledValueArg(const std::string &name,
                                         const std::string &desc, bool req,
-                                        T val, Constraint<T> *constraint,
+                                        T val, const Constraint<T> *constraint,
                                         CmdLineInterface &parser,
                                         bool ignoreable, Visitor *v)
     : ValueArg<T>("", name, desc, req, val, constraint, v) {

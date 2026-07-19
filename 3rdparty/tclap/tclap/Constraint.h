@@ -64,7 +64,7 @@ public:
      */
     virtual ~Constraint() { ; }
 
-    static std::string shortID(Constraint<T> *constraint) {
+    static std::string shortID(const Constraint<T> *constraint) {
         if (!constraint)
             throw std::logic_error(
                 "Cannot create a ValueArg with a NULL constraint");

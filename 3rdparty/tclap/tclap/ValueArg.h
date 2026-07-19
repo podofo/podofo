@@ -69,7 +69,7 @@ protected:
     /**
      * A Constraint this Arg must conform to.
      */
-    Constraint<T> *_constraint;
+    const Constraint<T> *_constraint;
 
     /**
      * Extracts the value from the string.
@@ -82,7 +82,7 @@ protected:
 public:
     /**
      * Labeled ValueArg constructor.
-     * 
+     *
      * \param flag - The one character flag that identifies this
      * argument on the command line.
      * \param name - A one word name for the argument.  Can be
@@ -151,7 +151,7 @@ public:
      */
     ValueArg(const std::string &flag, const std::string &name,
              const std::string &desc, bool req, T value,
-             Constraint<T> *constraint, ArgContainer &parser,
+             const Constraint<T> *constraint, ArgContainer &parser,
              Visitor *v = NULL);
 
     /**
@@ -174,7 +174,7 @@ public:
      */
     ValueArg(const std::string &flag, const std::string &name,
              const std::string &desc, bool req, T value,
-             Constraint<T> *constraint, Visitor *v = NULL);
+             const Constraint<T> *constraint, Visitor *v = NULL);
 
     /**
      * Handles the processing of the argument.
@@ -249,7 +249,7 @@ ValueArg<T>::ValueArg(const std::string &flag, const std::string &name,
 template <class T>
 ValueArg<T>::ValueArg(const std::string &flag, const std::string &name,
                       const std::string &desc, bool req, T val,
-                      Constraint<T> *constraint, Visitor *v)
+                      const Constraint<T> *constraint, Visitor *v)
     : Arg(flag, name, desc, req, true, v),
       _value(val),
       _default(val),
@@ -259,7 +259,7 @@ ValueArg<T>::ValueArg(const std::string &flag, const std::string &name,
 template <class T>
 ValueArg<T>::ValueArg(const std::string &flag, const std::string &name,
                       const std::string &desc, bool req, T val,
-                      Constraint<T> *constraint, ArgContainer &parser,
+                      const Constraint<T> *constraint, ArgContainer &parser,
                       Visitor *v)
     : Arg(flag, name, desc, req, true, v),
       _value(val),

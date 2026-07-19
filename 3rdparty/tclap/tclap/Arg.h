@@ -459,7 +459,7 @@ inline Arg::Arg(const std::string &flag, const std::string &name,
       _visibleInHelp(true) {
     if (_flag.length() > 1)
         throw(SpecificationException(
-            "Argument flag can only be one character long", toString()));
+            "Argument flag can only be one character long", Arg::toString()));
 
     if (_name != ignoreNameString() &&
         (_flag == Arg::flagStartString() || _flag == Arg::nameStartString() ||
@@ -467,7 +467,7 @@ inline Arg::Arg(const std::string &flag, const std::string &name,
         throw(SpecificationException(
             "Argument flag cannot be either '" + Arg::flagStartString() +
                 "' or '" + Arg::nameStartString() + "' or a space.",
-            toString()));
+            Arg::toString()));
 
     if ((_name.substr(0, Arg::flagStartString().length()) ==
          Arg::flagStartString()) ||
@@ -477,7 +477,7 @@ inline Arg::Arg(const std::string &flag, const std::string &name,
         throw(SpecificationException("Argument name begin with either '" +
                                          Arg::flagStartString() + "' or '" +
                                          Arg::nameStartString() + "' or space.",
-                                     toString()));
+                                     Arg::toString()));
 }
 
 inline Arg::~Arg() {}

@@ -56,9 +56,9 @@ protected:
     std::string _typeDesc;
 
     /**
-     * A list of constraint on this Arg.
+     * A constraint that the values of this Arg must conform to.
      */
-    Constraint<T> *_constraint;
+    const Constraint<T> *_constraint;
 
     /**
      * Extracts the value from the string.
@@ -134,7 +134,7 @@ public:
      * use this unless you have a very good reason.
      */
     MultiArg(const std::string &flag, const std::string &name,
-             const std::string &desc, bool req, Constraint<T> *constraint,
+             const std::string &desc, bool req, const Constraint<T> *constraint,
              Visitor *v = NULL);
 
     /**
@@ -154,7 +154,7 @@ public:
      * use this unless you have a very good reason.
      */
     MultiArg(const std::string &flag, const std::string &name,
-             const std::string &desc, bool req, Constraint<T> *constraint,
+             const std::string &desc, bool req, const Constraint<T> *constraint,
              ArgContainer &parser, Visitor *v = NULL);
 
     /**
@@ -241,7 +241,7 @@ MultiArg<T>::MultiArg(const std::string &flag, const std::string &name,
 template <class T>
 MultiArg<T>::MultiArg(const std::string &flag, const std::string &name,
                       const std::string &desc, bool req,
-                      Constraint<T> *constraint, Visitor *v)
+                      const Constraint<T> *constraint, Visitor *v)
     : Arg(flag, name, desc, req, true, v),
       _values(std::vector<T>()),
       _typeDesc(Constraint<T>::shortID(constraint)),
@@ -253,7 +253,7 @@ MultiArg<T>::MultiArg(const std::string &flag, const std::string &name,
 template <class T>
 MultiArg<T>::MultiArg(const std::string &flag, const std::string &name,
                       const std::string &desc, bool req,
-                      Constraint<T> *constraint, ArgContainer &parser,
+                      const Constraint<T> *constraint, ArgContainer &parser,
                       Visitor *v)
     : Arg(flag, name, desc, req, true, v),
       _values(std::vector<T>()),

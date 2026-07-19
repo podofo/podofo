@@ -27,6 +27,8 @@
 #ifndef TCLAP_STANDARD_TRAITS_H
 #define TCLAP_STANDARD_TRAITS_H
 
+#include <tclap/ArgTraits.h>
+
 #include <string>
 
 // If Microsoft has already typedef'd wchar_t as an unsigned

@@ -342,7 +342,7 @@ inline void CmdLine::_constructor() {
     Arg::setDelimiter(_delimiter);
 
     Visitor *v;
-    add(_standaloneArgs);
+    CmdLine::add(_standaloneArgs);
     _autoArgs.setParser(*this);
     // add(_autoArgs);
 
@@ -354,7 +354,7 @@ inline void CmdLine::_constructor() {
     _deleteOnExit(ignore);
     _deleteOnExit(v);
     _autoArgs.add(ignore);
-    addToArgList(ignore);
+    CmdLine::addToArgList(ignore);
 
     if (_helpAndVersion) {
         v = new HelpVisitor(this, &_output);
@@ -372,9 +372,9 @@ inline void CmdLine::_constructor() {
         // A bit of a hack on the order to make tests easier to fix,
         // to be reverted
         _autoArgs.add(vers);
-        addToArgList(vers);
+        CmdLine::addToArgList(vers);
         _autoArgs.add(help);
-        addToArgList(help);
+        CmdLine::addToArgList(help);
     }
 }
 

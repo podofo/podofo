@@ -112,7 +112,7 @@ public:
      * use this unless you have a very good reason.
      */
     UnlabeledMultiArg(const std::string &name, const std::string &desc,
-                      bool req, Constraint<T> *constraint,
+                      bool req, const Constraint<T> *constraint,
                       bool ignoreable = false, Visitor *v = NULL);
 
     /**
@@ -132,8 +132,9 @@ public:
      * use this unless you have a very good reason.
      */
     UnlabeledMultiArg(const std::string &name, const std::string &desc,
-                      bool req, Constraint<T> *constraint, ArgContainer &parser,
-                      bool ignoreable = false, Visitor *v = NULL);
+                      bool req, const Constraint<T> *constraint,
+                      ArgContainer &parser, bool ignoreable = false,
+                      Visitor *v = NULL);
 
     /**
      * Handles the processing of the argument.
@@ -201,7 +202,7 @@ UnlabeledMultiArg<T>::UnlabeledMultiArg(const std::string &name,
 template <class T>
 UnlabeledMultiArg<T>::UnlabeledMultiArg(const std::string &name,
                                         const std::string &desc, bool req,
-                                        Constraint<T> *constraint,
+                                        const Constraint<T> *constraint,
                                         bool ignoreable, Visitor *v)
     : MultiArg<T>("", name, desc, req, constraint, v) {
     _ignoreable = ignoreable;
@@ -211,7 +212,7 @@ UnlabeledMultiArg<T>::UnlabeledMultiArg(const std::string &name,
 template <class T>
 UnlabeledMultiArg<T>::UnlabeledMultiArg(const std::string &name,
                                         const std::string &desc, bool req,
-                                        Constraint<T> *constraint,
+                                        const Constraint<T> *constraint,
                                         ArgContainer &parser, bool ignoreable,
                                         Visitor *v)
     : MultiArg<T>("", name, desc, req, constraint, v) {

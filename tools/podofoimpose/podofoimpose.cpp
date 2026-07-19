@@ -8,6 +8,8 @@
 #include <iostream>
 #include <string>
 
+#include <tclap/CmdLine.h>
+
 using namespace std;
 using namespace PoDoFo;
 using namespace PoDoFo::Impose;
@@ -16,49 +18,35 @@ namespace
 {
     struct ImposeParams
     {
-        string executablePath;
         string inFilePath;
         string outFilePath;
         string planFilePath;
-        PlanReader planReader = PlanReader::Lua;
+        PlanReader planReader = PlanReader::Legacy;
     };
-}
-
-static void usage(const ImposeParams& params)
-{
-    cerr << "Usage : " << params.executablePath << " Input Output Plan [Interpreter]" << endl;
-    cerr << "***" << endl;
-    cerr << "\tInput is a PDF file or a file which contains a list of PDF file paths" << endl << endl;
-    cerr << "\tOutput will be a PDF file" << endl << endl;
-    cerr << "\tPlan is an imposition plan file" << endl << endl;
-    cerr << "\t[Interpreter] Can be \"native\" (default value) or \"lua\"" << endl << endl;
-    cerr << "PoDoFo Version: " << PODOFO_VERSION_STRING << endl << endl;
 }
 
 static void parseCommandLine(const cspan<string_view>& args, ImposeParams& params)
 {
-    params.executablePath = args[0];
-    if (args.size() < 4)
-    {
-        usage(params);
-        exit(-1);
-    }
+    vector<string> cliArgs(args.begin(), args.end());
 
-    params.inFilePath = args[1];
-    params.outFilePath = args[2];
-    params.planFilePath = args[3];
-    params.planReader = PlanReader::Legacy;
-    if (args.size() >= 5)
-    {
-        string native("native");
-        string lua("lua");
-        string interpreter(args[4]);
+    TCLAP::CmdLine cmd("Impose a PDF file following an imposition plan", ' ', PODOFO_VERSION_STRING);
 
-        if (!interpreter.compare(native))
-            params.planReader = PlanReader::Legacy;
-        else if (!interpreter.compare(lua))
-            params.planReader = PlanReader::Lua;
-    }
+    TCLAP::UnlabeledValueArg<string> inputArg("Input", "A PDF file or a file which contains a list of PDF file paths",
+        true, "", "input", cmd);
+    TCLAP::UnlabeledValueArg<string> outputArg("Output", "The output PDF file", true, "", "output", cmd);
+    TCLAP::UnlabeledValueArg<string> planArg("Plan", "An imposition plan file", true, "", "plan", cmd);
+
+    vector<string> interpreters{ "native", "lua" };
+    TCLAP::ValuesConstraint<string> interpreterConstraint(interpreters);
+    TCLAP::UnlabeledValueArg<string> interpreterArg("Interpreter", "The imposition plan interpreter to use",
+        false, "native", &interpreterConstraint, cmd);
+
+    cmd.parse(cliArgs);
+
+    params.inFilePath = inputArg.getValue();
+    params.outFilePath = outputArg.getValue();
+    params.planFilePath = planArg.getValue();
+    params.planReader = interpreterArg.getValue() == "lua" ? PlanReader::Lua : PlanReader::Legacy;
 }
 
 /**

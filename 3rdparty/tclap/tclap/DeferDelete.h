@@ -23,6 +23,8 @@
 #ifndef TCLAP_DEFER_DELETE_H
 #define TCLAP_DEFER_DELETE_H
 
+#include <list>
+
 namespace TCLAP {
 
 /**
