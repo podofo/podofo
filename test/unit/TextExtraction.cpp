@@ -252,3 +252,16 @@ S
 Q
 )");
 }
+
+TEST_CASE("TestBfRange4CodePoints")
+{
+    // The /ToUnicode CMap has a beginbfrange whose DstCodeLo decodes to
+    // exactly 4 codepoints
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TestBfRange4CodePoints.pdf"));
+    auto& page = doc.GetPages().GetPageAt(0);
+    vector<PdfTextEntry> entries;
+    page.ExtractTextTo(entries);
+    REQUIRE(entries.size() == 1);
+    REQUIRE(entries[0].Text == "Aሴ噸C");
+}
