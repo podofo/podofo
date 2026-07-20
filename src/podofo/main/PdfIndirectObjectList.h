@@ -35,8 +35,6 @@ class PODOFO_API PdfIndirectObjectList final
     friend class PdfDocument;
     friend class PdfObject;
     friend class PdfObjectOutputStream;
-    friend class PdfParser;
-    friend class PdfWriter;
     PODOFO_PRIVATE_FRIEND(class PdfObjectStreamParser);
     PODOFO_PRIVATE_FRIEND(class PdfImmediateWriter);
     PODOFO_PRIVATE_FRIEND(class PdfParser);
