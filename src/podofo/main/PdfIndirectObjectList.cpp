@@ -396,57 +396,66 @@ void PdfIndirectObjectList::CollectGarbage(PdfObject& trailer, bool fixInvalidRe
 
 void PdfIndirectObjectList::visitObject(PdfObject& obj, unordered_set<PdfReference>& referencedObjects, bool fixInvalidReference)
 {
-    switch (obj.GetDataType())
+    // Traverse the object tree with an explicit stack instead
+    // of recursively visiting it
+    vector<PdfObject*> pending{ &obj };
+    while (pending.size() != 0)
     {
-        case PdfDataType::Reference:
+        auto curr = pending.back();
+        pending.pop_back();
+
+        switch (curr->GetDataType())
         {
-            // Try to check if the object has been already visited
-            auto& reference = obj.GetReferenceUnsafe();
-            auto childObj = GetObject(reference);
-            if (childObj == nullptr)
+            case PdfDataType::Reference:
             {
-                if (fixInvalidReference)
+                // Try to check if the object has been already visited
+                auto& reference = curr->GetReferenceUnsafe();
+                auto childObj = GetObject(reference);
+                if (childObj == nullptr)
                 {
-                    // Unconditionally reset the reference to
-                    // a null "0 0 R" reference. This is helpful
-                    // to prevent silent corruptions of the document
-                    // in case a reference is pointing to a unexisting
-                    // object and a new object with the same reference
-                    // is added later by other means
-                    obj.SetReference(PdfReference());
+                    if (fixInvalidReference)
+                    {
+                        // Unconditionally reset the reference to
+                        // a null "0 0 R" reference. This is helpful
+                        // to prevent silent corruptions of the document
+                        // in case a reference is pointing to a unexisting
+                        // object and a new object with the same reference
+                        // is added later by other means
+                        curr->SetReference(PdfReference());
+                    }
+
+                    break;
                 }
 
+                auto inserted = referencedObjects.insert(reference);
+                if (!inserted.second)
+                {
+                    // The object has been visited, just continue
+                    break;
+                }
+
+                pending.push_back(childObj);
                 break;
             }
-
-            auto inserted = referencedObjects.insert(reference);
-            if (!inserted.second)
+            case PdfDataType::Array:
             {
-                // The object has been visited, just return
+                auto& arr = curr->GetArrayUnsafe();
+                for (auto& child : arr)
+                    pending.push_back(&child);
                 break;
             }
-
-            visitObject(*childObj, referencedObjects, fixInvalidReference);
-            break;
-        }
-        case PdfDataType::Array:
-        {
-            auto& arr = obj.GetArrayUnsafe();
-            for (auto& child : arr)
-                visitObject(child, referencedObjects, fixInvalidReference);
-            break;
-        }
-        case PdfDataType::Dictionary:
-        {
-            auto& dict = obj.GetDictionaryUnsafe();
-            for (auto& pair : dict)
-                visitObject(pair.second, referencedObjects, fixInvalidReference);
-            break;
-        }
-        default:
-        {
-            // Nothing to do
-            break;
+            case PdfDataType::Dictionary:
+            {
+                auto& dict = curr->GetDictionaryUnsafe();
+                for (auto& pair : dict)
+                    pending.push_back(&pair.second);
+                break;
+            }
+            default:
+            {
+                // Nothing to do
+                break;
+            }
         }
     }
 }
