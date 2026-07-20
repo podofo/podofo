@@ -41,7 +41,15 @@ PdfDocument::PdfDocument(const PdfDocument& doc) :
     m_OutlinesLazyLoaded(false),
     m_IsStrictParsing(false)
 {
-    SetTrailer(std::make_unique<PdfObject>(doc.GetTrailer().GetObject()));
+    m_TrailerObj = std::make_unique<PdfObject>(doc.GetTrailer().GetObject());
+    m_TrailerObj->SetDocument(this);
+    m_Trailer.reset(new PdfTrailer(*m_TrailerObj));
+
+    auto catalog = m_TrailerObj->GetDictionary().FindKey("Root");
+    if (catalog == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ObjectNotFound, "Catalog object not found!");
+
+    m_Catalog.reset(new PdfCatalog(*catalog));
     Init();
 }
 
@@ -444,19 +452,24 @@ PdfAcroForm& PdfDocument::GetOrCreateAcroForm(PdfAcroFormDefaulAppearance defaul
 
 void PdfDocument::SetTrailer(unique_ptr<PdfObject> obj)
 {
-    PODOFO_ASSERT(!(m_InfoLazyLoaded || m_OutlinesLazyLoaded));
     if (obj == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    m_TrailerObj = std::move(obj);
-    m_TrailerObj->SetDocument(this);
-    m_Trailer.reset(new PdfTrailer(*m_TrailerObj));
-
-    auto catalog = m_TrailerObj->GetDictionary().FindKey("Root");
+    auto catalog = obj->GetDictionary().FindKey("Root");
     if (catalog == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ObjectNotFound, "Catalog object not found!");
 
-    m_Catalog.reset(new PdfCatalog(*catalog));
+    SetEntryPoints(std::move(obj), *catalog);
+}
+
+void PdfDocument::SetEntryPoints(std::unique_ptr<PdfObject>&& trailer, PdfObject& catalog)
+{
+    PODOFO_ASSERT(!(m_InfoLazyLoaded || m_OutlinesLazyLoaded) && trailer != nullptr);
+
+    m_TrailerObj = std::move(trailer);
+    m_TrailerObj->SetDocument(this);
+    m_Trailer.reset(new PdfTrailer(*m_TrailerObj));
+    m_Catalog.reset(new PdfCatalog(catalog));
 }
 
 void PdfDocument::SetStrictParsing(bool value)

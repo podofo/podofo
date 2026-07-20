@@ -366,12 +366,13 @@ public:
     PdfFontManager& GetFonts() { return m_FontManager; }
 
 protected:
-    /// Set the trailer of this PdfDocument
-    /// deleting the old one.
-    ///
-    /// @param obj the new trailer object
-    ///         It will be owned by PdfDocument.
+    /// Set the trailer of this PdfDocument, deleting the old one
+    /// @remarks Deprecated, retained for binary compatibility: it looks up
+    /// the /Root entry in the supplied trailer and forwards to SetEntryPoints()
     void SetTrailer(std::unique_ptr<PdfObject> obj);
+
+    /// Set the entry points of this PdfDocument, deleting the old ones
+    void SetEntryPoints(std::unique_ptr<PdfObject>&& trailer, PdfObject& catalog);
 
     void SetStrictParsing(bool value);
 

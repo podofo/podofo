@@ -17,6 +17,19 @@ TEST_CASE("TestFixInvalidCrossReferenceTable")
     REQUIRE(ssl::ComputeMD5Str(buff) == "FF980936FDE894F4495DDEC7C13AF4F4");
 }
 
+TEST_CASE("TestXRefSectionShifted")
+{
+    // The xref subsection header starts at object 1 instead of 0, shifting
+    // every entry by one object so /Root resolves to a free entry. The catalog
+    // validation performed while parsing fails and triggers a rebuild of the
+    // cross reference table, after which the document loads correctly
+    // This issue was discussed in https://github.com/podofo/podofo/issues/357
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("Corrupted", "XRefSectionShifted.pdf"));
+    REQUIRE(doc.HasBrokenXRef());
+    REQUIRE(doc.GetPages().GetCount() == 1);
+}
+
 TEST_CASE("TestMalformedAnnotationAction")
 {
     // Test that a PDF with a malformed action in a Link annotation does not

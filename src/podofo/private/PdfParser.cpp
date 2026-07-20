@@ -57,6 +57,7 @@ void PdfParser::init()
     m_FileSize = numeric_limits<size_t>::max();
     m_lastEOFOffsetHint = 0;
     m_Trailer = nullptr;
+    m_Catalog = nullptr;
     m_Encrypt = nullptr;
     m_IncrementalUpdateCount = 0;
 }
@@ -71,6 +72,11 @@ void PdfParser::Parse(InputStreamDevice& device)
         ReadHeader(device);
         ReadDocumentStructure(device);
         ReadObjectEntries(device);
+
+        // Resolve and validate the entry point as the last step. A failure
+        // here (eg. a catalog missing the /Pages key) is handled below by
+        // attempting to rebuild the cross reference table
+        resolveCatalog();
     }
     catch (PdfError& e)
     {
@@ -84,6 +90,10 @@ void PdfParser::Parse(InputStreamDevice& device)
         }
 
         m_HasCorruptedXRefSections = true;
+
+        // The cross reference table was rebuilt, resolve the entry
+        // point again against the recovered structure
+        resolveCatalog();
     }
 
     if (m_LoadStreamsEagerly)
@@ -1222,17 +1232,27 @@ const PdfObject& PdfParser::GetTrailer() const
     return *m_Trailer;
 }
 
-unique_ptr<PdfObject> PdfParser::TakeTrailer()
+PdfEntryPoints PdfParser::TakeEntryPoints()
 {
-    if (m_Trailer == nullptr)
-        return nullptr;
+    if (m_Trailer == nullptr || m_Catalog == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The document was not sucessfully parsed");
 
-    // We create a new object using move semantics. This may loose XRef
-    // stream information stored in PdfXRefStreamParserObject, but we
-    // don't want to preserve it
-    auto ret = unique_ptr<PdfObject>(new PdfObject(std::move(*m_Trailer)));
+    PdfEntryPoints ret{ unique_ptr<PdfObject>(new PdfObject(std::move(*m_Trailer))), *m_Catalog };
     m_Trailer = nullptr;
+    m_Catalog = nullptr;
     return ret;
+}
+
+void PdfParser::resolveCatalog()
+{
+    auto catalog = m_Trailer->GetDictionary().FindKey("Root");
+    if (catalog == nullptr || !catalog->IsDictionary())
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ObjectNotFound, "Catalog object not found");
+
+    if (!catalog->GetDictionary().HasKey("Pages"))
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidTrailer, "The catalog does not contain the /Pages key");
+
+    m_Catalog = catalog;
 }
 
 bool PdfParser::TryGetPreviousRevisionOffset(InputStreamDevice& input, size_t currOffset, size_t& eofOffset)
