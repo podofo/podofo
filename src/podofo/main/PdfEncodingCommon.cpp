@@ -204,7 +204,7 @@ CodePointSpan::CodePointSpan(const codepointview& view)
 
 CodePointSpan::CodePointSpan(const codepointview& view, codepoint cp)
 {
-    if (view.size() > std::size(m_Block.Data))
+    if (view.size() >= std::size(m_Block.Data))
     {
         auto data = new codepoint[view.size() + 1];
         std::memcpy(data, view.data(), view.size() * sizeof(char32_t));
