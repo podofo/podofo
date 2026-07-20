@@ -15,6 +15,14 @@ namespace PoDoFo {
 
 class PdfEncrypt;
 
+/// Bundles the trailer of a parsed document together with its
+/// resolved catalog (the /Root object)
+struct PdfEntryPoints final
+{
+    std::unique_ptr<PdfObject> Trailer;
+    PdfObject& Catalog;
+};
+
 /// PdfParser reads a PDF file into memory.
 /// The file can be modified in memory and written back using
 /// the PdfWriter class.
@@ -50,7 +58,9 @@ public:
 
     const PdfObject& GetTrailer() const;
 
-    std::unique_ptr<PdfObject> TakeTrailer();
+    /// Take the entry points of the parsed document, transferring
+    /// ownership of the trailer and returning the resolved catalog
+    PdfEntryPoints TakeEntryPoints();
 
     /// Try retrieve the previous revision offset of the document before signing
     /// @param currOffset the current offset where to start the search
@@ -166,6 +176,10 @@ private:
     /// Reads objects offsets and references into memory
     void ReadObjectEntries(InputStreamDevice& device);
 
+    /// Resolves the document catalog (the /Root object) from the trailer
+    /// and validates that it contains a /Pages key. Throws otherwise
+    void resolveCatalog();
+
     /// Reads all objects from the pdf into memory
     /// from the previously read entries
     ///
@@ -270,6 +284,7 @@ private:
     PdfIndirectObjectList* m_Objects;
 
     std::unique_ptr<PdfParserObject> m_Trailer;
+    PdfObject* m_Catalog;
     std::shared_ptr<PdfEncryptSession> m_Encrypt;
 
     std::string m_Password;

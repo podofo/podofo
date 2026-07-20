@@ -86,7 +86,8 @@ void PdfMemDocument::initFromParser(PdfParser& parser)
     m_HasBrokenXRef = parser.HasCorruptedXRefSections();
     m_PrevXRefOffset = parser.GetXRefOffset();
     m_MagicOffset = parser.GetMagicOffset();
-    this->SetTrailer(parser.TakeTrailer());
+    auto entryPoint = parser.TakeEntryPoints();
+    SetEntryPoints(std::move(entryPoint.Trailer), entryPoint.Catalog);
 
     auto encrypt = parser.GetEncrypt();
     if (encrypt != nullptr)

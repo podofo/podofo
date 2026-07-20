@@ -1454,11 +1454,12 @@ void PdfParserTest::TestReadXRefStreamContents()
         size_t offsetEndstream;
 
         size_t lengthXRefObject = 22;
-        size_t offsetXRefObject = 34;
         oss << "%PDF-1.4\r\n";
         oss << "1 0 obj\r\n";
-        oss << "<< >>\r\n";
+        // The catalog needs a /Pages key to pass PdfParser catalog validation
+        oss << "<< /Pages 1 0 R >>\r\n";
         oss << "endobj\r\n";
+        size_t offsetXRefObject = oss.str().length();
         oss << "2 0 obj\r\n";
         oss << "<< /Type /XRef ";
         oss << "/Length " << lengthXRefObject << " ";
@@ -2629,7 +2630,8 @@ TEST_CASE("TestNestedOutlines")
     oss << "%PDF-1.0\r\n";
 
     offsets[1] = (size_t)oss.tellp();
-    oss << "1 0 obj<</Type/Catalog /AcroForm 2 0 R /Outlines 3 0 R>>endobj ";
+    // The catalog needs a /Pages key to pass PdfParser catalog validation
+    oss << "1 0 obj<</Type/Catalog /AcroForm 2 0 R /Outlines 3 0 R /Pages 2 0 R>>endobj ";
 
     offsets[2] = (size_t)oss.tellp();
     oss << "2 0 obj<</Type/AcroForm >>endobj ";
@@ -2692,26 +2694,26 @@ TEST_CASE("TestNestedOutlines")
 TEST_CASE("TestLoopingOutlines")
 {
     // CVE-2020-18971 - PdfOutlineItem /Next refers a preceding sibling
-    string strNextLoop =
-        "%PDF-1.0\r\n"
-        "1 0 obj<</Type/Catalog /AcroForm 2 0 R /Outlines 3 0 R>>endobj "
-        "2 0 obj<</Type/AcroForm >>endobj "
-        "3 0 obj<</Type/Outlines /First 4 0 R /Count 2 /Last 5 0 R >>endobj "
-        "4 0 obj<</Title (Outline Item 1) /Next 5 0 R>>endobj "
-        "5 0 obj<</Title (Outline Item 2) /Next 4 0 R>>endobj " // /Next loops back to previous outline item
-        "\r\n"
-        "xref\r\n"
-        "0 6\r\n"
-        "0000000000 65535 f\r\n"
-        "0000000010 00000 n\r\n"
-        "0000000073 00000 n\r\n"
-        "0000000106 00000 n\r\n"
-        "0000000173 00000 n\r\n"
-        "0000000226 00000 n\r\n"
-        "trailer<</Size 6/Root 1 0 R>>\r\n"
-        "startxref\r\n"
-        "281\r\n"
-        "%%EOF";
+    // The catalog needs a /Pages key to pass PdfParser catalog validation
+    string_view strNextLoop = R"(%PDF-1.0
+1 0 obj<</Type/Catalog /AcroForm 2 0 R /Outlines 3 0 R /Pages 2 0 R>>endobj
+2 0 obj<</Type/AcroForm >>endobj
+3 0 obj<</Type/Outlines /First 4 0 R /Count 2 /Last 5 0 R >>endobj
+4 0 obj<</Title (Outline Item 1) /Next 5 0 R>>endobj
+5 0 obj<</Title (Outline Item 2) /Next 4 0 R>>endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000085 00000 n 
+0000000118 00000 n 
+0000000185 00000 n 
+0000000238 00000 n 
+trailer<</Size 6/Root 1 0 R>>
+startxref
+291
+%%EOF
+)"sv;
 
     try
     {
@@ -2728,20 +2730,20 @@ TEST_CASE("TestLoopingOutlines")
     }
 
     // https://sourceforge.net/p/podofo/tickets/25/
-    string strSelfLoop =
-        "%PDF-1.0\r\n"
-        "1 0 obj<</Type/Catalog/Outlines 2 0 R>>endobj "
-        "2 0 obj<</Type/Outlines /First 2 0 R /Last 2 0 R /Count 1>>endobj" // /First and /Last loop to self
-        "\r\n"
-        "xref\r\n"
-        "0 3\r\n"
-        "0000000000 65535 f\r\n"
-        "0000000010 00000 n\r\n"
-        "0000000056 00000 n\r\n"
-        "trailer<</Size 3/Root 1 0 R>>\r\n"
-        "startxref\r\n"
-        "123\r\n"
-        "%%EOF";
+    // The catalog needs a /Pages key to pass PdfParser catalog validation
+    string_view strSelfLoop = R"(%PDF-1.0
+1 0 obj<</Type/Catalog/Outlines 2 0 R/Pages 2 0 R>>endobj
+2 0 obj<</Type/Outlines /First 2 0 R /Last 2 0 R /Count 1>>endobj
+xref
+0 3
+0000000000 65535 f 
+0000000009 00000 n 
+0000000067 00000 n 
+trailer<</Size 3/Root 1 0 R>>
+startxref
+133
+%%EOF
+)"sv;
 
     try
     {
@@ -2868,7 +2870,7 @@ TEST_CASE("TestEdgeCases")
     doc.Load(TestUtils::GetTestInputFilePath("ParserTests", "rev.pdf"));
 }
 
-// Bug: PdfParser::TakeTrailer move-constructed the trailer PdfObject via
+// Bug: PdfParser::TakeEntryPoint move-constructed the trailer PdfObject via
 // the noexcept move constructor, which called DelayedLoadStream().  For a
 // malformed XRef stream (e.g. /Length referencing a non-existent object)
 // this threw PdfErrorCode::InvalidStream inside a noexcept context,
