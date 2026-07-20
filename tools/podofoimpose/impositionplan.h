@@ -96,7 +96,7 @@ namespace PoDoFo::Impose
         // legacy
         std::map<std::string, std::string> Vars;
 
-        const SourceVars SourceVars;
+        const SourceVars Source;
 
     private:
         double m_destWidth;

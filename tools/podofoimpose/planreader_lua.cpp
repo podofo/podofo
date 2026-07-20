@@ -57,9 +57,9 @@ PlanReader_Lua::PlanReader_Lua(const string_view& planfile, PoDoFo::Impose::Impo
     lua_pushlightuserdata(L.State(), static_cast<void*>(this));
     lua_setglobal(L.State(), "This");
 
-    setNumber("PageCount", plan->SourceVars.PageCount);
-    setNumber("SourceWidth", plan->SourceVars.PageWidth);
-    setNumber("SourceHeight", plan->SourceVars.PageHeight);
+    setNumber("PageCount", plan->Source.PageCount);
+    setNumber("SourceWidth", plan->Source.PageWidth);
+    setNumber("SourceHeight", plan->Source.PageHeight);
 
     // imp_lua_dofile is a wrapper around luaL_dofile for Lua 5.0/5.1 compat.
     if (imp_lua_dofile(L.State(), planfile.data()))

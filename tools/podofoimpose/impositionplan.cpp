@@ -302,7 +302,7 @@ bool PageRecord::isValid() const
 }
 
 ImpositionPlan::ImpositionPlan(const Impose::SourceVars& sv) :
-    SourceVars(sv),
+    Source(sv),
     m_destWidth(0.0),
     m_destHeight(0.0),
     m_scale(1.0)

@@ -111,7 +111,7 @@ int PlanReader_Legacy::sortLoop(vector<string>& memfile, int numline)
             {
                 PageRecord p;
                 p.load(memfile.at(subi), m_imp->Vars);
-                if (!p.isValid() || p.sourcePage > m_imp->SourceVars.PageCount)
+                if (!p.isValid() || p.sourcePage > m_imp->Source.PageCount)
                     continue;
 
                 m_imp->push_back(p);
@@ -162,9 +162,9 @@ PlanReader_Legacy::PlanReader_Legacy(const string_view& plan, ImpositionPlan& im
             memfile.push_back(buffer);
     } while (!in.eof());
     /// PROVIDED 
-    m_imp->Vars[string("$PagesCount")] = Util::uToStr(m_imp->SourceVars.PageCount);
-    m_imp->Vars[string("$SourceWidth")] = Util::dToStr(m_imp->SourceVars.PageWidth);
-    m_imp->Vars[string("$SourceHeight")] = Util::dToStr(m_imp->SourceVars.PageHeight);
+    m_imp->Vars[string("$PagesCount")] = Util::uToStr(m_imp->Source.PageCount);
+    m_imp->Vars[string("$SourceWidth")] = Util::dToStr(m_imp->Source.PageWidth);
+    m_imp->Vars[string("$SourceHeight")] = Util::dToStr(m_imp->Source.PageHeight);
     /// END OF PROVIDED
 
     for (unsigned numline = 0; numline < memfile.size(); numline++)
@@ -185,7 +185,7 @@ PlanReader_Legacy::PlanReader_Legacy(const string_view& plan, ImpositionPlan& im
         {
             PageRecord p;
             p.load(buffer, m_imp->Vars);
-            if (!p.isValid() || p.sourcePage > m_imp->SourceVars.PageCount)
+            if (!p.isValid() || p.sourcePage > m_imp->Source.PageCount)
                 continue;
 
             m_imp->push_back(p);
