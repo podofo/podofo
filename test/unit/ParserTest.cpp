@@ -26,6 +26,7 @@ using namespace PoDoFo;
 static string generateXRefEntries(size_t count);
 static bool canOutOfMemoryKillUnitTests();
 static size_t getStackOverflowDepth();
+static string generateNestedOutlinesPdf(bool includePages);
 
 // this value is from Table C.1 in Appendix C.2 Architectural Limits in PDF 32000-1:2008
 // on 32-bit systems sizeof(PdfParser::TXRefEntry)=16 => max size of m_offsets=16*8,388,607 = 134 MB
@@ -2620,61 +2621,7 @@ TEST_CASE("TestNestedOutlines")
     // test for valid but deeply nested outlines
     // maxDepth must be less than GetMaxObjectCount otherwise PdfParser::ResizeOffsets
     // throws an error when reading the xref offsets table, and no outlines are read
-    ostringstream oss;
-    const size_t maxDepth = getStackOverflowDepth() - 4 - 1;
-    const size_t numObjects = maxDepth + 4;
-    vector<size_t> offsets(numObjects);
-    size_t xrefOffset = 0;
-
-    offsets[0] = 0;
-    oss << "%PDF-1.0\r\n";
-
-    offsets[1] = (size_t)oss.tellp();
-    // The catalog needs a /Pages key to pass PdfParser catalog validation
-    oss << "1 0 obj<</Type/Catalog /AcroForm 2 0 R /Outlines 3 0 R /Pages 2 0 R>>endobj ";
-
-    offsets[2] = (size_t)oss.tellp();
-    oss << "2 0 obj<</Type/AcroForm >>endobj ";
-
-    offsets[3] = (size_t)oss.tellp();
-    oss << "3 0 obj<</Type/Outlines /First 4 0 R /Count " << maxDepth << " /Last 5 0 R >>endobj ";
-
-    // create outlines tree nested to maxDepth where each node has one child
-    // except single leaf node at maxDepth
-    for (size_t objNo = 4; objNo < numObjects; objNo++)
-    {
-        offsets[objNo] = (size_t)oss.tellp();
-
-        if (objNo < numObjects - 1)
-            oss << objNo << " 0 obj<</Title (Outline Item) /First " << objNo + 1 << " 0 R /Last " << objNo + 1 << " 0 R>>endobj ";
-        else
-            oss << objNo << " 0 obj<</Title (Outline Item)>>endobj ";
-    }
-
-    // output xref table
-    oss << "\r\n";
-    xrefOffset = (size_t)oss.tellp();
-    oss << "xref\r\n";
-    oss << "0 " << numObjects << "\r\n";
-
-    oss << "0000000000 65535 f\r\n";
-
-    for (size_t objNo = 1; objNo < offsets.size(); objNo++)
-    {
-        // write xref entries like
-        // "0000000010 00000 n\r\n"
-        char szXrefEntry[21];
-        snprintf(szXrefEntry, 21, "%010zu 00000 n\r\n", offsets[objNo]);
-
-        oss << szXrefEntry;
-    }
-
-    oss << "trailer<</Size " << numObjects << "/Root 1 0 R>>\r\n";
-    oss << "startxref\r\n";
-    oss << xrefOffset << "\r\n";
-    oss << "%%EOF";
-
-    auto buffer = oss.str();
+    auto buffer = generateNestedOutlinesPdf(true);
     try
     {
         PdfMemDocument doc;
@@ -2687,6 +2634,28 @@ TEST_CASE("TestNestedOutlines")
     catch (PdfError& error)
     {
         REQUIRE(error.GetCode() == PdfErrorCode::MaxRecursionReached);
+    }
+}
+
+// Same fixture as TestNestedOutlines, but the catalog is missing /Pages. The
+// chain itself is not a cycle, it's a plain acyclic linked list sized to sit
+// just below the real stack limit. Failing the /Pages check in
+// PdfParser::resolveCatalog() forces PdfParser::tryRebuildCrossReference(),
+// which walks the whole object graph via PdfIndirectObjectList::CollectGarbage().
+TEST_CASE("TestNestedOutlinesRebuild")
+{
+    auto buffer = generateNestedOutlinesPdf(false);
+    try
+    {
+        PdfMemDocument doc;
+        doc.LoadFromBuffer(buffer, PdfLoadOptions::StrictParsing);
+        FAIL("Should throw exception");
+    }
+    catch (PdfError& error)
+    {
+        // The rebuild succeeds, but the recovered catalog still has no /Pages,
+        // so resolveEntryPoint() rejects it again on the second attempt
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidTrailer);
     }
 }
 
@@ -3001,4 +2970,67 @@ size_t getStackOverflowDepth()
     REQUIRE(overflowDepth * parserObjectSize < numeric_limits<size_t>::max() / 2);
 
     return overflowDepth;
+}
+
+// Generates a PDF with outlines nested to just below the real stack overflow
+// depth, as a linked list where each node has one child except the leaf node
+string generateNestedOutlinesPdf(bool includePages)
+{
+    ostringstream oss;
+    const size_t maxDepth = getStackOverflowDepth() - 4 - 1;
+    const size_t numObjects = maxDepth + 4;
+    vector<size_t> offsets(numObjects);
+    size_t xrefOffset = 0;
+
+    offsets[0] = 0;
+    oss << "%PDF-1.0\r\n";
+
+    offsets[1] = (size_t)oss.tellp();
+    oss << "1 0 obj<</Type/Catalog /AcroForm 2 0 R /Outlines 3 0 R";
+    if (includePages)
+        oss << " /Pages 2 0 R";
+    oss << ">>endobj ";
+
+    offsets[2] = (size_t)oss.tellp();
+    oss << "2 0 obj<</Type/AcroForm >>endobj ";
+
+    offsets[3] = (size_t)oss.tellp();
+    oss << "3 0 obj<</Type/Outlines /First 4 0 R /Count " << maxDepth << " /Last 5 0 R >>endobj ";
+
+    // create outlines tree nested to maxDepth where each node has one child
+    // except single leaf node at maxDepth
+    for (size_t objNo = 4; objNo < numObjects; objNo++)
+    {
+        offsets[objNo] = (size_t)oss.tellp();
+
+        if (objNo < numObjects - 1)
+            oss << objNo << " 0 obj<</Title (Outline Item) /First " << objNo + 1 << " 0 R /Last " << objNo + 1 << " 0 R>>endobj ";
+        else
+            oss << objNo << " 0 obj<</Title (Outline Item)>>endobj ";
+    }
+
+    // output xref table
+    oss << "\r\n";
+    xrefOffset = (size_t)oss.tellp();
+    oss << "xref\r\n";
+    oss << "0 " << numObjects << "\r\n";
+
+    oss << "0000000000 65535 f\r\n";
+
+    for (size_t objNo = 1; objNo < offsets.size(); objNo++)
+    {
+        // write xref entries like
+        // "0000000010 00000 n\r\n"
+        char szXrefEntry[21];
+        snprintf(szXrefEntry, 21, "%010zu 00000 n\r\n", offsets[objNo]);
+
+        oss << szXrefEntry;
+    }
+
+    oss << "trailer<</Size " << numObjects << "/Root 1 0 R>>\r\n";
+    oss << "startxref\r\n";
+    oss << xrefOffset << "\r\n";
+    oss << "%%EOF";
+
+    return oss.str();
 }
