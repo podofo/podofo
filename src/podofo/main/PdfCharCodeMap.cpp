@@ -13,6 +13,9 @@
 using namespace std;
 using namespace PoDoFo;
 
+// Fixed seed used to shuffle the code point map entries before building the BST
+constexpr unsigned CPMapShuffleSeed = 5489;
+
 PdfCharCodeMap::PdfCharCodeMap()
     : m_MapDirty(false), m_codePointMapHead(nullptr), m_depth(0) { }
 
@@ -220,14 +223,19 @@ void PdfCharCodeMap::reviseCPMap()
         m_codePointMapHead = nullptr;
     }
 
-    // Randomize items in the map in a separate list
+    // Shuffle items in the map in a separate list
     // so BST creation will be more balanced
     // https://en.wikipedia.org/wiki/Random_binary_tree
+    // NOTE: The shuffle is seeded with a constant so the built tree, and hence
+    // the reverse lookups performed on it, are reproducible. A seed taken from
+    // std::random_device would make the code unit returned for a code point that
+    // is mapped by more than one code unit, and the string lengths computed from
+    // it, change at every run
     // TODO: Create a perfectly balanced BST
     vector<pair<PdfCharCode, vector<codepoint>>> pairs;
     pairs.reserve(m_CodeUnitMap.size());
     std::copy(m_CodeUnitMap.begin(), m_CodeUnitMap.end(), std::back_inserter(pairs));
-    std::mt19937 e(random_device{}());
+    std::mt19937 e(CPMapShuffleSeed);
     std::shuffle(pairs.begin(), pairs.end(), e);
 
     for (auto& pair : pairs)
@@ -248,8 +256,12 @@ void PdfCharCodeMap::reviseCPMap()
             curr = &found->Ligatures;
         }
 
-        // Finally set the char code on the last found/added node
-        found->CodeUnit = pair.first;
+        // Finally set the char code on the last found/added node. NOTE: When more
+        // than one code unit maps to the same code point(s), as it happens in fonts
+        // that have duplicated glyphs, keep the smallest code unit so the choice
+        // doesn't depend on the order the nodes are inserted with
+        if (found->CodeUnit.CodeSpaceSize == 0 || pair.first < found->CodeUnit)
+            found->CodeUnit = pair.first;
     }
 
     m_MapDirty = false;
