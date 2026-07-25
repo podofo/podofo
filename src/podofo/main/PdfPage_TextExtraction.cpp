@@ -171,6 +171,8 @@ static void processChunks(const StringChunkList& chunks, string& destString,
     vector<GlyphAddress>& glyphAddresses);
 static double computeLength(const vector<const StatefulString*>& strings, const vector<GlyphAddress>& glyphAddresses,
     unsigned lowerIndex, unsigned upperIndex);
+static double computeStringLength(const vector<const StatefulString*>& strings,
+    const vector<GlyphAddress>& glyphAddresses, unsigned lowerIndex, unsigned upperIndex);
 static bool isMatchWholeWordSubstring(const string_view& str, const string_view& pattern, size_t& matchPos);
 static Rect computeBoundingBox(const TextState& textState, double boxWidth);
 static void read(const PdfVariantStack& stack, double &tx, double &ty);
@@ -743,6 +745,7 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
     }
 
     double strLength = computeLength(strings, glyphAddresses, lowerIndex, upperIndexLimit - 1);
+    double stringLength = computeStringLength(strings, glyphAddresses, lowerIndex, upperIndexLimit - 1);
     nullable<Rect> bbox;
     if (options.ComputeBoundingBox)
         bbox = computeBoundingBox(textState, strLength);
@@ -756,7 +759,7 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
             {1.0, 0.0, 0.0, 1.0, 0.0, 0.0},
             textState.PdfState.FontSize, textState.PdfState.Font->GetName(),
             textState.PdfState.FontScale, textState.PdfState.CharSpacing, textState.PdfState.WordSpacing,
-            textState.PdfState.Font->GetStringLength(str, textState.PdfState),
+            stringLength,
             textState.PdfState.Font->GetLineSpacing(textState.PdfState),
             {
                 {textState.PdfState.TextColor.GrayColor.Gray},
@@ -773,7 +776,7 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
             {1.0, 0.0, 0.0, 1.0, 0.0, 0.0},
             textState.PdfState.FontSize, textState.PdfState.Font->GetName(),
             textState.PdfState.FontScale, textState.PdfState.CharSpacing, textState.PdfState.WordSpacing,
-            textState.PdfState.Font->GetStringLength(str, textState.PdfState),
+            stringLength,
             textState.PdfState.Font->GetLineSpacing(textState.PdfState),
             {
                 {textState.PdfState.TextColor.GrayColor.Gray},
@@ -1435,6 +1438,44 @@ double computeLength(const vector<const StatefulString*>& strings, const vector<
 
         return (fromPosition - toPosition).GetLength();
     }
+}
+
+// Measure the glyphs in the given range with the metrics of the font they were
+// drawn with. NOTE: An entry can span several strings, each one with its own
+// font, as it happens when a formula or a list bullet is drawn with a font of
+// its own: measuring the whole entry with the font of its first string would
+// account only for the few code points that font can map
+double computeStringLength(const vector<const StatefulString*>& strings,
+    const vector<GlyphAddress>& glyphAddresses, unsigned lowerIndex, unsigned upperIndex)
+{
+    PODOFO_ASSERT(lowerIndex <= upperIndex);
+    auto& fromAddr = glyphAddresses[lowerIndex];
+    auto& toAddr = glyphAddresses[upperIndex];
+    double length = 0;
+    for (unsigned i = fromAddr.StringIndex; i <= toAddr.StringIndex; i++)
+    {
+        auto str = strings[i];
+        if (str->State.PdfState.Font == nullptr || str->StringPositions.size() == 0)
+            continue;
+
+        unsigned glyphCount = (unsigned)str->StringPositions.size();
+        unsigned firstGlyph = i == fromAddr.StringIndex ? fromAddr.GlyphIndex : 0;
+        unsigned lastGlyph = i == toAddr.StringIndex ? toAddr.GlyphIndex : glyphCount - 1;
+        if (firstGlyph >= glyphCount || lastGlyph >= glyphCount || firstGlyph > lastGlyph)
+            continue;
+
+        unsigned begin = str->StringPositions[firstGlyph];
+        unsigned end = lastGlyph + 1 == glyphCount
+            ? (unsigned)str->String.size()
+            : str->StringPositions[lastGlyph + 1];
+        if (end <= begin)
+            continue;
+
+        length += str->State.PdfState.Font->GetStringLength(
+            string_view(str->String).substr(begin, end - begin), str->State.PdfState);
+    }
+
+    return length;
 }
 
 // Verify if the string matches the pattern and verify

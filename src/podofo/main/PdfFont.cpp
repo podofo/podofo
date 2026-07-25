@@ -717,13 +717,19 @@ bool PdfFont::tryConvertToGIDs(const std::string_view& utf8Str, PdfGlyphAccess a
         auto end = utf8Str.end();
 
         auto& toUnicode = m_Encoding->GetToUnicodeMapSafe();
+        auto& encodingMap = m_Encoding->GetEncodingMap();
+        // The main /Encoding entry of a simple font maps codes to glyph names, so
+        // it can reverse map code points that an incomplete /ToUnicode CMap misses
+        bool tryEncodingMap = &encodingMap != &toUnicode
+            && encodingMap.GetType() == PdfEncodingMapType::Simple;
         while (it != end)
         {
             char32_t cp = utf8::next(it, end);
             PdfCharCode codeUnit;
             unsigned cid;
             unsigned gid;
-            if (toUnicode.TryGetCharCode(cp, codeUnit))
+            if (toUnicode.TryGetCharCode(cp, codeUnit)
+                || (tryEncodingMap && encodingMap.TryGetCharCode(cp, codeUnit)))
             {
                 if (m_Encoding->TryGetCIDId(codeUnit, cid))
                 {

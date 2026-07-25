@@ -2732,6 +2732,16 @@ void PdfDifferenceEncoding::buildReverseMap()
         m_reverseMap[codePoints[0]] = (unsigned char)code;
     }
 
+    // Map the differences explicitly as well: they may define codes that fall
+    // outside of the code range of the base encoding, as it happens with the
+    // subsetted math fonts of (La)TeX, whose base encoding is built from the
+    // font program. They take precedence over the base encoding mappings
+    for (auto& difference : m_differences)
+    {
+        if (difference.MappedCodePoint != U'\0')
+            m_reverseMap[difference.MappedCodePoint] = difference.Code;
+    }
+
     m_reverseMapBuilt = true;
 }
 
