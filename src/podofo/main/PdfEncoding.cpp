@@ -51,10 +51,13 @@ PdfEncoding::PdfEncoding(const PdfObject& fontObj, const PdfEncodingMapConstPtr&
     if (lastCharObj != nullptr)
         m_ParsedLimits.LastChar = PdfCharCode(static_cast<unsigned>(lastCharObj->GetNumber()));
 
-    if (m_ParsedLimits.LastChar.Code > m_ParsedLimits.FirstChar.Code)
+    if (m_ParsedLimits.LastChar.Code >= m_ParsedLimits.FirstChar.Code)
     {
         // If found valid /FirstChar and /LastChar, valorize
-        //  also the code size limits
+        //  also the code size limits. NOTE: /FirstChar and /LastChar are equal in
+        //  fonts that define a single character, as it happens with the subsetted
+        //  math fonts embedded by (La)TeX. Such limits are valid as well and are
+        //  needed to map the character code to its /Widths entry
         m_ParsedLimits.MinCodeSize = utls::GetCharCodeSize(m_ParsedLimits.FirstChar.Code);
         m_ParsedLimits.MaxCodeSize = utls::GetCharCodeSize(m_ParsedLimits.LastChar.Code);
     }
