@@ -1328,6 +1328,90 @@ static struct
   { 0, nullptr }
 };
 
+// Glyph names used by the math fonts of the Computer Modern / Latin Modern
+// families (CMMI, CMSY, CMEX, LMMathItalic, LMMathSymbols, LMMathExtension, ...)
+// that (La)TeX embeds in PDFs. The /ToUnicode CMap of those fonts is typically
+// incomplete, so the glyph names of the /Encoding /Differences array are the only
+// way to recover part of their text, and most of those names are not in the AGL.
+// Reference: texglyphlist.txt of TeX Live (pdftex mapping)
+static struct
+{
+    char32_t u;
+    const char* name;
+} texNameToUnicodeTab[] = {
+    {0x0338, "negationslash"},
+    {0x0361, "tie"},
+    {0x03B5, "epsilon1"},
+    {0x03F0, "kappa1"},
+    {0x03F1, "rho1"},
+    {0x03D6, "pi1"},
+    {0x2016, "bardbl"},
+    {0x2032, "prime"},
+    {0x20D7, "vector"},
+    {0x2111, "Ifractur"},
+    {0x211C, "Rfractur"},
+    {0x2113, "lscript"},
+    {0x2195, "arrowbothv"},
+    {0x2196, "arrownorthwest"},
+    {0x2197, "arrownortheast"},
+    {0x2198, "arrowsoutheast"},
+    {0x2199, "arrowsouthwest"},
+    {0x21A6, "mapsto"},
+    {0x21A9, "arrowhookright"},
+    {0x21AA, "arrowhookleft"},
+    {0x21BC, "arrowlefttophalf"},
+    {0x21BD, "arrowleftbothalf"},
+    {0x21C0, "arrowrighttophalf"},
+    {0x21C1, "arrowrightbothalf"},
+    {0x21D5, "arrowdblbothv"},
+    {0x2210, "coproduct"},
+    {0x2213, "minusplus"},
+    {0x222E, "contintegral"},
+    {0x2240, "wreathproduct"},
+    {0x2243, "similarequal"},
+    {0x224D, "equivasymptotic"},
+    {0x226A, "lessmuch"},
+    {0x226B, "greatermuch"},
+    {0x227A, "precedes"},
+    {0x227B, "follows"},
+    {0x227C, "precedesequal"},
+    {0x227D, "followsequal"},
+    {0x2291, "subsetsqequal"},
+    {0x2292, "supersetsqequal"},
+    {0x2293, "intersectionsq"},
+    {0x2296, "circleminus"},
+    {0x2298, "circledivide"},
+    {0x2299, "circledot"},
+    {0x22A2, "turnstileleft"},
+    {0x22A3, "turnstileright"},
+    {0x22A4, "latticetop"},
+    {0x22C4, "diamondmath"},
+    {0x22C6, "star"},
+    {0x2308, "ceilingleft"},
+    {0x2309, "ceilingright"},
+    {0x230A, "floorleft"},
+    {0x230B, "floorright"},
+    {0x2322, "slurabove"},
+    {0x2323, "slurbelow"},
+    {0x25B3, "triangle"},
+    {0x25BD, "triangleinv"},
+    {0x266D, "flat"},
+    {0x266E, "natural"},
+    {0x266F, "sharp"},
+    {0x27E8, "angbracketleft"},
+    {0x27E9, "angbracketright"},
+    { 0, nullptr }
+};
+
+// Suffixes appended by the Computer Modern / Latin Modern math fonts to the name
+// of a base glyph to denote one of its bigger variants, for example
+// "summationdisplay" (the big summation sign of a displayed formula) or
+// "parenleftbig". They are stripped so that the base glyph name is looked up
+// instead
+static const char* texGlyphSizeSuffixes[] = {
+    "display", "text", "Bigg", "bigg", "Big", "big", nullptr
+};
+
 static struct {
     char32_t u;
     const char* name;
@@ -2656,12 +2740,45 @@ char32_t PdfDifferenceEncoding::NameToCodePoint(const PdfName& name)
     return NameToCodePoint((string_view)name.GetString());
 }
 
-char32_t PdfDifferenceEncoding::NameToCodePoint(const string_view& name)
+static char32_t lookupGlyphName(const string_view& name)
 {
     for (unsigned i = 0; nameToUnicodeTab[i].name != nullptr; i++)
     {
         if (nameToUnicodeTab[i].name == name)
             return nameToUnicodeTab[i].u;
+    }
+
+    for (unsigned i = 0; texNameToUnicodeTab[i].name != nullptr; i++)
+    {
+        if (texNameToUnicodeTab[i].name == name)
+            return texNameToUnicodeTab[i].u;
+    }
+
+    return U'\0';
+}
+
+char32_t PdfDifferenceEncoding::NameToCodePoint(const string_view& name)
+{
+    char32_t codePoint = lookupGlyphName(name);
+    if (codePoint != U'\0')
+        return codePoint;
+
+    // The math fonts of (La)TeX name the bigger variants of a glyph by appending a
+    // size suffix to the base glyph name, eg. "summationdisplay" for the big
+    // summation sign of a displayed formula. Such names are not in the AGL, so
+    // retry the lookup on the base glyph name
+    for (unsigned i = 0; texGlyphSizeSuffixes[i] != nullptr; i++)
+    {
+        string_view suffix(texGlyphSizeSuffixes[i]);
+        if (name.length() <= suffix.length()
+            || name.substr(name.length() - suffix.length()) != suffix)
+        {
+            continue;
+        }
+
+        codePoint = lookupGlyphName(name.substr(0, name.length() - suffix.length()));
+        if (codePoint != U'\0')
+            return codePoint;
     }
 
     // if we get here, then we might be looking up an undefined codepoint

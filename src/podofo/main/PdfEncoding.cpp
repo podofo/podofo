@@ -711,7 +711,19 @@ bool PdfStringScanContext::TryScan(PdfCID& cid, string& utf8str, vector<codepoin
         success = false;
     }
 
-    if (m_toUnicode->TryGetCodePoints(cid.Unit, codepoints))
+    bool mapped = m_toUnicode->TryGetCodePoints(cid.Unit, codepoints);
+    if (!mapped && m_toUnicode != m_encoding
+        && m_encoding->GetType() == PdfEncodingMapType::Simple)
+    {
+        // A /ToUnicode CMap may be incomplete: for example the math fonts embedded
+        // by (La)TeX map only a few of the codes they actually use, leaving the big
+        // operators (such as the summation sign of a displayed formula) unmapped.
+        // For simple, one byte encodings the main /Encoding entry maps codes to
+        // glyph names, so it is a valid fallback to recover the missing code points
+        mapped = m_encoding->TryGetCodePoints(cid.Unit, codepoints);
+    }
+
+    if (mapped)
     {
         for (size_t i = 0; i < codepoints.size(); i++)
         {
