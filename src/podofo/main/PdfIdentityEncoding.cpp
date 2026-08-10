@@ -18,12 +18,12 @@ using namespace PoDoFo;
 static PdfEncodingLimits getLimits(unsigned char codeSpaceSize);
 
 PdfIdentityEncoding::PdfIdentityEncoding(PdfEncodingMapType type, unsigned char codeSpaceSize)
-    : PdfIdentityEncoding(type, getLimits(codeSpaceSize), PdfIdentityOrientation::Unkwnown) { }
+    : PdfIdentityEncoding(type, getLimits(codeSpaceSize), PdfIdentityOrientation::Unknown) { }
 
 PdfIdentityEncoding::PdfIdentityEncoding(PdfIdentityOrientation orientation)
     : PdfIdentityEncoding(PdfEncodingMapType::CMap, getLimits(2), orientation)
 {
-    if (orientation == PdfIdentityOrientation::Unkwnown)
+    if (orientation == PdfIdentityOrientation::Unknown)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported orientation");
 }
 

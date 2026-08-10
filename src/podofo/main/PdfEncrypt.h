@@ -90,6 +90,8 @@ enum class PdfEncryptionAlgorithm : uint8_t
 
 enum class PdfAuthResult : uint8_t
 {
+    Unknown = 0,
+    ///< @deprecated Use Unknown instead
     Unkwnon = 0,
     Failed,     ///< Failed to authenticate to this PDF
     User,       ///< Success authenticating a user for this PDF

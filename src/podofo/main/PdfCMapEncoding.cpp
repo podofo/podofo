@@ -106,7 +106,7 @@ bool PdfEncodingMapFactory::TryParseCMapEncoding(const PdfObject& cmapObj, uniqu
     if (!map.IsEmpty() != 0 && mapLimits.MinCodeSize == mapLimits.MaxCodeSize && map.IsTrivialIdentity())
     {
         encoding.reset(new PdfIdentityEncoding(
-            PdfEncodingMapType::CMap, mapLimits, PdfIdentityOrientation::Unkwnown));
+            PdfEncodingMapType::CMap, mapLimits, PdfIdentityOrientation::Unknown));
         return true;
     }
 

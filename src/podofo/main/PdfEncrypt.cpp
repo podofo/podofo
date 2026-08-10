@@ -612,7 +612,7 @@ bool PdfEncrypt::CheckKey(const unsigned char key1[32], const unsigned char key2
 
 PdfEncryptContext::PdfEncryptContext() :
     m_encryptionKey{ },
-    m_AuthResult(PdfAuthResult::Unkwnon),
+    m_AuthResult(PdfAuthResult::Unknown),
     m_cryptCtx(nullptr),
     m_customCtx(nullptr),
     m_customCtxSize(0)
