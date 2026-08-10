@@ -173,6 +173,9 @@ public:
     /// from available /BaseFont, /FontName (eg. "AAAAAA+Arial,Bold" becomes "Arial")
     ///
     /// @remarks It doesn't correspond to /BaseFont name entry in the font
+    std::string_view GetFontFamilyNameSafe() const;
+
+    [[deprecated("Use GetFontFamilyNameSafe() instead")]]
     std::string_view GeFontFamilyNameSafe() const;
 
     /// Get the length of the subset prefix (eg. 7 for "AAAAAA+") if present

@@ -113,7 +113,7 @@ bool PdfFont::TryCreateProxyFont(PdfFontCreateFlags initFlags, PdfFont*& proxyFo
             {
                 PdfFontSearchParams params;
                 params.Style = metrics.GetStyle();
-                params.FontFamilyPattern = metrics.GeFontFamilyNameSafe();
+                params.FontFamilyPattern = metrics.GetFontFamilyNameSafe();
                 proxyMetrics = PdfFontManager::SearchFontMetrics(metrics.GetPostScriptNameRough(), params, metrics, skipNormalization);
                 if (proxyMetrics == nullptr)
                 {
