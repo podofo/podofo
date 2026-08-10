@@ -13,6 +13,8 @@ namespace PoDoFo {
 /// Orientation for predefined CID identity encodings
 enum class PdfIdentityOrientation : uint8_t
 {
+    Unknown = 0,
+    ///< @deprecated Use Unknown instead
     Unkwnown = 0,
     Horizontal, // Corresponds to /Identity-H
     Vertical,   // Corresponds to /Identity-V
