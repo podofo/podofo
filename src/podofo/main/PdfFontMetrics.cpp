@@ -247,6 +247,12 @@ const PdfObject* PdfFontMetrics::GetFontFileObject() const
     return nullptr;
 }
 
+string_view PdfFontMetrics::GetFontFamilyNameSafe() const
+{
+    const_cast<PdfFontMetrics&>(*this).initFamilyFontNameSafe();
+    return m_FamilyFontNameSafe;
+}
+
 string_view PdfFontMetrics::GeFontFamilyNameSafe() const
 {
     const_cast<PdfFontMetrics&>(*this).initFamilyFontNameSafe();
