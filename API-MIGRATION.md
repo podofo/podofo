@@ -13,6 +13,8 @@ deprecated and unused field in `PdfSignerCmsParams`
 Reduced the size of `BitsPerCoordinate`, `BitsPerComponent`, `BitsPerFlag` properties from
 unsigned to unsigned char. This was done for consistency in a part of the API
 which is new and has no known users, should cause no issue
+- `PdChoiceField`: Changed `GetItemDisplayText` parameter index type from int
+to unsigned for consistency. Should cause limited issues
 
 # 1.0.* -> 1.1
 

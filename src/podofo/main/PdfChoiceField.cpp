@@ -91,17 +91,15 @@ PdfString PdChoiceField::GetItem(unsigned index) const
     return item.GetString();
 }
 
-nullable<const PdfString&> PdChoiceField::GetItemDisplayText(int index) const
+nullable<const PdfString&> PdChoiceField::GetItemDisplayText(unsigned index) const
 {
     auto* opt = GetDictionary().FindKey("Opt");
     if (opt == nullptr)
         return { };
 
     auto& optArray = opt->GetArray();
-    if (index < 0 || index >= static_cast<int>(optArray.size()))
-    {
+    if (index >= optArray.GetSize())
         PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
-    }
 
     auto& item = optArray[index];
     if (item.IsArray())
@@ -130,6 +128,12 @@ unsigned PdChoiceField::GetItemCount() const
 void PdChoiceField::SetSelectedIndex(int index)
 {
     AssertTerminalField();
+    if (index < 0)
+    {
+        GetDictionary().RemoveKey("V");
+        return;
+    }
+
     PdfString selected = this->GetItem(index);
     GetDictionary().AddKey("V"_n, selected);
 }

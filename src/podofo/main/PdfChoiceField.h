@@ -53,13 +53,13 @@ namespace PoDoFo
         ///          in this case
         ///
         /// @see GetItem
-        nullable<const PdfString&> GetItemDisplayText(int index) const;
+        nullable<const PdfString&> GetItemDisplayText(unsigned index) const;
 
         /// @returns the number of items in this list
         unsigned GetItemCount() const;
 
         /// Sets the currently selected item
-        /// @param index index of the currently selected item
+        /// @param index index of the currently selected item. If < 0 the selection will be cleared
         void SetSelectedIndex(int index);
 
         /// Sets the currently selected item
