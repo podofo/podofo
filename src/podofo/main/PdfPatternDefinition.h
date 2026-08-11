@@ -289,56 +289,56 @@ namespace PoDoFo
     {
     public:
         PdfFreeFormMeshShadingDefinition(PdfColorSpaceInitializer&& colorSpace, std::vector<double> decode,
-            unsigned bitsPerCoordinate, unsigned bitsPerComponent, unsigned bitsPerFlag,
+            unsigned char bitsPerCoordinate, unsigned char bitsPerComponent, unsigned char bitsPerFlag,
             PdfFunctionListInitializer&& functions = { }, nullable<const PdfColorRaw&> background = { },
             nullable<const Rect&> bbox = { }, bool antiAlias = false);
 
         /// @remarks Deserialization constructor
         PdfFreeFormMeshShadingDefinition(PdfColorSpaceFilterPtr&& colorSpace, std::vector<double>&& decode,
-            unsigned bitsPerCoordinate, unsigned bitsPerComponent, unsigned bitsPerFlag,
+            unsigned char bitsPerCoordinate, unsigned char bitsPerComponent, unsigned char bitsPerFlag,
             std::vector<PdfFunctionDefinitionPtr>&& functions, const PdfColorRaw& background,
             const Rect& bbox, bool antiAlias);
     public:
         void fillExportDictionary(PdfDictionary& dict) const override;
         PdfShadingType GetShadingType() const override;
-        unsigned GetBitsPerCoordinate() const { return m_BitsPerCoordinate; }
-        unsigned GetBitsPerComponent() const { return m_BitsPerComponent; }
-        unsigned GetBitsPerFlag() const { return m_BitsPerFlag; }
+        unsigned char GetBitsPerCoordinate() const { return m_BitsPerCoordinate; }
+        unsigned char GetBitsPerComponent() const { return m_BitsPerComponent; }
+        unsigned char GetBitsPerFlag() const { return m_BitsPerFlag; }
         const std::vector<double>& GetDecode() const { return m_Decode; }
         const std::vector<PdfFunctionDefinitionPtr>& GetFunctions() const { return m_Functions; }
     private:
         std::vector<double> m_Decode;
-        unsigned m_BitsPerCoordinate;
-        unsigned m_BitsPerComponent;
-        unsigned m_BitsPerFlag;
+        unsigned char m_BitsPerCoordinate;
+        unsigned char m_BitsPerComponent;
+        unsigned char m_BitsPerFlag;
     };
 
     class PODOFO_API PdfLatticeFormMeshShadingDefinition final : public PdfShadingDefinition
     {
     public:
         PdfLatticeFormMeshShadingDefinition(PdfColorSpaceInitializer&& colorSpace, std::vector<double> decode,
-            unsigned bitsPerCoordinate, unsigned bitsPerComponent, unsigned verticesPerRow,
+            unsigned char bitsPerCoordinate, unsigned char bitsPerComponent, unsigned verticesPerRow,
             PdfFunctionListInitializer&& functions = { }, nullable<const PdfColorRaw&> background = { },
             nullable<const Rect&> bbox = { }, bool antiAlias = false);
 
         /// @remarks Deserialization constructor
         PdfLatticeFormMeshShadingDefinition(PdfColorSpaceFilterPtr&& colorSpace, std::vector<double>&& decode,
-            unsigned bitsPerCoordinate, unsigned bitsPerComponent, unsigned verticesPerRow,
+            unsigned char bitsPerCoordinate, unsigned char bitsPerComponent, unsigned verticesPerRow,
             std::vector<PdfFunctionDefinitionPtr>&& functions, const PdfColorRaw& background,
             const Rect& bbox, bool antiAlias);
 
     public:
         void fillExportDictionary(PdfDictionary& dict) const override;
         PdfShadingType GetShadingType() const override;
-        unsigned GetBitsPerCoordinate() const { return m_BitsPerCoordinate; }
-        unsigned GetBitsPerComponent() const { return m_BitsPerComponent; }
+        unsigned char GetBitsPerCoordinate() const { return m_BitsPerCoordinate; }
+        unsigned char GetBitsPerComponent() const { return m_BitsPerComponent; }
         unsigned GetVerticesPerRow() const { return m_VerticesPerRow; }
         const std::vector<double>& GetDecode() const { return m_Decode; }
         const std::vector<PdfFunctionDefinitionPtr>& GetFunctions() const { return m_Functions; }
     private:
         std::vector<double> m_Decode;
-        unsigned m_BitsPerCoordinate;
-        unsigned m_BitsPerComponent;
+        unsigned char m_BitsPerCoordinate;
+        unsigned char m_BitsPerComponent;
         unsigned m_VerticesPerRow;
     };
 
@@ -346,57 +346,57 @@ namespace PoDoFo
     {
     public:
         PdfCoonsPatchMeshShadingDefinition(PdfColorSpaceInitializer&& colorSpace, std::vector<double> decode,
-            unsigned bitsPerCoordinate, unsigned bitsPerComponent, unsigned bitsPerFlag,
+            unsigned char bitsPerCoordinate, unsigned char bitsPerComponent, unsigned char bitsPerFlag,
             PdfFunctionListInitializer&& functions = { }, nullable<const PdfColorRaw&> background = { },
             nullable<const Rect&> bbox = { }, bool antiAlias = false);
 
         /// @remarks Deserialization constructor
         PdfCoonsPatchMeshShadingDefinition(PdfColorSpaceFilterPtr&& colorSpace, std::vector<double>&& decode,
-            unsigned bitsPerCoordinate, unsigned bitsPerComponent, unsigned bitsPerFlag,
+            unsigned char bitsPerCoordinate, unsigned char bitsPerComponent, unsigned char bitsPerFlag,
             std::vector<PdfFunctionDefinitionPtr>&& functions, const PdfColorRaw& background,
             const Rect& bbox, bool antiAlias);
     public:
         void fillExportDictionary(PdfDictionary& dict) const override;
         PdfShadingType GetShadingType() const override;
-        unsigned GetBitsPerCoordinate() const { return m_BitsPerCoordinate; }
-        unsigned GetBitsPerComponent() const { return m_BitsPerComponent; }
-        unsigned GetBitsPerFlag() const { return m_BitsPerFlag; }
+        unsigned char GetBitsPerCoordinate() const { return m_BitsPerCoordinate; }
+        unsigned char GetBitsPerComponent() const { return m_BitsPerComponent; }
+        unsigned char GetBitsPerFlag() const { return m_BitsPerFlag; }
         const std::vector<double>& GetDecode() const { return m_Decode; }
         const std::vector<PdfFunctionDefinitionPtr>& GetFunctions() const { return m_Functions; }
     private:
         std::vector<double> m_Decode;
-        unsigned m_BitsPerCoordinate;
-        unsigned m_BitsPerComponent;
-        unsigned m_BitsPerFlag;
+        unsigned char m_BitsPerCoordinate;
+        unsigned char m_BitsPerComponent;
+        unsigned char m_BitsPerFlag;
     };
 
     class PODOFO_API PdfTensorProductMeshShadingDefinition final : public PdfShadingDefinition
     {
     public:
         PdfTensorProductMeshShadingDefinition(PdfColorSpaceInitializer&& colorSpace, std::vector<double> decode,
-            unsigned bitsPerCoordinate, unsigned bitsPerComponent, unsigned bitsPerFlag,
+            unsigned char bitsPerCoordinate, unsigned char bitsPerComponent, unsigned char bitsPerFlag,
             PdfFunctionListInitializer&& functions = { }, nullable<const PdfColorRaw&> background = { },
             nullable<const Rect&> bbox = { }, bool antiAlias = false);
 
         /// @remarks Deserialization constructor
         PdfTensorProductMeshShadingDefinition(PdfColorSpaceFilterPtr&& colorSpace, std::vector<double>&& decode,
-            unsigned bitsPerCoordinate, unsigned bitsPerComponent, unsigned bitsPerFlag,
+            unsigned char bitsPerCoordinate, unsigned char bitsPerComponent, unsigned char bitsPerFlag,
             std::vector<PdfFunctionDefinitionPtr>&& functions, const PdfColorRaw& background,
             const Rect& bbox, bool antiAlias);
 
     public:
         void fillExportDictionary(PdfDictionary& dict) const override;
         PdfShadingType GetShadingType() const override;
-        unsigned GetBitsPerCoordinate() const { return m_BitsPerCoordinate; }
-        unsigned GetBitsPerComponent() const { return m_BitsPerComponent; }
-        unsigned GetBitsPerFlag() const { return m_BitsPerFlag; }
+        unsigned char GetBitsPerCoordinate() const { return m_BitsPerCoordinate; }
+        unsigned char GetBitsPerComponent() const { return m_BitsPerComponent; }
+        unsigned char GetBitsPerFlag() const { return m_BitsPerFlag; }
         const std::vector<double>& GetDecode() const { return m_Decode; }
         const std::vector<PdfFunctionDefinitionPtr>& GetFunctions() const { return m_Functions; }
     private:
         std::vector<double> m_Decode;
-        unsigned m_BitsPerCoordinate;
-        unsigned m_BitsPerComponent;
-        unsigned m_BitsPerFlag;
+        unsigned char m_BitsPerCoordinate;
+        unsigned char m_BitsPerComponent;
+        unsigned char m_BitsPerFlag;
     };
 
     /// Convenience alias for a constant PdfTilingPatternDefinition shared ptr

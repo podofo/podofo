@@ -6,6 +6,13 @@ parse a `PdfInfo` from an object
 - `PdfSignatureEncryption`: The values of the enums changed in a ABI incompatible
 way. This enum has currently no use in the public API, other than setting a
 deprecated and unused field in `PdfSignerCmsParams`
+- Deprecated enum values with typos: `PdfIdentityOrientation::Unkwnown`,
+`PdfAuthResult::Unkwnon`
+- `PdfFreeFormMeshShadingDefinition`, `PdfLatticeFormMeshShadingDefinition`,
+`PdfCoonsPatchMeshShadingDefinition`, `PdfTensorProductMeshShadingDefinition`:
+Reduced the size of `BitsPerCoordinate`, `BitsPerComponent`, `BitsPerFlag` properties from
+unsigned to unsigned char. This was done for consistency in a part of the API
+which is new and has no known users, should cause no issue
 
 # 1.0.* -> 1.1
 

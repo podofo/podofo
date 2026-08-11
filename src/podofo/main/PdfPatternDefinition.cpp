@@ -320,7 +320,7 @@ PdfShadingType PdfRadialShadingDefinition::GetShadingType() const
 
 PdfFreeFormMeshShadingDefinition::PdfFreeFormMeshShadingDefinition(
         PdfColorSpaceInitializer&& colorSpace, vector<double> decode,
-        unsigned bitsPerCoordinate, unsigned bitsPerComponent, unsigned bitsPerFlag,
+        unsigned char bitsPerCoordinate, unsigned char bitsPerComponent, unsigned char bitsPerFlag,
         PdfFunctionListInitializer&& functions, nullable<const PdfColorRaw&> background,
         nullable<const Rect&> bbox, bool antiAlias) :
     PdfShadingDefinition(std::move(colorSpace), std::move(functions), background, bbox, antiAlias),
@@ -333,7 +333,7 @@ PdfFreeFormMeshShadingDefinition::PdfFreeFormMeshShadingDefinition(
 
 PdfFreeFormMeshShadingDefinition::PdfFreeFormMeshShadingDefinition(
         PdfColorSpaceFilterPtr&& colorSpace, vector<double>&& decode,
-        unsigned bitsPerCoordinate, unsigned bitsPerComponent, unsigned bitsPerFlag,
+        unsigned char bitsPerCoordinate, unsigned char bitsPerComponent, unsigned char bitsPerFlag,
         vector<PdfFunctionDefinitionPtr>&& functions, const PdfColorRaw& background,
         const Rect& bbox, bool antiAlias) :
     PdfShadingDefinition(std::move(colorSpace), std::move(functions), background, bbox, antiAlias),
@@ -359,7 +359,7 @@ PdfShadingType PdfFreeFormMeshShadingDefinition::GetShadingType() const
 
 PdfLatticeFormMeshShadingDefinition::PdfLatticeFormMeshShadingDefinition(
         PdfColorSpaceInitializer&& colorSpace, vector<double> decode,
-        unsigned bitsPerCoordinate, unsigned bitsPerComponent, unsigned verticesPerRow,
+        unsigned char bitsPerCoordinate, unsigned char bitsPerComponent, unsigned verticesPerRow,
         PdfFunctionListInitializer&& functions, nullable<const PdfColorRaw&> background,
         nullable<const Rect&> bbox, bool antiAlias) :
     PdfShadingDefinition(std::move(colorSpace), std::move(functions), background, bbox, antiAlias),
@@ -372,7 +372,7 @@ PdfLatticeFormMeshShadingDefinition::PdfLatticeFormMeshShadingDefinition(
 
 PdfLatticeFormMeshShadingDefinition::PdfLatticeFormMeshShadingDefinition(
         PdfColorSpaceFilterPtr&& colorSpace, vector<double>&& decode,
-        unsigned bitsPerCoordinate, unsigned bitsPerComponent, unsigned verticesPerRow,
+        unsigned char bitsPerCoordinate, unsigned char bitsPerComponent, unsigned verticesPerRow,
         vector<PdfFunctionDefinitionPtr>&& functions, const PdfColorRaw& background,
         const Rect& bbox, bool antiAlias) :
     PdfShadingDefinition(std::move(colorSpace), std::move(functions), background, bbox, antiAlias),
@@ -398,7 +398,7 @@ PdfShadingType PdfLatticeFormMeshShadingDefinition::GetShadingType() const
 
 PdfCoonsPatchMeshShadingDefinition::PdfCoonsPatchMeshShadingDefinition(
         PdfColorSpaceInitializer&& colorSpace, vector<double> decode,
-        unsigned bitsPerCoordinate, unsigned bitsPerComponent, unsigned bitsPerFlag,
+        unsigned char bitsPerCoordinate, unsigned char bitsPerComponent, unsigned char bitsPerFlag,
         PdfFunctionListInitializer&& functions, nullable<const PdfColorRaw&> background,
         nullable<const Rect&> bbox, bool antiAlias) :
     PdfShadingDefinition(std::move(colorSpace), std::move(functions), background, bbox, antiAlias),
@@ -411,7 +411,7 @@ PdfCoonsPatchMeshShadingDefinition::PdfCoonsPatchMeshShadingDefinition(
 
 PdfCoonsPatchMeshShadingDefinition::PdfCoonsPatchMeshShadingDefinition(
         PdfColorSpaceFilterPtr&& colorSpace, vector<double>&& decode,
-        unsigned bitsPerCoordinate, unsigned bitsPerComponent, unsigned bitsPerFlag,
+        unsigned char bitsPerCoordinate, unsigned char bitsPerComponent, unsigned char bitsPerFlag,
         vector<PdfFunctionDefinitionPtr>&& functions, const PdfColorRaw& background,
         const Rect& bbox, bool antiAlias) :
     PdfShadingDefinition(std::move(colorSpace), std::move(functions), background, bbox, antiAlias),
@@ -437,7 +437,7 @@ PdfShadingType PdfCoonsPatchMeshShadingDefinition::GetShadingType() const
 
 PdfTensorProductMeshShadingDefinition::PdfTensorProductMeshShadingDefinition(
         PdfColorSpaceInitializer&& colorSpace, vector<double> decode,
-        unsigned bitsPerCoordinate, unsigned bitsPerComponent, unsigned bitsPerFlag,
+        unsigned char bitsPerCoordinate, unsigned char bitsPerComponent, unsigned char bitsPerFlag,
         PdfFunctionListInitializer&& functions, nullable<const PdfColorRaw&> background,
         nullable<const Rect&> bbox, bool antiAlias) :
     PdfShadingDefinition(std::move(colorSpace), std::move(functions), background, bbox, antiAlias),
@@ -450,7 +450,7 @@ PdfTensorProductMeshShadingDefinition::PdfTensorProductMeshShadingDefinition(
 
 PdfTensorProductMeshShadingDefinition::PdfTensorProductMeshShadingDefinition(
         PdfColorSpaceFilterPtr&& colorSpace, vector<double>&& decode,
-        unsigned bitsPerCoordinate, unsigned bitsPerComponent, unsigned bitsPerFlag,
+        unsigned char bitsPerCoordinate, unsigned char bitsPerComponent, unsigned char bitsPerFlag,
         vector<PdfFunctionDefinitionPtr>&& functions, const PdfColorRaw& background, const Rect& bbox, bool antiAlias) :
     PdfShadingDefinition(std::move(colorSpace), std::move(functions), background, bbox, antiAlias),
     m_Decode(std::move(decode)),
