@@ -130,6 +130,12 @@ unsigned PdChoiceField::GetItemCount() const
 void PdChoiceField::SetSelectedIndex(int index)
 {
     AssertTerminalField();
+    if (index < 0)
+    {
+        GetDictionary().RemoveKey("V");
+        return;
+    }
+
     PdfString selected = this->GetItem(index);
     GetDictionary().AddKey("V"_n, selected);
 }

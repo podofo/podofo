@@ -59,7 +59,7 @@ namespace PoDoFo
         unsigned GetItemCount() const;
 
         /// Sets the currently selected item
-        /// @param index index of the currently selected item
+        /// @param index index of the currently selected item. If < 0 the selection will be cleared
         void SetSelectedIndex(int index);
 
         /// Sets the currently selected item
