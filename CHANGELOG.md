@@ -1,3 +1,34 @@
+## Version 1.1.2
+- `PdfParser`: Ensure the document has a valid catalog
+- `PdfParser`: Parse XRef sections iteratively instead of recursively, avoiding stack exhaustion on crafted files
+- `PdfParser`: Don't follow a `/Prev` entry `/XRefStm` on hybrid legacy trailer plus supplement stream
+- `PdfParser`: Fixed parsing the file on strict `%%EOF` rules
+- `PdfIndirectObjectList`: Perform garbage collection with a support stack instead of recursive traversal
+- `PdfIndirectObjectList`: Fix references to missing objects by forcing them to `0 0 R`, added `PdfGarbageCollectionFlags`
+- Improved lenience and error reporting in several parsing routines, added `PdfTokenizerParams`
+- `PdfDocument`: Be lenient if `/Info` has parsing errors
+- `PdfDocument`: Rewrite page/document import functions
+- `PdfDocument`: Fix references pointing to missing objects in copied objects during page imports
+- `PdfDocument`: Flatten page annotations into the xobject in `FillXObjectFromPage`
+- Added `PdfObjectRelocationMap` and use it in `PdfPageCollection`, `PdfXObjectForm` import methods,
+  preventing spurious copies across separate imports
+- `PdfPage`: Fixed handling rotation in text extraction
+- `PdfPage`: Fix computed length of substring during extraction when the matched string is in a single fragment
+- `PdfPainter`: In rotated pages, preset a normalizing rotation that aligns the painter frame to the PDF canonical one
+- `PdfRLEFilter`: Fixed `RunLengthDecode` correctness bugs
+- `PdfFontMetricsObject`: Fixed missing retrieval of `/CharProcs` for Type3 fonts when the descriptor is available
+- `PdfFontManager`: Fixed missing clear of cached paths in `EmbedFonts()` and `Clear()`
+- `PdfField`: Fixed setting field flags
+- `PdfField`: Properly init parent to null if no `/Parent` is found
+- `PdfChoiceField`: Fix `SetSelectedIndex()` to deselect the item on negative index
+- `CodePointSpan`: Fixed constructor with base view plus one code point
+- `OpenSSLInternal`: Fixed leaking an `ASN1_TIME` in `cmsAddSigningTime()`
+- `OpenSSLInternal`: Fixed leak of a copied hash in `AddSigningCertificateV2()`
+- `OpenSSLInternal`: Tentative support for OpenSSL 4.0, and support for returning the `OSSL_LIB_CTX` in `Init()` with OpenSSL >= 3.0
+- `basedefs`: Move sanitization of `<Windows.h>` defines to all kind of builds
+- Fixed libxml2 linking error on MSVC that appeared after upgrading to OpenSSL 3.5.7
+- Updated vendored fmt to 12.2.0
+
 ## Version 1.1.1
 - `PdfColorSpaceFilterIndexed`: Added support for fetching `/DeviceRGB` images with `/BitsPerComponent` != 8
 - `PdfColorSpaceIndexed`: Fixed handling of palette out-of-bounds access, [GHSA](https://github.com/podofo/podofo/security/advisories/GHSA-f3j2-7846-h5gg)
