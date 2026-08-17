@@ -4,6 +4,8 @@
 
 #include <PdfTest.h>
 
+#include <thread>
+
 #include <podofo/private/FreetypePrivate.h>
 #ifdef PODOFO_ENABLE_AFDKO
 #include <podofo/private/FontUtilsAFDKO.h>
@@ -46,6 +48,22 @@ TEST_CASE("TestEmbedFont")
         (void)PdfFont::TryCreateFromObject(*fontObj, font);
         REQUIRE(font->GetMetrics().GetOrLoadFontFileData().size() != 0);
     }
+}
+
+// Faces are created on a thread local FreeType library instance: freeing
+// them after the creation thread was disposed must not access any storage
+// that went away with that thread
+TEST_CASE("TestFreeFontAfterCreationThreadDisposal")
+{
+    unique_ptr<PdfMemDocument> doc;
+    thread creator([&doc]
+    {
+        doc.reset(new PdfMemDocument());
+        (void)doc->GetFonts().GetOrCreateFont(TestUtils::GetTestInputFilePath("Fonts", "LiberationSans-Regular.ttf"));
+    });
+    creator.join();
+
+    doc.reset();
 }
 
 TEST_CASE("TestCreateFontExtract")
