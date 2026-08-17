@@ -25,10 +25,10 @@ Corners Corners::FromArray(const PdfArray& arr)
     if (arr.size() != 4)
         PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
-    double x1 = arr[0].GetReal();
-    double y1 = arr[1].GetReal();
-    double x2 = arr[2].GetReal();
-    double y2 = arr[3].GetReal();
+    double x1 = arr.FindAtAsSafe<double>(0, 0);
+    double y1 = arr.FindAtAsSafe<double>(1, 0);
+    double x2 = arr.FindAtAsSafe<double>(2, 0);
+    double y2 = arr.FindAtAsSafe<double>(3, 0);
 
     return Corners(x1, y1, x2, y2);
 }

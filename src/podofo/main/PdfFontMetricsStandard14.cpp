@@ -64,7 +64,7 @@ unique_ptr<PdfFontMetricsStandard14> PdfFontMetricsStandard14::create(
             // be measured in units in which 1000 units correspond to 1
             // unit in text space"
             for (unsigned i = 0; i < arrWidths.GetSize(); i++)
-                (*parsedWidths)[i] = arrWidths[i].GetReal() / 1000;
+                (*parsedWidths)[i] = arrWidths.FindAtAsSafe<double>(i, 0) / 1000;
         }
     }
 
