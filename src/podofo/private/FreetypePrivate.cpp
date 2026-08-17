@@ -42,7 +42,11 @@ namespace
 
     // A manually handled FreeType smart pointer with
     // automatically accessed reference counter. It's
-    // initialized with count 1
+    // initialized with count 1 and it deletes itself when
+    // the count drops to zero.
+    // NOTE: It must be heap allocated. Faces store its address
+    // and outlive the creating thread, while thread local
+    // storage is released as soon as the thread exits
     struct FT_LibraryPtr
     {
         FT_Library Ptr = nullptr;
@@ -410,21 +414,26 @@ FT_LibraryPtr& getLibrary()
         Init()
         {
             // Initialize all the fonts stuff
-            if (FT_Init_FreeType(&Library.Ptr))
+            Library = new FT_LibraryPtr();
+            if (FT_Init_FreeType(&Library->Ptr) != 0)
+            {
+                Library->Unref();
                 PODOFO_RAISE_ERROR(PdfErrorCode::FreeTypeError);
+            }
         }
 
         ~Init()
         {
-            // Dereference the library on thread exit
-            Library.Unref();
+            // Dereference the library on thread exit. It will be
+            // actually released by the last surviving face
+            Library->Unref();
         }
 
-        FT_LibraryPtr Library;     // Handle to the freetype library
+        FT_LibraryPtr* Library;     // Handle to the freetype library
     };
 
     thread_local Init init;
-    return init.Library;
+    return *init.Library;
 }
 
 void freeFaceBare(FT_Face face)
@@ -441,18 +450,21 @@ void noOpFace(FT_Face face)
 
 void FT_LibraryPtr::Ref()
 {
-    // It's a normal counter that just get incremented and
-    // decremented, so we can relax the memory order
+    // The increment is performed on an already owned reference,
+    // so we can relax the memory order
     size_t prev = m_count.fetch_add(1, std::memory_order_relaxed);
     PODOFO_ASSERT(prev != 0);
     (void)prev;
 }
 void FT_LibraryPtr::Unref()
 {
-    // It's a normal counter that just get incremented and
-    // decremented, so we can relax the memory order
-    auto prev = m_count.fetch_sub(1, std::memory_order_relaxed);
+    // NOTE: Acquire/release ordering is needed here to ensure accesses
+    // performed by other threads happen before the destruction
+    auto prev = m_count.fetch_sub(1, std::memory_order_acq_rel);
     PODOFO_ASSERT(prev != 0);
     if (prev == 1)
+    {
         (void)FT_Done_FreeType(Ptr);
+        delete this;
+    }
 }
