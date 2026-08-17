@@ -162,7 +162,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfDictionary& fontDict,
             auto& arrWidths = widthsObj->GetArray();
             vector<double> widths(arrWidths.size());
             for (unsigned i = 0; i < arrWidths.GetSize(); i++)
-                widths[i] = arrWidths[i].GetReal() * m_Matrix[0];
+                widths[i] = arrWidths.FindAtAsSafe<double>(i, 0) * m_Matrix[0];
 
             SetParsedWidths(std::make_shared<vector<double>>(std::move(widths)));
         }
@@ -213,12 +213,12 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfDictionary& fontDict,
             while (pos < widthsArr.GetSize())
             {
                 unsigned start = (unsigned)widthsArr.MustFindAt(pos++).GetNumberLenient();
-                auto second = &widthsArr[pos];
-                if (second->IsReference())
+                auto second = widthsArr.FindAt(pos);
+                if (second == nullptr)
                 {
-                    // second do not have an associated owner; use the one in pw
-                    second = &widthsObj->GetDocument()->GetObjects().MustGetObject(second->GetReference());
-                    PODOFO_ASSERT(!second->IsNull());
+                    // The reference is dangling: we can't tell the entry
+                    // format anymore, so stop parsing here
+                    break;
                 }
 
                 const PdfArray* arr;
@@ -241,7 +241,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfDictionary& fontDict,
                     if (length > widths.size())
                         widths.resize(length, m_DefaultWidth);
 
-                    double width = widthsArr[pos++].GetReal() * m_Matrix[0];
+                    double width = widthsArr.FindAtAsSafe<double>(pos++, 0) * m_Matrix[0];
                     for (unsigned i = start; i <= end; i++)
                         widths[i] = width;
                 }
@@ -724,10 +724,10 @@ Corners PdfFontMetricsObject::getBBox(const PdfObject& obj)
 {
     auto& arr = obj.GetArray();
     return Corners(
-        arr[0].GetReal() * m_Matrix[0],
-        arr[1].GetReal() * m_Matrix[3],
-        arr[2].GetReal() * m_Matrix[0],
-        arr[3].GetReal() * m_Matrix[3]
+        arr.FindAtAsSafe<double>(0, 0) * m_Matrix[0],
+        arr.FindAtAsSafe<double>(1, 0) * m_Matrix[3],
+        arr.FindAtAsSafe<double>(2, 0) * m_Matrix[0],
+        arr.FindAtAsSafe<double>(3, 0) * m_Matrix[3]
     );
 }
 

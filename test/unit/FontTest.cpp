@@ -131,6 +131,103 @@ TEST_CASE("TestGetOrCreateFontAfterEmbedAndReset")
     REQUIRE(font2.GetMetrics().GetFontName() == "LiberationSans");
 }
 
+TEST_CASE("TestSimpleFontMetricsReferences")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TestFontWidthsRef.pdf"));
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto& resources = page.GetResources();
+
+    // /MediaBox[2] and /MediaBox[3] of the page are references
+    auto mediaBox = page.GetMediaBoxRaw();
+    ASSERT_EQUAL(mediaBox.X2, 595.0);
+    ASSERT_EQUAL(mediaBox.Y2, 842.0);
+
+    // "/Ft0" is a /TrueType font where /Widths[32], /Widths[33]
+    // and /FontBBox[0], /FontBBox[2] are references
+    unique_ptr<PdfFont> font;
+    REQUIRE(PdfFont::TryCreateFromObject(*resources.GetResource(PdfResourceType::Font, "Ft0"), font));
+    ASSERT_EQUAL(font->GetMetrics().GetGlyphWidth(32, PdfGlyphAccess::ReadMetrics), 0.278);
+    ASSERT_EQUAL(font->GetMetrics().GetGlyphWidth(33, PdfGlyphAccess::ReadMetrics), 0.333);
+    ASSERT_EQUAL(font->GetMetrics().GetGlyphWidth(34, PdfGlyphAccess::ReadMetrics), 0.474);
+
+    auto bbox = font->GetMetrics().GetBoundingBox();
+    ASSERT_EQUAL(bbox.X1, -0.628);
+    ASSERT_EQUAL(bbox.Y1, -0.376);
+    ASSERT_EQUAL(bbox.X2, 2.0);
+    ASSERT_EQUAL(bbox.Y2, 1.056);
+
+    // "/Ft1" is a Standard14 font, which parses /Widths on its own
+    unique_ptr<PdfFont> std14Font;
+    REQUIRE(PdfFont::TryCreateFromObject(*resources.GetResource(PdfResourceType::Font, "Ft1"), std14Font));
+    ASSERT_EQUAL(std14Font->GetMetrics().GetGlyphWidth(0, PdfGlyphAccess::ReadMetrics), 0.25);
+    ASSERT_EQUAL(std14Font->GetMetrics().GetGlyphWidth(1, PdfGlyphAccess::ReadMetrics), 0.555);
+    ASSERT_EQUAL(std14Font->GetMetrics().GetGlyphWidth(2, PdfGlyphAccess::ReadMetrics), 0.408);
+
+    // "/Ft2" is a Type3 font with a custom /FontMatrix, where
+    // /FontMatrix[0], /FontBBox[2] and /Widths[0] are references
+    unique_ptr<PdfFont> type3Font;
+    REQUIRE(PdfFont::TryCreateFromObject(*resources.GetResource(PdfResourceType::Font, "Ft2"), type3Font));
+    auto& type3Metrics = type3Font->GetMetrics();
+    ASSERT_EQUAL(type3Metrics.GetMatrix()[0], 0.01);
+
+    // The /FontMatrix scales both the widths and the bounding box
+    ASSERT_EQUAL(type3Metrics.GetGlyphWidth(0, PdfGlyphAccess::ReadMetrics), 0.5);
+
+    // The /Differences of the Type3 font encoding are "97 /spade 98 /bullet",
+    // where both names and the first code are references
+    auto& encoding = type3Font->GetEncoding();
+    REQUIRE(encoding.GetCodePoint(97) == U'♠');
+}
+
+TEST_CASE("TestCIDFontMetricsReferences")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TestFontWidthsRefCID.pdf"));
+    auto& resources = doc.GetPages().GetPageAt(0).GetResources();
+
+    unique_ptr<PdfFont> font;
+    REQUIRE(PdfFont::TryCreateFromObject(*resources.GetResource(PdfResourceType::Font, "C0_0"), font));
+    auto& metrics = font->GetMetrics();
+
+    // CID 0 is not covered by /W and falls back to /DW
+    ASSERT_EQUAL(metrics.GetGlyphWidth(0, PdfGlyphAccess::ReadMetrics), 1.0);
+
+    // The sub-array of the range starting at CID 1 is a reference
+    ASSERT_EQUAL(metrics.GetGlyphWidth(1, PdfGlyphAccess::ReadMetrics), 0.207);
+    ASSERT_EQUAL(metrics.GetGlyphWidth(16, PdfGlyphAccess::ReadMetrics), 0.334);
+
+    // The first CID of the 17-26 range is a reference
+    ASSERT_EQUAL(metrics.GetGlyphWidth(17, PdfGlyphAccess::ReadMetrics), 0.462);
+    ASSERT_EQUAL(metrics.GetGlyphWidth(26, PdfGlyphAccess::ReadMetrics), 0.462);
+
+    // Both the last CID and the width of the 27-28 range are references
+    ASSERT_EQUAL(metrics.GetGlyphWidth(27, PdfGlyphAccess::ReadMetrics), 0.238);
+    ASSERT_EQUAL(metrics.GetGlyphWidth(28, PdfGlyphAccess::ReadMetrics), 0.238);
+
+    ASSERT_EQUAL(metrics.GetGlyphWidth(29, PdfGlyphAccess::ReadMetrics), 0.605);
+
+    // The first element of the sub-array starting at CID 32 is a reference
+    ASSERT_EQUAL(metrics.GetGlyphWidth(32, PdfGlyphAccess::ReadMetrics), 0.344);
+    ASSERT_EQUAL(metrics.GetGlyphWidth(33, PdfGlyphAccess::ReadMetrics), 0.748);
+
+    // /FontBBox[0] and /FontBBox[3] of the descriptor are references
+    auto bbox = metrics.GetBoundingBox();
+    ASSERT_EQUAL(bbox.X1, -0.025);
+    ASSERT_EQUAL(bbox.Y1, -0.254);
+    ASSERT_EQUAL(bbox.X2, 1.0);
+    ASSERT_EQUAL(bbox.Y2, 0.88);
+
+    // /Matrix[0], /Matrix[5] and /BBox[2], /BBox[3] of the form XObject are references
+    unique_ptr<PdfXObjectForm> form;
+    REQUIRE(PdfXObject::TryCreateFromObject<PdfXObjectForm>(
+        *resources.GetResource(PdfResourceType::XObject, "Fm0"), form));
+    ASSERT_EQUAL(form->GetMatrix()[0], 2.0);
+    ASSERT_EQUAL(form->GetMatrix()[5], 15.0);
+    ASSERT_EQUAL(form->GetRect().Width, 200.0);
+    ASSERT_EQUAL(form->GetRect().Height, 100.0);
+}
+
 #ifdef PODOFO_HAVE_FONTCONFIG
 
 #include <fontconfig/fontconfig.h>

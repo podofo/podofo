@@ -269,15 +269,15 @@ bool PdfDifferenceEncoding::TryCreateFromObject(const PdfObject& obj,
     {
         auto& differences = differencesObj->GetArray();
         int64_t curCode = -1;
-        for (auto& diff : differences)
+        for (auto diff : differences.GetIndirectIterator())
         {
-            if (diff.IsNumber())
+            if (diff->IsNumber())
             {
-                curCode = diff.GetNumber();
+                curCode = diff->GetNumber();
             }
-            else if (diff.IsName())
+            else if (diff->IsName())
             {
-                difference.AddDifference(static_cast<unsigned char>(curCode), diff.GetName());
+                difference.AddDifference(static_cast<unsigned char>(curCode), diff->GetName());
                 curCode++;
             }
         }

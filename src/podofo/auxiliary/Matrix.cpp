@@ -28,7 +28,9 @@ Matrix Matrix::FromArray(const double arr[6])
 
 Matrix Matrix::FromArray(const PdfArray& arr)
 {
-    return Matrix(arr[0].GetReal(), arr[1].GetReal(), arr[2].GetReal(), arr[3].GetReal(), arr[4].GetReal(), arr[5].GetReal());
+    return Matrix(arr.FindAtAsSafe<double>(0, 0), arr.FindAtAsSafe<double>(1, 0),
+        arr.FindAtAsSafe<double>(2, 0), arr.FindAtAsSafe<double>(3, 0),
+        arr.FindAtAsSafe<double>(4, 0), arr.FindAtAsSafe<double>(5, 0));
 }
 
 Matrix Matrix::CreateTranslation(const Vector2& tx)
