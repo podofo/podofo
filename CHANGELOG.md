@@ -1,4 +1,6 @@
 ## Version 1.1.2
+- `FreeTypePrivate`: Fixed potential access of thread local `FT_LibraryPtr` by a garbage collector when the creation thread already quitted
+- Fixed reading arrays with indirect references
 - `PdfParser`: Ensure the document has a valid catalog
 - `PdfParser`: Parse XRef sections iteratively instead of recursively, avoiding stack exhaustion on crafted files
 - `PdfParser`: Don't follow a `/Prev` entry `/XRefStm` on hybrid legacy trailer plus supplement stream
