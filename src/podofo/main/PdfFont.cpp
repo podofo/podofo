@@ -1040,7 +1040,6 @@ vector<PdfCharGIDInfo> PdfFont::GetCharGIDInfos() const
             unsigned i = 0;
             for (auto& pair : m_DynamicCIDMap->GetMappings())
             {
-                auto s = pair.first;
                 ret[i] = { *pair.second, *pair.second, PdfGID(*pair.second)};
                 i++;
             }

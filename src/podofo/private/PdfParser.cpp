@@ -325,6 +325,11 @@ bool PdfParser::tryRebuildCrossReference(InputStreamDevice& device)
                     variant.Reset();
                     break;
                 }
+                default:
+                {
+                    // Ignore other tokens
+                    break;
+                }
             }
 
             numbers.clear();
@@ -1293,16 +1298,25 @@ bool readMagicWord(char ch, unsigned& cursoridx)
     switch (cursoridx)
     {
         case 0:
-            if (ch == '%') goto Advance; break;
+            if (ch == '%')
+                goto Advance;
+            break;
         case 1:
-            if (ch == 'P') goto Advance; break;
+            if (ch == 'P')
+                goto Advance;
+            break;
         case 2:
-            if (ch == 'D') goto Advance; break;
+            if (ch == 'D')
+                goto Advance;
+            break;
         case 3:
-            if (ch == 'F') goto Advance; break;
+            if (ch == 'F')
+                goto Advance;
             break;
         case 4:
-            if (ch == '-') return true; break;
+            if (ch == '-')
+                return true;
+            break;
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unexpected flow");
     }

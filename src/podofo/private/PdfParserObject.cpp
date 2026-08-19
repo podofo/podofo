@@ -423,11 +423,17 @@ bool readObjectStreamEnd(int ch, unsigned& cursoridx, EndStreamToken& endStreamT
     switch (cursoridx)
     {
         case 0:
-            if (ch == 'e') goto Advance; break;
+            if (ch == 'e')
+                goto Advance;
+            break;
         case 1:
-            if (ch == 'n') goto Advance; break;
+            if (ch == 'n')
+                goto Advance;
+            break;
         case 2:
-            if (ch == 'd') goto Advance; break;
+            if (ch == 'd')
+                goto Advance;
+            break;
         case 3:
             if (ch == 's')
             {
@@ -445,9 +451,13 @@ bool readObjectStreamEnd(int ch, unsigned& cursoridx, EndStreamToken& endStreamT
             switch (endStreamToken)
             {
                 case EndStreamToken::Endstream:
-                    if (ch == 't') goto Advance; break;
+                    if (ch == 't')
+                        goto Advance;
+                    break;
                 case EndStreamToken::Endobj:
-                    if (ch == 'b') goto Advance; break;
+                    if (ch == 'b')
+                        goto Advance;
+                    break;
                 default:
                     goto Unexpected;
             }
@@ -457,9 +467,13 @@ bool readObjectStreamEnd(int ch, unsigned& cursoridx, EndStreamToken& endStreamT
             switch (endStreamToken)
             {
                 case EndStreamToken::Endstream:
-                    if (ch == 'r') goto Advance; break;
+                    if (ch == 'r')
+                        goto Advance;
+                    break;
                 case EndStreamToken::Endobj:
-                    if (ch == 'j') goto Advance; break;
+                    if (ch == 'j')
+                        goto Advance;
+                    break;
                 default:
                     goto Unexpected;
             }
@@ -469,7 +483,9 @@ bool readObjectStreamEnd(int ch, unsigned& cursoridx, EndStreamToken& endStreamT
             switch (endStreamToken)
             {
                 case EndStreamToken::Endstream:
-                    if (ch == 'e') goto Advance; break;
+                    if (ch == 'e')
+                        goto Advance;
+                    break;
                 case EndStreamToken::Endobj:
                     if (ch == -1 || PoDoFo::IsCharWhitespace((char)ch))
                         return true;
@@ -484,7 +500,9 @@ bool readObjectStreamEnd(int ch, unsigned& cursoridx, EndStreamToken& endStreamT
             switch (endStreamToken)
             {
                 case EndStreamToken::Endstream:
-                    if (ch == 'a') goto Advance; break;
+                    if (ch == 'a')
+                        goto Advance;
+                    break;
                 default:
                     goto Unexpected;
             }
@@ -494,7 +512,9 @@ bool readObjectStreamEnd(int ch, unsigned& cursoridx, EndStreamToken& endStreamT
             switch (endStreamToken)
             {
                 case EndStreamToken::Endstream:
-                    if (ch == 'm') goto Advance; break;
+                    if (ch == 'm')
+                        goto Advance;
+                    break;
                 default:
                     goto Unexpected;
             }
