@@ -1,4 +1,5 @@
 ## Version 1.1.2
+- `CodePointSpan`: Fixed constructor with base view plus one code point, [GHSA](https://github.com/podofo/podofo/security/advisories/GHSA-7vfg-cp83-9rxr)
 - `FreeTypePrivate`: Fixed potential access of thread local `FT_LibraryPtr` by a garbage collector when the creation thread already quitted
 - Fixed reading arrays with indirect references
 - `PdfParser`: Ensure the document has a valid catalog
@@ -23,7 +24,6 @@
 - `PdfField`: Fixed setting field flags
 - `PdfField`: Properly init parent to null if no `/Parent` is found
 - `PdfChoiceField`: Fix `SetSelectedIndex()` to deselect the item on negative index
-- `CodePointSpan`: Fixed constructor with base view plus one code point
 - `OpenSSLInternal`: Fixed leaking an `ASN1_TIME` in `cmsAddSigningTime()`
 - `OpenSSLInternal`: Fixed leak of a copied hash in `AddSigningCertificateV2()`
 - `OpenSSLInternal`: Tentative support for OpenSSL 4.0, and support for returning the `OSSL_LIB_CTX` in `Init()` with OpenSSL >= 3.0
