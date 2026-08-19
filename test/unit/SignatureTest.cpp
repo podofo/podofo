@@ -158,6 +158,119 @@ TEST_CASE("TestSignature3")
     REQUIRE(ssl::ComputeMD5Str(buff) == TestSignatureRefHash);
 }
 
+// Cross-check the signed hash supplied by an external service
+TEST_CASE("TestSignedHashVerification")
+{
+    auto inputPath = TestUtils::GetTestInputFilePath("blank.pdf");
+    auto outputPath = TestUtils::GetTestOutputFilePath("TestSignedHashVerification.pdf");
+
+    auto trySign = [&](const string_view& certFile, const string_view& keyFile,
+        PdfHashingAlgorithm hashing, PdfSignerCmsFlags flags, bool corrupt)
+    {
+        string cert;
+        TestUtils::ReadTestInputFileTo(cert, certFile);
+
+        string pkey;
+        TestUtils::ReadTestInputFileTo(pkey, keyFile);
+
+        fs::copy_file(fs::u8path(inputPath), fs::u8path(outputPath), fs::copy_options::overwrite_existing);
+        auto stream = std::make_shared<FileStreamDevice>(outputPath, FileMode::Open);
+
+        PdfMemDocument doc(stream);
+        auto& page = doc.GetPages().GetPageAt(0);
+        auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+
+        PdfSignerCmsParams params;
+        params.Hashing = hashing;
+        params.Flags = flags;
+        params.SigningService = [&](bufferview hashToSign, bool dryrun, charbuff& signedHash)
+        {
+            (void)dryrun;
+            // The digest is already wrapped when the service asked for it
+            ssl::SignHash(hashToSign, pkey, hashing, signedHash,
+                (flags & PdfSignerCmsFlags::ServiceDoWrapDigest) != PdfSignerCmsFlags::None);
+            if (corrupt)
+                signedHash[0] = (char)(signedHash[0] ^ 0xFF);
+        };
+
+        PdfSignerCms signer(cert, params);
+        PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
+    };
+
+    trySign("mycert.der", "mykey-pkcs8.der", PdfHashingAlgorithm::SHA256, PdfSignerCmsFlags::None, false);
+    ASSERT_THROW_WITH_ERROR_CODE(trySign("mycert.der", "mykey-pkcs8.der", PdfHashingAlgorithm::SHA256,
+        PdfSignerCmsFlags::None, true), PdfErrorCode::SignatureVerificationError);
+
+    // A wrapped digest is verified against the DigestInfo recovered from the signature
+    trySign("mycert.der", "mykey-pkcs8.der", PdfHashingAlgorithm::SHA256, PdfSignerCmsFlags::ServiceDoWrapDigest, false);
+    ASSERT_THROW_WITH_ERROR_CODE(trySign("mycert.der", "mykey-pkcs8.der", PdfHashingAlgorithm::SHA256,
+        PdfSignerCmsFlags::ServiceDoWrapDigest, true), PdfErrorCode::SignatureVerificationError);
+
+    trySign("sha384ECDSA-cert.pem", "sha384ECDSA-key.pem", PdfHashingAlgorithm::SHA384, PdfSignerCmsFlags::None, false);
+    ASSERT_THROW_WITH_ERROR_CODE(trySign("sha384ECDSA-cert.pem", "sha384ECDSA-key.pem", PdfHashingAlgorithm::SHA384,
+        PdfSignerCmsFlags::None, true), PdfErrorCode::SignatureVerificationError);
+
+#if OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 5)
+    // ML-DSA signs the DER encoded signed attributes, so they are verified as they are
+    trySign(utls::CombinePaths("PQC", "ML-DSA-44-cert.pem"), utls::CombinePaths("PQC", "ML-DSA-44-key.pem"),
+        PdfHashingAlgorithm::SHA256, PdfSignerCmsFlags::None, false);
+    ASSERT_THROW_WITH_ERROR_CODE(trySign(utls::CombinePaths("PQC", "ML-DSA-44-cert.pem"), utls::CombinePaths("PQC", "ML-DSA-44-key.pem"),
+        PdfHashingAlgorithm::SHA256, PdfSignerCmsFlags::None, true), PdfErrorCode::SignatureVerificationError);
+#endif // OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 5)
+
+    // A corrupted signed hash is accepted when the verification is skipped
+    trySign("mycert.der", "mykey-pkcs8.der", PdfHashingAlgorithm::SHA256, PdfSignerCmsFlags::SkipVerification, true);
+
+    // The hash to sign is cached in the dump, so the cross-check survives a context restore
+    auto trySignDeferred = [&](bool corrupt)
+    {
+        string cert;
+        TestUtils::ReadTestInputFileTo(cert, "mycert.der");
+
+        string pkey;
+        TestUtils::ReadTestInputFileTo(pkey, "mykey-pkcs8.der");
+
+        charbuff buff;
+        utls::ReadTo(buff, inputPath);
+
+        charbuff hashToSign;
+        PdfSignerId signerId;
+        PdfSignerCmsParams params;
+
+        // NOTE: This block simulates loosing all the original objects
+        {
+            auto stream = std::make_shared<BufferStreamDevice>(buff);
+            PdfMemDocument doc(stream);
+            auto& page = doc.GetPages().GetPageAt(0);
+            auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+
+            auto signer = std::make_shared<PdfSignerCms>(cert, params);
+            PdfSigningContext ctx;
+            signerId = ctx.AddSigner(signature, signer);
+            PdfSigningResults results;
+            ctx.StartSigning(doc, stream, results, PdfSaveOptions::NoMetadataUpdate);
+            hashToSign = results.Intermediate[signerId];
+            ctx.DumpInPlace();
+        }
+
+        auto newStream = std::make_shared<BufferStreamDevice>(buff);
+        PdfSigningContext newCtx;
+        auto doc = newCtx.Restore(newStream);
+
+        charbuff signedHash;
+        ssl::SignHash(hashToSign, pkey, params.Hashing, signedHash);
+        if (corrupt)
+            signedHash[0] = (char)(signedHash[0] ^ 0xFF);
+
+        PdfSigningResults newResults;
+        newResults.Intermediate[signerId] = signedHash;
+        newCtx.FinishSigning(newResults);
+    };
+
+    trySignDeferred(false);
+    ASSERT_THROW_WITH_ERROR_CODE(trySignDeferred(true), PdfErrorCode::SignatureVerificationError);
+}
+
 // Test deferred signing with external service and context dumping/restore
 TEST_CASE("TestSignatureDumpRestore")
 {

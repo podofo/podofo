@@ -285,6 +285,77 @@ void ssl::SignHash(const bufferview& hashToSign, EVP_PKEY* pkey,
     output.resize(siglen);
 }
 
+bool ssl::VerifySignedHash(const bufferview& signedHash, const bufferview& hashToVerify,
+    EVP_PKEY* publickey, PdfHashingAlgorithm hashing, bool wrappedDigest)
+{
+    unique_ptr<EVP_PKEY_CTX, decltype(&EVP_PKEY_CTX_free)> ctx(EVP_PKEY_CTX_new(publickey, nullptr), EVP_PKEY_CTX_free);
+    if (ctx == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error EVP_PKEY_CTX_new");
+
+    auto encryption = GetSignatureEncryption(publickey);
+    switch (encryption)
+    {
+        case PdfSignatureEncryption::RSA:
+        case PdfSignatureEncryption::DSA:
+        case PdfSignatureEncryption::ECDSA:
+        {
+            // Legacy RSA, DSA, ECDSA
+            if (EVP_PKEY_verify_init(ctx.get()) <= 0)
+            {
+                string err;
+                GetOpenSSLError(err);
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, err);
+            }
+
+            if (encryption == PdfSignatureEncryption::RSA)
+            {
+                if (EVP_PKEY_CTX_set_rsa_padding(ctx.get(), RSA_PKCS1_PADDING) <= 0)
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error EVP_PKEY_CTX_set_rsa_padding");
+
+                if (!wrappedDigest)
+                {
+                    // Without a digest set, the recovered message is compared with the
+                    // input as it is, which is correct only for an already wrapped digest
+                    if (EVP_PKEY_CTX_set_signature_md(ctx.get(), ssl::GetEVP_MD(hashing)) <= 0)
+                        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error EVP_PKEY_CTX_set_signature_md");
+                }
+            }
+
+            break;
+        }
+
+#if OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 5)
+        // Support for ML_DSA, SLH_DSA was added in OpenSSL 3.5
+        case PdfSignatureEncryption::ML_DSA:
+        case PdfSignatureEncryption::SLH_DSA:
+        {
+            // The input is the full DER encoded signed attributes, the
+            // message representative is computed by the algorithm itself
+            if (EVP_PKEY_verify_message_init(ctx.get(), nullptr, nullptr) <= 0)
+            {
+                string err;
+                GetOpenSSLError(err);
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, err);
+            }
+
+            break;
+        }
+#endif // OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 5)
+        default:
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Unsupported signature encryption");
+    }
+
+    if (EVP_PKEY_verify(ctx.get(), (const unsigned char*)signedHash.data(), signedHash.size(),
+        (const unsigned char*)hashToVerify.data(), hashToVerify.size()) <= 0)
+    {
+        // A verification failure also pushes entries in the error queue
+        ERR_clear_error();
+        return false;
+    }
+
+    return true;
+}
+
 charbuff ssl::GetEncoded(const X509* cert)
 {
     unique_ptr<BIO, decltype(&BIO_free)> bio(BIO_new(BIO_s_mem()), BIO_free);

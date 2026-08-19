@@ -38,6 +38,11 @@ namespace PoDoFo
         ///< For signature encryptions that have a random component, make it deterministic
         ///< Applies to ECDSA, ML-DSA, SLH-DSA
         Deterministic = 4,
+        ///< Skip the inline verification of the signed hash supplied by an external signing
+        ///< service or by a deferred signing. The verification is performed by default as a
+        ///< cross-check of the supplied signed hash, and it's never performed when a private
+        ///< key is supplied or during dry runs
+        SkipVerification = 8,
     };
 
     struct PODOFO_API PdfSignerCmsParams final
@@ -120,6 +125,7 @@ namespace PoDoFo
         void checkContextInitialized();
         void ensureContextInitialized();
         void resetContext();
+        bool shouldVerify() const;
         void doSign(const bufferview& input, charbuff& output);
         void tryEnlargeSignatureContents(charbuff& contents);
     private:

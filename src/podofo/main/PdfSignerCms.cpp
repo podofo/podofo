@@ -71,7 +71,8 @@ void PdfSignerCms::ComputeSignature(charbuff& contents, bool dryrun)
     if (m_parameters.SignedHashHandler != nullptr)
         m_parameters.SignedHashHandler(m_encryptedHash, dryrun);
 
-    m_cmsContext->ComputeSignature(m_encryptedHash, contents);
+    // NOTE: On dry runs the signed hash may be just a fake buffer with the expected size
+    m_cmsContext->ComputeSignature(m_encryptedHash, contents, !dryrun && shouldVerify());
     if (dryrun)
         tryEnlargeSignatureContents(contents);
 }
@@ -94,12 +95,12 @@ void PdfSignerCms::ComputeSignatureDeferred(const bufferview& processedResult, c
         charbuff fakeresult;
         m_cmsContext->ComputeHashToSign(fakeresult);
         fakeresult.resize(m_cmsContext->GetSignedHashSize());
-        m_cmsContext->ComputeSignature(fakeresult, contents);
+        m_cmsContext->ComputeSignature(fakeresult, contents, false);
         tryEnlargeSignatureContents(contents);
     }
     else
     {
-        m_cmsContext->ComputeSignature(processedResult, contents);
+        m_cmsContext->ComputeSignature(processedResult, contents, shouldVerify());
     }
 }
 
@@ -385,6 +386,13 @@ void PdfSignerCms::resetContext()
     }
 
     m_cmsContext->Reset(m_certificate, params);
+}
+
+bool PdfSignerCms::shouldVerify() const
+{
+    // NOTE: The signed hash is cross-checked only when it's supplied externally
+    return m_privKey == nullptr
+        && (m_parameters.Flags & PdfSignerCmsFlags::SkipVerification) == PdfSignerCmsFlags::None;
 }
 
 void PdfSignerCms::doSign(const bufferview& input, charbuff& output)

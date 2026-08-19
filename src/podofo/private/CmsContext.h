@@ -43,7 +43,8 @@ namespace PoDoFo
         void Reset(const bufferview& cert, const CmsContextParams& parameters);
         void AppendData(const bufferview& data);
         void ComputeHashToSign(charbuff& hashToSign);
-        void ComputeSignature(const bufferview& signedHash, charbuff& signature);
+        /// @param verify cross-check the supplied signed hash against the cached hash to sign
+        void ComputeSignature(const bufferview& signedHash, charbuff& signature, bool verify);
         void AddAttribute(const std::string_view& nid, const bufferview& attr, bool signedAttr, bool octetString);
         void Dump(xmlNodePtr elem, std::string& temp);
         void Restore(xmlNodePtr elem, charbuff& temp);
@@ -76,6 +77,8 @@ namespace PoDoFo
         PdfSignatureEncryption m_encryption;
         struct x509_st* m_cert;
         charbuff m_certHash;
+        // Cached hash to sign, used to verify the supplied signed hash
+        charbuff m_hashToSign;
         struct CMS_ContentInfo_st* m_cms;
         struct CMS_SignerInfo_st* m_signer;
         struct bio_st* m_databio;

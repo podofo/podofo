@@ -72,6 +72,7 @@ enum class PdfErrorCode : uint8_t
 
     XmpMetadataError,         ///< Error while creating or reading XMP metadata
     OpenSSLError,             ///< OpenSSL error
+    SignatureVerificationError, ///< A signature verification failed
 };
 
 class PODOFO_API PdfErrorInfo final

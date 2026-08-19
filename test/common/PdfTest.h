@@ -71,13 +71,13 @@ namespace utls
     void CombinePaths(std::filesystem::path& path, std::initializer_list<std::string_view> paths);
 
     template<typename ... Ts>
-    std::filesystem::path CombinePaths(const std::string_view& path1, const std::string_view& path2,
+    std::string CombinePaths(const std::string_view& path1, const std::string_view& path2,
         Ts&&... paths)
     {
         auto ret = std::filesystem::u8path(path1);
         ret /= std::filesystem::u8path(path2);
         CombinePaths(ret, { paths... });
-        return ret;
+        return ret.u8string();
     }
 }
 

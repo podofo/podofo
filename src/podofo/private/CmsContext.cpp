@@ -89,15 +89,42 @@ void CmsContext::ComputeHashToSign(charbuff& hashToSign)
     // but we can't do that since in OpenSSL 1.1 there's not an
     // easy way to plug an external encryption so we do it manually
     ssl::ComputeHashToSign(m_signer, m_databio, m_parameters.DoWrapDigest, hashToSign);
+
+    // NOTE: ssl::ComputeHashToSign() can't be called twice, as it adds
+    // signed attributes to the signer info, so cache the result
+    m_hashToSign = hashToSign;
     m_status = CmsContextStatus::ComputedHash;
 }
 
-void CmsContext::ComputeSignature(const bufferview& signedHash, charbuff& signature)
+void CmsContext::ComputeSignature(const bufferview& signedHash, charbuff& signature, bool verify)
 {
     if (m_status != CmsContextStatus::ComputedHash)
     {
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic,
             "The signature can't be computed at this moment");
+    }
+
+    if (verify)
+    {
+        if (m_hashToSign.size() == 0)
+        {
+            // NOTE: The hash to sign is missing in dumps produced by previous versions
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, "The context has no cached hash to sign: "
+                "the supplied signed hash will not be verified");
+        }
+        else
+        {
+            auto pubkey = X509_get0_pubkey(m_cert);
+            if (pubkey == nullptr)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unexpected missing public key");
+
+            if (!ssl::VerifySignedHash(signedHash, m_hashToSign, pubkey,
+                m_parameters.Hashing, m_parameters.DoWrapDigest))
+            {
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::SignatureVerificationError,
+                    "The supplied signed hash doesn't verify against the hash to sign");
+            }
+        }
     }
 
     auto buf = (unsigned char*)OPENSSL_malloc(signedHash.size());
@@ -172,8 +199,11 @@ void CmsContext::Dump(xmlNodePtr ctxElem, string& temp)
         goto SerializationFailed;
 
     utls::WriteHexStringTo(temp, m_certHash);
-    auto certificateElem = xmlNewChild(ctxElem, nullptr, XMLCHAR "CertHash", XMLCHAR temp.data());
-    if (certificateElem == nullptr)
+    if (xmlNewChild(ctxElem, nullptr, XMLCHAR "CertHash", XMLCHAR temp.data()) == nullptr)
+        goto SerializationFailed;
+
+    utls::WriteHexStringTo(temp, m_hashToSign);
+    if (xmlNewChild(ctxElem, nullptr, XMLCHAR "HashToSign", XMLCHAR temp.data()) == nullptr)
         goto SerializationFailed;
 }
 
@@ -266,6 +296,11 @@ void CmsContext::Restore(xmlNodePtr ctxElem, charbuff& temp)
     if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
         goto DeserializationFailed;
     utls::DecodeHexStringTo(m_certHash, (const char*)node->children->content);
+
+    // NOTE: This element may be missing in dumps produced by previous versions
+    node = utls::FindChildElement(ctxElem, "HashToSign");
+    if (node != nullptr && node->children != nullptr && node->children->content != nullptr)
+        utls::DecodeHexStringTo(m_hashToSign, (const char*)node->children->content);
 }
 
 unsigned CmsContext::GetSignedHashSize() const
@@ -334,6 +369,8 @@ void CmsContext::computeCertificateHash()
 
 void CmsContext::clear()
 {
+    m_hashToSign.clear();
+
     if (m_cert != nullptr)
     {
         X509_free(m_cert);

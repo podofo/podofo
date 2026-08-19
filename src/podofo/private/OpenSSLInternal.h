@@ -63,13 +63,21 @@ namespace ssl
 
     unsigned GetSignedHashSize(EVP_PKEY* pkey);
 
-    // Sign a buffer with the supplied pkey, no encapsulation and deterministic padding
+    // Sign a hash with the supplied private key. Specify if the signed hash should be wrapped,
+    // in a ASN.1 structure with encryption and hashing type (PKCS#1 v1.5 encapsulation) for
+    // algorithms where it is applicable
     void SignHash(const PoDoFo::bufferview& hashToSign, const PoDoFo::bufferview& pkey,
         PoDoFo::PdfHashingAlgorithm hashing, PoDoFo::charbuff& output,
         bool skipWrapHash = false, bool deterministic = false);
     void SignHash(const PoDoFo::bufferview& hashToSign, EVP_PKEY* pkey,
         PoDoFo::PdfHashingAlgorithm hashing, PoDoFo::charbuff& output,
         bool skipWrapHash, bool deterministic);
+
+    // Verify a signed hash with the supplied public key against the original hash. Specify if
+    // the hash to verify is wrapped in a ASN.1 structure with encryption and hashing type (PKCS#1
+    // v1.5 encapsulation) for algorithms where it is applicable
+    bool VerifySignedHash(const PoDoFo::bufferview& signedHash, const PoDoFo::bufferview& hashToVerify,
+        EVP_PKEY* publickey, PoDoFo::PdfHashingAlgorithm hashing, bool wrappedDigest);
 
     // Returns ASN.1 encoded X509 certificate
     PoDoFo::charbuff GetEncoded(const X509* cert);
