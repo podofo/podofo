@@ -8,6 +8,7 @@
 
 #include <numerics/checked_math.h>
 #include <podofo/private/PdfParser.h>
+#include <podofo/private/CmsVerifyContext.h>
 
 #include "PdfDocument.h"
 #include "PdfDictionary.h"
@@ -19,6 +20,11 @@
 using namespace std;
 using namespace PoDoFo;
 using namespace chromium::base;
+
+constexpr size_t BufferSize = 65536;
+
+static void appendRange(InputStreamDevice& input, CmsVerifyContext& context,
+    size_t offset, size_t length, charbuff& buffer);
 
 PdfSignature::PdfSignature(PdfAcroForm& acroform, shared_ptr<PdfField>&& parent) :
     PdfField(acroform, PdfFieldType::Signature, std::move(parent)),
@@ -39,6 +45,78 @@ PdfSignature::PdfSignature(PdfObject& obj, PdfAcroForm* acroform) :
     m_ValueObj(this->GetDictionary().FindKey("V"))
 {
     // NOTE: Do not call init() here
+}
+
+bool PdfSignature::TryVerifySignature(InputStreamDevice& input, PdfSignatureVerifyStatus& status) const
+{
+    status = PdfSignatureVerifyStatus::Indeterminate;
+    if (m_ValueObj == nullptr)
+        return false;
+
+    auto& dict = m_ValueObj->GetDictionary();
+    const PdfString* contents;
+    const PdfArray* byteRange;
+    if (!dict.TryFindKeyAs("Contents", contents) || !dict.TryFindKeyAs("ByteRange", byteRange))
+        return false;
+
+    // A PDF signature always has a single pair of ranges, the second
+    // one starting right after the /Contents string
+    if (byteRange->GetSize() != 4)
+        return false;
+
+    int64_t offsets[4];
+    for (unsigned i = 0; i < 4; i++)
+    {
+        if (!byteRange->TryGetAtAs(i, offsets[i]) || offsets[i] < 0)
+            return false;
+    }
+
+    size_t firstEnd;
+    size_t secondEnd;
+    if (offsets[0] != 0
+        || !(CheckedNumeric((size_t)offsets[0]) + CheckedNumeric((size_t)offsets[1])).AssignIfValid(&firstEnd)
+        || !(CheckedNumeric((size_t)offsets[2]) + CheckedNumeric((size_t)offsets[3])).AssignIfValid(&secondEnd))
+    {
+        return false;
+    }
+
+    // The ranges must not overlap and must be within the input
+    auto inputLength = input.GetLength();
+    if (firstEnd > (size_t)offsets[2] || secondEnd > inputLength)
+        return false;
+
+    CmsVerifyContext context;
+    if (!context.TryReset(contents->GetRawData()))
+        return false;
+
+    // Accordingly to current interpretation of the specification,
+    // a PDF signature has exactly one signer
+    if (context.GetSignerCount() != 1 || !context.TryLoadSigner(0))
+        return false;
+
+    charbuff buffer(BufferSize);
+    appendRange(input, context, 0, (size_t)offsets[1], buffer);
+    appendRange(input, context, (size_t)offsets[2], (size_t)offsets[3], buffer);
+
+    if (!context.VerifySignature())
+    {
+        status = PdfSignatureVerifyStatus::Invalid;
+        return false;
+    }
+
+    // NOTE: The attribute is not mandatory here, but it must match when present.
+    // Requiring it is a conformance concern of the caller, as it depends on /SubFilter
+    bool attrMissing;
+    if (!context.TryVerifySigningCertificateV2(attrMissing))
+    {
+        status = PdfSignatureVerifyStatus::Invalid;
+        return false;
+    }
+
+    status = secondEnd == inputLength
+        ? PdfSignatureVerifyStatus::CryptoVerified
+        : PdfSignatureVerifyStatus::CryptoVerifiedPartialCoverage;
+    return true;
 }
 
 void PdfSignature::init(PdfAcroForm& acroForm)
@@ -303,4 +381,17 @@ PdfSignatureBeacons::PdfSignatureBeacons()
 {
     ContentsOffset = std::make_shared<size_t>();
     ByteRangeOffset = std::make_shared<size_t>();
+}
+
+void appendRange(InputStreamDevice& input, CmsVerifyContext& context,
+    size_t offset, size_t length, charbuff& buffer)
+{
+    input.Seek(offset);
+    while (length != 0)
+    {
+        size_t readSize = std::min(length, buffer.size());
+        input.Read(buffer.data(), readSize);
+        context.AppendData({ buffer.data(), readSize });
+        length -= readSize;
+    }
 }

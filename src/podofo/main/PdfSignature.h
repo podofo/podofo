@@ -35,6 +35,26 @@ struct PdfSignatureBeacons final
     std::shared_ptr<size_t> ByteRangeOffset;
 };
 
+enum class PdfSignatureVerifyStatus : uint8_t
+{
+    ///< The signature could not be checked. Missing or invalid PKCS7/CMS contents,
+    ///< unsupported signer info layout, or a malformed /ByteRange
+    Indeterminate = 0,
+
+    ///< The signature is cryptographically invalid: the signed bytes were modified,
+    ///< or the signature doesn't correspond to the certificate
+    Invalid,
+
+    ///< The CMS signature is cryptographically valid over the signed bytes, but the
+    ///< /ByteRange doesn't reach the end of the input: the document has content that
+    ///< is not covered by the signature. The certificate trust status is indeterminate
+    CryptoVerifiedPartialCoverage,
+
+    ///< The CMS signature is cryptographically valid and the /ByteRange covers the
+    ///< whole input. The certificate trust status is indeterminate
+    CryptoVerified,
+};
+
 class PODOFO_API PdfSignature final : public PdfField
 {
     friend class PdfField;
@@ -48,6 +68,16 @@ private:
     PdfSignature(PdfObject& obj, PdfAcroForm* acroform);
 
 public:
+    /// Verify the CMS signature in /Contents against the bytes delimited by the /ByteRange
+    ///
+    /// It performs no certificate trust validation, and it doesn't inspect the document
+    /// beyond the signed revision: a complete verification is a document wide concern
+    /// @param input the input device for the document that holds the signature
+    /// @param status what was actually verified, assigned on return
+    /// @returns true if the signature is cryptographically valid over the signed bytes,
+    /// regardless of the /ByteRange coverage. Inspect the status to tell them apart
+    bool TryVerifySignature(InputStreamDevice& input, PdfSignatureVerifyStatus& status) const;
+
     /// Set the signer name
     ///
     /// @param text the signer name

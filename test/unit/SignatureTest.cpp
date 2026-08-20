@@ -3,6 +3,7 @@
 
 #include <PdfTest.h>
 #include <podofo/private/OpenSSLInternal.h>
+#include <podofo/private/CmsVerifyContext.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -742,3 +743,137 @@ TEST_CASE("TestPostQuantumCryptography")
 }
 
 #endif // OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 5)
+
+// Verify a signature against the bytes delimited by the /ByteRange
+TEST_CASE("TestVerifySignature")
+{
+    string cert;
+    TestUtils::ReadTestInputFileTo(cert, "mycert.der");
+
+    string pkey;
+    TestUtils::ReadTestInputFileTo(pkey, "mykey-pkcs8.der");
+
+    charbuff document;
+    utls::ReadTo(document, TestUtils::GetTestInputFilePath("TestSignature.pdf"));
+
+    auto stream = std::make_shared<BufferStreamDevice>(document);
+    PdfMemDocument doc(stream);
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto& annot = page.GetAnnotations().GetAnnotAt(0);
+    auto& field = dynamic_cast<PdfAnnotationWidget&>(annot).GetField();
+    auto& signature = dynamic_cast<PdfSignature&>(field);
+    signature.SetSignatureDate(TestSignatureDate);
+
+    PdfSignerCms signer(cert, pkey);
+    PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
+
+    // NOTE: The signature is always read from the freshly signed document, so the
+    // tampered inputs below only alter the bytes that are fed to the verification
+    auto verify = [&signature](const bufferview& input, PdfSignatureVerifyStatus& status)
+    {
+        SpanStreamDevice device(input);
+        return signature.TryVerifySignature(device, status);
+    };
+
+    PdfSignatureVerifyStatus status;
+    REQUIRE(verify(document, status));
+    REQUIRE(status == PdfSignatureVerifyStatus::CryptoVerified);
+
+    // A modification inside the signed ranges invalidates the signature
+    auto tampered = document;
+    tampered[tampered.size() / 2] = (char)(tampered[tampered.size() / 2] ^ 0xFF);
+    REQUIRE(!verify(tampered, status));
+    REQUIRE(status == PdfSignatureVerifyStatus::Invalid);
+
+    // Content appended after the signed ranges leaves the signature valid but not covering
+    auto appended = document;
+    appended.append("% some appended content\n");
+    REQUIRE(verify(appended, status));
+    REQUIRE(status == PdfSignatureVerifyStatus::CryptoVerifiedPartialCoverage);
+}
+
+#if OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 5)
+
+// Verify pre-signed documents with post quantum cryptography signatures
+TEST_CASE("TestVerifyPostQuantumSignature")
+{
+    auto testVerify = [](const string_view& algo)
+    {
+        charbuff document;
+        utls::ReadTo(document, TestUtils::GetTestInputFilePath("PQC", "Signed", string(algo).append(".pdf")));
+
+        auto stream = std::make_shared<SpanStreamDevice>(document);
+        PdfMemDocument doc(stream);
+        auto acroForm = doc.GetAcroForm();
+        REQUIRE(acroForm != nullptr);
+        REQUIRE(acroForm->GetFieldCount() == 1);
+
+        auto& signature = dynamic_cast<PdfSignature&>(acroForm->GetFieldAt(0));
+        REQUIRE(signature.GetName()->GetString() == "Signature");
+
+        SpanStreamDevice input(document);
+        PdfSignatureVerifyStatus status;
+        REQUIRE(signature.TryVerifySignature(input, status));
+        REQUIRE(status == PdfSignatureVerifyStatus::CryptoVerified);
+
+        // The last byte is covered by the signature, since the ranges reach the end
+        auto tampered = document;
+        tampered[tampered.size() - 1] = (char)(tampered[tampered.size() - 1] ^ 0xFF);
+        SpanStreamDevice tamperedInput(tampered);
+        REQUIRE(!signature.TryVerifySignature(tamperedInput, status));
+        REQUIRE(status == PdfSignatureVerifyStatus::Invalid);
+    };
+
+    testVerify("ML-DSA-44");
+    testVerify("slh-dsa-sha2-128f");
+}
+
+#endif // OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 5)
+
+// The fixture has a "signingCertificateV2" attribute that doesn't match the
+// signer certificate, while the CMS signature itself is valid
+TEST_CASE("TestVerifyBadSigningCertificateV2")
+{
+    charbuff document;
+    utls::ReadTo(document, TestUtils::GetTestInputFilePath("TestSignatureBadSigningCertV2.pdf"));
+
+    auto stream = std::make_shared<SpanStreamDevice>(document);
+    PdfMemDocument doc(stream);
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto& annot = page.GetAnnotations().GetAnnotAt(0);
+    auto& field = dynamic_cast<PdfAnnotationWidget&>(annot).GetField();
+    auto& signature = dynamic_cast<PdfSignature&>(field);
+
+    SpanStreamDevice input(document);
+    PdfSignatureVerifyStatus status;
+    REQUIRE(!signature.TryVerifySignature(input, status));
+    REQUIRE(status == PdfSignatureVerifyStatus::Invalid);
+
+    // Only the certificate binding is broken: verify the rest still passes
+    auto valueObj = signature.GetDictionary().FindKey("V");
+    REQUIRE(valueObj != nullptr);
+
+    const PdfString* contents;
+    const PdfArray* byteRange;
+    REQUIRE(valueObj->GetDictionary().TryFindKeyAs("Contents", contents));
+    REQUIRE(valueObj->GetDictionary().TryFindKeyAs("ByteRange", byteRange));
+
+    CmsVerifyContext context;
+    REQUIRE(context.TryReset(contents->GetRawData()));
+    REQUIRE(context.TryLoadSigner(0));
+
+    charbuff buffer;
+    for (unsigned i = 0; i < 2; i++)
+    {
+        buffer.resize((size_t)byteRange->GetAtAs<int64_t>(i * 2 + 1));
+        input.Seek((size_t)byteRange->GetAtAs<int64_t>(i * 2));
+        input.Read(buffer.data(), buffer.size());
+        context.AppendData(buffer);
+    }
+
+    REQUIRE(context.VerifySignature());
+
+    bool attrMissing;
+    REQUIRE(!context.TryVerifySigningCertificateV2(attrMissing));
+    REQUIRE(!attrMissing);
+}
