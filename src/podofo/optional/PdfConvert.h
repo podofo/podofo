@@ -1240,6 +1240,7 @@ namespace PoDoFo
         }
     };
 
+    PODOFO_SUPPRESS_DEPRECATED_PUSH
     template<>
     struct Convert<PdfSignatureEncryption>
     {
@@ -1273,6 +1274,7 @@ namespace PoDoFo
             return false;
         }
     };
+    PODOFO_SUPPRESS_DEPRECATED_POP
 
     template<>
     struct Convert<PdfSigningAlgorithm>

@@ -812,7 +812,7 @@ enum class PdfSignatureType : uint8_t
 };
 
 /// @deprecated Use PdfSigningAlgorithm instead
-enum class PdfSignatureEncryption : uint8_t
+enum class [[deprecated("Use PdfSigningAlgorithm instead")]] PdfSignatureEncryption : uint8_t
 {
     Unknown = 0,
     RSA,
