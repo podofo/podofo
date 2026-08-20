@@ -147,7 +147,7 @@ else()
     # By default hide symbols on gcc/clang
     # TODO: Remove -Wno-format-truncation after porting the
     # code to std::fmt as it will be unuseful
-    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-std=gnu++17> $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual> $<$<COMPILE_LANGUAGE:CXX>:-Wreorder> -fvisibility=hidden -Wall -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wno-format-truncation -Wno-unknown-pragmas -Wno-unknown-warning-option)
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-std=gnu++17> $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual> $<$<COMPILE_LANGUAGE:CXX>:-Wreorder> -fvisibility=hidden -Wall -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wno-format-truncation -Wno-unknown-pragmas)
 
     # Note that we do not need debug definitions here. Set
     # -DCMAKE_BUILD_TYPE=debug or (if you want an optimised
@@ -160,10 +160,12 @@ else()
         add_definitions(-W)
     endif()
 
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-        # Silence warnings on use of typeid(*ptr)
-        # See https://stackoverflow.com/questions/46494928/clang-warning-on-expression-side-effects
-        add_compile_options(-Wno-potentially-evaluated-expression)
+    if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+        add_compile_options(
+            -Wno-unknown-warning-option
+            # Silence warnings on use of typeid(*ptr)
+            # See https://stackoverflow.com/questions/46494928/clang-warning-on-expression-side-effects
+            -Wno-potentially-evaluated-expression)
     endif()
 endif()
 
