@@ -747,7 +747,7 @@ void Main(const cspan<string_view>& args)
     }
 
     signature->SetSignatureReason(PdfString(reason));
-    signature->SetSignatureDate(PdfDate());
+    signature->SetSignatureDate(PdfDate::LocalNow());
 
     PdfSignerCmsParams params;
     if (digest.length() != 0)

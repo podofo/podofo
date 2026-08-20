@@ -45,6 +45,8 @@ namespace PoDoFo
         void ComputeHashToSign(charbuff& hashToSign);
         /// @param verify cross-check the supplied signed hash against the cached hash to sign
         void ComputeSignature(const bufferview& signedHash, charbuff& signature, bool verify);
+        /// Validate the given date is within the certificate validity period
+        void ValidateSigningDate(const std::chrono::seconds& date) const;
         void AddAttribute(const std::string_view& nid, const bufferview& attr, bool signedAttr, bool octetString);
         void Dump(xmlNodePtr elem, std::string& temp);
         void Restore(xmlNodePtr elem, charbuff& temp);

@@ -107,6 +107,12 @@ namespace PoDoFo
 
         bool IsEmpty() const;
 
+    public:
+        /// Determines if the validation of the signature date, performed by the
+        /// configured signers, should be skipped. It is performed by default
+        bool GetSkipDateValidation() const { return m_SkipDateValidation; }
+        void SetSkipDateValidation(bool value) { m_SkipDateValidation = value; }
+
     private:
         struct SignerDescriptors
         {
@@ -144,6 +150,7 @@ namespace PoDoFo
         PdfSignerId addSigner(const PdfSignature& signature, PdfSigner* signer,
             std::shared_ptr<PdfSigner>&& storage);
         void ensureNotStarted() const;
+        void validateSignatureDates(PdfMemDocument& doc) const;
         void checkDocument(PdfMemDocument& doc, PdfSaveOptions saveOptions) const;
         std::vector<SignerContext> prepareSignatureContexts(PdfMemDocument& doc, bool deferredSigning);
         void saveDocForSigning(PdfMemDocument& doc, StreamDevice& device, PdfSaveOptions saveOptions);
@@ -164,6 +171,7 @@ namespace PoDoFo
         // Signer contexts used when preparing/finish signing operations
         std::vector<SignerContext> m_contexts;
         Status m_status;
+        bool m_SkipDateValidation;
     };
 }
 

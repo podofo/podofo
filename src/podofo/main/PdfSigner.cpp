@@ -14,6 +14,12 @@ PdfSigner::PdfSigner() { }
 
 PdfSigner::~PdfSigner() { }
 
+void PdfSigner::ValidateSignatureDate(const nullable<PdfDate>& date)
+{
+    // Do nothing by default
+    (void)date;
+}
+
 void PdfSigner::FetchIntermediateResult(charbuff& result)
 {
     (void)result;

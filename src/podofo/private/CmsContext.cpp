@@ -18,6 +18,7 @@ using namespace PoDoFo;
 static void serializeCmsTo(charbuff& buff, CMS_ContentInfo* info);
 static void addAttribute(CMS_SignerInfo* si, int(*addAttributeFun)(CMS_SignerInfo*, const char*, int, const void*, int),
     const string_view& nid, const bufferview& attr, bool octet);
+static string getTimeString(const ASN1_TIME* time);
 
 CmsContext::CmsContext() :
     m_status(CmsContextStatus::Uninitialized),
@@ -139,6 +140,27 @@ void CmsContext::ComputeSignature(const bufferview& signedHash, charbuff& signat
 
     serializeCmsTo(signature, m_cms);
     m_status = CmsContextStatus::ComputedSignature;
+}
+
+void CmsContext::ValidateSigningDate(const chrono::seconds& date) const
+{
+    PODOFO_INVARIANT(m_cert != nullptr);
+    auto time = (time_t)date.count();
+    auto notBefore = X509_get0_notBefore(m_cert);
+    auto notAfter = X509_get0_notAfter(m_cert);
+    int cmpBefore = X509_cmp_time(notBefore, &time);
+    int cmpAfter = X509_cmp_time(notAfter, &time);
+    // NOTE: X509_cmp_time() returns 0 when the certificate time can't be parsed
+    if (cmpBefore == 0 || cmpAfter == 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Unreadable certificate validity period");
+
+    if (cmpBefore > 0 || cmpAfter < 0)
+    {
+        unique_ptr<ASN1_TIME, decltype(&ASN1_TIME_free)> signingTime(X509_time_adj(nullptr, 0, &time), ASN1_TIME_free);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::SignatureVerificationError,
+            "The signature date {} is outside the certificate validity period {} - {}",
+            getTimeString(signingTime.get()), getTimeString(notBefore), getTimeString(notAfter));
+    }
 }
 
 void CmsContext::AddAttribute(const string_view& nid, const bufferview& attr, bool signedAttr, bool asOctetString)
@@ -520,4 +542,18 @@ void addAttribute(CMS_SignerInfo* si, int(*addAttributeFun)(CMS_SignerInfo*, con
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError,
             "Unable to insert an attribute to the signer");
     }
+}
+
+string getTimeString(const ASN1_TIME* time)
+{
+    unique_ptr<BIO, decltype(&BIO_free)> bio(BIO_new(BIO_s_mem()), BIO_free);
+    if (bio == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "BIO_new");
+
+    if (time == nullptr || ASN1_TIME_print(bio.get(), time) == 0)
+        return "(unreadable)";
+
+    char* data;
+    size_t length = (size_t)BIO_get_mem_data(bio.get(), &data);
+    return string(data, length);
 }

@@ -19,6 +19,13 @@ namespace PoDoFo
         PdfSigner();
         virtual ~PdfSigner();
 
+        /// Called to validate the date of the signature that will be computed
+        /// @param date the date of the signature field, if present
+        /// @remarks by default it does nothing. Inheritors should throw on an
+        ///      unsuitable date. It is not called when the validation is skipped
+        ///      in the PdfSigningContext
+        virtual void ValidateSignatureDate(const nullable<PdfDate>& date);
+
         /// Prepare the signer for being used/re-used
         /// Called before computing the signature with ComputeSignature(buffer, false)
         /// @remarks It's not meant to clear parameters that have been set

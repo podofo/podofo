@@ -91,6 +91,9 @@ namespace PoDoFo
         PdfSignerCms();
 
     public:
+        /// Validate the signature date against the certificate validity period
+        /// @param date the date of the signature field. A missing date makes the validation fail
+        void ValidateSignatureDate(const nullable<PdfDate>& date) override;
         void AppendData(const bufferview& data) override;
         void ComputeSignature(charbuff& buffer, bool dryrun) override;
         void FetchIntermediateResult(charbuff& result) override;

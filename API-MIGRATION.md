@@ -16,6 +16,14 @@ which is new and has no known users, should cause no issue
 - `PdChoiceField`: Changed `GetItemDisplayText` parameter index type from int
 to unsigned for consistency. Should cause limited issues
 
+The following are not API breakages but behavioral changes:
+
+- Signing now validates the signature date against the validity period of the supplied
+certificate. A missing signature date makes the validation fail. The validation can be
+disabled with `PdfSigningContext::SetSkipDateValidation(true)`
+- Signing with an external certificate now performs a cross-check verification of the signed
+hash by default. This check can be disabled with `PdfSignerCmsFlags::SkipVerification`
+
 # 1.0.* -> 1.1
 
 - `PdfFontFactory`: Removed, this was a leftover of a removed class,

@@ -41,6 +41,18 @@ PdfSignerCms::PdfSignerCms() :
 {
 }
 
+void PdfSignerCms::ValidateSignatureDate(const nullable<PdfDate>& date)
+{
+    if (!date.has_value())
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::SignatureVerificationError,
+            "A signature date is required to validate the certificate validity period");
+    }
+
+    ensureContextInitialized();
+    m_cmsContext->ValidateSigningDate(date->GetSecondsFromEpoch());
+}
+
 void PdfSignerCms::AppendData(const bufferview& data)
 {
     ensureContextInitialized();

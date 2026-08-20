@@ -7,7 +7,9 @@
 using namespace std;
 using namespace PoDoFo;
 
-constexpr string_view TestSignatureRefHash = "1CC60CEA1A7A8D3ECDD18B20FAAAEFE7"sv;
+constexpr string_view TestSignatureRefHash = "E70819B3655094487BEF1C397FC2E87B"sv;
+// A date within the validity period of all the test certificates
+static const PdfDate TestSignatureDate = PdfDate::Parse("D:20260713192456+01'00'");
 
 TEST_CASE("TestLoadCertificate")
 {
@@ -46,6 +48,7 @@ TEST_CASE("TestSignature1")
         auto& annot = page.GetAnnotations().GetAnnotAt(0);
         auto& field = dynamic_cast<PdfAnnotationWidget&>(annot).GetField();
         auto& signature = dynamic_cast<PdfSignature&>(field);
+        signature.SetSignatureDate(TestSignatureDate);
 
         auto signer = PdfSignerCms(cert, pkey);
         PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
@@ -99,6 +102,7 @@ TEST_CASE("TestSignature2")
     auto& annot = page.GetAnnotations().GetAnnotAt(0);
     auto& field = dynamic_cast<PdfAnnotationWidget&>(annot).GetField();
     auto& signature = dynamic_cast<PdfSignature&>(field);
+    signature.SetSignatureDate(TestSignatureDate);
 
     PdfSignerCmsParams params;
     params.SigningService = [&pkey, &params](bufferview hashToSign, bool dryrun, charbuff& signedHash)
@@ -116,7 +120,7 @@ TEST_CASE("TestSignature2")
     signature.SetCreatingApplication(PdfName("Sample Application"));
     PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
     utls::ReadTo(buff, outputPath);
-    REQUIRE(ssl::ComputeMD5Str(buff) == "2AA706A0A84C662CEE3886C908C06557");
+    REQUIRE(ssl::ComputeMD5Str(buff) == "764174527FF10CC4CA4FC79EAF2C2F9F");
 }
 
 // Test deferred signing with external service
@@ -142,6 +146,7 @@ TEST_CASE("TestSignature3")
     auto& annot = page.GetAnnotations().GetAnnotAt(0);
     auto& field = dynamic_cast<PdfAnnotationWidget&>(annot).GetField();
     auto& signature = dynamic_cast<PdfSignature&>(field);
+    signature.SetSignatureDate(TestSignatureDate);
 
     PdfSignerCmsParams params;
     auto signer = std::make_shared<PdfSignerCms>(cert, params);
@@ -179,6 +184,7 @@ TEST_CASE("TestSignedHashVerification")
         PdfMemDocument doc(stream);
         auto& page = doc.GetPages().GetPageAt(0);
         auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+        signature.SetSignatureDate(TestSignatureDate);
 
         PdfSignerCmsParams params;
         params.Hashing = hashing;
@@ -243,6 +249,7 @@ TEST_CASE("TestSignedHashVerification")
             PdfMemDocument doc(stream);
             auto& page = doc.GetPages().GetPageAt(0);
             auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+            signature.SetSignatureDate(TestSignatureDate);
 
             auto signer = std::make_shared<PdfSignerCms>(cert, params);
             PdfSigningContext ctx;
@@ -269,6 +276,49 @@ TEST_CASE("TestSignedHashVerification")
 
     trySignDeferred(false);
     ASSERT_THROW_WITH_ERROR_CODE(trySignDeferred(true), PdfErrorCode::SignatureVerificationError);
+}
+
+// Validate the signature date against the certificate validity period
+TEST_CASE("TestSignatureDateValidation")
+{
+    auto inputPath = TestUtils::GetTestInputFilePath("blank.pdf");
+    auto outputPath = TestUtils::GetTestOutputFilePath("TestSignatureDateValidation.pdf");
+
+    string cert;
+    TestUtils::ReadTestInputFileTo(cert, "mycert.der");
+
+    string pkey;
+    TestUtils::ReadTestInputFileTo(pkey, "mykey-pkcs8.der");
+
+    auto trySign = [&](nullable<const PdfDate&> date, bool skipValidation)
+    {
+        fs::copy_file(fs::u8path(inputPath), fs::u8path(outputPath), fs::copy_options::overwrite_existing);
+        auto stream = std::make_shared<FileStreamDevice>(outputPath, FileMode::Open);
+
+        PdfMemDocument doc(stream);
+        auto& page = doc.GetPages().GetPageAt(0);
+        auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+        signature.SetSignatureDate(date);
+
+        PdfSigningContext ctx;
+        ctx.SetSkipDateValidation(skipValidation);
+        ctx.AddSigner(signature, std::make_shared<PdfSignerCms>(cert, pkey));
+        ctx.Sign(doc, *stream, PdfSaveOptions::NoMetadataUpdate);
+    };
+
+    trySign(TestSignatureDate, false);
+
+    // A missing date makes the validation fail
+    ASSERT_THROW_WITH_ERROR_CODE(trySign(nullptr, false), PdfErrorCode::SignatureVerificationError);
+
+    // mycert.der validity period is 2023-01-08 - 2033-01-05
+    ASSERT_THROW_WITH_ERROR_CODE(trySign(PdfDate::Parse("D:20220205192456+06'00'"), false),
+        PdfErrorCode::SignatureVerificationError);
+    ASSERT_THROW_WITH_ERROR_CODE(trySign(PdfDate::Parse("D:20340205192456+06'00'"), false),
+        PdfErrorCode::SignatureVerificationError);
+
+    // The validation can be skipped on the signing context
+    trySign(nullptr, true);
 }
 
 // Test deferred signing with external service and context dumping/restore
@@ -545,6 +595,7 @@ TEST_CASE("TestSignatureOffsetStart")
     doc.Load(inputOutput);
     auto& page = doc.GetPages().GetPageAt(0);
     auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+    signature.SetSignatureDate(TestSignatureDate);
 
     PdfSignerCms signer(x509certbuffer, pkeybuffer);
     PoDoFo::SignDocument(doc, *inputOutput, signer, signature, PdfSaveOptions::NoMetadataUpdate);
@@ -554,7 +605,7 @@ TEST_CASE("TestSignatureOffsetStart")
     // Try to reload the document
     doc.Load(inputOutput);
 
-    REQUIRE(ssl::ComputeMD5Str(currBuffer) == "7063AD6AFCB797D361D2DAF943002298");
+    REQUIRE(ssl::ComputeMD5Str(currBuffer) == "DA67F107777CF7C4852097596C503D84");
 }
 
 TEST_CASE("TestSignatureCorrupted")
@@ -577,6 +628,7 @@ TEST_CASE("TestSignatureCorrupted")
         doc.Load(inputOutput);
         auto& page = doc.GetPages().GetPageAt(0);
         auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+        signature.SetSignatureDate(TestSignatureDate);
 
         PdfSignerCms signer(x509certbuffer, pkeybuffer);
 
@@ -602,12 +654,12 @@ TEST_CASE("TestSignatureCorrupted")
     try
     {
         utls::ReadTo(currBuffer, TestUtils::GetTestInputFilePath("TestXRefRecovery1.pdf"));
-        doTest("TestSignatureCorrupted1.pdf", "FF1B6A133940DED8C0890E3A9707C151");
+        doTest("TestSignatureCorrupted1.pdf", "664845955D6A85B32DEE367CFF48EA53");
 
         // Repeat the test with some garbage at the beginning of the test
         utls::ReadTo(currBuffer, TestUtils::GetTestInputFilePath("TestXRefRecovery1.pdf"));
         currBuffer.insert(0, "% Some garbage before the PDF header\n\n");
-        doTest("TestSignatureCorrupted2.pdf", "8AA3CB1D40DC13E652AD935A16DA927C");
+        doTest("TestSignatureCorrupted2.pdf", "07ABE5475490FFFDF626E996D8EF24BA");
         PdfCommon::SetMaxLoggingSeverity(currentLogSeverity);
     }
     catch (...)
@@ -638,7 +690,7 @@ TEST_CASE("TestECDSA")
     PdfMemDocument doc(stream);
     auto& page = doc.GetPages().GetPageAt(0);
     auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
-    signature.SetSignatureDate(PdfDate::Parse("D:20260713192456+01'00'"));
+    signature.SetSignatureDate(TestSignatureDate);
 
     PdfSignerCmsParams params;
     params.Flags = PdfSignerCmsFlags::Deterministic;
@@ -674,7 +726,7 @@ TEST_CASE("TestPostQuantumCryptography")
             PdfMemDocument doc(stream);
             auto& page = doc.GetPages().GetPageAt(0);
             auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
-            signature.SetSignatureDate(PdfDate::Parse("D:20260713192456+01'00'"));
+            signature.SetSignatureDate(TestSignatureDate);
 
             PdfSignerCmsParams params;
             params.Flags = PdfSignerCmsFlags::Deterministic;

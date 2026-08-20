@@ -40,7 +40,7 @@ namespace
 }
 
 PdfSigningContext::PdfSigningContext()
-    : m_doc(nullptr), m_status(Status::Config)
+    : m_doc(nullptr), m_status(Status::Config), m_SkipDateValidation(false)
 {
 }
 
@@ -225,6 +225,8 @@ void PdfSigningContext::StartSigning(PdfMemDocument& doc, shared_ptr<StreamDevic
     checkDocument(doc, saveOptions);
     if (m_signers.size() == 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "No signers were configured");
+
+    validateSignatureDates(doc);
 
     m_doc = &doc;
     m_device = std::move(device);
@@ -438,6 +440,8 @@ void PdfSigningContext::Sign(PdfMemDocument& doc, StreamDevice& device, PdfSaveO
     if (m_signers.size() == 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "No signers were configured");
 
+    validateSignatureDates(doc);
+
     charbuff tmpbuff;
 
     auto contexts = prepareSignatureContexts(doc, false);
@@ -487,6 +491,19 @@ void PdfSigningContext::ensureNotStarted() const
 {
     if (m_status != Status::Config)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "A deferred signing has already been started");
+}
+
+void PdfSigningContext::validateSignatureDates(PdfMemDocument& doc) const
+{
+    if (m_SkipDateValidation)
+        return;
+
+    for (auto& pair : m_signers)
+    {
+        auto& descs = pair.second;
+        auto& signature = getSignature(doc, descs.SignaturePageIndex, pair.first);
+        descs.Signer->ValidateSignatureDate(signature.GetSignatureDate());
+    }
 }
 
 void PdfSigningContext::checkDocument(PdfMemDocument& doc, PdfSaveOptions saveOptions) const
