@@ -2717,7 +2717,7 @@ startxref
     try
     {
         PdfMemDocument doc;
-        doc.LoadFromBuffer(strNextLoop);
+        doc.LoadFromBuffer(strSelfLoop);
 
         // load should succeed, then GetOutlines goes recursive due to /Outlines loop
         (void)doc.GetOutlines();
