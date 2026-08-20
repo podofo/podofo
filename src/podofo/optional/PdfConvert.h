@@ -1250,14 +1250,8 @@ namespace PoDoFo
             {
                 case PdfSignatureEncryption::RSA:
                     return "RSA"sv;
-                case PdfSignatureEncryption::DSA:
-                    return "DSA"sv;
                 case PdfSignatureEncryption::ECDSA:
                     return "ECDSA"sv;
-                case PdfSignatureEncryption::ML_DSA:
-                    return "ML_DSA"sv;
-                case PdfSignatureEncryption::SLH_DSA:
-                    return "SLH_DSA"sv;
                 default:
                     throw PdfError(PdfErrorCode::InvalidEnumValue, __FILE__, __LINE__);
             }
@@ -1270,24 +1264,64 @@ namespace PoDoFo
                 value = PdfSignatureEncryption::RSA;
                 return true;
             }
-            if (str == "DSA")
-            {
-                value = PdfSignatureEncryption::DSA;
-                return true;
-            }
             else if (str == "ECDSA")
             {
                 value = PdfSignatureEncryption::ECDSA;
                 return true;
             }
-            if (str == "ML_DSA")
+
+            return false;
+        }
+    };
+
+    template<>
+    struct Convert<PdfSigningAlgorithm>
+    {
+        static std::string_view ToString(PdfSigningAlgorithm value)
+        {
+            using namespace std;
+            switch (value)
             {
-                value = PdfSignatureEncryption::ML_DSA;
+                case PdfSigningAlgorithm::RSA:
+                    return "RSA"sv;
+                case PdfSigningAlgorithm::DSA:
+                    return "DSA"sv;
+                case PdfSigningAlgorithm::ECDSA:
+                    return "ECDSA"sv;
+                case PdfSigningAlgorithm::ML_DSA:
+                    return "ML_DSA"sv;
+                case PdfSigningAlgorithm::SLH_DSA:
+                    return "SLH_DSA"sv;
+                default:
+                    throw PdfError(PdfErrorCode::InvalidEnumValue, __FILE__, __LINE__);
+            }
+        }
+
+        static bool TryParse(const std::string_view& str, PdfSigningAlgorithm& value)
+        {
+            if (str == "RSA")
+            {
+                value = PdfSigningAlgorithm::RSA;
                 return true;
             }
-            if (str == "SLH_DSA")
+            else if (str == "DSA")
             {
-                value = PdfSignatureEncryption::SLH_DSA;
+                value = PdfSigningAlgorithm::DSA;
+                return true;
+            }
+            else if (str == "ECDSA")
+            {
+                value = PdfSigningAlgorithm::ECDSA;
+                return true;
+            }
+            else if (str == "ML_DSA")
+            {
+                value = PdfSigningAlgorithm::ML_DSA;
+                return true;
+            }
+            else if (str == "SLH_DSA")
+            {
+                value = PdfSigningAlgorithm::SLH_DSA;
                 return true;
             }
 

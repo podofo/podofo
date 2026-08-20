@@ -52,7 +52,7 @@ namespace PoDoFo
         void Restore(xmlNodePtr elem, charbuff& temp);
         unsigned GetSignedHashSize() const;
     public:
-        PdfSignatureEncryption GetEncryption() const { return m_encryption; }
+        PdfSigningAlgorithm GetSigningAlgorithm() const { return m_signingAlgorithm; }
     private:
         void loadX509Certificate(const bufferview& cert);
         void computeCertificateHash();
@@ -76,7 +76,7 @@ namespace PoDoFo
     private:
         CmsContextStatus m_status;
         CmsContextParams m_parameters;
-        PdfSignatureEncryption m_encryption;
+        PdfSigningAlgorithm m_signingAlgorithm;
         struct x509_st* m_cert;
         charbuff m_certHash;
         // Cached hash to sign, used to verify the supplied signed hash

@@ -85,7 +85,7 @@ namespace ssl
     // Returns ASN.1 encoded private key
     PoDoFo::charbuff GetEncoded(const EVP_PKEY* pkey);
 
-    PoDoFo::PdfSignatureEncryption GetSignatureEncryption(EVP_PKEY* pkey);
+    PoDoFo::PdfSigningAlgorithm GetSigningAlgorithm(EVP_PKEY* pkey);
 
     PoDoFo::charbuff ComputeHash(const PoDoFo::bufferview& data, PoDoFo::PdfHashingAlgorithm hashing);
     PoDoFo::charbuff ComputeMD5(const PoDoFo::bufferview& data);

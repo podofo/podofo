@@ -18,7 +18,7 @@ struct MY_X509_SIG
     ASN1_OCTET_STRING* digest;
 };
 
-static void computeHashToSign(CMS_SignerInfo* si, PdfSignatureEncryption encryption,
+static void computeHashToSign(CMS_SignerInfo* si, PdfSigningAlgorithm algorithm,
     charbuff& hashToSign);
 static EVP_MD_CTX* findDigestContext(BIO* bio, X509_ALGOR* digestAlg);
 static void encodePKCS1(X509_ALGOR* digestAlg,
@@ -61,7 +61,7 @@ void ssl::ComputeHashToSign(CMS_SignerInfo* si, BIO* chain, bool doWrapDigest, c
 
     EVP_PKEY* key;
     CMS_SignerInfo_get0_algs(si, &key, nullptr, nullptr, nullptr);
-    auto encryption = ssl::GetSignatureEncryption(key);
+    auto algorithm = ssl::GetSigningAlgorithm(key);
 
     // Extract the hash computed in the signer info using the
     // internal BIO chain, which allows streaming
@@ -88,8 +88,8 @@ void ssl::ComputeHashToSign(CMS_SignerInfo* si, BIO* chain, bool doWrapDigest, c
         V_ASN1_OBJECT, ctype, -1) <= 0)
         goto Error;
 
-    computeHashToSign(si, encryption, hashToSign);
-    if (encryption == PdfSignatureEncryption::RSA && doWrapDigest)
+    computeHashToSign(si, algorithm, hashToSign);
+    if (algorithm == PdfSigningAlgorithm::RSA && doWrapDigest)
     {
         // We also need to encode the digest in ANS1 structure
         charbuff wrapped;
@@ -147,7 +147,7 @@ EVP_MD_CTX* findDigestContext(BIO* bio, X509_ALGOR* digestAlg)
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "No matching digest context found");
 }
 
-void computeHashToSign(CMS_SignerInfo* si, PdfSignatureEncryption encryption, charbuff& hashToSign)
+void computeHashToSign(CMS_SignerInfo* si, PdfSigningAlgorithm algorithm, charbuff& hashToSign)
 {
     auto mctx = CMS_SignerInfo_get0_md_ctx(si);
     STACK_OF(X509_ATTRIBUTE)* signedAttrs = nullptr;
@@ -156,24 +156,24 @@ void computeHashToSign(CMS_SignerInfo* si, PdfSignatureEncryption encryption, ch
     unsigned char hash[EVP_MAX_MD_SIZE];
     unsigned hashlen;
 
-    switch (encryption)
+    switch (algorithm)
     {
-        case PdfSignatureEncryption::RSA:
-        case PdfSignatureEncryption::DSA:
-        case PdfSignatureEncryption::ECDSA:
+        case PdfSigningAlgorithm::RSA:
+        case PdfSigningAlgorithm::DSA:
+        case PdfSigningAlgorithm::ECDSA:
         {
             auto sign_md = EVP_get_digestbyobj(getDigestAlgorithm(si)->algorithm);
             if (EVP_DigestInit(mctx, sign_md) <= 0)
                 goto Error;
             break;
         }
-        case PdfSignatureEncryption::ML_DSA:
-        case PdfSignatureEncryption::SLH_DSA:
+        case PdfSigningAlgorithm::ML_DSA:
+        case PdfSigningAlgorithm::SLH_DSA:
             // Nothing to do, these signatures won't be computed on
             // the hashed signed attributes
             break;
         default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported signature encryption");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported signing algorithm");
 
     }
 
@@ -187,7 +187,7 @@ void computeHashToSign(CMS_SignerInfo* si, PdfSignatureEncryption encryption, ch
     if (buf == nullptr)
         goto Error;
 
-    if (encryption == PdfSignatureEncryption::ML_DSA || encryption == PdfSignatureEncryption::SLH_DSA)
+    if (algorithm == PdfSigningAlgorithm::ML_DSA || algorithm == PdfSigningAlgorithm::SLH_DSA)
     {
         // Both RFC 9882 (CMS with ML-DSA)and RFC 9814 (CMS with SLH-DSA) specify
         // that the message to be signed are the DER encoded signed attributes

@@ -417,7 +417,7 @@ void PdfSignerCms::doSign(const bufferview& input, charbuff& output)
 
 void PdfSignerCms::tryEnlargeSignatureContents(charbuff& contents)
 {
-    if (m_cmsContext->GetEncryption() == PdfSignatureEncryption::ECDSA)
+    if (m_cmsContext->GetSigningAlgorithm() == PdfSigningAlgorithm::ECDSA)
     {
         // Unconditionally account for 2 slack bytes due to random nature of ECDSA
         contents.resize(contents.size() + 2 + m_reservedSize);

@@ -35,7 +35,7 @@ namespace PoDoFo
         ///< When supplying an external PdfSigningService, specify if
         ///< the service should be called for a dry run
         ServiceDoDryRun = 2,
-        ///< For signature encryptions that have a random component, make it deterministic
+        ///< For signing algorithms that have a random component, make it deterministic
         ///< Applies to ECDSA, ML-DSA, SLH-DSA
         Deterministic = 4,
         ///< Skip the inline verification of the signed hash supplied by an external signing
@@ -48,7 +48,7 @@ namespace PoDoFo
     struct PODOFO_API PdfSignerCmsParams final
     {
         PdfSignatureType SignatureType = PdfSignatureType::PAdES_B;
-        [[deprecated("Encryption should be automatically detected from the public key in the certificate")]]
+        [[deprecated("Unused: the signing algorithm is automatically detected from the public key in the certificate")]]
         PdfSignatureEncryption Encryption = PdfSignatureEncryption::RSA;
         PdfHashingAlgorithm Hashing = PdfHashingAlgorithm::SHA256;
         PdfSigningService SigningService;

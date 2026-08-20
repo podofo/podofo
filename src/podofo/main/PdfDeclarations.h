@@ -811,7 +811,15 @@ enum class PdfSignatureType : uint8_t
     Pkcs7 = 2,
 };
 
+/// @deprecated Use PdfSigningAlgorithm instead
 enum class PdfSignatureEncryption : uint8_t
+{
+    Unknown = 0,
+    RSA,
+    ECDSA,
+};
+
+enum class PdfSigningAlgorithm : uint8_t
 {
     Unknown = 0,
     RSA,

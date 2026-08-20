@@ -22,7 +22,7 @@ static string getTimeString(const ASN1_TIME* time);
 
 CmsContext::CmsContext() :
     m_status(CmsContextStatus::Uninitialized),
-    m_encryption(PdfSignatureEncryption::Unknown),
+    m_signingAlgorithm(PdfSigningAlgorithm::Unknown),
     m_cert(nullptr),
     m_cms(nullptr),
     m_signer(nullptr),
@@ -217,7 +217,8 @@ void CmsContext::Dump(xmlNodePtr ctxElem, string& temp)
     if (xmlNewChild(parametersElem, nullptr, XMLCHAR "SigningTimeUTC", XMLCHAR temp.data()) == nullptr)
         goto SerializationFailed;
 
-    if (xmlNewChild(ctxElem, nullptr, XMLCHAR "Encryption", XMLCHAR PoDoFo::ToString(m_encryption).data()) == nullptr)
+    // NOTE: The element name is kept as it was for compatibility with dumps produced by previous versions
+    if (xmlNewChild(ctxElem, nullptr, XMLCHAR "Encryption", XMLCHAR PoDoFo::ToString(m_signingAlgorithm).data()) == nullptr)
         goto SerializationFailed;
 
     utls::WriteHexStringTo(temp, m_certHash);
@@ -312,7 +313,7 @@ void CmsContext::Restore(xmlNodePtr ctxElem, charbuff& temp)
     node = utls::FindChildElement(ctxElem, "Encryption");
     if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
         goto DeserializationFailed;
-    m_encryption = PoDoFo::ConvertTo<PdfSignatureEncryption>((const char*)node->children->content);
+    m_signingAlgorithm = PoDoFo::ConvertTo<PdfSigningAlgorithm>((const char*)node->children->content);
 
     node = utls::FindChildElement(ctxElem, "CertHash");
     if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
@@ -361,7 +362,7 @@ void CmsContext::loadX509Certificate(const bufferview& cert)
     if (pubkey == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Invalid public key");
 
-    m_encryption = ssl::GetSignatureEncryption(pubkey);
+    m_signingAlgorithm = ssl::GetSigningAlgorithm(pubkey);
 }
 
 void CmsContext::computeCertificateHash()

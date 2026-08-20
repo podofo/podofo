@@ -183,13 +183,13 @@ void ssl::SignHash(const bufferview& hashToSign, EVP_PKEY* pkey,
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error EVP_PKEY_CTX_new");
 
     auto actualInput = hashToSign;
-    auto encryption = GetSignatureEncryption(pkey);
+    auto algorithm = GetSigningAlgorithm(pkey);
     charbuff tempWrapped;
-    switch (encryption)
+    switch (algorithm)
     {
-        case PdfSignatureEncryption::RSA:
-        case PdfSignatureEncryption::DSA:
-        case PdfSignatureEncryption::ECDSA:
+        case PdfSigningAlgorithm::RSA:
+        case PdfSigningAlgorithm::DSA:
+        case PdfSigningAlgorithm::ECDSA:
         {
             // Legacy RSA, DSA, ECDSA
             if (EVP_PKEY_sign_init(ctx.get()) <= 0)
@@ -199,7 +199,7 @@ void ssl::SignHash(const bufferview& hashToSign, EVP_PKEY* pkey,
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, err);
             }
 
-            if (encryption == PdfSignatureEncryption::RSA)
+            if (algorithm == PdfSigningAlgorithm::RSA)
             {
                 // Set deterministic PKCS1 padding
                 if (EVP_PKEY_CTX_set_rsa_padding(ctx.get(), RSA_PKCS1_PADDING) <= 0)
@@ -212,7 +212,7 @@ void ssl::SignHash(const bufferview& hashToSign, EVP_PKEY* pkey,
                 }
             }
 
-            if (encryption == PdfSignatureEncryption::ECDSA && deterministic)
+            if (algorithm == PdfSigningAlgorithm::ECDSA && deterministic)
             {
 #if OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 2)
                 OSSL_PARAM params[3];
@@ -241,8 +241,8 @@ void ssl::SignHash(const bufferview& hashToSign, EVP_PKEY* pkey,
 
 #if OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 5)
         // Support for ML_DSA, SLH_DSA was added in OpenSSL 3.5
-        case PdfSignatureEncryption::ML_DSA:
-        case PdfSignatureEncryption::SLH_DSA:
+        case PdfSigningAlgorithm::ML_DSA:
+        case PdfSigningAlgorithm::SLH_DSA:
         {
             OSSL_PARAM params[2];
             params[0] = OSSL_PARAM_construct_end();
@@ -267,7 +267,7 @@ void ssl::SignHash(const bufferview& hashToSign, EVP_PKEY* pkey,
         }
 #endif // OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 5)
         default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Unsupported signature encryption");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Unsupported signing algorithm");
     }
 
     if (EVP_PKEY_sign(ctx.get(), nullptr, &siglen, (const unsigned char*)actualInput.data(), actualInput.size()) <= 0)
@@ -280,7 +280,7 @@ void ssl::SignHash(const bufferview& hashToSign, EVP_PKEY* pkey,
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error signing input buffer");
     }
 
-    // NOTE: This is required for ECDSA encryption, as the
+    // NOTE: This is required for ECDSA signatures, as the
     // first determined length is just an upper bound
     output.resize(siglen);
 }
@@ -292,12 +292,12 @@ bool ssl::VerifySignedHash(const bufferview& signedHash, const bufferview& hashT
     if (ctx == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error EVP_PKEY_CTX_new");
 
-    auto encryption = GetSignatureEncryption(publickey);
-    switch (encryption)
+    auto algorithm = GetSigningAlgorithm(publickey);
+    switch (algorithm)
     {
-        case PdfSignatureEncryption::RSA:
-        case PdfSignatureEncryption::DSA:
-        case PdfSignatureEncryption::ECDSA:
+        case PdfSigningAlgorithm::RSA:
+        case PdfSigningAlgorithm::DSA:
+        case PdfSigningAlgorithm::ECDSA:
         {
             // Legacy RSA, DSA, ECDSA
             if (EVP_PKEY_verify_init(ctx.get()) <= 0)
@@ -307,7 +307,7 @@ bool ssl::VerifySignedHash(const bufferview& signedHash, const bufferview& hashT
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, err);
             }
 
-            if (encryption == PdfSignatureEncryption::RSA)
+            if (algorithm == PdfSigningAlgorithm::RSA)
             {
                 if (EVP_PKEY_CTX_set_rsa_padding(ctx.get(), RSA_PKCS1_PADDING) <= 0)
                     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error EVP_PKEY_CTX_set_rsa_padding");
@@ -326,8 +326,8 @@ bool ssl::VerifySignedHash(const bufferview& signedHash, const bufferview& hashT
 
 #if OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 5)
         // Support for ML_DSA, SLH_DSA was added in OpenSSL 3.5
-        case PdfSignatureEncryption::ML_DSA:
-        case PdfSignatureEncryption::SLH_DSA:
+        case PdfSigningAlgorithm::ML_DSA:
+        case PdfSigningAlgorithm::SLH_DSA:
         {
             // The input is the full DER encoded signed attributes, the
             // message representative is computed by the algorithm itself
@@ -342,7 +342,7 @@ bool ssl::VerifySignedHash(const bufferview& signedHash, const bufferview& hashT
         }
 #endif // OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 5)
         default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Unsupported signature encryption");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Unsupported signing algorithm");
     }
 
     if (EVP_PKEY_verify(ctx.get(), (const unsigned char*)signedHash.data(), signedHash.size(),
@@ -390,26 +390,26 @@ charbuff ssl::GetEncoded(const EVP_PKEY* pkey)
     return ret;
 }
 
-PdfSignatureEncryption ssl::GetSignatureEncryption(EVP_PKEY* pkey)
+PdfSigningAlgorithm ssl::GetSigningAlgorithm(EVP_PKEY* pkey)
 {
     int id = EVP_PKEY_base_id(pkey);
     const char* typeName;
     (void)typeName;
     string_view typeNameSv;
     if (id == EVP_PKEY_RSA)
-        return PdfSignatureEncryption::RSA;
+        return PdfSigningAlgorithm::RSA;
     else if (id == EVP_PKEY_DSA)
-        return PdfSignatureEncryption::DSA;
+        return PdfSigningAlgorithm::DSA;
     else if (id == EVP_PKEY_EC)
-        return PdfSignatureEncryption::ECDSA;
+        return PdfSigningAlgorithm::ECDSA;
 #if OPENSSL_VERSION_MAJOR >= 3
     else if ((typeName = EVP_PKEY_get0_type_name(pkey)) != nullptr && ((typeNameSv) = typeName).length() > 7 && typeNameSv.substr(0, 7) == "ML-DSA-")
-        return PdfSignatureEncryption::ML_DSA;
+        return PdfSigningAlgorithm::ML_DSA;
     else if (typeNameSv.length() > 8 && typeNameSv.substr(0, 8) == "SLH-DSA-")
-        return PdfSignatureEncryption::SLH_DSA;
+        return PdfSigningAlgorithm::SLH_DSA;
 #endif // OPENSSL_VERSION_MAJOR >= 3
     else
-        return PdfSignatureEncryption::Unknown;
+        return PdfSigningAlgorithm::Unknown;
 }
 
 unsigned ssl::GetEVP_Size(PdfHashingAlgorithm hashing)
