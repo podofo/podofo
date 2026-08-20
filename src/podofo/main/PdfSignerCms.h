@@ -37,6 +37,10 @@ namespace PoDoFo
         ServiceDoDryRun = 2,
     };
 
+    // NOTE: The deprecated Encryption field below will cause deprecation warnings
+    // because of implictly generated costructors, hence we suppress warnings for
+    // the whole struct
+    PODOFO_SUPPRESS_DEPRECATED_PUSH
     struct PODOFO_API PdfSignerCmsParams final
     {
         PdfSignatureType SignatureType = PdfSignatureType::PAdES_B;
@@ -48,6 +52,7 @@ namespace PoDoFo
         PdfSignedHashHandler SignedHashHandler;
         PdfSignerCmsFlags Flags = PdfSignerCmsFlags::None;
     };
+    PODOFO_SUPPRESS_DEPRECATED_POP
 
     enum class PdfSignatureAttributeFlags : uint32_t
     {

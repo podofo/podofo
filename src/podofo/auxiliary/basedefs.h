@@ -94,6 +94,21 @@
 
 // Set up some other compiler-specific but not platform-specific macros
 
+/// Suppress the warnings on the use of deprecated declarations in the code
+/// enclosed by the push/pop pair. It's needed where a deprecated entity must
+/// still be referenced, eg. a deprecated field that is still part of a structure
+#if defined(_MSC_VER)
+#define PODOFO_SUPPRESS_DEPRECATED_PUSH __pragma(warning(push)) __pragma(warning(disable: 4996))
+#define PODOFO_SUPPRESS_DEPRECATED_POP __pragma(warning(pop))
+#elif defined(__GNUC__) || defined(__clang__)
+#define PODOFO_SUPPRESS_DEPRECATED_PUSH _Pragma("GCC diagnostic push") \
+    _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
+#define PODOFO_SUPPRESS_DEPRECATED_POP _Pragma("GCC diagnostic pop")
+#else
+#define PODOFO_SUPPRESS_DEPRECATED_PUSH
+#define PODOFO_SUPPRESS_DEPRECATED_POP
+#endif
+
 /// Specify the friend identifier is defined in private symbols only
 #define PODOFO_PRIVATE_FRIEND(identifier)
 

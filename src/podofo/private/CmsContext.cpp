@@ -19,6 +19,8 @@ static void serializeCmsTo(charbuff& buff, CMS_ContentInfo* info);
 static void addAttribute(CMS_SignerInfo* si, int(*addAttributeFun)(CMS_SignerInfo*, const char*, int, const void*, int),
     const string_view& nid, const bufferview& attr, bool octet);
 
+// NOTE: PdfSignatureEncryption is deprecated only for the public API
+PODOFO_SUPPRESS_DEPRECATED_PUSH
 CmsContext::CmsContext() :
     m_status(CmsContextStatus::Uninitialized),
     m_encryption(PdfSignatureEncryption::Unknown),
@@ -28,6 +30,7 @@ CmsContext::CmsContext() :
     m_databio(nullptr)
 {
 }
+PODOFO_SUPPRESS_DEPRECATED_POP
 
 void CmsContext::Reset(const bufferview& cert, const CmsContextParams& parameters)
 {
@@ -168,8 +171,10 @@ void CmsContext::Dump(xmlNodePtr ctxElem, string& temp)
     if (xmlNewChild(parametersElem, nullptr, XMLCHAR "SigningTimeUTC", XMLCHAR temp.data()) == nullptr)
         goto SerializationFailed;
 
+    PODOFO_SUPPRESS_DEPRECATED_PUSH
     if (xmlNewChild(ctxElem, nullptr, XMLCHAR "Encryption", XMLCHAR PoDoFo::ToString(m_encryption).data()) == nullptr)
         goto SerializationFailed;
+    PODOFO_SUPPRESS_DEPRECATED_POP
 
     utls::WriteHexStringTo(temp, m_certHash);
     auto certificateElem = xmlNewChild(ctxElem, nullptr, XMLCHAR "CertHash", XMLCHAR temp.data());
@@ -260,7 +265,9 @@ void CmsContext::Restore(xmlNodePtr ctxElem, charbuff& temp)
     node = utls::FindChildElement(ctxElem, "Encryption");
     if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
         goto DeserializationFailed;
+    PODOFO_SUPPRESS_DEPRECATED_PUSH
     m_encryption = PoDoFo::ConvertTo<PdfSignatureEncryption>((const char*)node->children->content);
+    PODOFO_SUPPRESS_DEPRECATED_POP
 
     node = utls::FindChildElement(ctxElem, "CertHash");
     if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
@@ -304,11 +311,13 @@ void CmsContext::loadX509Certificate(const bufferview& cert)
     if (pubkey == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Invalid public key");
 
+    PODOFO_SUPPRESS_DEPRECATED_PUSH
     m_encryption = PdfSignatureEncryption::Unknown;
     if (EVP_PKEY_base_id(pubkey) == EVP_PKEY_RSA)
         m_encryption = PdfSignatureEncryption::RSA;
     else if (EVP_PKEY_base_id(pubkey) == EVP_PKEY_EC)
         m_encryption = PdfSignatureEncryption::ECDSA;
+    PODOFO_SUPPRESS_DEPRECATED_POP
 }
 
 void CmsContext::computeCertificateHash()

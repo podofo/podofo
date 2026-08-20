@@ -811,7 +811,8 @@ enum class PdfSignatureType : uint8_t
     Pkcs7 = 2,
 };
 
-enum class PdfSignatureEncryption : uint8_t
+/// @deprecated It has no use in the public API, it will be replaced by PdfSigningAlgorithm in 1.2.x
+enum class [[deprecated("It has no use in the public API, it will be replaced by PdfSigningAlgorithm in 1.2.x")]] PdfSignatureEncryption : uint8_t
 {
     Unknown = 0,
     RSA,

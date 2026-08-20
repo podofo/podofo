@@ -394,6 +394,8 @@ void PdfSignerCms::doSign(const bufferview& input, charbuff& output)
     return ssl::DoSignHash(input, m_privKey, PdfHashingAlgorithm::Unknown, output, true);
 }
 
+// NOTE: PdfSignatureEncryption is deprecated only for the public API
+PODOFO_SUPPRESS_DEPRECATED_PUSH
 void PdfSignerCms::tryEnlargeSignatureContents(charbuff& contents)
 {
     if (m_cmsContext->GetEncryption() == PdfSignatureEncryption::ECDSA)
@@ -407,3 +409,4 @@ void PdfSignerCms::tryEnlargeSignatureContents(charbuff& contents)
             contents.resize(contents.size() + m_reservedSize);
     }
 }
+PODOFO_SUPPRESS_DEPRECATED_POP

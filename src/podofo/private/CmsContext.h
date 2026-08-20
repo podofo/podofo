@@ -49,7 +49,10 @@ namespace PoDoFo
         void Restore(xmlNodePtr elem, charbuff& temp);
         unsigned GetSignedHashSize() const;
     public:
+        // NOTE: PdfSignatureEncryption is deprecated only for the public API
+        PODOFO_SUPPRESS_DEPRECATED_PUSH
         PdfSignatureEncryption GetEncryption() const { return m_encryption; }
+        PODOFO_SUPPRESS_DEPRECATED_POP
     private:
         void loadX509Certificate(const bufferview& cert);
         void computeCertificateHash();
@@ -73,7 +76,9 @@ namespace PoDoFo
     private:
         CmsContextStatus m_status;
         CmsContextParams m_parameters;
+        PODOFO_SUPPRESS_DEPRECATED_PUSH
         PdfSignatureEncryption m_encryption;
+        PODOFO_SUPPRESS_DEPRECATED_POP
         struct x509_st* m_cert;
         charbuff m_certHash;
         struct CMS_ContentInfo_st* m_cms;
