@@ -215,7 +215,7 @@ end)";
     auto& encodingObj = font.GetDictionary().MustFindKey("Encoding");
     REQUIRE(encodingObj.MustGetStream().GetCopy() == expectedEncoding);
 
-#else PODOFO_ENABLE_AFDKO
+#else // !PODOFO_ENABLE_AFDKO
     auto expectedContent = R"(q
 q
 BT
