@@ -360,11 +360,32 @@ TEST_CASE("TestEncryptMetadataFalse")
     PdfMemDocument doc;
     // This one has /EncryptMetadata false and /Filter[/Crypt] in /Metadata
     doc.Load(TestUtils::GetTestInputFilePath("EncryptMetadataFalseCrypt.pdf"), "userpass");
-    REQUIRE(doc.GetMetadata().GetProducer()->GetString() == "PoDoFo - http://podofo.sf.net");
+    REQUIRE(doc.GetMetadata().GetProducer()->GetString() == "PoDoFo - https://podofo.github.io/");
 
     // This one has /EncryptMetadata false and no /Filter in /Metadata. Should still work
     doc.Load(TestUtils::GetTestInputFilePath("EncryptMetadataFalseNoCrypt.pdf"), "userpass");
-    REQUIRE(doc.GetMetadata().GetProducer()->GetString() == "PoDoFo - http://podofo.sf.net");
+    REQUIRE(doc.GetMetadata().GetProducer()->GetString() == "PoDoFo - https://podofo.github.io/");
+}
+
+// With /EncryptMetadata false the /Metadata stream must be written back
+// unencrypted, as the parser reads it without decrypting it
+TEST_CASE("TestEncryptMetadataFalseRoundTrip")
+{
+    charbuff buffer;
+    for (auto filename : { "EncryptMetadataFalseCrypt.pdf", "EncryptMetadataFalseNoCrypt.pdf" })
+    {
+        PdfMemDocument doc;
+        doc.Load(TestUtils::GetTestInputFilePath(filename), "userpass");
+        auto device = std::make_shared<BufferStreamDevice>(buffer);
+        doc.Save(*device, PdfSaveOptions::NoMetadataUpdate);
+
+        doc.Load(device, "userpass");
+        REQUIRE(!doc.GetEncrypt()->IsMetadataEncrypted());
+
+        charbuff xmp;
+        doc.GetCatalog().GetMetadataObject()->MustGetStream().CopyTo(xmp);
+        REQUIRE(xmp.substr(0, 9) == "<?xpacket");
+    }
 }
 
 // With /EncryptMetadata false the /Metadata stream must be written back
