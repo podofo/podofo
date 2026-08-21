@@ -276,17 +276,20 @@ void PdfObject::write(OutputStream& stream, bool skipLengthFix,
     if (m_IndirectReference.IsIndirect())
         WriteHeader(stream, writeMode, buffer);
 
+    auto streamEncrypt = encrypt;
     if (m_Stream != nullptr)
     {
+        const PdfObject* metadataObj;
+        bool isMetadataObj = m_Document != nullptr
+            && (metadataObj = m_Document->GetCatalog().GetMetadataObject()) != nullptr
+            && m_IndirectReference == metadataObj->GetIndirectReference();
+
         // Try to compress the flate compress the stream if it has no filters,
         // the compression is not disabled and it's not the /MetaData object,
         // which must be unfiltered as per PDF/A
-        const PdfObject* metadataObj;
         if ((writeMode & PdfWriteFlags::NoFlateCompress) == PdfWriteFlags::None
             && m_Stream->GetFilters().size() == 0
-            && (m_Document == nullptr 
-                || (metadataObj = m_Document->GetCatalog().GetMetadataObject()) == nullptr
-                || m_IndirectReference != metadataObj->GetIndirectReference()))
+            && !isMetadataObj)
         {
             PdfObject object;
             auto& objStream = object.GetOrCreateStream();
@@ -299,12 +302,21 @@ void PdfObject::write(OutputStream& stream, bool skipLengthFix,
             m_Stream->MoveFrom(objStream);
         }
 
+        // NOTE: The /Metadata stream is left unencrypted when the document
+        // has /EncryptMetadata false
+        const PdfEncrypt* docEncrypt;
+        if (isMetadataObj && (docEncrypt = m_Document->GetEncrypt()) != nullptr
+            && !docEncrypt->IsMetadataEncrypted())
+        {
+            streamEncrypt = nullptr;
+        }
+
         // Set length if it's not handled by the underlying provider
         if (!skipLengthFix)
         {
             size_t length = m_Stream->GetLength();
-            if (encrypt != nullptr)
-                length = encrypt->CalculateStreamLength(length);
+            if (streamEncrypt != nullptr)
+                length = streamEncrypt->CalculateStreamLength(length);
 
             // Add the key without triggering SetDirty
             const_cast<PdfObject&>(*this).m_Variant.GetDictionaryUnsafe()
@@ -316,7 +328,7 @@ void PdfObject::write(OutputStream& stream, bool skipLengthFix,
     stream.Write('\n');
 
     if (m_Stream != nullptr)
-        m_Stream->Write(stream, encrypt);
+        m_Stream->Write(stream, streamEncrypt);
 
     if (m_IndirectReference.IsIndirect())
         stream.Write("endobj\n");
