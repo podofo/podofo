@@ -9,7 +9,7 @@
 #include "PdfDictionary.h"
 #include "PdfString.h"
 
-#define PRODUCER_STRING "PoDoFo - https://github.com/podofo/podofo"
+#define PRODUCER_STRING "PoDoFo - https://podofo.github.io/"
 
 using namespace std;
 using namespace PoDoFo;

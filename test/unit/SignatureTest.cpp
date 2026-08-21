@@ -606,7 +606,7 @@ TEST_CASE("TestSignatureOffsetStart")
     // Try to reload the document
     doc.Load(inputOutput);
 
-    REQUIRE(ssl::ComputeMD5Str(currBuffer) == "DA67F107777CF7C4852097596C503D84");
+    REQUIRE(ssl::ComputeMD5Str(currBuffer) == "6775DFDCB9DB412BA849CCF7196F5BC5");
 }
 
 TEST_CASE("TestSignatureCorrupted")
@@ -655,12 +655,12 @@ TEST_CASE("TestSignatureCorrupted")
     try
     {
         utls::ReadTo(currBuffer, TestUtils::GetTestInputFilePath("TestXRefRecovery1.pdf"));
-        doTest("TestSignatureCorrupted1.pdf", "664845955D6A85B32DEE367CFF48EA53");
+        doTest("TestSignatureCorrupted1.pdf", "797D700B04F1D67E26A804D45F978FCD");
 
         // Repeat the test with some garbage at the beginning of the test
         utls::ReadTo(currBuffer, TestUtils::GetTestInputFilePath("TestXRefRecovery1.pdf"));
         currBuffer.insert(0, "% Some garbage before the PDF header\n\n");
-        doTest("TestSignatureCorrupted2.pdf", "07ABE5475490FFFDF626E996D8EF24BA");
+        doTest("TestSignatureCorrupted2.pdf", "F08069B4F8FD6B48CB69B1AD7F20B211");
         PdfCommon::SetMaxLoggingSeverity(currentLogSeverity);
     }
     catch (...)
@@ -699,7 +699,7 @@ TEST_CASE("TestECDSA")
     PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
 
     utls::ReadTo(buff, outputPath);
-    REQUIRE(ssl::ComputeMD5Str(buff) == "B8612BAB5056EE415CF5057E675DAF14");
+    REQUIRE(ssl::ComputeMD5Str(buff) == "E8F34C90C26982DFBB3CC56F397C2B27");
 }
 
 #endif // OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 2)
@@ -738,8 +738,8 @@ TEST_CASE("TestPostQuantumCryptography")
             REQUIRE(ssl::ComputeMD5Str(buff) == refHash);
         };
 
-    testSignature("ML-DSA-44", "3D3640B9E7266412060E0A598F2D84E5");
-    testSignature("slh-dsa-sha2-128f", "10CCF0E4C922D191514ABC6CCA2C8010");
+    testSignature("ML-DSA-44", "77F6758B2A3E0184402AA96F9CFE5B7E");
+    testSignature("slh-dsa-sha2-128f", "F430FDAAE82AD5B4407CAC5B03AC70FF");
 }
 
 #endif // OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 5)

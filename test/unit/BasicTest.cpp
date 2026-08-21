@@ -252,11 +252,11 @@ TEST_CASE("TestObjectAdapter")
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("blank.pdf"));
     const auto& info = doc.GetTrailer().GetDictionary().FindKeyAs<PdfDictionary>("Info");
-    REQUIRE(info.GetKeyAs<PdfString>("Producer") == "PoDoFo - http://podofo.sf.net");
+    REQUIRE(info.GetKeyAs<PdfString>("Producer") == "PoDoFo - https://podofo.github.io/");
     REQUIRE(info.GetKeyAsSafe<PdfString>("Prod", "fallback") == "fallback");
-    REQUIRE(info.FindKeyAs<PdfString>("Producer") == "PoDoFo - http://podofo.sf.net");
+    REQUIRE(info.FindKeyAs<PdfString>("Producer") == "PoDoFo - https://podofo.github.io/");
     REQUIRE(info.FindKeyAsSafe<PdfString>("Prod", "fallback") == "fallback");
-    REQUIRE(info.FindKeyParentAs<PdfString>("Producer") == "PoDoFo - http://podofo.sf.net");
+    REQUIRE(info.FindKeyParentAs<PdfString>("Producer") == "PoDoFo - https://podofo.github.io/");
     REQUIRE(info.FindKeyParentAsSafe<PdfString>("Prod", "fallback") == "fallback");
 }
 
