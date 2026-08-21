@@ -367,6 +367,27 @@ TEST_CASE("TestEncryptMetadataFalse")
     REQUIRE(doc.GetMetadata().GetProducer()->GetString() == "PoDoFo - http://podofo.sf.net");
 }
 
+// With /EncryptMetadata false the /Metadata stream must be written back
+// unencrypted, as the parser reads it without decrypting it
+TEST_CASE("TestEncryptMetadataFalseRoundTrip")
+{
+    charbuff buffer;
+    for (auto filename : { "EncryptMetadataFalseCrypt.pdf", "EncryptMetadataFalseNoCrypt.pdf" })
+    {
+        PdfMemDocument doc;
+        doc.Load(TestUtils::GetTestInputFilePath(filename), "userpass");
+        auto device = std::make_shared<BufferStreamDevice>(buffer);
+        doc.Save(*device, PdfSaveOptions::NoMetadataUpdate);
+
+        doc.Load(device, "userpass");
+        REQUIRE(!doc.GetEncrypt()->IsMetadataEncrypted());
+
+        charbuff xmp;
+        doc.GetCatalog().GetMetadataObject()->MustGetStream().CopyTo(xmp);
+        REQUIRE(xmp.substr(0, 9) == "<?xpacket");
+    }
+}
+
 TEST_CASE("TestRemoveEncryption")
 {
     PdfMemDocument doc;
