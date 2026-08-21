@@ -37,6 +37,10 @@ set(PODOFO_SOURCES ${PODOFO_HEADERS})
 if(PODOFO_BUILD_SHARED AND WIN32)
     # If we build for windows systems, we also include the resource file
     list(APPEND PODOFO_SOURCES podofo.rc)
+    # NOTE: The resource compiler doesn't receive the configuration
+    # dependent flags of the C/C++ compiler, so supply NDEBUG explicitly
+    set_property(SOURCE podofo.rc APPEND PROPERTY COMPILE_DEFINITIONS
+        $<$<NOT:$<CONFIG:Debug>>:NDEBUG>)
 endif()
 
 # Set visual studio source group

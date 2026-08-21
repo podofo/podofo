@@ -134,7 +134,7 @@ void PdfXRef::WriteSubSection(OutputStreamDevice& device, uint32_t first, uint32
 {
 #ifndef VERBOSE_DEBUG_DISABLED
     PoDoFo::LogMessage(PdfLogSeverity::Debug, "Writing XRef section: {} {}", first, count);
-#endif // DEBUG
+#endif // VERBOSE_DEBUG_DISABLED
     utls::FormatTo(buffer, "{} {}\n", first, count);
     device.Write(buffer);
 }

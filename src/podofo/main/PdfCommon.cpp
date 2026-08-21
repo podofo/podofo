@@ -24,11 +24,11 @@ constexpr unsigned MaxRecursionDepthDefault = 450;
 
 PODOFO_EXPORT unsigned s_MaxRecursionDepth = MaxRecursionDepthDefault;
 
-#ifdef DEBUG
-PODOFO_EXPORT PdfLogSeverity s_MaxLogSeverity = PdfLogSeverity::Debug;
-#else
+#ifdef NDEBUG
 PODOFO_EXPORT PdfLogSeverity s_MaxLogSeverity = PdfLogSeverity::Information;
-#endif // DEBUG
+#else // !NDEBUG
+PODOFO_EXPORT PdfLogSeverity s_MaxLogSeverity = PdfLogSeverity::Debug;
+#endif // NDEBUG
 
 PODOFO_EXPORT LogMessageCallback s_LogMessageCallback;
 
@@ -53,6 +53,15 @@ void ssl::Init()
 #if OPENSSL_VERSION_MAJOR >= 3
     return s_SSL.GetLibCtx();
 #endif // OPENSSL_VERSION_MAJOR >= 3
+}
+
+bool PdfCommon::IsDebugBuild()
+{
+#ifdef NDEBUG
+    return false;
+#else // !NDEBUG
+    return true;
+#endif // NDEBUG
 }
 
 void PdfCommon::AddFontDirectory(const string_view& path)

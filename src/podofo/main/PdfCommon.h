@@ -14,6 +14,10 @@ class PODOFO_API PdfCommon final
     PdfCommon() = delete;
 
 public:
+    /// Determine if the library was built with debug semantics, as
+    /// determined by the standard NDEBUG macro when it was compiled.
+    static bool IsDebugBuild();
+
     static void AddFontDirectory(const std::string_view& path);
 
     /// Set a global static LogMessageCallback functor to replace stderr output in LogMessageInternal.

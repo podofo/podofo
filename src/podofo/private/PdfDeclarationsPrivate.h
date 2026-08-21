@@ -92,16 +92,16 @@
 //
 #define EXTRA_CHECKS_DISABLED
 
-#ifdef DEBUG
+#ifdef NDEBUG
+#define PODOFO_ASSERT(x) ((void)0)
+#else // !NDEBUG
 #include <cassert>
-#define PODOFO_ASSERT(x) assert(x);
-#else
-#define PODOFO_ASSERT(x)
-#endif // DEBUG
+#define PODOFO_ASSERT(x) assert(x)
+#endif // NDEBUG
 
 // This is a do nothing macro that can be used to define
 // an invariant property without actually checking for it,
-// not even in DEBUG build. It's user responsibility to
+// not even in debug builds. It's user responsibility to
 // ensure it's actually satisfied
 #define PODOFO_INVARIANT(x)
 

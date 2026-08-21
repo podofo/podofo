@@ -298,3 +298,13 @@ startxref
     doc.Reset();
     REQUIRE(doc.GetMagicOffset() == 0);
 }
+
+TEST_CASE("TestIsDebugBuild")
+{
+    // The unit tests are always built with the same configuration of the library
+#ifdef NDEBUG
+    REQUIRE(!PdfCommon::IsDebugBuild());
+#else // !NDEBUG
+    REQUIRE(PdfCommon::IsDebugBuild());
+#endif // NDEBUG
+}
