@@ -16,6 +16,8 @@ unsigned to unsigned char. This was done for consistency in a part of the API
 which is new and has no known users, should cause no issue
 - `PdChoiceField`: Changed `GetItemDisplayText` parameter index type from int
 to unsigned for consistency. Should cause limited issues
+- `basecompat.h`: Removed the definition of the unprefixed `DEBUG` macro, which was
+set when `_DEBUG` is, that is when building against the MSVC debug runtime
 
 The following are not API breakages but behavioral changes:
 

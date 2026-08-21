@@ -1,6 +1,7 @@
 ## Version 1.2.0-dev
 - Added PQC signing: supported for now are ML-DSA ([RFC 9882](https://www.rfc-editor.org/info/rfc9882/)) and SLH-DSA ([RFC 9814](https://www.rfc-editor.org/info/rfc9814/))
 - Added `PdfSigningAlgorithm`, deprecating `PdfSignatureEncryption`
+- Added `PdfCommon::IsDebugBuild()`
 
 ## Version 1.1.2
 - `CodePointSpan`: Fixed constructor with base view plus one code point, [GHSA](https://github.com/podofo/podofo/security/advisories/GHSA-7vfg-cp83-9rxr)

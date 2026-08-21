@@ -138,7 +138,7 @@ void PdfFilter::BeginDecode(OutputStream& output, const PdfDictionary* decodePar
 
 void PdfFilter::DecodeBlock(const bufferview& view)
 {
-    PODOFO_ASSERT(m_OutputStream != nullptr && "DecodeBlock() without BeginDecode() or on failed filter")
+    PODOFO_ASSERT(m_OutputStream != nullptr && "DecodeBlock() without BeginDecode() or on failed filter");
 
     try
     {
@@ -153,7 +153,7 @@ void PdfFilter::DecodeBlock(const bufferview& view)
 
 void PdfFilter::EndDecode()
 {
-    PODOFO_ASSERT(m_OutputStream != nullptr && "EndDecode() without BeginDecode() or on failed filter")
+    PODOFO_ASSERT(m_OutputStream != nullptr && "EndDecode() without BeginDecode() or on failed filter");
 
     try
     {

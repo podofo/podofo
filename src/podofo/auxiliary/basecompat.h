@@ -18,15 +18,6 @@ typedef SSIZE_T ssize_t;
 #include <sys/types.h>
 #endif
 
-// Make sure that DEBUG is defined
-// for debug builds on Windows
-// as Visual Studio defines only _DEBUG
-#ifdef _DEBUG
-#ifndef DEBUG
-#define DEBUG 1
-#endif // DEBUG
-#endif // _DEBUG
-
 // Silence some annoying warnings from Visual Studio
 #ifdef _MSC_VER
 #pragma warning(disable: 4251)
