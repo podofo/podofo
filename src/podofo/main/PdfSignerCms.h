@@ -43,6 +43,10 @@ namespace PoDoFo
         ///< cross-check of the supplied signed hash, and it's never performed when a private
         ///< key is supplied or during dry runs
         SkipVerification = 8,
+        ///< Skip the validation of the signature date against the validity period of the
+        ///< supplied certificate. The validation is performed by default and a missing
+        ///< signature date makes it fail
+        SkipDateValidation = 16,
     };
 
     // NOTE: The deprecated Encryption field below will cause deprecation warnings
@@ -98,6 +102,7 @@ namespace PoDoFo
     public:
         /// Validate the signature date against the certificate validity period
         /// @param date the date of the signature field. A missing date makes the validation fail
+        /// @remarks it does nothing when PdfSignerCmsFlags::SkipDateValidation is set
         void ValidateSignatureDate(const nullable<PdfDate>& date) override;
         void AppendData(const bufferview& data) override;
         void ComputeSignature(charbuff& buffer, bool dryrun) override;

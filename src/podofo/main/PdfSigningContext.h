@@ -107,12 +107,6 @@ namespace PoDoFo
 
         bool IsEmpty() const;
 
-    public:
-        /// Determines if the validation of the signature date, performed by the
-        /// configured signers, should be skipped. It is performed by default
-        bool GetSkipDateValidation() const { return m_SkipDateValidation; }
-        void SetSkipDateValidation(bool value) { m_SkipDateValidation = value; }
-
     private:
         struct SignerDescriptors
         {
@@ -171,7 +165,6 @@ namespace PoDoFo
         // Signer contexts used when preparing/finish signing operations
         std::vector<SignerContext> m_contexts;
         Status m_status;
-        bool m_SkipDateValidation;
     };
 }
 

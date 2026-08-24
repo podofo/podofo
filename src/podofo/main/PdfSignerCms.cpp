@@ -43,6 +43,9 @@ PdfSignerCms::PdfSignerCms() :
 
 void PdfSignerCms::ValidateSignatureDate(const nullable<PdfDate>& date)
 {
+    if ((m_parameters.Flags & PdfSignerCmsFlags::SkipDateValidation) != PdfSignerCmsFlags::None)
+        return;
+
     if (!date.has_value())
     {
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::SignatureVerificationError,

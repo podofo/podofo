@@ -301,9 +301,12 @@ TEST_CASE("TestSignatureDateValidation")
         auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
         signature.SetSignatureDate(date);
 
+        PdfSignerCmsParams params;
+        if (skipValidation)
+            params.Flags |= PdfSignerCmsFlags::SkipDateValidation;
+
         PdfSigningContext ctx;
-        ctx.SetSkipDateValidation(skipValidation);
-        ctx.AddSigner(signature, std::make_shared<PdfSignerCms>(cert, pkey));
+        ctx.AddSigner(signature, std::make_shared<PdfSignerCms>(cert, pkey, params));
         ctx.Sign(doc, *stream, PdfSaveOptions::NoMetadataUpdate);
     };
 
@@ -318,8 +321,9 @@ TEST_CASE("TestSignatureDateValidation")
     ASSERT_THROW_WITH_ERROR_CODE(trySign(PdfDate::Parse("D:20340205192456+06'00'"), false),
         PdfErrorCode::SignatureVerificationError);
 
-    // The validation can be skipped on the signing context
+    // The validation can be skipped on the signer
     trySign(nullptr, true);
+    trySign(PdfDate::Parse("D:20220205192456+06'00'"), true);
 }
 
 // Test deferred signing with external service and context dumping/restore

@@ -40,7 +40,7 @@ namespace
 }
 
 PdfSigningContext::PdfSigningContext()
-    : m_doc(nullptr), m_status(Status::Config), m_SkipDateValidation(false)
+    : m_doc(nullptr), m_status(Status::Config)
 {
 }
 
@@ -495,9 +495,6 @@ void PdfSigningContext::ensureNotStarted() const
 
 void PdfSigningContext::validateSignatureDates(PdfMemDocument& doc) const
 {
-    if (m_SkipDateValidation)
-        return;
-
     for (auto& pair : m_signers)
     {
         auto& descs = pair.second;
