@@ -1,5 +1,7 @@
 ## Version 1.2.0-dev
 - Added PQC signing: supported for now are ML-DSA ([RFC 9882](https://www.rfc-editor.org/info/rfc9882/)) and SLH-DSA ([RFC 9814](https://www.rfc-editor.org/info/rfc9814/))
+- Added `PdfSignature::TryVerifySignature()`
+- Added `PdfDocument::GetSortedSignatures()`
 - Added `PdfSigningAlgorithm`, deprecating `PdfSignatureEncryption`
 - Added `PdfCommon::IsDebugBuild()`
 

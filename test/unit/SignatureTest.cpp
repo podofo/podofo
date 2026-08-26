@@ -881,3 +881,214 @@ TEST_CASE("TestVerifyBadSigningCertificateV2")
     REQUIRE(!context.TryVerifySigningCertificateV2(attrMissing));
     REQUIRE(!attrMissing);
 }
+
+// The following fixtures declare two signature fields, "Sig1" and "Sig2" in
+// /Fields order, and vary only in their /ByteRange
+
+// "Sig1" signs the revision that follows the one signed by "Sig2"
+constexpr string_view SortedSignaturesPdf = R"(%PDF-1.7
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R /AcroForm << /Fields [3 0 R 5 0 R] /SigFlags 3 >> >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [] /Count 0 >>
+endobj
+3 0 obj
+<< /FT /Sig /T (Sig1) /V 4 0 R >>
+endobj
+4 0 obj
+<< /Type /Sig /ByteRange [0 3000 3100 1200] /Contents <00> >>
+endobj
+5 0 obj
+<< /FT /Sig /T (Sig2) /V 6 0 R >>
+endobj
+6 0 obj
+<< /Type /Sig /ByteRange [0 1000 1100 1200] /Contents <00> >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000010 00000 n 
+0000000112 00000 n 
+0000000167 00000 n 
+0000000219 00000 n 
+0000000299 00000 n 
+0000000351 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+431
+%%EOF
+)"sv;
+
+// The first range of "Sig1" doesn't start at offset zero
+constexpr string_view FirstRangeNotZeroPdf = R"(%PDF-1.7
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R /AcroForm << /Fields [3 0 R 5 0 R] /SigFlags 3 >> >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [] /Count 0 >>
+endobj
+3 0 obj
+<< /FT /Sig /T (Sig1) /V 4 0 R >>
+endobj
+4 0 obj
+<< /Type /Sig /ByteRange [10 1000 1100 1200] /Contents <00> >>
+endobj
+5 0 obj
+<< /FT /Sig /T (Sig2) /V 6 0 R >>
+endobj
+6 0 obj
+<< /Type /Sig /ByteRange [0 3000 3100 1200] /Contents <00> >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000010 00000 n 
+0000000112 00000 n 
+0000000167 00000 n 
+0000000219 00000 n 
+0000000300 00000 n 
+0000000352 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+432
+%%EOF
+)"sv;
+
+// "Sig1" declares more than the couple of ranges mandated by the specification
+constexpr string_view TooManyRangesPdf = R"(%PDF-1.7
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R /AcroForm << /Fields [3 0 R 5 0 R] /SigFlags 3 >> >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [] /Count 0 >>
+endobj
+3 0 obj
+<< /FT /Sig /T (Sig1) /V 4 0 R >>
+endobj
+4 0 obj
+<< /Type /Sig /ByteRange [0 1000 1010 2000 2010 3000] /Contents <00> >>
+endobj
+5 0 obj
+<< /FT /Sig /T (Sig2) /V 6 0 R >>
+endobj
+6 0 obj
+<< /Type /Sig /ByteRange [0 4000 4100 1200] /Contents <00> >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000010 00000 n 
+0000000112 00000 n 
+0000000167 00000 n 
+0000000219 00000 n 
+0000000309 00000 n 
+0000000361 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+441
+%%EOF
+)"sv;
+
+// The ranges of "Sig1" overlap each other
+constexpr string_view OverlappingRangesPdf = R"(%PDF-1.7
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R /AcroForm << /Fields [3 0 R 5 0 R] /SigFlags 3 >> >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [] /Count 0 >>
+endobj
+3 0 obj
+<< /FT /Sig /T (Sig1) /V 4 0 R >>
+endobj
+4 0 obj
+<< /Type /Sig /ByteRange [0 1000 900 1200] /Contents <00> >>
+endobj
+5 0 obj
+<< /FT /Sig /T (Sig2) /V 6 0 R >>
+endobj
+6 0 obj
+<< /Type /Sig /ByteRange [0 3000 3100 1200] /Contents <00> >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000010 00000 n 
+0000000112 00000 n 
+0000000167 00000 n 
+0000000219 00000 n 
+0000000298 00000 n 
+0000000350 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+430
+%%EOF
+)"sv;
+
+// The first range of "Sig2" doesn't extend past the revision signed by "Sig1"
+constexpr string_view NotCoveringPreviousPdf = R"(%PDF-1.7
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R /AcroForm << /Fields [3 0 R 5 0 R] /SigFlags 3 >> >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [] /Count 0 >>
+endobj
+3 0 obj
+<< /FT /Sig /T (Sig1) /V 4 0 R >>
+endobj
+4 0 obj
+<< /Type /Sig /ByteRange [0 1000 1100 1200] /Contents <00> >>
+endobj
+5 0 obj
+<< /FT /Sig /T (Sig2) /V 6 0 R >>
+endobj
+6 0 obj
+<< /Type /Sig /ByteRange [0 2000 2400 1200] /Contents <00> >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000010 00000 n 
+0000000112 00000 n 
+0000000167 00000 n 
+0000000219 00000 n 
+0000000299 00000 n 
+0000000351 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+431
+%%EOF
+)"sv;
+
+TEST_CASE("TestGetSortedSignatures")
+{
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(SortedSignaturesPdf);
+
+    vector<const PdfSignature*> signatures;
+    doc.GetSortedSignatures(signatures);
+    REQUIRE(signatures.size() == 2);
+    REQUIRE(signatures[0]->GetName()->GetString() == "Sig2");
+    REQUIRE(signatures[1]->GetName()->GetString() == "Sig1");
+}
+
+TEST_CASE("TestGetSortedSignaturesInvalid")
+{
+    auto getSignatures = [](const string_view& buffer)
+    {
+        PdfMemDocument doc;
+        doc.LoadFromBuffer(buffer);
+        vector<const PdfSignature*> signatures;
+        doc.GetSortedSignatures(signatures);
+    };
+
+    ASSERT_THROW_WITH_ERROR_CODE(getSignatures(FirstRangeNotZeroPdf), PdfErrorCode::InvalidObject);
+    ASSERT_THROW_WITH_ERROR_CODE(getSignatures(TooManyRangesPdf), PdfErrorCode::InvalidObject);
+    ASSERT_THROW_WITH_ERROR_CODE(getSignatures(OverlappingRangesPdf), PdfErrorCode::InvalidObject);
+    ASSERT_THROW_WITH_ERROR_CODE(getSignatures(NotCoveringPreviousPdf), PdfErrorCode::InvalidObject);
+}

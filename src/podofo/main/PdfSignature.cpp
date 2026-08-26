@@ -347,6 +347,47 @@ PdfObject* PdfSignature::getValueObject() const
     return m_ValueObj;
 }
 
+nullable<array<size_t, 4>> PdfSignature::GetByteRangeBounds() const
+{
+    const PdfArray* byteRange;
+    if (m_ValueObj == nullptr || !m_ValueObj->GetDictionary().TryFindKeyAs("ByteRange", byteRange))
+        return nullptr;
+
+    // A PDF signature always has a single pair of ranges, the second
+    // one starting right after the /Contents string
+    unsigned size = byteRange->GetSize();
+    if (size != 4)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidObject, "Invalid /ByteRange with {} entries, 4 are expected", size);
+
+    array<size_t, 4> bounds{ };
+    for (unsigned i = 0; i < 2; i++)
+    {
+        int64_t offset;
+        int64_t length;
+        if (!byteRange->TryGetAtAs(i * 2, offset) || !byteRange->TryGetAtAs(i * 2 + 1, length)
+            || offset < 0 || length < 0)
+        {
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidObject, "Invalid /ByteRange range at index {}", i);
+        }
+
+        if (i == 0)
+        {
+            if (offset != 0)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidObject, "The first /ByteRange range must start at offset zero");
+        }
+        else if ((size_t)offset < bounds[1])
+        {
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidObject, "The second /ByteRange range overlaps the first one");
+        }
+
+        bounds[i * 2] = (size_t)offset;
+        if (!(CheckedNumeric((size_t)offset) + CheckedNumeric((size_t)length)).AssignIfValid(&bounds[i * 2 + 1]))
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidObject, "The /ByteRange range at index {} overflows", i);
+    }
+
+    return bounds;
+}
+
 void PdfSignature::SetContentsByteRangeNoDirtySet(const bufferview& contents, PdfArray&& byteRange)
 {
     m_ValueObj->GetDictionary().AddKeyNoDirtySet("ByteRange"_n, PdfVariant(std::move(byteRange)));

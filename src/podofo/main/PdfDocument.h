@@ -253,6 +253,16 @@ public:
     /// @returns a vector of PdfExtension
     std::vector<PdfExtension> GetPdfExtensions() const;
 
+    /// Retrieve the signed signatures of the document, sorted by the
+    /// upper boundary of their /ByteRange, hence by signing order
+    ///
+    /// Unsigned signature fields are skipped. It throws if a /ByteRange is
+    /// malformed or if the signatures don't form a consistent revision chain
+    /// @param signatures the found signatures, assigned on return
+    void GetSortedSignatures(std::vector<const PdfSignature*>& signatures) const;
+
+    void GetSortedSignatures(std::vector<PdfSignature*>& signatures);
+
     PdfAcroForm& MustGetAcroForm();
 
     const PdfAcroForm& MustGetAcroForm() const;

@@ -59,6 +59,7 @@ class PODOFO_API PdfSignature final : public PdfField
 {
     friend class PdfField;
     friend class PdfSigningContext;
+    friend class PdfDocument;
 
 private:
     PdfSignature(PdfAcroForm& acroform, std::shared_ptr<PdfField>&& parent);
@@ -166,6 +167,13 @@ private:
 
     // To be called by SignDocument()
     void SetContentsByteRangeNoDirtySet(const bufferview& contents, PdfArray&& byteRange);
+
+    // To be called by PdfDocument
+    /// Retrieve the validated boundaries of the /ByteRange, as the lower and
+    /// upper boundary of the first range followed by the ones of the second
+    /// @returns null if the signature has no /ByteRange, as for an unsigned
+    /// signature field. It throws if the /ByteRange is present but malformed
+    nullable<std::array<size_t, 4>> GetByteRangeBounds() const;
 
     void ensureValueObject();
 private:

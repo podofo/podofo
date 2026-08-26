@@ -9,10 +9,21 @@
 #include "PdfExtGState.h"
 #include "PdfDestination.h"
 #include "PdfFileSpec.h"
+#include "PdfSignature.h"
 #include "PdfStringStream.h"
 
 using namespace std;
 using namespace PoDoFo;
+
+namespace
+{
+    struct SignatureBounds final
+    {
+        PdfSignature* Signature;
+        size_t FirstUpperBound;
+        size_t UpperBound;
+    };
+}
 
 static PdfObject& copyPageObject(PdfIndirectObjectList& dest, const PdfObject& srcPageObj,
     unordered_map<PdfReference, PdfObject*>& mappedObjects);
@@ -578,6 +589,49 @@ vector<PdfExtension> PdfDocument::GetPdfExtensions() const
     }
 
     return ret;
+}
+
+void PdfDocument::GetSortedSignatures(vector<const PdfSignature*>& signatures) const
+{
+    const_cast<PdfDocument&>(*this).GetSortedSignatures(reinterpret_cast<vector<PdfSignature*>&>(signatures));
+}
+
+void PdfDocument::GetSortedSignatures(vector<PdfSignature*>& signatures)
+{
+    signatures.clear();
+    vector<SignatureBounds> bounds;
+    for (auto field : GetFieldsIterator())
+    {
+        if (field->GetType() != PdfFieldType::Signature)
+            continue;
+
+        auto signature = static_cast<PdfSignature*>(field);
+        // Skip unsigned signature fields, they take no part in the revision chain
+        auto byteRange = signature->GetByteRangeBounds();
+        if (!byteRange.has_value())
+            continue;
+
+        bounds.push_back({ signature, (*byteRange)[1], (*byteRange)[3] });
+    }
+
+    std::sort(bounds.begin(), bounds.end(), [](const SignatureBounds& lhs, const SignatureBounds& rhs)
+    {
+        return lhs.UpperBound < rhs.UpperBound;
+    });
+
+    signatures.reserve(bounds.size());
+    size_t prevUpperBound = 0;
+    for (size_t i = 0; i < bounds.size(); i++)
+    {
+        auto& bound = bounds[i];
+        // A signature signs the whole document as it was after the previous
+        // signature, hence its first range must extend past the boundary of it
+        if (i != 0 && bound.FirstUpperBound <= prevUpperBound)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidObject, "The /ByteRange of the signature at index {} doesn't cover the previous revision", i);
+
+        prevUpperBound = bound.UpperBound;
+        signatures.push_back(bound.Signature);
+    }
 }
 
 void PdfDocument::RemovePdfExtension(const string_view& ns, int64_t level)
