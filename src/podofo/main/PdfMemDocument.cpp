@@ -23,6 +23,7 @@ PdfMemDocument::PdfMemDocument(bool empty) :
     m_InitialVersion(PdfVersionDefault),
     m_HasXRefStream(false),
     m_HasBrokenXRef(false),
+    m_initiallyEncrypted(false),
     m_MagicOffset(0),
     m_PrevXRefOffset(0) // 0 is a sentinel for no or invalid XRef offset
 {
@@ -52,6 +53,7 @@ PdfMemDocument::PdfMemDocument(const PdfMemDocument& rhs) :
     m_InitialVersion(rhs.m_InitialVersion),
     m_HasXRefStream(rhs.m_HasXRefStream),
     m_HasBrokenXRef(rhs.m_HasBrokenXRef),
+    m_initiallyEncrypted(rhs.m_initiallyEncrypted),
     m_MagicOffset(rhs.m_MagicOffset),
     m_PrevXRefOffset(rhs.m_PrevXRefOffset)
 {
@@ -74,6 +76,7 @@ void PdfMemDocument::reset()
     m_InitialVersion = PdfVersionDefault;
     m_HasXRefStream = false;
     m_HasBrokenXRef = false;
+    m_initiallyEncrypted = false;
     m_MagicOffset = 0;
     m_PrevXRefOffset = 0;
 }
@@ -90,6 +93,7 @@ void PdfMemDocument::initFromParser(PdfParser& parser)
     SetEntryPoints(std::move(entryPoint.Trailer), entryPoint.Catalog);
 
     auto encrypt = parser.GetEncrypt();
+    m_initiallyEncrypted = encrypt != nullptr;
     if (encrypt != nullptr)
         m_Encrypt.reset(new PdfEncryptSession(*encrypt));
 
@@ -201,6 +205,19 @@ void PdfMemDocument::SaveUpdate(const string_view& filename, PdfSaveOptions opts
 
 void PdfMemDocument::SaveUpdate(OutputStreamDevice& device, PdfSaveOptions opts)
 {
+    // The encryption in effect must be the one the document was parsed with:
+    // an update can't re-key the document, as the objects of the previous
+    // revisions are not rewritten and would stay encrypted with the previous one
+    bool encryptPreserved = m_Encrypt == nullptr
+        ? !m_initiallyEncrypted
+        : m_Encrypt->GetEncrypt().IsParsed();
+    if (!encryptPreserved)
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedOperation,
+            "The encryption of a document can't be set, changed or removed when "
+            "writing an incremental update. Perform a regular save instead");
+    }
+
     beforeWrite(opts);
 
     PdfWriter writer(this->GetObjects(), this->GetTrailer().GetObject(), m_MagicOffset);
