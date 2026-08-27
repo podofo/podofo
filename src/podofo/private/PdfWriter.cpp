@@ -25,8 +25,10 @@ PdfWriter::PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer, s
     m_Objects(objects),
     m_Trailer(&trailer),
     m_MagicOffset(magicOffset),
-    m_Version(PdfVersionDefault),
+    m_VersionHint(PdfVersionDefault),
     m_PdfALevel(PdfALevel::Unknown),
+    m_UseXRefStreamHint(false),
+    m_Version(PdfVersionDefault),
     m_UseXRefStream(false),
     m_Encrypt(nullptr),
     m_EncryptObj(nullptr),
@@ -64,8 +66,31 @@ void PdfWriter::initWriteFlags()
     m_WriteFlags = toWriteFlags(m_SaveOptions, m_PdfALevel);
 }
 
+void PdfWriter::InitWriteState()
+{
+    bool forceTable = (m_SaveOptions & PdfSaveOptions::ForceXRefTable) != PdfSaveOptions::None;
+    bool forceStream = (m_SaveOptions & PdfSaveOptions::ForceXRefStream) != PdfSaveOptions::None;
+    if (forceTable && forceStream)
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "PdfSaveOptions::ForceXRefTable and "
+            "PdfSaveOptions::ForceXRefStream are mutually exclusive");
+    }
+
+    if (forceTable)
+        m_UseXRefStream = false;
+    else if (forceStream)
+        m_UseXRefStream = true;
+    else
+        m_UseXRefStream = m_UseXRefStreamHint;
+
+    m_Version = m_VersionHint;
+    if (m_UseXRefStream && m_Version < PdfVersion::V1_5)
+        m_Version = PdfVersion::V1_5;
+}
+
 void PdfWriter::Write(OutputStreamDevice& device)
 {
+    InitWriteState();
     CreateFileIdentifier(m_identifier, *m_Trailer, &m_originalIdentifier);
 
     // setup encrypt dictionary
@@ -360,14 +385,6 @@ void PdfWriter::SetEncryptObj(PdfObject& obj)
 void PdfWriter::SetEncrypt(PdfEncryptSession& encrypt)
 {
     m_Encrypt = &encrypt;
-}
-
-void PdfWriter::SetUseXRefStream(bool useXRefStream)
-{
-    if (useXRefStream && m_Version < PdfVersion::V1_5)
-        m_Version = PdfVersion::V1_5;
-
-    m_UseXRefStream = useXRefStream;
 }
 
 PdfWriteFlags toWriteFlags(PdfSaveOptions opts, PdfALevel pdfaLevel)
