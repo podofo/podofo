@@ -173,12 +173,13 @@ void PdfMemDocument::Save(const string_view& filename, PdfSaveOptions options)
 
 void PdfMemDocument::Save(OutputStreamDevice& device, PdfSaveOptions opts)
 {
-    beforeWrite(opts);
+    beforeWrite(opts, false);
 
     PdfWriter writer(this->GetObjects(), this->GetTrailer().GetObject(), 0);
-    writer.SetPdfVersion(GetMetadata().GetPdfVersion());
+    writer.SetPdfVersionHint(GetMetadata().GetPdfVersion());
     writer.SetPdfALevel(GetMetadata().GetPdfALevel());
     writer.SetSaveOptions(opts);
+    writer.SetUseXRefStreamHint(m_HasXRefStream);
 
     if (m_Encrypt != nullptr)
         writer.SetEncrypt(*m_Encrypt);
@@ -218,14 +219,14 @@ void PdfMemDocument::SaveUpdate(OutputStreamDevice& device, PdfSaveOptions opts)
             "writing an incremental update. Perform a regular save instead");
     }
 
-    beforeWrite(opts);
+    beforeWrite(opts, true);
 
     PdfWriter writer(this->GetObjects(), this->GetTrailer().GetObject(), m_MagicOffset);
-    writer.SetPdfVersion(GetMetadata().GetPdfVersion());
+    writer.SetPdfVersionHint(GetMetadata().GetPdfVersion());
     writer.SetPdfALevel(GetMetadata().GetPdfALevel());
     writer.SetSaveOptions(opts);
     writer.SetPrevXRefOffset(m_PrevXRefOffset);
-    writer.SetUseXRefStream(m_HasXRefStream);
+    writer.SetUseXRefStreamHint(m_HasXRefStream);
     writer.SetIncrementalUpdate(true);
 
     if (m_Encrypt != nullptr)
@@ -254,7 +255,7 @@ void PdfMemDocument::SaveUpdate(OutputStreamDevice& device, PdfSaveOptions opts)
     m_HasBrokenXRef = false;
 }
 
-void PdfMemDocument::beforeWrite(PdfSaveOptions opts)
+void PdfMemDocument::beforeWrite(PdfSaveOptions opts, bool isUpdate)
 {
     if ((opts & PdfSaveOptions::NoMetadataUpdate) ==
         PdfSaveOptions::None)
@@ -270,6 +271,15 @@ void PdfMemDocument::beforeWrite(PdfSaveOptions opts)
     if ((opts & PdfSaveOptions::NoCollectGarbage) ==
         PdfSaveOptions::None)
     {
+        if (!isUpdate)
+        {
+            // On a full save the content of the object streams is rewritten as
+            // top level objects, so the containers can be collected as well. On an
+            // incremental update they must be preserved instead, as previous
+            // revisions still reference them for their compressed objects
+            GetObjects().ClearCompressedObjectStreams();
+        }
+
         CollectGarbage();
     }
 }

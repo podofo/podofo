@@ -428,8 +428,17 @@ enum class PdfHorizontalAlignment : uint8_t
 enum class PdfSaveOptions
 {
     None = 0,
-    _Reserved1 = 1,
-    _Reserved2 = 2,
+
+    /// Force writing a legacy XRef table
+    /// @remarks By default the XRef layout of the parsed
+    /// document is preserved
+    ForceXRefTable = 1,
+
+    /// Force writing an XRef stream, which requires PDF 1.5
+    /// @remarks By default the XRef layout of the parsed
+    /// document is preserved
+    ForceXRefStream = 2,
+
     /// Don't flate compress plain/uncompressed streams
     /// @remarks Already compressed objects will not be affected
     NoFlateCompress = 4,
@@ -449,7 +458,7 @@ enum class PdfSaveOptions
 
     /// This currently applies only during singing, and allows to
     /// sign documents with broken xref sections. Use with caution.
-    IgnoreXRefErrors = 128, 
+    IgnoreXRefErrors = 128,
 
     /// @deprecated Use NoMetadataUpdate instead
     NoModifyDateUpdate = NoMetadataUpdate

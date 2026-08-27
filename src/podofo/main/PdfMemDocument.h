@@ -200,7 +200,7 @@ private:
 
     void reset() override;
 
-    void beforeWrite(PdfSaveOptions options);
+    void beforeWrite(PdfSaveOptions options, bool isUpdate);
 
 private:
     PdfMemDocument& operator=(const PdfMemDocument&) = delete;

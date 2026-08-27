@@ -53,12 +53,6 @@
 - Optimize charbuff to not initialize memory, keeping std::string compatibility,
   see https://en.cppreference.com/w/cpp/string/basic_string/resize_and_overwrite
 - Add backtrace: https://github.com/boostorg/stacktrace
-- PdfWriter: Preserve the current XRef layout when saving. A document parsed with
-  XRef streams is currently always rewritten with a legacy XRef table
-- PdfSaveOptions: Add options to force writing either a legacy XRef table or an XRef stream
-- PdfIndirectObjectList::CollectGarbage(): If a legacy XRef is written but XRef streams
-  were used, don't skip the object streams in m_compressedObjectStreams. Their content is
-  written as top level objects, so the containers are left unreferenced in the output
 
 ### Ideas:
 - PdfFontManager: Consider also statically caching the queries and filepaths.

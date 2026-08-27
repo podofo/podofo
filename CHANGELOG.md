@@ -4,6 +4,12 @@
 - Added `PdfDocument::GetSortedSignatures()`
 - Added `PdfSigningAlgorithm`, deprecating `PdfSignatureEncryption`
 - Added `PdfCommon::IsDebugBuild()`
+- `PdfWriter`: Preserve the XRef layout of the parsed document when saving. A document
+  parsed with XRef streams was previously always rewritten with a legacy XRef table
+- Added `PdfSaveOptions::ForceXRefTable`, `PdfSaveOptions::ForceXRefStream` to force
+  writing a specific XRef layout
+- `PdfIndirectObjectList::CollectGarbage()`: On a full save collect also the object stream
+  containers, whose content is rewritten as top level objects
 
 ## Version 1.1.2
 - `CodePointSpan`: Fixed constructor with base view plus one code point, [GHSA](https://github.com/podofo/podofo/security/advisories/GHSA-7vfg-cp83-9rxr)

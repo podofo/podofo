@@ -7,7 +7,7 @@
 
 #include <podofo/main/PdfStatefulEncrypt.h>
 
-#include "PdfXRefStream.h"
+#include "PdfXRef.h"
 #include "PdfStreamedObjectStream.h"
 
 using namespace std;
@@ -19,8 +19,17 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
     m_Device(&device),
     m_OpenStream(false)
 {
-    SetPdfVersion(version);
+    SetPdfVersionHint(version);
     SetSaveOptions(opts);
+    InitWriteState();
+
+    if (GetUseXRefStream())
+    {
+        // The XRef stream object would be serialized to the device as soon
+        // as its stream is created, before the trailer keys can be added to it
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedOperation,
+            "Writing an XRef stream is not supported when streaming the document");
+    }
 
     // Register as observer for PdfIndirectObjectList
     GetObjects().AttachObserver(*this);
@@ -42,10 +51,8 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
     // Start with writing the header
     this->WritePdfHeader(*m_Device);
 
-    // Manually prepare the cross-reference table/stream
-    m_xRef.reset(GetUseXRefStream()
-        ? new PdfXRefStream(*this)
-        : new PdfXRef(*this));
+    // Manually prepare the cross-reference table
+    m_xRef.reset(new PdfXRef(*this));
 }
 
 PdfImmediateWriter::~PdfImmediateWriter()
