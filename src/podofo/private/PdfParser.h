@@ -286,6 +286,8 @@ private:
     std::unique_ptr<PdfParserObject> m_Trailer;
     PdfObject* m_Catalog;
     std::shared_ptr<PdfEncryptSession> m_Encrypt;
+    // Reference of the encryption dictionary in the document, if any
+    PdfReference m_encryptRef;
 
     std::string m_Password;
 

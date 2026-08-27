@@ -12,6 +12,7 @@ using namespace PoDoFo;
 static void testAuthenticate(PdfEncrypt& encrypt, PdfEncryptContext& context);
 static void testEncrypt(PdfEncrypt& encrypt, PdfEncryptContext& context);
 static void createEncryptedPdf(const string_view& filename);
+static string lastEncryptReference(const string_view& pdf);
 
 charbuff s_encBuffer;
 PdfPermissions s_protection;
@@ -461,6 +462,41 @@ TEST_CASE("TestPreserveEncrypt")
     testSave(true, true);
 }
 
+// An incremental signature must keep the same encryption dictionary object.
+// Replacing /Encrypt changes document security and invalidates DocMDP
+// certifications in Acrobat, even if the new dictionary has identical values.
+TEST_CASE("TestSignEncryptedDocPreservesEncryptReference")
+{
+    auto inputPath = TestUtils::GetTestInputFilePath("AESV3R6-256.pdf");
+    auto outputPath = TestUtils::GetTestOutputFilePath(
+        "TestSignEncryptedDocPreservesEncryptReference.pdf");
+
+    charbuff input;
+    utls::ReadTo(input, inputPath);
+    const auto originalEncrypt = lastEncryptReference(input);
+
+    fs::copy_file(fs::u8path(inputPath), fs::u8path(outputPath),
+        fs::copy_options::overwrite_existing);
+    auto stream = std::make_shared<FileStreamDevice>(outputPath, FileMode::Open);
+
+    string cert;
+    TestUtils::ReadTestInputFileTo(cert, "mycert.der");
+    string pkey;
+    TestUtils::ReadTestInputFileTo(pkey, "mykey-pkcs8.der");
+
+    PdfMemDocument doc(stream, "userpass");
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+    signature.SetSignatureDate(PdfDate::Parse("D:20260713192456+01'00'"));
+    auto signer = PdfSignerCms(cert, pkey);
+    PoDoFo::SignDocument(doc, *stream, signer, signature,
+        PdfSaveOptions::NoMetadataUpdate);
+
+    charbuff output;
+    utls::ReadTo(output, outputPath);
+    REQUIRE(lastEncryptReference(output) == originalEncrypt);
+}
+
 void testEncrypt(PdfEncrypt& encrypt, PdfEncryptContext& context)
 {
     charbuff encrypted;
@@ -487,6 +523,15 @@ void testEncrypt(PdfEncrypt& encrypt, PdfEncryptContext& context)
 
     INFO("compare encrypted and decrypted buffers");
     REQUIRE(memcmp(s_encBuffer.data(), decrypted.data(), s_encBuffer.size()) == 0);
+}
+
+string lastEncryptReference(const string_view& pdf)
+{
+    const auto key = pdf.rfind("/Encrypt "sv);
+    REQUIRE(key != string_view::npos);
+    const auto end = pdf.find('R', key);
+    REQUIRE(end != string_view::npos);
+    return string(pdf.substr(key, end - key + 1));
 }
 
 void createEncryptedPdf(const string_view& filename)

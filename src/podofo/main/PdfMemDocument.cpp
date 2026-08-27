@@ -267,9 +267,16 @@ void PdfMemDocument::SetEncrypted(const string_view& userPassword, const string_
 void PdfMemDocument::SetEncrypt(unique_ptr<PdfEncrypt>&& encrypt)
 {
     if (encrypt == nullptr)
+    {
         m_Encrypt = nullptr;
+        // Drop the reference to the encryption dictionary of a previously
+        // encrypted document, so it can be collected as garbage
+        GetTrailer().GetDictionary().RemoveKey("Encrypt");
+    }
     else
+    {
         m_Encrypt.reset(new PdfEncryptSession(std::move(encrypt)));
+    }
 }
 
 bool PdfMemDocument::HasOwnerPermissions() const

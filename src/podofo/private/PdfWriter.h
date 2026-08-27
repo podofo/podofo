@@ -143,6 +143,7 @@ protected:
 
 private:
     void initWriteFlags();
+    PdfObject* getExistingEncryptObject();
 
 protected:
     charbuff m_buffer;
