@@ -438,7 +438,12 @@ PdfObjectStream* PdfObject::getStream()
 void PdfObject::DelayedLoadStream() const
 {
     if (m_IsDelayedLoadStreamDone)
+    {
+        // NOTE: The data block may still need to be loaded, as it
+        // happens when just enabling non-stream delayed loading
+        DelayedLoad();
         return;
+    }
 
     DelayedLoadStream(m_Document == nullptr ? true : m_Document->IsStrictParsing());
 }
@@ -605,6 +610,8 @@ void PdfObject::moveFrom(PdfObject&& rhs) noexcept
     // NOTE: move should not throw, as it's used in "noexcept" moethods
     if (!rhs.m_IsDelayedLoadStreamDone)
         rhs.DelayedLoadStream(false);
+    else if (!rhs.m_IsDelayedLoadDone)
+        rhs.DelayedLoad(false);
 
     m_Variant = std::move(rhs.m_Variant);
     SetVariantOwner();
