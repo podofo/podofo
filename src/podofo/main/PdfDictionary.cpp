@@ -54,8 +54,8 @@ bool PdfDictionary::operator==(const PdfDictionary& rhs) const
 
 bool PdfDictionary::operator!=(const PdfDictionary& rhs) const
 {
-    if (this != &rhs)
-        return true;
+    if (this == &rhs)
+        return false;
 
     // We don't check owner
     return m_Map != rhs.m_Map;

@@ -487,8 +487,8 @@ bool PdfVariant::operator==(const PdfVariant& rhs) const
 
 bool PdfVariant::operator!=(const PdfVariant& rhs) const
 {
-    if (this != &rhs)
-        return true;
+    if (this == &rhs)
+        return false;
 
     switch (GetDataType())
     {

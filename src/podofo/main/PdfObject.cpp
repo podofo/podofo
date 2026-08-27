@@ -1068,8 +1068,8 @@ bool PdfObject::operator==(const PdfObject& rhs) const
 
 bool PdfObject::operator!=(const PdfObject& rhs) const
 {
-    if (this != &rhs)
-        return true;
+    if (this == &rhs)
+        return false;
 
     if (m_IndirectReference.IsIndirect())
     {
