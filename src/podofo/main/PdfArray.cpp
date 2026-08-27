@@ -79,6 +79,7 @@ PdfArray& PdfArray::operator=(const PdfArray& rhs)
     AssertMutable();
     m_Objects = rhs.m_Objects;
     setChildrenParent();
+    SetDirty();
     return *this;
 }
 
@@ -88,6 +89,7 @@ PdfArray& PdfArray::operator=(PdfArray&& rhs) noexcept
     m_Objects = std::move(rhs.m_Objects);
     setChildrenParent();
     rhs.SetDirty();
+    SetDirty();
     return *this;
 }
 
