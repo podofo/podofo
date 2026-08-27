@@ -31,6 +31,7 @@ PdfDictionary& PdfDictionary::operator=(const PdfDictionary& rhs)
     AssertMutable();
     m_Map = rhs.m_Map;
     setChildrenParent();
+    SetDirty();
     return *this;
 }
 
@@ -40,6 +41,7 @@ PdfDictionary& PdfDictionary::operator=(PdfDictionary&& rhs) noexcept
     m_Map = std::move(rhs.m_Map);
     setChildrenParent();
     rhs.SetDirty();
+    SetDirty();
     return *this;
 }
 
