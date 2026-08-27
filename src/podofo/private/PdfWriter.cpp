@@ -73,9 +73,24 @@ void PdfWriter::Write(OutputStreamDevice& device)
     {
         m_Encrypt->GetEncrypt().EnsureEncryptionInitialized(m_identifier, m_Encrypt->GetContext());
 
-        // Add our own Encryption dictionary
-        m_EncryptObj = &m_Objects->CreateDictionaryObject();
-        m_Encrypt->GetEncrypt().CreateEncryptionDictionary(m_EncryptObj->GetDictionary());
+        if (m_EncryptObj == nullptr)
+            m_EncryptObj = getExistingEncryptObject();
+
+        if (m_EncryptObj == nullptr)
+        {
+            m_EncryptObj = &m_Objects->CreateDictionaryObject();
+            m_Encrypt->GetEncrypt().CreateEncryptionDictionary(m_EncryptObj->GetDictionary());
+        }
+        else
+        {
+            PdfDictionary encryptDict;
+            m_Encrypt->GetEncrypt().CreateEncryptionDictionary(encryptDict);
+            auto& currDict = m_EncryptObj->GetDictionary();
+            // Refresh the dictionary only if the encryption actually changed:
+            // an untouched one stays clean and is not rewritten on updates
+            if (currDict != encryptDict)
+                currDict = std::move(encryptDict);
+        }
     }
 
     unique_ptr<PdfXRef> xRef;
@@ -104,26 +119,29 @@ void PdfWriter::Write(OutputStreamDevice& device)
     }
     catch (PdfError& e)
     {
-        // Delete Encryption dictionary (cannot be reused)
-        if (m_EncryptObj != nullptr)
-        {
-            m_Objects->RemoveObject(m_EncryptObj->GetIndirectReference());
-            m_EncryptObj = nullptr;
-        }
-
         PODOFO_PUSH_FRAME(e);
         throw;
     }
 
-    // Delete Encryption dictionary (cannot be reused)
-    if (m_EncryptObj != nullptr)
-    {
-        m_Objects->RemoveObject(m_EncryptObj->GetIndirectReference());
-        m_EncryptObj = nullptr;
-    }
-
     device.Flush();
     m_Objects->ResetFreeObjectsInvalidated();
+}
+
+// Retrieve the encryption dictionary of the document, so it can be reused:
+// creating a new one would alter the document security and invalidate
+// existing certifications when writing incremental updates
+PdfObject* PdfWriter::getExistingEncryptObject()
+{
+    auto encryptObj = m_Trailer->GetDictionary().GetKey("Encrypt");
+    PdfReference encryptRef;
+    if (encryptObj == nullptr || !encryptObj->TryGetReference(encryptRef))
+        return nullptr;
+
+    auto ret = m_Objects->GetObject(encryptRef);
+    if (ret == nullptr || !ret->IsDictionary())
+        return nullptr;
+
+    return ret;
 }
 
 void PdfWriter::WritePdfHeader(OutputStreamDevice& device)

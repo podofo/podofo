@@ -59,6 +59,7 @@ void PdfParser::init()
     m_Trailer = nullptr;
     m_Catalog = nullptr;
     m_Encrypt = nullptr;
+    m_encryptRef = PdfReference();
     m_IncrementalUpdateCount = 0;
 }
 
@@ -743,9 +744,9 @@ void PdfParser::ReadObjectEntries(InputStreamDevice& device)
             try
             {
                 obj->ParseData();
-                // NOTE: Never add the encryption dictionary to m_Objects
-                // we create a new one, if we need it for writing
-                m_entries[i].Parsed = false;
+                // NOTE: The encryption dictionary is unencrypted and it's parsed
+                // as a regular object, so it can be preserved on writing
+                m_encryptRef = encryptRef;
                 encrypt = PdfEncrypt::CreateFromObject(*obj);
             }
             catch (PdfError& e)
@@ -885,7 +886,7 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
                         obj.reset(new PdfParserObject(m_Objects->GetDocument(), reference, device, (ssize_t)entry.Offset));
                         try
                         {
-                            if (m_Encrypt != nullptr)
+                            if (m_Encrypt != nullptr && i != m_encryptRef.ObjectNumber())
                             {
                                 obj->SetEncrypt(m_Encrypt);
                                 if (obj->TryGetDictionary(dict))
