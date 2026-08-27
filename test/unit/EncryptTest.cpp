@@ -497,6 +497,42 @@ TEST_CASE("TestSignEncryptedDocPreservesEncryptReference")
     REQUIRE(lastEncryptReference(output) == originalEncrypt);
 }
 
+// An incremental update can't re-key the document: the objects of the previous
+// revisions are not rewritten and would stay encrypted with the previous encryption
+TEST_CASE("TestChangeEncryptionOnUpdateRejected")
+{
+    auto encryptedPath = TestUtils::GetTestInputFilePath("AESV3R6-256.pdf");
+    auto plainPath = TestUtils::GetTestInputFilePath("TestSignature.pdf");
+    charbuff pdfBuffer;
+    PdfMemDocument doc;
+
+    auto saveUpdate = [&](const string_view& path)
+    {
+        utls::ReadTo(pdfBuffer, path);
+        BufferStreamDevice device(pdfBuffer);
+        doc.SaveUpdate(device);
+    };
+
+    // Changing the encryption
+    doc.Load(encryptedPath, "ownerpass");
+    doc.SetEncrypted("newuser", "newowner");
+    ASSERT_THROW_WITH_ERROR_CODE(saveUpdate(encryptedPath), PdfErrorCode::UnsupportedOperation);
+
+    // Removing the encryption
+    doc.Load(encryptedPath, "ownerpass");
+    doc.SetEncrypt(nullptr);
+    ASSERT_THROW_WITH_ERROR_CODE(saveUpdate(encryptedPath), PdfErrorCode::UnsupportedOperation);
+
+    // Encrypting a document that was not encrypted
+    doc.Load(plainPath);
+    doc.SetEncrypted("newuser", "newowner");
+    ASSERT_THROW_WITH_ERROR_CODE(saveUpdate(plainPath), PdfErrorCode::UnsupportedOperation);
+
+    // Updating a document keeping its own encryption is allowed
+    doc.Load(encryptedPath, "ownerpass");
+    saveUpdate(encryptedPath);
+}
+
 void testEncrypt(PdfEncrypt& encrypt, PdfEncryptContext& context)
 {
     charbuff encrypted;

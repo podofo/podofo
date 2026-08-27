@@ -210,6 +210,7 @@ private:
     PdfVersion m_InitialVersion;
     bool m_HasXRefStream;
     bool m_HasBrokenXRef;
+    bool m_initiallyEncrypted;
     size_t m_MagicOffset;
     size_t m_PrevXRefOffset;
     std::unique_ptr<PdfEncryptSession> m_Encrypt;
