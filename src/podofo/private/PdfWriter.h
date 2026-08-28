@@ -51,6 +51,11 @@ public:
     /// @param onlySizeKey write only the size key
     void FillTrailerObject(PdfObject& trailer, size_t size, bool onlySizeKey) const;
 
+    /// Determine the XRef layout that will be used on writing
+    /// @param opts the save options in effect
+    /// @param useXRefStreamHint the layout of the parsed document, if any
+    static bool ShouldUseXRefStream(PdfSaveOptions opts, bool useXRefStreamHint);
+
 public:
     void SetSaveOptions(PdfSaveOptions saveOptions);
 

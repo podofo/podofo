@@ -10,8 +10,8 @@
 using namespace PoDoFo;
 
 PdfXRefEntry::PdfXRefEntry() :
-    Unknown1(0),
-    Unknown2(0),
+    ObjectNumber(0),
+    Generation(0),
     Type(PdfXRefEntryType::Unknown),
     Parsed(false)
 { }

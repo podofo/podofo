@@ -44,6 +44,14 @@ public:
 
     void AddUnavailableObject(uint32_t objNum);
 
+    /// Add an object that is stored in an object stream to the XRef table
+    /// @param objNum object number of this object
+    /// @param objStmNum object number of the object stream storing it
+    /// @param index index of the object within the object stream
+    /// @remarks The generation of a compressed object is implicitly zero.
+    /// Only an XRef stream can address compressed objects
+    void AddCompressedObject(uint32_t objNum, uint32_t objStmNum, uint32_t index);
+
     /// Write the XRef table to an output device.
     ///
     /// @param device an output device (usually a PDF file)
@@ -100,19 +108,41 @@ protected:
     virtual void EndWriteImpl(OutputStreamDevice& device, charbuff& buffer);
 
 private:
-    struct XRefObject
+    /// The reference is decomposed, so the entry type fits
+    /// the padding and the structure stays 16 bytes wide
+    struct XRefObject final
     {
-        XRefObject(const PdfReference& ref, int64_t offset);
+        static XRefObject CreateInUse(const PdfReference& ref, uint64_t offset);
 
-        PdfReference Reference;
-        int64_t Offset;
+        static XRefObject CreateFree(const PdfReference& ref);
+
+        static XRefObject CreateCompressed(uint32_t objNum, uint32_t objStmNum, uint32_t index);
+
+        union
+        {
+            int64_t Offset;             ///< Offset of the object, in InUse entries
+            struct
+            {
+                uint32_t Number;        ///< Object number of the object stream
+                uint32_t Index;         ///< Index of the object within the object stream
+            } ObjectStream;             ///< Set in Compressed entries
+        };
+        uint32_t ObjectNumber;
+        uint16_t GenerationNumber;
+        PdfXRefEntryType Type;
 
         bool IsFree() const;
 
         bool IsInUse() const;
 
+        bool IsCompressed() const;
+
         bool IsUnavailable() const;
+
+        PdfReference GetReference() const;
     };
+
+    static_assert(sizeof(XRefObject) == 16, "XRefObject is expected to not grow");
 
     struct XRefObjectInequality
     {
@@ -120,15 +150,15 @@ private:
 
         bool operator()(const XRefObject& lhs, const XRefObject& rhs) const
         {
-            return lhs.Reference.ObjectNumber() < rhs.Reference.ObjectNumber();
+            return lhs.ObjectNumber < rhs.ObjectNumber;
         }
         bool operator()(const XRefObject& lhs, const PdfReference& rhs) const
         {
-            return lhs.Reference.ObjectNumber() < rhs.ObjectNumber();
+            return lhs.ObjectNumber < rhs.ObjectNumber();
         }
         bool operator()(const PdfReference& lhs, const XRefObject& rhs) const
         {
-            return lhs.ObjectNumber() < rhs.Reference.ObjectNumber();
+            return lhs.ObjectNumber() < rhs.ObjectNumber;
         }
     };
 
@@ -230,7 +260,7 @@ private:
 
     void buildSubSections(XRefSubSectionList& sections);
 
-    void addObject(const PdfReference& ref, int64_t offset);
+    void addObject(const XRefObject& obj);
 
     /// Called at the end of writing the XRef table.
     /// Sub classes can overload this method to finish a XRef table.

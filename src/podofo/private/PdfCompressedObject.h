@@ -24,6 +24,12 @@ private:
 public:
     bool TryUnload() override;
 
+    /// Object number of the object stream storing this object
+    inline uint32_t GetObjectStreamNumber() const { return m_parser->m_streamRef.ObjectNumber(); }
+
+    /// Index of this object within the object stream
+    inline unsigned GetIndex() const { return m_index; }
+
 protected:
     void delayedLoad() override;
 

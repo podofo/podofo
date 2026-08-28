@@ -8,6 +8,7 @@
 #include <podofo/auxiliary/StreamDevice.h>
 #include <podofo/private/PdfWriter.h>
 #include <podofo/private/PdfParser.h>
+#include <podofo/private/PdfCompressedObject.h>
 #include <podofo/private/PdfEncryptSession.h>
 
 #include "PdfCommon.h"
@@ -275,22 +276,64 @@ void PdfMemDocument::beforeWrite(PdfSaveOptions opts, bool isUpdate)
 
     GetFonts().EmbedFonts();
 
+    // NOTE: This must run after every operation that may modify objects, as
+    // it determines which compressed objects can be preserved. On an
+    // incremental update the object streams are all preserved instead, as
+    // previous revisions still reference them for their compressed objects
+    if (!isUpdate)
+        pruneCompressedObjectStreams(opts);
+
     // After we are done with all operations on objects,
     // we can collect garbage
     if ((opts & PdfSaveOptions::NoCollectGarbage) ==
         PdfSaveOptions::None)
     {
-        if (!isUpdate)
-        {
-            // On a full save the content of the object streams is rewritten as
-            // top level objects, so the containers can be collected as well. On an
-            // incremental update they must be preserved instead, as previous
-            // revisions still reference them for their compressed objects
-            GetObjects().ClearCompressedObjectStreams();
-        }
-
         CollectGarbage();
     }
+}
+
+void PdfMemDocument::pruneCompressedObjectStreams(PdfSaveOptions opts)
+{
+    auto& objects = GetObjects();
+    if (objects.GetCompressedObjectStreams().size() == 0)
+        return;
+
+    if (!PdfWriter::ShouldUseXRefStream(opts, m_HasXRefStream))
+    {
+        // A legacy XRef table can't address compressed objects, so all
+        // the object streams are rewritten as top level objects and
+        // their containers can be collected as garbage
+        objects.ClearCompressedObjectStreams();
+        return;
+    }
+
+    // Collect the object streams that still store at least one unmodified
+    // object: those are written as they are
+    PdfObjectNumSet preserved;
+    for (auto obj : objects)
+    {
+        auto compressedObj = dynamic_cast<const PdfCompressedObject*>(obj);
+        if (compressedObj == nullptr || compressedObj->IsDirty())
+            continue;
+
+        preserved.insert(compressedObj->GetObjectStreamNumber());
+    }
+
+    vector<uint32_t> toRemove;
+    for (auto objNum : objects.GetCompressedObjectStreams())
+    {
+        // Also require the object stream to be untouched: a modified one
+        // may not describe anymore the objects stored in its contents
+        auto streamObj = objects.GetObject(PdfReference(objNum, 0));
+        if (streamObj == nullptr || streamObj->IsDirty()
+            || preserved.find(objNum) == preserved.end())
+        {
+            toRemove.push_back(objNum);
+        }
+    }
+
+    for (auto objNum : toRemove)
+        objects.RemoveCompressedObjectStream(objNum);
 }
 
 void PdfMemDocument::SetEncrypted(const string_view& userPassword, const string_view& ownerPassword,
