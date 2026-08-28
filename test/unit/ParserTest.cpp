@@ -2866,6 +2866,108 @@ startxref
     REQUIRE_NOTHROW(doc.LoadFromBuffer(pdf));
 }
 
+// A document storing the catalog (2 0 R), the page tree (3 0 R), the document
+// information (4 0 R) and a dictionary that is never accessed while saving
+// (7 0 R) in the object stream 1 0 R
+static string_view s_objStmPdf = R"(%PDF-1.5
+1 0 obj
+<< /Type /ObjStm /N 4 /First 20 /Length 206 >>
+stream
+2 0 3 52 4 94 7 143
+<< /Type /Catalog /Pages 3 0 R /PoDoFoTest 7 0 R >>
+<< /Type /Pages /Kids [5 0 R] /Count 1 >>
+<< /Title (Compressed title) /Author (PoDoFo) >>
+<< /Type /PoDoFoTest /Value (Untouched) >>
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 3 0 R /MediaBox [0 0 595 842] >>
+endobj
+6 0 obj
+<< /Type /XRef /Size 8 /W [1 2 2] /Root 2 0 R /Info 4 0 R /Filter /ASCIIHexDecode /Length 80 >>
+stream
+000000FFFF0100090000020001000002000100010200010002010126000001016D00000200010003
+endstream
+endobj
+startxref
+365
+%%EOF)";
+
+TEST_CASE("TestCompressedObjectsLazyLoading")
+{
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(s_objStmPdf, PdfLoadOptions::SkipXRefRecovery | PdfLoadOptions::StrictParsing);
+
+    auto info = doc.GetObjects().GetObject(PdfReference(4, 0));
+    REQUIRE(info != nullptr);
+
+    // The catalog and the page tree were resolved while loading the document,
+    // but the information dictionary was not accessed yet
+    REQUIRE(!info->IsDelayedLoadDone());
+    REQUIRE(info->GetDictionary().MustFindKey("Title").GetString().GetString() == "Compressed title");
+    REQUIRE(info->IsDelayedLoadDone());
+
+    REQUIRE(info->TryUnload());
+    REQUIRE(!info->IsDelayedLoadDone());
+    REQUIRE(info->GetDictionary().MustFindKey("Author").GetString().GetString() == "PoDoFo");
+
+    // Moving an object that was never accessed must not lose its contents
+    auto& untouched = doc.GetObjects().MustGetObject(PdfReference(7, 0));
+    REQUIRE(!untouched.IsDelayedLoadDone());
+    PdfObject moved(std::move(untouched));
+    REQUIRE(moved.GetDictionary().MustFindKey("Value").GetString().GetString() == "Untouched");
+}
+
+// Compressed objects that were never accessed must be loaded
+// before being serialized in a full save
+TEST_CASE("TestNeverAccessedCompressedObjectFullSave")
+{
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(s_objStmPdf);
+    REQUIRE(!doc.GetObjects().MustGetObject(PdfReference(7, 0)).IsDelayedLoadDone());
+
+    string outBuff;
+    StringStreamDevice outDev(outBuff);
+    doc.Save(outDev, PdfSaveOptions::NoMetadataUpdate | PdfSaveOptions::NoCollectGarbage);
+
+    PdfMemDocument saved;
+    saved.LoadFromBuffer(outBuff);
+    REQUIRE(saved.GetCatalog().GetDictionary().MustFindKey("PoDoFoTest")
+        .GetDictionary().MustFindKey("Value").GetString().GetString() == "Untouched");
+}
+
+TEST_CASE("TestModifiedCompressedObjectPreservesObjectStream")
+{
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(s_objStmPdf, PdfLoadOptions::SkipXRefRecovery | PdfLoadOptions::StrictParsing);
+
+    auto objStm = doc.GetObjects().GetObject(PdfReference(1, 0));
+    auto info = doc.GetObjects().GetObject(PdfReference(4, 0));
+    REQUIRE(objStm != nullptr);
+    REQUIRE(info != nullptr);
+
+    info->GetDictionary().AddKey("Title"_n, PdfString("Updated title"));
+    REQUIRE(info->IsDirty());
+
+    // The object stream still stores the contents of the other
+    // compressed objects, so it must not be invalidated
+    REQUIRE(!objStm->IsDirty());
+
+    string outBuff(s_objStmPdf);
+    StringStreamDevice outDev(outBuff);
+    doc.SaveUpdate(outDev, PdfSaveOptions::NoMetadataUpdate);
+
+    // The previous revision is untouched and the object stream is not rewritten
+    REQUIRE(string_view(outBuff).substr(0, s_objStmPdf.size()) == s_objStmPdf);
+    REQUIRE(outBuff.find("/ObjStm", s_objStmPdf.size()) == string::npos);
+
+    doc.LoadFromBuffer(outBuff);
+    REQUIRE(doc.GetTrailer().GetDictionary().MustFindKey("Info")
+        .GetDictionary().MustFindKey("Title").GetString().GetString() == "Updated title");
+    // The objects that were left in the object stream are still readable
+    ASSERT_EQUAL(doc.GetPages().GetCount(), 1u);
+}
+
 string generateXRefEntries(size_t count)
 {
     string strXRefEntries;

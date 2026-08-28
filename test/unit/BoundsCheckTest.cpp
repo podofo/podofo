@@ -122,9 +122,9 @@ TEST_CASE("TestObjectStreamOffsetBeyondBuffer")
         << "endobj\n";
 
     // --- Object 4: XRef stream ---
-    // W = [1 2 1]: type(1 byte), field2(2 bytes), field3(1 byte)
+    // W = [1 2 2]: type(1 byte), field2(2 bytes), field3(2 bytes)
     // Entries (5 total: obj 0-4):
-    //   obj 0: type=0 (free),   next=0,       gen=0
+    //   obj 0: type=0 (free),   next=0,       gen=65535
     //   obj 1: type=1 (normal), offset=obj1Pos, gen=0
     //   obj 2: type=1 (normal), offset=obj2Pos, gen=0
     //   obj 3: type=2 (compressed), stream_obj=2, index=0
@@ -132,25 +132,24 @@ TEST_CASE("TestObjectStreamOffsetBeyondBuffer")
     size_t obj4Pos = oss.str().size();
 
     // We need to encode the xref stream binary content.
-    // Each entry is 4 bytes: [type:1][field2_hi:1][field2_lo:1][field3:1]
     // We'll use ASCIIHexDecode so we can write hex in the stream.
-    // Entry format with W=[1 2 1]:
-    //   obj 0: 00 0000 00
-    //   obj 1: 01 XXXX 00   (XXXX = obj1Pos as 2 bytes)
-    //   obj 2: 01 YYYY 00   (YYYY = obj2Pos as 2 bytes)
-    //   obj 3: 02 0002 00   (compressed in obj 2, index 0)
-    //   obj 4: 01 ZZZZ 00   (ZZZZ = obj4Pos as 2 bytes)
+    // Entry format with W=[1 2 2]:
+    //   obj 0: 00 0000 FFFF
+    //   obj 1: 01 XXXX 0000   (XXXX = obj1Pos as 2 bytes)
+    //   obj 2: 01 YYYY 0000   (YYYY = obj2Pos as 2 bytes)
+    //   obj 3: 02 0002 0000   (compressed in obj 2, index 0)
+    //   obj 4: 01 ZZZZ 0000   (ZZZZ = obj4Pos as 2 bytes)
 
     ostringstream xrefData;
-    xrefData << utls::Format("{:02X}{:04X}{:02X}", 0, 0, 0);
-    xrefData << utls::Format("{:02X}{:04X}{:02X}", 1, (unsigned)obj1Pos, 0);
-    xrefData << utls::Format("{:02X}{:04X}{:02X}", 1, (unsigned)obj2Pos, 0);
-    xrefData << utls::Format("{:02X}{:04X}{:02X}", 2, 2, 0);
-    xrefData << utls::Format("{:02X}{:04X}{:02X}", 1, (unsigned)obj4Pos, 0);
+    xrefData << utls::Format("{:02X}{:04X}{:04X}", 0, 0, 65535);
+    xrefData << utls::Format("{:02X}{:04X}{:04X}", 1, (unsigned)obj1Pos, 0);
+    xrefData << utls::Format("{:02X}{:04X}{:04X}", 1, (unsigned)obj2Pos, 0);
+    xrefData << utls::Format("{:02X}{:04X}{:04X}", 2, 2, 0);
+    xrefData << utls::Format("{:02X}{:04X}{:04X}", 1, (unsigned)obj4Pos, 0);
     string xrefHex = xrefData.str();
 
     oss << "4 0 obj\n"
-        << "<< /Type /XRef /Size 5 /W [1 2 1]"
+        << "<< /Type /XRef /Size 5 /W [1 2 2]"
         << " /Root 1 0 R"
         << " /Filter /ASCIIHexDecode"
         << " /Length " << xrefHex.size()
@@ -160,33 +159,32 @@ TEST_CASE("TestObjectStreamOffsetBeyondBuffer")
         << "\nendstream\n"
         << "endobj\n";
 
-    oss << "startxref\n" << obj4Pos << "\n%%EOF\n";
+    // NOTE: No trailing newline, so the document is loadable in strict parsing as well
+    oss << "startxref\n" << obj4Pos << "\n%%EOF";
 
     string pdfBuf = oss.str();
 
-    // Loading should trigger reading obj 3 from the ObjStm (obj 2),
-    // which should fail because /First=99999 exceeds the stream content.
-    // Before the fix, this is caught incidentally by SpanStreamDevice::Seek
-    // throwing ValueOutOfRange. After the fix, PdfObjectStreamParser should
-    // detect this explicitly and throw BrokenFile before reaching the Seek.
-    bool threw = false;
-    PdfErrorCode caughtCode = PdfErrorCode::Unknown;
-    try
+    // Accessing obj 3 triggers the decoding of the ObjStm (obj 2), which
+    // must fail because /First=99999 exceeds the stream content. The bounds
+    // are checked explicitly, so the error is BrokenFile and not the
+    // incidental ValueOutOfRange of SpanStreamDevice::Seek
+    {
+        PdfMemDocument doc;
+        doc.LoadFromBuffer(pdfBuf, PdfLoadOptions::StrictParsing);
+        auto obj = doc.GetObjects().GetObject(PdfReference(3, 0));
+        REQUIRE(obj != nullptr);
+        ASSERT_THROW_WITH_ERROR_CODE(obj->GetDataType(), PdfErrorCode::BrokenFile);
+    }
+
+    // With lenient parsing the document is still usable and
+    // the unreadable compressed object resolves to null
     {
         PdfMemDocument doc;
         doc.LoadFromBuffer(pdfBuf);
-        // If we get here, access obj 3 to force parsing
-        (void)doc.GetObjects().GetObject(PdfReference(3, 0));
+        auto obj = doc.GetObjects().GetObject(PdfReference(3, 0));
+        REQUIRE(obj != nullptr);
+        REQUIRE(obj->IsNull());
     }
-    catch (const PdfError& e)
-    {
-        threw = true;
-        caughtCode = e.GetCode();
-    }
-    REQUIRE(threw);
-    // After the fix this should be BrokenFile (explicit bounds check);
-    // before the fix it was ValueOutOfRange (incidental Seek failure).
-    REQUIRE(caughtCode == PdfErrorCode::BrokenFile);
 }
 
 

@@ -109,6 +109,29 @@ TEST_CASE("TestCollectObjectStreamsOnSave")
     REQUIRE(countObjectStreams(updatedDoc) != 0);
 }
 
+TEST_CASE("TestHybridXRefSavedAsStream")
+{
+    // A hybrid-reference file has a legacy XRef table with a /XRefStm entry
+    // pointing to the cross reference stream that addresses its compressed
+    // objects. Writing a hybrid layout is not supported, so an XRef stream
+    // is written, which is the only layout that can address them
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TechDocs", "Acrobat_SignatureCreationQuickKeyAll.pdf"));
+    REQUIRE(countObjectStreams(doc) != 0);
+
+    charbuff savedBuff;
+    {
+        BufferStreamDevice device(savedBuff);
+        doc.Save(device);
+    }
+
+    REQUIRE(isXRefStream(savedBuff));
+
+    PdfMemDocument savedDoc;
+    savedDoc.LoadFromBuffer(savedBuff);
+    REQUIRE(savedDoc.GetPages().GetCount() == doc.GetPages().GetCount());
+}
+
 TEST_CASE("TestStreamedXRefLayout")
 {
     charbuff buff;

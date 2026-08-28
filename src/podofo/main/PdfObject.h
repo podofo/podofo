@@ -41,6 +41,7 @@ class PODOFO_API PdfObject
     friend class PdfTokenizer;
     PODOFO_PRIVATE_FRIEND(class PdfStreamedObjectStream);
     PODOFO_PRIVATE_FRIEND(class PdfObjectStreamParser);
+    PODOFO_PRIVATE_FRIEND(class PdfCompressedObject);
     PODOFO_PRIVATE_FRIEND(class PdfParser);
     PODOFO_PRIVATE_FRIEND(class PdfParserObject);
     PODOFO_PRIVATE_FRIEND(class PdfWriter);
