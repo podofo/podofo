@@ -76,12 +76,13 @@ TEST_CASE("TestCollectObjectStreamsOnSave")
     doc.Load(TestUtils::GetTestInputFilePath("PDFUA-Reference", "PDFUA-Ref-2-02_Invoice.pdf"));
     REQUIRE(countObjectStreams(doc) != 0);
 
-    // On a full save the content of the object streams is rewritten
-    // as top level objects, so the containers are collected as garbage
+    // A legacy XRef table can't address compressed objects, so the content of
+    // the object streams is rewritten as top level objects and the containers
+    // are collected as garbage
     charbuff savedBuff;
     {
         BufferStreamDevice device(savedBuff);
-        doc.Save(device);
+        doc.Save(device, PdfSaveOptions::ForceXRefTable);
     }
 
     PdfMemDocument savedDoc;
@@ -107,6 +108,64 @@ TEST_CASE("TestCollectObjectStreamsOnSave")
     PdfMemDocument updatedDoc;
     updatedDoc.Load(outpath);
     REQUIRE(countObjectStreams(updatedDoc) != 0);
+}
+
+TEST_CASE("TestPreserveObjectStreamsOnSave")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("PDFUA-Reference", "PDFUA-Ref-2-02_Invoice.pdf"));
+    unsigned objStmCount = countObjectStreams(doc);
+    REQUIRE(objStmCount != 0);
+
+    // An unmodified object stream is written as it is and its objects
+    // are addressed with compressed entries, instead of being expanded
+    charbuff preservedBuff;
+    {
+        BufferStreamDevice device(preservedBuff);
+        doc.Save(device);
+    }
+
+    PdfMemDocument preservedDoc;
+    preservedDoc.LoadFromBuffer(preservedBuff);
+    REQUIRE(isXRefStream(preservedBuff));
+    REQUIRE(countObjectStreams(preservedDoc) == objStmCount);
+    REQUIRE(preservedDoc.GetPages().GetCount() == doc.GetPages().GetCount());
+
+    // Expanding the same document is measurably bigger
+    charbuff expandedBuff;
+    {
+        BufferStreamDevice device(expandedBuff);
+        doc.Save(device, PdfSaveOptions::ForceXRefTable);
+    }
+
+    REQUIRE(preservedBuff.size() < expandedBuff.size());
+}
+
+TEST_CASE("TestModifiedCompressedObjectExpandedOnSave")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("PDFUA-Reference", "PDFUA-Ref-2-02_Invoice.pdf"));
+
+    // Modifying one compressed object doesn't expand the whole object stream:
+    // the modified one is written as a top level object and the stale copy
+    // left in the object stream is not addressed anymore
+    auto& catalog = doc.GetCatalog().GetObject();
+    REQUIRE(!catalog.IsDirty());
+    catalog.GetDictionary().AddKey("PoDoFoTest"_n, PdfString("Modified"));
+    REQUIRE(catalog.IsDirty());
+
+    charbuff savedBuff;
+    {
+        BufferStreamDevice device(savedBuff);
+        doc.Save(device);
+    }
+
+    PdfMemDocument savedDoc;
+    savedDoc.LoadFromBuffer(savedBuff);
+    REQUIRE(countObjectStreams(savedDoc) != 0);
+    REQUIRE(savedDoc.GetPages().GetCount() == doc.GetPages().GetCount());
+    REQUIRE(savedDoc.GetCatalog().GetDictionary().MustFindKey("PoDoFoTest")
+        .GetString().GetString() == "Modified");
 }
 
 TEST_CASE("TestHybridXRefSavedAsStream")

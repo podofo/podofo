@@ -204,6 +204,10 @@ private:
 
     void beforeWrite(PdfSaveOptions options, bool isUpdate);
 
+    /// Forget the object streams that have no unmodified object left to
+    /// preserve, so their containers are collected as garbage
+    void pruneCompressedObjectStreams(PdfSaveOptions options);
+
 private:
     PdfMemDocument& operator=(const PdfMemDocument&) = delete;
 

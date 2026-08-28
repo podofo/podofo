@@ -8,6 +8,7 @@
 #include <podofo/auxiliary/StreamDevice.h>
 #include <podofo/main/PdfDate.h>
 #include <podofo/main/PdfDictionary.h>
+#include "PdfCompressedObject.h"
 #include "PdfParserObject.h"
 #include "PdfXRefStream.h"
 #include "OpenSSLInternal.h"
@@ -66,10 +67,10 @@ void PdfWriter::initWriteFlags()
     m_WriteFlags = toWriteFlags(m_SaveOptions, m_PdfALevel);
 }
 
-void PdfWriter::InitWriteState()
+bool PdfWriter::ShouldUseXRefStream(PdfSaveOptions opts, bool useXRefStreamHint)
 {
-    bool forceTable = (m_SaveOptions & PdfSaveOptions::ForceXRefTable) != PdfSaveOptions::None;
-    bool forceStream = (m_SaveOptions & PdfSaveOptions::ForceXRefStream) != PdfSaveOptions::None;
+    bool forceTable = (opts & PdfSaveOptions::ForceXRefTable) != PdfSaveOptions::None;
+    bool forceStream = (opts & PdfSaveOptions::ForceXRefStream) != PdfSaveOptions::None;
     if (forceTable && forceStream)
     {
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "PdfSaveOptions::ForceXRefTable and "
@@ -77,12 +78,16 @@ void PdfWriter::InitWriteState()
     }
 
     if (forceTable)
-        m_UseXRefStream = false;
+        return false;
     else if (forceStream)
-        m_UseXRefStream = true;
+        return true;
     else
-        m_UseXRefStream = m_UseXRefStreamHint;
+        return useXRefStreamHint;
+}
 
+void PdfWriter::InitWriteState()
+{
+    m_UseXRefStream = ShouldUseXRefStream(m_SaveOptions, m_UseXRefStreamHint);
     m_Version = m_VersionHint;
     if (m_UseXRefStream && m_Version < PdfVersion::V1_5)
         m_Version = PdfVersion::V1_5;
@@ -205,6 +210,21 @@ void PdfWriter::WritePdfObjects(OutputStreamDevice& device, const PdfIndirectObj
             else
             {
                 // It's a regular incremental update, just skip processing the object
+                continue;
+            }
+        }
+
+        if (!m_IsIncrementalUpdate && m_UseXRefStream && !obj->IsDirty())
+        {
+            // An unmodified object stored in a preserved object stream is not
+            // rewritten: the object stream is written as it is and the object
+            // is addressed with a compressed entry
+            auto compressedObj = dynamic_cast<const PdfCompressedObject*>(obj);
+            if (compressedObj != nullptr
+                && objects.IsCompressedObjectStream(compressedObj->GetObjectStreamNumber()))
+            {
+                xref.AddCompressedObject(obj->GetIndirectReference().ObjectNumber(),
+                    compressedObj->GetObjectStreamNumber(), compressedObj->GetIndex());
                 continue;
             }
         }

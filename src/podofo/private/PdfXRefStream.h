@@ -43,10 +43,22 @@ private:
     struct XRefStreamEntry
     {
         uint8_t Type;
-        uint32_t Variant; // Can be an object number or an offset
-        uint16_t Generation;
+        union
+        {
+            uint32_t ObjectNumber;  // Object number in Free and Compressed entries
+            uint32_t Offset;        // Offset of the object in InUse entries
+        };
+        union
+        {
+            uint16_t Generation;    // The generation of the object in Free and InUse entries
+            uint16_t Index;         // Index of the object in the stream for Compressed entries
+        };
     };
 #pragma pack(pop)
+
+    // The entries are written as a raw block and the /W widths are
+    // taken from the members, so there shall be no padding
+    static_assert(sizeof(XRefStreamEntry) == 7, "XRefStreamEntry shall be packed");
 
 private:
     std::vector<XRefStreamEntry> m_rawEntries;

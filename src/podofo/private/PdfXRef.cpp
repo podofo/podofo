@@ -11,6 +11,7 @@
 #include <algorithm>
 
 constexpr unsigned UnavailableObjectGenerationNumber = 65535;
+constexpr uint64_t MaxXRefEntryVariant = 9999999999;
 
 using namespace std;
 using namespace PoDoFo;
@@ -23,29 +24,35 @@ PdfXRef::~PdfXRef() { }
 void PdfXRef::AddInUseObject(const PdfReference& ref, uint64_t offset)
 {
     PODOFO_ASSERT(ref.ObjectNumber() != 0 && offset < (uint64_t)numeric_limits<int64_t>::max());
-    addObject(ref, (int64_t)offset);
+    addObject(XRefObject::CreateInUse(ref, offset));
 }
 
 void PdfXRef::AddFreeObject(const PdfReference& ref)
 {
     PODOFO_ASSERT(ref.ObjectNumber() != 0 && ref.GenerationNumber() != 0);
-    addObject(ref, -1);
+    addObject(XRefObject::CreateFree(ref));
 }
 
 void PdfXRef::AddUnavailableObject(uint32_t objNum)
 {
     PODOFO_ASSERT(objNum != 0);
-    addObject(PdfReference(objNum, UnavailableObjectGenerationNumber), -1);
+    addObject(XRefObject::CreateFree(PdfReference(objNum, UnavailableObjectGenerationNumber)));
 }
 
-void PdfXRef::addObject(const PdfReference& ref, int64_t offset)
+void PdfXRef::AddCompressedObject(uint32_t objNum, uint32_t objStmNum, uint32_t index)
+{
+    PODOFO_ASSERT(objNum != 0 && objStmNum != 0);
+    addObject(XRefObject::CreateCompressed(objNum, objStmNum, index));
+}
+
+void PdfXRef::addObject(const XRefObject& obj)
 {
     // Find the insertion point for the object in the ordered set
-    auto it = m_xrefObjects.lower_bound(ref);
-    if (it == m_xrefObjects.end() || it->Reference.ObjectNumber() != ref.ObjectNumber())
+    auto it = m_xrefObjects.lower_bound(PdfReference(obj.ObjectNumber, obj.GenerationNumber));
+    if (it == m_xrefObjects.end() || it->ObjectNumber != obj.ObjectNumber)
     {
         // The object is not present, just insert it
-        (void)m_xrefObjects.emplace_hint(it, ref, offset);
+        (void)m_xrefObjects.insert(it, obj);
     }
     else
     {
@@ -53,8 +60,7 @@ void PdfXRef::addObject(const PdfReference& ref, int64_t offset)
         // the node and reinsert it in the set
         auto hintIt = std::next(it);
         auto node = m_xrefObjects.extract(it);
-        node.value().Reference = ref;
-        node.value().Offset = offset;
+        node.value() = obj;
         (void)m_xrefObjects.insert(hintIt, std::move(node));
     }
 }
@@ -155,8 +161,21 @@ void PdfXRef::WriteXRefEntry(OutputStreamDevice& device, const PdfReference& ref
             variant = entry.Offset;
             break;
         }
+        case PdfXRefEntryType::Compressed:
+        {
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic,
+                "A legacy XRef table can't address compressed objects");
+        }
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+
+    // ISO 32000-2:2020 7.5.4 "Cross-reference table": the entries have
+    // a fixed layout, with a 10 digits wide offset field
+    if (variant > MaxXRefEntryVariant)
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange,
+            "The value {} doesn't fit the XRef table entry field", variant);
     }
 
     utls::FormatTo(buffer, "{:010d} {:05d} {} \n", variant, entry.Generation, XRefEntryTypeToChar(entry.Type));
@@ -202,13 +221,13 @@ PdfXRef::XRefSubSection::XRefSubSection() :
 bool PdfXRef::XRefSubSection::TryAddObject(const XRefObject& obj)
 {
     // Check if the added object is the next one after the last one
-    if (obj.Reference.ObjectNumber() != m_Last + 1)
+    if (obj.ObjectNumber != m_Last + 1)
         return false;
 
     // Insert at back, unless it's an unavailable object. Those
     // are handled as fallbacks when iterating the section
-    if (obj.Reference.GenerationNumber() != UnavailableObjectGenerationNumber)
-        m_Objects.emplace_back(obj.Reference, obj.Offset);
+    if (!obj.IsUnavailable())
+        m_Objects.push_back(obj);
 
     m_Last++;
     return true;
@@ -220,13 +239,15 @@ bool PdfXRef::XRefSubSection::TryGetXRefEntryIncrement(iterator& it, PdfReferenc
         return false;
 
     const XRefObject* obj = nullptr;
-    if (it.ObjectIt != m_Objects.end() && (obj = &*it.ObjectIt)->Reference.ObjectNumber() == it.ObjectNum)
+    if (it.ObjectIt != m_Objects.end() && (obj = &*it.ObjectIt)->ObjectNumber == it.ObjectNum)
     {
-        // The current object number lies in the lists,
-        // which contains in use and proper free objects
-        ref = obj->Reference;
+        // The current object number lies in the lists, which contains
+        // in use, compressed and proper free objects
+        ref = obj->GetReference();
         if (obj->IsInUse())
-            entry = PdfXRefEntry::CreateInUse((uint64_t)obj->Offset, obj->Reference.GenerationNumber());
+            entry = PdfXRefEntry::CreateInUse((uint64_t)obj->Offset, obj->GenerationNumber);
+        else if (obj->IsCompressed())
+            entry = PdfXRefEntry::CreateCompressed(obj->ObjectStream.Number, obj->ObjectStream.Index);
         else
             entry = PdfXRefEntry::CreateFree(m_parent->GetNextFreeXRefObjectNumber(m_Index, it.ObjectNum + 1, std::next(it.ObjectIt)), ref.GenerationNumber());
         it.ObjectIt++;
@@ -252,22 +273,61 @@ uint32_t PdfXRef::XRefSubSection::GetCount() const
     return m_Last - m_First + 1;
 }
 
-PdfXRef::XRefObject::XRefObject(const PdfReference& ref, int64_t offset)
-    : Reference(ref), Offset(offset) { }
+PdfXRef::XRefObject PdfXRef::XRefObject::CreateInUse(const PdfReference& ref, uint64_t offset)
+{
+    XRefObject ret;
+    ret.Offset = (int64_t)offset;
+    ret.ObjectNumber = ref.ObjectNumber();
+    ret.GenerationNumber = ref.GenerationNumber();
+    ret.Type = PdfXRefEntryType::InUse;
+    return ret;
+}
+
+PdfXRef::XRefObject PdfXRef::XRefObject::CreateFree(const PdfReference& ref)
+{
+    XRefObject ret;
+    ret.Offset = 0;
+    ret.ObjectNumber = ref.ObjectNumber();
+    ret.GenerationNumber = ref.GenerationNumber();
+    ret.Type = PdfXRefEntryType::Free;
+    return ret;
+}
+
+PdfXRef::XRefObject PdfXRef::XRefObject::CreateCompressed(uint32_t objNum, uint32_t objStmNum, uint32_t index)
+{
+    XRefObject ret;
+    ret.ObjectStream.Number = objStmNum;
+    ret.ObjectStream.Index = index;
+    ret.ObjectNumber = objNum;
+    // The generation of a compressed object is implicitly zero
+    ret.GenerationNumber = 0;
+    ret.Type = PdfXRefEntryType::Compressed;
+    return ret;
+}
 
 bool PdfXRef::XRefObject::IsFree() const
 {
-    return Offset < 0;
+    return Type == PdfXRefEntryType::Free;
 }
 
 bool PdfXRef::XRefObject::IsInUse() const
 {
-    return Offset >= 0;
+    return Type == PdfXRefEntryType::InUse;
+}
+
+bool PdfXRef::XRefObject::IsCompressed() const
+{
+    return Type == PdfXRefEntryType::Compressed;
 }
 
 bool PdfXRef::XRefObject::IsUnavailable() const
 {
-    return Reference.GenerationNumber() == UnavailableObjectGenerationNumber;
+    return GenerationNumber == UnavailableObjectGenerationNumber;
+}
+
+PdfReference PdfXRef::XRefObject::GetReference() const
+{
+    return PdfReference(ObjectNumber, GenerationNumber);
 }
 
 PdfXRef::XRefSubSection::iterator::iterator(uint32_t objNum, XRefObjectList::const_iterator&& objectIt)
@@ -293,9 +353,9 @@ PdfXRef::XRefSubSection& PdfXRef::XRefSubSectionList::PushSubSection(const XRefO
     ret.m_parent = this;
     ret.m_Index = index;
     if (!item.IsUnavailable())
-        ret.m_Objects.emplace_back(item.Reference, item.Offset);
+        ret.m_Objects.push_back(item);
 
-    ret.m_First = item.Reference.ObjectNumber();
+    ret.m_First = item.ObjectNumber;
     ret.m_Last = ret.m_First;
     return ret;
 }
@@ -308,10 +368,10 @@ PdfXRef::XRefSubSection& PdfXRef::XRefSubSectionList::PushSubSection(const XRefO
     ret.m_parent = this;
     ret.m_Index = index;
     for (auto& obj : objects)
-        (void)ret.m_Objects.emplace_back(obj.Reference, obj.Offset);
+        (void)ret.m_Objects.push_back(obj);
 
-    PODOFO_ASSERT(ret.m_Objects.size() == 0 || (ret.m_Objects.front().Reference.ObjectNumber() >= firstObjectNum
-        && ret.m_Objects.back().Reference.ObjectNumber() <= lastObjectNum));
+    PODOFO_ASSERT(ret.m_Objects.size() == 0 || (ret.m_Objects.front().ObjectNumber >= firstObjectNum
+        && ret.m_Objects.back().ObjectNumber <= lastObjectNum));
     ret.m_First = firstObjectNum;
     ret.m_Last = lastObjectNum;
     return ret;
@@ -328,7 +388,7 @@ uint32_t PdfXRef::XRefSubSectionList::GetNextFreeXRefObjectNumber(size_t section
         {
             // Iterate remaining objects in the section, determining if they lies
             // in the list or they are absent, meaning they are unavailable
-            if (itObject != objects->end() && itObject->Reference.ObjectNumber() == currObjectNum)
+            if (itObject != objects->end() && itObject->ObjectNumber == currObjectNum)
             {
                 if (itObject->IsFree())
                     return currObjectNum;

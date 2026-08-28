@@ -263,6 +263,15 @@ private:
     /// for their compressed objects
     void ClearCompressedObjectStreams();
 
+    /// Forget a single registered object stream
+    /// @see ClearCompressedObjectStreams
+    void RemoveCompressedObjectStream(uint32_t objectNum);
+
+    /// @returns true if the object number is a registered object stream
+    bool IsCompressedObjectStream(uint32_t objectNum) const;
+
+    inline const PdfObjectNumSet& GetCompressedObjectStreams() const { return m_compressedObjectStreams; }
+
     std::unique_ptr<PdfObject> RemoveObject(const PdfReference& ref, bool markAsFree);
 
     /// Sets a StreamFactory which is used whenever CreateStream is called.

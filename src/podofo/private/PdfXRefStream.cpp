@@ -61,16 +61,33 @@ void PdfXRefStream::WriteXRefEntry(OutputStreamDevice& device, const PdfReferenc
     switch (entry.Type)
     {
         case PdfXRefEntryType::Free:
-            stmEntry.Variant = AS_BIG_ENDIAN(static_cast<uint32_t>(entry.ObjectNumber));
+            stmEntry.ObjectNumber = AS_BIG_ENDIAN(static_cast<uint32_t>(entry.ObjectNumber));
+            stmEntry.Generation = AS_BIG_ENDIAN(static_cast<uint16_t>(entry.Generation));
             break;
         case PdfXRefEntryType::InUse:
-            stmEntry.Variant = AS_BIG_ENDIAN(static_cast<uint32_t>(entry.Offset));
+            if (entry.Offset > std::numeric_limits<uint32_t>::max())
+            {
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange,
+                    "The offset {} of the object doesn't fit the entry field", entry.Offset);
+            }
+
+            stmEntry.Offset = AS_BIG_ENDIAN(static_cast<uint32_t>(entry.Offset));
+            stmEntry.Generation = AS_BIG_ENDIAN(static_cast<uint16_t>(entry.Generation));
+            break;
+        case PdfXRefEntryType::Compressed:
+            if (entry.Index > std::numeric_limits<uint16_t>::max())
+            {
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange,
+                    "The index {} of the compressed object doesn't fit the entry field", entry.Index);
+            }
+
+            stmEntry.ObjectNumber = AS_BIG_ENDIAN(static_cast<uint32_t>(entry.ObjectNumber));
+            stmEntry.Index = AS_BIG_ENDIAN(static_cast<uint16_t>(entry.Index));
             break;
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 
-    stmEntry.Generation = AS_BIG_ENDIAN(static_cast<uint16_t>(entry.Generation));
     m_rawEntries.push_back(stmEntry);
 }
 
@@ -78,16 +95,22 @@ void PdfXRefStream::EndWriteImpl(OutputStreamDevice& device, charbuff& buffer)
 {
     PdfArray wArr;
     wArr.Add(static_cast<int64_t>(sizeof(XRefStreamEntry::Type)));
-    wArr.Add(static_cast<int64_t>(sizeof(XRefStreamEntry::Variant)));
+    wArr.Add(static_cast<int64_t>(sizeof(XRefStreamEntry::ObjectNumber)));
     wArr.Add(static_cast<int64_t>(sizeof(XRefStreamEntry::Generation)));
  
     m_xrefStreamObj->GetDictionary().AddKey("Index"_n, m_indices);
     m_xrefStreamObj->GetDictionary().AddKey("W"_n, wArr);
  
     // Set the actual offset of the XRefStm object
-    uint32_t offset = (uint32_t)device.GetPosition();
+    size_t offset = device.GetPosition();
+    if (offset > std::numeric_limits<uint32_t>::max())
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange,
+            "The offset {} of the XRef stream doesn't fit the entry field", offset);
+    }
+
     PODOFO_ASSERT(m_xrefStreamEntryIndex >= 0);
-    m_rawEntries[m_xrefStreamEntryIndex].Variant = AS_BIG_ENDIAN(offset);
+    m_rawEntries[m_xrefStreamEntryIndex].Offset = AS_BIG_ENDIAN(static_cast<uint32_t>(offset));
  
     // Write the actual entries data to the XRefStm object stream
     auto& stream = m_xrefStreamObj->GetOrCreateStream();

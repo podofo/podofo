@@ -34,15 +34,13 @@ namespace PoDoFo
         union
         {
             uint64_t ObjectNumber;  // Object number in Free and Compressed entries
-            uint64_t Offset;        // Unused in InUse entries
-            uint64_t Unknown1;
+            uint64_t Offset;        // Offset of the object in InUse entries
         };
 
         union
         {
             uint32_t Generation;    // The generation of the object in Free and InUse entries
             uint32_t Index;         // Index of the object in the stream for Compressed entries
-            uint32_t Unknown2;
         };
         PdfXRefEntryType Type;
         bool Parsed;
