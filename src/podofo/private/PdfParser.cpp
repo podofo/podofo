@@ -16,7 +16,6 @@
 #include <podofo/main/PdfEncrypt.h>
 #include <podofo/main/PdfMemoryObjectStream.h>
 #include "PdfXRefStreamParserObject.h"
-#include "PdfObjectStreamParser.h"
 
 constexpr unsigned PDF_VERSION_LENGHT = 3;
 constexpr unsigned PDF_MAGIC_LENGHT = 8;
@@ -293,8 +292,9 @@ bool PdfParser::tryRebuildCrossReference(InputStreamDevice& device)
                                 // must limit the access to /Width do direct numbers,
                                 // otherwise we could access random objects
                                 parserObject->ParseStream(true);
-                                PdfObjectStreamParser objectStreamParser(*parserObject, *m_Objects, m_buffer);
-                                objectStreamParser.Parse(nullptr);
+                                // NOTE: The stored objects are not known in advance here,
+                                // so the stream contents are decoded to enumerate them
+                                PdfObjectStreamParser::Parse(*parserObject, *m_Objects, m_buffer, nullptr);
                             }
                             else
                             {
@@ -422,6 +422,11 @@ void PdfParser::readNextTrailer(InputStreamDevice& device, nullable<size_t>& pre
             PODOFO_PUSH_FRAME_INFO(e, "Unable to load /XRefStm xref stream");
             throw;
         }
+
+        // NOTE: The compressed objects of the document are addressable only
+        // through a cross reference stream. Since writing a hybrid-reference
+        // file is not supported, the document is saved with a XRef stream
+        m_HasXRefStream = true;
     }
 
     auto prevObj = trailerPtr->GetDictionary().FindKey("Prev");
@@ -787,8 +792,7 @@ void PdfParser::ReadObjectEntries(InputStreamDevice& device)
 void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
 {
     // Read objects
-    vector<unsigned> compressedIndices;
-    map<uint32_t, vector<uint32_t>> compressedObjects;
+    map<uint32_t, vector<PdfObjectStreamParser::Entry>> compressedObjects;
     unique_ptr<PdfParserObject> obj;
     PdfDictionary* dict;
     PdfObject* typeObj;
@@ -979,7 +983,7 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
                 case PdfXRefEntryType::Compressed:
                 {
                     if (entry.ObjectNumber > 0 && entry.ObjectNumber < PdfParser::MaxObjectCount)
-                        compressedObjects[(uint32_t)entry.ObjectNumber].push_back(i);
+                        compressedObjects[(uint32_t)entry.ObjectNumber].push_back({ i, entry.Index });
 
                     break;
                 }
@@ -1000,22 +1004,12 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
     }
 
     // all normal objects including object streams are available now,
-    // we can parse the object streams safely now.
-    //
-    // Note that even if demand loading is enabled we still currently read all
-    // objects from the stream into memory then free the stream.
-    //
-    unordered_set<uint32_t> objectList;
+    // we can create the compressed objects safely now. They are lazily
+    // loaded, decoding the object stream contents only when accessed
     for (auto& pair : compressedObjects)
     {
-#ifndef VERBOSE_DEBUG_DISABLED
-        if (m_LoadOnDemand)
-            cerr << "Demand loading on, but can't demand-load from object stream." << endl;
-#endif
-        objectList.insert(pair.second.begin(), pair.second.end());
-        readCompressedObjectFromStream(pair.first, objectList);
+        readCompressedObjectsFromStream(pair.first, pair.second);
         m_Objects->AddCompressedObjectStream(pair.first);
-        objectList.clear();
     }
 }
 
@@ -1027,7 +1021,11 @@ void PdfParser::eagerlyLoadStreams()
     // in a second pass, or (if demand loading is enabled) defer it for later.
     for (auto objToLoad : *m_Objects)
     {
+        // Compressed objects have no stream to load
         auto parserObj = dynamic_cast<PdfParserObject*>(objToLoad);
+        if (parserObj == nullptr)
+            continue;
+
         try
         {
             parserObj->ParseStream();
@@ -1042,7 +1040,7 @@ void PdfParser::eagerlyLoadStreams()
     }
 }
 
-void PdfParser::readCompressedObjectFromStream(uint32_t objNo, const unordered_set<uint32_t>& objectList)
+void PdfParser::readCompressedObjectsFromStream(uint32_t objNo, const vector<PdfObjectStreamParser::Entry>& entries)
 {
     // generation number of object streams is always 0
     auto streamObj = dynamic_cast<PdfParserObject*>(m_Objects->GetObject(PdfReference(objNo, 0)));
@@ -1055,8 +1053,7 @@ void PdfParser::readCompressedObjectFromStream(uint32_t objNo, const unordered_s
         return;
     }
 
-    PdfObjectStreamParser parserObject(*streamObj, *m_Objects, m_buffer);
-    parserObject.Parse(&objectList);
+    PdfObjectStreamParser::Parse(*streamObj, *m_Objects, m_buffer, &entries);
 }
 
 bool PdfParser::tryFindTokenBackward(InputStreamDevice& device, string_view token, size_t searchEnd)

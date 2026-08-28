@@ -8,6 +8,7 @@
 #include <podofo/main/PdfIndirectObjectList.h>
 #include <podofo/main/PdfTokenizer.h>
 
+#include "PdfObjectStreamParser.h"
 #include "PdfParserObject.h"
 #include "PdfXRefEntry.h"
 
@@ -219,16 +220,13 @@ private:
 
     void eagerlyLoadStreams();
 
-    /// Read the object with index from the object stream nObjNo
-    /// and push it on the objects vector
-    ///
-    /// All objects are read from this stream and the stream object
-    /// is free'd from memory. Further calls who try to read from the
-    /// same stream simply do nothing.
+    /// Push lazily loaded objects for the given entries of the object
+    /// stream objNo on the objects vector
     ///
     /// @param objNo object number of the stream object
-    ///
-    void readCompressedObjectFromStream(uint32_t objNo, const std::unordered_set<uint32_t>& objectList);
+    /// @param entries the compressed objects to push
+    void readCompressedObjectsFromStream(uint32_t objNo,
+        const std::vector<PdfObjectStreamParser::Entry>& entries);
 
     void readNextTrailer(InputStreamDevice& device, nullable<size_t>& prevOffset);
 
