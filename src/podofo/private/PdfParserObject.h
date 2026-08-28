@@ -7,7 +7,7 @@
 
 #include <podofo/main/PdfObject.h>
 #include <podofo/main/PdfTokenizer.h>
-#include <podofo/main/PdfEncryptSession.h>
+#include "PdfEncryptSession.h"
 
 namespace PoDoFo {
 

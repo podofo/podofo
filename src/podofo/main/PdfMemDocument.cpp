@@ -8,6 +8,7 @@
 #include <podofo/auxiliary/StreamDevice.h>
 #include <podofo/private/PdfWriter.h>
 #include <podofo/private/PdfParser.h>
+#include <podofo/private/PdfEncryptSession.h>
 
 #include "PdfCommon.h"
 
@@ -60,6 +61,14 @@ PdfMemDocument::PdfMemDocument(const PdfMemDocument& rhs) :
     // Do a full copy of the encrypt session
     if (rhs.m_Encrypt != nullptr)
         m_Encrypt.reset(new PdfEncryptSession(rhs.m_Encrypt->GetEncrypt(), rhs.m_Encrypt->GetContext()));
+}
+
+PdfMemDocument::~PdfMemDocument()
+{
+    // NOTE: This must be defined to avoid exposing PdfEncryptSession
+    // in the public header, as it is a private class. Otherwise the
+    // compiler will complain about an incomplete type when generating
+    // the destructor for PdfMemDocument
 }
 
 void PdfMemDocument::clear()
