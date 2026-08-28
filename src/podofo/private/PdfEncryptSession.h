@@ -4,16 +4,16 @@
 #ifndef PDF_ENCRYPT_SESSION
 #define PDF_ENCRYPT_SESSION
 
-#include "PdfEncrypt.h"
+#include <podofo/main/PdfEncrypt.h>
 
 namespace PoDoFo {
 
 /// A bundle of the encrypt object together a context
-class PODOFO_API PdfEncryptSession final
+class PdfEncryptSession final
 {
     friend class PdfMemDocument;
-    PODOFO_PRIVATE_FRIEND(class PdfParser);
-    PODOFO_PRIVATE_FRIEND(class PdfImmediateWriter);
+    friend class PdfParser;
+    friend class PdfImmediateWriter;
 
 private:
     /// A copy constructor that does deep copy of PdfEncrypt as well

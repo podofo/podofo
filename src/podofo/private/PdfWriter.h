@@ -8,7 +8,7 @@
 #include <podofo/auxiliary/InputDevice.h>
 #include <podofo/auxiliary/OutputDevice.h>
 #include <podofo/main/PdfIndirectObjectList.h>
-#include <podofo/main/PdfEncryptSession.h>
+#include "PdfEncryptSession.h"
 
 namespace PoDoFo {
 

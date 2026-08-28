@@ -9,7 +9,7 @@
 #include <podofo/auxiliary/OutputDevice.h>
 
 #include "PdfDocument.h"
-#include "PdfEncryptSession.h"
+#include "PdfEncrypt.h"
 
 namespace PoDoFo {
 
@@ -45,6 +45,8 @@ public:
 
     /// Construct a copy of the given document
     PdfMemDocument(const PdfMemDocument& rhs);
+
+    ~PdfMemDocument();
 
     /// Load a PdfMemDocument from a file
     ///

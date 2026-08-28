@@ -27,7 +27,14 @@ disabled with `PdfSignerCmsFlags::SkipDateValidation`
 - Signing with an external certificate now performs a cross-check verification of the signed
 hash by default. This check can be disabled with `PdfSignerCmsFlags::SkipVerification`
 
-# 1.0.* -> 1.1
+# 1.0.* -> 1.1.3
+- Removed `PdfEncryptSession` from the public API. It was never meant
+to be public and it was used only privately in `PdfMemDocument`. It was
+public because it was not known how to prevent a compilation error that
+happened just because `PdfMemDocument` had an auto-generated destructor.
+Defining an explicit empty destructor fixed the issue.
+
+# 1.0.* -> 1.1.0
 
 - `PdfFontFactory`: Removed, this was a leftover of a removed class,
   as a friendship declaration
