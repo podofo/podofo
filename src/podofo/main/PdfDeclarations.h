@@ -425,7 +425,7 @@ enum class PdfHorizontalAlignment : uint8_t
     Right = 2
 };
 
-enum class PdfSaveOptions
+enum class PdfSaveOptions : uint32_t
 {
     None = 0,
 
@@ -464,7 +464,7 @@ enum class PdfSaveOptions
     NoModifyDateUpdate = NoMetadataUpdate
 };
 
-enum class PdfLoadOptions
+enum class PdfLoadOptions : uint32_t
 {
     None = 0,
     ///< Throw on several PDF syntax violations
