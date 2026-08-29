@@ -685,7 +685,7 @@ void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset,
     prevOffset = nullptr;
 
     device.Seek(offset);
-    auto xrefObjTrailer = new PdfXRefStreamParserObject(m_Objects->GetDocument(), device, m_entries);
+    auto xrefObjTrailer = new PdfXRefStreamParserObject(m_Objects->GetDocument(), device, m_entries, m_MagicOffset);
     try
     {
         xrefObjTrailer->ParseFull();

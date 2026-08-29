@@ -28,11 +28,15 @@ private:
     /// @param doc document where to resolve object references
     /// @param device an open reference counted input device which is positioned in
     ///                 front of the object which is going to be parsed.
-    PdfXRefStreamParserObject(PdfDocument& doc, InputStreamDevice& device, PdfXRefEntries& entries);
+    /// @param magicOffset offset of the "%PDF" header, which the offsets
+    ///                 stored in the entries are relative to
+    PdfXRefStreamParserObject(PdfDocument& doc, InputStreamDevice& device,
+        PdfXRefEntries& entries, size_t magicOffset);
 
 public:
     /// @warning This constructor is for testing usage only
-    PdfXRefStreamParserObject(InputStreamDevice& device, PdfXRefEntries& entries);
+    PdfXRefStreamParserObject(InputStreamDevice& device, PdfXRefEntries& entries,
+        size_t magicOffset = 0);
 
 public:
     void delayedLoad() override;
@@ -44,7 +48,7 @@ public:
 
 private:
     PdfXRefStreamParserObject(PdfDocument* doc, InputStreamDevice& device,
-        PdfXRefEntries& entries);
+        PdfXRefEntries& entries, size_t magicOffset);
 
     /// Read the /Index key from the current dictionary
     /// and write it to a vector.
@@ -66,6 +70,7 @@ private:
 private:
     ssize_t m_NextOffset;
     PdfXRefEntries* m_entries;
+    size_t m_magicOffset;
 };
 
 };

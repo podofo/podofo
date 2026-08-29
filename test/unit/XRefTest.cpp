@@ -211,6 +211,62 @@ TEST_CASE("TestMagicOffsetHybridXRef")
     REQUIRE(doc.GetPages().GetCount() != 0);
 }
 
+// The entries of an XRef stream are relative to the header as well: a
+// document with data before it is read correctly whatever wrote it
+TEST_CASE("TestMagicOffsetXRefStreamEntries")
+{
+    charbuff buff("% Data before the header\n");
+    {
+        FileStreamDevice input(TestUtils::GetTestInputFilePath("TestXRefCheckboxUnicode.pdf"));
+        // NOTE: The device is positioned at the end of the buffer by default
+        BufferStreamDevice output(buff);
+        input.CopyTo(output);
+    }
+
+    // NOTE: Skip the XRef recovery, or a broken section would be
+    // silently rebuilt and the test would pass regardless
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(buff, PdfLoadOptions::SkipXRefRecovery);
+    REQUIRE(doc.GetPages().GetCount() == 1);
+}
+
+// The offsets stored in the XRef sections of a document that has data before
+// the "%PDF" header are relative to it, for both the layouts
+TEST_CASE("TestMagicOffsetXRefRoundTrip")
+{
+    auto saveUpdateAndReload = [](PdfSaveOptions opts) {
+        string path = TestUtils::GetTestOutputFilePath("TestMagicOffsetXRefRoundTrip.pdf");
+        {
+            FileStreamDevice input(TestUtils::GetTestInputFilePath("blank-with-offset-start.pdf"));
+            FileStreamDevice output(path, FileMode::Create);
+            input.CopyTo(output);
+        }
+
+        {
+            PdfMemDocument doc;
+            doc.Load(path);
+            doc.SaveUpdate(path, opts);
+        }
+
+        // NOTE: Skip the XRef recovery, or a broken section would be
+        // silently rebuilt and the test would pass regardless
+        PdfMemDocument doc;
+        doc.Load(path, PdfLoadOptions::SkipXRefRecovery);
+        REQUIRE(doc.GetPages().GetCount() == 1);
+
+        // The information dictionary is the object rewritten by the update, so it's
+        // the one addressed by the new section. Objects are loaded lazily, so its
+        // contents must be actually read, and the modification date tells the
+        // rewritten object apart from the one of the previous revision
+        auto modDate = doc.GetTrailer().GetDictionary().MustFindKey("Info")
+            .GetDictionary().MustFindKey("ModDate").GetString().GetString();
+        REQUIRE(modDate != "D:20190315122551+01'");
+    };
+
+    saveUpdateAndReload(PdfSaveOptions::ForceXRefTable);
+    saveUpdateAndReload(PdfSaveOptions::ForceXRefStream);
+}
+
 TEST_CASE("TestStreamedXRefLayout")
 {
     charbuff buff;
