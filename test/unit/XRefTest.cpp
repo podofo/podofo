@@ -195,7 +195,7 @@ TEST_CASE("TestHybridXRefSavedAsStream")
 // the /XRefStm of a hybrid-reference file must be fixed with it as well
 TEST_CASE("TestMagicOffsetHybridXRef")
 {
-    charbuff hybridBuff("% Data before the header\n");
+    charbuff hybridBuff("% Data before the header\n"sv);
     {
         FileStreamDevice input(TestUtils::GetTestInputFilePath("TechDocs", "Acrobat_SignatureCreationQuickKeyAll.pdf"));
         // NOTE: The device is positioned at the end of the buffer by default
@@ -215,7 +215,7 @@ TEST_CASE("TestMagicOffsetHybridXRef")
 // document with data before it is read correctly whatever wrote it
 TEST_CASE("TestMagicOffsetXRefStreamEntries")
 {
-    charbuff buff("% Data before the header\n");
+    charbuff buff("% Data before the header\n"sv);
     {
         FileStreamDevice input(TestUtils::GetTestInputFilePath("TestXRefCheckboxUnicode.pdf"));
         // NOTE: The device is positioned at the end of the buffer by default
