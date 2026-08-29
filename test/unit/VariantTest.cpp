@@ -44,6 +44,16 @@ TEST_CASE("TestNameObject")
     REQUIRE(parserObj.GetName().GetString() == "");
 }
 
+TEST_CASE("TestReferenceIsIndirect")
+{
+    REQUIRE(PdfReference(1, 0).IsIndirect());
+    REQUIRE(PdfReference(1, 5).IsIndirect());
+
+    // The object number 0 is always unavailable
+    REQUIRE(!PdfReference().IsIndirect());
+    REQUIRE(!PdfReference(0, 5).IsIndirect());
+}
+
 TEST_CASE("TestIsDirtyTrue")
 {
     PdfMemDocument doc;

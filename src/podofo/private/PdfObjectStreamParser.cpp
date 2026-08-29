@@ -31,7 +31,17 @@ void PdfObjectStreamParser::Parse(PdfParserObject& streamObj, PdfIndirectObjectL
         // decoded now to enumerate them
         parser->decode(streamObj);
         for (unsigned i = 0; i < (unsigned)parser->m_offsets.size(); i++)
+        {
+            // The object number 0 is always unavailable
+            if (parser->m_offsets[i].ObjectNumber == 0)
+            {
+                PoDoFo::LogMessage(PdfLogSeverity::Warning,
+                    "Skipped compressed object with unavailable object number 0");
+                continue;
+            }
+
             pushObject(objects, parser, { parser->m_offsets[i].ObjectNumber, i });
+        }
     }
     else
     {

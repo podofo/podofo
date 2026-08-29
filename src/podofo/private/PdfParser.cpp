@@ -269,6 +269,14 @@ bool PdfParser::tryRebuildCrossReference(InputStreamDevice& device)
                         size_t objPos = numbers[0].second;
                         uint32_t objNum = numbers[0].first;
                         uint32_t genNum = numbers[1].first;
+                        if (objNum == 0)
+                        {
+                            // The object number 0 is always unavailable
+                            PoDoFo::LogMessage(PdfLogSeverity::Warning,
+                                "Skipped object with unavailable object number 0");
+                            break;
+                        }
+
                         if (genNum > numeric_limits<uint16_t>::max())
                             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile, "Invalid generation number");
 
