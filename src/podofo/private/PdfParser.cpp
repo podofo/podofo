@@ -415,7 +415,7 @@ void PdfParser::readNextTrailer(InputStreamDevice& device, nullable<size_t>& pre
         try
         {
             nullable<size_t> xrefStmPrevOffset;
-            ReadXRefStreamContents(device, static_cast<size_t>(xrefStmOffset), xrefStmPrevOffset);
+            ReadXRefStreamContents(device, static_cast<size_t>(xrefStmOffset) + m_MagicOffset, xrefStmPrevOffset);
         }
         catch (PdfError& e)
         {
@@ -713,9 +713,13 @@ void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset,
     // Check for a previous XRefStm or xref table and return it to the caller,
     // which follows the /Prev chain iteratively. A self-reference is reported
     // as no previous offset to avoid an immediate loop
+    // NOTE: Fix the offset with the magic offset, as done for legacy trailers
     size_t previousOffset;
-    if (xrefObjTrailer->TryGetPreviousOffset(previousOffset) && previousOffset != offset)
+    if (xrefObjTrailer->TryGetPreviousOffset(previousOffset)
+        && (previousOffset += m_MagicOffset) != offset)
+    {
         prevOffset = previousOffset;
+    }
 }
 
 void PdfParser::ReadObjectEntries(InputStreamDevice& device)
