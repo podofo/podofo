@@ -47,5 +47,5 @@ bool PdfReference::operator!=(const PdfReference& rhs) const
 
 bool PdfReference::IsIndirect() const
 {
-    return m_ObjectNo != 0 || m_GenerationNo != 0;
+    return m_ObjectNo != 0;
 }

@@ -56,8 +56,8 @@ public:
     /// Allows to check if a reference points to an indirect
     /// object.
     ///
-    /// A reference is indirect if object number and generation
-    /// number are both not equal 0.
+    /// A reference is indirect if the object number is not 0,
+    /// which is always unavailable.
     ///
     /// @returns true if this reference is the reference of
     ///           an indirect object.
