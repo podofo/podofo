@@ -191,6 +191,26 @@ TEST_CASE("TestHybridXRefSavedAsStream")
     REQUIRE(savedDoc.GetPages().GetCount() == doc.GetPages().GetCount());
 }
 
+// Prepending data to a document makes all its offsets relative to the header:
+// the /XRefStm of a hybrid-reference file must be fixed with it as well
+TEST_CASE("TestMagicOffsetHybridXRef")
+{
+    charbuff hybridBuff("% Data before the header\n");
+    {
+        FileStreamDevice input(TestUtils::GetTestInputFilePath("TechDocs", "Acrobat_SignatureCreationQuickKeyAll.pdf"));
+        // NOTE: The device is positioned at the end of the buffer by default
+        BufferStreamDevice output(hybridBuff);
+        input.CopyTo(output);
+    }
+
+    // NOTE: Skip the XRef recovery, or a broken section would be
+    // silently rebuilt and the test would pass regardless
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(hybridBuff, PdfLoadOptions::SkipXRefRecovery);
+    REQUIRE(countObjectStreams(doc) != 0);
+    REQUIRE(doc.GetPages().GetCount() != 0);
+}
+
 TEST_CASE("TestStreamedXRefLayout")
 {
     charbuff buff;
