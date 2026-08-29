@@ -17,14 +17,18 @@ using namespace std;
 using namespace PoDoFo;
 using namespace chromium::base;
 
-PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfDocument& doc, InputStreamDevice& device, PdfXRefEntries& entries)
-    : PdfXRefStreamParserObject(&doc, device, entries) { }
+PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfDocument& doc, InputStreamDevice& device,
+        PdfXRefEntries& entries, size_t magicOffset)
+    : PdfXRefStreamParserObject(&doc, device, entries, magicOffset) { }
 
-PdfXRefStreamParserObject::PdfXRefStreamParserObject(InputStreamDevice& device, PdfXRefEntries& entries)
-    : PdfXRefStreamParserObject(nullptr, device, entries) { }
+PdfXRefStreamParserObject::PdfXRefStreamParserObject(InputStreamDevice& device,
+        PdfXRefEntries& entries, size_t magicOffset)
+    : PdfXRefStreamParserObject(nullptr, device, entries, magicOffset) { }
 
-PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfDocument* doc, InputStreamDevice& device, PdfXRefEntries& entries)
-    : PdfParserObject(doc, PdfReference(), device, -1, false), m_NextOffset(-1), m_entries(&entries)
+PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfDocument* doc, InputStreamDevice& device,
+        PdfXRefEntries& entries, size_t magicOffset)
+    : PdfParserObject(doc, PdfReference(), device, -1, false), m_NextOffset(-1),
+    m_entries(&entries), m_magicOffset(magicOffset)
 {
 }
 
@@ -229,7 +233,7 @@ void PdfXRefStreamParserObject::readXRefStreamEntry(PdfXRefEntry& entry, char* b
             break;
         case 1:
             // normal uncompressed object
-            entry.Offset = entryRaw[1];
+            entry.Offset = entryRaw[1] + (uint64_t)m_magicOffset;
             entry.Generation = (uint32_t)entryRaw[2];
             entry.Type = PdfXRefEntryType::InUse;
             break;

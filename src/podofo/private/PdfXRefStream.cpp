@@ -103,14 +103,15 @@ void PdfXRefStream::EndWriteImpl(OutputStreamDevice& device, charbuff& buffer)
  
     // Set the actual offset of the XRefStm object
     size_t offset = device.GetPosition();
-    if (offset > std::numeric_limits<uint32_t>::max())
+    size_t entryOffset = offset - GetWriter().GetMagicOffset();
+    if (entryOffset > std::numeric_limits<uint32_t>::max())
     {
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange,
-            "The offset {} of the XRef stream doesn't fit the entry field", offset);
+            "The offset {} of the XRef stream doesn't fit the entry field", entryOffset);
     }
 
     PODOFO_ASSERT(m_xrefStreamEntryIndex >= 0);
-    m_rawEntries[m_xrefStreamEntryIndex].Offset = AS_BIG_ENDIAN(static_cast<uint32_t>(offset));
+    m_rawEntries[m_xrefStreamEntryIndex].Offset = AS_BIG_ENDIAN(static_cast<uint32_t>(entryOffset));
  
     // Write the actual entries data to the XRefStm object stream
     auto& stream = m_xrefStreamObj->GetOrCreateStream();
