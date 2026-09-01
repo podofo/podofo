@@ -56,6 +56,11 @@ The `playground` shall be used with a CMake build dir named accordingly to the h
 cd playground
 cmake -B build-{win|linux|macos}-{Debug|Release} -DCMAKE_BUILD_TYPE={Debug|Release}
 ```
+
+Add `-DPODOFO_WITH_ASAN=TRUE` to compile with address sanitizer instrumentation. It defaults to
+FALSE and it's not enabled during regular development: turn it on only when hunting memory errors,
+using a separate build directory (eg. `build-win-Debug-asan`) to avoid rebuilding the regular one.
+
 ### Build:
 ```
 cmake --build build-{win|linux|macos}-{Debug|Release}
