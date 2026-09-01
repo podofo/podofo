@@ -47,37 +47,38 @@ namespace PoDoFo
     constexpr std::string_view operator""_ns(const char* name, size_t length)
     {
         using namespace std;
-        if (std::char_traits<char>::compare(name, "rdf", length) == 0)
+        string_view ns(name, length);
+        if (ns == "rdf"sv)
             return "http://www.w3.org/1999/02/22-rdf-syntax-ns#"sv;
-        else if (std::char_traits<char>::compare(name, "dc", length) == 0)
+        else if (ns == "dc"sv)
             return "http://purl.org/dc/elements/1.1/"sv;
-        else if (std::char_traits<char>::compare(name, "pdf", length) == 0)
+        else if (ns == "pdf"sv)
             return "http://ns.adobe.com/pdf/1.3/"sv;
-        else if (std::char_traits<char>::compare(name, "xmp", length) == 0)
+        else if (ns == "xmp"sv)
             return "http://ns.adobe.com/xap/1.0/"sv;
-        else if (std::char_traits<char>::compare(name, "pdfaid", length) == 0)
+        else if (ns == "pdfaid"sv)
             return "http://www.aiim.org/pdfa/ns/id/"sv;
-        else if (std::char_traits<char>::compare(name, "pdfuaid", length) == 0)
+        else if (ns == "pdfuaid"sv)
             return "http://www.aiim.org/pdfua/ns/id/"sv;
-        else if (std::char_traits<char>::compare(name, "pdfvtid", length) == 0)
+        else if (ns == "pdfvtid"sv)
             return "http://www.npes.org/pdfvt/ns/id/"sv;
-        else if (std::char_traits<char>::compare(name, "pdfxid", length) == 0)
+        else if (ns == "pdfxid"sv)
             return "http://www.npes.org/pdfx/ns/id/"sv;
-        else if (std::char_traits<char>::compare(name, "pdfe", length) == 0)
+        else if (ns == "pdfe"sv)
             return "http://www.aiim.org/pdfe/ns/id/"sv;
-        else if (std::char_traits<char>::compare(name, "pdfaExtension", length) == 0)
+        else if (ns == "pdfaExtension"sv)
             return "http://www.aiim.org/pdfa/ns/extension/"sv;
-        else if (std::char_traits<char>::compare(name, "pdfaSchema", length) == 0)
+        else if (ns == "pdfaSchema"sv)
             return "http://www.aiim.org/pdfa/ns/schema#"sv;
-        else if (std::char_traits<char>::compare(name, "pdfaProperty", length) == 0)
+        else if (ns == "pdfaProperty"sv)
             return "http://www.aiim.org/pdfa/ns/property#"sv;
-        else if (std::char_traits<char>::compare(name, "pdfaField", length) == 0)
+        else if (ns == "pdfaField"sv)
             return "http://www.aiim.org/pdfa/ns/field#"sv;
-        else if (std::char_traits<char>::compare(name, "pdfaType", length) == 0)
+        else if (ns == "pdfaType"sv)
             return "http://www.aiim.org/pdfa/ns/type#"sv;
-        else if (std::char_traits<char>::compare(name, "rng", length) == 0)
+        else if (ns == "rng"sv)
             return "http://relaxng.org/ns/structure/1.0"sv;
-        else if (std::char_traits<char>::compare(name, "xml", length) == 0)
+        else if (ns == "xml"sv)
             return "http://www.w3.org/XML/1998/namespace"sv;
         else
             return { };
