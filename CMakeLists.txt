@@ -97,6 +97,7 @@ option(PODOFO_BUILD_STATIC "Build static libraries (.a/.lib)" FALSE)
 option(PODOFO_WITH_AFDKO "Enable AFDKO support" ON)
 # NOTE: It lets the compiler inline across translation units
 option(PODOFO_WITH_LTO "Enable link time optimization in optimized builds" ON)
+option(PODOFO_WITH_ASAN "Compile with address sanitizer instrumentation" FALSE)
 
 if(PODOFO_WITH_AFDKO)
     set(PODOFO_ENABLE_AFDKO TRUE)
@@ -184,6 +185,47 @@ else()
             # Silence warnings on use of typeid(*ptr)
             # See https://stackoverflow.com/questions/46494928/clang-warning-on-expression-side-effects
             -Wno-potentially-evaluated-expression)
+    endif()
+endif()
+
+if(PODOFO_WITH_ASAN)
+    message("Address sanitizer instrumentation enabled")
+    if(MSVC)
+        add_compile_options(/fsanitize=address)
+        # Runtime checks and incremental linking are incompatible with the sanitizer
+        string(REGEX REPLACE "/RTC[a-zA-Z1]*" "" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+        string(REGEX REPLACE "/RTC[a-zA-Z1]*" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+        add_link_options(/INCREMENTAL:NO)
+        # Instrumented stack frames are much bigger: raise the default 1MB stack reserve
+        # to the 8MB that is customary on Unix, so deep recursions don't overflow the stack
+        add_link_options(/STACK:8388608)
+
+        # The sanitizer runtime dll lives in the toolchain compiler folder, which is not
+        # in the search path when running the binaries outside of Visual Studio: deploy it
+        if(NOT "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" STREQUAL "")
+            get_filename_component(MSVC_COMPILER_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
+            file(GLOB ASAN_RUNTIME_DLLS "${MSVC_COMPILER_DIR}/clang_rt.asan*dynamic-*.dll")
+            if("${ASAN_RUNTIME_DLLS}" STREQUAL "")
+                message(WARNING "Address sanitizer runtime not found in \"${MSVC_COMPILER_DIR}\"")
+            else()
+                # With a multi configuration generator the binaries are placed in a per configuration subfolder
+                set(ASAN_RUNTIME_DESTINATIONS "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+                if(DEFINED CMAKE_CONFIGURATION_TYPES)
+                    set(ASAN_RUNTIME_DESTINATIONS)
+                    foreach(CONFIG_TYPE ${CMAKE_CONFIGURATION_TYPES})
+                        list(APPEND ASAN_RUNTIME_DESTINATIONS "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CONFIG_TYPE}")
+                    endforeach()
+                endif()
+
+                foreach(DESTINATION ${ASAN_RUNTIME_DESTINATIONS})
+                    file(COPY ${ASAN_RUNTIME_DLLS} DESTINATION "${DESTINATION}")
+                endforeach()
+                message("Deployed address sanitizer runtime from \"${MSVC_COMPILER_DIR}\"")
+            endif()
+        endif()
+    else()
+        add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
+        add_link_options(-fsanitize=address)
     endif()
 endif()
 

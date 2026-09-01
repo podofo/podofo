@@ -194,6 +194,9 @@ examples and tools. By default a shared library is built;
 
 - `PODOFO_WITH_LTO`: Enable link-time optimizations in optimized builds. Defaults to ON;
 
+- `PODOFO_WITH_ASAN`: Compile the library, tests, examples and tools with address sanitizer
+instrumentation, defaults to FALSE;
+
 - `PODOFO_DEVENDOR_TCBSPAN`: If TRUE, the [`tcb::span`](https://github.com/tcbrindle/span) library will be devendored;
 
 - `PODOFO_DEVENDOR_DATE`: If TRUE, the [`date`](https://github.com/howardhinnant/date) library will be devendored;
