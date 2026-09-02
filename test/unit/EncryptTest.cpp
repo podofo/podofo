@@ -13,6 +13,7 @@ static void testAuthenticate(PdfEncrypt& encrypt, PdfEncryptContext& context);
 static void testEncrypt(PdfEncrypt& encrypt, PdfEncryptContext& context);
 static void createEncryptedPdf(const string_view& filename);
 static string lastEncryptReference(const string_view& pdf);
+static unsigned encryptObjectDefinitionCount(const string_view& pdf, const string_view& encryptRef);
 
 charbuff s_encBuffer;
 PdfPermissions s_protection;
@@ -462,6 +463,51 @@ TEST_CASE("TestPreserveEncrypt")
     testSave(true, true);
 }
 
+// An RC4 40 bits encrypted document, "userpass"/"ownerpass", with an explicit
+// /Length entry in the encryption dictionary, which is optional with /V 1
+constexpr string_view RC4V1ExplicitLengthPdf = R"(%PDF-1.4
+1 0 obj<</Type/Catalog/Pages 2 0 R>>
+endobj
+2 0 obj<</Type/Pages/Count 1/Kids[ 3 0 R]>>
+endobj
+3 0 obj<</Type/Page/MediaBox[ 0 0 595 842]/Parent 2 0 R/Resources<<>>>>
+endobj
+4 0 obj<</Filter/Standard/Length 40/O<F86213EB0CED81F097947F3B343E34CAC8CA92CE8F6FEE2556FA31EC1FE968AF>/P -4/R 2/U<0DBF73C61F9580BCBFF4787E3E6DAB212ADBFDE4E8B61E463D891025EA589A19>/V 1>>
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000053 00000 n 
+0000000104 00000 n 
+0000000183 00000 n 
+trailer
+<</Encrypt 4 0 R/ID[<00A6FEA383DCAD1750509D09E1237E7E><00A6FEA383DCAD1750509D09E1237E7E>]/Root 1 0 R/Size 5>>
+startxref
+377
+%%EOF)"sv;
+
+// A parsed encryption dictionary may hold entries that are not recreated,
+// like the optional /Length with /V 1: an update must preserve it as it is,
+// or the document security would result as modified
+TEST_CASE("TestUpdateEncryptedDocPreservesEncryptDictionary")
+{
+    constexpr string_view filename = "TestUpdateEncryptedDocPreservesEncryptDictionary.pdf";
+    TestUtils::WriteTestOutputFileTo(filename, RC4V1ExplicitLengthPdf);
+    auto outputPath = TestUtils::GetTestOutputFilePath(filename);
+    auto stream = std::make_shared<FileStreamDevice>(outputPath, FileMode::Open);
+
+    PdfMemDocument doc(stream, PdfLoadOptions::SkipXRefRecovery | PdfLoadOptions::StrictParsing, "userpass");
+    doc.GetCatalog().GetDictionary().AddKey("Lang"_n, PdfString("en"));
+    doc.SaveUpdate(*stream, PdfSaveOptions::NoMetadataUpdate);
+
+    charbuff output;
+    utls::ReadTo(output, outputPath);
+    REQUIRE(output.size() > RC4V1ExplicitLengthPdf.size());
+    REQUIRE(std::equal(RC4V1ExplicitLengthPdf.begin(), RC4V1ExplicitLengthPdf.end(), output.begin()));
+    REQUIRE(encryptObjectDefinitionCount(output, lastEncryptReference(RC4V1ExplicitLengthPdf)) == 1);
+}
+
 // An incremental signature must keep the same encryption dictionary object.
 // Replacing /Encrypt changes document security and invalidates DocMDP
 // certifications in Acrobat, even if the new dictionary has identical values.
@@ -498,6 +544,9 @@ TEST_CASE("TestSignEncryptedDocPreservesEncryptReference")
     REQUIRE(output.size() > input.size());
     REQUIRE(std::equal(input.begin(), input.end(), output.begin()));
     REQUIRE(lastEncryptReference(output) == originalEncrypt);
+    // The encryption dictionary must not be rewritten in the new revision
+    REQUIRE(encryptObjectDefinitionCount(output, originalEncrypt)
+        == encryptObjectDefinitionCount(input, originalEncrypt));
 }
 
 // An incremental update can't re-key the document: the objects of the previous
@@ -562,6 +611,26 @@ void testEncrypt(PdfEncrypt& encrypt, PdfEncryptContext& context)
 
     INFO("compare encrypted and decrypted buffers");
     REQUIRE(memcmp(s_encBuffer.data(), decrypted.data(), s_encBuffer.size()) == 0);
+}
+
+// Count the "<num> <gen> obj" definitions of the object addressed by
+// an "/Encrypt <num> <gen> R" reference
+unsigned encryptObjectDefinitionCount(const string_view& pdf, const string_view& encryptRef)
+{
+    string definition(encryptRef.substr("/Encrypt "sv.length()));
+    definition.replace(definition.length() - 1, 1, "obj");
+    unsigned ret = 0;
+    for (size_t pos = pdf.find(definition); pos != string_view::npos;
+        pos = pdf.find(definition, pos + definition.length()))
+    {
+        // Skip matches on the tail of a bigger object number
+        if (pos != 0 && pdf[pos - 1] >= '0' && pdf[pos - 1] <= '9')
+            continue;
+
+        ret++;
+    }
+
+    return ret;
 }
 
 string lastEncryptReference(const string_view& pdf)

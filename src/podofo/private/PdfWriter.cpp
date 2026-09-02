@@ -113,8 +113,12 @@ void PdfWriter::Write(OutputStreamDevice& device)
             m_EncryptObj = &m_Objects->CreateDictionaryObject();
             m_Encrypt->GetEncrypt().CreateEncryptionDictionary(m_EncryptObj->GetDictionary());
         }
-        else
+        else if (!m_IsIncrementalUpdate)
         {
+            // NOTE: An update can't re-key the document, so the parsed
+            // dictionary is left untouched there: recreating it may drop
+            // optional entries and would be reported as a change to a
+            // certified document
             PdfDictionary encryptDict;
             m_Encrypt->GetEncrypt().CreateEncryptionDictionary(encryptDict);
             auto& currDict = m_EncryptObj->GetDictionary();
