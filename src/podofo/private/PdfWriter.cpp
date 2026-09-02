@@ -96,6 +96,8 @@ void PdfWriter::InitWriteState()
 void PdfWriter::Write(OutputStreamDevice& device)
 {
     InitWriteState();
+    size_t writeOffset = device.GetPosition();
+
     CreateFileIdentifier(m_identifier, *m_Trailer, &m_originalIdentifier);
 
     // setup encrypt dictionary
@@ -131,6 +133,11 @@ void PdfWriter::Write(OutputStreamDevice& device)
 
     try
     {
+        // Restore the position if delayed object loading moved it,
+        // as when retrieving existing encrypt object above
+        if (device.GetPosition() != writeOffset)
+            device.Seek(writeOffset);
+
         if (m_IsIncrementalUpdate)
         {
             if (m_PrevXRefOffset == 0)
