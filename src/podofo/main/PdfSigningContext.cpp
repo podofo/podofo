@@ -548,11 +548,12 @@ void PdfSigningContext::saveDocForSigning(PdfMemDocument& doc, StreamDevice& dev
     }
 
     auto acroForm = doc.GetAcroForm();
-    if (acroForm != nullptr)
+    if (acroForm != nullptr && acroForm->GetNeedAppearances())
     {
         // NOTE: Adobe is crazy and if the /NeedAppearances is set to true,
-        // it will not show up the signature upon signing. Just
-        // remove the key just in case it's present (defaults to false)
+        // it will not show up the signature upon signing. The entry has
+        // been deprecated in PDF 2.0. Just remove the key just in case
+        // it's present (defaults to false)
         acroForm->GetDictionary().RemoveKey("NeedAppearances");
     }
 
