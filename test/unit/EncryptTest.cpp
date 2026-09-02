@@ -490,10 +490,13 @@ TEST_CASE("TestSignEncryptedDocPreservesEncryptReference")
     signature.SetSignatureDate(PdfDate::Parse("D:20260713192456+01'00'"));
     auto signer = PdfSignerCms(cert, pkey);
     PoDoFo::SignDocument(doc, *stream, signer, signature,
-        PdfSaveOptions::NoMetadataUpdate);
+        PdfSaveOptions::NoMetadataUpdate | PdfSaveOptions::NoCollectGarbage);
 
     charbuff output;
     utls::ReadTo(output, outputPath);
+    // The update must be appended, leaving the previous revision untouched
+    REQUIRE(output.size() > input.size());
+    REQUIRE(std::equal(input.begin(), input.end(), output.begin()));
     REQUIRE(lastEncryptReference(output) == originalEncrypt);
 }
 
