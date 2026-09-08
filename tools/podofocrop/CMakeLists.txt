@@ -1,3 +1,3 @@
 add_executable(podofocrop podofocrop.cpp)
-target_link_libraries(podofocrop ${PODOFO_LIBRARIES} tools_private)
+target_link_libraries(podofocrop tools_private)
 install(TARGETS podofocrop RUNTIME DESTINATION "bin")

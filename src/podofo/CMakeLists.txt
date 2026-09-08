@@ -9,18 +9,25 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/private/podofo_config_private.h.in" 
 # NOTE: HAS_UNCAUGHT_EXCEPTIONS is needed for <date/date.h>
 add_compile_definitions(HAS_UNCAUGHT_EXCEPTIONS=1 UTF8PROC_STATIC)
 
+# Includes needed to consume the public API. They are exported
+# transitively by the podofo::podofo target
 set(PODOFO_INCLUDE_DIRS
     "${CMAKE_CURRENT_BINARY_DIR}/podofo/auxiliary"
-    "${CMAKE_CURRENT_BINARY_DIR}/podofo/private"
     "${PROJECT_SOURCE_DIR}/src"
-    ${PODOFO_3RDPARTY_INCLUDES}
-    CACHE INTERNAL "podofo include directories"
+    CACHE INTERNAL "PoDoFo public include directories"
 )
 
-include_directories(
-    ${PODOFO_INCLUDE_DIRS}
-    ${PODOFO_HEADERS_DEPENDS}
+# Includes needed to consume private headers. They are exported
+# transitively by the podofo_private target, but only within this
+# build tree: they are not part of the installed package
+set(PODOFO_INCLUDE_DIRS_PRIVATE
+    "${CMAKE_CURRENT_BINARY_DIR}/podofo/private"
+    ${PODOFO_3RDPARTY_INCLUDES}
+    CACHE INTERNAL "PoDoFo private include directories"
 )
+
+# Building the library itself requires both
+include_directories(${PODOFO_INCLUDE_DIRS} ${PODOFO_INCLUDE_DIRS_PRIVATE})
 
 add_subdirectory(private)
 
@@ -75,7 +82,8 @@ if(PODOFO_BUILD_STATIC)
     message("Building static podofo library")
     add_library(podofo_static STATIC ${PODOFO_SOURCES})
     add_library(podofo::podofo ALIAS podofo_static)
-    target_link_libraries(podofo_static PRIVATE podofo_private podofo_3rdparty ${PODOFO_LIB_DEPENDS})
+    target_link_libraries(podofo_static PRIVATE podofo_private podofo_3rdparty ${PODOFO_3RDPARTY_DEPENDS})
+    target_compile_definitions(podofo_static INTERFACE PODOFO_STATIC)
     set_target_properties(podofo_static PROPERTIES
         VERSION "${PODOFO_VERSION}"
         SOVERSION "${PODOFO_SOVERSION}"
@@ -92,7 +100,7 @@ if(PODOFO_BUILD_SHARED)
     message("Building shared podofo library")
     add_library(podofo_shared SHARED ${PODOFO_SOURCES})
     add_library(podofo::podofo ALIAS podofo_shared)
-    target_link_libraries(podofo_shared PRIVATE podofo_private podofo_3rdparty ${PODOFO_LIB_DEPENDS})
+    target_link_libraries(podofo_shared PRIVATE podofo_private podofo_3rdparty ${PODOFO_3RDPARTY_DEPENDS})
     # TODO: set /wd4251 flag if we're doing a debug build with
     # Visual Studio, since it produces invalid warnings about STL
     # use.
@@ -106,6 +114,17 @@ if(PODOFO_BUILD_SHARED)
     set(PODOFO_LIBRARIES podofo_shared
         CACHE INTERNAL "Which podofo library variant to depend on")
 endif()
+
+# Export the public includes so that consumers only need to link
+# to podofo::podofo. In the installed package all the public headers
+# are laid out under a single include directory
+foreach(dir ${PODOFO_INCLUDE_DIRS})
+    target_include_directories(${PODOFO_TARGET} PUBLIC "$<BUILD_INTERFACE:${dir}>")
+endforeach()
+target_include_directories(${PODOFO_TARGET} PUBLIC "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
+
+# Public headers require C++17
+target_compile_features(${PODOFO_TARGET} PUBLIC cxx_std_17)
 
 # Create a pkg-config file.
 # Add a version to the file name corresponding to the API compatibility.
