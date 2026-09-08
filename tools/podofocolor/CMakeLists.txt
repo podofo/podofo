@@ -18,9 +18,7 @@ endif()
 add_executable(podofocolor ${color_srcs})
 
 target_link_libraries(podofocolor 
-  ${PODOFO_LIBRARIES}
   ${color_extra_libs}
-  podofo_private
   tools_private
 )
 

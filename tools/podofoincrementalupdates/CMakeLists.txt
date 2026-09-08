@@ -1,3 +1,3 @@
 add_executable(podofoincrementalupdates incrementalupdates.cpp)
-target_link_libraries(podofoincrementalupdates ${PODOFO_LIBRARIES} tools_private)
+target_link_libraries(podofoincrementalupdates tools_private)
 install(TARGETS podofoincrementalupdates RUNTIME DESTINATION "bin")
