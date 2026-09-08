@@ -269,8 +269,11 @@ void PdfArray::setChildrenParent()
 
 PdfObject& PdfArray::EmplaceBackNoDirtySet()
 {
+    size_t capacity = m_Objects.capacity();
     auto& ret = m_Objects.emplace_back(nullptr);
-    ret.SetParent(*this);
+    if (!reattachChildrenIfMoved(capacity))
+        ret.SetParent(*this);
+
     return ret;
 }
 
@@ -281,8 +284,11 @@ PdfObject& PdfArray::add(PdfObject&& obj)
 
 PdfArray::iterator PdfArray::insertAt(const iterator& pos, PdfObject&& obj)
 {
+    size_t capacity = m_Objects.capacity();
     auto ret = m_Objects.emplace(pos, std::move(obj));
-    ret->SetParent(*this);
+    if (!reattachChildrenIfMoved(capacity))
+        ret->SetParent(*this);
+
     return ret;
 }
 
@@ -348,11 +354,15 @@ void PdfArray::Resize(unsigned count, const PdfObject& val)
 {
     AssertMutable();
     size_t currentSize = m_Objects.size();
+    size_t capacity = m_Objects.capacity();
     m_Objects.resize(count, val);
-    for (size_t i = currentSize; i < count; i++)
+    if (!reattachChildrenIfMoved(capacity))
     {
-        auto& obj = m_Objects[i];
-        obj.SetParent(*this);
+        for (size_t i = currentSize; i < count; i++)
+        {
+            auto& obj = m_Objects[i];
+            obj.SetParent(*this);
+        }
     }
 
     if (currentSize != count)
@@ -362,7 +372,9 @@ void PdfArray::Resize(unsigned count, const PdfObject& val)
 void PdfArray::Reserve(unsigned n)
 {
     AssertMutable();
+    size_t capacity = m_Objects.capacity();
     m_Objects.reserve(n);
+    (void)reattachChildrenIfMoved(capacity);
 }
 
 void PdfArray::SwapAt(unsigned atIndex, unsigned toIndex)
@@ -403,6 +415,15 @@ void PdfArray::MoveTo(unsigned atIndex, unsigned toIndex)
 
     m_Objects[toIndex].AssignNoDirtySet(std::move(temp));
     SetDirty();
+}
+
+bool PdfArray::reattachChildrenIfMoved(size_t prevCapacity)
+{
+    if (m_Objects.capacity() == prevCapacity)
+        return false;
+
+    setChildrenParent();
+    return true;
 }
 
 PdfObject& PdfArray::operator[](size_type idx)
@@ -467,7 +488,14 @@ void PdfArray::resize(size_t size)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Too big size");
 #endif
     // TODO: Check other checks PdfArray::Resize(...)
+    size_t currentSize = m_Objects.size();
+    size_t capacity = m_Objects.capacity();
     m_Objects.resize(size);
+    if (!reattachChildrenIfMoved(capacity))
+    {
+        for (size_t i = currentSize; i < size; i++)
+            m_Objects[i].SetParent(*this);
+    }
 }
 
 void PdfArray::reserve(size_t size)
@@ -477,7 +505,9 @@ void PdfArray::reserve(size_t size)
     if (size > numeric_limits<unsigned>::max())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Too big size");
 #endif
+    size_t capacity = m_Objects.capacity();
     m_Objects.reserve(size);
+    (void)reattachChildrenIfMoved(capacity);
 }
 
 PdfObject& PdfArray::front()

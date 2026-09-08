@@ -304,6 +304,11 @@ private:
     iterator insertAt(const iterator& pos, PdfObject&& obj);
     PdfObject& getAt(unsigned idx) const;
     PdfObject* findAt(unsigned idx) const;
+    /// A reallocation move constructs the stored elements, which detaches
+    /// them from this container, so they must be attached again
+    /// @param prevCapacity the capacity before the operation that may have reallocated
+    /// @returns true if a reallocation occurred and the elements were attached again
+    bool reattachChildrenIfMoved(size_t prevCapacity);
     void write(OutputStream& stream, PdfWriteFlags writeMode, bool addDelimiters,
         const PdfStatefulEncrypt* encrypt, charbuff& buffer) const;
 
@@ -453,15 +458,13 @@ void PdfArray::insert(const PdfArray::iterator& pos,
     const InputIterator& last)
 {
     AssertMutable();
-    auto document = GetObjectDocument();
     InputIterator it1 = first;
     iterator it2 = pos;
     for (; it1 != last; it1++, it2++)
-    {
         it2 = m_Objects.insert(it2, *it1);
-        it2->SetDocument(document);
-    }
 
+    // The insertions may have reallocated, detaching the stored elements
+    setChildrenParent();
     SetDirty();
 }
 
