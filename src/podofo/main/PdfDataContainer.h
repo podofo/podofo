@@ -55,6 +55,12 @@ protected:
 
 private:
     void SetOwner(PdfObject& owner);
+
+    /// Set the owner without visiting the children, which is enough when the
+    /// owner was just relocated: the children stay attached to this container,
+    /// which didn't move itself
+    void SetOwnerShallow(PdfObject& owner) { m_Owner = &owner; }
+
     void ResetDirty();
 
 private:

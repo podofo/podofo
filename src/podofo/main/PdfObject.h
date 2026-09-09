@@ -434,6 +434,14 @@ protected:
 
     void SetVariantOwner();
 
+    /// Fix the back pointers to this object after the container that stores it
+    /// relocated it in memory. Unlike a move, a relocation preserves the
+    /// attachment to the container, which didn't move itself, so the stored
+    /// children need no visit: they stay attached to the inner container
+    /// @remarks Only containers and streams point back to their owner, so it
+    /// does nothing for plain values
+    void RelocateBackPointers();
+
     void FreeStream();
 
     PdfObjectStream& getOrCreateStream();

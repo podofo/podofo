@@ -240,6 +240,24 @@ void PdfObject::SetVariantOwner()
     }
 }
 
+void PdfObject::RelocateBackPointers()
+{
+    switch (m_Variant.GetDataType())
+    {
+        case PdfDataType::Dictionary:
+            m_Variant.GetDictionaryUnsafe().SetOwnerShallow(*this);
+            break;
+        case PdfDataType::Array:
+            m_Variant.GetArrayUnsafe().SetOwnerShallow(*this);
+            break;
+        default:
+            break;
+    }
+
+    if (m_Stream != nullptr)
+        m_Stream->SetParent(*this);
+}
+
 void PdfObject::FreeStream()
 {
     m_Stream = nullptr;

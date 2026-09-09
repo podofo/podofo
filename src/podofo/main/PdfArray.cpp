@@ -10,29 +10,37 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfArray::PdfArray() { }
+PdfArray::PdfArray()
+    : m_data(nullptr), m_size(0), m_capacity(0) { }
 
 PdfArray::PdfArray(const PdfArray& rhs)
-    : m_Objects(rhs.m_Objects)
+    : m_data(nullptr), m_size(0), m_capacity(0)
 {
+    copyFrom(rhs);
     setChildrenParent();
 }
 
 PdfArray::PdfArray(PdfArray&& rhs) noexcept
-    : m_Objects(std::move(rhs.m_Objects))
+    : m_data(nullptr), m_size(0), m_capacity(0)
 {
+    moveFrom(std::move(rhs));
     setChildrenParent();
     rhs.SetDirty();
+}
+
+PdfArray::~PdfArray()
+{
+    destroyAll();
 }
 
 void PdfArray::RemoveAt(unsigned idx)
 {
     AssertMutable();
     // TODO: Set dirty only if really removed
-    if (idx >= m_Objects.size())
+    if (idx >= m_size)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Index is out of bounds");
 
-    m_Objects.erase(m_Objects.begin() + idx);
+    eraseAt(idx, 1);
     SetDirty();
 }
 
@@ -77,7 +85,11 @@ PdfArray PdfArray::FromBools(cspan<bool> bools)
 PdfArray& PdfArray::operator=(const PdfArray& rhs)
 {
     AssertMutable();
-    m_Objects = rhs.m_Objects;
+    if (&rhs == this)
+        return *this;
+
+    destroyAll();
+    copyFrom(rhs);
     setChildrenParent();
     SetDirty();
     return *this;
@@ -86,7 +98,8 @@ PdfArray& PdfArray::operator=(const PdfArray& rhs)
 PdfArray& PdfArray::operator=(PdfArray&& rhs) noexcept
 {
     AssertMutable();
-    m_Objects = std::move(rhs.m_Objects);
+    destroyAll();
+    moveFrom(std::move(rhs));
     setChildrenParent();
     rhs.SetDirty();
     SetDirty();
@@ -95,12 +108,12 @@ PdfArray& PdfArray::operator=(PdfArray&& rhs) noexcept
 
 unsigned PdfArray::GetSize() const
 {
-    return (unsigned)m_Objects.size();
+    return (unsigned)m_size;
 }
 
 bool PdfArray::IsEmpty() const
 {
-    return m_Objects.empty();
+    return m_size == 0;
 }
 
 PdfObject& PdfArray::Add(const PdfObject& obj)
@@ -144,10 +157,10 @@ PdfObject& PdfArray::AddIndirectSafe(const PdfObject& obj)
 PdfObject& PdfArray::SetAt(unsigned idx, const PdfObject& obj)
 {
     AssertMutable();
-    if (idx >= m_Objects.size())
+    if (idx >= m_size)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Index is out of bounds");
 
-    auto& ret = m_Objects[idx];
+    auto& ret = m_data[idx];
     ret = obj;
     // NOTE: No dirty set! The container itself is not modified
     return ret;
@@ -156,10 +169,10 @@ PdfObject& PdfArray::SetAt(unsigned idx, const PdfObject& obj)
 PdfObject& PdfArray::SetAt(unsigned idx, PdfObject&& obj)
 {
     AssertMutable();
-    if (idx >= m_Objects.size())
+    if (idx >= m_size)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Index is out of bounds");
 
-    auto& ret = m_Objects[idx];
+    auto& ret = m_data[idx];
     // NOTE: Assignment will implicitly make this container dirty
     ret = std::move(obj);
     return ret;
@@ -168,11 +181,11 @@ PdfObject& PdfArray::SetAt(unsigned idx, PdfObject&& obj)
 void PdfArray::SetAtIndirect(unsigned idx, const PdfObject* obj)
 {
     AssertMutable();
-    if (idx >= m_Objects.size())
+    if (idx >= m_size)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Index is out of bounds");
 
     if (IsIndirectReferenceAllowed(*obj))
-        m_Objects[idx] = obj->GetIndirectReference();
+        m_data[idx] = obj->GetIndirectReference();
     else
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Given object shall allow indirect insertion");
 
@@ -182,10 +195,10 @@ void PdfArray::SetAtIndirect(unsigned idx, const PdfObject* obj)
 PdfObject& PdfArray::SetAtIndirectSafe(unsigned idx, const PdfObject& obj)
 {
     AssertMutable();
-    if (idx >= m_Objects.size())
+    if (idx >= m_size)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Index is out of bounds");
 
-    auto& ret = m_Objects[idx];
+    auto& ret = m_data[idx];
     if (IsIndirectReferenceAllowed(obj))
         ret = obj.GetIndirectReference();
     else
@@ -209,10 +222,10 @@ PdfArrayConstIndirectIterable PdfArray::GetIndirectIterator() const
 void PdfArray::Clear()
 {
     AssertMutable();
-    if (m_Objects.size() == 0)
+    if (m_size == 0)
         return;
 
-    m_Objects.clear();
+    eraseAt(0, m_size);
     SetDirty();
 }
 
@@ -235,9 +248,10 @@ void PdfArray::write(OutputStream& stream, PdfWriteFlags writeMode, bool addDeli
             stream.Write('[');
     }
 
-    auto it = m_Objects.begin();
+    auto it = m_data;
     unsigned count = 1;
-    while (it != m_Objects.end())
+    auto end = m_data + m_size;
+    while (it != end)
     {
         it->GetVariant().Write(stream, writeMode, encrypt, buffer);
         if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
@@ -256,56 +270,66 @@ void PdfArray::write(OutputStream& stream, PdfWriteFlags writeMode, bool addDeli
 void PdfArray::resetDirty()
 {
     // Propagate state to all subclasses
-    for (auto& obj : m_Objects)
-        obj.ResetDirty();
+    for (unsigned i = 0; i < m_size; i++)
+        m_data[i].ResetDirty();
 }
 
 void PdfArray::setChildrenParent()
 {
     // Set parent for all children
-    for (auto& obj : m_Objects)
-        obj.SetParent(*this);
+    for (unsigned i = 0; i < m_size; i++)
+        m_data[i].SetParent(*this);
 }
 
 PdfObject& PdfArray::EmplaceBackNoDirtySet()
 {
-    size_t capacity = m_Objects.capacity();
-    auto& ret = m_Objects.emplace_back(nullptr);
-    if (!reattachChildrenIfMoved(capacity))
-        ret.SetParent(*this);
-
+    ensureCapacity((size_t)m_size + 1);
+    auto& ret = *new(m_data + m_size)PdfObject(nullptr);
+    m_size++;
+    ret.SetParent(*this);
     return ret;
 }
 
 PdfObject& PdfArray::add(PdfObject&& obj)
 {
-    return *insertAt(m_Objects.end(), std::move(obj));
+    return *insertAt(m_data + m_size, std::move(obj));
 }
 
 PdfArray::iterator PdfArray::insertAt(const iterator& pos, PdfObject&& obj)
 {
-    size_t capacity = m_Objects.capacity();
-    auto ret = m_Objects.emplace(pos, std::move(obj));
-    if (!reattachChildrenIfMoved(capacity))
-        ret->SetParent(*this);
+    // NOTE: The index must be taken before growing, as a relocation
+    // invalidates the given position
+    unsigned index = (unsigned)(pos - m_data);
+    PODOFO_INVARIANT(index <= m_size);
+    ensureCapacity((size_t)m_size + 1);
+    auto ret = m_data + index;
+    if (index < m_size)
+    {
+        // The tail elements are relocated one position forward
+        std::memmove(ret + 1, ret, (size_t)(m_size - index) * sizeof(PdfObject));
+        relocateBackPointers(ret + 1, m_size - index);
+    }
 
+    new(ret)PdfObject(std::move(obj));
+    m_size++;
+    ret->SetParent(*this);
     return ret;
 }
 
 PdfObject& PdfArray::getAt(unsigned idx) const
 {
-    if (idx >= (unsigned)m_Objects.size())
+    if (idx >= (unsigned)m_size)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Index is out of bounds");
 
-    return const_cast<PdfArray&>(*this).m_Objects[idx];
+    return const_cast<PdfArray&>(*this).m_data[idx];
 }
 
 PdfObject* PdfArray::findAt(unsigned idx) const
 {
-    if (idx >= (unsigned)m_Objects.size())
+    if (idx >= (unsigned)m_size)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Index is out of bounds");
 
-    auto& obj = const_cast<PdfArray&>(*this).m_Objects[idx];
+    auto& obj = const_cast<PdfArray&>(*this).m_data[idx];
     if (obj.IsReference())
         return GetIndirectObject(obj.GetReference());
     else
@@ -314,7 +338,7 @@ PdfObject* PdfArray::findAt(unsigned idx) const
 
 size_t PdfArray::size() const
 {
-    return m_Objects.size();
+    return m_size;
 }
 
 PdfArray::iterator PdfArray::insert(const iterator& pos, const PdfObject& obj)
@@ -338,7 +362,7 @@ void PdfArray::erase(const iterator& pos)
 {
     AssertMutable();
     // TODO: Set dirty only if really removed
-    m_Objects.erase(pos);
+    eraseAt((unsigned)(pos - m_data), 1);
     SetDirty();
 }
 
@@ -346,23 +370,23 @@ void PdfArray::erase(const iterator& first, const iterator& last)
 {
     AssertMutable();
     // TODO: Set dirty only if really removed
-    m_Objects.erase(first, last);
+    eraseAt((unsigned)(first - m_data), (unsigned)(last - first));
     SetDirty();
 }
 
 void PdfArray::Resize(unsigned count, const PdfObject& val)
 {
     AssertMutable();
-    size_t currentSize = m_Objects.size();
-    size_t capacity = m_Objects.capacity();
-    m_Objects.resize(count, val);
-    if (!reattachChildrenIfMoved(capacity))
+    unsigned currentSize = m_size;
+    if (count < currentSize)
     {
-        for (size_t i = currentSize; i < count; i++)
-        {
-            auto& obj = m_Objects[i];
-            obj.SetParent(*this);
-        }
+        eraseAt(count, currentSize - count);
+    }
+    else
+    {
+        ensureCapacity(count);
+        while (m_size < count)
+            addAt(m_size, val);
     }
 
     if (currentSize != count)
@@ -372,58 +396,170 @@ void PdfArray::Resize(unsigned count, const PdfObject& val)
 void PdfArray::Reserve(unsigned n)
 {
     AssertMutable();
-    size_t capacity = m_Objects.capacity();
-    m_Objects.reserve(n);
-    (void)reattachChildrenIfMoved(capacity);
+    if (n > m_capacity)
+        reallocate(n);
 }
 
 void PdfArray::SwapAt(unsigned atIndex, unsigned toIndex)
 {
     AssertMutable();
-    if (atIndex >= m_Objects.size() || toIndex >= m_Objects.size())
+    if (atIndex >= m_size || toIndex >= m_size)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "atIndex or toIndex is out of bounds");
 
     if (atIndex == toIndex)
         return;
 
-    PdfObject temp = m_Objects[toIndex];
-    m_Objects[toIndex].AssignNoDirtySet(std::move(m_Objects[atIndex]));
-    m_Objects[atIndex].AssignNoDirtySet(std::move(temp));
+    PdfObject temp = m_data[toIndex];
+    m_data[toIndex].AssignNoDirtySet(std::move(m_data[atIndex]));
+    m_data[atIndex].AssignNoDirtySet(std::move(temp));
     SetDirty();
 }
 
 void PdfArray::MoveTo(unsigned atIndex, unsigned toIndex)
 {
     AssertMutable();
-    if (atIndex >= m_Objects.size() || toIndex >= m_Objects.size())
+    if (atIndex >= m_size || toIndex >= m_size)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "atIndex or toIndex is out of bounds");
 
     if (atIndex == toIndex)
         return;
 
-    PdfObject temp(m_Objects[atIndex]);
+    PdfObject temp(m_data[atIndex]);
     if (atIndex > toIndex)
     {
         for (unsigned i = atIndex; i > toIndex; i--)
-            m_Objects[i].AssignNoDirtySet(std::move(m_Objects[i - 1]));
+            m_data[i].AssignNoDirtySet(std::move(m_data[i - 1]));
     }
     else
     {
         for (unsigned i = atIndex; i < toIndex; i++)
-            m_Objects[i].AssignNoDirtySet(std::move(m_Objects[i + 1]));
+            m_data[i].AssignNoDirtySet(std::move(m_data[i + 1]));
     }
 
-    m_Objects[toIndex].AssignNoDirtySet(std::move(temp));
+    m_data[toIndex].AssignNoDirtySet(std::move(temp));
     SetDirty();
 }
 
-bool PdfArray::reattachChildrenIfMoved(size_t prevCapacity)
+void PdfArray::copyFrom(const PdfArray& rhs)
 {
-    if (m_Objects.capacity() == prevCapacity)
-        return false;
+    PODOFO_INVARIANT(m_size == 0);
+    if (rhs.m_size == 0)
+        return;
 
-    setChildrenParent();
-    return true;
+    reallocate(rhs.m_size);
+    try
+    {
+        for (unsigned i = 0; i < rhs.m_size; i++)
+        {
+            new(m_data + i)PdfObject(rhs.m_data[i]);
+            m_size++;
+        }
+    }
+    catch (...)
+    {
+        destroyAll();
+        throw;
+    }
+}
+
+void PdfArray::moveFrom(PdfArray&& rhs)
+{
+    PODOFO_INVARIANT(m_size == 0 && m_data == nullptr);
+    m_data = rhs.m_data;
+    m_size = rhs.m_size;
+    m_capacity = rhs.m_capacity;
+    rhs.m_data = nullptr;
+    rhs.m_size = 0;
+    rhs.m_capacity = 0;
+}
+
+void PdfArray::destroyAll()
+{
+    for (unsigned i = 0; i < m_size; i++)
+        m_data[i].~PdfObject();
+
+    ::operator delete(m_data);
+    m_data = nullptr;
+    m_size = 0;
+    m_capacity = 0;
+}
+
+void PdfArray::reallocate(unsigned capacity)
+{
+    PODOFO_INVARIANT(capacity >= m_size);
+    PdfObject* data;
+    if (capacity == 0)
+    {
+        data = nullptr;
+    }
+    else
+    {
+        data = (PdfObject*)::operator new((size_t)capacity * sizeof(PdfObject));
+        // NOTE: This is a relocation, not a move. The elements stay attached to
+        // this container, which didn't move itself, so the whole block is taken
+        // over at once and the previous one is released without destroying the
+        // elements in it. Only the back pointers to the new addresses are fixed
+        std::memcpy(data, m_data, (size_t)m_size * sizeof(PdfObject));
+        relocateBackPointers(data, m_size);
+    }
+
+    ::operator delete(m_data);
+    m_data = data;
+    m_capacity = capacity;
+}
+
+void PdfArray::ensureCapacity(size_t size)
+{
+    if (size > (numeric_limits<unsigned>::max)())
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Too big size");
+
+    if (size <= m_capacity)
+        return;
+
+    constexpr unsigned MinCapacity = 4;
+    unsigned capacity = std::max(m_capacity, MinCapacity);
+    while (capacity < size)
+    {
+        if (capacity > (numeric_limits<unsigned>::max)() / 2)
+        {
+            capacity = (unsigned)size;
+            break;
+        }
+
+        capacity *= 2;
+    }
+
+    reallocate(capacity);
+}
+
+void PdfArray::eraseAt(unsigned index, unsigned count)
+{
+    PODOFO_INVARIANT(index + count <= m_size);
+    for (unsigned i = 0; i < count; i++)
+        m_data[index + i].~PdfObject();
+
+    unsigned tail = m_size - index - count;
+    if (tail != 0)
+    {
+        // The shifted elements are relocated, not moved
+        std::memmove(m_data + index, m_data + index + count, (size_t)tail * sizeof(PdfObject));
+        relocateBackPointers(m_data + index, tail);
+    }
+
+    m_size -= count;
+}
+
+void PdfArray::relocateBackPointers(PdfObject* data, unsigned count)
+{
+    for (unsigned i = 0; i < count; i++)
+        data[i].RelocateBackPointers();
+}
+
+void PdfArray::addAt(unsigned index, const PdfObject& obj)
+{
+    auto& added = *new(m_data + index)PdfObject(obj);
+    m_size++;
+    added.SetParent(*this);
 }
 
 PdfObject& PdfArray::operator[](size_type idx)
@@ -439,45 +575,45 @@ const PdfObject& PdfArray::operator[](size_type idx) const
 PdfArray::iterator PdfArray::begin()
 {
     AssertMutable();
-    return m_Objects.begin();
+    return m_data;
 }
 
 PdfArray::const_iterator PdfArray::begin() const
 {
-    return m_Objects.begin();
+    return m_data;
 }
 
 PdfArray::iterator PdfArray::end()
 {
     AssertMutable();
-    return m_Objects.end();
+    return m_data + m_size;
 }
 
 PdfArray::const_iterator PdfArray::end() const
 {
-    return m_Objects.end();
+    return m_data + m_size;
 }
 
 PdfArray::reverse_iterator PdfArray::rbegin()
 {
     AssertMutable();
-    return m_Objects.rbegin();
+    return reverse_iterator(m_data + m_size);
 }
 
 PdfArray::const_reverse_iterator PdfArray::rbegin() const
 {
-    return m_Objects.rbegin();
+    return const_reverse_iterator(m_data + m_size);
 }
 
 PdfArray::reverse_iterator PdfArray::rend()
 {
     AssertMutable();
-    return m_Objects.rend();
+    return reverse_iterator(m_data);
 }
 
 PdfArray::const_reverse_iterator PdfArray::rend() const
 {
-    return m_Objects.rend();
+    return const_reverse_iterator(m_data);
 }
 
 void PdfArray::resize(size_t size)
@@ -488,13 +624,19 @@ void PdfArray::resize(size_t size)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Too big size");
 #endif
     // TODO: Check other checks PdfArray::Resize(...)
-    size_t currentSize = m_Objects.size();
-    size_t capacity = m_Objects.capacity();
-    m_Objects.resize(size);
-    if (!reattachChildrenIfMoved(capacity))
+    unsigned count = (unsigned)size;
+    if (count < m_size)
     {
-        for (size_t i = currentSize; i < size; i++)
-            m_Objects[i].SetParent(*this);
+        eraseAt(count, m_size - count);
+        return;
+    }
+
+    ensureCapacity(count);
+    while (m_size < count)
+    {
+        auto& obj = *new(m_data + m_size)PdfObject();
+        m_size++;
+        obj.SetParent(*this);
     }
 }
 
@@ -505,31 +647,30 @@ void PdfArray::reserve(size_t size)
     if (size > numeric_limits<unsigned>::max())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Too big size");
 #endif
-    size_t capacity = m_Objects.capacity();
-    m_Objects.reserve(size);
-    (void)reattachChildrenIfMoved(capacity);
+    if (size > m_capacity)
+        reallocate((unsigned)size);
 }
 
 PdfObject& PdfArray::front()
 {
     AssertMutable();
-    return m_Objects.front();
+    return *m_data;
 }
 
 const PdfObject& PdfArray::front() const
 {
-    return m_Objects.front();
+    return *m_data;
 }
 
 PdfObject& PdfArray::back()
 {
     AssertMutable();
-    return m_Objects.back();
+    return m_data[m_size - 1];
 }
 
 const PdfObject& PdfArray::back() const
 {
-    return m_Objects.back();
+    return m_data[m_size - 1];
 }
 
 bool PdfArray::operator==(const PdfArray& rhs) const
@@ -538,7 +679,16 @@ bool PdfArray::operator==(const PdfArray& rhs) const
         return true;
 
     // We don't check owner
-    return m_Objects == rhs.m_Objects;
+    if (m_size != rhs.m_size)
+        return false;
+
+    for (unsigned i = 0; i < m_size; i++)
+    {
+        if (m_data[i] != rhs.m_data[i])
+            return false;
+    }
+
+    return true;
 }
 
 bool PdfArray::operator!=(const PdfArray& rhs) const
@@ -547,5 +697,5 @@ bool PdfArray::operator!=(const PdfArray& rhs) const
         return false;
 
     // We don't check owner
-    return m_Objects != rhs.m_Objects;
+    return !(*this == rhs);
 }

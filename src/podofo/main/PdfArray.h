@@ -11,6 +11,7 @@
 namespace PoDoFo {
 
 class PdfArray;
+/// @deprecated This is not the backend list of PdfArray anymore
 using PdfArrayList = std::vector<PdfObject>;
 
 /// Helper class to iterate through array indirect objects
@@ -63,8 +64,8 @@ private:
     PdfArray* m_arr;
 };
 
-using PdfArrayIndirectIterable = PdfArrayIndirectIterableBase<PdfObject, PdfArrayList::iterator>;
-using PdfArrayConstIndirectIterable = PdfArrayIndirectIterableBase<const PdfObject, PdfArrayList::const_iterator>;
+using PdfArrayIndirectIterable = PdfArrayIndirectIterableBase<PdfObject, PdfObject*>;
+using PdfArrayConstIndirectIterable = PdfArrayIndirectIterableBase<const PdfObject, const PdfObject*>;
 
 /// This class represents a PdfArray
 /// Use it for all arrays that are written to a PDF file.
@@ -82,10 +83,10 @@ public:
     using value_type = PdfObject;
     using reference = value_type&;
     using const_reference = const value_type&;
-    using iterator = PdfArrayList::iterator;
-    using const_iterator = PdfArrayList::const_iterator;
-    using reverse_iterator = PdfArrayList::reverse_iterator;
-    using const_reverse_iterator = PdfArrayList::const_reverse_iterator;
+    using iterator = PdfObject*;
+    using const_iterator = const PdfObject*;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     /// Create an empty array
     PdfArray();
@@ -95,6 +96,8 @@ public:
     /// @param rhs the array to copy
     PdfArray(const PdfArray& rhs);
     PdfArray(PdfArray&& rhs) noexcept;
+
+    ~PdfArray();
 
     template <typename TReal, typename = std::enable_if_t<std::is_floating_point_v<TReal>>>
     static PdfArray FromReals(cspan<TReal> reals);
@@ -304,16 +307,34 @@ private:
     iterator insertAt(const iterator& pos, PdfObject&& obj);
     PdfObject& getAt(unsigned idx) const;
     PdfObject* findAt(unsigned idx) const;
-    /// A reallocation move constructs the stored elements, which detaches
-    /// them from this container, so they must be attached again
-    /// @param prevCapacity the capacity before the operation that may have reallocated
-    /// @returns true if a reallocation occurred and the elements were attached again
-    bool reattachChildrenIfMoved(size_t prevCapacity);
     void write(OutputStream& stream, PdfWriteFlags writeMode, bool addDelimiters,
         const PdfStatefulEncrypt* encrypt, charbuff& buffer) const;
 
 private:
-    PdfArrayList m_Objects;
+    /// Reserve room for at least the given number of elements, relocating
+    /// the stored ones to a bigger block when it doesn't fit
+    void ensureCapacity(size_t size);
+
+    /// Move the stored elements to a block with the given capacity
+    void reallocate(unsigned capacity);
+
+    /// Destroy the given range of elements and close the gap
+    void eraseAt(unsigned index, unsigned count);
+
+    /// Fix the back pointers of the given elements after they were relocated
+    static void relocateBackPointers(PdfObject* data, unsigned count);
+
+    /// Append a copy of the given object, without validations
+    void addAt(unsigned index, const PdfObject& obj);
+
+    void copyFrom(const PdfArray& rhs);
+    void moveFrom(PdfArray&& rhs);
+    void destroyAll();
+
+private:
+    PdfObject* m_data;
+    unsigned m_size;
+    unsigned m_capacity;
 };
 
 template<typename TReal, typename>
@@ -461,10 +482,8 @@ void PdfArray::insert(const PdfArray::iterator& pos,
     InputIterator it1 = first;
     iterator it2 = pos;
     for (; it1 != last; it1++, it2++)
-        it2 = m_Objects.insert(it2, *it1);
+        it2 = insertAt(it2, PdfObject(*it1));
 
-    // The insertions may have reallocated, detaching the stored elements
-    setChildrenParent();
     SetDirty();
 }
 
