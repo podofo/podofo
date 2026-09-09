@@ -95,6 +95,8 @@ endif()
 
 option(PODOFO_BUILD_STATIC "Build static libraries (.a/.lib)" FALSE)
 option(PODOFO_WITH_AFDKO "Enable AFDKO support" ON)
+# NOTE: It lets the compiler inline across translation units
+option(PODOFO_WITH_LTO "Enable link time optimization in optimized builds" ON)
 
 if(PODOFO_WITH_AFDKO)
     set(PODOFO_ENABLE_AFDKO TRUE)
@@ -364,6 +366,22 @@ function(add_source subdir subdir_path dstsources dstheaders)
     list(APPEND ${dstheaders} ${headers_files})
     set(${dstheaders} ${${dstheaders}} PARENT_SCOPE)
 endfunction()
+
+if(PODOFO_WITH_LTO)
+    # NOTE: Only optimized configurations are considered. It must be enabled on
+    # all the targets linked in the library, or the compiler won't be able to
+    # inline across their translation units
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT LTO_SUPPORTED OUTPUT LTO_NOT_SUPPORTED_REASON LANGUAGES C CXX)
+    if(LTO_SUPPORTED)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO TRUE)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL TRUE)
+        message(STATUS "Link time optimization enabled in optimized builds")
+    else()
+        message(WARNING "Link time optimization is not supported: ${LTO_NOT_SUPPORTED_REASON}")
+    endif()
+endif()
 
 add_subdirectory(3rdparty)
 add_subdirectory(src/podofo)
