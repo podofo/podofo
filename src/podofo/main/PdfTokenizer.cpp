@@ -586,9 +586,9 @@ bool PdfTokenizer::ReadArray(InputStreamDevice& device, PdfVariant& variant, con
         if (tokenType == endDelim)
             break;
 
+        // NOTE: EmplaceBackNoDirtySet() wires the parent link up front. See
+        // ReadDictionary for the rationale
         auto& newobj = arr.EmplaceBackNoDirtySet();
-        // See ReadDictionary for rationale on the up-front parent link
-        newobj.SetParent(arr);
 
         bool success;
         if (innerOpts.ThrowOnError)

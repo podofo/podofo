@@ -359,7 +359,7 @@ public:
 
     /// Get the document of this object.
     /// @return the owner (if it wasn't changed anywhere, creator) of this object
-    inline PdfDocument* GetDocument() const { return m_Document; }
+    PdfDocument* GetDocument() const;
 
     /// Get the document of this object.
     /// @return the owner (if it wasn't changed anywhere, creator) of this object
@@ -369,7 +369,7 @@ public:
     /// @returns a PdfReference pointing to this object.
     inline const PdfReference& GetIndirectReference() const { return m_IndirectReference; }
 
-    inline const PdfDataContainer* GetParent() const { return m_Parent; }
+    const PdfDataContainer* GetParent() const;
 
     /// Returns true if delayed loading is disabled, or if it is enabled
     /// and loading has completed. External callers should never need to
@@ -385,6 +385,11 @@ private:
     PdfObject(PdfVariant&& var, const PdfReference& indirectReference, bool isDirty);
 
     PdfObject(PdfArray* arr);
+
+    // To be called by PdfArray, which places the objects itself, sparing a SetParent() call
+    PdfObject(PdfDataContainer& parent, std::nullptr_t);
+    PdfObject(PdfDataContainer& parent, const PdfObject& rhs);
+    PdfObject(PdfDataContainer& parent, PdfObject&& rhs) noexcept;
 
 protected:
     /// Dynamically load the contents of this object from a PDF file by calling
@@ -510,6 +515,8 @@ private:
 
     void moveFrom(PdfObject&& rhs) noexcept;
 
+    void setVariantOwnerIfNeeded();
+
     void ResetDirty();
 
     void setDirty();
@@ -525,20 +532,28 @@ private:
     // Shared initialization between all the ctors
     void initObject();
 
+    void initContainedObject();
+
 protected:
     PdfVariant m_Variant;
 
 private:
     PdfReference m_IndirectReference;
-    PdfDocument* m_Document;
-    PdfDataContainer* m_Parent;
+    // A contained object takes the document from its container,
+    // m_isContained tells which one of them is stored
+    union
+    {
+        PdfDataContainer* m_Parent;
+        PdfDocument* m_Document;
+    };
     std::unique_ptr<PdfObjectStream> m_Stream;
+    bool m_isContained;
     bool m_IsDirty; // Indicates if this object was modified after construction
-    bool m_IsImmutable;
-    mutable bool m_IsDelayedLoadDone;
-    mutable bool m_IsDelayedLoadStreamDone;
     // Tracks whether deferred loading is still pending (in which case it'll be
     // false). If true, deferred loading is not required or has been completed.
+    mutable bool m_IsDelayedLoadDone;
+    mutable bool m_IsDelayedLoadStreamDone;
+    bool m_IsImmutable;
 };
 
     /// Templatized object type getter helper

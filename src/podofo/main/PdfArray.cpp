@@ -284,9 +284,8 @@ void PdfArray::setChildrenParent()
 PdfObject& PdfArray::EmplaceBackNoDirtySet()
 {
     ensureCapacity((size_t)m_size + 1);
-    auto& ret = *new(m_data + m_size)PdfObject(nullptr);
+    auto& ret = *new(m_data + m_size)PdfObject(*this, nullptr);
     m_size++;
-    ret.SetParent(*this);
     return ret;
 }
 
@@ -310,9 +309,8 @@ PdfArray::iterator PdfArray::insertAt(const iterator& pos, PdfObject&& obj)
         relocateBackPointers(ret + 1, m_size - index);
     }
 
-    new(ret)PdfObject(std::move(obj));
+    new(ret)PdfObject(*this, std::move(obj));
     m_size++;
-    ret->SetParent(*this);
     return ret;
 }
 
@@ -557,9 +555,8 @@ void PdfArray::relocateBackPointers(PdfObject* data, unsigned count)
 
 void PdfArray::addAt(unsigned index, const PdfObject& obj)
 {
-    auto& added = *new(m_data + index)PdfObject(obj);
+    new(m_data + index)PdfObject(*this, obj);
     m_size++;
-    added.SetParent(*this);
 }
 
 PdfObject& PdfArray::operator[](size_type idx)
