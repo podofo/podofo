@@ -611,7 +611,7 @@ bool NullStreamDevice::readChar(char& ch)
         return false;
 
     m_Position++;
-    return false;
+    return true;
 }
 
 void NullStreamDevice::seek(ssize_t offset, SeekDirection direction)
