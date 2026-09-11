@@ -766,7 +766,8 @@ const locale& utls::GetInvariantLocale()
 
 string_view utls::GetEnvironmentVariable(const string_view& name)
 {
-    auto env = std::getenv(name.data());
+    // NOTE: getenv() requires a null terminated name
+    auto env = std::getenv(string(name).c_str());
     if (env == nullptr)
         return string_view();
     else
