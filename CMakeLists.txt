@@ -377,6 +377,17 @@ if(PODOFO_WITH_LTO)
         set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
         set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO TRUE)
         set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL TRUE)
+        if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+            # Force full /LTCG: the default for CMake is to enable /LTCG:incremental,
+            # which caches generated code in .iobj/.ipdb files. Verified with latest
+            # MSVC 2026 19.51.36257 that this may end producing a miscompiled binary
+            # TODO: Report this to Microsoft, as it seems a bug in the linker
+            foreach(_config RELEASE RELWITHDEBINFO MINSIZEREL)
+                foreach(_type EXE SHARED MODULE STATIC)
+                    string(APPEND CMAKE_${_type}_LINKER_FLAGS_${_config} " /LTCG")
+                endforeach()
+            endforeach()
+        endif()
         message(STATUS "Link time optimization enabled in optimized builds")
     else()
         message(WARNING "Link time optimization is not supported: ${LTO_NOT_SUPPORTED_REASON}")
