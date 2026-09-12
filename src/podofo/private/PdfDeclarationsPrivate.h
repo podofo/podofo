@@ -27,6 +27,14 @@
 #include "numbers_compat.h"
 #include "charconv_compat.h"
 
+// In PdfEncryptContext, we don't want to spoil the OpenSSL
+// EVP_CIPHER_CTX in a protected method, so we forward declare
+// it and hide it behind PODOFO_CRYPT_CTX, which is void in the
+// public header
+struct evp_cipher_ctx_st;
+typedef struct evp_cipher_ctx_st EVP_CIPHER_CTX;
+#define PODOFO_CRYPT_CTX EVP_CIPHER_CTX
+
 #include <podofo/main/PdfDeclarations.h>
 
 // Redefine empty PODOFO_PRIVATE_FRIEND to specify actual
