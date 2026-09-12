@@ -305,7 +305,8 @@ PdfArray::iterator PdfArray::insertAt(const iterator& pos, PdfObject&& obj)
     if (index < m_size)
     {
         // The tail elements are relocated one position forward
-        std::memmove(ret + 1, ret, (size_t)(m_size - index) * sizeof(PdfObject));
+        // NOTE: Cast to void* is required to silence -Wclass-memaccess in gcc 
+        std::memmove((void*)(ret + 1), (void*)ret, (size_t)(m_size - index) * sizeof(PdfObject));
         relocateBackPointers(ret + 1, m_size - index);
     }
 
@@ -496,8 +497,9 @@ void PdfArray::reallocate(unsigned capacity)
         // NOTE: This is a relocation, not a move. The elements stay attached to
         // this container, which didn't move itself, so the whole block is taken
         // over at once and the previous one is released without destroying the
-        // elements in it. Only the back pointers to the new addresses are fixed
-        std::memcpy(data, m_data, (size_t)m_size * sizeof(PdfObject));
+        // elements in it. Only the back pointers to the new addresses are fixed.
+        // Cast to void* is required to silence -Wclass-memaccess in gcc 
+        std::memcpy((void*)data, (void*)m_data, (size_t)m_size * sizeof(PdfObject));
         relocateBackPointers(data, m_size);
     }
 
@@ -540,7 +542,8 @@ void PdfArray::eraseAt(unsigned index, unsigned count)
     if (tail != 0)
     {
         // The shifted elements are relocated, not moved
-        std::memmove(m_data + index, m_data + index + count, (size_t)tail * sizeof(PdfObject));
+        // NOTE: Cast to void* is required to silence -Wclass-memaccess in gcc 
+        std::memmove((void*)(m_data + index), (void*)(m_data + index + count), (size_t)tail * sizeof(PdfObject));
         relocateBackPointers(m_data + index, tail);
     }
 
