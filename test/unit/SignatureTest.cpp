@@ -857,8 +857,8 @@ TEST_CASE("TestVerifyBadSigningCertificateV2")
     auto valueObj = signature.GetDictionary().FindKey("V");
     REQUIRE(valueObj != nullptr);
 
-    const PdfString* contents;
-    const PdfArray* byteRange;
+    const PdfString* contents = nullptr;
+    const PdfArray* byteRange = nullptr;
     REQUIRE(valueObj->GetDictionary().TryFindKeyAs("Contents", contents));
     REQUIRE(valueObj->GetDictionary().TryFindKeyAs("ByteRange", byteRange));
 
