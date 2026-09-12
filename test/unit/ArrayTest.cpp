@@ -80,8 +80,8 @@ TEST_CASE("TestArrayShiftKeepsNestedChildrenAttached")
     }
 
     // The surviving values are the original ones minus what was removed
-    ASSERT_EQUAL(arr[0].GetArray()[0].GetNumber(), static_cast<int64_t>(0));
-    ASSERT_EQUAL(arr[5].GetArray()[0].GetNumber(), static_cast<int64_t>(8));
+    REQUIRE(arr[0].GetArray()[0].GetNumber() == 0);
+    REQUIRE(arr[5].GetArray()[0].GetNumber() == 8);
 }
 
 TEST_CASE("TestArrayReserveKeepsChildrenAttached")
