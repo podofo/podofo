@@ -7,10 +7,31 @@
 
 #include <fstream>
 
+#include <climits>
+#include <fcntl.h>
+#include <sys/stat.h>
+#ifdef _WIN32
+#include <io.h>
+#else // !_WIN32
+#include <cerrno>
+#include <unistd.h>
+#endif // _WIN32
+
 #include <podofo/private/FileSystem.h>
 
 using namespace std;
 using namespace PoDoFo;
+
+// Capacity of the FileStreamDevice buffer, which serves
+// both directions, one at a time
+constexpr size_t BufferSize = 4096;
+
+static int openFile(const string_view& filename, FileMode mode, DeviceAccess access);
+static size_t readFd(int fd, char* buffer, size_t size);
+static void writeFd(int fd, const char* buffer, size_t size);
+static size_t seekFd(int fd, ssize_t offset, int origin);
+static size_t getFdLength(int fd);
+static int closeFd(int fd);
 
 namespace
 {
@@ -83,12 +104,15 @@ void seek(TStream& stream, ssize_t pos, SeekDirection direction)
 
 }
 
-static FILE* createFile(const string_view& filename, FileMode mode, DeviceAccess access);
-
 StreamDevice::StreamDevice(DeviceAccess access)
     : InputStreamDevice(false), OutputStreamDevice(false)
 {
     SetAccess(access);
+}
+
+void StreamDevice::resetBuffers()
+{
+    InputStreamDevice::resetBuffers();
 }
 
 size_t StreamDevice::SeekPosition(size_t curpos, size_t devlen, ssize_t offset, SeekDirection direction)
@@ -397,8 +421,26 @@ FileStreamDevice::FileStreamDevice(const string_view& filepath, FileMode mode)
 }
 
 FileStreamDevice::FileStreamDevice(const string_view& filepath, FileMode mode, DeviceAccess access)
-    : StreamDevice(access), m_file(createFile(filepath, mode, access))
+    : StreamDevice(access),
+    m_Filepath(filepath),
+    m_Buffer(new char[BufferSize]),
+    m_BufferOffset(0),
+    m_Filled(0),
+    m_Pending(0),
+    m_Position(0),
+    m_FdOffset(0),
+    m_Direction(BufferDirection::None),
+    m_Eof(false),
+    m_fd(openFile(filepath, mode, access))
 {
+    if (mode == FileMode::Append)
+    {
+        // NOTE: O_APPEND is deliberately not used. It would leave the
+        // initial position at 0 and relocate every write to the end of
+        // file, making a derived write position disagree with where the
+        // bytes land. This seek reproduces fopen("a") initial position
+        m_FdOffset = m_Position = seekFd(m_fd, 0, SEEK_END);
+    }
 }
 
 FileStreamDevice::~FileStreamDevice()
@@ -409,41 +451,36 @@ FileStreamDevice::~FileStreamDevice()
     }
     catch (...)
     {
-        // Do nothing, it should not throw
+        // NOTE: With a locally owned write buffer a failed final
+        // flush would be silent data loss otherwise
+        LogMessage(PdfLogSeverity::Error, "Failed to flush and close the file {}", m_Filepath);
     }
 }
 
 size_t FileStreamDevice::GetLength() const
 {
-    ssize_t offset;
-    ssize_t previousOffset;
-    previousOffset = utls::ftell(m_file);
-    if (previousOffset == -1)
-        goto Fail;
+    ensureOpen();
+    size_t length = getFdLength(m_fd);
+    if (m_Direction == BufferDirection::Write)
+    {
+        // The post flush length, without flushing
+        return std::max(length, m_BufferOffset + m_Pending);
+    }
 
-    if (utls::fseek(m_file, 0, SEEK_END) != 0)
-        goto Fail;
-
-    offset = utls::ftell(m_file);
-    if (offset == -1)
-        goto Fail;
-
-    if (utls::fseek(m_file, previousOffset, SEEK_SET) != 0)
-        goto Fail;
-
-    return offset;
-
-Fail:
-    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to determine the current file length");
+    return length;
 }
 
 size_t FileStreamDevice::GetPosition() const
 {
-    ssize_t offset = utls::ftell(m_file);
-    if (offset == -1)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to read the current file position");
-
-    return offset;
+    switch (m_Direction)
+    {
+        case BufferDirection::Read:
+            return m_BufferOffset + (size_t)(m_head - m_Buffer.get());
+        case BufferDirection::Write:
+            return m_BufferOffset + m_Pending;
+        default:
+            return m_Position;
+    }
 }
 
 bool FileStreamDevice::CanSeek() const
@@ -453,112 +490,319 @@ bool FileStreamDevice::CanSeek() const
 
 bool FileStreamDevice::Eof() const
 {
-    return std::feof(m_file) != 0;
+    return m_head == m_tail && m_Eof;
 }
 
 void FileStreamDevice::truncate()
 {
+    // NOTE: An implementation must keep this invalidation, or the retained
+    // buffer content could outlive the bytes it describes
+    m_Filled = 0;
     PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
 void FileStreamDevice::writeBuffer(const char* buffer, size_t size)
 {
-    if (std::fwrite(buffer, sizeof(char), size, m_file) != size)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to write the given buffer");
+    assertInvariants();
+    if (m_Direction != BufferDirection::Write)
+        beginWrite();
+
+    if (size >= BufferSize)
+    {
+        // Bypass the buffer for large writes, as fwrite does
+        flushWrite();
+        writeFd(m_fd, buffer, size);
+        m_FdOffset += size;
+        m_BufferOffset = m_FdOffset;
+        return;
+    }
+
+    if (m_Pending + size > BufferSize)
+        flushWrite();
+
+    std::memcpy(m_Buffer.get() + m_Pending, buffer, size);
+    m_Pending += size;
 }
 
 void FileStreamDevice::flush()
 {
-    int rc = std::fflush(m_file);
-    if (rc == EOF)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to flush the stream");
+    flushWrite();
 }
 
 size_t FileStreamDevice::readBuffer(char* buffer, size_t size, bool& eof)
 {
-    size_t ret = std::fread(buffer, 1, (size_t)size, m_file);
-    if (std::ferror(m_file) != 0)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to read the amount of bytes requested");
-
-    if (std::feof(m_file) != 0)
+    assertInvariants();
+    if (size == 0)
     {
-        eof = true;
-        return ret;
+        // Nothing to serve: refilling here would just discard the retained content
+        eof = false;
+        return 0;
     }
 
-    eof = false;
-    return ret;
+    // Serve from the read window first: while armed it owns the logical position
+    size_t count = 0;
+    if (m_head != m_tail)
+    {
+        count = std::min(size, (size_t)(m_tail - m_head));
+        std::memcpy(buffer, m_head, count);
+        m_head += count;
+        if (count == size)
+        {
+            eof = false;
+            return count;
+        }
+    }
+
+    size_t remaining = size - count;
+    if (remaining < BufferSize)
+    {
+        refill();
+        size_t read = std::min(remaining, (size_t)(m_tail - m_head));
+        std::memcpy(buffer + count, m_head, read);
+        m_head += read;
+        eof = m_head == m_tail && m_Eof;
+        return count + read;
+    }
+
+    // Read straight into the caller's buffer, as fread does for large requests
+    dropBuffers();
+    ensureOpen();
+    syncFdOffset();
+    m_Filled = 0;
+    size_t read = readFd(m_fd, buffer + count, remaining);
+    m_FdOffset += read;
+    m_Position = m_FdOffset;
+    m_Eof = read != remaining;
+    eof = m_Eof;
+    return count + read;
 }
 
 bool FileStreamDevice::readChar(char& ch)
 {
-    int rc = std::fgetc(m_file);
-    if (std::ferror(m_file) != 0)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Stream I/O error while reading");
-
-    if (std::feof(m_file) != 0)
+    if (m_head == m_tail)
     {
-        ch = '\0';
-        return false;
+        refill();
+        if (m_head == m_tail)
+        {
+            ch = '\0';
+            return false;
+        }
     }
 
-    ch = (char)(unsigned char)rc;
+    ch = *m_head++;
     return true;
 }
 
 bool FileStreamDevice::peek(char& ch) const
 {
-    int rc = std::fgetc(m_file);
-    if (std::ferror(m_file) != 0)
-        goto Fail;
-
-    if (std::feof(m_file) != 0)
+    if (m_head == m_tail)
     {
-        ch = '\0';
-        return false;
+        // NOTE: peek() is the only method that genuinely has to
+        // mutate, since its slow path refills
+        const_cast<FileStreamDevice&>(*this).refill();
+        if (m_head == m_tail)
+        {
+            ch = '\0';
+            return false;
+        }
     }
 
-    if (std::ungetc(rc, m_file) == EOF)
-        goto Fail;
-
-    ch = (char)(unsigned char)rc;
+    ch = *m_head;
     return true;
-
-Fail:
-    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Stream I/O error while reading");
 }
 
 void FileStreamDevice::seek(ssize_t offset, SeekDirection direction)
 {
-    int origin;
+    ensureOpen();
+    size_t pos;
     switch (direction)
     {
         case SeekDirection::Begin:
-            origin = SEEK_SET;
+        {
+            if (offset < 0)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to seek to given position in the stream");
+
+            pos = (size_t)offset;
             break;
+        }
         case SeekDirection::Current:
-            origin = SEEK_CUR;
+        {
+            // NOTE: resetBuffers() committed the logical position to m_Position,
+            // while the OS file offset may still be ahead of it after a read
+            if (offset < 0 && (size_t)-offset > m_Position)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to seek to given position in the stream");
+
+            pos = m_Position + (size_t)offset;
             break;
+        }
         case SeekDirection::End:
-            origin = SEEK_END;
-            break;
+        {
+            // The length is needed anyway, so just let the OS compute the position
+            m_FdOffset = m_Position = seekFd(m_fd, offset, SEEK_END);
+            return;
+        }
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 
-    if (utls::fseek(m_file, offset, origin) != 0)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to seek to given position in the stream");
+    if (tryRetainBuffer(pos))
+        return;
+
+    m_FdOffset = m_Position = seekFd(m_fd, (ssize_t)pos, SEEK_SET);
 }
 
 void FileStreamDevice::close()
 {
-    if (m_file == nullptr)
+    if (m_fd == -1)
         return;
 
-    if (std::fclose(m_file) == EOF)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to close stream");
+    int fd = m_fd;
+    try
+    {
+        flushWrite();
+    }
+    catch (...)
+    {
+        m_fd = -1;
+        (void)closeFd(fd);
+        throw;
+    }
 
-    m_file = nullptr;
+    m_fd = -1;
+    if (closeFd(fd) != 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to close stream");
+}
+
+void FileStreamDevice::resetBuffers()
+{
+    dropBuffers();
+    // NOTE: A hand rolled EOF flag is sticky unless something clears
+    // it, while fseek() cleared stdio's EOF indicator
+    m_Eof = false;
+    StreamDevice::resetBuffers();
+}
+
+void FileStreamDevice::refill()
+{
+    assertInvariants();
+    PODOFO_ASSERT(m_head == m_tail);
+    ensureOpen();
+    if (m_Direction == BufferDirection::Write)
+    {
+        // Never fill over unflushed data
+        flushWrite();
+        m_Position = m_FdOffset;
+        m_Direction = BufferDirection::None;
+    }
+
+    if (m_Direction == BufferDirection::None)
+        syncFdOffset();
+
+    size_t read = readFd(m_fd, m_Buffer.get(), BufferSize);
+    m_BufferOffset = m_FdOffset;
+    m_Filled = read;
+    m_FdOffset += read;
+    m_head = m_Buffer.get();
+    m_tail = m_Buffer.get() + read;
+    m_Direction = BufferDirection::Read;
+    // A short read on a regular file means the end was reached
+    m_Eof = read != BufferSize;
+}
+
+void FileStreamDevice::flushWrite()
+{
+    if (m_Direction != BufferDirection::Write || m_Pending == 0)
+        return;
+
+    assertInvariants();
+    ensureOpen();
+    writeFd(m_fd, m_Buffer.get(), m_Pending);
+    m_FdOffset += m_Pending;
+    // NOTE: Re-anchoring here is what keeps GetPosition() flush invariant
+    m_BufferOffset = m_FdOffset;
+    m_Pending = 0;
+}
+
+void FileStreamDevice::beginWrite()
+{
+    dropBuffers();
+    ensureOpen();
+    // Read ahead may have left the OS file offset past the logical position
+    syncFdOffset();
+    m_BufferOffset = m_FdOffset;
+    m_Filled = 0;
+    m_Pending = 0;
+    // NOTE: This is the one path into the Write direction that doesn't go
+    // through resetBuffers(), so a read that had reached EOF before the
+    // switch would leave Eof() reporting true on a device being written
+    m_Eof = false;
+    m_Direction = BufferDirection::Write;
+}
+
+void FileStreamDevice::dropBuffers()
+{
+    switch (m_Direction)
+    {
+        case BufferDirection::Read:
+            m_Position = m_BufferOffset + (size_t)(m_head - m_Buffer.get());
+            break;
+        case BufferDirection::Write:
+            flushWrite();
+            m_Position = m_BufferOffset + m_Pending;
+            break;
+        default:
+            return;
+    }
+
+    m_head = nullptr;
+    m_tail = nullptr;
+    m_Pending = 0;
+    m_Direction = BufferDirection::None;
+}
+
+void FileStreamDevice::syncFdOffset()
+{
+    PODOFO_ASSERT(m_Direction == BufferDirection::None);
+    if (m_FdOffset == m_Position)
+        return;
+
+    m_FdOffset = seekFd(m_fd, (ssize_t)m_Position, SEEK_SET);
+}
+
+bool FileStreamDevice::tryRetainBuffer(size_t pos)
+{
+    PODOFO_ASSERT(m_Direction == BufferDirection::None);
+    if (m_Filled == 0 || pos < m_BufferOffset || pos >= m_BufferOffset + m_Filled)
+        return false;
+
+    // The content is valid, but a previous seek left the OS file offset
+    // elsewhere: restore it so the next refill() resumes after the buffer
+    size_t end = m_BufferOffset + m_Filled;
+    if (m_FdOffset != end)
+        m_FdOffset = seekFd(m_fd, (ssize_t)end, SEEK_SET);
+
+    m_head = m_Buffer.get() + (pos - m_BufferOffset);
+    m_tail = m_Buffer.get() + m_Filled;
+    m_Position = pos;
+    m_Direction = BufferDirection::Read;
+    return true;
+}
+
+void FileStreamDevice::ensureOpen() const
+{
+    if (m_fd == -1)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "The file {} is closed", m_Filepath);
+}
+
+void FileStreamDevice::assertInvariants() const
+{
+    PODOFO_ASSERT(m_Direction != BufferDirection::Write || m_BufferOffset == m_FdOffset);
+    PODOFO_ASSERT(m_Direction != BufferDirection::Read || (m_head != nullptr && m_head <= m_tail
+        && (size_t)(m_tail - m_Buffer.get()) == m_Filled && m_BufferOffset + m_Filled == m_FdOffset));
+    PODOFO_ASSERT(m_Direction != BufferDirection::Write || m_head == nullptr);
+    PODOFO_ASSERT(m_Direction != BufferDirection::None || (m_head == nullptr && m_Pending == 0));
+    PODOFO_ASSERT(m_Filled == 0 || m_Pending == 0);
+    PODOFO_ASSERT(m_Filled <= BufferSize && m_Pending <= BufferSize);
 }
 
 NullStreamDevice::NullStreamDevice()
@@ -627,6 +871,7 @@ void NullStreamDevice::truncate()
 SpanStreamDevice::SpanStreamDevice(const char* buffer, size_t size)
     : StreamDevice(DeviceAccess::Read), m_buffer(const_cast<char*>(buffer)), m_Length(size), m_Position(0)
 {
+    tryEnableReadWindow();
 }
 
 SpanStreamDevice::SpanStreamDevice(const bufferview& buffer)
@@ -657,6 +902,7 @@ SpanStreamDevice::SpanStreamDevice(const char* str)
 SpanStreamDevice::SpanStreamDevice(char* buffer, size_t size, DeviceAccess access)
     : StreamDevice(access), m_buffer(buffer), m_Length(size), m_Position(0)
 {
+    tryEnableReadWindow();
 }
 
 SpanStreamDevice::SpanStreamDevice(const bufferspan& span, DeviceAccess access)
@@ -671,12 +917,12 @@ size_t SpanStreamDevice::GetLength() const
 
 size_t SpanStreamDevice::GetPosition() const
 {
-    return m_Position;
+    return getPos();
 }
 
 bool SpanStreamDevice::Eof() const
 {
-    return m_Position == m_Length;
+    return getPos() == m_Length;
 }
 
 bool SpanStreamDevice::CanSeek() const
@@ -686,50 +932,56 @@ bool SpanStreamDevice::CanSeek() const
 
 void SpanStreamDevice::writeBuffer(const char* buffer, size_t size)
 {
-    if (m_Position + size > m_Length)
+    size_t pos = getPos();
+    if (pos + size > m_Length)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Attempt to write out of span bounds");
 
-    std::memcpy(m_buffer + m_Position, buffer, size);
-    m_Position += size;
+    std::memcpy(m_buffer + pos, buffer, size);
+    setPos(pos + size);
 }
 
 size_t SpanStreamDevice::readBuffer(char* buffer, size_t size, bool& eof)
 {
-    size_t readCount = std::min(size, m_Length - m_Position);
-    std::memcpy(buffer, m_buffer + m_Position, readCount);
-    m_Position += readCount;
-    eof = m_Position == m_Length;
+    size_t pos = getPos();
+    size_t readCount = std::min(size, m_Length - pos);
+    std::memcpy(buffer, m_buffer + pos, readCount);
+    setPos(pos + readCount);
+    eof = pos + readCount == m_Length;
     return readCount;
 }
 
 bool SpanStreamDevice::readChar(char& ch)
 {
-    if (m_Position == m_Length)
+    size_t pos = getPos();
+    if (pos == m_Length)
     {
         ch = '\0';
         return false;
     }
 
-    ch = m_buffer[m_Position];
-    m_Position++;
+    ch = m_buffer[pos];
+    setPos(pos + 1);
     return true;
 }
 
 bool SpanStreamDevice::peek(char& ch) const
 {
-    if (m_Position == m_Length)
+    size_t pos = getPos();
+    if (pos == m_Length)
     {
         ch = '\0';
         return false;
     }
 
-    ch = m_buffer[m_Position];
+    ch = m_buffer[pos];
     return true;
 }
 
 void SpanStreamDevice::seek(ssize_t offset, SeekDirection direction)
 {
+    // NOTE: resetBuffers() already committed the position to m_Position
     m_Position = SeekPosition(m_Position, m_Length, offset, direction);
+    tryEnableReadWindow();
 }
 
 void SpanStreamDevice::truncate()
@@ -737,9 +989,35 @@ void SpanStreamDevice::truncate()
     PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
-FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access)
+void SpanStreamDevice::resetBuffers()
 {
-    string cmode;
+    m_Position = getPos();
+    StreamDevice::resetBuffers();
+}
+
+size_t SpanStreamDevice::getPos() const
+{
+    // NOTE: Test the arm flag: a fully consumed span is armed and
+    // empty and its position still lives in the window
+    return m_tail == nullptr ? m_Position : (size_t)(m_head - m_buffer);
+}
+
+void SpanStreamDevice::setPos(size_t pos)
+{
+    m_Position = pos;
+    if (m_tail != nullptr)
+        m_head = m_buffer + pos;
+}
+
+void SpanStreamDevice::tryEnableReadWindow()
+{
+    if ((GetAccess() & DeviceAccess::Read) != DeviceAccess{ })
+        enableReadWindow(m_buffer + m_Position, m_buffer + m_Length);
+}
+
+int openFile(const string_view& filepath, FileMode mode, DeviceAccess access)
+{
+    int flags;
     switch (mode)
     {
         case FileMode::CreateNew:
@@ -753,10 +1031,10 @@ FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access
             switch (access)
             {
                 case DeviceAccess::Write:
-                    cmode.append("w");
+                    flags = O_WRONLY | O_CREAT | O_EXCL;
                     break;
                 case DeviceAccess::ReadWrite:
-                    cmode.append("w+");
+                    flags = O_RDWR | O_CREAT | O_EXCL;
                     break;
                 default:
                     PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
@@ -772,10 +1050,10 @@ FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access
             switch (access)
             {
                 case DeviceAccess::Write:
-                    cmode.append("w");
+                    flags = O_WRONLY | O_CREAT | O_TRUNC;
                     break;
                 case DeviceAccess::ReadWrite:
-                    cmode.append("w+");
+                    flags = O_RDWR | O_CREAT | O_TRUNC;
                     break;
                 default:
                     PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
@@ -791,13 +1069,15 @@ FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access
             switch (access)
             {
                 case DeviceAccess::Read:
-                    cmode.append("r");
+                    flags = O_RDONLY;
                     break;
                 case DeviceAccess::Write:
-                    cmode.append("w");
+                    // NOTE: Pre-existing quirk, this truncates the file despite
+                    // being "Open". The must exist check above prevents creation
+                    flags = O_WRONLY | O_TRUNC;
                     break;
                 case DeviceAccess::ReadWrite:
-                    cmode.append("r+");
+                    flags = O_RDWR;
                     break;
                 default:
                     PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
@@ -810,14 +1090,13 @@ FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access
             if (access == DeviceAccess::Read)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Invalid combination FileMode::OpenOrCreate and DeviceAccess::Read");
 
-            bool exists = fs::exists(fs::u8path(filepath));
             switch (access)
             {
                 case DeviceAccess::Write:
-                    cmode.append("w");
+                    flags = O_WRONLY | O_CREAT | O_TRUNC;
                     break;
                 case DeviceAccess::ReadWrite:
-                    cmode.append(exists ? "r+" : "w+");
+                    flags = O_RDWR | O_CREAT;
                     break;
                 default:
                     PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
@@ -836,43 +1115,126 @@ FILE* createFile(const string_view& filepath, FileMode mode, DeviceAccess access
             switch (access)
             {
                 case DeviceAccess::Write:
-                    cmode.append("w");
+                    flags = O_WRONLY | O_TRUNC;
                     break;
                 case DeviceAccess::ReadWrite:
-                    cmode.append("w+");
+                    flags = O_RDWR | O_TRUNC;
                     break;
                 default:
                     PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
             }
+
             break;
         }
         case FileMode::Append:
+        {
             if (access == DeviceAccess::Read)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Invalid combination FileMode::Append and DeviceAccess::Read");
 
+            // NOTE: The device seeks to the end after opening, see the constructor
             switch (access)
             {
                 case DeviceAccess::Write:
-                    cmode.append("a");
+                    flags = O_WRONLY | O_CREAT;
                     break;
                 case DeviceAccess::ReadWrite:
-                    cmode.append("a+");
+                    flags = O_RDWR | O_CREAT;
                     break;
                 default:
                     PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
             }
 
             break;
+        }
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
-#if _WIN32
-    cmode.append("b");
-#endif // _WIN32
 
-    auto stream = utls::fopen(filepath, cmode.data());
-    if (stream == nullptr)
+    int fd = utls::openFd(filepath, flags);
+    if (fd == -1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Error accessing file {}", filepath);
 
-    return stream;
+    return fd;
+}
+
+size_t readFd(int fd, char* buffer, size_t size)
+{
+    size_t read = 0;
+    while (read < size)
+    {
+#ifdef _WIN32
+        int rc = _read(fd, buffer + read, (unsigned)std::min(size - read, (size_t)INT_MAX));
+#else
+        ssize_t rc = ::read(fd, buffer + read, std::min(size - read, (size_t)SSIZE_MAX));
+        if (rc < 0 && errno == EINTR)
+            continue;
+#endif
+        if (rc < 0)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to read the amount of bytes requested");
+
+        if (rc == 0)
+            break;
+
+        read += (size_t)rc;
+    }
+
+    return read;
+}
+
+void writeFd(int fd, const char* buffer, size_t size)
+{
+    size_t written = 0;
+    while (written < size)
+    {
+#ifdef _WIN32
+        int rc = _write(fd, buffer + written, (unsigned)std::min(size - written, (size_t)INT_MAX));
+#else
+        ssize_t rc = ::write(fd, buffer + written, std::min(size - written, (size_t)SSIZE_MAX));
+        if (rc < 0 && errno == EINTR)
+            continue;
+#endif
+        if (rc <= 0)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to write the given buffer");
+
+        written += (size_t)rc;
+    }
+}
+
+size_t seekFd(int fd, ssize_t offset, int origin)
+{
+#ifdef _WIN32
+    int64_t off = _lseeki64(fd, offset, origin);
+#else
+    off_t off = ::lseek(fd, (off_t)offset, origin);
+#endif
+    if (off < 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to seek to given position in the stream");
+
+    return (size_t)off;
+}
+
+size_t getFdLength(int fd)
+{
+#ifdef _WIN32
+    int64_t length = _filelengthi64(fd);
+#else
+    struct stat info;
+    if (::fstat(fd, &info) != 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to determine the current file length");
+
+    off_t length = info.st_size;
+#endif
+    if (length < 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::IOError, "Failed to determine the current file length");
+
+    return (size_t)length;
+}
+
+int closeFd(int fd)
+{
+#ifdef _WIN32
+    return _close(fd);
+#else
+    return ::close(fd);
+#endif
 }

@@ -37,6 +37,19 @@ typedef struct evp_cipher_ctx_st EVP_CIPHER_CTX;
 
 #include <podofo/main/PdfDeclarations.h>
 
+// Allow for inlining of methods inside translation units,
+// can be used also for hot frontends that dispatch to a slow path.
+// NOTE: It deliberately doesn't imply "inline", which would drop the
+// out of line symbol that a definition in a .cpp must still export.
+// GCC diagnoses that, hence -Wno-attributes in the CMake options
+#if defined(_MSC_VER)
+#define PODOFO_INLINE [[msvc::forceinline]]
+#elif defined(__GNUC__) || defined(__clang__)
+#define PODOFO_INLINE __attribute__((always_inline))
+#else
+#define PODOFO_INLINE
+#endif
+
 // Redefine empty PODOFO_PRIVATE_FRIEND to specify actual
 // friendship with private identifiers (class or methods)
 #undef PODOFO_PRIVATE_FRIEND
@@ -494,8 +507,10 @@ namespace utls
     // as in PdfImage.cpp . For all the other I/O, use an STL stream
     FILE* fopen(const std::string_view& view, const std::string_view& mode);
 
-    ssize_t ftell(FILE* file);
-    ssize_t fseek(FILE* file, ssize_t offset, int origin);
+    /// Open a low-level file descriptor for the given utf-8 encoded path
+    /// @param flags POSIX open flags, O_BINARY is added on Windows
+    /// @returns the file descriptor, or -1 on failure
+    int openFd(const std::string_view& filepath, int flags);
 
     void WriteUInt32BE(PoDoFo::OutputStream& output, uint32_t value);
     void WriteInt32BE(PoDoFo::OutputStream& output, int32_t value);

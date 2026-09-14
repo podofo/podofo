@@ -17,7 +17,18 @@ InputStreamDevice::InputStreamDevice(bool init)
         SetAccess(DeviceAccess::Read);
 }
 
-bool InputStreamDevice::Peek(char& ch) const
+PODOFO_INLINE bool InputStreamDevice::Peek(char& ch) const
+{
+    if (m_head != m_tail)
+    {
+        ch = *m_head;
+        return true;
+    }
+
+    return peekSlowPath(ch);
+}
+
+bool InputStreamDevice::peekSlowPath(char& ch) const
 {
     EnsureAccess(DeviceAccess::Read);
     return peek(ch);
@@ -26,4 +37,18 @@ bool InputStreamDevice::Peek(char& ch) const
 void InputStreamDevice::checkRead() const
 {
     EnsureAccess(DeviceAccess::Read);
+}
+
+void InputStreamDevice::resetBuffers()
+{
+    m_head = nullptr;
+    m_tail = nullptr;
+}
+
+void InputStreamDevice::enableReadWindow(const char* head, const char* tail)
+{
+    PODOFO_INVARIANT((GetAccess() & DeviceAccess::Read) != DeviceAccess{ });
+
+    m_head = head;
+    m_tail = tail;
 }
