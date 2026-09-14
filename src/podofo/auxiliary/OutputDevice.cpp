@@ -19,6 +19,7 @@ OutputStreamDevice::OutputStreamDevice(bool init)
 void OutputStreamDevice::Truncate()
 {
     checkWrite();
+    resetBuffers();
     truncate();
 }
 

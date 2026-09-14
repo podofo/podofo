@@ -73,6 +73,29 @@ protected:
     /// By default does nothing
     virtual void checkRead() const;
 
+protected:
+    /// Inline read window over memory that already holds the bytes at the
+    /// current logical position. It has three states:
+    /// - unarmed: m_tail == nullptr, the device counter owns the position
+    /// - armed, empty: m_tail != nullptr && m_head == m_tail, the window is
+    ///   authoritative for the position but holds no bytes
+    /// - armed, non empty: m_head < m_tail, reads are served from the window
+    /// @remarks m_tail is the arm flag, m_head != m_tail the fast path test.
+    /// While armed m_head is authoritative for the logical position, so every
+    /// readBuffer()/readChar()/peek() override of an arming device must drain
+    /// or derive from it. The window is armed only when read access is granted,
+    /// since the fast paths skip checkRead()
+    const char* m_head;
+    const char* m_tail;
+
+private:
+    /// Slow paths of the read frontends, taken when the read
+    /// window can't satisfy the request on its own
+    void readSlowPath(char* buffer, size_t size);
+    size_t readSlowPath(char* buffer, size_t size, bool& eof);
+    char readCharSlowPath();
+    bool tryReadCharSlowPath(char& ch);
+
 private:
     InputStream(const InputStream&) = delete;
     InputStream& operator=(const InputStream&) = delete;

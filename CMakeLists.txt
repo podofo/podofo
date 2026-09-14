@@ -130,6 +130,14 @@ if(WIN32)
     list(APPEND PLATFORM_SYSTEM_LIBRARIES ws2_32 crypt32 Bcrypt)
 endif()
 
+if(NOT WIN32)
+    # Large File Support. It must be defined on every target of this
+    # build tree, since a mismatch across translation units changes the
+    # size of off_t. It stays out of the consumer ABI: no public header
+    # names off_t. On Windows _lseeki64 is 64 bit unconditionally
+    add_compile_definitions(_FILE_OFFSET_BITS=64)
+endif()
+
 # Set minimum required standard C++17, but also enforce it
 # with compiler options as CMAKE_CXX_STANDARD (or any other
 # CMake construct) won't really do it.
@@ -149,7 +157,9 @@ else()
     # By default hide symbols on gcc/clang
     # TODO: Remove -Wno-format-truncation after porting the
     # code to std::fmt as it will be unuseful
-    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-std=gnu++17> $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual> $<$<COMPILE_LANGUAGE:CXX>:-Wreorder> -fvisibility=hidden -Wall -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wno-format-truncation -Wno-unknown-pragmas)
+    # NOTE: -Wno-attributes silences GCC warning on PODOFO_INLINE
+    # functions, which deliberately are not declared inline
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-std=gnu++17> $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual> $<$<COMPILE_LANGUAGE:CXX>:-Wreorder> -fvisibility=hidden -Wall -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wno-format-truncation -Wno-unknown-pragmas -Wno-attributes)
 
     # Note that we do not need debug definitions here. Set
     # -DCMAKE_BUILD_TYPE=debug or (if you want an optimised

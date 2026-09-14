@@ -30,6 +30,10 @@ protected:
     StreamDevice(DeviceAccess access);
 
 protected:
+    /// NOTE: It just forwards to InputStreamDevice, disambiguating
+    /// the InputStreamDevice/OutputStreamDevice inheritance
+    void resetBuffers() override;
+
     static size_t SeekPosition(size_t curpos, size_t devlen, ssize_t offset, SeekDirection direction);
 };
 
@@ -128,10 +132,46 @@ protected:
     void seek(ssize_t offset, SeekDirection direction) override;
     void close() override;
     void truncate() override;
+    void resetBuffers() override;
 
 private:
-    FILE* m_file;
+    /// The buffer serves one direction at a time, mirroring stdio
+    enum class BufferDirection : uint8_t
+    {
+        None = 0,
+        Read,
+        Write
+    };
+
+private:
+    /// Fill the read window, flushing pending writes first
+    void refill();
+    /// Write out the pending bytes and re-anchor the buffer to the file offset
+    void flushWrite();
+    /// Enter the Write direction, dropping any read window
+    void beginWrite();
+    /// Commit the logical position to m_Position and drop the buffered state.
+    /// @remarks The OS file offset may still be ahead of it after a read
+    void dropBuffers();
+    /// Bring the OS file offset back to the logical position
+    void syncFdOffset();
+    /// Re-arm the read window over the retained buffer content when the
+    /// given position lands inside it, sparing a seek and a fill
+    bool tryRetainBuffer(size_t pos);
+    void ensureOpen() const;
+    void assertInvariants() const;
+
+private:
     std::string m_Filepath;
+    std::unique_ptr<char[]> m_Buffer;
+    size_t m_BufferOffset;      ///< File offset of m_Buffer[0]
+    size_t m_Filled;            ///< Read content bytes in m_Buffer, retained across a seek
+    size_t m_Pending;           ///< Write direction: dirty bytes in m_Buffer
+    size_t m_Position;          ///< Logical position, authoritative when direction is None
+    size_t m_FdOffset;          ///< Tracked OS file offset, kept exact
+    BufferDirection m_Direction;
+    bool m_Eof;
+    int m_fd;
 };
 
 template <typename TContainer>
@@ -253,9 +293,18 @@ protected:
     bool peek(char& ch) const override;
     void seek(ssize_t offset, SeekDirection direction) override;
     void truncate() override;
+    void resetBuffers() override;
 
 private:
     SpanStreamDevice(std::nullptr_t) = delete;
+
+private:
+    /// Read the logical position, which lives in the read window while armed
+    size_t getPos() const;
+    /// Set the logical position, keeping m_Position valid as the fallback
+    void setPos(size_t pos);
+    /// Enable the read window over the whole remainder of the span, if reading is granted
+    void tryEnableReadWindow();
 
 private:
     char* m_buffer;

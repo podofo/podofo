@@ -2,7 +2,6 @@
 // SPDX-FileCopyrightText: 2005 Dominik Seichter <domseichter@web.de>
 // SPDX-FileCopyrightText: 2020 Francesco Pretto <ceztko@gmail.com>
 // SPDX-License-Identifier: LGPL-2.0-or-later OR MPL-2.0
-#include "PdfDeclarationsPrivate.h"
 
 #include <regex>
 #include <podofo/private/utfcpp_extensions.h>
@@ -12,14 +11,17 @@
 
 #include <podofo/private/istringviewstream.h>
 
-#include <podofo/private/utfcpp_extensions.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 
 #ifdef _WIN32
 #include <podofo/private/WindowsLeanMean.h>
-#else
+#include <io.h>
+#include <share.h>
+#else // !_WIN32
  // NOTE: There's no <cstrings>, <strings.h> is a posix header
 #include <strings.h>
-#endif
+#endif // _WIN32
 
 #include "PdfTreeNode.h"
 
@@ -1201,21 +1203,25 @@ FILE* utls::fopen(const string_view& filename, const string_view& mode)
 #endif
 }
 
-ssize_t utls::ftell(FILE* file)
+int utls::openFd(const string_view& filepath, int flags)
 {
-#if defined(_WIN64)
-    return _ftelli64(file);
-#else
-    return std::ftell(file);
-#endif
-}
+#ifdef _WIN32
+    auto filepath16 = utf8::utf8to16((string)filepath);
+    int fd;
+    // NOTE: _SH_DENYNO matches the default sharing of _wfopen. The
+    // permissions are required by _O_CREAT and ignored otherwise:
+    // passing _S_IREAD alone would create a read only file
+    if (_wsopen_s(&fd, (wchar_t*)filepath16.c_str(), flags | _O_BINARY,
+        _SH_DENYNO, _S_IREAD | _S_IWRITE) != 0)
+    {
+        return -1;
+    }
 
-ssize_t utls::fseek(FILE* file, ssize_t offset, int origin)
-{
-#if defined(_WIN64)
-    return _fseeki64(file, offset, origin);
+    return fd;
 #else
-    return std::fseek(file, offset, origin);
+    // NOTE: open() requires a null terminated path. The permissions
+    // are narrowed by the process umask, as fopen() does
+    return ::open(string(filepath).c_str(), flags, 0666);
 #endif
 }
 

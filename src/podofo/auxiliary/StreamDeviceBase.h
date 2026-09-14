@@ -69,6 +69,11 @@ protected:
     virtual void seek(ssize_t offset, SeekDirection direction);
     virtual void close();
 
+    /// Commit any buffered position back to the device and drop all buffered
+    /// state, so that seek()/close() and GetPosition() see a consistent,
+    /// unbuffered device. Default no-op
+    virtual void resetBuffers();
+
 private:
     DeviceAccess m_Access;
 };

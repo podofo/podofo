@@ -4,7 +4,6 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfCanvasInputDevice.h"
 #include "PdfCanvas.h"
-#include <podofo/auxiliary/StreamDevice.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -39,7 +38,11 @@ PdfCanvasInputDevice::PdfCanvasInputDevice(const PdfCanvas& canvas)
         }
     }
 
-    if (!tryPopNextDevice())
+    // NOTE: The initial pop owes no newline separator, so the
+    // window is armed straight away
+    if (tryPopNextBuffer())
+        enableBuffer();
+    else
         m_eof = true;
 }
 
@@ -51,17 +54,9 @@ bool PdfCanvasInputDevice::peek(char& ch) const
         return false;
     }
 
-    InputStreamDevice* device = nullptr;
     auto& mref = const_cast<PdfCanvasInputDevice&>(*this);
     while (true)
     {
-        if (!mref.tryGetNextDevice(device))
-        {
-            mref.setEOF();
-            ch = '\0';
-            return false;
-        }
-
         if (m_deviceSwitchOccurred)
         {
             // Handle device switch by returning
@@ -71,10 +66,19 @@ bool PdfCanvasInputDevice::peek(char& ch) const
             return true;
         }
 
-        if (!device->Peek(ch))
-            continue;
+        size_t pos = getPos();
+        if (pos != m_buffer.size())
+        {
+            ch = m_buffer[pos];
+            return true;
+        }
 
-        return true;
+        if (!mref.tryGetNextBuffer())
+        {
+            mref.setEOF();
+            ch = '\0';
+            return false;
+        }
     }
 }
 
@@ -87,20 +91,14 @@ size_t PdfCanvasInputDevice::readBuffer(char* buffer, size_t size, bool& eof)
         return 0;
     }
 
-    size_t read;
     size_t count = 0;
-    InputStreamDevice* device = nullptr;
     while (true)
     {
-        if (!tryGetNextDevice(device))
+        if (size == 0)
         {
-            setEOF();
-            eof = true;
+            eof = false;
             return count;
         }
-
-        if (size == 0)
-            return count;
 
         if (m_deviceSwitchOccurred)
         {
@@ -111,16 +109,28 @@ size_t PdfCanvasInputDevice::readBuffer(char* buffer, size_t size, bool& eof)
             size -= 1;
             count += 1;
             m_deviceSwitchOccurred = false;
-            if (size == 0)
-                return count;
+            enableBuffer();
+            continue;
         }
 
-        // Span reads into multiple input devices
-        // NOTE: we ignore if the device reached EOF, and
-        // we try pop another device at the next iteration
-        read = device->Read(buffer + count, size, eof);
-        size -= read;
-        count += read;
+        // Span reads into multiple contents streams
+        size_t pos = getPos();
+        size_t read = std::min(size, m_buffer.size() - pos);
+        if (read != 0)
+        {
+            std::memcpy(buffer + count, m_buffer.data() + pos, read);
+            setPos(pos + read);
+            size -= read;
+            count += read;
+            continue;
+        }
+
+        if (!tryGetNextBuffer())
+        {
+            setEOF();
+            eof = true;
+            return count;
+        }
     }
 }
 
@@ -132,28 +142,32 @@ bool PdfCanvasInputDevice::readChar(char& ch)
         return false;
     }
 
-    InputStreamDevice* device = nullptr;
     while (true)
     {
-        if (!tryGetNextDevice(device))
-        {
-            setEOF();
-            return false;
-        }
-
         if (m_deviceSwitchOccurred)
         {
             // Handle device switch by returning a
             // newline separator and reset the flag
             ch = '\n';
             m_deviceSwitchOccurred = false;
+            enableBuffer();
             return true;
         }
 
-        if (!device->Read(ch))
-            continue;
+        size_t pos = getPos();
+        if (pos != m_buffer.size())
+        {
+            ch = m_buffer[pos];
+            setPos(pos + 1);
+            return true;
+        }
 
-        return true;
+        if (!tryGetNextBuffer())
+        {
+            setEOF();
+            ch = '\0';
+            return false;
+        }
     }
 }
 
@@ -167,21 +181,10 @@ size_t PdfCanvasInputDevice::GetPosition() const
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Unsupported");
 }
 
-bool PdfCanvasInputDevice::tryGetNextDevice(InputStreamDevice*& device)
+bool PdfCanvasInputDevice::tryGetNextBuffer()
 {
-    PODOFO_ASSERT(m_currDevice != nullptr);
-    if (device == nullptr)
-    {
-        // Initial step, just return back current device
-        device = m_currDevice.get();
-        return true;
-    }
-
-    if (!tryPopNextDevice())
-    {
-        device = nullptr;
+    if (!tryPopNextBuffer())
         return false;
-    }
 
     // ISO 32000-1:2008: Table 30 – Entries in a page object,
     // /Contents: "The division between streams may occur
@@ -189,13 +192,12 @@ bool PdfCanvasInputDevice::tryGetNextDevice(InputStreamDevice*& device)
     // We will handle the device switch by adding a
     // newline separator
     m_deviceSwitchOccurred = true;
-    device = m_currDevice.get();
     return true;
 }
 
-// Returns true if one device was successfully
-// popped out of the queue and is not EOF
-bool PdfCanvasInputDevice::tryPopNextDevice()
+// Returns true if one contents stream was successfully
+// popped out of the queue and is not empty
+bool PdfCanvasInputDevice::tryPopNextBuffer()
 {
     while (m_contents.size() != 0)
     {
@@ -208,7 +210,11 @@ bool PdfCanvasInputDevice::tryPopNextDevice()
         if (m_buffer.size() == 0)
             continue;
 
-        m_currDevice = std::make_unique<SpanStreamDevice>(m_buffer);
+        // NOTE: CopyTo() reallocates the buffer, so the window must not be
+        // left pointing into the previous one. It stays unarmed until the
+        // newline separator owed for this switch is actually consumed
+        m_head = nullptr;
+        m_tail = nullptr;
         return true;
     }
 
@@ -219,4 +225,23 @@ void PdfCanvasInputDevice::setEOF()
 {
     m_deviceSwitchOccurred = false;
     m_eof = true;
+}
+
+void PdfCanvasInputDevice::enableBuffer()
+{
+    PODOFO_INVARIANT(!m_deviceSwitchOccurred);
+    // NOTE: A freshly popped buffer is always read from its beginning
+    enableReadWindow(m_buffer.data(), m_buffer.data() + m_buffer.size());
+}
+
+size_t PdfCanvasInputDevice::getPos() const
+{
+    PODOFO_ASSERT(m_tail != nullptr);
+    return (size_t)(m_head - m_buffer.data());
+}
+
+void PdfCanvasInputDevice::setPos(size_t pos)
+{
+    PODOFO_ASSERT(m_tail != nullptr);
+    m_head = m_buffer.data() + pos;
 }
