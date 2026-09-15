@@ -111,7 +111,17 @@ PdfAnnotation& PdfAnnotationCollection::addAnnotation(unique_ptr<PdfAnnotation>&
 {
     initAnnotations();
     if (m_annotArray == nullptr)
+    {
         m_annotArray = &m_Page->GetDictionary().AddKey("Annots"_n, PdfArray()).GetArray();
+    }
+    else if (m_annotArray->GetOwner() != &m_Page->GetObject())
+    {
+        // The array is stored in its own object: inline it in the page instead.
+        // On an incremental update the modification of a standalone array can't
+        // be attributed to the page owning it, and is reported as a generic change
+        // in the DocMDP validation by Adobe Acrobat
+        m_annotArray = &m_Page->GetDictionary().AddKey("Annots"_n, PdfArray(*m_annotArray)).GetArray();
+    }
 
     (*m_annotMap)[annot->GetObject().GetIndirectReference()] = m_annotArray->GetSize();
     m_annotArray->AddIndirectSafe(annot->GetObject());
