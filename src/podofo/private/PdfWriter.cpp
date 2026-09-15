@@ -165,7 +165,7 @@ void PdfWriter::Write(OutputStreamDevice& device)
     }
 
     device.Flush();
-    m_Objects->ResetFreeObjectsInvalidated();
+    m_Objects->ClearFreeObjectsDelta();
 }
 
 // Retrieve the encryption dictionary of the document, so it can be reused:
@@ -266,15 +266,19 @@ void PdfWriter::WritePdfObjects(OutputStreamDevice& device, const PdfIndirectObj
     }
     else
     {
-        if (objects.AreFreeObjectsInvalidated())
+        // Write only the entries whose free state changed since the last save
+        for (uint32_t objNum : objects.GetFreeObjectsDelta())
         {
-            // Free objects were invalidated, such as when deleting objects
-            // or re-using free objects references
-            for (auto& freeObjectRef : objects.GetFreeObjects())
-                xref.AddFreeObject(freeObjectRef);
-
-            for (auto& freeObjectRef : objects.GetUnavailableObjects())
-                xref.AddUnavailableObject(freeObjectRef);
+            PdfReference ref;
+            if (objects.TryFindFreeObject(objNum, ref))
+            {
+                xref.AddFreeObject(ref);
+            }
+            else
+            {
+                PODOFO_ASSERT(objects.GetUnavailableObjects().find(objNum) != objects.GetUnavailableObjects().end());
+                xref.AddUnavailableObject(objNum);
+            }
         }
     }
 }
