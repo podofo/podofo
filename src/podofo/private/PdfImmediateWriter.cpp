@@ -58,6 +58,10 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
 PdfImmediateWriter::~PdfImmediateWriter()
 {
     finish();
+    // The object list outlives this writer, so the registrations
+    // it holds would be left dangling
+    GetObjects().DetachObserver();
+    GetObjects().SetStreamFactory(nullptr);
 }
 
 void PdfImmediateWriter::finish()
