@@ -8,6 +8,44 @@ using namespace PoDoFo;
 
 static bool isXRefStream(const charbuff& buff);
 static unsigned countObjectStreams(const PdfMemDocument& doc);
+static vector<PdfReference> getLastSectionFreeEntries(const charbuff& buff);
+
+// A document whose XRef table already carries a free list: objects 5, 6 and 7
+// are free at generation 1, chained as 0 -> 5 -> 6 -> 7 -> 0. Object 8 is the
+// information dictionary, so that saving doesn't allocate one from the list
+constexpr string_view FreeListDocument = R"PDF(%PDF-1.7
+1 0 obj
+<</Type/Catalog/Pages 2 0 R/Names 4 0 R>>
+endobj
+2 0 obj
+<</Type/Pages/Kids[3 0 R]/Count 1>>
+endobj
+3 0 obj
+<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]/Resources<<>>>>
+endobj
+4 0 obj
+<</Names[]>>
+endobj
+8 0 obj
+<</Producer(PoDoFo test)>>
+endobj
+xref
+0 9
+0000000005 65535 f 
+0000000009 00000 n 
+0000000066 00000 n 
+0000000117 00000 n 
+0000000196 00000 n 
+0000000006 00001 f 
+0000000007 00001 f 
+0000000000 00001 f 
+0000000224 00000 n 
+trailer
+<</Size 9/Root 1 0 R/Info 8 0 R>>
+startxref
+266
+%%EOF
+)PDF"sv;
 
 TEST_CASE("TestXRefLayoutPreserved")
 {
@@ -277,6 +315,57 @@ TEST_CASE("TestStreamedXRefLayout")
         nullptr, PdfSaveOptions::ForceXRefStream), PdfErrorCode::UnsupportedOperation);
 }
 
+// An incremental update writes only the free entries it actually modified:
+// re-writing the whole free list would make validators report every free
+// object of the document as freed in this revision
+TEST_CASE("TestIncrementalUpdateFreeObjectsDelta")
+{
+    charbuff buff(FreeListDocument);
+    {
+        PdfMemDocument doc;
+        doc.LoadFromBuffer(FreeListDocument);
+
+        // Object 4 is referenced only by the catalog, dropping the key makes it garbage
+        doc.GetCatalog().GetDictionary().RemoveKey("Names");
+        doc.CollectGarbage();
+
+        // NOTE: The device is positioned at the end of the buffer by default
+        BufferStreamDevice device(buff);
+        doc.SaveUpdate(device, PdfSaveOptions::ForceXRefTable);
+    }
+
+    // Objects 5, 6 and 7 were already free in the previous revision
+    auto freeEntries = getLastSectionFreeEntries(buff);
+    REQUIRE(freeEntries.size() == 1);
+    REQUIRE(freeEntries[0] == PdfReference(4, 1));
+}
+
+// An object that is freed and reused before saving needs no free entry,
+// as it's written in use in the same revision
+TEST_CASE("TestIncrementalUpdateFreeObjectReused")
+{
+    charbuff buff(FreeListDocument);
+    {
+        PdfMemDocument doc;
+        doc.LoadFromBuffer(FreeListDocument);
+        doc.GetCatalog().GetDictionary().RemoveKey("Names");
+        doc.CollectGarbage();
+
+        // Object 4 was just freed and is the lowest in the free list, so it's reused here
+        auto& obj = doc.GetObjects().CreateDictionaryObject("Test"_n);
+        REQUIRE(obj.GetIndirectReference() == PdfReference(4, 1));
+
+        // Reference it, or the garbage collection done on save would free it again
+        doc.GetCatalog().GetDictionary().AddKeyIndirect("Names"_n, obj);
+
+        // NOTE: The device is positioned at the end of the buffer by default
+        BufferStreamDevice device(buff);
+        doc.SaveUpdate(device, PdfSaveOptions::ForceXRefTable);
+    }
+
+    REQUIRE(getLastSectionFreeEntries(buff).size() == 0);
+}
+
 bool isXRefStream(const charbuff& buff)
 {
     constexpr string_view startxref = "startxref"sv;
@@ -301,6 +390,49 @@ unsigned countObjectStreams(const PdfMemDocument& doc)
 
         if (dict->FindKeyAsSafe<PdfName>("Type") == "ObjStm")
             ret++;
+    }
+
+    return ret;
+}
+
+// Collect the free entries of the last XRef section, excluding the
+// entry for object 0, which is the always rewritten free list head
+vector<PdfReference> getLastSectionFreeEntries(const charbuff& buff)
+{
+    constexpr string_view startxref = "startxref"sv;
+    string_view view(buff.data(), buff.size());
+    auto found = view.rfind(startxref);
+    REQUIRE(found != string_view::npos);
+
+    size_t offset = (size_t)stoul(string(view.substr(found + startxref.length())));
+    REQUIRE(view.substr(offset, 5) == "xref\n");
+
+    vector<PdfReference> ret;
+    size_t pos = offset + 5;
+    while (view.compare(pos, 7, "trailer") != 0)
+    {
+        auto eol = view.find('\n', pos);
+        REQUIRE(eol != string_view::npos);
+
+        // Read the "first count" subsection header
+        auto header = view.substr(pos, eol - pos);
+        auto space = header.find(' ');
+        REQUIRE(space != string_view::npos);
+        unsigned first = (unsigned)stoul(string(header.substr(0, space)));
+        unsigned count = (unsigned)stoul(string(header.substr(space + 1)));
+        pos = eol + 1;
+
+        // ISO 32000-2:2020 7.5.4 "Cross-reference table": the entries
+        // have a fixed layout and are exactly 20 bytes wide
+        for (unsigned i = 0; i < count; i++, pos += 20)
+        {
+            REQUIRE(pos + 20 <= view.length());
+            auto entry = view.substr(pos, 20);
+            if (entry[17] != 'f' || first + i == 0)
+                continue;
+
+            ret.push_back(PdfReference(first + i, (uint16_t)stoul(string(entry.substr(11, 5)))));
+        }
     }
 
     return ret;

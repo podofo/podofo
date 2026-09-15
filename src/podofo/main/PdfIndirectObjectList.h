@@ -279,11 +279,16 @@ private:
     /// @param factory a stream factory or nullptr to reset to the default factory
     void SetStreamFactory(StreamFactory* factory);
 
-    /// Reset the flag which determines if the free objects were invalidated
-    void ResetFreeObjectsInvalidated();
+    /// Forget the tracked free object changes, after they have been
+    /// written or after the document has been loaded
+    void ClearFreeObjectsDelta();
 
-    /// Determine if the free objects needs re-writing in incremental updates
-    bool AreFreeObjectsInvalidated() const { return m_FreeObjectsInvalidated; }
+    /// @returns the object numbers whose free state changed since the last save
+    /// @remarks Used to write only the modified entries in incremental updates
+    inline const PdfObjectNumSet& GetFreeObjectsDelta() const { return m_freeObjectsDelta; }
+
+    /// Try to find the reference of the free object with the given object number
+    bool TryFindFreeObject(uint32_t objNum, PdfReference& ref) const;
 
 private:
     /// Mark a reference as unused so that it can be reused for new objects.
@@ -314,9 +319,9 @@ private:
     PdfDocument* m_Document;
     ObjectList m_Objects;
     unsigned m_LastObjectNumber;
-    bool m_FreeObjectsInvalidated;
     PdfFreeObjectList m_FreeObjects;
     PdfObjectNumSet m_UnavailableObjects;
+    PdfObjectNumSet m_freeObjectsDelta;
     PdfObjectNumSet m_compressedObjectStreams;
 
     ObserverList m_observers;

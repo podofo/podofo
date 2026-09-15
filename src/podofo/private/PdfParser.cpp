@@ -98,6 +98,10 @@ void PdfParser::Parse(InputStreamDevice& device)
 
     if (m_LoadStreamsEagerly)
         eagerlyLoadStreams();
+
+    // During parsing we may have created spurious free objects entries,
+    // which doesn't belong to an incremental update. Clear them now
+    m_Objects->ClearFreeObjectsDelta();
 }
 
 void PdfParser::ReadDocumentStructure(InputStreamDevice& device, ssize_t eofSearchOffset, bool skipFollowPrevious)

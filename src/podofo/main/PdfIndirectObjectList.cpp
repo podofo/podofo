@@ -66,7 +66,6 @@ namespace
 PdfIndirectObjectList::PdfIndirectObjectList() :
     m_Document(nullptr),
     m_LastObjectNumber(0),
-    m_FreeObjectsInvalidated(false),
     m_StreamFactory(nullptr)
 {
 }
@@ -74,7 +73,6 @@ PdfIndirectObjectList::PdfIndirectObjectList() :
 PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document) :
     m_Document(&document),
     m_LastObjectNumber(0),
-    m_FreeObjectsInvalidated(false),
     m_StreamFactory(nullptr)
 {
 }
@@ -82,7 +80,6 @@ PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document) :
 PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document, const PdfIndirectObjectList& rhs)  :
     m_Document(&document),
     m_LastObjectNumber(rhs.m_LastObjectNumber),
-    m_FreeObjectsInvalidated(false),
     m_FreeObjects(rhs.m_FreeObjects),
     m_UnavailableObjects(rhs.m_UnavailableObjects),
     m_StreamFactory(nullptr)
@@ -109,9 +106,9 @@ void PdfIndirectObjectList::Clear()
 
     m_Objects.clear();
     m_LastObjectNumber = 0;
-    m_FreeObjectsInvalidated = false;
     m_FreeObjects.clear();
     m_UnavailableObjects.clear();
+    m_freeObjectsDelta.clear();
     m_compressedObjectStreams.clear();
 }
 
@@ -172,7 +169,8 @@ PdfReference PdfIndirectObjectList::getNextFreeObject()
     {
         PdfReference freeObjectRef = m_FreeObjects.front();
         m_FreeObjects.pop_front();
-        m_FreeObjectsInvalidated = true;
+        // The object is written in use in this revision, it needs no free entry
+        m_freeObjectsDelta.erase(freeObjectRef.ObjectNumber());
         return freeObjectRef;
     }
 
@@ -246,8 +244,7 @@ void PdfIndirectObjectList::AddFreeObjectSafe(const PdfReference& reference)
     // NOTE: gennum is uint32 to accommodate overflows from callers
     if (reference.GenerationNumber() >= MaxXRefGenerationNum)
     {
-        m_UnavailableObjects.insert(reference.ObjectNumber());
-        tryIncrementLastObjectNumber(reference.ObjectNumber());
+        AddUnavailableObject(reference.ObjectNumber());
         return;
     }
 
@@ -266,6 +263,7 @@ void PdfIndirectObjectList::AddFreeObjectUnchecked(const PdfReference& reference
 
     // Insert so that list stays sorted
     m_FreeObjects.insert(it.first, reference);
+    m_freeObjectsDelta.insert(reference.ObjectNumber());
 
     // When manually appending free objects we also
     // need to update the object count
@@ -275,6 +273,7 @@ void PdfIndirectObjectList::AddFreeObjectUnchecked(const PdfReference& reference
 void PdfIndirectObjectList::AddUnavailableObject(uint32_t objNum)
 {
     m_UnavailableObjects.insert(objNum);
+    m_freeObjectsDelta.insert(objNum);
     tryIncrementLastObjectNumber(objNum);
 }
 
@@ -350,7 +349,6 @@ void PdfIndirectObjectList::markObjectFree(const PdfReference& reference, bool d
         }
     }
     AddFreeObjectSafe(freeObjRef);
-    m_FreeObjectsInvalidated = true;
 }
 
 void PdfIndirectObjectList::pushObject(const ObjectList::const_iterator& hintpos, ObjectList::node_type& node, PdfObject* obj)
@@ -537,9 +535,23 @@ void PdfIndirectObjectList::SetStreamFactory(StreamFactory* factory)
     m_StreamFactory = factory;
 }
 
-void PdfIndirectObjectList::ResetFreeObjectsInvalidated()
+void PdfIndirectObjectList::ClearFreeObjectsDelta()
 {
-    m_FreeObjectsInvalidated = false;
+    m_freeObjectsDelta.clear();
+}
+
+bool PdfIndirectObjectList::TryFindFreeObject(uint32_t objNum, PdfReference& ref) const
+{
+    auto it = std::lower_bound(m_FreeObjects.begin(), m_FreeObjects.end(),
+        PdfReference(objNum, 0), ReferenceComparatorPredicate());
+    if (it == m_FreeObjects.end() || it->ObjectNumber() != objNum)
+    {
+        ref = PdfReference();
+        return false;
+    }
+
+    ref = *it;
+    return true;
 }
 
 void PdfIndirectObjectList::tryIncrementLastObjectNumber(uint32_t objNum)
