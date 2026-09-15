@@ -124,7 +124,11 @@ void PdfSignature::init(PdfAcroForm& acroForm)
     // TABLE 8.68 Signature flags: SignaturesExist (1)
     // This will open signature panel when inspecting PDF with acrobat,
     // even if the signature is unsigned
-    acroForm.SetSigFlags(PdfAcroFormSigFlags::SignaturesExist);
+    // NOTE: Don't touch the form if the flag is already set,
+    // and preserve the other flags, such as AppendOnly
+    auto sigFlags = acroForm.GetSigFlags();
+    if ((sigFlags & PdfAcroFormSigFlags::SignaturesExist) == PdfAcroFormSigFlags::None)
+        acroForm.SetSigFlags(sigFlags | PdfAcroFormSigFlags::SignaturesExist);
 }
 
 void PdfSignature::SetSignerName(nullable<const PdfString&> text)
