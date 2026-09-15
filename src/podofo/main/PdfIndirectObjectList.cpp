@@ -66,6 +66,7 @@ namespace
 PdfIndirectObjectList::PdfIndirectObjectList() :
     m_Document(nullptr),
     m_LastObjectNumber(0),
+    m_observer(nullptr),
     m_StreamFactory(nullptr)
 {
 }
@@ -73,6 +74,7 @@ PdfIndirectObjectList::PdfIndirectObjectList() :
 PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document) :
     m_Document(&document),
     m_LastObjectNumber(0),
+    m_observer(nullptr),
     m_StreamFactory(nullptr)
 {
 }
@@ -82,6 +84,7 @@ PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document, const PdfInd
     m_LastObjectNumber(rhs.m_LastObjectNumber),
     m_FreeObjects(rhs.m_FreeObjects),
     m_UnavailableObjects(rhs.m_UnavailableObjects),
+    m_observer(nullptr),
     m_StreamFactory(nullptr)
 {
     // Copy all objects from source, resetting parent and indirect reference
@@ -473,21 +476,9 @@ void PdfIndirectObjectList::visitObject(PdfObject& obj, unordered_set<PdfReferen
     }
 }
 
-void PdfIndirectObjectList::DetachObserver(Observer& observer)
+void PdfIndirectObjectList::DetachObserver()
 {
-    auto it = m_observers.begin();
-    while (it != m_observers.end())
-    {
-        if (*it == &observer)
-        {
-            m_observers.erase(it);
-            break;
-        }
-        else
-        {
-            it++;
-        }
-    }
+    m_observer = nullptr;
 }
 
 unique_ptr<PdfObjectStreamProvider> PdfIndirectObjectList::CreateStream()
@@ -505,14 +496,14 @@ unique_ptr<PdfObjectStreamProvider> PdfIndirectObjectList::CreateStream()
 
 void PdfIndirectObjectList::BeginAppendStream(PdfObjectStream& stream)
 {
-    for (auto& observer : m_observers)
-        observer->BeginAppendStream(stream);
+    if (m_observer != nullptr)
+        m_observer->BeginAppendStream(stream);
 }
 
 void PdfIndirectObjectList::EndAppendStream(PdfObjectStream& stream)
 {
-    for (auto& observer : m_observers)
-        observer->EndAppendStream(stream);
+    if (m_observer != nullptr)
+        m_observer->EndAppendStream(stream);
 }
 
 unsigned PdfIndirectObjectList::GetSize() const
@@ -527,7 +518,7 @@ unsigned PdfIndirectObjectList::GetObjectCount() const
 
 void PdfIndirectObjectList::AttachObserver(Observer& observer)
 {
-    m_observers.push_back(&observer);
+    m_observer = &observer;
 }
 
 void PdfIndirectObjectList::SetStreamFactory(StreamFactory* factory)
