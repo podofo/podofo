@@ -19,8 +19,6 @@
 using namespace std;
 using namespace PoDoFo;
 
-static constexpr unsigned MaxXRefGenerationNum = 65535;
-
 namespace
 {
     struct ObjectComparatorPredicate
@@ -245,7 +243,7 @@ void PdfIndirectObjectList::AddFreeObjectSafe(const PdfReference& reference)
     // generation number is 65535; when a cross reference entry reaches
     // this value, it is never reused."
     // NOTE: gennum is uint32 to accommodate overflows from callers
-    if (reference.GenerationNumber() >= MaxXRefGenerationNum)
+    if (reference.GenerationNumber() >= MAX_XREF_GENERATION_NUM)
     {
         AddUnavailableObject(reference.ObjectNumber());
         return;

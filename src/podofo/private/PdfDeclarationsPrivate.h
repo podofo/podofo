@@ -172,6 +172,8 @@ namespace PoDoFo
     constexpr double DEG2RAD = std::numbers::pi / 180;
     constexpr double RAD2DEG = 180 / std::numbers::pi;
     constexpr double EPSILON = 1e-6;
+    constexpr unsigned MAX_OBJECT_COUNT = (1U << 23) - 1;
+    constexpr unsigned MAX_XREF_GENERATION_NUM = 65535;
 
     /// Transform the given raw rect accordingly to the page rotation
     Rect TransformCornersPage(const Corners& rect, const PdfPage& page);

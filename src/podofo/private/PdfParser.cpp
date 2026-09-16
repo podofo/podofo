@@ -17,11 +17,6 @@
 #include <podofo/main/PdfMemoryObjectStream.h>
 #include "PdfXRefStreamParserObject.h"
 
-constexpr unsigned PDF_VERSION_LENGHT = 3;
-constexpr unsigned PDF_MAGIC_LENGHT = 8;
-constexpr unsigned PDF_XREF_ENTRY_SIZE = 20;
-constexpr unsigned MAX_XREF_SESSION_COUNT = 512;
-constexpr unsigned MaxXRefGenerationNum = 65535;
 
 using namespace std;
 using namespace PoDoFo;
@@ -33,6 +28,11 @@ static bool readMagicWord(char ch, unsigned& cursoridx);
 static bool isObjectStream(const PdfObject& obj);
 static bool tryGetCharBackward(InputStreamDevice& device, char& ch,
     size_t& pos, charbuff& buff, unsigned short& buffSize);
+
+constexpr unsigned PDF_VERSION_LENGHT = 3;
+constexpr unsigned PDF_MAGIC_LENGHT = 8;
+constexpr unsigned PDF_XREF_ENTRY_SIZE = 20;
+constexpr unsigned MAX_XREF_SUBSECTION_COUNT = MAX_OBJECT_COUNT;
 
 PdfParser::PdfParser(PdfIndirectObjectList& objects) :
     m_buffer(std::make_shared<charbuff>(PdfTokenizer::BufferSize)),
@@ -513,10 +513,10 @@ void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset, bool 
         {
             // It's a "xref" table, read all subsections
             string_view token;
-            for (unsigned xrefSectionCount = 0; ; xrefSectionCount++)
+            for (unsigned xrefSubsectionCount = 0; ; xrefSubsectionCount++)
             {
-                if (xrefSectionCount == MAX_XREF_SESSION_COUNT)
-                    PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEOFToken);
+                if (xrefSubsectionCount == MAX_XREF_SUBSECTION_COUNT)
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef, "Too many subsections in the cross-reference table");
 
                 try
                 {
@@ -836,7 +836,7 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
                 }
                 case PdfXRefEntryType::Free:
                 {
-                    if (entry.Generation != MaxXRefGenerationNum)
+                    if (entry.Generation != MAX_XREF_GENERATION_NUM)
                     {
                         if (m_StrictParsing)
                         {
@@ -887,7 +887,7 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
             {
                 case PdfXRefEntryType::InUse:
                 {
-                    if (entry.Generation >= MaxXRefGenerationNum)
+                    if (entry.Generation >= MAX_XREF_GENERATION_NUM)
                     {
                         if (m_StrictParsing)
                         {
@@ -963,7 +963,7 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
                 }
                 case PdfXRefEntryType::Free:
                 {
-                    if (entry.Generation > MaxXRefGenerationNum)
+                    if (entry.Generation > MAX_XREF_GENERATION_NUM)
                     {
                         if (m_StrictParsing)
                         {
