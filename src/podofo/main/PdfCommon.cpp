@@ -34,7 +34,7 @@ PODOFO_EXPORT LogMessageCallback s_LogMessageCallback;
 
 PODOFO_EXPORT ssl::OpenSSLMain s_SSL;
 
-static unsigned s_MaxObjectCount = (1U << 23) - 1;
+static unsigned s_MaxObjectCount = MAX_OBJECT_COUNT;
 
 #if OPENSSL_VERSION_MAJOR >= 3
 OSSL_LIB_CTX* ssl::Init()
