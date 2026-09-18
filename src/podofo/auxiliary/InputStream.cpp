@@ -213,12 +213,28 @@ void InputStream::checkRead() const
     // Do nothing
 }
 
-size_t InputStream::ReadBuffer(InputStream& stream, char* buffer, size_t size, bool& eof)
+PODOFO_INLINE size_t InputStream::ReadBuffer(InputStream& stream, char* buffer, size_t size, bool& eof)
 {
+    if (size != 0 && size < (size_t)(stream.m_tail - stream.m_head))
+    {
+        // NOTE: Don't satisfy an exact drain (hence < and not <=),
+        // so the actual device is consulted for EOF
+        std::memcpy(buffer, stream.m_head, size);
+        stream.m_head += size;
+        eof = false;
+        return size;
+    }
+
     return stream.readBuffer(buffer, size, eof);
 }
 
-bool InputStream::ReadChar(InputStream& stream, char& ch)
+PODOFO_INLINE bool InputStream::ReadChar(InputStream& stream, char& ch)
 {
+    if (stream.m_head != stream.m_tail)
+    {
+        ch = *stream.m_head++;
+        return true;
+    }
+
     return stream.readChar(ch);
 }
