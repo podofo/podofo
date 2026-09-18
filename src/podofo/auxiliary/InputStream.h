@@ -56,6 +56,9 @@ public:
     void CopyTo(OutputStream& stream, size_t size);
 
 protected:
+    /// Read from another stream, to be used by decorator streams
+    /// on their source. Like the public frontends they serve the
+    /// source read window first, when it can satisfy the request
     static size_t ReadBuffer(InputStream& stream, char* buffer, size_t size, bool& eof);
     static bool ReadChar(InputStream& stream, char& ch);
 
