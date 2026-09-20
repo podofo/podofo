@@ -52,3 +52,9 @@ void InputStreamDevice::enableReadWindow(const char* head, const char* tail)
     m_head = head;
     m_tail = tail;
 }
+
+void InputStreamDevice::disableReadWindow()
+{
+    m_head = nullptr;
+    m_tail = nullptr;
+}

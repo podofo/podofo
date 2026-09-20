@@ -144,6 +144,12 @@ private:
     };
 
 private:
+    /// Set both windows at what the current direction allows. Every direction
+    /// transition goes through here, so the two windows can never both be
+    /// armed over the single shared buffer
+    void setDirection(BufferDirection direction);
+    /// Dirty bytes held in the write window, only meaningful in the Write direction
+    size_t getPendingBytesCount() const;
     /// Fill the read window, flushing pending writes first
     void refill();
     /// Write out the pending bytes and re-anchor the buffer to the file offset
@@ -166,7 +172,6 @@ private:
     std::unique_ptr<char[]> m_Buffer;
     size_t m_BufferOffset;      ///< File offset of m_Buffer[0]
     size_t m_Filled;            ///< Read content bytes in m_Buffer, retained across a seek
-    size_t m_Pending;           ///< Write direction: dirty bytes in m_Buffer
     size_t m_Position;          ///< Logical position, authoritative when direction is None
     size_t m_FdOffset;          ///< Tracked OS file offset, kept exact
     BufferDirection m_Direction;
@@ -182,7 +187,10 @@ public:
         DeviceAccess access, bool ate) :
         StreamDevice(access),
         m_container(&container),
-        m_Position(ate ? container.size() : 0) { }
+        m_Position(ate ? container.size() : 0)
+    {
+        tryEnableReadWindow();
+    }
 
     /// @remarks by default it set the current position at the begin of the container
     ContainerStreamDevice(const TContainer& container) :
@@ -195,64 +203,111 @@ public:
 public:
     size_t GetLength() const override { return m_container->size(); }
 
-    size_t GetPosition() const override { return m_Position; }
+    size_t GetPosition() const override { return getPos(); }
 
     bool CanSeek() const override { return true; }
 
-    bool Eof() const override { return m_Position == m_container->size(); }
+    bool Eof() const override { return getPos() == m_container->size(); }
 
 protected:
     void writeBuffer(const char* buffer, size_t size) override
     {
-        if (m_Position + size > m_container->size())
-            m_container->resize(m_Position + size);
+        size_t pos = getPos();
+        if (pos + size > m_container->size())
+        {
+            // NOTE: Growing can reallocate, so the window has to be re-armed
+            // over the new storage rather than advanced over the old one
+            m_container->resize(pos + size);
+            std::memcpy(m_container->data() + pos, buffer, size);
+            m_Position = pos + size;
+            tryEnableReadWindow();
+            return;
+        }
 
-        std::memcpy(m_container->data() + m_Position, buffer, size);
-        m_Position += size;
+        std::memcpy(m_container->data() + pos, buffer, size);
+        setPos(pos + size);
     }
 
     size_t readBuffer(char* buffer, size_t size, bool& eof) override
     {
-        size_t readCount = std::min(size, m_container->size() - m_Position);
-        std::memcpy(buffer, m_container->data() + m_Position, readCount);
-        m_Position += readCount;
-        eof = m_Position == m_container->size();
+        size_t pos = getPos();
+        size_t readCount = std::min(size, m_container->size() - pos);
+        std::memcpy(buffer, m_container->data() + pos, readCount);
+        setPos(pos + readCount);
+        eof = pos + readCount == m_container->size();
         return readCount;
     }
 
     bool readChar(char& ch) override
     {
-        if (m_Position == m_container->size())
+        size_t pos = getPos();
+        if (pos == m_container->size())
         {
             ch = '\0';
             return false;
         }
 
-        ch = m_container->data()[m_Position];
-        m_Position++;
+        ch = m_container->data()[pos];
+        setPos(pos + 1);
         return true;
     }
 
     bool peek(char& ch) const override
     {
-        if (m_Position == m_container->size())
+        size_t pos = getPos();
+        if (pos == m_container->size())
         {
             ch = '\0';
             return false;
         }
 
-        ch = m_container->data()[m_Position];
+        ch = m_container->data()[pos];
         return true;
     }
 
     void seek(ssize_t offset, SeekDirection direction) override
     {
+        // NOTE: resetBuffers() already committed the position to m_Position
         m_Position = SeekPosition(m_Position, m_container->size(), offset, direction);
+        tryEnableReadWindow();
     }
 
     void truncate() override
     {
+        // NOTE: resetBuffers() already committed the position to m_Position
         m_container->resize(m_Position);
+        tryEnableReadWindow();
+    }
+
+    void resetBuffers() override
+    {
+        m_Position = getPos();
+        StreamDevice::resetBuffers();
+    }
+
+private:
+    /// Read the logical position, which lives in the read window while armed
+    size_t getPos() const
+    {
+        // NOTE: Test the arm flag: a fully consumed container is armed and
+        // empty and its position still lives in the window
+        return m_tail == nullptr ? m_Position : (size_t)(m_head - m_container->data());
+    }
+
+    /// Set the logical position, keeping m_Position valid as the fallback
+    void setPos(size_t pos)
+    {
+        m_Position = pos;
+        if (m_tail != nullptr)
+            m_head = m_container->data() + pos;
+    }
+
+    /// Enable the read window over the whole remainder of the container, if reading
+    /// is granted. Must be called again after anything that can reallocate it
+    void tryEnableReadWindow()
+    {
+        if ((GetAccess() & DeviceAccess::Read) != DeviceAccess{ })
+            enableReadWindow(m_container->data() + m_Position, m_container->data() + m_container->size());
     }
 
 private:

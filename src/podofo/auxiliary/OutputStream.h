@@ -36,6 +36,8 @@ public:
     void Flush();
 
 protected:
+    /// Write to another stream, skipping its checkWrite() but still
+    /// serving its inline write window
     static void WriteBuffer(OutputStream& stream, const char* buffer, size_t size);
     static void Flush(OutputStream& stream);
 
@@ -46,6 +48,37 @@ protected:
     /// Optional checks before writing
     /// By default does nothing
     virtual void checkWrite() const;
+
+    /// Enable the inline write window over the supplied memory region
+    /// @remarks Must be armed only once write access is granted, since the
+    /// fast paths skip checkWrite()
+    void enableWriteWindow(char* cur, char* end);
+
+    /// Disarm the window, once its pending bytes have been handed to the sink
+    /// @remarks An arming implementation must call this from its own destructor,
+    /// after the final drain, as ~OutputStream() asserts the window is disarmed
+    void disableWriteWindow();
+
+protected:
+    /// Inline write window over memory owned by the implementation, mirroring
+    /// InputStream's read window. It has three states:
+    /// - unarmed: m_wend == nullptr, every write takes the virtual slow path
+    /// - armed, full: m_wend != nullptr && m_wcur == m_wend, no room left
+    /// - armed, with room: m_wcur < m_wend, writes are served by the window
+    /// Unlike the read window, which can be dropped at any time, the bytes
+    /// before m_wcur are pending output: an arming implementation must keep
+    /// them ahead of what writeBuffer() receives, and hand them to its sink
+    /// in flush() and in its own destructor
+    /// While armed, writes served by the window never reach writeBuffer(), so
+    /// an implementation that counts or inspects bytes there must derive the
+    /// count from m_wcur instead, or not arm at all
+    char* m_wcur;
+    char* m_wend;
+
+private:
+    /// Slow path of the write frontends, taken when the write
+    /// window can't satisfy the request on its own
+    void writeSlowPath(const char* buffer, size_t size);
 
 private:
     OutputStream(const OutputStream&) = delete;

@@ -15,6 +15,8 @@ using namespace PoDoFo;
 // An OutputStream class that actually perform the encoding
 class PdfFilteredEncodeStream : public OutputStream
 {
+    static constexpr size_t BUFFER_SIZE = 65536;
+
 private:
     void init(OutputStream& outputStream, PdfFilterType filterType)
     {
@@ -23,22 +25,55 @@ private:
     }
     ~PdfFilteredEncodeStream()
     {
+        // NOTE: Disarm the window as required by ~OutputStream()
+        encodePendingBytes();
+        disableWriteWindow();
         m_filter->EndEncode();
     }
 public:
     PdfFilteredEncodeStream(shared_ptr<OutputStream>&& outputStream, PdfFilterType filterType)
-        : m_OutputStream(std::move(outputStream))
+        : m_OutputStream(std::move(outputStream)), m_buffer(BUFFER_SIZE)
     {
+        enableWriteWindow(m_buffer.data(), m_buffer.data() + BUFFER_SIZE);
         init(*m_OutputStream, filterType);
     }
 protected:
     void writeBuffer(const char* buffer, size_t len) override
     {
-        m_filter->EncodeBlock({ buffer, len });
+        if (len >= BUFFER_SIZE)
+        {
+            // Big enough to encode on its own: don't pay for a copy
+            encodePendingBytes();
+            m_filter->EncodeBlock({ buffer, len });
+            return;
+        }
+
+        // NOTE: Append after the bytes already pending in the window,
+        // draining only when they wouldn't fit together
+        if ((size_t)(m_wend - m_wcur) < len)
+            encodePendingBytes();
+
+        std::memcpy(m_wcur, buffer, len);
+        m_wcur += len;
+    }
+    void flush() override
+    {
+        encodePendingBytes();
+    }
+private:
+    void encodePendingBytes()
+    {
+        size_t len = (size_t)(m_wcur - m_buffer.data());
+        if (len == 0)
+            return;
+
+        m_filter->EncodeBlock({ m_buffer.data(), len });
+        m_wcur = m_buffer.data();
     }
 private:
     shared_ptr<OutputStream> m_OutputStream;
     unique_ptr<PdfFilter> m_filter;
+    charbuff m_buffer;
 };
 
 // An OutputStream class that actually perform the deecoding
