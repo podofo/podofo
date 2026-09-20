@@ -83,7 +83,6 @@ protected:
     /// - armed, empty: m_tail != nullptr && m_head == m_tail, the window is
     ///   authoritative for the position but holds no bytes
     /// - armed, non empty: m_head < m_tail, reads are served from the window
-    /// @remarks m_tail is the arm flag, m_head != m_tail the fast path test.
     /// While armed m_head is authoritative for the logical position, so every
     /// readBuffer()/readChar()/peek() override of an arming device must drain
     /// or derive from it. The window is armed only when read access is granted,

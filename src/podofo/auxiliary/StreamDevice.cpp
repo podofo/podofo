@@ -426,7 +426,6 @@ FileStreamDevice::FileStreamDevice(const string_view& filepath, FileMode mode, D
     m_Buffer(new char[BufferSize]),
     m_BufferOffset(0),
     m_Filled(0),
-    m_Pending(0),
     m_Position(0),
     m_FdOffset(0),
     m_Direction(BufferDirection::None),
@@ -457,6 +456,12 @@ FileStreamDevice::~FileStreamDevice()
     }
 }
 
+size_t FileStreamDevice::getPendingBytesCount() const
+{
+    PODOFO_ASSERT(m_Direction == BufferDirection::Write);
+    return (size_t)(m_wcur - m_Buffer.get());
+}
+
 size_t FileStreamDevice::GetLength() const
 {
     ensureOpen();
@@ -464,7 +469,7 @@ size_t FileStreamDevice::GetLength() const
     if (m_Direction == BufferDirection::Write)
     {
         // The post flush length, without flushing
-        return std::max(length, m_BufferOffset + m_Pending);
+        return std::max(length, m_BufferOffset + getPendingBytesCount());
     }
 
     return length;
@@ -477,7 +482,7 @@ size_t FileStreamDevice::GetPosition() const
         case BufferDirection::Read:
             return m_BufferOffset + (size_t)(m_head - m_Buffer.get());
         case BufferDirection::Write:
-            return m_BufferOffset + m_Pending;
+            return m_BufferOffset + getPendingBytesCount();
         default:
             return m_Position;
     }
@@ -517,11 +522,13 @@ void FileStreamDevice::writeBuffer(const char* buffer, size_t size)
         return;
     }
 
-    if (m_Pending + size > BufferSize)
+    // NOTE: Append after the bytes already pending in the window, draining
+    // only when they wouldn't fit together
+    if ((size_t)(m_wend - m_wcur) < size)
         flushWrite();
 
-    std::memcpy(m_Buffer.get() + m_Pending, buffer, size);
-    m_Pending += size;
+    std::memcpy(m_wcur, buffer, size);
+    m_wcur += size;
 }
 
 void FileStreamDevice::flush()
@@ -659,10 +666,15 @@ void FileStreamDevice::close()
     int fd = m_fd;
     try
     {
-        flushWrite();
+        // NOTE: The windows are anchored to the descriptor and must not outlive it.
+        // Close() already dropped them in resetBuffers(), but the destructor
+        // reaches close() directly, so they are dropped here as well
+        dropBuffers();
     }
     catch (...)
     {
+        // The pending bytes are lost, but the window can't stay armed on a closed device
+        setDirection(BufferDirection::None);
         m_fd = -1;
         (void)closeFd(fd);
         throw;
@@ -692,7 +704,7 @@ void FileStreamDevice::refill()
         // Never fill over unflushed data
         flushWrite();
         m_Position = m_FdOffset;
-        m_Direction = BufferDirection::None;
+        setDirection(BufferDirection::None);
     }
 
     if (m_Direction == BufferDirection::None)
@@ -702,25 +714,24 @@ void FileStreamDevice::refill()
     m_BufferOffset = m_FdOffset;
     m_Filled = read;
     m_FdOffset += read;
-    m_head = m_Buffer.get();
-    m_tail = m_Buffer.get() + read;
-    m_Direction = BufferDirection::Read;
+    setDirection(BufferDirection::Read);
     // A short read on a regular file means the end was reached
     m_Eof = read != BufferSize;
 }
 
 void FileStreamDevice::flushWrite()
 {
-    if (m_Direction != BufferDirection::Write || m_Pending == 0)
+    size_t pendingCount;
+    if (m_Direction != BufferDirection::Write || (pendingCount = getPendingBytesCount()) == 0)
         return;
 
     assertInvariants();
     ensureOpen();
-    writeFd(m_fd, m_Buffer.get(), m_Pending);
-    m_FdOffset += m_Pending;
+    writeFd(m_fd, m_Buffer.get(), pendingCount);
+    m_FdOffset += pendingCount;
     // NOTE: Re-anchoring here is what keeps GetPosition() flush invariant
     m_BufferOffset = m_FdOffset;
-    m_Pending = 0;
+    m_wcur = m_Buffer.get();
 }
 
 void FileStreamDevice::beginWrite()
@@ -731,12 +742,32 @@ void FileStreamDevice::beginWrite()
     syncFdOffset();
     m_BufferOffset = m_FdOffset;
     m_Filled = 0;
-    m_Pending = 0;
     // NOTE: This is the one path into the Write direction that doesn't go
     // through resetBuffers(), so a read that had reached EOF before the
     // switch would leave Eof() reporting true on a device being written
     m_Eof = false;
-    m_Direction = BufferDirection::Write;
+    setDirection(BufferDirection::Write);
+}
+
+void FileStreamDevice::setDirection(BufferDirection direction)
+{
+    switch (direction)
+    {
+        case BufferDirection::Read:
+            disableWriteWindow();
+            enableReadWindow(m_Buffer.get(), m_Buffer.get() + m_Filled);
+            break;
+        case BufferDirection::Write:
+            disableReadWindow();
+            enableWriteWindow(m_Buffer.get(), m_Buffer.get() + BufferSize);
+            break;
+        default:
+            disableReadWindow();
+            disableWriteWindow();
+            break;
+    }
+
+    m_Direction = direction;
 }
 
 void FileStreamDevice::dropBuffers()
@@ -748,16 +779,13 @@ void FileStreamDevice::dropBuffers()
             break;
         case BufferDirection::Write:
             flushWrite();
-            m_Position = m_BufferOffset + m_Pending;
+            m_Position = m_BufferOffset + getPendingBytesCount();
             break;
         default:
             return;
     }
 
-    m_head = nullptr;
-    m_tail = nullptr;
-    m_Pending = 0;
-    m_Direction = BufferDirection::None;
+    setDirection(BufferDirection::None);
 }
 
 void FileStreamDevice::syncFdOffset()
@@ -781,10 +809,9 @@ bool FileStreamDevice::tryRetainBuffer(size_t pos)
     if (m_FdOffset != end)
         m_FdOffset = seekFd(m_fd, (ssize_t)end, SEEK_SET);
 
+    setDirection(BufferDirection::Read);
     m_head = m_Buffer.get() + (pos - m_BufferOffset);
-    m_tail = m_Buffer.get() + m_Filled;
     m_Position = pos;
-    m_Direction = BufferDirection::Read;
     return true;
 }
 
@@ -796,13 +823,15 @@ void FileStreamDevice::ensureOpen() const
 
 void FileStreamDevice::assertInvariants() const
 {
-    PODOFO_ASSERT(m_Direction != BufferDirection::Write || m_BufferOffset == m_FdOffset);
-    PODOFO_ASSERT(m_Direction != BufferDirection::Read || (m_head != nullptr && m_head <= m_tail
+    // The single buffer backs the window of the current direction, never both
+    PODOFO_ASSERT((m_head != nullptr) == (m_Direction == BufferDirection::Read));
+    PODOFO_ASSERT((m_wcur != nullptr) == (m_Direction == BufferDirection::Write));
+    PODOFO_ASSERT(m_Filled <= BufferSize);
+    // While reading the window spans the retained content, which ends at the file offset
+    PODOFO_ASSERT(m_Direction != BufferDirection::Read || (m_head <= m_tail
         && (size_t)(m_tail - m_Buffer.get()) == m_Filled && m_BufferOffset + m_Filled == m_FdOffset));
-    PODOFO_ASSERT(m_Direction != BufferDirection::Write || m_head == nullptr);
-    PODOFO_ASSERT(m_Direction != BufferDirection::None || (m_head == nullptr && m_Pending == 0));
-    PODOFO_ASSERT(m_Filled == 0 || m_Pending == 0);
-    PODOFO_ASSERT(m_Filled <= BufferSize && m_Pending <= BufferSize);
+    // While writing no read content is retained and the buffer is anchored at the file offset
+    PODOFO_ASSERT(m_Direction != BufferDirection::Write || (m_Filled == 0 && m_BufferOffset == m_FdOffset));
 }
 
 NullStreamDevice::NullStreamDevice()
