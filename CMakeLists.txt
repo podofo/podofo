@@ -159,7 +159,13 @@ else()
     # code to std::fmt as it will be unuseful
     # NOTE: -Wno-attributes silences GCC warning on PODOFO_INLINE
     # functions, which deliberately are not declared inline
-    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-std=gnu++17> $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual> $<$<COMPILE_LANGUAGE:CXX>:-Wreorder> -fvisibility=hidden -Wall -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wno-format-truncation -Wno-unknown-pragmas -Wno-attributes)
+    # NOTE: -fno-semantic-interposition tells GCC that exported
+    # (PODOFO_API) symbols won't be interposed at dynamic link
+    # time, so it stays free to honour PODOFO_INLINE always_inline
+    # calls to them across translation units during LTO, instead
+    # of erroring out. This should be the default in Clang, see
+    # https://maskray.me/blog/fno-semantic-interposition
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-std=gnu++17> $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual> $<$<COMPILE_LANGUAGE:CXX>:-Wreorder> -fvisibility=hidden -fno-semantic-interposition -Wall -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wno-format-truncation -Wno-unknown-pragmas -Wno-attributes)
 
     # Note that we do not need debug definitions here. Set
     # -DCMAKE_BUILD_TYPE=debug or (if you want an optimised
