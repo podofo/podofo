@@ -21,6 +21,10 @@
 #include <openssl/asn1t.h>
 #include <openssl/err.h>
 
+#ifndef OPENSSL_THREADS
+#pragma message("Warning: OpenSSL appears to be compiled without thread support. This may cause issues in multi-threaded/garbage-collected languages/frameworks")
+#endif
+
 #include <date/date.h>
 
 #if OPENSSL_VERSION_MAJOR >=3
