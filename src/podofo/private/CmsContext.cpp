@@ -248,8 +248,8 @@ void CmsContext::Restore(xmlNodePtr ctxElem, charbuff& temp)
     utls::DecodeHexStringTo(temp, (const char*)node->children->content);
 
     const unsigned char* buff = (const unsigned char*)temp.data();
-    m_cms = d2i_CMS_ContentInfo(NULL, &buff, (long)temp.size());
-    if (m_cms == nullptr)
+    m_cms = ssl::NewCMSContentInfoEmpty();
+    if (d2i_CMS_ContentInfo(&m_cms, &buff, (long)temp.size()) == nullptr)
         goto DeserializationFailed;
 
     m_signer = sk_CMS_SignerInfo_value(CMS_get0_SignerInfos(m_cms), 0);
@@ -341,16 +341,20 @@ unsigned CmsContext::GetSignedHashSize() const
 void CmsContext::loadX509Certificate(const bufferview& cert)
 {
     auto in = (const unsigned char*)cert.data();
-    m_cert = d2i_X509(nullptr, &in, (int)cert.size());
-    if (m_cert == nullptr)
+    m_cert = ssl::NewX509();
+    if (d2i_X509(&m_cert, &in, (int)cert.size()) == nullptr)
     {
         unique_ptr<BIO, decltype(&BIO_free)> bio(BIO_new_mem_buf(cert.data(), (int)cert.size()), BIO_free);
         if (bio == nullptr)
             goto Fail;
 
-        m_cert = PEM_read_bio_X509(bio.get(), nullptr, nullptr, nullptr);
-        if (m_cert == nullptr)
+        m_cert = ssl::NewX509();
+        if (PEM_read_bio_X509(bio.get(), &m_cert, nullptr, nullptr) == nullptr)
         {
+            // NOTE: PEM_read_bio_X509() leaves the supplied certificate alive
+            // if it fails before decoding the PEM wrapper
+            X509_free(m_cert);
+            m_cert = nullptr;
         Fail:
             string err("Certificate loading failed. Internal OpenSSL error:\n");
             ssl::GetOpenSSLError(err);
@@ -416,7 +420,7 @@ void CmsContext::clear()
 void CmsContext::reset()
 {
     // By default CMS_sign uses SHA1, so create a partial context with streaming enabled
-    m_cms = CMS_sign(nullptr, nullptr, nullptr, nullptr, CMS_FLAGS);
+    m_cms = ssl::NewCMSContentInfo(CMS_FLAGS);
     if (m_cms == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "CMS_sign");
 

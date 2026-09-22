@@ -62,6 +62,20 @@ namespace ssl
     void AddSigningCertificateV2(CMS_SignerInfo* signer, const PoDoFo::bufferview& hash, PoDoFo::PdfHashingAlgorithm hashing);
     void ComputeHashToSign(CMS_SignerInfo* si, BIO* chain, bool doWrapDigest, PoDoFo::charbuff& hashToSign);
 
+    /** Create an empty X509 certificate bound to the PoDoFo library context
+     * \remarks To be supplied as the reuse parameter of d2i_X509()/PEM_read_bio_X509()
+     */
+    X509* NewX509();
+
+    /** Create an empty CMS_ContentInfo for deserializing, bound to the PoDoFo library context
+     * \remarks To be supplied as the reuse parameter of d2i_CMS_ContentInfo()
+     */
+    CMS_ContentInfo* NewCMSContentInfoEmpty();
+
+    /** Create a CMS_ContentInfo for signing, bound to the PoDoFo library context
+     */
+    CMS_ContentInfo* NewCMSContentInfo(unsigned flags);
+
     // Load a ASN.1 encoded private key (PKCS#1 or PKCS#8 formats supported)
     EVP_PKEY* LoadPrivateKey(const PoDoFo::bufferview& input);
 
