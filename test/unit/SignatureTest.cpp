@@ -385,6 +385,47 @@ TEST_CASE("TestSignatureDumpRestore")
     REQUIRE(ssl::ComputeMD5Str(buff) == "4162823DB0FD7A43B7A3FDDFE4FDEC38");
 }
 
+// Test deferred document time-stamping with context dumping/restore
+TEST_CASE("TestDocTimeStamp")
+{
+    charbuff buff;
+    utls::ReadTo(buff, TestUtils::GetTestInputFilePath("blank.pdf"));
+
+    PdfSignerId signerId;
+
+    // NOTE: This block simulates loosing all the original objects
+    {
+        auto stream = std::make_shared<BufferStreamDevice>(buff);
+        PdfMemDocument doc(stream);
+        auto& page = doc.GetPages().GetPageAt(0);
+        auto& signature = page.CreateField<PdfSignature>("DocTimeStamp", Rect());
+
+        PdfSignerDocTimeStampParams params;
+        params.ReservedSize = 8192;
+        PdfSigningContext ctx;
+        signerId = ctx.AddSigner(signature, std::make_shared<PdfSignerDocTimeStamp>(params));
+        PdfSigningResults results;
+        ctx.StartSigning(doc, stream, results, PdfSaveOptions::NoMetadataUpdate);
+        ctx.DumpInPlace();
+    }
+
+    auto newStream = std::make_shared<BufferStreamDevice>(buff);
+    PdfSigningContext newCtx;
+    auto doc = newCtx.Restore(newStream);
+
+    // NOTE: DocTimeStamp.tsr.hex is a hex encoded RFC 3161 TimeStampResp, obtained for the document
+    // digest from https://rfc3161.ai.moda (Sectigo), and it includes the TSA certificate chain.
+    // The message imprint of the time-stamp is verified against the document digest
+    string timeStampHex;
+    TestUtils::ReadTestInputFileTo(timeStampHex, "DocTimeStamp.tsr.hex");
+    PdfSigningResults newResults;
+    utls::DecodeHexStringTo(newResults.Intermediate[signerId], timeStampHex);
+    newCtx.FinishSigning(newResults);
+
+    utls::WriteTo(TestUtils::GetTestOutputFilePath("TestDocTimeStamp.pdf"), buff);
+    REQUIRE(ssl::ComputeMD5Str(buff) == "9371BDDDB34023CB3ADBE244690E790A");
+}
+
 TEST_CASE("TestCertificateRSA")
 {
     {

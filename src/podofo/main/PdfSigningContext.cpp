@@ -6,6 +6,7 @@
 #include <podofo/auxiliary/StreamDevice.h>
 #include <podofo/private/XmlUtils.h>
 #include "PdfSignerCms.h"
+#include "PdfSignerDocTimeStamp.h"
 
 using namespace std;
 using namespace PoDoFo;
@@ -136,12 +137,27 @@ unique_ptr<PdfMemDocument> PdfSigningContext::Restore(shared_ptr<StreamDevice> d
         descs.ContextIndex = num2;
 
         node = utls::FindChildElement(value, "Signer");
-        // TODO: Check Type="PdfSignerCMS"
         if (node == nullptr)
             goto DeserializationFailed;
 
-        descs.SignerStorage.reset(new PdfSignerCms());
-        static_cast<PdfSignerCms&>(*descs.SignerStorage).Restore(node, temp);
+        auto signerType = utls::FindAttribute(node, "Type");
+        if (signerType == nullptr)
+            goto DeserializationFailed;
+
+        if (*signerType == "PdfSignerCMS")
+        {
+            descs.SignerStorage.reset(new PdfSignerCms());
+            static_cast<PdfSignerCms&>(*descs.SignerStorage).Restore(node, temp);
+        }
+        else if (*signerType == "PdfSignerDocTimeStamp")
+        {
+            descs.SignerStorage.reset(new PdfSignerDocTimeStamp());
+            static_cast<PdfSignerDocTimeStamp&>(*descs.SignerStorage).Restore(node, temp);
+        }
+        else
+        {
+            goto DeserializationFailed;
+        }
         descs.Signer = descs.SignerStorage.get();
     }
 
@@ -283,9 +299,13 @@ void PdfSigningContext::DumpInPlace()
     {
         auto& ref = pair.first;
         auto& descs = pair.second;
-        auto signer = dynamic_cast<PdfSignerCms*>(descs.Signer);
-        if (signer == nullptr)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedOperation, "Dumping context is supported only for PdfSignerCMS signers");
+        auto cmsSigner = dynamic_cast<PdfSignerCms*>(descs.Signer);
+        auto docTimeStampSigner = dynamic_cast<PdfSignerDocTimeStamp*>(descs.Signer);
+        if (cmsSigner == nullptr && docTimeStampSigner == nullptr)
+        {
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedOperation,
+                "Dumping context is supported only for PdfSignerCms and PdfSignerDocTimeStamp signers");
+        }
 
         auto signatureElem = xmlNewChild(signaturesElem, nullptr, XMLCHAR "Signer", nullptr);
         if (signatureElem == nullptr)
@@ -322,11 +342,20 @@ void PdfSigningContext::DumpInPlace()
         if (signerElem == nullptr)
             goto SerializationFailed;
 
-        // NOTE: This is a hard code as the only serializable signer is PdfSignerCMS
-        if (xmlSetProp(signerElem, XMLCHAR "Type", XMLCHAR "PdfSignerCMS") == nullptr)
-            goto SerializationFailed;
+        if (cmsSigner == nullptr)
+        {
+            if (xmlSetProp(signerElem, XMLCHAR "Type", XMLCHAR "PdfSignerDocTimeStamp") == nullptr)
+                goto SerializationFailed;
 
-        signer->Dump(signerElem, temp);
+            docTimeStampSigner->Dump(signerElem, temp);
+        }
+        else
+        {
+            if (xmlSetProp(signerElem, XMLCHAR "Type", XMLCHAR "PdfSignerCMS") == nullptr)
+                goto SerializationFailed;
+
+            cmsSigner->Dump(signerElem, temp);
+        }
     }
 
     auto contextsElem = xmlNewChild(sigCtxElem, nullptr, XMLCHAR "Contexts", nullptr);
