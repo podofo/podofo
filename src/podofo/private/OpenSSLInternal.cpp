@@ -124,17 +124,55 @@ void ssl::AddSigningCertificateV2(CMS_SignerInfo* signer, const bufferview& hash
     clean();
 }
 
+X509* ssl::NewX509()
+{
+#if OPENSSL_VERSION_MAJOR >= 3
+    return X509_new_ex(ssl::Init(), nullptr);
+#else // OPENSSL_VERSION_MAJOR < 3
+    ssl::Init();
+    return X509_new();
+#endif // OPENSSL_VERSION_MAJOR >= 3
+}
+
+CMS_ContentInfo* ssl::NewCMSContentInfoEmpty()
+{
+#if OPENSSL_VERSION_MAJOR >= 3
+    return CMS_ContentInfo_new_ex(ssl::Init(), nullptr);
+#else // OPENSSL_VERSION_MAJOR < 3
+    ssl::Init();
+    return CMS_ContentInfo_new();
+#endif // OPENSSL_VERSION_MAJOR >= 3
+}
+
+CMS_ContentInfo* ssl::NewCMSContentInfo(unsigned flags)
+{
+#if OPENSSL_VERSION_MAJOR >= 3
+    return CMS_sign_ex(nullptr, nullptr, nullptr, nullptr, flags, ssl::Init(), nullptr);
+#else // OPENSSL_VERSION_MAJOR < 3
+    ssl::Init();
+    return CMS_sign(nullptr, nullptr, nullptr, nullptr, flags);
+#endif // OPENSSL_VERSION_MAJOR >= 3
+}
+
 EVP_PKEY* ssl::LoadPrivateKey(const bufferview& input)
 {
     // Try to load a RSA DER private key first
     const unsigned char* data = (const unsigned char*)input.data();
+#if OPENSSL_VERSION_MAJOR >= 3
+    auto ret = d2i_PrivateKey_ex(EVP_PKEY_RSA, nullptr, &data, (long)input.size(), ssl::Init(), nullptr);
+#else // OPENSSL_VERSION_MAJOR < 3
     auto ret = d2i_PrivateKey(EVP_PKEY_RSA, nullptr, &data, (long)input.size());
+#endif // OPENSSL_VERSION_MAJOR >= 3
     if (ret != nullptr)
         return ret;
 
     // Then try to load a ECDSA DER private
     data = (const unsigned char*)input.data(); // Reset the input as it may be used as an iterator
+#if OPENSSL_VERSION_MAJOR >= 3
+    ret = d2i_PrivateKey_ex(EVP_PKEY_EC, nullptr, &data, (long)input.size(), ssl::Init(), nullptr);
+#else // OPENSSL_VERSION_MAJOR < 3
     ret = d2i_PrivateKey(EVP_PKEY_EC, nullptr, &data, (long)input.size());
+#endif // OPENSSL_VERSION_MAJOR >= 3
     if (ret != nullptr)
         return ret;
 
@@ -143,7 +181,11 @@ EVP_PKEY* ssl::LoadPrivateKey(const bufferview& input)
     if (bio == nullptr)
         goto Fail;
 
+#if OPENSSL_VERSION_MAJOR >= 3
+    ret = PEM_read_bio_PrivateKey_ex(bio.get(), nullptr, nullptr, nullptr, ssl::Init(), nullptr);
+#else // OPENSSL_VERSION_MAJOR < 3
     ret = PEM_read_bio_PrivateKey(bio.get(), nullptr, nullptr, nullptr);
+#endif // OPENSSL_VERSION_MAJOR >= 3
     if (ret != nullptr)
         return ret;
 
