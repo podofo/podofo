@@ -33,6 +33,22 @@ TEST_CASE("TestEmptyContentsStream")
     REQUIRE(!pageObj.GetDictionary().HasKey("Contents"));
 }
 
+TEST_CASE("TestAnnotationFromObject")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    auto& square = page.GetAnnotations().CreateAnnot<PdfAnnotationSquare>(Rect(100, 600, 80, 20));
+    auto& highlight = page.GetAnnotations().CreateAnnot<PdfAnnotationHighlight>(Rect(100, 500, 80, 20));
+
+    unique_ptr<PdfAnnotationTextMarkupBase> markup;
+    REQUIRE(!PdfAnnotation::TryCreateFromObject<PdfAnnotationTextMarkupBase>(square.GetObject(), markup));
+    REQUIRE(markup == nullptr);
+    REQUIRE(PdfAnnotation::TryCreateFromObject<PdfAnnotationTextMarkupBase>(highlight.GetObject(), markup));
+
+    unique_ptr<const PdfAnnotationTextMarkupBase> constMarkup;
+    REQUIRE(!PdfAnnotation::TryCreateFromObject<PdfAnnotationTextMarkupBase>(std::as_const(square.GetObject()), constMarkup));
+}
+
 TEST_CASE("TestRotations")
 {
     // The two documents are rotated but still portrait
