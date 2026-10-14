@@ -39,9 +39,10 @@ namespace PoDoFo
         ///< Applies to ECDSA, ML-DSA, SLH-DSA
         Deterministic = 4,
         ///< Skip the inline verification of the signed hash supplied by an external signing
-        ///< service or by a deferred signing. The verification is performed by default as a
-        ///< cross-check of the supplied signed hash, and it's never performed when a private
-        ///< key is supplied or during dry runs
+        ///< service or by a deferred signing, and of the message imprint of the signature
+        ///< timestamp (see PdfSignerCms::SetTrustedTimestamp()). The verifications are performed
+        ///< by default as a cross-check of the supplied inputs, and they are never performed
+        ///< during dry runs. The signed hash is not verified when a private key is supplied
         SkipVerification = 8,
         ///< Skip the validation of the signature date against the validity period of the
         ///< supplied certificate. The validation is performed by default and a missing
@@ -119,6 +120,16 @@ namespace PoDoFo
         /// @param attr the attribute bytes. By default, the bytes are parsed for valid ASN.1 input
         void AddAttribute(const std::string_view& nid, const bufferview& attr, PdfSignatureAttributeFlags flags = PdfSignatureAttributeFlags::None);
 
+        /// Set the RFC 3161 timestamp of the signature as the unsigned attribute
+        /// id-aa-timeStampToken (1.2.840.113549.1.9.16.2.14), replacing the existing one
+        /// @param timeStamp the DER encoded TimeStampResp or TimeStampToken, with the message
+        ///     imprint computed on the signed hash as described in RFC 3161 Appendix A
+        /// @remarks Unless PdfSignerCmsFlags::SkipVerification is set, the message imprint is verified
+        /// against the signed hash when the signature is computed, as the signed hash may be still
+        /// unknown at this point (eg. in deferred signing). In dry runs, when a valid timestamp
+        /// is not available, some space must be reserved using ReserveAttributeSize() instead
+        void SetTrustedTimestamp(const bufferview& timeStamp);
+
         /// Reserve some size in the final signature. It is used in dry-runs to enlarge the signature buffer
         /// @remarks the total reserved size is reset on Reset()
         void ReserveAttributeSize(unsigned attrSize);
@@ -139,6 +150,7 @@ namespace PoDoFo
         void ensureContextInitialized();
         void resetContext();
         bool shouldVerify() const;
+        bool shouldVerifyTimeStamp() const;
         void doSign(const bufferview& input, charbuff& output);
         void tryEnlargeSignatureContents(charbuff& contents);
     private:

@@ -177,6 +177,56 @@ void CmsContext::AddAttribute(const string_view& nid, const bufferview& attr, bo
     }
 }
 
+void CmsContext::SetTimeStampToken(const bufferview& token)
+{
+    checkEnabledAddUnsignedAttributes();
+
+    // We are not appending a new attribute, but replacing the existing ones,
+    // so delete all the existing tokens first
+    int pos;
+    while ((pos = CMS_unsigned_get_attr_by_NID(m_signer, NID_id_smime_aa_timeStampToken, -1)) >= 0)
+        X509_ATTRIBUTE_free(CMS_unsigned_delete_attr(m_signer, pos));
+
+    // NOTE: With an explicit length, the DER encoded token is stored as it is
+    if (CMS_unsigned_add1_attr_by_NID(m_signer, NID_id_smime_aa_timeStampToken,
+        V_ASN1_SEQUENCE, token.data(), (int)token.size()) <= 0)
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Unable to set the timestamp token attribute");
+    }
+}
+
+void CmsContext::VerifyTimeStampImprint(const bufferview& signedHash) const
+{
+    PdfHashingAlgorithm hashing;
+    charbuff imprintHash;
+    int pos = -1;
+    while ((pos = CMS_unsigned_get_attr_by_NID(m_signer, NID_id_smime_aa_timeStampToken, pos)) >= 0)
+    {
+        auto attr = CMS_unsigned_get_attr(m_signer, pos);
+        for (int i = 0, count = X509_ATTRIBUTE_count(attr); i < count; i++)
+        {
+            auto token = (const ASN1_STRING*)X509_ATTRIBUTE_get0_data(attr, i, V_ASN1_SEQUENCE, nullptr);
+            if (token == nullptr)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "Invalid RFC 3161 timestamp token");
+
+            ssl::GetTimeStampImprint(bufferview((const char*)ASN1_STRING_get0_data(token), (size_t)ASN1_STRING_length(token)),
+                hashing, imprintHash);
+            if (hashing == PdfHashingAlgorithm::Unknown)
+            {
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::SignatureVerificationError,
+                    "The timestamp message imprint algorithm is not supported");
+            }
+
+            // NOTE: The message imprint is computed on the signature value, see RFC 3161 Appendix A
+            if (imprintHash != ssl::ComputeHash(signedHash, hashing))
+            {
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::SignatureVerificationError,
+                    "The timestamp message imprint doesn't match the signed hash");
+            }
+        }
+    }
+}
+
 void CmsContext::Dump(xmlNodePtr ctxElem, string& temp)
 {
     PODOFO_ASSERT(m_status == CmsContextStatus::ComputedHash);

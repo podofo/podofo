@@ -87,6 +87,9 @@ void PdfSignerCms::ComputeSignature(charbuff& contents, bool dryrun)
         m_parameters.SignedHashHandler(m_encryptedHash, dryrun);
 
     // NOTE: On dry runs the signed hash may be just a fake buffer with the expected size
+    if (!dryrun && shouldVerifyTimeStamp())
+        m_cmsContext->VerifyTimeStampImprint(m_encryptedHash);
+
     m_cmsContext->ComputeSignature(m_encryptedHash, contents, !dryrun && shouldVerify());
     if (dryrun)
         tryEnlargeSignatureContents(contents);
@@ -115,6 +118,9 @@ void PdfSignerCms::ComputeSignatureDeferred(const bufferview& processedResult, c
     }
     else
     {
+        if (shouldVerifyTimeStamp())
+            m_cmsContext->VerifyTimeStampImprint(processedResult);
+
         m_cmsContext->ComputeSignature(processedResult, contents, shouldVerify());
     }
 }
@@ -193,6 +199,12 @@ void PdfSignerCms::AddAttribute(const string_view& nid, const bufferview& attr, 
         asOctetString = true;
 
     m_cmsContext->AddAttribute(nid, attr, signedAttr, asOctetString);
+}
+
+void PdfSignerCms::SetTrustedTimestamp(const bufferview& timeStamp)
+{
+    ensureContextInitialized();
+    m_cmsContext->SetTimeStampToken(ssl::GetTimeStampToken(timeStamp));
 }
 
 void PdfSignerCms::ReserveAttributeSize(unsigned attrSize)
@@ -408,6 +420,13 @@ bool PdfSignerCms::shouldVerify() const
     // NOTE: The signed hash is cross-checked only when it's supplied externally
     return m_privKey == nullptr
         && (m_parameters.Flags & PdfSignerCmsFlags::SkipVerification) == PdfSignerCmsFlags::None;
+}
+
+bool PdfSignerCms::shouldVerifyTimeStamp() const
+{
+    // NOTE: the timestamp check is always supplied externally,
+    // so we skip it only when voluntarily disabled by the user
+    return (m_parameters.Flags & PdfSignerCmsFlags::SkipVerification) == PdfSignerCmsFlags::None;
 }
 
 void PdfSignerCms::doSign(const bufferview& input, charbuff& output)

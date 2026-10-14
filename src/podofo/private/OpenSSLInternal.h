@@ -137,6 +137,15 @@ namespace ssl
 
     void cmsAddSigningTime(CMS_SignerInfo* si, const date::sys_seconds& timestamp);
 
+    // Get the TimeStampToken from the input, being either a RFC 3161 TimeStampResp with granted status
+    // or the token itself. Trailing bytes are ignored and any other input throws. The token is sliced
+    // from the input, as re-encoding it may break the token signature
+    PoDoFo::bufferview GetTimeStampToken(const PoDoFo::bufferview& timeStamp);
+
+    // Get the message imprint of a RFC 3161 TimeStampToken. The hashing is
+    // PdfHashingAlgorithm::Unknown if the imprint algorithm is not supported
+    void GetTimeStampImprint(const PoDoFo::bufferview& token, PoDoFo::PdfHashingAlgorithm& hashing, PoDoFo::charbuff& hash);
+
     /// Init the OpenSSL engine
 #if OPENSSL_VERSION_MAJOR >= 3
     PODOFO_EXPORT OSSL_LIB_CTX* Init();

@@ -4,6 +4,7 @@
 #include <PdfTest.h>
 #include <podofo/private/OpenSSLInternal.h>
 #include <podofo/private/CmsVerifyContext.h>
+#include <openssl/ts.h>
 
 using namespace std;
 using namespace PoDoFo;
@@ -424,6 +425,153 @@ TEST_CASE("TestDocTimeStamp")
 
     utls::WriteTo(TestUtils::GetTestOutputFilePath("TestDocTimeStamp.pdf"), buff);
     REQUIRE(ssl::ComputeMD5Str(buff) == "9371BDDDB34023CB3ADBE244690E790A");
+}
+
+// Create a RFC 3161 TimeStampToken for the given signed hash. A regular certificate is used
+// as the TSA signer, as only the message imprint is verified when signing
+static charbuff createTimeStampToken(const bufferview& signedHash, const bufferview& cert, const bufferview& pkey)
+{
+    auto hash = ssl::ComputeHash(signedHash, PdfHashingAlgorithm::SHA256);
+    unique_ptr<X509_ALGOR, decltype(&X509_ALGOR_free)> algorithm(X509_ALGOR_new(), X509_ALGOR_free);
+    X509_ALGOR_set_md(algorithm.get(), EVP_sha256());
+    unique_ptr<TS_MSG_IMPRINT, decltype(&TS_MSG_IMPRINT_free)> imprint(TS_MSG_IMPRINT_new(), TS_MSG_IMPRINT_free);
+    REQUIRE(TS_MSG_IMPRINT_set_algo(imprint.get(), algorithm.get()) == 1);
+    REQUIRE(TS_MSG_IMPRINT_set_msg(imprint.get(), (unsigned char*)hash.data(), (int)hash.size()) == 1);
+
+    unique_ptr<ASN1_OBJECT, decltype(&ASN1_OBJECT_free)> policy(OBJ_txt2obj("1.2.3.4", 1), ASN1_OBJECT_free);
+    unique_ptr<ASN1_INTEGER, decltype(&ASN1_INTEGER_free)> serial(ASN1_INTEGER_new(), ASN1_INTEGER_free);
+    REQUIRE(ASN1_INTEGER_set(serial.get(), 1) == 1);
+    unique_ptr<ASN1_GENERALIZEDTIME, decltype(&ASN1_GENERALIZEDTIME_free)> time(
+        ASN1_GENERALIZEDTIME_set(nullptr, 0), ASN1_GENERALIZEDTIME_free);
+    unique_ptr<TS_TST_INFO, decltype(&TS_TST_INFO_free)> tstInfo(TS_TST_INFO_new(), TS_TST_INFO_free);
+    REQUIRE(TS_TST_INFO_set_version(tstInfo.get(), 1) == 1);
+    REQUIRE(TS_TST_INFO_set_policy_id(tstInfo.get(), policy.get()) == 1);
+    REQUIRE(TS_TST_INFO_set_msg_imprint(tstInfo.get(), imprint.get()) == 1);
+    REQUIRE(TS_TST_INFO_set_serial(tstInfo.get(), serial.get()) == 1);
+    REQUIRE(TS_TST_INFO_set_time(tstInfo.get(), time.get()) == 1);
+
+    charbuff content((size_t)i2d_TS_TST_INFO(tstInfo.get(), nullptr));
+    auto curr = (unsigned char*)content.data();
+    i2d_TS_TST_INFO(tstInfo.get(), &curr);
+    unique_ptr<BIO, decltype(&BIO_free)> contentBio(BIO_new_mem_buf(content.data(), (int)content.size()), BIO_free);
+
+    auto certData = (const unsigned char*)cert.data();
+    unique_ptr<X509, decltype(&X509_free)> x509(d2i_X509(nullptr, &certData, (long)cert.size()), X509_free);
+    auto pkeyData = (const unsigned char*)pkey.data();
+    unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)> key(
+        d2i_AutoPrivateKey(nullptr, &pkeyData, (long)pkey.size()), EVP_PKEY_free);
+    unique_ptr<CMS_ContentInfo, decltype(&CMS_ContentInfo_free)> cms(CMS_sign(x509.get(), key.get(),
+        nullptr, nullptr, CMS_BINARY | CMS_PARTIAL | CMS_NOCERTS | CMS_NOSMIMECAP), CMS_ContentInfo_free);
+    REQUIRE(cms != nullptr);
+    REQUIRE(CMS_set1_eContentType(cms.get(), OBJ_nid2obj(NID_id_smime_ct_TSTInfo)) == 1);
+    REQUIRE(CMS_final(cms.get(), contentBio.get(), nullptr, CMS_BINARY) == 1);
+
+    charbuff token((size_t)i2d_CMS_ContentInfo(cms.get(), nullptr));
+    curr = (unsigned char*)token.data();
+    i2d_CMS_ContentInfo(cms.get(), &curr);
+    return token;
+}
+
+// Set a signature timestamp, with its message imprint verified against the signed hash
+TEST_CASE("TestSignatureTimeStamp")
+{
+    auto inputPath = TestUtils::GetTestInputFilePath("blank.pdf");
+
+    string cert;
+    TestUtils::ReadTestInputFileTo(cert, "mycert.der");
+
+    string pkey;
+    TestUtils::ReadTestInputFileTo(pkey, "mykey-pkcs8.der");
+
+    auto trySign = [&](PdfSignerCmsFlags flags, bool corrupt)
+    {
+        charbuff buff;
+        utls::ReadTo(buff, inputPath);
+        auto stream = std::make_shared<BufferStreamDevice>(buff);
+
+        PdfMemDocument doc(stream);
+        auto& page = doc.GetPages().GetPageAt(0);
+        auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+        signature.SetSignatureDate(TestSignatureDate);
+
+        unique_ptr<PdfSignerCms> signer;
+        PdfSignerCmsParams params;
+        params.Flags = flags;
+        params.SignedHashHandler = [&](bufferview signedHash, bool dryrun)
+        {
+            // NOTE: The timestamp is set also in the dry run, so its size is accounted
+            (void)dryrun;
+            charbuff timeStampedHash(signedHash);
+            if (corrupt)
+                timeStampedHash[0] = (char)(timeStampedHash[0] ^ 0xFF);
+
+            signer->SetTrustedTimestamp(createTimeStampToken(timeStampedHash, cert, pkey));
+        };
+
+        signer = std::make_unique<PdfSignerCms>(cert, pkey, params);
+        PoDoFo::SignDocument(doc, *stream, *signer, signature, PdfSaveOptions::NoMetadataUpdate);
+
+        SpanStreamDevice input(buff);
+        PdfSignatureVerifyStatus status;
+        REQUIRE(signature.TryVerifySignature(input, status));
+        REQUIRE(status == PdfSignatureVerifyStatus::CryptoVerified);
+    };
+
+    trySign(PdfSignerCmsFlags::None, false);
+    ASSERT_THROW_WITH_ERROR_CODE(trySign(PdfSignerCmsFlags::None, true), PdfErrorCode::SignatureVerificationError);
+
+    // A mismatching timestamp is accepted when the verification is skipped
+    trySign(PdfSignerCmsFlags::SkipVerification, true);
+
+    // In deferred signing the signed hash is supplied only when finishing the signing,
+    // so the timestamp set after a context restore is verified at that moment
+    auto trySignDeferred = [&](bool corrupt)
+    {
+        charbuff buff;
+        utls::ReadTo(buff, inputPath);
+
+        charbuff hashToSign;
+        PdfSignerId signerId;
+        PdfSignerCmsParams params;
+        {
+            auto stream = std::make_shared<BufferStreamDevice>(buff);
+            PdfMemDocument doc(stream);
+            auto& page = doc.GetPages().GetPageAt(0);
+            auto& signature = page.CreateField<PdfSignature>("Signature", Rect());
+            signature.SetSignatureDate(TestSignatureDate);
+
+            // The timestamp is unknown in the dry run, so make room for it
+            auto signer = std::make_shared<PdfSignerCms>(cert, params);
+            auto timeStampSize = createTimeStampToken(charbuff(signer->GetSignedHashSize()), cert, pkey).size();
+            signer->ReserveAttributeSize((unsigned)timeStampSize);
+            PdfSigningContext ctx;
+            signerId = ctx.AddSigner(signature, signer);
+            PdfSigningResults results;
+            ctx.StartSigning(doc, stream, results, PdfSaveOptions::NoMetadataUpdate);
+            hashToSign = results.Intermediate[signerId];
+            ctx.DumpInPlace();
+        }
+
+        auto newStream = std::make_shared<BufferStreamDevice>(buff);
+        PdfSigningContext newCtx;
+        auto doc = newCtx.Restore(newStream);
+
+        charbuff signedHash;
+        ssl::SignHash(hashToSign, pkey, params.Hashing, signedHash);
+        charbuff timeStampedHash(signedHash);
+        if (corrupt)
+            timeStampedHash[0] = (char)(timeStampedHash[0] ^ 0xFF);
+
+        auto& signer = dynamic_cast<PdfSignerCms&>(*newCtx.GetSigner(signerId.GetSignatureRef()));
+        signer.SetTrustedTimestamp(createTimeStampToken(timeStampedHash, cert, pkey));
+
+        PdfSigningResults newResults;
+        newResults.Intermediate[signerId] = signedHash;
+        newCtx.FinishSigning(newResults);
+    };
+
+    trySignDeferred(false);
+    ASSERT_THROW_WITH_ERROR_CODE(trySignDeferred(true), PdfErrorCode::SignatureVerificationError);
 }
 
 TEST_CASE("TestCertificateRSA")

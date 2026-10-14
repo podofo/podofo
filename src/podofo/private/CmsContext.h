@@ -48,6 +48,10 @@ namespace PoDoFo
         /// Validate the given date is within the certificate validity period
         void ValidateSigningDate(const std::chrono::seconds& date) const;
         void AddAttribute(const std::string_view& nid, const bufferview& attr, bool signedAttr, bool octetString);
+        /// Set the signature timestamp token unsigned attribute, replacing the existing ones
+        void SetTimeStampToken(const bufferview& token);
+        /// Verify the message imprint of the signature timestamp tokens, if any, against the signed hash
+        void VerifyTimeStampImprint(const bufferview& signedHash) const;
         void Dump(xmlNodePtr elem, std::string& temp);
         void Restore(xmlNodePtr elem, charbuff& temp);
         unsigned GetSignedHashSize() const;

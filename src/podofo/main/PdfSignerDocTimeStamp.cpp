@@ -4,14 +4,10 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfSignerDocTimeStamp.h"
 #include <podofo/private/OpenSSLInternal.h>
-#include <openssl/ts.h>
 #include <podofo/private/XmlUtils.h>
 
 using namespace std;
 using namespace PoDoFo;
-
-static bufferview getTimeStampToken(const bufferview& timeStamp);
-static void verifyMessageImprint(const bufferview& token, const bufferview& hash, PdfHashingAlgorithm hashing);
 
 PdfSignerDocTimeStamp::PdfSignerDocTimeStamp(const PdfSignerDocTimeStampParams& parameters) :
     m_parameters(parameters),
@@ -225,11 +221,18 @@ void PdfSignerDocTimeStamp::ensureHashComputed()
 
 void PdfSignerDocTimeStamp::setContents(const bufferview& timeStamp, charbuff& contents)
 {
-    auto token = getTimeStampToken(timeStamp);
+    auto token = ssl::GetTimeStampToken(timeStamp);
     if (shouldVerify())
     {
         ensureHashComputed();
-        verifyMessageImprint(token, m_hash, m_parameters.Hashing);
+        PdfHashingAlgorithm imprintHashing;
+        charbuff imprintHash;
+        ssl::GetTimeStampImprint(token, imprintHashing, imprintHash);
+        if (imprintHashing != m_parameters.Hashing || imprintHash != m_hash)
+        {
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::SignatureVerificationError,
+                "The timestamp message imprint doesn't match the document digest");
+        }
     }
 
     contents = token;
@@ -238,110 +241,4 @@ void PdfSignerDocTimeStamp::setContents(const bufferview& timeStamp, charbuff& c
 bool PdfSignerDocTimeStamp::shouldVerify() const
 {
     return (m_parameters.Flags & PdfSignerDocTimeStampFlags::SkipVerification) == PdfSignerDocTimeStampFlags::None;
-}
-
-// Get the TimeStampToken from the input, being either a RFC 3161 TimeStampResp with granted status
-// or the token itself. Trailing bytes are ignored and any other input throws. The token is sliced
-// from the input, as re-encoding it may break the token signature
-bufferview getTimeStampToken(const bufferview& timeStamp)
-{
-    // A TimeStampResp has the following grammar:
-    // 
-    // TimeStampResp ::= SEQUENCE {
-    //     status PKIStatusInfo,
-    //     timeStampToken TimeStampToken OPTIONAL }
-    // 
-    // a TimeStampToken is also a SEQUENCE:
-    // 
-    // TimeStampToken ::= ContentInfo ::= SEQUENCE {
-    //     contentType OBJECT IDENTIFIER,
-    //     content [0] EXPLICIT ANY }
-    auto begin = (const unsigned char*)timeStamp.data();
-    auto curr = begin;
-    long length;
-    int tag;
-    int xclass;
-    // Check if the input is sequence-like and it's not custom
-    if (ASN1_get_object(&curr, &length, &tag, &xclass, (long)timeStamp.size()) != V_ASN1_CONSTRUCTED
-        || tag != V_ASN1_SEQUENCE || xclass != V_ASN1_UNIVERSAL)
-    {
-    InvalidTimeStamp:
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "Invalid RFC 3161 timestamp response or token");
-    }
-
-    auto end = curr + length;
-    int ret = ASN1_get_object(&curr, &length, &tag, &xclass, (long)(end - curr));
-    // Check if the return flags has the error 0x80 bit set, or the tag is custom
-    if ((ret & 0x80) != 0 || xclass != V_ASN1_UNIVERSAL)
-        goto InvalidTimeStamp;
-
-    if (tag == V_ASN1_OBJECT)
-    {
-        // It's an object: assume the response is already a token and return it as is
-        return bufferview((const char*)begin, (size_t)(end - begin));
-    }
-
-    // It's not an object: assume it's a TimeStampResp
-    if (ret != V_ASN1_CONSTRUCTED || tag != V_ASN1_SEQUENCE)
-        goto InvalidTimeStamp;
-
-    // Try to decode the PKIStatusInfo:
-    // 
-    // PKIStatusInfo ::= SEQUENCE {
-    //     status PKIStatus,
-    //     statusString PKIFreeText OPTIONAL,
-    //     failInfo PKIFailureInfo OPTIONAL }
-    auto statusInfoEnd = curr + length;
-    unique_ptr<ASN1_INTEGER, decltype(&ASN1_INTEGER_free)> status(
-        d2i_ASN1_INTEGER(nullptr, &curr, (long)(statusInfoEnd - curr)), ASN1_INTEGER_free);
-    if (status == nullptr)
-        goto InvalidTimeStamp;
-
-    // Read the status value, which must be either granted (0) or grantedWithMods (1):
-    // 
-    // PKIStatus ::= INTEGER { granted (0), grantedWithMods (1), ... }
-    long statusValue = ASN1_INTEGER_get(status.get());
-    if (statusValue != 0 && statusValue != 1)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "The timestamp response status {} is not granted", statusValue);
-
-    if (statusInfoEnd == end)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "The timestamp response has no token");
-
-    // Return the remaining bytes as the token
-    return bufferview((const char*)statusInfoEnd, (size_t)(end - statusInfoEnd));
-}
-
-void verifyMessageImprint(const bufferview& token, const bufferview& hash, PdfHashingAlgorithm hashing)
-{
-    auto curr = (const unsigned char*)token.data();
-    unique_ptr<CMS_ContentInfo, decltype(&CMS_ContentInfo_free)> cms(
-        d2i_CMS_ContentInfo(nullptr, &curr, (long)token.size()), CMS_ContentInfo_free);
-    ASN1_OCTET_STRING** content;
-    if (cms == nullptr
-        || OBJ_obj2nid(CMS_get0_eContentType(cms.get())) != NID_id_smime_ct_TSTInfo
-        || (content = CMS_get0_content(cms.get())) == nullptr || *content == nullptr)
-    {
-        // The token is not a valid CMS ContentInfo or the content is not TSTInfo
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "Invalid RFC 3161 timestamp token");
-    }
-
-    // Parse the TSTInfo from the content
-    curr = ASN1_STRING_get0_data(*content);
-    unique_ptr<TS_TST_INFO, decltype(&TS_TST_INFO_free)> tstInfo(
-        d2i_TS_TST_INFO(nullptr, &curr, ASN1_STRING_length(*content)), TS_TST_INFO_free);
-    if (tstInfo == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "Invalid RFC 3161 timestamp token info");
-
-    // Fetch the message imprint from the TSTInfo and verify it against the document digest
-    auto imprint = TS_TST_INFO_get_msg_imprint(tstInfo.get());
-    const ASN1_OBJECT* algorithm;
-    X509_ALGOR_get0(&algorithm, nullptr, nullptr, TS_MSG_IMPRINT_get_algo(imprint));
-    auto imprintHash = TS_MSG_IMPRINT_get_msg(imprint);
-    if (OBJ_obj2nid(algorithm) != EVP_MD_get_type(ssl::GetEVP_MD(hashing))
-        || (size_t)ASN1_STRING_length(imprintHash) != hash.size()
-        || std::memcmp(ASN1_STRING_get0_data(imprintHash), hash.data(), hash.size()) != 0)
-    {
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::SignatureVerificationError,
-            "The timestamp message imprint doesn't match the document digest");
-    }
 }

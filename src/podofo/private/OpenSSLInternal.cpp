@@ -5,6 +5,7 @@
 #include "OpenSSLInternal.h"
 
 #include <openssl/rsa.h>
+#include <openssl/ts.h>
 #if OPENSSL_VERSION_MAJOR >= 3
 #include <openssl/provider.h>
 #endif // OPENSSL_VERSION_MAJOR >= 3
@@ -201,6 +202,119 @@ void ssl::cmsAddSigningTime(CMS_SignerInfo* si, const date::sys_seconds& timesta
     {
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError, "Error setting SigningTime");
     }
+}
+
+bufferview ssl::GetTimeStampToken(const bufferview& timeStamp)
+{
+    // A TimeStampResp has the following grammar:
+    //
+    // TimeStampResp ::= SEQUENCE {
+    //     status PKIStatusInfo,
+    //     timeStampToken TimeStampToken OPTIONAL }
+    //
+    // a TimeStampToken is also a SEQUENCE:
+    //
+    // TimeStampToken ::= ContentInfo ::= SEQUENCE {
+    //     contentType OBJECT IDENTIFIER,
+    //     content [0] EXPLICIT ANY }
+    auto begin = (const unsigned char*)timeStamp.data();
+    auto curr = begin;
+    long length;
+    int tag;
+    int xclass;
+    // Check if the input is sequence-like and it's not custom
+    if (ASN1_get_object(&curr, &length, &tag, &xclass, (long)timeStamp.size()) != V_ASN1_CONSTRUCTED
+        || tag != V_ASN1_SEQUENCE || xclass != V_ASN1_UNIVERSAL)
+    {
+    InvalidTimeStamp:
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "Invalid RFC 3161 timestamp response or token");
+    }
+
+    auto end = curr + length;
+    int ret = ASN1_get_object(&curr, &length, &tag, &xclass, (long)(end - curr));
+    // Check if the return flags has the error 0x80 bit set, or the tag is custom
+    if ((ret & 0x80) != 0 || xclass != V_ASN1_UNIVERSAL)
+        goto InvalidTimeStamp;
+
+    if (tag == V_ASN1_OBJECT)
+    {
+        // It's an object: assume the response is already a token and return it as is
+        return bufferview((const char*)begin, (size_t)(end - begin));
+    }
+
+    // It's not an object: assume it's a TimeStampResp
+    if (ret != V_ASN1_CONSTRUCTED || tag != V_ASN1_SEQUENCE)
+        goto InvalidTimeStamp;
+
+    // Try to decode the PKIStatusInfo:
+    //
+    // PKIStatusInfo ::= SEQUENCE {
+    //     status PKIStatus,
+    //     statusString PKIFreeText OPTIONAL,
+    //     failInfo PKIFailureInfo OPTIONAL }
+    auto statusInfoEnd = curr + length;
+    unique_ptr<ASN1_INTEGER, decltype(&ASN1_INTEGER_free)> status(
+        d2i_ASN1_INTEGER(nullptr, &curr, (long)(statusInfoEnd - curr)), ASN1_INTEGER_free);
+    if (status == nullptr)
+        goto InvalidTimeStamp;
+
+    // Read the status value, which must be either granted (0) or grantedWithMods (1):
+    //
+    // PKIStatus ::= INTEGER { granted (0), grantedWithMods (1), ... }
+    long statusValue = ASN1_INTEGER_get(status.get());
+    if (statusValue != 0 && statusValue != 1)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "The timestamp response status {} is not granted", statusValue);
+
+    if (statusInfoEnd == end)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "The timestamp response has no token");
+
+    // Return the remaining bytes as the token
+    return bufferview((const char*)statusInfoEnd, (size_t)(end - statusInfoEnd));
+}
+
+void ssl::GetTimeStampImprint(const bufferview& token, PdfHashingAlgorithm& hashing, charbuff& hash)
+{
+    auto curr = (const unsigned char*)token.data();
+    unique_ptr<CMS_ContentInfo, decltype(&CMS_ContentInfo_free)> cms(
+        d2i_CMS_ContentInfo(nullptr, &curr, (long)token.size()), CMS_ContentInfo_free);
+    ASN1_OCTET_STRING** content;
+    if (cms == nullptr
+        || OBJ_obj2nid(CMS_get0_eContentType(cms.get())) != NID_id_smime_ct_TSTInfo
+        || (content = CMS_get0_content(cms.get())) == nullptr || *content == nullptr)
+    {
+        // The token is not a valid CMS ContentInfo or the content is not TSTInfo
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "Invalid RFC 3161 timestamp token");
+    }
+
+    // Parse the TSTInfo from the content
+    curr = ASN1_STRING_get0_data(*content);
+    unique_ptr<TS_TST_INFO, decltype(&TS_TST_INFO_free)> tstInfo(
+        d2i_TS_TST_INFO(nullptr, &curr, ASN1_STRING_length(*content)), TS_TST_INFO_free);
+    if (tstInfo == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "Invalid RFC 3161 timestamp token info");
+
+    auto imprint = TS_TST_INFO_get_msg_imprint(tstInfo.get());
+    const ASN1_OBJECT* algorithm;
+    X509_ALGOR_get0(&algorithm, nullptr, nullptr, TS_MSG_IMPRINT_get_algo(imprint));
+    switch (OBJ_obj2nid(algorithm))
+    {
+        case NID_sha256:
+            hashing = PdfHashingAlgorithm::SHA256;
+            break;
+        case NID_sha384:
+            hashing = PdfHashingAlgorithm::SHA384;
+            break;
+        case NID_sha512:
+            hashing = PdfHashingAlgorithm::SHA512;
+            break;
+        default:
+            hashing = PdfHashingAlgorithm::Unknown;
+            break;
+    }
+
+    auto imprintHash = TS_MSG_IMPRINT_get_msg(imprint);
+    auto imprintData = (const char*)ASN1_STRING_get0_data(imprintHash);
+    hash.assign(imprintData, imprintData + ASN1_STRING_length(imprintHash));
 }
 
 void ssl::SignHash(const bufferview& hashToSign, const bufferview& pkey,
