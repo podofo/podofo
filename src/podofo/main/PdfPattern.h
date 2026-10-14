@@ -139,16 +139,31 @@ namespace PoDoFo
     inline bool PdfPattern::TryCreateFromObject(PdfObject& obj, std::unique_ptr<PatternT>& pattern)
     {
         PdfPatternType detectedType;
-        pattern.reset((PatternT*)createFromObject(obj, GetPatternType<PatternT>(), detectedType));
-        return pattern != nullptr;
+        std::unique_ptr<PdfPattern> created(createFromObject(obj, GetPatternType<PatternT>(), detectedType));
+        // NOTE: Both tiling patterns map to PdfPatternType::Tiling, so the class created is checked
+        if (dynamic_cast<PatternT*>(created.get()) == nullptr)
+        {
+            pattern.reset();
+            return false;
+        }
+
+        pattern.reset(static_cast<PatternT*>(created.release()));
+        return true;
     }
 
     template<typename PatternT>
     inline bool PdfPattern::TryCreateFromObject(const PdfObject& obj, std::unique_ptr<const PatternT>& pattern)
     {
         PdfPatternType detectedType;
-        pattern.reset((const PatternT*)createFromObject(obj, GetPatternType<PatternT>(), detectedType));
-        return pattern != nullptr;
+        std::unique_ptr<const PdfPattern> created(createFromObject(obj, GetPatternType<PatternT>(), detectedType));
+        if (dynamic_cast<const PatternT*>(created.get()) == nullptr)
+        {
+            pattern.reset();
+            return false;
+        }
+
+        pattern.reset(static_cast<const PatternT*>(created.release()));
+        return true;
     }
 
     template<typename TPattern>

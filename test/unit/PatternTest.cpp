@@ -176,6 +176,24 @@ TEST_CASE("TestUncolouredTilingPattern")
 }
 
 // ISO 32000-2:2020 8.7.4.5.4 "Type 3 (radial) shadings", example 1
+TEST_CASE("TestTilingPatternFromObject")
+{
+    PdfMemDocument doc;
+    auto patternDef = std::make_shared<PdfUncolouredTilingPatternDefinition>(PdfTilingSpacingType::NoDistortion,
+        Rect(0, 0, 100, 100), 100, 100);
+    auto pattern = doc.CreateTilingPattern(patternDef);
+
+    unique_ptr<PdfColouredTilingPattern> coloured;
+    REQUIRE(!PdfPattern::TryCreateFromObject<PdfColouredTilingPattern>(pattern->GetObject(), coloured));
+    REQUIRE(coloured == nullptr);
+
+    unique_ptr<const PdfColouredTilingPattern> constColoured;
+    REQUIRE(!PdfPattern::TryCreateFromObject<PdfColouredTilingPattern>(std::as_const(pattern->GetObject()), constColoured));
+
+    unique_ptr<PdfUncolouredTilingPattern> uncoloured;
+    REQUIRE(PdfPattern::TryCreateFromObject<PdfUncolouredTilingPattern>(pattern->GetObject(), uncoloured));
+}
+
 TEST_CASE("TestType3RadialShading")
 {
     PdfMemDocument doc;
