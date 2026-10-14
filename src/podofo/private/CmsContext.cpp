@@ -495,7 +495,7 @@ void addAttribute(CMS_SignerInfo* si, int(*addAttributeFun)(CMS_SignerInfo*, con
     if (asn1type != nullptr)
         ASN1_TYPE_free(asn1type);
 
-    if (rc < 0)
+    if (rc <= 0)
     {
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OpenSSLError,
             "Unable to insert an attribute to the signer");
