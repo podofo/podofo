@@ -580,6 +580,18 @@ TEST_CASE("TestPdfSignerCms")
     }
 }
 
+TEST_CASE("TestAddAttribute")
+{
+    string cert;
+    TestUtils::ReadTestInputFileTo(cert, "mycert.der");
+
+    // DER encoded INTEGER 1
+    auto attr = "\x02\x01\x01"sv;
+    PdfSignerCms signer(cert);
+    signer.AddAttribute("1.2.3.4", attr);
+    ASSERT_THROW_WITH_ERROR_CODE(signer.AddAttribute("invalid-oid", attr), PdfErrorCode::OpenSSLError);
+}
+
 TEST_CASE("TestGetPreviousRevision")
 {
     {
