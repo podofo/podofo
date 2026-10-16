@@ -97,3 +97,27 @@ TEST_CASE("TestMalformedAnnotationAction")
     auto action = linkAnnot.GetAction();
     REQUIRE(action == nullptr);
 }
+
+TEST_CASE("TestDecodeParmsArrayLongerThanFilter")
+{
+    // The /DecodeParms array has more entries than the /Filter array. The
+    // surplus entries must be ignored instead of being stored past the end
+    // of the decode parameters list sized by the filter count
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/Data 3 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj
+3 0 obj<</Filter/ASCIIHexDecode/DecodeParms[<<>><<>><<>><<>><<>><<>><<>><<>>]/Length 10>>stream
+48656C6C6F
+endstream
+endobj
+trailer<</Root 1 0 R/Size 4>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto obj = doc.GetObjects().GetObject(PdfReference(3, 0));
+    REQUIRE(obj != nullptr);
+    REQUIRE(obj->MustGetStream().GetCopy() == "Hello");
+}
