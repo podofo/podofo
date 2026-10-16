@@ -330,7 +330,15 @@ unique_ptr<InputStream> PdfObjectStream::getInputStream(bool raw, PdfFilterList&
             }
             else if (decodeParmsObj->TryGetArray(decodeParmsArr))
             {
-                for (unsigned i = 0; i < decodeParmsArr->GetSize(); i++)
+                unsigned count = decodeParmsArr->GetSize();
+                if (count != decodeParms.size())
+                {
+                    PoDoFo::LogMessage(PdfLogSeverity::Warning, "/DecodeParms array size {} doesn't match /Filter size {}",
+                        count, decodeParms.size());
+                    count = std::min(count, (unsigned)decodeParms.size());
+                }
+
+                for (unsigned i = 0; i < count; i++)
                 {
                     auto decodeParmsEntry = decodeParmsArr->FindAt(i);
                     if (decodeParmsEntry == nullptr || !decodeParmsEntry->TryGetDictionary(decodeParmsDict))
