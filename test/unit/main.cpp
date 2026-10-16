@@ -7,11 +7,25 @@
 
 #include <PdfTest.h>
 
+#if defined(_MSC_VER) && defined(_DEBUG)
+#include <crtdbg.h>
+#endif
+
 using namespace std;
 using namespace PoDoFo;
 
 int main(int argc, char* argv[])
 {
+#if defined(_MSC_VER) && defined(_DEBUG)
+    // Report CRT debug assertions (eg. checked STL subscripts) on stderr and
+    // abort, instead of showing dialogs that block unattended runs
+    _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
+    _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
+    _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
+    _CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDERR);
+    _set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+#endif
+
     // Avoid performing test initialization on Catch2 query for tests,
     // which it does with switches "--list-test-names-only" and "--list-reporters"
     if (argc <= 1 || string_view(argv[1]).find("--list") == string_view::npos)
