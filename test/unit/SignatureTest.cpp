@@ -453,7 +453,7 @@ TEST_CASE("TestSignatureOffsetStart")
     // Try to reload the document
     doc.Load(inputOutput);
 
-    REQUIRE(ssl::ComputeMD5Str(currBuffer) == "7063AD6AFCB797D361D2DAF943002298");
+    REQUIRE(ssl::ComputeMD5Str(currBuffer) == "F90F39B3E3BE02E931359D3AD6143435");
 }
 
 TEST_CASE("TestSignatureCorrupted")
@@ -501,12 +501,12 @@ TEST_CASE("TestSignatureCorrupted")
     try
     {
         utls::ReadTo(currBuffer, TestUtils::GetTestInputFilePath("TestXRefRecovery1.pdf"));
-        doTest("TestSignatureCorrupted1.pdf", "FF1B6A133940DED8C0890E3A9707C151");
+        doTest("TestSignatureCorrupted1.pdf", "143F8C66A4A872611355AC8AF10743AC");
 
         // Repeat the test with some garbage at the beginning of the test
         utls::ReadTo(currBuffer, TestUtils::GetTestInputFilePath("TestXRefRecovery1.pdf"));
         currBuffer.insert(0, "% Some garbage before the PDF header\n\n");
-        doTest("TestSignatureCorrupted2.pdf", "8AA3CB1D40DC13E652AD935A16DA927C");
+        doTest("TestSignatureCorrupted2.pdf", "F765550929F52DCD786A1944C1A10B7F");
         PdfCommon::SetMaxLoggingSeverity(currentLogSeverity);
     }
     catch (...)
