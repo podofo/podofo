@@ -1,3 +1,38 @@
+## Version 1.1.3
+- This release is ABI incompatible with previous 1.1.x releases (SOVERSION bumped to 5).
+  Source compatibility is preserved with few minor exceptions, see API-MIGRATION.md
+- Parsing/writing performance improvements: `PdfArray` manages its storage directly, reduced `PdfObject`
+  memory footprint, inline read/write windows in `InputStream`/`OutputStream`, `FileStreamDevice`
+  migrated to low-level file I/O with its own buffering, lazy loaded objects in object streams
+- `PdfMemDocument`: Preserve the XRef layout (legacy table or XRef stream) and the compressed object streams
+  of the parsed document when saving. Added `PdfSaveOptions::ForceXRefTable` and `PdfSaveOptions::ForceXRefStream`
+- `PdfMemDocument`/`PdfWriter`: Preserve the existing `/Encrypt` object upon saving, never modify it
+  on incremental updates and prevent encryption re-keys on incremental updates
+- `PdfObject`: Don't encrypt the `/Metadata` stream on save if `/Encrypt` has `/EncryptMetadata false`
+- `PdfIndirectObjectList`: Write only the modified free/unavailable entries on incremental updates
+- `PdfParser`: Fixed `/XRefStm`, XRef stream `/Prev` and XRef stream entry offsets in files with a magic offset
+- `PdfParser`: Enlarged the cap on maximum read xref subsections
+- `PdfReference`: `IsIndirect()` now returns false for references with object number 0
+- `PdfObject`/`PdfVariant`/`PdfDictionary`: Fixed disequality operators
+- `PdfArray`/`PdfDictionary`: Fixed missing `SetDirty()` on `operator=`
+- `PdfArray`: Fixed operations relocating the internal list detaching the children from the parent
+- `PdfObject`: Fixed delayed loading of the stream and move to also ensure the data block is loaded
+- `PdfSignature`: Add `PdfAcroFormSigFlags::SignaturesExist` to `/SigFlags` only if needed
+- `PdfAnnotationCollection`: Workaround DocMDP validation issues on `/Annots` residing outside of the page object
+- `PdfSigningContext`: Remove `/NeedAppearances` only when found true
+- `PdfAnnotation`: Fixed `TryCreateFromObject()` returning success when requesting a conflicting type
+- `CmsContext`: Fixed wrong return code check when adding attributes to the signer
+- `NullStreamDevice`: Fixed `readChar()` returning false on success
+- `OpenSSLInternal`: Use OpenSSL library context aware functions, warn if OpenSSL is built without threads support
+- Added `PdfCommon::IsDebugBuild()`. Fixed detection of debug builds
+- Fixed typos with deprecation: `PdfAuthResult::Unknown`, `PdfIdentityOrientation::Unknown`, `PdfFontMetrics::GetFontFamilyNameSafe()`
+- Deprecated `PdfSignatureEncryption`, which has no use in the public API
+- Updated the PoDoFo producer string to `PoDoFo - https://podofo.github.io/`
+- CMake: The `podofo::podofo` target now carries the public include directories, the C++17 requirement and `PODOFO_STATIC`
+- CMake: Link-time optimization is enabled by default in optimized builds, it can be disabled with `PODOFO_WITH_LTO=OFF`
+- CMake: Enabled large file support on non Windows platforms
+- `charconv_compat`: `std::to_chars` is available in iOS with version >= 16.3
+
 ## Version 1.1.2
 - `CodePointSpan`: Fixed constructor with base view plus one code point, [GHSA](https://github.com/podofo/podofo/security/advisories/GHSA-7vfg-cp83-9rxr)
 - `FreeTypePrivate`: Fixed potential access of thread local `FT_LibraryPtr` by a garbage collector when the creation thread already quitted

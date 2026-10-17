@@ -1,3 +1,30 @@
+# 1.1.2 -> 1.1.3
+
+1.1.3 is ABI incompatible with previous 1.1.x releases. Source compatibility is preserved with the
+following minor exceptions:
+
+- `PdfEncryptSession`: Removed from the public API. It was never meant to be public, it was used
+only privately in `PdfMemDocument` and an instance could not be obtained from the public API.
+The `podofo/main/PdfEncryptSession.h` header is kept for source compatibility and it only
+forward declares the class
+- `PdfArray`: `iterator` and `const_iterator` are now `PdfObject*` and `const PdfObject*`, as the
+elements are not stored anymore in a `std::vector<PdfObject>`. Code using `PdfArray::iterator`
+or `auto` is not affected, code naming `PdfArrayList::iterator` or
+`std::vector<PdfObject>::iterator` must be updated. `PdfArrayList` is deprecated
+- Overrides of methods in `FileStreamDevice`, `ContainerStreamDevice` and `SpanStreamDevice`
+may be bypassed by the inline fast paths in `InputStream`, `OutputStream`, `StreamDeviceBase`
+- `PdfSaveOptions`: `_Reserved1` and `_Reserved2` are deprecated aliases of the new
+`ForceXRefTable` and `ForceXRefStream` values. `PdfSaveOptions` and `PdfLoadOptions` now have
+an explicit `uint32_t` underlying type
+- `PdfReference::IsIndirect()`: Now returns false for references with object number 0 and
+generation number different than 0, e.g. `0 1 R`
+- `PdfSignatureEncryption`: Deprecated, it has no use in the public API, other than setting
+the deprecated and unused `PdfSignerCmsParams::Encryption` field. It's misworded
+as it really means the signing algorithm, which may not be encryption based
+- Deprecated enum values with typos: `PdfIdentityOrientation::Unkwnown`, `PdfAuthResult::Unkwnon`,
+and `PdfFontMetrics::GeFontFamilyNameSafe()`
+- `PdfDataContainer`: Deprecated protected `GetObjectDocument()`, use the new public `GetDocument()`
+
 # 1.0.* -> 1.1
 
 - `PdfFontFactory`: Removed, this was a leftover of a removed class,
