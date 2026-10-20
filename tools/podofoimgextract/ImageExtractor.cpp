@@ -39,13 +39,14 @@ void ImageExtractor::Init(const string_view& input, const string_view& output)
                 (subtypeObj && subtypeObj->IsName() && (subtypeObj->GetName() == "Image")))
             {
                 auto filter = obj->GetDictionary().GetKey("Filter"_n);
-                if (filter != nullptr && filter->IsArray() && filter->GetArray().GetSize() == 1 &&
-                    filter->GetArray()[0].IsName() && (filter->GetArray()[0].GetName() == "DCTDecode"))
-                    filter = &filter->GetArray()[0];
+                // The last filter is DCTDecode -> the decoded stream is a JPEG file
+                // (it may be preceded by other filters, like FlateDecode)
+                if (filter != nullptr && filter->IsArray() && filter->GetArray().GetSize() != 0)
+                    filter = &filter->GetArray()[filter->GetArray().GetSize() - 1];
 
                 if (filter && filter->IsName() && (filter->GetName() == "DCTDecode"))
                 {
-                    // The only filter is JPEG -> create a JPEG file
+                    // The last filter is JPEG -> create a JPEG file
                     ExtractImage(*obj, true);
                 }
                 else
@@ -79,8 +80,8 @@ void ImageExtractor::ExtractImage(const PdfObject& obj, bool jpeg)
 
     if (jpeg)
     {
-        auto& memprovider = dynamic_cast<const PdfMemoryObjectStream&>(obj.GetStream()->GetProvider());
-        auto& buffer = memprovider.GetBuffer();
+        // Decode all the filters but the media filter (JPEG)
+        auto buffer = obj.GetStream()->GetCopySafe();
         fwrite(buffer.data(), buffer.size(), sizeof(char), file);
     }
     else
