@@ -5,6 +5,7 @@
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include <podofo/podofo.h>
+#include <filesystem>
 #include <podofo/optional/PdfConvert.h>
 
 #include <cstdlib>
@@ -684,7 +685,7 @@ void Main(const cspan<string_view>& args)
         char fldName[96]; // use bigger buffer to make sure sprintf does not overflow
         sprintf(fldName, "PodofoSignatureField%u", document.GetObjects().GetObjectCount());
 
-        name = PdfString(fldName);
+        name = PdfString(string_view(fldName));
     }
 
     if (existingSigField)
@@ -760,7 +761,13 @@ void Main(const cspan<string_view>& args)
     utls::ReadTo(pkey, pkeyfile);
     PdfSignerCms signer(cert, pkey, params);
 
-    FileStreamDevice device(outputfile.empty() ? inputfile : outputfile, FileMode::Open, DeviceAccess::Write);
+    // The signature is appended to the existing document as an incremental
+    // update, so the output file must start as a copy of the input file
+    if (!outputfile.empty())
+        filesystem::copy_file(filesystem::u8path(inputfile), filesystem::u8path(outputfile),
+            filesystem::copy_options::overwrite_existing);
+
+    FileStreamDevice device(outputfile.empty() ? inputfile : outputfile, FileMode::Open, DeviceAccess::ReadWrite);
 
     PoDoFo::SignDocument(document, device, signer, *signature);
 }
