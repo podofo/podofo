@@ -26,7 +26,7 @@ src/podofo/
 - `3rdparty/` vendored headers/sources (fmtlib, fast_float, utf8cpp, date, tcb::span, chromium numerics, Adobe AFDKO)
 - `test/unit/`: Catch2-based unit tests (single executable `podofo-unit`)
 - `test/common/`: shared test utilities (`PdfTest.h`, `TestUtils`)
-- `tools/`: CLI utilities built on top of the library
+- `tools/`: CLI utilities built on top of the library. Tools are not currently supported, tested, or maintained: issue a warning if any attempt is made to modify them
 - `examples/`: simple sample programs
 - `playground/`: development and test bed using pre-built dependencies
 - `extern/resources/`: test fixture files (git submodule)
