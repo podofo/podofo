@@ -35,35 +35,44 @@ void draw(const char* buffer, PdfDocument& document, const string_view& fontName
 
     double x = BORDER_LEFT;
     double y = BORDER_TOP;
-    const char* cursor = buffer;
 
     size = PdfPage::CreateStandardPageSize(PdfPageSize::A4);
     auto font = document.GetFonts().SearchFont(fontName);
+    // The default font may be not installed, fall back to a standard one
+    if (font == nullptr && fontName == DEFAULT_FONT)
+        font = &document.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica);
+    if (font == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Font not found");
+
     auto page = &document.GetPages().CreatePage(size);
     y = size.Height - y;
-    if (font == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     painter.SetCanvas(*page);
     painter.TextState.SetFont(*font, FONT_SIZE);
 
-    while (*buffer)
+    const char* cursor = buffer;
+    while (*cursor)
     {
-        if (*buffer == '\n')
+        // Draw exactly one line, without the line terminator
+        const char* end = cursor;
+        while (*end && *end != '\n')
+            end++;
+        const char* lineEnd = end;
+        if (lineEnd > cursor && lineEnd[-1] == '\r')
+            lineEnd--;
+
+        if (lineEnd != cursor)
+            painter.DrawText(string_view(cursor, lineEnd - cursor), x, y);
+
+        cursor = *end ? end + 1 : end;
+        y -= font->GetMetrics().GetLineSpacing() * FONT_SIZE;
+        if (y < BORDER_TOP && *cursor)
         {
-            painter.DrawText(cursor, x, y);
-            cursor = ++buffer;
-            y -= font->GetMetrics().GetLineSpacing();
-            if (y < BORDER_TOP)
-            {
-                page = &document.GetPages().CreatePage(size);
-                painter.SetCanvas(*page);
-                y = size.Height - y;
-            }
-        }
-        else
-        {
-            buffer++;
+            painter.FinishDrawing();
+            page = &document.GetPages().CreatePage(size);
+            painter.SetCanvas(*page);
+            painter.TextState.SetFont(*font, FONT_SIZE);
+            y = size.Height - BORDER_TOP;
         }
     }
 
