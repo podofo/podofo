@@ -94,7 +94,7 @@ ColorChanger::ColorChanger(IConverter* convert, const string_view& sInput, const
 void ColorChanger::start()
 {
     PdfMemDocument input;
-    input.LoadFromBuffer(m_input);
+    input.Load(m_input);
     for (unsigned i = 0; i < input.GetPages().GetCount(); i++)
     {
         cout << "Processing page " << std::setw(6) << (i + 1) << "..." << endl << flush;
