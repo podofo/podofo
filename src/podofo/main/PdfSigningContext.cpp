@@ -653,7 +653,7 @@ void PdfSigningContext::computeSignatures(std::vector<SignerContext>& contexts, 
         }
 
         if (ctx.Contents.size() > ctx.BeaconSize)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Actual signature size bigger than beacon size");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Actual signature size {} bigger than beacon size {}", ctx.Contents.size(), ctx.BeaconSize);
 
         // Ensure the signature will be as big as the
         // beacon size previously cached to fill all
