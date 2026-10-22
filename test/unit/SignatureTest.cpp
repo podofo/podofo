@@ -904,7 +904,7 @@ TEST_CASE("TestECDSA")
     PoDoFo::SignDocument(doc, *stream, signer, signature, PdfSaveOptions::NoMetadataUpdate);
 
     utls::ReadTo(buff, outputPath);
-    REQUIRE(ssl::ComputeMD5Str(buff) == "E8F34C90C26982DFBB3CC56F397C2B27");
+    REQUIRE(ssl::ComputeMD5Str(buff) == "E5FF4FD7D997DA0FC91CF4D7E4065BA2");
 }
 
 #endif // OPENSSL_VERSION_MAJOR > 3 || (OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR >= 2)

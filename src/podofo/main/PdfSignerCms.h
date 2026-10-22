@@ -163,7 +163,7 @@ namespace PoDoFo
 
         // Temporary buffer variables
         // NOTE: Don't clear it in Reset() override
-        charbuff m_encryptedHash;
+        charbuff m_signedHash;
     };
 }
 
