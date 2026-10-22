@@ -56,22 +56,28 @@ void PdfSignerCms::ComputeSignature(charbuff& contents, bool dryrun)
     if (m_parameters.SigningService == nullptr)
     {
         // Do default signing
-        doSign(hashToSign, m_encryptedHash);
+        doSign(hashToSign, m_signedHash);
     }
     else if (!dryrun || (m_parameters.Flags & PdfSignerCmsFlags::ServiceDoDryRun) != PdfSignerCmsFlags::None)
     {
-        m_parameters.SigningService(hashToSign, dryrun, m_encryptedHash);
+        m_parameters.SigningService(hashToSign, dryrun, m_signedHash);
     }
     else
     {
-        // Just prepare a fake result with the size of RSA block
-        m_encryptedHash.resize(m_cmsContext->GetSignedHashSize());
+        // Just prepare a fake result with the maximum size of the signature block
+        m_signedHash.resize(m_cmsContext->GetSignedHashSize());
     }
 
     if (m_parameters.SignedHashHandler != nullptr)
-        m_parameters.SignedHashHandler(m_encryptedHash, dryrun);
+        m_parameters.SignedHashHandler(m_signedHash, dryrun);
 
-    m_cmsContext->ComputeSignature(m_encryptedHash, contents);
+    // In all cases, defensively prevent the signed hash to be
+    // smaller than the maximum size of the signature block,
+    // which may be non deterministic in some signing algorithms (eg. ECDSA)
+    if (dryrun && m_signedHash.size() < m_cmsContext->GetSignedHashSize())
+        m_signedHash.resize(m_cmsContext->GetSignedHashSize());
+
+    m_cmsContext->ComputeSignature(m_signedHash, contents);
     if (dryrun)
         tryEnlargeSignatureContents(contents);
 }
@@ -394,19 +400,8 @@ void PdfSignerCms::doSign(const bufferview& input, charbuff& output)
     return ssl::DoSignHash(input, m_privKey, PdfHashingAlgorithm::Unknown, output, true);
 }
 
-// NOTE: PdfSignatureEncryption is deprecated only for the public API
-PODOFO_SUPPRESS_DEPRECATED_PUSH
 void PdfSignerCms::tryEnlargeSignatureContents(charbuff& contents)
 {
-    if (m_cmsContext->GetEncryption() == PdfSignatureEncryption::ECDSA)
-    {
-        // Unconditionally account for 2 slack bytes due to random nature of ECDSA
-        contents.resize(contents.size() + 2 + m_reservedSize);
-    }
-    else
-    {
-        if (m_reservedSize != 0)
-            contents.resize(contents.size() + m_reservedSize);
-    }
+    if (m_reservedSize != 0)
+        contents.resize(contents.size() + m_reservedSize);
 }
-PODOFO_SUPPRESS_DEPRECATED_POP
