@@ -1821,10 +1821,11 @@ void utls::ReadInt16BE(const char* buf, int16_t& value)
         | (int16_t)((int8_t)buf[0]  << 8);
 }
 
-void utls::RecursionGuard::Enter()
+utls::RecursionGuard::RecursionGuard()
 {
-    s_recursionDepth++;
-    if (s_recursionDepth > s_MaxRecursionDepth)
+    // Check before incrementing: the destructor of a guard whose
+    // constructor throws never runs, so the counter must stay untouched
+    if (s_recursionDepth >= s_MaxRecursionDepth)
     {
         // avoid stack overflow on documents that have circular cross references, loops
         // or very deeply nested structures, can happen with
@@ -1834,21 +1835,13 @@ void utls::RecursionGuard::Enter()
         // mutually recursive loops involving several objects are possible
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::MaxRecursionReached, "Stack overflow");
     }
-}
 
-void utls::RecursionGuard::Exit()
-{
-    s_recursionDepth--;
-}
-
-utls::RecursionGuard::RecursionGuard()
-{
-    Enter();
+    s_recursionDepth++;
 }
 
 utls::RecursionGuard::~RecursionGuard()
 {
-    Exit();
+    s_recursionDepth--;
 }
 
 void removeTrailingZeroes(string& str, size_t len)
