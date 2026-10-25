@@ -258,10 +258,6 @@ namespace utls
     public:
         RecursionGuard();
         ~RecursionGuard();
-
-    private:
-        void Enter();
-        void Exit();
     };
 
     // https://stackoverflow.com/a/14369745/213871

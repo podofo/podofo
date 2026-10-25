@@ -321,6 +321,34 @@ TEST_CASE("TestMultipleInvalidTokenVariantsNocrash")
     }
 }
 
+TEST_CASE("TestMaxRecursionReachedKeepsDepth")
+{
+    // The destructor of a guard whose constructor throws never runs, so the
+    // depth counter must stay untouched or each MaxRecursionReached leaks a level
+    struct DepthRestorer
+    {
+        unsigned Depth = PdfCommon::GetMaxRecursionDepth();
+        ~DepthRestorer() { PdfCommon::SetMaxRecursionDepth(Depth); }
+    } restorer;
+
+    constexpr unsigned maxDepth = 4;
+    PdfCommon::SetMaxRecursionDepth(maxDepth);
+    for (unsigned i = 0; i <= maxDepth; i++)
+    {
+        SpanStreamDevice device("[[[[[[]]]]]]"sv);
+        PdfTokenizer tokenizer;
+        PdfVariant variant;
+        ASSERT_THROW_WITH_ERROR_CODE(tokenizer.ReadNextVariant(device, variant),
+            PdfErrorCode::MaxRecursionReached);
+    }
+
+    SpanStreamDevice device("[1]"sv);
+    PdfTokenizer tokenizer;
+    PdfVariant variant;
+    tokenizer.ReadNextVariant(device, variant);
+    REQUIRE(variant.IsArray());
+}
+
 void Test(const string_view& buffer, PdfDataType dataType, string_view expected)
 {
     expected = expected.empty() ? buffer : expected;
