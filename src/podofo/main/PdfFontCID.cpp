@@ -135,6 +135,13 @@ void PdfFontCID::embedFontSubset()
             constexpr char bits[] = { '\x80', '\x40', '\x20', '\x10', '\x08', '\x04', '\x02', '\x01' };
             auto& info = subsetInfos[i];
             unsigned cid = info.Cid;
+            if (cid > MAX_CID)
+            {
+                // CIDs of a proxy font come from the loaded document
+                PoDoFo::LogMessage(PdfLogSeverity::Warning, "Skipped CID {} exceeding the maximum CID {} in /CIDSet", cid, MAX_CID);
+                continue;
+            }
+
             unsigned dataIndex = cid >> 3;
             if (cidSetData.size() < dataIndex + 1)
                 cidSetData.resize(dataIndex + 1);

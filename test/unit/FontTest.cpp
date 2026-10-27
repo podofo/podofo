@@ -275,6 +275,35 @@ startxref
     ASSERT_EQUAL(metrics.GetGlyphWidth(3, PdfGlyphAccess::ReadMetrics), 0.8);
 }
 
+TEST_CASE("TestCIDFontWidthsExceedingMaxCID")
+{
+    // The /W range ends at 4294967295 and the sub-array starting at
+    // CID 1114111 (0x10FFFF) has 2 entries: both must be clamped to the
+    // maximum CID instead of sizing the widths vector from the file
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Resources<</Font<</F1 4 0 R>>>>>>endobj
+4 0 obj<</Type/Font/Subtype/Type0/BaseFont/Test/Encoding/Identity-H/DescendantFonts[5 0 R]>>endobj
+5 0 obj<</Type/Font/Subtype/CIDFontType2/BaseFont/Test/CIDSystemInfo<</Registry(Adobe)/Ordering(Identity)/Supplement 0>>/FontDescriptor 6 0 R/DW 1000/W[0 4294967295 700 1114111[500 600]]>>endobj
+6 0 obj<</Type/FontDescriptor/FontName/Test/Flags 4/FontBBox[0 0 1000 1000]/ItalicAngle 0/Ascent 800/Descent -200/CapHeight 700/StemV 80>>endobj
+trailer<</Root 1 0 R/Size 7>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& resources = doc.GetPages().GetPageAt(0).GetResources();
+    unique_ptr<PdfFont> font;
+    REQUIRE(PdfFont::TryCreateFromObject(*resources.GetResource(PdfResourceType::Font, "F1"), font));
+    auto& metrics = font->GetMetrics();
+    REQUIRE(metrics.GetGlyphCount(PdfGlyphAccess::ReadMetrics) == 1114112);
+    ASSERT_EQUAL(metrics.GetGlyphWidth(0, PdfGlyphAccess::ReadMetrics), 0.7);
+    ASSERT_EQUAL(metrics.GetGlyphWidth(1114110, PdfGlyphAccess::ReadMetrics), 0.7);
+    ASSERT_EQUAL(metrics.GetGlyphWidth(1114111, PdfGlyphAccess::ReadMetrics), 0.5);
+}
+
 #ifdef PODOFO_HAVE_FONTCONFIG
 
 #include <fontconfig/fontconfig.h>

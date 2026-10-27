@@ -221,7 +221,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfDictionary& fontDict,
                     break;
                 }
 
-                if (start < 0)
+                if (start < 0 || start > MAX_CID)
                 {
                     // Invalid starting CID, stop parsing
                     break;
@@ -231,11 +231,18 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfDictionary& fontDict,
                 if (second->TryGetArray(arr))
                 {
                     pos++;
-                    uint64_t length = (uint64_t)start + arr->GetSize();
-                    if (length > widths.size())
-                        widths.resize((size_t)length, m_DefaultWidth);
+                    unsigned count = arr->GetSize();
+                    if (count > MAX_CID + 1 - start)
+                    {
+                        PoDoFo::LogMessage(PdfLogSeverity::Warning, "/W sub-array starting at CID {} extends past the maximum CID {}", start, MAX_CID);
+                        count = (unsigned)(MAX_CID + 1 - start);
+                    }
 
-                    for (unsigned i = 0; i < arr->GetSize(); i++)
+                    size_t length = (size_t)start + count;
+                    if (length > widths.size())
+                        widths.resize(length, m_DefaultWidth);
+
+                    for (unsigned i = 0; i < count; i++)
                         widths[(size_t)start + i] = arr->FindAtAsSafe<double>(i, 0) * m_Matrix[0];
                 }
                 else
@@ -248,12 +255,18 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfDictionary& fontDict,
                         continue;
                     }
 
-                    uint64_t length = (uint64_t)end + 1;
-                    if (length > widths.size())
-                        widths.resize((size_t)length, m_DefaultWidth);
+                    if (end > MAX_CID)
+                    {
+                        PoDoFo::LogMessage(PdfLogSeverity::Warning, "/W range ending at CID {} exceeds the maximum CID {}", end, MAX_CID);
+                        end = MAX_CID;
+                    }
 
-                    for (uint64_t i = (uint64_t)start; i <= (uint64_t)end; i++)
-                        widths[(size_t)i] = width;
+                    size_t length = (size_t)end + 1;
+                    if (length > widths.size())
+                        widths.resize(length, m_DefaultWidth);
+
+                    for (size_t i = (size_t)start; i <= (size_t)end; i++)
+                        widths[i] = width;
                 }
             }
 
