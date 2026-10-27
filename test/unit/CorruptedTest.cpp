@@ -294,3 +294,35 @@ startxref
     REQUIRE(doc.GetObjects().GetObject(PdfReference(3, 0)) == nullptr);
     REQUIRE(doc.GetObjects().GetObject(PdfReference(3, 2)) != nullptr);
 }
+
+TEST_CASE("TestRebuildXRefStreamTakesFreedObjectNumber")
+{
+    // The rebuild finds two unreferenced generations of object 5. Freeing
+    // both put 5 1 R and 5 3 R in the free list: the XRef stream object
+    // took the first, then the second replaced its entry on writing
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj
+5 0 obj<</Old true>>endobj
+5 2 obj<</New true>>endobj
+trailer<</Root 1 0 R/Size 3>>
+startxref
+999999
+%%EOF)";
+
+    charbuff buff;
+    {
+        PdfMemDocument doc;
+        doc.LoadFromBuffer(pdf);
+        REQUIRE(doc.HasBrokenXRef());
+        BufferStreamDevice device(buff);
+        doc.Save(device, PdfSaveOptions::ForceXRefStream | PdfSaveOptions::NoMetadataUpdate);
+    }
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(buff);
+    REQUIRE(!doc.HasBrokenXRef());
+    auto xrefObj = doc.GetObjects().GetObject(PdfReference(5, 3));
+    REQUIRE(xrefObj != nullptr);
+    REQUIRE(xrefObj->GetDictionary().FindKeyAs<PdfName>("Type") == "XRef");
+}
