@@ -232,6 +232,8 @@ private:
     /// the vector remains sorted w.r.t.
     /// the ordering based on object and generation numbers
     /// m_ObjectCount will be increased for the object.
+    /// An existing object with the same object number is
+    /// replaced, whatever its generation number
     ///
     /// @param obj pointer to the object you want to insert
     void PushObject(std::unique_ptr<PdfObject> obj);

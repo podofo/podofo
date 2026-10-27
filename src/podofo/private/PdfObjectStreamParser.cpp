@@ -41,6 +41,7 @@ void PdfObjectStreamParser::Parse(PdfParserObject& streamObj, PdfIndirectObjectL
                 continue;
             }
 
+            // NOTE: An object with the same number is replaced, the last found wins
             pushObject(objects, parser, { parser->m_offsets[i].ObjectNumber, i });
         }
     }

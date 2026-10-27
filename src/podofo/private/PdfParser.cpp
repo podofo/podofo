@@ -334,6 +334,7 @@ bool PdfParser::tryRebuildCrossReference(InputStreamDevice& device)
                             }
                         }
 
+                        // NOTE: An object with the same number is replaced, the last found wins
                         if (pushObject)
                             m_Objects->PushObject(std::move(parserObject));
                     }
