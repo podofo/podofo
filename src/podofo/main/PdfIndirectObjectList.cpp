@@ -309,7 +309,9 @@ void PdfIndirectObjectList::PushObject(unique_ptr<PdfObject> obj)
     obj->SetDocument(m_Document);
 
     ObjectList::node_type node;
-    auto it = m_Objects.lower_bound(obj.get());
+    // Look up by number only: an existing object with a lower
+    // generation must be found as well
+    auto it = m_Objects.lower_bound(PdfReference(obj->GetIndirectReference().ObjectNumber(), 0));
     auto hintpos = it;
     if (it != m_Objects.end()
         && (*it)->GetIndirectReference().ObjectNumber() == obj->GetIndirectReference().ObjectNumber())
@@ -345,13 +347,18 @@ void PdfIndirectObjectList::markObjectFree(const PdfReference& reference, bool d
     PdfReference freeObjRef(reference.ObjectNumber(), reference.GenerationNumber() + 1);
     if (doConsistencyCheck)
     {
-        auto found = m_Objects.find(freeObjRef);
-        if (found != m_Objects.end())
+        // Refuse to free the number if any other live object uses it,
+        // whatever its generation, otherwise the next created object
+        // would take the number and replace the live one
+        for (auto it = m_Objects.lower_bound(PdfReference(reference.ObjectNumber(), 0));
+            it != m_Objects.end() && (*it)->GetIndirectReference().ObjectNumber() == reference.ObjectNumber(); it++)
         {
-            // The free object reference is already used by an
-            // existing object, just exit
+            auto& liveRef = (*it)->GetIndirectReference();
+            if (liveRef == reference)
+                continue;
+
             PoDoFo::LogMessage(PdfLogSeverity::Warning, "Object {} {} R marked free but same object with generation {} exists",
-                reference.ObjectNumber(), reference.GenerationNumber(), freeObjRef.GenerationNumber());
+                reference.ObjectNumber(), reference.GenerationNumber(), liveRef.GenerationNumber());
             return;
         }
     }

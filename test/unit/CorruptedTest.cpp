@@ -216,3 +216,50 @@ startxref
     REQUIRE(!doc.HasBrokenXRef());
     REQUIRE(doc.GetObjects().GetObject(PdfReference(4, 0)) == nullptr);
 }
+
+TEST_CASE("TestRebuildKeepsLastGenerationOfObjectNumber")
+{
+    // The rebuild finds the unreferenced "1 0 obj" before the catalog
+    // "1 2 obj". Only the latter must be kept: collecting the former as
+    // garbage put 1 1 R in the free list while the catalog was live, so
+    // the next created object replaced the catalog
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Junk true>>endobj
+1 2 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj
+trailer<</Root 1 2 R/Size 3>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    REQUIRE(doc.HasBrokenXRef());
+    REQUIRE(doc.GetObjects().GetObject(PdfReference(1, 0)) == nullptr);
+    REQUIRE(doc.GetObjects().GetFreeObjects().empty());
+    auto& acroForm = doc.GetOrCreateAcroForm();
+    REQUIRE(acroForm.GetObject().GetIndirectReference() == PdfReference(3, 0));
+    REQUIRE(doc.GetCatalog().GetDictionary().HasKey("AcroForm"));
+}
+
+TEST_CASE("TestRebuildReplacesLowerGenerationOfObjectNumber")
+{
+    // Both "3 0 obj" and the later "3 2 obj" are referenced, so the
+    // garbage collection keeps them: the rebuild itself must keep
+    // only the last one found
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/A 3 0 R/B 3 2 R>>endobj
+2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj
+3 0 obj<</Old true>>endobj
+3 2 obj<</New true>>endobj
+trailer<</Root 1 0 R/Size 4>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    REQUIRE(doc.HasBrokenXRef());
+    REQUIRE(doc.GetObjects().GetObject(PdfReference(3, 0)) == nullptr);
+    REQUIRE(doc.GetObjects().GetObject(PdfReference(3, 2)) != nullptr);
+}
