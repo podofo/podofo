@@ -212,7 +212,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfDictionary& fontDict,
             vector<double> widths;
             while (pos < widthsArr.GetSize())
             {
-                unsigned start = (unsigned)widthsArr.MustFindAt(pos++).GetNumberLenient();
+                int64_t start = widthsArr.MustFindAt(pos++).GetNumberLenient();
                 auto second = widthsArr.FindAt(pos);
                 if (second == nullptr)
                 {
@@ -221,29 +221,39 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfDictionary& fontDict,
                     break;
                 }
 
+                if (start < 0)
+                {
+                    // Invalid starting CID, stop parsing
+                    break;
+                }
+
                 const PdfArray* arr;
                 if (second->TryGetArray(arr))
                 {
                     pos++;
-                    unsigned length = start + arr->GetSize();
-                    PODOFO_ASSERT(length >= start);
+                    uint64_t length = (uint64_t)start + arr->GetSize();
                     if (length > widths.size())
-                        widths.resize(length, m_DefaultWidth);
+                        widths.resize((size_t)length, m_DefaultWidth);
 
                     for (unsigned i = 0; i < arr->GetSize(); i++)
-                        widths[start + i] = arr->FindAtAsSafe<double>(i, 0) * m_Matrix[0];
+                        widths[(size_t)start + i] = arr->FindAtAsSafe<double>(i, 0) * m_Matrix[0];
                 }
                 else
                 {
-                    unsigned end = (unsigned)widthsArr.MustFindAt(pos++).GetNumberLenient();
-                    unsigned length = end + 1;
-                    PODOFO_ASSERT(length >= start);
-                    if (length > widths.size())
-                        widths.resize(length, m_DefaultWidth);
-
+                    int64_t end = widthsArr.MustFindAt(pos++).GetNumberLenient();
                     double width = widthsArr.FindAtAsSafe<double>(pos++, 0) * m_Matrix[0];
-                    for (unsigned i = start; i <= end; i++)
-                        widths[i] = width;
+                    if (end < start)
+                    {
+                        // Malformed descending range, skip it
+                        continue;
+                    }
+
+                    uint64_t length = (uint64_t)end + 1;
+                    if (length > widths.size())
+                        widths.resize((size_t)length, m_DefaultWidth);
+
+                    for (uint64_t i = (uint64_t)start; i <= (uint64_t)end; i++)
+                        widths[(size_t)i] = width;
                 }
             }
 
