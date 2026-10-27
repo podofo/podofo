@@ -121,3 +121,28 @@ startxref
     REQUIRE(obj != nullptr);
     REQUIRE(obj->MustGetStream().GetCopy() == "Hello");
 }
+
+TEST_CASE("TestRebuildSkipsMaxGenerationObject")
+{
+    // The rebuild finds "2 65535 obj" after the referenced "2 1 obj". It must
+    // be skipped like the regular xref path does: collecting it as garbage
+    // wrapped the incremented generation to 0, so 2 0 R entered the free list
+    // and the next created object replaced the live 2 1 R
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 1 R>>endobj
+2 1 obj<</Type/Pages/Kids[]/Count 0>>endobj
+2 65535 obj<</Type/Bogus>>endobj
+trailer<</Root 1 0 R/Size 3>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    REQUIRE(doc.HasBrokenXRef());
+    REQUIRE(doc.GetObjects().GetObject(PdfReference(2, 65535)) == nullptr);
+    REQUIRE(doc.GetObjects().GetFreeObjects().empty());
+    doc.GetPages().CreatePage(PdfPageSize::A4);
+    REQUIRE(doc.GetPages().GetCount() == 1);
+    REQUIRE(doc.GetObjects().GetObject(PdfReference(2, 1)) != nullptr);
+}
