@@ -35,9 +35,6 @@ class PdfParser
     friend class PdfWriter;
 
 public:
-    static constexpr int64_t MaxObjectCount = std::numeric_limits<int64_t>::max();
-
-public:
     /// Create a new PdfParser object
     /// You have to open a PDF file using ParseFile later.
     /// @param objects vector to write the parsed PdfObjects to

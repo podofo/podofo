@@ -12,6 +12,7 @@
 #include "PdfCompressedObject.h"
 #include "PdfParser.h"
 
+#include <podofo/main/PdfCommon.h>
 #include <podofo/main/PdfDictionary.h>
 #include <podofo/main/PdfDocument.h>
 #include <podofo/main/PdfIndirectObjectList.h>
@@ -148,7 +149,7 @@ void PdfObjectStreamParser::decode(const PdfObject& streamObj)
     auto& dict = streamObj.GetDictionary();
     int64_t num = dict.FindKeyAsSafe<int64_t>("N", 0);
     int64_t first = dict.FindKeyAsSafe<int64_t>("First", 0);
-    if (num < 0 || first < 0 || num >= PdfParser::MaxObjectCount)
+    if (num < 0 || first < 0 || num > PdfCommon::GetMaxObjectCount())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile, "Object stream has invalid object count or offset");
 
     streamObj.MustGetStream().CopyTo(m_contents);
@@ -163,7 +164,7 @@ void PdfObjectStreamParser::decode(const PdfObject& streamObj)
     {
         int64_t objNo = tokenizer.ReadNextNumber(device);
         int64_t offset = tokenizer.ReadNextNumber(device);
-        if (objNo < 0 || offset < 0 || objNo >= PdfParser::MaxObjectCount)
+        if (objNo < 0 || offset < 0 || objNo > PdfCommon::GetMaxObjectCount())
         {
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile,
                 "Object stream has invalid object number or offset");
