@@ -242,8 +242,7 @@ void PdfIndirectObjectList::AddFreeObjectSafe(const PdfReference& reference)
     // Documentation 3.4.3 Cross-Reference Table states: "The maximum
     // generation number is 65535; when a cross reference entry reaches
     // this value, it is never reused."
-    // NOTE: gennum is uint32 to accommodate overflows from callers
-    if (reference.GenerationNumber() >= MAX_XREF_GENERATION_NUM)
+    if (reference.GenerationNumber() == MAX_XREF_GENERATION_NUM)
     {
         AddUnavailableObject(reference.ObjectNumber());
         return;
@@ -336,6 +335,13 @@ void PdfIndirectObjectList::markObjectFree(const PdfReference& reference, bool d
     // 1 to indicate the generation number to be used the next time an
     // object with that object number is created. Thus, each time
     // the entry is reused, it is given a new generation number."
+    if (reference.GenerationNumber() == MAX_XREF_GENERATION_NUM)
+    {
+        // The generation can't be incremented anymore, retire the object number
+        AddUnavailableObject(reference.ObjectNumber());
+        return;
+    }
+
     PdfReference freeObjRef(reference.ObjectNumber(), reference.GenerationNumber() + 1);
     if (doConsistencyCheck)
     {

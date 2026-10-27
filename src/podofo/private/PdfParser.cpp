@@ -281,8 +281,18 @@ bool PdfParser::tryRebuildCrossReference(InputStreamDevice& device)
                             break;
                         }
 
-                        if (genNum > numeric_limits<uint16_t>::max())
-                            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile, "Invalid generation number");
+                        if (genNum >= MAX_XREF_GENERATION_NUM)
+                        {
+                            if (m_StrictParsing)
+                            {
+                                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile,
+                                    "Found object {} with generation number >= 65535", objNum);
+                            }
+
+                            PoDoFo::LogMessage(PdfLogSeverity::Warning,
+                                "Skipped object {} with generation number >= 65535", objNum);
+                            break;
+                        }
 
                         parserObject.reset(new PdfParserObject(m_Objects->GetDocument(),
                             PdfReference(objNum, static_cast<uint16_t>(genNum)), device, objPos));
