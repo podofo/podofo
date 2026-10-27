@@ -20,7 +20,14 @@ PdfCIDToGIDMap PdfCIDToGIDMap::Create(const PdfObject& cidToGidMapObj)
     // a 2 - byte value stored in bytes 2 × c and 2 × c + 1,
     // where the first byte shall be the high - order byte"
     auto buffer = cidToGidMapObj.MustGetStream().GetCopy();
-    for (unsigned i = 0, count = (unsigned)buffer.size() / 2; i < count; i++)
+    size_t count = buffer.size() / 2;
+    if (count > MAX_CID + 1)
+    {
+        PoDoFo::LogMessage(PdfLogSeverity::Warning, "/CIDToGIDMap stream maps CIDs past the maximum CID {}", MAX_CID);
+        count = MAX_CID + 1;
+    }
+
+    for (unsigned i = 0; i < count; i++)
     {
         unsigned gid = (unsigned)((uint8_t)buffer[i * 2 + 0] << 8 | (uint8_t)buffer[i * 2 + 1]);
         map[i] = gid;

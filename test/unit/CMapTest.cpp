@@ -91,3 +91,25 @@ TEST_CASE("TestCodeSpaceRange")
     REQUIRE((ranges[3].CodeLo == 57408 && ranges[3].CodeHi == 61180 && ranges[3].CodeSpaceSize == 2));
     REQUIRE((ranges[4].CodeLo == 253 && ranges[4].CodeHi == 255 && ranges[4].CodeSpaceSize == 1));
 }
+
+TEST_CASE("TestCMapCIDsExceedingMaxCID")
+{
+    // The range is truncated at CID 1114111 (0x10FFFF), the char
+    // mapping past it is dropped
+    string_view input =
+        "1 begincidrange\n"
+        "<0000> <00FF> 1114100\n"
+        "endcidrange\n"
+        "1 begincidchar\n"
+        "<FFFF> 1114112\n"
+        "endcidchar\n"sv;
+
+    SpanStreamDevice device(input);
+    auto cmap = PdfCMapEncoding::Parse(device);
+    auto& map = cmap.GetCharMap();
+    CodePointSpan cids;
+    REQUIRE(map.TryGetCodePoints(PdfCharCode(0x000B, 2), cids));
+    REQUIRE(*cids == 1114111);
+    REQUIRE(!map.TryGetCodePoints(PdfCharCode(0x000C, 2), cids));
+    REQUIRE(!map.TryGetCodePoints(PdfCharCode(0xFFFF, 2), cids));
+}

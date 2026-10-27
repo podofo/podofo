@@ -174,6 +174,10 @@ namespace PoDoFo
     constexpr double EPSILON = 1e-6;
     constexpr unsigned MAX_OBJECT_COUNT = (1U << 23) - 1;
     constexpr unsigned MAX_XREF_GENERATION_NUM = 65535;
+    // NOTE: There's no CID limit in ISO 32000-2. Arbitrarily use the
+    // maximum Unicode code point, which is also the maximum CID PoDoFo
+    // can encode
+    constexpr unsigned MAX_CID = 0x10FFFF;
 
     /// Transform the given raw rect accordingly to the page rotation
     Rect TransformCornersPage(const Corners& rect, const PdfPage& page);

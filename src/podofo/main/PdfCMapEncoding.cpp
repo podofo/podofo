@@ -328,7 +328,18 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
                             PoDoFo::LogMessage(PdfLogSeverity::Warning, "begincidrange: Found range with srcCodeHi {} < srcCodeLo {}", srcCodeHi, srcCodeLo);
                             continue;
                         }
+                        if (dstCIDLo > MAX_CID)
+                        {
+                            PoDoFo::LogMessage(PdfLogSeverity::Warning, "begincidrange: Found range starting at CID {} exceeding the maximum CID {}", (unsigned)dstCIDLo, MAX_CID);
+                            continue;
+                        }
                         unsigned rangeSize = srcCodeHi - srcCodeLo + 1;
+                        // NOTE: rangeSize wraps to 0 for the full 32-bit code space
+                        if (rangeSize - 1 > MAX_CID - dstCIDLo)
+                        {
+                            PoDoFo::LogMessage(PdfLogSeverity::Warning, "begincidrange: Truncated range starting at CID {} to the maximum CID {}", (unsigned)dstCIDLo, MAX_CID);
+                            rangeSize = MAX_CID - dstCIDLo + 1;
+                        }
                         pushRangeMapping(ret, srcCodeLo, rangeSize, { &dstCIDLo, 1 }, codeSize);
                     }
                 }
@@ -346,6 +357,11 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
                         uint32_t srcCode = getCodeFromVariant(*var, codeLimits, codeSize);
                         tokenizer.ReadNextVariant(device, *var);
                         char32_t dstCode = (char32_t)getCodeFromVariant(*var);
+                        if (dstCode > MAX_CID)
+                        {
+                            PoDoFo::LogMessage(PdfLogSeverity::Warning, "begincidchar: Found CID {} exceeding the maximum CID {}", (unsigned)dstCode, MAX_CID);
+                            continue;
+                        }
                         mappedCodes.clear();
                         mappedCodes.push_back(dstCode);
                         pushMapping(ret, srcCode, codeSize, mappedCodes);
