@@ -1043,8 +1043,8 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
     // loaded, decoding the object stream contents only when accessed
     for (auto& pair : compressedObjects)
     {
-        readCompressedObjectsFromStream(pair.first, pair.second);
-        m_Objects->AddCompressedObjectStream(pair.first);
+        if (readCompressedObjectsFromStream(pair.first, pair.second))
+            m_Objects->AddCompressedObjectStream(pair.first);
     }
 }
 
@@ -1075,7 +1075,7 @@ void PdfParser::eagerlyLoadStreams()
     }
 }
 
-void PdfParser::readCompressedObjectsFromStream(uint32_t objNo, const vector<PdfObjectStreamParser::Entry>& entries)
+bool PdfParser::readCompressedObjectsFromStream(uint32_t objNo, const vector<PdfObjectStreamParser::Entry>& entries)
 {
     // generation number of object streams is always 0
     auto streamObj = dynamic_cast<PdfParserObject*>(m_Objects->GetObject(PdfReference(objNo, 0)));
@@ -1085,10 +1085,11 @@ void PdfParser::readCompressedObjectsFromStream(uint32_t objNo, const vector<Pdf
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidObject, "Loading of object {} 0 R failed!", objNo);
 
         PoDoFo::LogMessage(PdfLogSeverity::Error, "Loading of object {} 0 R failed!", objNo);
-        return;
+        return false;
     }
 
     PdfObjectStreamParser::Parse(*streamObj, *m_Objects, m_buffer, &entries);
+    return true;
 }
 
 bool PdfParser::tryFindTokenBackward(InputStreamDevice& device, string_view token, size_t searchEnd)
