@@ -12,6 +12,7 @@
 #include <podofo/auxiliary/InputDevice.h>
 
 #include <podofo/main/PdfArray.h>
+#include <podofo/main/PdfCommon.h>
 #include <podofo/main/PdfDictionary.h>
 #include <podofo/main/PdfEncrypt.h>
 #include <podofo/main/PdfMemoryObjectStream.h>
@@ -278,6 +279,13 @@ bool PdfParser::tryRebuildCrossReference(InputStreamDevice& device)
                             // The object number 0 is always unavailable
                             PoDoFo::LogMessage(PdfLogSeverity::Warning,
                                 "Skipped object with unavailable object number 0");
+                            break;
+                        }
+
+                        if (objNum > PdfCommon::GetMaxObjectCount())
+                        {
+                            PoDoFo::LogMessage(PdfLogSeverity::Warning,
+                                "Skipped object with number {} above the maximum object count", objNum);
                             break;
                         }
 
@@ -1008,7 +1016,7 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
                 }
                 case PdfXRefEntryType::Compressed:
                 {
-                    if (entry.ObjectNumber > 0 && entry.ObjectNumber < PdfParser::MaxObjectCount)
+                    if (entry.ObjectNumber > 0 && entry.ObjectNumber <= PdfCommon::GetMaxObjectCount())
                         compressedObjects[(uint32_t)entry.ObjectNumber].push_back({ i, entry.Index });
 
                     break;

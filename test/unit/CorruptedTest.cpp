@@ -146,3 +146,73 @@ startxref
     REQUIRE(doc.GetPages().GetCount() == 1);
     REQUIRE(doc.GetObjects().GetObject(PdfReference(2, 1)) != nullptr);
 }
+
+TEST_CASE("TestRebuildSkipsObjectNumberAboveMaximum")
+{
+    // The rebuild finds "4294967295 0 obj": it must be skipped, otherwise
+    // the next object number wraps to 0 and every object created after
+    // the first one replaces it
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/Data 4294967295 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj
+4294967295 0 obj<</Type/Bogus>>endobj
+trailer<</Root 1 0 R/Size 3>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    REQUIRE(doc.HasBrokenXRef());
+    REQUIRE(doc.GetObjects().GetObject(PdfReference(4294967295, 0)) == nullptr);
+    auto& obj1 = doc.GetObjects().CreateDictionaryObject();
+    auto& obj2 = doc.GetObjects().CreateDictionaryObject();
+    REQUIRE(obj1.GetIndirectReference() == PdfReference(3, 0));
+    REQUIRE(obj2.GetIndirectReference() == PdfReference(4, 0));
+}
+
+TEST_CASE("TestRebuildRejectsCompressedObjectNumberAboveMaximum")
+{
+    // The object stream stores the object number 4294967295, which
+    // must be rejected like the other invalid entries of the stream
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj
+3 0 obj<</Type/ObjStm/N 1/First 13/Length 21>>stream
+4294967295 0 <</A 1>>
+endstream
+endobj
+trailer<</Root 1 0 R/Size 4>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    REQUIRE_THROWS_AS(doc.LoadFromBuffer(pdf), PdfError);
+}
+
+TEST_CASE("TestXRefStreamRejectsCompressedEntryInvalidStreamNumber")
+{
+    // The compressed entry of object 4 refers to the object stream
+    // 4294967299 (0x100000003), which must not be truncated to 3
+    string_view pdf = R"(%PDF-1.5
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj
+3 0 obj<</Type/ObjStm/N 1/First 4/Length 12>>stream
+4 0 <</A 1>>
+endstream
+endobj
+5 0 obj<</Type/XRef/Size 6/Index[1 5]/W[1 5 1]/Root 1 0 R/Length 35>>stream
+)" "\x01\x00\x00\x00\x00\x09\x00\x01\x00\x00\x00\x00\x34\x00\x01\x00\x00\x00\x00\x60\x00"
+    "\x02\x01\x00\x00\x00\x03\x00\x01\x00\x00\x00\x00\xB2\x00" R"(
+endstream
+endobj
+startxref
+178
+%%EOF)"sv;
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    REQUIRE(!doc.HasBrokenXRef());
+    REQUIRE(doc.GetObjects().GetObject(PdfReference(4, 0)) == nullptr);
+}
