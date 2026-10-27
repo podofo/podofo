@@ -52,6 +52,7 @@ namespace PoDoFo
         static void TestNestedArrays();
         static void TestNestedDictionaries();
         static void TestInvalidXRefEntries();
+        static void TestCollectGarbageMissingObjectStream();
 
         void ReadXRefContents(size_t offset, bool skipFollowPrevious)
         {
@@ -110,6 +111,7 @@ METHOD_AS_TEST_CASE(PdfParserTest::TestIsPdfFile, "TestIsPdfFile");
 METHOD_AS_TEST_CASE(PdfParserTest::TestNestedArrays, "TestNestedArrays");
 METHOD_AS_TEST_CASE(PdfParserTest::TestNestedDictionaries, "TestNestedDictionaries");
 METHOD_AS_TEST_CASE(PdfParserTest::TestInvalidXRefEntries, "TestInvalidXRefEntries");
+METHOD_AS_TEST_CASE(PdfParserTest::TestCollectGarbageMissingObjectStream, "TestCollectGarbageMissingObjectStream");
 
 TEST_CASE("TestRemoveStream")
 {
@@ -2892,6 +2894,43 @@ endobj
 startxref
 365
 %%EOF)";
+
+// Same as above, but the entry of 7 0 R points to the missing object stream 9 0 R
+static string_view s_objStmMissingStreamPdf = R"(%PDF-1.5
+1 0 obj
+<< /Type /ObjStm /N 4 /First 20 /Length 206 >>
+stream
+2 0 3 52 4 94 7 143
+<< /Type /Catalog /Pages 3 0 R /PoDoFoTest 7 0 R >>
+<< /Type /Pages /Kids [5 0 R] /Count 1 >>
+<< /Title (Compressed title) /Author (PoDoFo) >>
+<< /Type /PoDoFoTest /Value (Untouched) >>
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 3 0 R /MediaBox [0 0 595 842] >>
+endobj
+6 0 obj
+<< /Type /XRef /Size 8 /W [1 2 2] /Root 2 0 R /Info 4 0 R /Filter /ASCIIHexDecode /Length 80 >>
+stream
+000000FFFF0100090000020001000002000100010200010002010126000001016D00000200090003
+endstream
+endobj
+startxref
+365
+%%EOF)";
+
+void PdfParserTest::TestCollectGarbageMissingObjectStream()
+{
+    // The missing object stream must not be registered, otherwise the
+    // garbage collection dereferences its missing object
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(s_objStmMissingStreamPdf);
+    doc.CollectGarbage();
+    REQUIRE(!doc.GetObjects().IsCompressedObjectStream(9));
+    REQUIRE(doc.GetObjects().GetObject(PdfReference(7, 0)) == nullptr);
+    REQUIRE(doc.GetObjects().GetObject(PdfReference(2, 0)) != nullptr);
+}
 
 TEST_CASE("TestCompressedObjectsLazyLoading")
 {

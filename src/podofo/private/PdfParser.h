@@ -222,7 +222,8 @@ private:
     ///
     /// @param objNo object number of the stream object
     /// @param entries the compressed objects to push
-    void readCompressedObjectsFromStream(uint32_t objNo,
+    /// @returns false if the object stream was not found
+    bool readCompressedObjectsFromStream(uint32_t objNo,
         const std::vector<PdfObjectStreamParser::Entry>& entries);
 
     void readNextTrailer(InputStreamDevice& device, nullable<size_t>& prevOffset);

@@ -249,7 +249,8 @@ private:
 
     /// Add the reference object number as an object stream
     /// @remarks These objects are usually compressed and can't be removed,
-    /// that's why the generation number is irrelevant
+    /// that's why the generation number is irrelevant. The object must exist,
+    /// as the garbage collection visits it
     void AddCompressedObjectStream(uint32_t objectNum);
 
     /// Forget the registered object streams, so their containers are
