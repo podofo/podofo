@@ -171,6 +171,37 @@ startxref
     REQUIRE(obj2.GetIndirectReference() == PdfReference(4, 0));
 }
 
+TEST_CASE("TestRebuildSkipsObjectNumberAboveHighestMaximum")
+{
+    // The highest maximum object count still keeps "4294967295 0 obj" out
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/Data 4294967295 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj
+4294967295 0 obj<</Type/Bogus>>endobj
+trailer<</Root 1 0 R/Size 3>>
+startxref
+999999
+%%EOF)";
+
+    unsigned maxObjectCount = PdfCommon::GetMaxObjectCount();
+    PdfCommon::SetMaxObjectCount(numeric_limits<unsigned>::max());
+    PdfMemDocument doc;
+    try
+    {
+        doc.LoadFromBuffer(pdf);
+    }
+    catch (...)
+    {
+        PdfCommon::SetMaxObjectCount(maxObjectCount);
+        throw;
+    }
+
+    PdfCommon::SetMaxObjectCount(maxObjectCount);
+    REQUIRE(doc.GetObjects().GetObject(PdfReference(4294967295, 0)) == nullptr);
+    auto& obj = doc.GetObjects().CreateDictionaryObject();
+    REQUIRE(obj.GetIndirectReference() == PdfReference(3, 0));
+}
+
 TEST_CASE("TestRebuildRejectsCompressedObjectNumberAboveMaximum")
 {
     // The object stream stores the object number 4294967295, which

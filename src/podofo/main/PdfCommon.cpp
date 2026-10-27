@@ -96,7 +96,8 @@ unsigned PdfCommon::GetMaxObjectCount()
 
 void PdfCommon::SetMaxObjectCount(unsigned maxObjectCount)
 {
-    s_MaxObjectCount = maxObjectCount;
+    // NOTE: Leave room for the object number following the last one
+    s_MaxObjectCount = std::min<unsigned>(maxObjectCount, numeric_limits<uint32_t>::max() - 1);
 }
 
 void PdfCommon::SetMaxRecursionDepth(unsigned maxRecursionDepth)

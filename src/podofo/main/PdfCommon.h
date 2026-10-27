@@ -42,6 +42,9 @@ public:
     static bool IsLoggingSeverityEnabled(PdfLogSeverity logSeverity);
 
     static unsigned GetMaxObjectCount();
+
+    /// @remarks Values above 4294967294 are capped, so the object
+    /// number following the last one never wraps to 0
     static void SetMaxObjectCount(unsigned maxObjectCount);
 };
 
