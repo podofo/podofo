@@ -191,7 +191,7 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int scanLin
                     pdfium::span<const uint8_t>((const uint8_t *)imageData.data(), imageData.size()),
                     (int)m_Width, (int)m_Height, k, endOfLine, encodedByteAlign, blackIs1, columns, rows);
 
-                utls::FetchImageCCITT(stream, format, scanLineSize, *decoder, m_Width, m_Height, smaskData);
+                utls::FetchImageCCITT(stream, format, scanLineSize, *decoder, m_Width, m_Height, blackIs1, smaskData);
                 break;
             }
             case PdfFilterType::JBIG2Decode:

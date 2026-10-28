@@ -378,3 +378,62 @@ TEST_CASE("TestImageJpegDimensionMismatch")
     ASSERT_THROW_WITH_ERROR_CODE(image->DecodeTo(buffer, PdfPixelFormat::BGRA),
         PdfErrorCode::UnsupportedImageFormat);
 }
+
+TEST_CASE("TestImageCcittWidthMismatch")
+{
+    // The image declares /Width 4000 but /DecodeParms /Columns 8, so the
+    // decoder scan line is far smaller than the width read per row. Decoding
+    // must be rejected instead of reading past the scan line
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("CcittWidthMismatch.pdf"));
+    auto& resources = doc.GetPages().GetPageAt(0).GetResources();
+    auto imageObj = resources.GetResource(PdfResourceType::XObject, "Im0");
+    unique_ptr<PdfImage> image;
+    REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(*imageObj, image));
+
+    charbuff buffer;
+    ASSERT_THROW_WITH_ERROR_CODE(image->DecodeTo(buffer, PdfPixelFormat::Grayscale),
+        PdfErrorCode::UnsupportedImageFormat);
+}
+
+TEST_CASE("TestImageCcittTruncatedData")
+{
+    // The CCITT stream is empty, so the decoder returns no scan line
+    // for any row: the missing rows are decoded as the decoder white,
+    // which is inverted with /BlackIs1
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/Im0 3 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj
+3 0 obj<</Type/XObject/Subtype/Image/Width 8/Height 2/ColorSpace/DeviceGray/BitsPerComponent 1/Filter/CCITTFaxDecode/DecodeParms<</K -1/Columns 8>>/Length 0>>stream
+
+endstream
+endobj
+trailer<</Root 1 0 R/Size 4>>
+startxref
+999999
+%%EOF)";
+    string_view pdfBlackIs1 = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/Im0 3 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj
+3 0 obj<</Type/XObject/Subtype/Image/Width 8/Height 2/ColorSpace/DeviceGray/BitsPerComponent 1/Filter/CCITTFaxDecode/DecodeParms<</K -1/Columns 8/BlackIs1 true>>/Length 0>>stream
+
+endstream
+endobj
+trailer<</Root 1 0 R/Size 4>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    unique_ptr<PdfImage> image;
+    REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(doc.GetObjects().MustGetObject(PdfReference(3, 0)), image));
+    charbuff buffer;
+    image->DecodeTo(buffer, PdfPixelFormat::Grayscale);
+    REQUIRE(buffer == charbuff(string(16, '\xFF')));
+
+    doc.LoadFromBuffer(pdfBlackIs1);
+    REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(doc.GetObjects().MustGetObject(PdfReference(3, 0)), image));
+    image->DecodeTo(buffer, PdfPixelFormat::Grayscale);
+    REQUIRE(buffer == charbuff(string(16, '\x00')));
+}
