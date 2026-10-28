@@ -465,3 +465,19 @@ startxref
     charbuff buffer;
     ASSERT_THROW_WITH_ERROR_CODE(image->DecodeTo(buffer, PdfPixelFormat::BGRA), PdfErrorCode::NotImplemented);
 }
+
+TEST_CASE("TestImageUndersizedStream")
+{
+    // A 65535x21846 RGB image whose stream holds a few bytes: the source size
+    // check must reject it, also where the required size exceeds 32 bits
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("ImageUndersizedStream.pdf"));
+    auto& resources = doc.GetPages().GetPageAt(0).GetResources();
+    auto imageObj = resources.GetResource(PdfResourceType::XObject, "Im0");
+    unique_ptr<PdfImage> image;
+    REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(*imageObj, image));
+
+    charbuff buffer;
+    ASSERT_THROW_WITH_ERROR_CODE(image->DecodeTo(buffer, PdfPixelFormat::RGB24),
+        PdfErrorCode::UnsupportedImageFormat);
+}
