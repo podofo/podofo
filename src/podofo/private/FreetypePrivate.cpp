@@ -137,7 +137,10 @@ FT::FT_FacePtr FT::CreateFaceFromFile(const string_view& filepath, unsigned face
         auto& lib = getLibrary();
         FT_Error rc;
         FT_Face face;
-        rc = FT_New_Face(lib.Ptr, filepath.data(), faceIndex, &face);
+        // NOTE: FT_New_Face reads the path as a NUL terminated C string,
+        // so a non NUL terminated string_view must be copied first
+        string filepathStr(filepath);
+        rc = FT_New_Face(lib.Ptr, filepathStr.data(), faceIndex, &face);
         if (rc != 0)
             return FT_FacePtr(nullptr, FT::FreeFace);
 
