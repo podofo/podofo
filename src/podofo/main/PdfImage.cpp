@@ -1242,13 +1242,14 @@ void PdfImage::loadFromPngContent(png_structp png, png_infop pnginfo, charbuff& 
                             color = row[c];
                             break;
                         case 4:
-                            color = c % 2 ? row[c / 2] >> 4 : row[c / 2] & 0xF;
+                            // Sub-byte samples are packed MSB first
+                            color = c % 2 ? row[c / 2] & 0xF : row[c / 2] >> 4;
                             break;
                         case 2:
-                            color = (row[c / 4] >> c % 4 * 2) & 3;
+                            color = (row[c / 4] >> (3 - c % 4) * 2) & 3;
                             break;
                         case 1:
-                            color = (row[c / 4] >> c % 8) & 1;
+                            color = (row[c / 8] >> (7 - c % 8)) & 1;
                             break;
                         default:
                             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);

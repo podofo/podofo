@@ -542,3 +542,23 @@ TEST_CASE("TestImageTiffPaletteMultiSample")
     ASSERT_THROW_WITH_ERROR_CODE(img->Load(TestUtils::GetTestInputFilePath("TiffPaletteMultiSample.tif")),
         PdfErrorCode::UnsupportedImageFormat);
 }
+
+TEST_CASE("TestImagePng1BppPaletteTransparency")
+{
+    // A 1 bpp palette PNG with transparency: the soft mask loop indexed the
+    // row as 4 pixels per byte instead of 8, reading past the row
+    PdfMemDocument doc;
+    auto img = doc.CreateImage();
+    REQUIRE_NOTHROW(img->Load(TestUtils::GetTestInputFilePath("Png1BppPalette.png")));
+    REQUIRE(img->GetWidth() == 800);
+
+    // The pixels alternate the transparent palette index 0 and the opaque index 1
+    auto smaskObj = img->GetDictionary().FindKey("SMask");
+    REQUIRE(smaskObj != nullptr);
+    charbuff smask;
+    smaskObj->MustGetStream().CopyTo(smask);
+    string expected;
+    for (unsigned i = 0; i < 400; i++)
+        expected.append("\x00\xFF", 2);
+    REQUIRE(smask == expected);
+}
