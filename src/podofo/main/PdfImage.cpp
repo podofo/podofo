@@ -187,6 +187,14 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int scanLin
                     columns = (int)decodeParms->FindKeyAsSafe<int64_t>("Columns", 1728);
                     rows = (int)decodeParms->FindKeyAsSafe<int64_t>("Rows");
                 }
+                // The fax decoder counts the source bits in an int and traps
+                // on a larger payload: reject it with an error instead
+                if (imageData.size() > (size_t)std::numeric_limits<int>::max() / 8)
+                {
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat,
+                        "The CCITT payload of {} bytes is too big to be decoded", imageData.size());
+                }
+
                 auto decoder = chromium::FaxModule::CreateDecoder(
                     pdfium::span<const uint8_t>((const uint8_t *)imageData.data(), imageData.size()),
                     (int)m_Width, (int)m_Height, k, endOfLine, encodedByteAlign, blackIs1, columns, rows);
