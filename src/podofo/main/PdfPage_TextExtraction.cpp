@@ -103,6 +103,7 @@ using TextStateStack = StateStack<TextState>;
 
 struct XObjectState
 {
+    // NOTE: Owned by the reader input until the matching EndFormXObject
     const PdfXObjectForm* Form;
     unsigned TextStateIndex;
 };

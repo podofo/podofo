@@ -374,15 +374,17 @@ bool PdfContentStreamReader::tryHandleXObject(PdfContent& content)
 
     if (followFormXObjecs && content.Data.XObject->GetType() == PdfXObjectType::Form)
     {
-        // Select the Form XObject for next input source
-        content.Type = PdfContentType::BeginFormXObject;
-
         if (isCalledRecursively(xobjraw))
         {
+            // The Form XObject is not followed again: signal a plain "Do",
+            // as no matching EndFormXObject would be issued
+            content.Type = PdfContentType::DoXObject;
             content.Warnings |= PdfContentWarnings::RecursiveXObject;
             return true;
         }
 
+        // Select the Form XObject for next input source
+        content.Type = PdfContentType::BeginFormXObject;
         m_inputs.push_back({
             content.Data.XObject,
             std::make_shared<PdfCanvasInputDevice>(static_cast<const PdfXObjectForm&>(*content.Data.XObject)),
