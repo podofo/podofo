@@ -265,3 +265,33 @@ TEST_CASE("TestBfRange4CodePoints")
     REQUIRE(entries.size() == 1);
     REQUIRE(entries[0].Text == "Aሴ噸C");
 }
+
+TEST_CASE("TestRecursiveFormXObjectExtraction")
+{
+    // The Form XObject invokes itself: the recursive "Do" must not leave a
+    // dangling form in the extraction state, and the text is extracted once
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 100 100]/Resources<</XObject<</Fm0 4 0 R>>>>/Contents 5 0 R>>endobj
+4 0 obj<</Type/XObject/Subtype/Form/BBox[0 0 100 100]/Resources<</XObject<</Fm0 4 0 R>>/Font<</F1 6 0 R>>>>/Length 30>>stream
+/Fm0 Do BT /F1 12 Tf (x) Tj ET
+endstream
+endobj
+5 0 obj<</Length 7>>stream
+/Fm0 Do
+endstream
+endobj
+6 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj
+trailer<</Root 1 0 R/Size 7>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    vector<PdfTextEntry> entries;
+    doc.GetPages().GetPageAt(0).ExtractTextTo(entries);
+    REQUIRE(entries.size() == 1);
+    REQUIRE(entries[0].Text == "x");
+}

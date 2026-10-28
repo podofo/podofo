@@ -20,8 +20,12 @@ enum class PdfContentType : uint8_t
     Operator,          ///< The token is a PDF operator
     ImageDictionary,   ///< Inline image dictionary
     ImageData,         ///< Raw inline image data found between ID and EI tags (see PDF ref section 4.8.6)
-    DoXObject,         ///< Issued when a Do operator is found and it is handled by the reader. NOTE: for Form XObjects BeginFormXObject is issued instead, unless PdfContentReaderFlags::SkipFollowFormXObject is used. 
-    BeginFormXObject,  ///< Issued when a Form XObject is being followed
+    DoXObject,         ///< Issued when a Do operator is found and it is handled by the reader.
+                       ///< NOTE: for Form XObjects BeginFormXObject is issued instead, unless
+                       ///< PdfContentReaderFlags::SkipFollowFormXObject is used or the call
+                       ///< is recursive (see PdfContentWarnings::RecursiveXObject)
+    BeginFormXObject,  ///< Issued when a Form XObject is being followed. The reader keeps
+                       ///< the XObject alive until the matching EndFormXObject
     EndFormXObject,    ///< Issued when a Form XObject has just been followed
     UnexpectedKeyword, ///< An unexpected keyword that can be a custom operator or invalid PostScript content   
 };
