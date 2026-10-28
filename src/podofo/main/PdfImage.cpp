@@ -112,7 +112,8 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int scanLin
 
     if (mediaFilters.size() == 0)
     {
-        if ((size_t)m_ColorSpace->GetSourceScanLineSize(m_Width, m_BitsPerComponent) * m_Height > imageData.size())
+        // 64-bit, as the product exceeds a 32-bit size_t within the 16-bit /Width and /Height
+        if ((uint64_t)m_ColorSpace->GetSourceScanLineSize(m_Width, m_BitsPerComponent) * m_Height > imageData.size())
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The source buffer size is too small");
 
         utls::FetchImage(stream, format, scanLineSize, (const unsigned char*)imageData.data(),
