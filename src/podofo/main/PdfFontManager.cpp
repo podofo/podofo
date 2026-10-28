@@ -249,7 +249,11 @@ PdfFont* PdfFontManager::GetCachedFont(const PdfReference& ref)
 
 PdfFont& PdfFontManager::GetOrCreateFontFromBuffer(const bufferview& buffer, unsigned faceIndex, const PdfFontCreateParams& params)
 {
-    return getOrCreateFontHashed(PdfFontMetrics::CreateFromBuffer(buffer, faceIndex), params);
+    auto metrics = PdfFontMetrics::CreateFromBuffer(buffer, faceIndex);
+    if (metrics == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Invalid or unsupported font");
+
+    return getOrCreateFontHashed(std::move(metrics), params);
 }
 
 PdfFont& PdfFontManager::getOrCreateFontHashed(PdfFontMetricsConstPtr&& metrics, const PdfFontCreateParams& params)
