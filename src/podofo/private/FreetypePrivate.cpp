@@ -60,7 +60,7 @@ namespace
 }
 
 static PdfFontFileType determineFormatCFF(FT_Face face);
-static unsigned determineFaceSize(FT_Face face, vector<TableInfo>& tables, unsigned& tableDirSize);
+static size_t determineFaceSize(FT_Face face, vector<TableInfo>& tables, unsigned& tableDirSize);
 static FT::FT_FacePtr createFaceFromBuffer(const bufferview& view, unsigned faceIndex, bool bare = false);
 static bool isTTCFont(FT_Face face);
 static bool isTTCFont(const bufferview& face);
@@ -321,7 +321,7 @@ bool tryExtractDataFromTTC(FT_Face face, charbuff& buffer)
     CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
 
     auto tableRecords = (TT_TableHeader*)(buffer.data() + TableDirectoryFixedSize);
-    unsigned offset = tableDirSize;
+    size_t offset = tableDirSize;
     for (FT_ULong i = 0; i < tables.size(); i++)
     {
         // Read all the tables
@@ -331,7 +331,7 @@ bool tryExtractDataFromTTC(FT_Face face, charbuff& buffer)
         CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
 
         // Fix the table offset in the table directory
-        tableRecords[i].offset = AS_BIG_ENDIAN(offset);
+        tableRecords[i].offset = AS_BIG_ENDIAN((uint32_t)offset);
         offset += table.Size;
     }
 
@@ -385,7 +385,7 @@ PdfFontFileType determineFormatCFF(FT_Face face)
     }
 }
 
-unsigned determineFaceSize(FT_Face face, vector<TableInfo>& tables, unsigned& tableDirSize)
+size_t determineFaceSize(FT_Face face, vector<TableInfo>& tables, unsigned& tableDirSize)
 {
     FT_Error rc;
     FT_ULong size;
@@ -393,8 +393,14 @@ unsigned determineFaceSize(FT_Face face, vector<TableInfo>& tables, unsigned& ta
     rc = FT_Sfnt_Table_Info(face, 0, nullptr, &size);
     CHECK_FT_RC(rc, FT_Sfnt_Table_Info);
 
-    unsigned faceSize = TableDirectoryFixedSize + (sizeof(TT_TableHeader) * size);
-    tableDirSize = faceSize;
+    // Tag 0 and a zero length return the size of the whole font stream
+    FT_ULong streamSize = 0;
+    rc = FT_Load_Sfnt_Table(face, 0, 0, nullptr, &streamSize);
+    CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
+
+    // NOTE: The table count is a 16-bit field, the directory size can't overflow
+    tableDirSize = TableDirectoryFixedSize + (unsigned)(sizeof(TT_TableHeader) * size);
+    uint64_t faceSize = tableDirSize;
     tables.resize(size);
     for (FT_ULong i = 0; i < size; i++)
     {
@@ -404,7 +410,13 @@ unsigned determineFaceSize(FT_Face face, vector<TableInfo>& tables, unsigned& ta
         faceSize += table.Size;
     }
 
-    return faceSize;
+    // FreeType bounds each table length to the stream individually, not their
+    // sum. Tables in a well formed face don't overlap, so the sum can't exceed
+    // the stream: a larger one would wrap the buffer size and overflow it
+    if (faceSize > streamSize)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "TTC face table lengths exceed the font size");
+
+    return (size_t)faceSize;
 }
 
 FT_LibraryPtr& getLibrary()
