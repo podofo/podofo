@@ -304,6 +304,16 @@ startxref
     ASSERT_EQUAL(metrics.GetGlyphWidth(1114111, PdfGlyphAccess::ReadMetrics), 0.5);
 }
 
+TEST_CASE("TestGetOrCreateFontFromBufferInvalid")
+{
+    // A buffer FreeType can't open as a font must raise instead of
+    // dereferencing null metrics, like the file path overload does
+    PdfMemDocument doc;
+    string_view junk = "this is not a font file";
+    ASSERT_THROW_WITH_ERROR_CODE(doc.GetFonts().GetOrCreateFontFromBuffer(junk), PdfErrorCode::InvalidFontData);
+    ASSERT_THROW_WITH_ERROR_CODE(doc.GetFonts().GetOrCreateFontFromBuffer(bufferview()), PdfErrorCode::InvalidFontData);
+}
+
 #ifdef PODOFO_HAVE_FONTCONFIG
 
 #include <fontconfig/fontconfig.h>
