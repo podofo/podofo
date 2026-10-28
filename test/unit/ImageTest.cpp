@@ -562,3 +562,13 @@ TEST_CASE("TestImagePng1BppPaletteTransparency")
         expected.append("\x00\xFF", 2);
     REQUIRE(smask == expected);
 }
+
+TEST_CASE("TestImagePngTruncated")
+{
+    // libpng reports the truncated data by jumping to the frame that set the
+    // jump buffer, which must still be alive: the error must become a PdfError
+    PdfMemDocument doc;
+    auto img = doc.CreateImage();
+    ASSERT_THROW_WITH_ERROR_CODE(img->Load(TestUtils::GetTestInputFilePath("PngTruncated.png")),
+        PdfErrorCode::InvalidHandle);
+}

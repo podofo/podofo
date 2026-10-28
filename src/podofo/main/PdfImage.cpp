@@ -1086,6 +1086,18 @@ void PdfImage::loadFromPng(const string_view& filename, charbuff& buffer, PdfIma
     fclose(file);
 }
 
+// Run libpng calls with the error jump buffer set in this frame, which
+// stays alive across them and holds no object needing destruction: a
+// libpng error jumps back here and is reported as a PdfError
+template <typename TFunc>
+static void pngCall(png_structp png, const TFunc& func)
+{
+    if (setjmp(png_jmpbuf(png)))
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Error when reading the image");
+
+    func();
+}
+
 void PdfImage::loadFromPngHandle(FILE* stream, charbuff& buffer, PdfImageInfo& info)
 {
     png_byte header[8];
@@ -1157,56 +1169,57 @@ void PdfImage::loadFromPngData(const unsigned char* data, size_t len, charbuff& 
 
 void PdfImage::loadFromPngContent(png_structp png, png_infop pnginfo, charbuff& buffer, PdfImageInfo& info)
 {
-    png_set_sig_bytes(png, 8);
-    png_read_info(png, pnginfo);
-
-    // Begin
     png_uint_32 width;
     png_uint_32 height;
     int depth;
     int color_type;
     int interlace;
+    size_t rowLen;
+    pngCall(png, [&]() {
+        png_set_sig_bytes(png, 8);
+        png_read_info(png, pnginfo);
 
-    png_get_IHDR(png, pnginfo,
-        &width, &height, &depth,
-        &color_type, &interlace, NULL, NULL);
+        png_get_IHDR(png, pnginfo,
+            &width, &height, &depth,
+            &color_type, &interlace, NULL, NULL);
 
-    // convert palette/gray image to rgb
-    // expand gray bit depth if needed
-    if (color_type == PNG_COLOR_TYPE_GRAY)
-    {
+        // convert palette/gray image to rgb
+        // expand gray bit depth if needed
+        if (color_type == PNG_COLOR_TYPE_GRAY)
+        {
 #if PNG_LIBPNG_VER >= 10209
-        png_set_expand_gray_1_2_4_to_8(png);
+            png_set_expand_gray_1_2_4_to_8(png);
 #else
-        png_set_gray_1_2_4_to_8(pPng);
+            png_set_gray_1_2_4_to_8(pPng);
 #endif
-    }
-    else if (color_type != PNG_COLOR_TYPE_PALETTE && depth < 8)
-    {
-        png_set_packing(png);
-    }
+        }
+        else if (color_type != PNG_COLOR_TYPE_PALETTE && depth < 8)
+        {
+            png_set_packing(png);
+        }
 
-    // transform transparency to alpha
-    if (color_type != PNG_COLOR_TYPE_PALETTE && png_get_valid(png, pnginfo, PNG_INFO_tRNS))
-        png_set_tRNS_to_alpha(png);
+        // transform transparency to alpha
+        if (color_type != PNG_COLOR_TYPE_PALETTE && png_get_valid(png, pnginfo, PNG_INFO_tRNS))
+            png_set_tRNS_to_alpha(png);
 
-    if (depth == 16)
-        png_set_strip_16(png);
+        if (depth == 16)
+            png_set_strip_16(png);
 
-    if (interlace != PNG_INTERLACE_NONE)
-        png_set_interlace_handling(png);
+        if (interlace != PNG_INTERLACE_NONE)
+            png_set_interlace_handling(png);
 
-    //png_set_filler (pPng, 0xff, PNG_FILLER_AFTER);
+        //png_set_filler (pPng, 0xff, PNG_FILLER_AFTER);
 
-    // recheck header after setting EXPAND options
-    png_read_update_info(png, pnginfo);
-    png_get_IHDR(png, pnginfo,
-        &width, &height, &depth,
-        &color_type, &interlace, NULL, NULL);
-    // End
+        // recheck header after setting EXPAND options
+        png_read_update_info(png, pnginfo);
+        png_get_IHDR(png, pnginfo,
+            &width, &height, &depth,
+            &color_type, &interlace, NULL, NULL);
+
+        rowLen = png_get_rowbytes(png, pnginfo);
+    });
 
     // Read the file
-    size_t rowLen = png_get_rowbytes(png, pnginfo);
     size_t len = rowLen * height;
     buffer.resize(len);
 
@@ -1216,7 +1229,9 @@ void PdfImage::loadFromPngContent(png_structp png, png_infop pnginfo, charbuff& 
         rows[y] = reinterpret_cast<png_bytep>(buffer.data() + y * rowLen);
     }
 
-    png_read_image(png, rows.get());
+    pngCall(png, [&]() {
+        png_read_image(png, rows.get());
+    });
 
     png_bytep paletteTrans = nullptr;
     int numTransColors = 0;
@@ -1337,9 +1352,6 @@ void createPngContext(png_structp& png, png_infop& pnginfo)
     pnginfo = png_create_info_struct(png);
     if (pnginfo == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "png_create_info_struct");
-
-    if (setjmp(png_jmpbuf(png)))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Error when reading the image");
 }
 
 #endif // PODOFO_HAVE_PNG_LIB
