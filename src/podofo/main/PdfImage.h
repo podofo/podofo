@@ -220,7 +220,7 @@ private:
     void loadFromPngContent(png_struct_def* png, png_info_def* pngInfo, charbuff& buffer, PdfImageInfo& info);
 #endif // PODOFO_HAVE_PNG_LIB
 
-    unsigned getBufferSize(PdfPixelFormat format) const;
+    size_t getBufferSize(PdfPixelFormat format) const;
 
     std::unique_ptr<PdfXObjectForm> getTransformation(PdfImageOrientation orientation);
 

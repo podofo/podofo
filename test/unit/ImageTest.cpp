@@ -481,3 +481,29 @@ TEST_CASE("TestImageUndersizedStream")
     ASSERT_THROW_WITH_ERROR_CODE(image->DecodeTo(buffer, PdfPixelFormat::RGB24),
         PdfErrorCode::UnsupportedImageFormat);
 }
+
+TEST_CASE("TestImageTiffTooWide")
+{
+    // A 70000x1 TIFF exceeds the 65535 limit applied to PDF image dictionaries:
+    // the loader must reject it, as a huge width wraps the scan line sizes
+    PdfMemDocument doc;
+    auto img = doc.CreateImage();
+    ASSERT_THROW_WITH_ERROR_CODE(img->Load(TestUtils::GetTestInputFilePath("TiffTooWide.tif")),
+        PdfErrorCode::UnsupportedImageFormat);
+}
+
+TEST_CASE("TestImageSetDataTooWide")
+{
+    // Setting the data directly is subject to the same 65535 limit
+    PdfMemDocument doc;
+    auto img = doc.CreateImage();
+    ASSERT_THROW_WITH_ERROR_CODE(img->SetData(bufferview(), 70000, 1, PdfPixelFormat::Grayscale),
+        PdfErrorCode::UnsupportedImageFormat);
+
+    PdfImageInfo info;
+    info.Width = 70000;
+    info.Height = 1;
+    info.BitsPerComponent = 8;
+    info.ColorSpace = PdfColorSpaceType::DeviceGray;
+    ASSERT_THROW_WITH_ERROR_CODE(img->SetDataRaw(bufferview(), info), PdfErrorCode::UnsupportedImageFormat);
+}

@@ -55,6 +55,7 @@ static void createPngContext(png_structp& png, png_infop& pnginfo);
 static void fetchPDFScanLineRGB(unsigned char* dstScanLine,
     unsigned width, const unsigned char* srcScanLine, PdfPixelFormat srcPixelFormat);
 static void invalidateImageInfo(PdfImageInfo& info);
+static void checkImageDimensions(unsigned width, unsigned height);
 
 PdfImage::PdfImage(PdfDocument& doc)
     : PdfXObject(doc, PdfXObjectType::Image), m_ColorSpace(PdfColorSpaceFilterFactory::GetUnkownInstancePtr()), m_Width(0), m_Height(0), m_BitsPerComponent(0)
@@ -362,6 +363,7 @@ void PdfImage::SetData(const bufferview& buffer, unsigned width, unsigned height
 
 void PdfImage::SetData(InputStream& stream, unsigned width, unsigned height, PdfPixelFormat format, int scanLineSize)
 {
+    checkImageDimensions(width, height);
     m_Width = width;
     m_Height = height;
     m_BitsPerComponent = 8;
@@ -444,6 +446,7 @@ void PdfImage::setDataRaw(InputStream& stream, const PdfImageInfo& info, PdfImag
     if (info.ColorSpace.IsNull())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Missing color space");
 
+    checkImageDimensions(info.Width, info.Height);
     m_ColorSpace = info.ColorSpace.GetFilterPtr();
     m_Width = info.Width;
     m_Height = info.Height;
@@ -752,7 +755,7 @@ void PdfImage::loadFromTiffHandle(void* handle, const PdfImageLoadParams& params
 {
     TIFF* hInTiffHandle = (TIFF*)handle;
 
-    int32_t row, width, height;
+    uint32_t row, width, height;
     uint16_t samplesPerPixel, bitsPerSample;
     uint16_t* sampleInfo;
     uint16_t extraSamples;
@@ -788,6 +791,9 @@ void PdfImage::loadFromTiffHandle(void* handle, const PdfImageLoadParams& params
 
     if (planarConfig != PLANARCONFIG_CONTIG && colorChannels != 1)
         PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
+
+    // Checked early, as the scan lines are read before setting the data
+    checkImageDimensions(width, height);
 
     info.Width = width;
     info.Height = height;
@@ -1391,23 +1397,33 @@ Rect PdfImage::GetRect() const
     return Rect(0, 0, m_Width, m_Height);
 }
 
-unsigned PdfImage::getBufferSize(PdfPixelFormat format) const
+size_t PdfImage::getBufferSize(PdfPixelFormat format) const
 {
+    // 64-bit, so the product of the dimensions can't wrap to a smaller buffer
+    uint64_t size;
     switch (format)
     {
         case PdfPixelFormat::RGBA:
         case PdfPixelFormat::BGRA:
         case PdfPixelFormat::ARGB:
         case PdfPixelFormat::ABGR:
-            return 4 * m_Width * m_Height;
+            size = 4 * (uint64_t)m_Width * m_Height;
+            break;
         case PdfPixelFormat::RGB24:
         case PdfPixelFormat::BGR24:
-            return 4 * ((3 * m_Width + 3) / 4) * m_Height;
+            size = 4 * ((3 * (uint64_t)m_Width + 3) / 4) * m_Height;
+            break;
         case PdfPixelFormat::Grayscale:
-            return 4 * ((m_Width + 3) / 4) * m_Height;
+            size = 4 * (((uint64_t)m_Width + 3) / 4) * m_Height;
+            break;
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
+
+    if (size > numeric_limits<size_t>::max())
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "The image buffer size {} is too big", size);
+
+    return (size_t)size;
 }
 
 void fetchPDFScanLineRGB(unsigned char* dstScanLine, unsigned width, const unsigned char* srcScanLine, PdfPixelFormat srcPixelFormat)
@@ -1449,4 +1465,15 @@ void invalidateImageInfo(PdfImageInfo& info)
     info.ColorSpace = { };
     info.DecodeArray.clear();
     info.Orientation = PdfImageOrientation::Unknown;
+}
+
+void checkImageDimensions(unsigned width, unsigned height)
+{
+    // NOTE: Apply the limit of the dimensions read from an image dictionary,
+    // which are stored in 16 bits
+    if (width > numeric_limits<uint16_t>::max() || height > numeric_limits<uint16_t>::max())
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat,
+            "Unsupported image dimensions {}x{}", width, height);
+    }
 }
