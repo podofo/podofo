@@ -322,7 +322,7 @@ const PdfXObjectForm* PdfImage::GetForm() const
 }
 
 PdfImage::PdfImage(PdfObject& obj)
-    : PdfXObject(obj, PdfXObjectType::Image)
+    : PdfXObject(obj, PdfXObjectType::Image), m_ColorSpace(PdfColorSpaceFilterFactory::GetUnkownInstancePtr())
 {
     auto& dict = this->GetDictionary();
     m_Width = static_cast<unsigned short>(dict.FindKeyAsSafe<int64_t>("Width"));

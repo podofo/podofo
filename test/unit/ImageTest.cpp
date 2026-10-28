@@ -439,3 +439,29 @@ startxref
     ASSERT_THROW_WITH_ERROR_CODE(image->DecodeTo(buffer, PdfPixelFormat::Grayscale),
         PdfErrorCode::UnsupportedImageFormat);
 }
+
+TEST_CASE("TestImageNoColorSpace")
+{
+    // The image has neither /ColorSpace nor /ImageMask: the color space must
+    // default to the Unknown filter instead of staying null, and decoding fails
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/Im0 3 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj
+3 0 obj<</Type/XObject/Subtype/Image/Width 1/Height 1/BitsPerComponent 8/Length 1>>stream
+x
+endstream
+endobj
+trailer<</Root 1 0 R/Size 4>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    unique_ptr<PdfImage> image;
+    REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(doc.GetObjects().MustGetObject(PdfReference(3, 0)), image));
+    REQUIRE(image->GetColorSpace().GetType() == PdfColorSpaceType::Unknown);
+
+    charbuff buffer;
+    ASSERT_THROW_WITH_ERROR_CODE(image->DecodeTo(buffer, PdfPixelFormat::BGRA), PdfErrorCode::NotImplemented);
+}
