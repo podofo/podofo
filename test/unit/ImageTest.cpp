@@ -361,3 +361,20 @@ TEST_CASE("TestBitsPerComponent1")
 
     REQUIRE(ssl::ComputeMD5Str(buffer) == "C7C13471D8E5CF9E48637513D73FDCB5");
 }
+
+TEST_CASE("TestImageJpegDimensionMismatch")
+{
+    // The image declares /Width 2 /Height 2 but embeds a 16x16 JPEG. The
+    // scan line is sized from the declared width, so decoding the larger
+    // JPEG must be rejected instead of writing past it
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("JpegWidthMismatch.pdf"));
+    auto& resources = doc.GetPages().GetPageAt(0).GetResources();
+    auto imageObj = resources.GetResource(PdfResourceType::XObject, "Im0");
+    unique_ptr<PdfImage> image;
+    REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(*imageObj, image));
+
+    charbuff buffer;
+    ASSERT_THROW_WITH_ERROR_CODE(image->DecodeTo(buffer, PdfPixelFormat::BGRA),
+        PdfErrorCode::UnsupportedImageFormat);
+}

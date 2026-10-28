@@ -145,6 +145,16 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int scanLin
 
                     jpeg_start_decompress(&ctx);
 
+                    // The destination scan line is sized from the dictionary /Width
+                    // and /Height, but the decode loop is driven by the JPEG dimensions:
+                    // refuse a mismatch instead of writing past the scan line
+                    if (ctx.output_width != m_Width || ctx.output_height != m_Height)
+                    {
+                        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat,
+                            "The JPEG dimensions {}x{} don't match the image /Width {} and /Height {}",
+                            ctx.output_width, ctx.output_height, m_Width, m_Height);
+                    }
+
                     utls::FetchImageJPEG(stream, format, scanLineSize, &ctx, m_Width, m_Height, smaskData);
                 }
                 catch (...)
