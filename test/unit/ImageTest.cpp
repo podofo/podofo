@@ -507,3 +507,14 @@ TEST_CASE("TestImageSetDataTooWide")
     info.ColorSpace = PdfColorSpaceType::DeviceGray;
     ASSERT_THROW_WITH_ERROR_CODE(img->SetDataRaw(bufferview(), info), PdfErrorCode::UnsupportedImageFormat);
 }
+
+TEST_CASE("TestImageTiffPaletteMultiSample")
+{
+    // A palette TIFF with 2 samples per pixel: the colormap holds one entry
+    // per sample value, so sizing it from bits * samples read past it. Such
+    // an image must be rejected
+    PdfMemDocument doc;
+    auto img = doc.CreateImage();
+    ASSERT_THROW_WITH_ERROR_CODE(img->Load(TestUtils::GetTestInputFilePath("TiffPaletteMultiSample.tif")),
+        PdfErrorCode::UnsupportedImageFormat);
+}

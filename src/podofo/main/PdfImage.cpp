@@ -872,6 +872,16 @@ void PdfImage::loadFromTiffHandle(void* handle, const PdfImageLoadParams& params
         }
         case PHOTOMETRIC_PALETTE:
         {
+            // In this case, the colormap becomes the lookup table of
+            // an /Indexed color space, whose pixels are single indices
+            // of at most 8 bits
+            if (samplesPerPixel != 1 || bitsPerSample > 8)
+            {
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat,
+                    "Unsupported palette TIFF with {} samples per pixel and {} bits per sample",
+                    samplesPerPixel, bitsPerSample);
+            }
+
             unsigned numColors = (1 << bitsPixel);
             info.DecodeArray.push_back(0);
             info.DecodeArray.push_back(numColors - 1);
@@ -879,7 +889,8 @@ void PdfImage::loadFromTiffHandle(void* handle, const PdfImageLoadParams& params
             uint16_t* rgbRed;
             uint16_t* rgbGreen;
             uint16_t* rgbBlue;
-            TIFFGetField(hInTiffHandle, TIFFTAG_COLORMAP, &rgbRed, &rgbGreen, &rgbBlue);
+            if (TIFFGetField(hInTiffHandle, TIFFTAG_COLORMAP, &rgbRed, &rgbGreen, &rgbBlue) == 0)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "Missing TIFF colormap");
 
             charbuff data(numColors * 3);
 
