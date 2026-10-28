@@ -190,6 +190,12 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int scanLin
                 auto decoder = chromium::FaxModule::CreateDecoder(
                     pdfium::span<const uint8_t>((const uint8_t *)imageData.data(), imageData.size()),
                     (int)m_Width, (int)m_Height, k, endOfLine, encodedByteAlign, blackIs1, columns, rows);
+                if (decoder == nullptr)
+                {
+                    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat,
+                        "Invalid CCITT decode parameters: /Columns {}, /Rows {}, /Width {}, /Height {}",
+                        columns, rows, m_Width, m_Height);
+                }
 
                 utls::FetchImageCCITT(stream, format, scanLineSize, *decoder, m_Width, m_Height, blackIs1, smaskData);
                 break;
