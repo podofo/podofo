@@ -437,3 +437,29 @@ startxref
     image->DecodeTo(buffer, PdfPixelFormat::Grayscale);
     REQUIRE(buffer == charbuff(string(16, '\x00')));
 }
+
+TEST_CASE("TestImageCcittInvalidColumns")
+{
+    // The negative /Columns is refused by the CCITT decoder,
+    // which is then not created: decoding must be rejected
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/Im0 3 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj
+3 0 obj<</Type/XObject/Subtype/Image/Width 8/Height 2/ColorSpace/DeviceGray/BitsPerComponent 1/Filter/CCITTFaxDecode/DecodeParms<</K -1/Columns -1>>/Length 0>>stream
+
+endstream
+endobj
+trailer<</Root 1 0 R/Size 4>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    unique_ptr<PdfImage> image;
+    REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(doc.GetObjects().MustGetObject(PdfReference(3, 0)), image));
+
+    charbuff buffer;
+    ASSERT_THROW_WITH_ERROR_CODE(image->DecodeTo(buffer, PdfPixelFormat::Grayscale),
+        PdfErrorCode::UnsupportedImageFormat);
+}
