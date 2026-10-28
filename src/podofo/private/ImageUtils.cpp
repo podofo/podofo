@@ -225,17 +225,33 @@ void utls::FetchImage(OutputStream& stream, PdfPixelFormat format, int scanLineS
 }
 
 void utls::FetchImageCCITT(OutputStream& stream, PdfPixelFormat format, int scanLineSize,
-    chromium::ScanlineDecoder& decoder, unsigned width, unsigned heigth, const charbuff& smaskData)
+    chromium::ScanlineDecoder& decoder, unsigned width, unsigned heigth, bool blackIs1, const charbuff& smaskData)
 {
+    // The source scan line is sized by the decoder from /Columns, while the
+    // fetch reads /Width bits per row: refuse a /Width wider than the decoder
+    PODOFO_ASSERT(decoder.GetWidth() > 0);
+    if (width > (unsigned)decoder.GetWidth())
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat,
+            "The image /Width {} exceeds the CCITT decoder width {}", width, decoder.GetWidth());
+    }
+
     charbuff scanLine = initScanLine(format, width, scanLineSize);
+    unsigned srcLineSize = (width + 7) / 8;
+    // Used when the encoded data runs out before /Height rows: the decoder
+    // then returns an empty (null) scan line. It's white as the rows the
+    // decoder starts from, which are inverted with /BlackIs1
+    charbuff emptyLine(string(srcLineSize, blackIs1 ? '\x00' : '\xFF'));
 
     if (smaskData.size() == 0)
     {
         for (unsigned i = 0; i < heigth; i++)
         {
             auto scanLineBW = decoder.GetScanline(i);
-            fetchScanLineBW((unsigned char*)scanLine.data(),
-                format, (const unsigned char*)scanLineBW.data(), width);
+            auto src = scanLineBW.size() < srcLineSize
+                ? (const unsigned char*)emptyLine.data()
+                : (const unsigned char*)scanLineBW.data();
+            fetchScanLineBW((unsigned char*)scanLine.data(), format, src, width);
             stream.Write(scanLine.data(), scanLine.size());
         }
     }
@@ -244,8 +260,10 @@ void utls::FetchImageCCITT(OutputStream& stream, PdfPixelFormat format, int scan
         for (unsigned i = 0; i < heigth; i++)
         {
             auto scanLineBW = decoder.GetScanline(i);
-            fetchScanLineBW((unsigned char*)scanLine.data(),
-                format, scanLineBW.data(), width,
+            auto src = scanLineBW.size() < srcLineSize
+                ? (const unsigned char*)emptyLine.data()
+                : (const unsigned char*)scanLineBW.data();
+            fetchScanLineBW((unsigned char*)scanLine.data(), format, src, width,
                 (const unsigned char*)smaskData.data() + i * width);
             stream.Write(scanLine.data(), scanLine.size());
         }
