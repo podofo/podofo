@@ -227,6 +227,8 @@ namespace PoDoFo
         if (!value.IsIndirect())
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidObject, "Input object must be indirect");
 
+        // The /Kids may loop back to this node or to an ancestor
+        utls::RecursionGuard guard;
         if (m_HasKids)
         {
             auto& kids = GetDictionary().MustFindKey("Kids").GetArray();
@@ -540,6 +542,8 @@ namespace PoDoFo
     template <typename TKey>
     PdfObject* PdfTreeNode<TKey>::getKeyValue(PdfObject& obj, typename PdfTreeKeyAccess<TKey>::TLookup key, const PdfIndirectObjectList& objects)
     {
+        // The /Kids may loop back to this node or to an ancestor
+        utls::RecursionGuard guard;
         if (checkLimits(obj, key) != PdfNameLimits::Inside)
             return nullptr;
 
@@ -597,6 +601,7 @@ namespace PoDoFo
     template<typename TKey>
     typename PdfTreeNode<TKey>::iterator PdfTreeNode<TKey>::getLeftMost(PdfDictionary& dict)
     {
+        utls::RecursionGuard guard;
         auto kidsArr = dict.FindKeyAsSafe<PdfArray*>("Kids");
         if (kidsArr == nullptr)
         {
@@ -630,6 +635,7 @@ namespace PoDoFo
     template<typename TKey>
     typename PdfTreeNode<TKey>::iterator PdfTreeNode<TKey>::getRightMost(PdfDictionary& dict)
     {
+        utls::RecursionGuard guard;
         auto kidsArr = dict.FindKeyAsSafe<PdfArray*>("Kids");
         unsigned size;
         if (kidsArr == nullptr)
