@@ -299,7 +299,7 @@ PdfArray::iterator PdfArray::insertAt(const iterator& pos, PdfObject&& obj)
     // NOTE: The index must be taken before growing, as a relocation
     // invalidates the given position
     unsigned index = (unsigned)(pos - m_data);
-    PODOFO_INVARIANT(index <= m_size);
+    PODOFO_ASSERT(index <= m_size);
     ensureCapacity((size_t)m_size + 1);
     auto ret = m_data + index;
     if (index < m_size)
