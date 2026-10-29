@@ -761,6 +761,16 @@ void PoDoFo::CreateObjectStructElement(PdfDictionaryElement& elem, PdfPage& page
     elem.GetDictionary().AddKey("StructParent"_n, PdfObject(structParentKey));
 }
 
+PdfObject& PoDoFo::MoveToIndirect(PdfObject& obj)
+{
+    PODOFO_ASSERT(!obj.IsIndirect());
+    auto& ret = obj.MustGetDocument().GetObjects().CreateNullObject();
+    // NOTE: The move assignment keeps the reference and the document of the target
+    ret = std::move(obj);
+    obj = PdfObject(ret.GetIndirectReference());
+    return ret;
+}
+
 const locale& utls::GetInvariantLocale()
 {
     return s_cachedLocale;

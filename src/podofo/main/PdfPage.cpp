@@ -293,6 +293,12 @@ PdfField& PdfPage::CreateField(const string_view& name, PdfFieldType fieldType, 
 
 void PdfPage::FlattenStructure()
 {
+    // NOTE: A page that is inlined in a /Kids array would be destroyed by flattening.
+    // We move the object dictionary to a new document object, so the cached contents,
+    // resources and annotations stay valid
+    if (!GetObject().IsIndirect())
+        SetObject(MoveToIndirect(GetObject()));
+
     if (m_parents.size() == 0)
         return;
 
