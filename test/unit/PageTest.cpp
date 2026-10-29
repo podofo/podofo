@@ -296,6 +296,37 @@ TEST_CASE("TestFlattening")
     }
 }
 
+TEST_CASE("TestFlattenInheritedAttributes")
+{
+    // The intermediate node holds the attributes the page inherits: they
+    // must be copied to the page when flattening, and the resources must
+    // survive the garbage collection of the node
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Pages/Parent 2 0 R/Kids[4 0 R]/Count 1/Resources<</Font<</F1 5 0 R>>>>/MediaBox[0 0 200 100]/Rotate 90>>endobj
+4 0 obj<</Type/Page/Parent 3 0 R>>endobj
+5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj
+trailer<</Root 1 0 R/Size 6>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& page = doc.GetPages().GetPageAt(0);
+    doc.GetPages().CreatePage(PdfPageSize::A4);
+    doc.CollectGarbage();
+
+    auto& dict = page.GetDictionary();
+    REQUIRE(dict.MustGetKey("Parent").GetReference() == doc.GetPages().GetObject().GetIndirectReference());
+    REQUIRE(dict.HasKey("Resources"));
+    REQUIRE(dict.HasKey("MediaBox"));
+    REQUIRE(dict.MustFindKey("Rotate").GetNumber() == 90);
+    REQUIRE(page.GetResources().GetResource(PdfResourceType::Font, "F1") != nullptr);
+    REQUIRE(dict.MustFindKey("MediaBox").GetArray()[2].GetReal() == 200);
+}
+
 TEST_CASE("TestFillFromPageCopiesTransparencyGroup")
 {
     // Without the fix, FillFromPage dropped /Group, causing viewers to reset
