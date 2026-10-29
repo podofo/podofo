@@ -36,6 +36,12 @@ ENABLE_BITMASK_OPERATORS(ReqTable);
 
 static constexpr unsigned LENGTH_HEADER12 = 12;
 static constexpr unsigned LENGTH_OFFSETTABLE16 = 16;
+// Contour count and bounding box preceding the simple/compound glyph data
+// https://learn.microsoft.com/en-us/typography/opentype/spec/glyf#glyphHeaderFormat
+static constexpr unsigned GLYPH_HEADER_SIZE = 5 * sizeof(uint16_t);
+// Flags and glyph index, the fixed part of a compound component record
+// https://learn.microsoft.com/en-us/typography/opentype/spec/glyf#compositeGlyphTable
+static constexpr unsigned COMPONENT_RECORD_SIZE = 2 * sizeof(uint16_t);
 
 //Get the number of bytes to pad the ul, because of 4-byte-alignment.
 static uint32_t GetTableCheksum(const char* buf, uint32_t size);
@@ -72,7 +78,9 @@ void FontTrueTypeSubset::buildFont(const cspan<PdfCharGIDInfo>& infos, charbuff&
     init();
 
     GlyphContext context;
-    context.GlyfTableOffset = getTableOffset(TTAG_glyf);
+    auto& glyfTable = getTable(TTAG_glyf);
+    context.GlyfTableOffset = glyfTable.Offset;
+    context.GlyfTableLength = glyfTable.Length;
     context.LocaTableOffset = getTableOffset(TTAG_loca);
 
     // For any fonts, assume that glyph 0 is needed.
@@ -93,10 +101,15 @@ void FontTrueTypeSubset::init()
 
 unsigned FontTrueTypeSubset::getTableOffset(unsigned tag)
 {
+    return getTable(tag).Offset;
+}
+
+const FontTrueTypeSubset::TrueTypeTable& FontTrueTypeSubset::getTable(unsigned tag)
+{
     for (auto& table : m_tables)
     {
         if (table.Tag == tag)
-            return table.Offset;
+            return table;
     }
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "table missing");
 }
@@ -240,8 +253,7 @@ void FontTrueTypeSubset::loadGlyphMetrics(const cspan<PdfCharGIDInfo>& infos)
         unsigned offset = 0;
         while (true)
         {
-            unsigned componentGlyphIdOffset = glyphData.GlyphAdvOffset + offset;
-            readGlyphCompoundData(cmpData, componentGlyphIdOffset);
+            readGlyphCompoundData(cmpData, glyphData, offset);
             // Try remap the GID
             auto inserted = glyphIndexMap.insert({ cmpData.GlyphIndex, (unsigned)m_subsetGIDs.size() });
             if (inserted.second)
@@ -250,9 +262,10 @@ void FontTrueTypeSubset::loadGlyphMetrics(const cspan<PdfCharGIDInfo>& infos)
                 m_subsetGIDs.push_back({ cmpData.GlyphIndex, getGlyphMetrics(cmpData.GlyphIndex) });
             }
 
-            // Insert the compound component using the actual assigned GID
+            // Insert the compound component using the actual assigned GID. The
+            // offset of its glyph index is relative to the start of the glyph
             glyphData.CompoundComponents.push_back(
-                { (unsigned)(componentGlyphIdOffset + sizeof(uint16_t)) - glyphData.GlyphOffset, inserted.first->second });
+                { GLYPH_HEADER_SIZE + offset + (unsigned)sizeof(uint16_t), inserted.first->second });
             if (!TryAdvanceCompoundOffset(offset, cmpData.Flags))
                 break;
         }
@@ -306,37 +319,52 @@ void FontTrueTypeSubset::loadGlyphData(GlyphContext& ctx, unsigned gid)
 
     // https://docs.microsoft.com/en-us/typography/opentype/spec/loca
     auto& glyphData = m_glyphDatas[gid] = { };
+    unsigned offset1;
+    unsigned offset2;
     if (m_isLongLoca)
     {
-        uint32_t offset1;
-        uint32_t offset2;
+        uint32_t temp;
         m_device->Seek(ctx.LocaTableOffset + sizeof(uint32_t) * gid);
-        utls::ReadUInt32BE(*m_device, offset1);
+        utls::ReadUInt32BE(*m_device, temp);
+        offset1 = temp;
 
         m_device->Seek(ctx.LocaTableOffset + sizeof(uint32_t) * (gid + 1));
-        utls::ReadUInt32BE(*m_device, offset2);
-
-        glyphData.GlyphLength = offset2 - offset1;
-        glyphData.GlyphOffset = ctx.GlyfTableOffset + offset1;
+        utls::ReadUInt32BE(*m_device, temp);
+        offset2 = temp;
     }
     else
     {
-        uint16_t offset1;
-        uint16_t offset2;
-
+        uint16_t temp;
         m_device->Seek(ctx.LocaTableOffset + sizeof(uint16_t) * gid);
-        utls::ReadUInt16BE(*m_device, offset1);
-        unsigned uoffset1 = (unsigned)offset1 << 1u; // Handle the possible overflow
+        utls::ReadUInt16BE(*m_device, temp);
+        offset1 = (unsigned)temp << 1u; // Handle the possible overflow
 
         m_device->Seek(ctx.LocaTableOffset + sizeof(uint16_t) * (gid + 1));
-        utls::ReadUInt16BE(*m_device, offset2);
-        unsigned uoffset2 = (unsigned)offset2 << 1u; // Handle the possible overflow
-
-        glyphData.GlyphLength = uoffset2 - uoffset1;
-        glyphData.GlyphOffset = ctx.GlyfTableOffset + uoffset1;
+        utls::ReadUInt16BE(*m_device, temp);
+        offset2 = (unsigned)temp << 1u; // Handle the possible overflow
     }
 
-    glyphData.GlyphAdvOffset = glyphData.GlyphOffset + 5 * sizeof(uint16_t);
+    // The glyph length sizes the buffer the compound glyph is patched in, so
+    // the glyph must lie inside the glyf table. Like FreeType, clamp the end
+    // of the last glyph and treat any other invalid entry as an empty glyph
+    if (offset2 > ctx.GlyfTableLength && gid + 1 == m_glyphCount)
+        offset2 = ctx.GlyfTableLength;
+
+    if (offset2 < offset1 || offset2 > ctx.GlyfTableLength)
+    {
+        PoDoFo::LogMessage(PdfLogSeverity::Warning, "Invalid loca entry for GID {}, treating the glyph as empty", gid);
+        offset1 = 0;
+        offset2 = 0;
+    }
+
+    glyphData.GlyphLength = offset2 - offset1;
+    glyphData.GlyphOffset = ctx.GlyfTableOffset + offset1;
+    glyphData.GlyphAdvOffset = glyphData.GlyphOffset + GLYPH_HEADER_SIZE;
+
+    // An empty glyph has no contour count to read: the bytes
+    // at its offset belong to the next glyph
+    if (glyphData.GlyphLength < sizeof(int16_t))
+        return;
 
     // NOTE: Some fonts may truncate contour section,
     // skip reading on EOF in that case
@@ -358,7 +386,7 @@ void FontTrueTypeSubset::loadCompound(GlyphContext& ctx, const GlyphData& data)
     unsigned offset = 0;
     while (true)
     {
-        readGlyphCompoundData(cmpData, data.GlyphAdvOffset + offset);
+        readGlyphCompoundData(cmpData, data, offset);
         loadGlyphData(ctx, cmpData.GlyphIndex);
         if (!TryAdvanceCompoundOffset(offset, cmpData.Flags))
             break;
@@ -546,14 +574,22 @@ void FontTrueTypeSubset::writeTables(charbuff& buffer)
     utls::WriteUInt32BE(buffer.data() + *headOffset + 4, fontChecksum);
 }
 
-void FontTrueTypeSubset::readGlyphCompoundData(GlyphCompoundData& data, unsigned offset)
+// Read the flags and glyph index of the component record found
+// at the given offset in the compound data of the glyph
+void FontTrueTypeSubset::readGlyphCompoundData(GlyphCompoundData& data, const GlyphData& glyphData, unsigned offset)
 {
+    // The record is later patched in a buffer sized by the glyph length,
+    // so the walk must stop at components that don't fit in the glyph
+    if (glyphData.GlyphLength < GLYPH_HEADER_SIZE + COMPONENT_RECORD_SIZE
+        || offset > glyphData.GlyphLength - GLYPH_HEADER_SIZE - COMPONENT_RECORD_SIZE)
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Compound glyph component exceeds the glyph length");
+    }
+
     uint16_t temp;
-    m_device->Seek(offset);
+    m_device->Seek(glyphData.GlyphAdvOffset + offset);
     utls::ReadUInt16BE(*m_device, temp);
     data.Flags = temp;
-
-    m_device->Seek(offset + sizeof(uint16_t));
     utls::ReadUInt16BE(*m_device, temp);
     data.GlyphIndex = temp;
 }
