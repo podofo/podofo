@@ -219,6 +219,15 @@ PdfObject& PdfIndirectObjectList::CreateArrayObject()
     return ret;
 }
 
+PdfObject& PdfIndirectObjectList::CreateNullObject()
+{
+    unique_ptr<PdfObject> obj(new PdfObject(nullptr));
+    obj->setDirty();
+    auto& ret = *obj;
+    addNewObject(std::move(obj));
+    return ret;
+}
+
 PdfObject& PdfIndirectObjectList::CreateObject(const PdfObject& obj)
 {
     unique_ptr<PdfObject> newObj(new PdfObject(obj));
