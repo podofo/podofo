@@ -399,6 +399,10 @@ void FontTrueTypeSubset::loadGlyphData(GlyphContext& ctx, unsigned gid)
 
 void FontTrueTypeSubset::loadCompound(GlyphContext& ctx, const GlyphData& data)
 {
+    // Components referencing further compound glyphs recurse: a chain
+    // of distinct glyphs is bounded only by the glyph count otherwise
+    utls::RecursionGuard guard;
+
     GlyphCompoundData cmpData;
     unsigned offset = 0;
     while (true)
