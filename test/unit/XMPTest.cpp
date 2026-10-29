@@ -51,6 +51,15 @@ TEST_CASE("TestPDFA1_PDFUA1")
     doc.Save(TestUtils::GetTestOutputFilePath("TestPDFA1_PDFUA1.pdf"));
 }
 
+TEST_CASE("TestXMPDefaultNamespaceElement")
+{
+    // The element is in a default namespace, which has no prefix
+    string_view xmp = R"(<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about=""><Producer xmlns="http://ns.adobe.com/pdf/1.3/">P</Producer></rdf:Description></rdf:RDF></x:xmpmeta>)";
+    auto packet = PdfXMPPacket::Create(xmp);
+    auto metadata = packet->GetMetadata();
+    REQUIRE(*metadata.Producer == "P");
+}
+
 #if LIBXML_VERSION >= 21500
 
 TEST_CASE("TestPruneInvalid")

@@ -141,7 +141,8 @@ string utls::GetAttributeName(xmlAttrPtr attr)
 
 string utls::GetNodePrefixedName(xmlNodePtr node)
 {
-    if (node->ns == nullptr)
+    // A default namespace declaration has no prefix
+    if (node->ns == nullptr || node->ns->prefix == nullptr)
     {
         return (const char*)node->name;
     }
@@ -161,7 +162,7 @@ string_view utls::GetNodeName(xmlNodePtr node)
 
 string_view utls::GetNodePrefix(xmlNodePtr node)
 {
-    return node->ns == nullptr ? string_view() : string_view((const char*)node->ns->prefix);
+    return node->ns == nullptr || node->ns->prefix == nullptr ? string_view() : string_view((const char*)node->ns->prefix);
 }
 
 string_view utls::GetNodeNamespace(xmlNodePtr node)
