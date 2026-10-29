@@ -15,12 +15,10 @@ using namespace PoDoFo;
 // macOS: 8MB on main thread, 512KB on secondary threads https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Multithreading/CreatingThreads/CreatingThreads.html
 // iOS: 1MB on main thread, 512KB on secondary threads
 // Modern Linux distros: usually 8MB on main and secondary threads (but setting ulimit RLIMIT_STACK to unlimited *reduces* the secondary stack size on most architectures: see https://man7.org/linux/man-pages/man3/pthread_create.3.html#NOTES )
-// the amount allocated on stack for local variables and function parameters varies between x86 and x64
-// in x86 pointers are 32-bit but all function parameters are on stack
-// in x64 pointers are 64-bit but first 4 function params are passed in registers
-// the biggest difference is between debug and non-debug stacks: a debug stack frame can be around 3x larger
-// due to instrumentation like ASAN which put guard bytes around stack variables to detect buffer overflows
-constexpr unsigned MaxRecursionDepthDefault = 450;
+// The default must fit the deepest guarded walker in the 1 MB default stack of
+// Windows, in a Debug build as well: the name tree lookup survives up to 349
+// levels there (/RTC1, x64) and up to 1509 in Release, measured with the unit tests
+constexpr unsigned MaxRecursionDepthDefault = 256;
 
 PODOFO_EXPORT unsigned s_MaxRecursionDepth = MaxRecursionDepthDefault;
 

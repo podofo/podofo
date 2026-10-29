@@ -246,6 +246,29 @@ startxref
     REQUIRE(doc.GetNames()->HasKey(PdfKnownNameTree::Dests, "B"));
 }
 
+TEST_CASE("TestNameTreeKidsLoopLookup")
+{
+    // The /Dests root /Kids references the root itself
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/Names 5 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]>>endobj
+4 0 obj<</Kids[4 0 R]>>endobj
+5 0 obj<</Dests 4 0 R>>endobj
+trailer<</Root 1 0 R/Size 6>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto names = doc.GetNames();
+    ASSERT_THROW_WITH_ERROR_CODE(names->GetValue(PdfKnownNameTree::Dests, "A"), PdfErrorCode::MaxRecursionReached);
+    shared_ptr<PdfDestination> dest = doc.CreateDestination();
+    ASSERT_THROW_WITH_ERROR_CODE(names->MustGetTree<PdfDestinations>().AddValue(PdfString("A"), dest),
+        PdfErrorCode::MaxRecursionReached);
+}
+
 TEST_CASE("TestPdfNames")
 {
     // Just include and use "optional/PdfNames.h"
