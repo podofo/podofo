@@ -219,6 +219,10 @@ bool PdfPageCollection::TryMovePageTo(unsigned atIndex, unsigned toIndex)
 
 void PdfPageCollection::insertPagesAt(unsigned atIndex, mspan<unique_ptr<PdfPage>> pages)
 {
+    // NOTE: This clamps the index given to all the public insertion methods
+    if (atIndex > m_Pages.size())
+        atIndex = (unsigned)m_Pages.size();
+
     // Reserve capacity in all lists before touching any page state, so
     // any allocation failure is caught here before ownership is transferred
     m_Pages.reserve(m_Pages.size() + pages.size());
@@ -269,11 +273,6 @@ PdfPage& PdfPageCollection::CreatePageAt(unsigned atIndex, const nullable<Rect>&
 {
     FlattenStructure();
     auto size = getActualRect(size_);
-
-    unsigned pageCount = this->GetCount();
-    if (atIndex > pageCount)
-        atIndex = pageCount;
-
     unique_ptr<PdfPage> page(new PdfPage(GetDocument(), size));
     auto& pageRef = *page;
     insertPageAt(atIndex, std::move(page));
@@ -289,11 +288,6 @@ void PdfPageCollection::CreatePagesAt(unsigned atIndex, unsigned count, const nu
 {
     FlattenStructure();
     auto size = getActualRect(size_);
-
-    unsigned pageCount = this->GetCount();
-    if (atIndex > pageCount)
-        atIndex = pageCount;
-
     vector<unique_ptr<PdfPage>> pages(count);
     for (unsigned i = 0; i < count; i++)
         pages[i].reset(new PdfPage(GetDocument(), size));
