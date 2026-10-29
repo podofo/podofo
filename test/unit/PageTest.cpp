@@ -339,6 +339,32 @@ startxref
     REQUIRE(page.GetResources().GetResource(PdfResourceType::Font, "F1") != nullptr);
 }
 
+TEST_CASE("TestFlattenFailureKeepsCollectionConsistent")
+{
+    // The /Parent cycle makes the flattening fail while looking up the
+    // inherited attributes: the collection must not publish a partial
+    // /Kids array, so the following insertion doesn't write past it, and
+    // the inline page moved to a new object must stay in the old /Kids
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Count 2/Kids[<</Type/Page/MediaBox[0 0 200 200]>> 3 0 R]/Parent 3 0 R>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/Resources<<>>/MediaBox[0 0 200 200]/Rotate 0>>endobj
+trailer<</Root 1 0 R/Size 4>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& pages = doc.GetPages();
+    ASSERT_THROW_WITH_ERROR_CODE(pages.CreatePage(PdfPageSize::A4), PdfErrorCode::MaxRecursionReached);
+    ASSERT_THROW_WITH_ERROR_CODE(pages.CreatePage(PdfPageSize::A4), PdfErrorCode::MaxRecursionReached);
+    REQUIRE(pages.GetCount() == 2);
+    auto& page = pages.GetPageAt(0);
+    REQUIRE(page.GetObject().IsIndirect());
+    REQUIRE(pages.GetDictionary().MustFindKey("Kids").GetArray()[0].GetReference() == page.GetObject().GetIndirectReference());
+}
+
 TEST_CASE("TestFillFromPageCopiesTransparencyGroup")
 {
     // Without the fix, FillFromPage dropped /Group, causing viewers to reset

@@ -446,7 +446,8 @@ void PdfPageCollection::FlattenStructure()
 
     // /Kids in the page tree which may hold inlined pages: flatten
     // the pages eagerly to move them to new objects in such case,
-    // so they are not destroyed when the /Kids array is replaced
+    // so they are not destroyed when the /Kids array is replaced.
+    // It also leaves the collection unflattened if a page throws
     for (unsigned i = 0; i < m_Pages.size(); i++)
         m_Pages[i]->FlattenStructure();
 
