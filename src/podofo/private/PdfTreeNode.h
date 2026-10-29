@@ -283,28 +283,34 @@ namespace PoDoFo
             if (namesObj != nullptr)
             {
                 auto& arr = namesObj->GetArray();
-                PdfArray::iterator it = arr.begin();
-                while (it != arr.end())
-                {
-                    if (PdfTreeKeyAccess<TKey>::Equals(*it, key))
-                    {
-                        // no need to write the key as it is anyways the same
-                        it++;
-                        // write the value
-                        *it = value.GetIndirectReference();
-                        break;
-                    }
-                    else if (PdfTreeKeyAccess<TKey>::GreaterThan(*it, key))
-                    {
-                        it = arr.insert(it, value.GetIndirectReference()); // arr.insert invalidates the iterator
-                        it = arr.insert(it, key);
-                        break;
-                    }
 
-                    it += 2;
+                // NOTE: The array is a set of key/value pairs: drop a lone trailing
+                // key, which has no value and can't be paired with the new one
+                unsigned size = arr.GetSize();
+                if (size % 2 != 0)
+                {
+                    size--;
+                    arr.RemoveAt(size);
                 }
 
-                if (it == arr.end())
+                unsigned i = 0;
+                for (; i < size; i += 2)
+                {
+                    if (PdfTreeKeyAccess<TKey>::Equals(arr[i], key))
+                    {
+                        // no need to write the key as it is anyways the same
+                        arr[i + 1] = value.GetIndirectReference();
+                        break;
+                    }
+                    else if (PdfTreeKeyAccess<TKey>::GreaterThan(arr[i], key))
+                    {
+                        arr.insert(arr.begin() + i, value.GetIndirectReference());
+                        arr.insert(arr.begin() + i, key);
+                        break;
+                    }
+                }
+
+                if (i == size)
                 {
                     arr.Add(key);
                     arr.Add(value.GetIndirectReference());
@@ -567,15 +573,7 @@ namespace PoDoFo
                 // NOTE: The array is a set of key/value pairs:
                 // a lone trailing key has no value and is ignored
                 unsigned size = namesArr->GetSize();
-                if (size % 2 != 0)
-                {
-                    PoDoFo::LogMessage(PdfLogSeverity::Warning, "Odd sized /{} array in object {} {} R, the last key has no value",
-                        PdfTreeKeyAccess<TKey>::GetKeyStoreNameStr(),
-                        obj.GetIndirectReference().ObjectNumber(),
-                        obj.GetIndirectReference().GenerationNumber());
-                    size--;
-                }
-
+                size -= size % 2;
                 for (unsigned i = 0; i < size; i += 2)
                 {
                     if (PdfTreeKeyAccess<TKey>::Equals((*namesArr)[i], key))
