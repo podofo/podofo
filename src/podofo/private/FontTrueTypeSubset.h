@@ -67,6 +67,7 @@ private:
     struct GlyphContext
     {
         unsigned GlyfTableOffset = 0;
+        unsigned GlyfTableLength = 0;
         unsigned LocaTableOffset = 0;
         // Used internally during recursive load
         int16_t ContourCount = 0;
@@ -93,7 +94,7 @@ private:
     void writeHmtxTable(OutputStream& output);
     void writeLocaTable(OutputStream& output);
     void writeTables(charbuff& output);
-    void readGlyphCompoundData(GlyphCompoundData& data, unsigned offset);
+    void readGlyphCompoundData(GlyphCompoundData& data, const GlyphData& glyphData, unsigned offset);
 
     /// Information of TrueType tables.
     struct TrueTypeTable
@@ -103,6 +104,8 @@ private:
         uint32_t Length = 0;
         uint32_t Offset = 0;
     };
+
+    const TrueTypeTable& getTable(unsigned tag);
 
     struct GIDInfo
     {
