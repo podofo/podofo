@@ -25,6 +25,8 @@ namespace PoDoFo {
 /// @see PdfPage @see PdfAction @see PdfAnnotation
 class PODOFO_API PdfElement
 {
+    friend class PdfPage;
+
 public:
 
     virtual ~PdfElement();
@@ -59,6 +61,9 @@ protected:
 
 private:
     PdfElement& operator=(const PdfElement& element) = delete;
+
+    // To be called by PdfPage
+    void SetObject(PdfObject& obj) { m_Object = &obj; }
 
 private:
     PdfObject* m_Object;

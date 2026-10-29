@@ -311,6 +311,34 @@ startxref
     REQUIRE(dict.MustFindKey("MediaBox").GetArray()[2].GetReal() == 200);
 }
 
+TEST_CASE("TestFlattenInlineKids")
+{
+    // The page and the intermediate node inline in /Kids must survive
+    // its replacement when flattening, and the page must become indirect
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Count 2/Kids[<</Type/Pages/Count 1/MediaBox[0 0 200 100]/Kids[<</Type/Page/Resources<</Font<</F1 4 0 R>>>>>>]>> 3 0 R]>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]>>endobj
+4 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& pages = doc.GetPages();
+    auto& page = pages.GetPageAt(0);
+    REQUIRE(page.GetResources().GetResource(PdfResourceType::Font, "F1") != nullptr);
+    pages.CreatePage(PdfPageSize::A4);
+
+    REQUIRE(pages.GetCount() == 3);
+    REQUIRE(page.GetObject().IsIndirect());
+    REQUIRE(pages.GetDictionary().MustFindKey("Kids").GetArray()[0].GetReference() == page.GetObject().GetIndirectReference());
+    REQUIRE(page.GetDictionary().MustFindKey("MediaBox").GetArray()[3].GetReal() == 100);
+    REQUIRE(page.GetResources().GetResource(PdfResourceType::Font, "F1") != nullptr);
+}
+
 TEST_CASE("TestFillFromPageCopiesTransparencyGroup")
 {
     // Without the fix, FillFromPage dropped /Group, causing viewers to reset

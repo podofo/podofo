@@ -432,6 +432,11 @@ unsigned PdfPageCollection::traversePageTreeNode(PdfObject& obj, unsigned count,
     }
 }
 
+// Flatten the document page structure by recreating a single /Pages
+// node and insert all pages there. This is allowed by PDF
+// Specification, see ISO 32000-2:2020, 7.7.3.2 Page tree nodes:
+// "PDF processors shall not be required to preserve the existing
+// structure of the page tree"
 void PdfPageCollection::FlattenStructure()
 {
     if (m_kidsArray != nullptr)
@@ -439,11 +444,12 @@ void PdfPageCollection::FlattenStructure()
 
     initPages();
 
-    // Flatten the document page structure by recreating a single /Pages
-    // node and insert all pages there. This is allowed by PDF
-    // Specification, see ISO 32000-2:2020, 7.7.3.2 Page tree nodes:
-    // "PDF processors shall not be required to preserve the existing
-    // structure of the page tree"
+    // /Kids in the page tree which may hold inlined pages: flatten
+    // the pages eagerly to move them to new objects in such case,
+    // so they are not destroyed when the /Kids array is replaced
+    for (unsigned i = 0; i < m_Pages.size(); i++)
+        m_Pages[i]->FlattenStructure();
+
     auto& kidsObj = GetDocument().GetObjects().CreateArrayObject();
     GetDictionary().AddKeyIndirect("Kids"_n, kidsObj);
     m_kidsArray = &kidsObj.GetArray();
@@ -451,8 +457,6 @@ void PdfPageCollection::FlattenStructure()
     for (unsigned i = 0; i < m_Pages.size(); i++)
     {
         auto page = m_Pages[i];
-        page->FlattenStructure();
-
         // Fix pages parent and add them to /Kids
         page->GetDictionary().AddKey("Parent"_n, GetObject().GetIndirectReference());
         (*m_kidsArray).AddIndirect(page->GetObject());

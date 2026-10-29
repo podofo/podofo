@@ -76,6 +76,11 @@ public:
 
     PdfObject& CreateArrayObject();
 
+    /// Creates a new null object and inserts it into the vector.
+    /// This function assigns the next free object number to the PdfObject.
+    /// @remarks Useful to allocate an object before moving content into it
+    PdfObject& CreateNullObject();
+
     /// Creates a new object and inserts it into the vector.
     /// This function assigns the next free object number to the PdfObject.
     ///

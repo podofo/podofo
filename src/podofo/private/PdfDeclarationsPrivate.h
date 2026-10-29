@@ -147,6 +147,7 @@ namespace PoDoFo
     class InputStream;
     class PdfPage;
     class PdfDictionaryElement;
+    class PdfObject;
 
     constexpr double DEG2RAD = std::numbers::pi / 180;
     constexpr double RAD2DEG = 180 / std::numbers::pi;
@@ -173,6 +174,10 @@ namespace PoDoFo
     unsigned char GetSubsetPrefixLength(const std::string_view& fontName);
 
     void CreateObjectStructElement(PdfDictionaryElement& elem, PdfPage& page, const PdfName& elementType);
+
+    /// Move a direct object to a new indirect object, leaving a reference to it in its place
+    /// @remarks The indirect object is allocated first, so a failure leaves the object untouched
+    PdfObject& MoveToIndirect(PdfObject& obj);
 
     std::vector<std::string> ToPdfKeywordsList(const std::string_view& str);
     std::string ToPdfKeywordsString(const cspan<std::string>&keywords);
