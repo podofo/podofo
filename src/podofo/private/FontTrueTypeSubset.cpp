@@ -42,6 +42,13 @@ static constexpr unsigned GLYPH_HEADER_SIZE = 5 * sizeof(uint16_t);
 // Flags and glyph index, the fixed part of a compound component record
 // https://learn.microsoft.com/en-us/typography/opentype/spec/glyf#compositeGlyphTable
 static constexpr unsigned COMPONENT_RECORD_SIZE = 2 * sizeof(uint16_t);
+// Table sizes required by the fields read or patched by the subset
+// https://learn.microsoft.com/en-us/typography/opentype/spec/head#headHeader
+static constexpr unsigned HEAD_TABLE_SIZE = 54;
+// https://learn.microsoft.com/en-us/typography/opentype/spec/hhea#hheaHeader
+static constexpr unsigned HHEA_TABLE_SIZE = 36;
+// https://learn.microsoft.com/en-us/typography/opentype/spec/maxp#maxpHeader_05
+static constexpr unsigned MAXP_TABLE_MIN_SIZE = 6;
 
 //Get the number of bytes to pad the ul, because of 4-byte-alignment.
 static uint32_t GetTableCheksum(const char* buf, uint32_t size);
@@ -165,20 +172,24 @@ void FontTrueTypeSubset::initTables()
         // CIDFont dictionary, the 'cmap' table is not needed and shall not be present
 
         bool skipTable = false;
+        unsigned minLength = 0;
         switch (tbl.Tag)
         {
             case TTAG_head:
                 tableMask |= ReqTable::head;
+                minLength = HEAD_TABLE_SIZE;
                 break;
             case TTAG_hhea:
                 // required to get numHMetrics
                 tableMask |= ReqTable::hhea;
+                minLength = HHEA_TABLE_SIZE;
                 break;
             case TTAG_loca:
                 tableMask |= ReqTable::loca;
                 break;
             case TTAG_maxp:
                 tableMask |= ReqTable::maxp;
+                minLength = MAXP_TABLE_MIN_SIZE;
                 break;
             case TTAG_glyf:
                 tableMask |= ReqTable::glyf;
@@ -207,6 +218,12 @@ void FontTrueTypeSubset::initTables()
                 skipTable = true;
                 break;
         }
+
+        // The subset patches these tables at fixed offsets after copying
+        // their declared length, so an undersized length can't be accepted
+        if (tbl.Length < minLength)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "TrueType table shorter than its required fields");
+
         if (!skipTable)
             m_tables.push_back(tbl);
     }
