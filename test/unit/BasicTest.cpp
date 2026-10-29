@@ -269,6 +269,44 @@ startxref
         PdfErrorCode::MaxRecursionReached);
 }
 
+TEST_CASE("TestNameTreeCacheAfterAddValue")
+{
+    // The destination of Foo is stored directly in the /Names array, which the
+    // insertion relocates: it must be moved to an indirect object and its wrapper,
+    // also when obtained from ToDictionary, rebound to it. Zed is already indirect
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/Names 5 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]>>endobj
+4 0 obj<</Names[(Foo)[3 0 R/Fit](Zed)6 0 R]>>endobj
+5 0 obj<</Dests 4 0 R>>endobj
+6 0 obj[3 0 R/Fit]endobj
+trailer<</Root 1 0 R/Size 7>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& dests = doc.GetNames()->MustGetTree<PdfDestinations>();
+    PdfDestinations::Map map;
+    dests.ToDictionary(map);
+    auto foo = map.at(PdfString("Foo"));
+    auto zed = map.at(PdfString("Zed"));
+    REQUIRE(dests.GetValue("Foo") == foo.get());
+
+    shared_ptr<PdfDestination> bar = doc.CreateDestination();
+    bar->SetDestination(doc.GetPages().GetPageAt(0));
+    dests.AddValue(PdfString("Bar"), bar);
+
+    REQUIRE(foo->GetObject().IsIndirect());
+    REQUIRE(foo->GetType() == PdfDestinationType::Fit);
+    REQUIRE(doc.GetNames()->GetValue(PdfKnownNameTree::Dests, "Foo") == &foo->GetObject());
+    REQUIRE(dests.GetValue("Foo") == foo.get());
+    REQUIRE(dests.GetValue("Zed") == zed.get());
+    REQUIRE(dests.GetValue("Bar") == bar.get());
+}
+
 TEST_CASE("TestPdfNames")
 {
     // Just include and use "optional/PdfNames.h"

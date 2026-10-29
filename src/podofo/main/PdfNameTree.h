@@ -36,9 +36,13 @@ protected:
 
 private:
     std::unique_ptr<PdfElement> createElement(PdfObject& obj) const;
+    const std::shared_ptr<PdfElement>& cacheElement(const PdfString& key, PdfObject& obj);
 
 private:
-    PdfStringHashMap<std::shared_ptr<PdfElement>> m_cache;
+    PdfStringMap<std::shared_ptr<PdfElement>> m_cache;
+    // Cached elements wrapping values stored directly in the /Names arrays,
+    // to be moved to indirect objects on the next AddValue
+    std::unique_ptr<std::vector<PdfElement*>> m_directElements;
 };
 
 template <typename TElement>
