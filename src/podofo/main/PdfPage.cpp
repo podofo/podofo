@@ -298,13 +298,19 @@ void PdfPage::FlattenStructure()
 
     static PdfName inheritableAttributes[] = { "Resources"_n, "MediaBox"_n, "CropBox"_n, "Rotate"_n };
 
-    bool isShallow;
-    // Move inherited attributes to current dictionary
+    // Copy the attributes inherited from the ancestors to the page: the
+    // flattening re-parents the page to the root and the nodes that held
+    // them become unreachable
+    auto& dict = GetDictionary();
     for (unsigned i = 0; i < std::size(inheritableAttributes); i++)
     {
-        auto obj = findInheritableAttribute(inheritableAttributes[i], isShallow);
-        if (obj != nullptr && !isShallow)
-            GetDictionary().AddKeyIndirectSafe(inheritableAttributes[i], *obj);
+        auto& name = inheritableAttributes[i];
+        if (dict.HasKey(name))
+            continue;
+
+        auto obj = findInheritableAttribute(name);
+        if (obj != nullptr)
+            dict.AddKeyIndirectSafe(name, *obj);
     }
 
     // Finally clear the parents
@@ -386,21 +392,11 @@ PdfDictionaryElement& PdfPage::getElement()
 
 PdfObject* PdfPage::findInheritableAttribute(const string_view& name) const
 {
-    bool isShallow;
-    return findInheritableAttribute(name, isShallow);
-}
-
-PdfObject* PdfPage::findInheritableAttribute(const string_view& name, bool& isShallow) const
-{
     auto& dict = const_cast<PdfPage&>(*this).GetDictionary();
     auto obj = dict.FindKeyParent(name);
     if (obj != nullptr)
-    {
-        isShallow = true;
         return obj;
-    }
 
-    isShallow = false;
     for (unsigned i = 0; i < m_parents.size(); i++)
     {
         obj = m_parents[i]->GetDictionary().FindKeyParent(name);

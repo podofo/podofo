@@ -304,8 +304,6 @@ private:
 
     PdfObject* findInheritableAttribute(const std::string_view& name) const;
 
-    PdfObject* findInheritableAttribute(const std::string_view& name, bool& isShallow) const;
-
     void ensureContentsCreated();
 
     /// Get the bounds of a specified page box in PDF units.
