@@ -219,6 +219,21 @@ void PdfNameTreeBase::AddValue(const PdfString& key, shared_ptr<PdfElement>&& va
     if (value == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The value must be non null");
 
+    // NOTE: The insertion may relocate the values stored directly in the /Names
+    // arrays: move the ones wrapped by cached elements to indirect objects,
+    // referenced in their place, and rebind the elements to them
+    if (m_directElements != nullptr)
+    {
+        // Drop an element only after its move, so a failure leaves the rest pending
+        while (m_directElements->size() != 0)
+        {
+            auto element = m_directElements->back();
+            element->SetObject(MoveToIndirect(element->GetObject()));
+            m_directElements->pop_back();
+        }
+        m_directElements.reset();
+    }
+
     PdfNameTreeNode root(nullptr, GetObject());
     if (!root.AddValue(key, value->GetObject()))
         PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
@@ -237,10 +252,7 @@ PdfElement* PdfNameTreeBase::GetValue(const string_view& key) const
     if (valueObj == nullptr)
         return nullptr;
 
-    auto element = createElement(*valueObj);
-    auto ret = element.get();
-    const_cast<PdfNameTreeBase&>(*this).m_cache[key] = std::move(element);
-    return ret;
+    return const_cast<PdfNameTreeBase&>(*this).cacheElement(key, *valueObj).get();
 }
 
 bool PdfNameTreeBase::HasKey(const string_view& key) const
@@ -258,19 +270,32 @@ void PdfNameTreeBase::ToDictionary(PdfStringMap<shared_ptr<PdfElement>>& dict, b
     if (!skipClear)
         dict.clear();
 
+    // NOTE: The created elements are cached as well, so AddValue can rebind them
     auto handleValue = [&](const PdfString& name, PdfObject& obj)
     {
         auto found = m_cache.find(name);
-        if (found != m_cache.end())
-        {
+        if (found == m_cache.end())
+            dict[name] = cacheElement(name, obj);
+        else
             dict[name] = found->second;
-            return;
-        }
-
-        dict[name] = createElement(obj);
     };
 
     enumerateValues(GetObject(), GetDocument().GetObjects(), handleValue);
+}
+
+const shared_ptr<PdfElement>& PdfNameTreeBase::cacheElement(const PdfString& key, PdfObject& obj)
+{
+    auto element = createElement(obj);
+    auto& ret = (m_cache[key] = std::move(element));
+    if (!obj.IsIndirect())
+    {
+        if (m_directElements == nullptr)
+            m_directElements.reset(new vector<PdfElement*>());
+
+        m_directElements->push_back(ret.get());
+    }
+
+    return ret;
 }
 
 unique_ptr<PdfElement> PdfNameTreeBase::createElement(PdfObject& obj) const

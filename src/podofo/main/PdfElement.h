@@ -26,6 +26,7 @@ namespace PoDoFo {
 class PODOFO_API PdfElement
 {
     friend class PdfPage;
+    friend class PdfNameTreeBase;
 
 public:
 
@@ -62,7 +63,7 @@ protected:
 private:
     PdfElement& operator=(const PdfElement& element) = delete;
 
-    // To be called by PdfPage
+    // To be called by the classes moving a direct object to an indirect one
     void SetObject(PdfObject& obj) { m_Object = &obj; }
 
 private:
