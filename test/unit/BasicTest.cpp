@@ -221,6 +221,31 @@ TEST_CASE("TestNameTreeOddNamesAddValue")
     REQUIRE(doc.GetNames()->GetValue(PdfKnownNameTree::Dests, "B") == &dest->GetObject());
 }
 
+TEST_CASE("TestNameTreeAddValueEmptyLimits")
+{
+    // The key is inserted in the first kid and the limits are recomputed
+    // from the children: the last kid has an empty /Limits array
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/Names 5 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]>>endobj
+4 0 obj<</Kids[6 0 R 7 0 R]>>endobj
+5 0 obj<</Dests 4 0 R>>endobj
+6 0 obj<</Limits[(B)(B)]/Names[(B)[3 0 R/Fit]]>>endobj
+7 0 obj<</Limits[]/Names[]>>endobj
+trailer<</Root 1 0 R/Size 8>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    shared_ptr<PdfDestination> dest = doc.CreateDestination();
+    doc.GetNames()->MustGetTree<PdfDestinations>().AddValue(PdfString("A"), dest);
+    REQUIRE(doc.GetNames()->HasKey(PdfKnownNameTree::Dests, "A"));
+    REQUIRE(doc.GetNames()->HasKey(PdfKnownNameTree::Dests, "B"));
+}
+
 TEST_CASE("TestPdfNames")
 {
     // Just include and use "optional/PdfNames.h"

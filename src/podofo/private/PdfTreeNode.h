@@ -378,19 +378,20 @@ namespace PoDoFo
             {
                 PODOFO_ASSERT(arr->GetSize() != 0);
 
-                PdfObject* limitsObj = nullptr;
+                // The limits of the children come from the file and may be empty
+                PdfArray* childLimits;
                 if (arr->TryFindAtAs(0, childDict)
-                    && (limitsObj = childDict->FindKey("Limits")) != nullptr
-                    && limitsObj->IsArray())
+                    && childDict->TryFindKeyAs("Limits", childLimits)
+                    && childLimits->GetSize() != 0)
                 {
-                    limits.Add(limitsObj->GetArray().front());
+                    limits.Add(childLimits->front());
                 }
 
                 if (arr->TryFindAtAs(arr->GetSize() - 1, childDict)
-                    && (limitsObj = childDict->FindKey("Limits")) != nullptr
-                    && limitsObj->IsArray())
+                    && childDict->TryFindKeyAs("Limits", childLimits)
+                    && childLimits->GetSize() != 0)
                 {
-                    limits.Add(limitsObj->GetArray().back());
+                    limits.Add(childLimits->back());
                 }
             }
             else
@@ -406,6 +407,8 @@ namespace PoDoFo
             auto namesObj = GetDictionary().FindKey(PdfTreeKeyAccess<TKey>::GetKeyStoreNameStr());
             if (namesObj != nullptr && namesObj->TryGetArray(arr))
             {
+                // NOTE: Called only on the halves of a split array, which hold many pairs
+                PODOFO_ASSERT(arr->GetSize() >= 2);
                 limits.Add(*arr->begin());
                 limits.Add(*(arr->end() - 2));
             }
