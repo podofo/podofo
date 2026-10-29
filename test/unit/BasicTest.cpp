@@ -209,6 +209,18 @@ TEST_CASE("TestNameTreeOddNamesLookup")
     REQUIRE(names->GetValue(PdfKnownNameTree::Dests, "A") != nullptr);
 }
 
+TEST_CASE("TestNameTreeOddNamesAddValue")
+{
+    // Adding the lone trailing key must not write its value past the end of the array:
+    // the key is dropped and added again with the value
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(s_oddNamesTreePdf);
+    shared_ptr<PdfDestination> dest = doc.CreateDestination();
+    doc.GetNames()->MustGetTree<PdfDestinations>().AddValue(PdfString("B"), dest);
+    REQUIRE(doc.GetObjects().MustGetObject(PdfReference(4, 0)).GetDictionary().MustFindKey("Names").GetArray().GetSize() == 4);
+    REQUIRE(doc.GetNames()->GetValue(PdfKnownNameTree::Dests, "B") == &dest->GetObject());
+}
+
 TEST_CASE("TestPdfNames")
 {
     // Just include and use "optional/PdfNames.h"
