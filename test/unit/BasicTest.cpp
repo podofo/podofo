@@ -185,6 +185,30 @@ TEST_CASE("TestFileSpecAttachment")
     doc.Save(TestUtils::GetTestOutputFilePath("TestFileSpecAttachment.pdf"));
 }
 
+// A /Dests leaf whose /Names array has a lone trailing key
+static constexpr string_view s_oddNamesTreePdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/Names 5 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]>>endobj
+4 0 obj<</Names[(A)[3 0 R/Fit](B)]>>endobj
+5 0 obj<</Dests 4 0 R>>endobj
+trailer<</Root 1 0 R/Size 6>>
+startxref
+999999
+%%EOF)";
+
+TEST_CASE("TestNameTreeOddNamesLookup")
+{
+    // The lookup must not step past the end of the array, and the lone key has no value
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(s_oddNamesTreePdf);
+    auto names = doc.GetNames();
+    REQUIRE(names != nullptr);
+    REQUIRE(!names->HasKey(PdfKnownNameTree::Dests, "M"));
+    REQUIRE(names->GetValue(PdfKnownNameTree::Dests, "B") == nullptr);
+    REQUIRE(names->GetValue(PdfKnownNameTree::Dests, "A") != nullptr);
+}
+
 TEST_CASE("TestPdfNames")
 {
     // Just include and use "optional/PdfNames.h"
