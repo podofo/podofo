@@ -381,6 +381,17 @@ startxref
     REQUIRE(pages.GetDictionary().MustFindKey("Kids").GetArray()[0].GetReference() == page.GetObject().GetIndirectReference());
 }
 
+TEST_CASE("TestInsertDocumentPageAtClampsIndex")
+{
+    PdfMemDocument src;
+    src.GetPages().CreatePage(PdfPageSize::A4);
+
+    PdfMemDocument dst;
+    dst.GetPages().InsertDocumentPageAt(100, src, 0);
+    REQUIRE(dst.GetPages().GetCount() == 1);
+    REQUIRE(dst.GetPages().GetDictionary().MustFindKey("Kids").GetArray().GetSize() == 1);
+}
+
 TEST_CASE("TestFillFromPageCopiesTransparencyGroup")
 {
     // Without the fix, FillFromPage dropped /Group, causing viewers to reset
