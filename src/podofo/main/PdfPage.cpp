@@ -313,6 +313,12 @@ void PdfPage::FlattenStructure()
             dict.AddKeyIndirectSafe(name, *obj);
     }
 
+    // The resources may have been bound to a dictionary of an ancestor,
+    // which was copied by value above: rebind them to the page's own
+    auto resources = dict.FindKey("Resources");
+    if (resources != nullptr && (m_Resources == nullptr || &m_Resources->GetObject() != resources))
+        m_Resources.reset(new PdfResources(*resources));
+
     // Finally clear the parents
     m_parents.clear();
 }
