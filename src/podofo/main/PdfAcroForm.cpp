@@ -84,7 +84,11 @@ PdfField& PdfAcroForm::getField(unsigned index) const
     if (index >= m_Fields.size())
         PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
-    return *m_Fields[index];
+    auto ret = m_Fields[index].get();
+    if (ret == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The field at index {} is invalid", index);
+
+    return *ret;
 }
 
 PdfField& PdfAcroForm::getField(const PdfReference& ref) const
@@ -102,7 +106,9 @@ void PdfAcroForm::RemoveFieldAt(unsigned index)
     if (m_Fields[index] != nullptr)
     {
         // It may be null if the field is invalid
-        m_fieldMap->erase(m_fieldMap->find(m_Fields[index]->GetObject().GetIndirectReference()));
+        auto found = m_fieldMap->find(m_Fields[index]->GetObject().GetIndirectReference());
+        if (found != m_fieldMap->end())
+            m_fieldMap->erase(found);
     }
 
     m_fieldArray->RemoveAt(index);
@@ -231,15 +237,21 @@ void PdfAcroForm::initFields()
     unsigned i = 0;
     for (auto obj : m_fieldArray->GetIndirectIterator())
     {
-        (*m_fieldMap)[obj->GetIndirectReference()] = i;
-        // The field may be invalid. In that case we push a placeholder
-        if (PdfField::TryCreateFromObject(*obj, field))
+        auto& ref = obj->GetIndirectReference();
+        // NOTE: Direct fields all share the 0 0 R reference
+        if (!m_fieldMap->try_emplace(ref, i).second && ref.IsIndirect())
+        {
+            // A repeated reference is wrapped only once: the duplicate is a placeholder
+            m_Fields.push_back(nullptr);
+        }
+        else if (PdfField::TryCreateFromObject(*obj, field))
         {
             field->SetAcroForm(*this);
             m_Fields.push_back(std::move(field));
         }
         else
         {
+            // The field may be invalid. In that case we push a placeholder
             m_Fields.push_back(nullptr);
         }
 
