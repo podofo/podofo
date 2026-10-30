@@ -520,3 +520,27 @@ startxref
     auto form = doc.CreateXObjectForm(page.GetMediaBox());
     REQUIRE_NOTHROW(form->FillFromPage(page));
 }
+TEST_CASE("TestAnnotationsDuplicateReferences")
+{
+    // The same annotation is referenced twice: the duplicate is not wrapped
+    // and the second removal must not erase a reference already gone from the map
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Annots[4 0 R 4 0 R]>>endobj
+4 0 obj<</Type/Annot/Subtype/Text/Rect[0 0 5 5]>>endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& annots = doc.GetPages().GetPageAt(0).GetAnnotations();
+    REQUIRE(annots.GetCount() == 2);
+    REQUIRE(annots.GetAnnotAt(0).GetType() == PdfAnnotationType::Text);
+    ASSERT_THROW_WITH_ERROR_CODE(annots.GetAnnotAt(1), PdfErrorCode::InvalidHandle);
+    annots.RemoveAnnotAt(0);
+    annots.RemoveAnnotAt(0);
+    REQUIRE(annots.GetCount() == 0);
+}
