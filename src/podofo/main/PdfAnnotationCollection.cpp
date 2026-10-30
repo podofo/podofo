@@ -49,7 +49,9 @@ void PdfAnnotationCollection::RemoveAnnotAt(unsigned index)
     if (m_Annots[index] != nullptr)
     {
         // It may be null if the annotation is invalid
-        m_annotMap->erase(m_annotMap->find(m_Annots[index]->GetObject().GetIndirectReference()));
+        auto found = m_annotMap->find(m_Annots[index]->GetObject().GetIndirectReference());
+        if (found != m_annotMap->end())
+            m_annotMap->erase(found);
     }
 
     m_annotArray->RemoveAt(index);
@@ -178,15 +180,21 @@ void PdfAnnotationCollection::initAnnotations()
     unsigned i = 0;
     for (auto obj : m_annotArray->GetIndirectIterator())
     {
-        (*m_annotMap)[obj->GetIndirectReference()] = i;
-        // The annotation may be invalid. In that case we push a placeholder
-        if (PdfAnnotation::TryCreateFromObject(*obj, annot))
+        auto& ref = obj->GetIndirectReference();
+        // NOTE: Direct annotations all share the 0 0 R reference
+        if (!m_annotMap->try_emplace(ref, i).second && ref.IsIndirect())
+        {
+            // A repeated reference is wrapped only once: the duplicate is a placeholder
+            m_Annots.push_back(nullptr);
+        }
+        else if (PdfAnnotation::TryCreateFromObject(*obj, annot))
         {
             annot->SetPage(*m_Page);
             m_Annots.push_back(std::move(annot));
         }
         else
         {
+            // The annotation may be invalid. In that case we push a placeholder
             m_Annots.push_back(nullptr);
         }
 
