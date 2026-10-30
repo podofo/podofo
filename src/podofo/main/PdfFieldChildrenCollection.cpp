@@ -93,22 +93,22 @@ bool PdfFieldChildrenCollectionBase::HasKidsArray() const
 
 PdfFieldChildrenCollectionBase::iterator PdfFieldChildrenCollectionBase::begin()
 {
-    return m_Fields.begin();
+    return iterator(m_Fields.begin(), m_Fields.end());
 }
 
 PdfFieldChildrenCollectionBase::iterator PdfFieldChildrenCollectionBase::end()
 {
-    return m_Fields.end();
+    return iterator(m_Fields.end(), m_Fields.end());
 }
 
 PdfFieldChildrenCollectionBase::const_iterator PdfFieldChildrenCollectionBase::begin() const
 {
-    return m_Fields.begin();
+    return const_iterator(m_Fields.begin(), m_Fields.end());
 }
 
 PdfFieldChildrenCollectionBase::const_iterator PdfFieldChildrenCollectionBase::end() const
 {
-    return m_Fields.end();
+    return const_iterator(m_Fields.end(), m_Fields.end());
 }
 
 PdfField& PdfFieldChildrenCollectionBase::AddChild(shared_ptr<PdfField> field)

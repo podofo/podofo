@@ -86,25 +86,25 @@ unsigned PdfAnnotationCollection::GetCount() const
 PdfAnnotationCollection::iterator PdfAnnotationCollection::begin()
 {
     initAnnotations();
-    return m_Annots.begin();
+    return iterator(m_Annots.begin(), m_Annots.end());
 }
 
 PdfAnnotationCollection::iterator PdfAnnotationCollection::end()
 {
     initAnnotations();
-    return m_Annots.end();
+    return iterator(m_Annots.end(), m_Annots.end());
 }
 
 PdfAnnotationCollection::const_iterator PdfAnnotationCollection::begin() const
 {
     const_cast<PdfAnnotationCollection&>(*this).initAnnotations();
-    return m_Annots.begin();
+    return const_iterator(m_Annots.begin(), m_Annots.end());
 }
 
 PdfAnnotationCollection::const_iterator PdfAnnotationCollection::end() const
 {
     const_cast<PdfAnnotationCollection&>(*this).initAnnotations();
-    return m_Annots.end();
+    return const_iterator(m_Annots.end(), m_Annots.end());
 }
 
 PdfAnnotation& PdfAnnotationCollection::addAnnotation(unique_ptr<PdfAnnotation>&& annot)

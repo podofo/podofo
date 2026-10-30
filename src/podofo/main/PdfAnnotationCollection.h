@@ -55,7 +55,11 @@ namespace PoDoFo
         public:
             Iterator() { }
         private:
-            Iterator(const TListIterator& iterator) : m_iterator(iterator) { }
+            Iterator(const TListIterator& iterator, const TListIterator& end)
+                : m_iterator(iterator), m_end(end)
+            {
+                skipPlaceholders();
+            }
         public:
             Iterator(const Iterator&) = default;
             Iterator& operator=(const Iterator&) = default;
@@ -70,12 +74,14 @@ namespace PoDoFo
             Iterator& operator++()
             {
                 m_iterator++;
+                skipPlaceholders();
                 return *this;
             }
             Iterator operator++(int)
             {
                 auto copy = *this;
                 m_iterator++;
+                skipPlaceholders();
                 return copy;
             }
             value_type operator*()
@@ -87,7 +93,15 @@ namespace PoDoFo
                 return m_iterator->get();
             }
         private:
+            // Invalid annotations are stored as null placeholders: the iteration skips them
+            void skipPlaceholders()
+            {
+                while (m_iterator != m_end && *m_iterator == nullptr)
+                    m_iterator++;
+            }
+        private:
             TListIterator m_iterator;
+            TListIterator m_end;
         };
 
         using iterator = Iterator<PdfAnnotation, AnnotationList::iterator>;
