@@ -139,25 +139,25 @@ unsigned PdfAcroForm::GetFieldCount() const
 PdfAcroForm::iterator PdfAcroForm::begin()
 {
     initFields();
-    return iterator(m_Fields.begin());
+    return iterator(m_Fields.begin(), m_Fields.end());
 }
 
 PdfAcroForm::iterator PdfAcroForm::end()
 {
     initFields();
-    return iterator(m_Fields.end());
+    return iterator(m_Fields.end(), m_Fields.end());
 }
 
 PdfAcroForm::const_iterator PdfAcroForm::begin() const
 {
     const_cast<PdfAcroForm&>(*this).initFields();
-    return const_iterator(m_Fields.begin());
+    return const_iterator(m_Fields.begin(), m_Fields.end());
 }
 
 PdfAcroForm::const_iterator PdfAcroForm::end() const
 {
     const_cast<PdfAcroForm&>(*this).initFields();
-    return const_iterator(m_Fields.end());
+    return const_iterator(m_Fields.end(), m_Fields.end());
 }
 
 PdfField& PdfAcroForm::CreateField(PdfObject& obj, PdfFieldType type)

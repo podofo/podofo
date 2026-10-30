@@ -463,3 +463,60 @@ TEST_CASE("TestFillFromPageWithoutGroupSameDocument")
 
     REQUIRE(xobj->GetDictionary().FindKey("Group") == nullptr);
 }
+TEST_CASE("TestAnnotationsIterationSkipsInvalid")
+{
+    // The first annotation has no /Subtype: it is stored as a null
+    // placeholder that the iterations must not hand out
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/AcroForm<</Fields[4 0 R]>>>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Annots[5 0 R 4 0 R]>>endobj
+4 0 obj<</Type/Annot/Subtype/Widget/FT/Tx/T(Foo)/Rect[0 0 5 5]/P 3 0 R>>endobj
+5 0 obj<</Type/Annot/Rect[0 0 5 5]>>endobj
+trailer<</Root 1 0 R/Size 6>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto& annots = page.GetAnnotations();
+    REQUIRE(annots.GetCount() == 2);
+    ASSERT_THROW_WITH_ERROR_CODE(annots.GetAnnotAt(0), PdfErrorCode::InvalidHandle);
+
+    unsigned count = 0;
+    for (auto annot : annots)
+    {
+        REQUIRE(annot->GetType() == PdfAnnotationType::Widget);
+        count++;
+    }
+    REQUIRE(count == 1);
+
+    count = 0;
+    for (auto field : page.GetFieldsIterator())
+    {
+        REQUIRE(field->GetType() == PdfFieldType::TextBox);
+        count++;
+    }
+    REQUIRE(count == 1);
+
+    count = 0;
+    for (auto field : doc.GetFieldsIterator())
+    {
+        REQUIRE(field->GetType() == PdfFieldType::TextBox);
+        count++;
+    }
+    REQUIRE(count == 1);
+
+    count = 0;
+    for (auto field : *doc.GetAcroForm())
+    {
+        REQUIRE(field->GetType() == PdfFieldType::TextBox);
+        count++;
+    }
+    REQUIRE(count == 1);
+
+    auto form = doc.CreateXObjectForm(page.GetMediaBox());
+    REQUIRE_NOTHROW(form->FillFromPage(page));
+}
