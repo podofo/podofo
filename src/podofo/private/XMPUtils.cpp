@@ -1000,7 +1000,8 @@ void removeExtension(xmlNodePtr extensionBag, string_view extensionNamespace)
         }
 
         xmlNodePtr child = cur->children;
-        if (child->type == XML_ELEMENT_NODE
+        if (child != nullptr
+            && child->type == XML_ELEMENT_NODE
             && xmlStrEqual(child->name, XMLCHAR "Description"))
         {
             // Handle the XMP packet according to the normalization algorithm
