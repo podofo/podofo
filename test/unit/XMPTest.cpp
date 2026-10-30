@@ -72,6 +72,16 @@ TEST_CASE("TestXMPExtensionBagEmptyItem")
     packet->SetMetadata(metadata);
 }
 
+TEST_CASE("TestXMPAttributeEntityNotExpanded")
+{
+    // The attribute value decodes to an entity reference: converting it
+    // to an element must keep it verbatim instead of expanding it
+    string_view xmp = R"(<?xml version="1.0"?><!DOCTYPE x [<!ENTITY a "aaaa">]><x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:pdf="http://ns.adobe.com/pdf/1.3/" pdf:Producer="&amp;a;"/></rdf:RDF></x:xmpmeta>)";
+    auto packet = PdfXMPPacket::Create(xmp);
+    auto metadata = packet->GetMetadata();
+    REQUIRE(*metadata.Producer == "&a;");
+}
+
 #if LIBXML_VERSION >= 21500
 
 TEST_CASE("TestPruneInvalid")
