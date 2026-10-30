@@ -60,6 +60,18 @@ TEST_CASE("TestXMPDefaultNamespaceElement")
     REQUIRE(*metadata.Producer == "P");
 }
 
+TEST_CASE("TestXMPExtensionBagEmptyItem")
+{
+    // Setting the PDF/UA level on a PDF/A-1 packet rewrites the extension
+    // schemas bag, which holds an empty item
+    string_view xmp = R"(<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/" xmlns:pdfuaid="http://www.aiim.org/pdfua/ns/id/" xmlns:pdfaExtension="http://www.aiim.org/pdfa/ns/extension/"><pdfaid:part>1</pdfaid:part><pdfaid:conformance>B</pdfaid:conformance><pdfuaid:part>1</pdfuaid:part><pdfaExtension:schemas><rdf:Bag><rdf:li/></rdf:Bag></pdfaExtension:schemas></rdf:Description></rdf:RDF></x:xmpmeta>)";
+    auto packet = PdfXMPPacket::Create(xmp);
+    auto metadata = packet->GetMetadata();
+    REQUIRE(metadata.PdfaLevel == PdfALevel::L1B);
+    REQUIRE(metadata.PdfuaLevel == PdfUALevel::L1);
+    packet->SetMetadata(metadata);
+}
+
 #if LIBXML_VERSION >= 21500
 
 TEST_CASE("TestPruneInvalid")
