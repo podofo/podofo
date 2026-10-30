@@ -548,3 +548,19 @@ TEST_CASE("TestImagePngTruncated")
     ASSERT_THROW_WITH_ERROR_CODE(img->Load(TestUtils::GetTestInputFilePath("PngTruncated.png")),
         PdfErrorCode::InvalidHandle);
 }
+
+TEST_CASE("TestXObjectFromObjectConflictingType")
+{
+    PdfMemDocument doc;
+    auto form = doc.CreateXObjectForm(Rect(0, 0, 100, 100));
+
+    // Without an explicit template argument the deduced type is const PdfImage:
+    // the type filter must still apply
+    unique_ptr<const PdfImage> constImage;
+    REQUIRE(!PdfXObject::TryCreateFromObject(form->GetObject(), constImage));
+    REQUIRE(constImage == nullptr);
+
+    unique_ptr<const PdfXObjectForm> constForm;
+    REQUIRE(PdfXObject::TryCreateFromObject(form->GetObject(), constForm));
+    REQUIRE(constForm->GetType() == PdfXObjectType::Form);
+}
