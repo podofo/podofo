@@ -169,11 +169,12 @@ namespace PoDoFo
     template<typename TPattern>
     constexpr PdfPatternType PdfPattern::GetPatternType()
     {
-        if (std::is_same_v<TPattern, PdfColouredTilingPattern>)
+        using PatternT = std::remove_cv_t<TPattern>;
+        if (std::is_same_v<PatternT, PdfColouredTilingPattern>)
             return PdfPatternType::Tiling;
-        else if (std::is_same_v<TPattern, PdfUncolouredTilingPattern>)
+        else if (std::is_same_v<PatternT, PdfUncolouredTilingPattern>)
             return PdfPatternType::Tiling;
-        else if (std::is_same_v<TPattern, PdfShadingPattern>)
+        else if (std::is_same_v<PatternT, PdfShadingPattern>)
             return PdfPatternType::Shading;
         else
             return PdfPatternType::Unknown;
