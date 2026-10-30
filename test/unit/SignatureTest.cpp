@@ -217,6 +217,33 @@ TEST_CASE("TestSignatureDumpRestore")
     REQUIRE(ssl::ComputeMD5Str(buff) == "4162823DB0FD7A43B7A3FDDFE4FDEC38");
 }
 
+TEST_CASE("TestSignatureDumpRestoreFieldName")
+{
+    charbuff buff;
+    utls::ReadTo(buff, TestUtils::GetTestInputFilePath("blank.pdf"));
+
+    string cert;
+    TestUtils::ReadTestInputFileTo(cert, "mycert.der");
+
+    {
+        auto stream = std::make_shared<BufferStreamDevice>(buff);
+        PdfMemDocument doc(stream);
+        auto& signature = doc.GetPages().GetPageAt(0).CreateField<PdfSignature>("A&B", Rect());
+
+        PdfSigningContext ctx;
+        ctx.AddSigner(signature, std::make_shared<PdfSignerCms>(cert, PdfSignerCmsParams()));
+        PdfSigningResults results;
+        ctx.StartSigning(doc, stream, results, PdfSaveOptions::NoMetadataUpdate);
+        ctx.DumpInPlace();
+    }
+
+    auto newStream = std::make_shared<BufferStreamDevice>(buff);
+    PdfSigningContext newCtx;
+    auto doc = newCtx.Restore(newStream);
+    PdfReference signatureRef;
+    REQUIRE(newCtx.GetSigner("A&B", signatureRef) != nullptr);
+}
+
 TEST_CASE("TestCertificateRSA")
 {
     {

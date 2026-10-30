@@ -49,7 +49,7 @@ unique_ptr<PdfMemDocument> PdfSigningContext::Restore(shared_ptr<StreamDevice> d
     if (m_status != Status::Config)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedOperation, "Restore a deferred context is not allowed");
 
-    void InitXml();
+    utls::InitXml();
 
     device->Seek(-(ssize_t)sizeof(SigningContextDumpFooter), SeekDirection::End);
     SigningContextDumpFooter footer;
@@ -255,7 +255,7 @@ void PdfSigningContext::DumpInPlace()
     if (m_status != Status::Started)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedOperation, "Only a non-restored deferred context can be dumped");
 
-    void InitXml();
+    utls::InitXml();
 
     m_device->Seek(0, SeekDirection::End);
 
@@ -290,7 +290,7 @@ void PdfSigningContext::DumpInPlace()
             goto SerializationFailed;
 
         auto keyElem = xmlNewChild(signatureElem, nullptr, XMLCHAR "Key", nullptr);
-        if (signatureElem == nullptr)
+        if (keyElem == nullptr)
             goto SerializationFailed;
 
         utls::FormatTo(temp, ref.ObjectNumber());
@@ -305,7 +305,7 @@ void PdfSigningContext::DumpInPlace()
         if (valueElem == nullptr)
             goto SerializationFailed;
 
-        if (xmlNewChild(valueElem, nullptr, XMLCHAR "SignatureFullName", XMLCHAR descs.SignatureFullName.data()) == nullptr)
+        if (xmlNewTextChild(valueElem, nullptr, XMLCHAR "SignatureFullName", XMLCHAR descs.SignatureFullName.data()) == nullptr)
             goto SerializationFailed;
 
         utls::FormatTo(temp, descs.SignaturePageIndex);
