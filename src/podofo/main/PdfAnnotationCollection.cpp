@@ -46,14 +46,6 @@ void PdfAnnotationCollection::RemoveAnnotAt(unsigned index)
     if (index >= m_Annots.size())
         PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
-    if (m_Annots[index] != nullptr)
-    {
-        // It may be null if the annotation is invalid
-        auto found = m_annotMap->find(m_Annots[index]->GetObject().GetIndirectReference());
-        if (found != m_annotMap->end())
-            m_annotMap->erase(found);
-    }
-
     m_annotArray->RemoveAt(index);
     m_Annots.erase(m_Annots.begin() + index);
     fixIndices(index);
@@ -70,9 +62,9 @@ void PdfAnnotationCollection::RemoveAnnot(const PdfReference& ref)
         return;
 
     unsigned index = found->second;
-    m_Annots.erase(m_Annots.begin() + index);
+    PODOFO_ASSERT(index < m_Annots.size());
     m_annotArray->RemoveAt(index);
-    m_annotMap->erase(found);
+    m_Annots.erase(m_Annots.begin() + index);
     fixIndices(index);
 
     // NOTE: No need to remove the object from the document
@@ -149,7 +141,7 @@ PdfAnnotation& PdfAnnotationCollection::getAnnotAt(unsigned index) const
 
     auto ret = m_Annots[index].get();
     if (ret == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The exception at index {} is invalid", index);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The annotation at index {} is invalid", index);
 
     return *ret;
 }
@@ -157,10 +149,15 @@ PdfAnnotation& PdfAnnotationCollection::getAnnotAt(unsigned index) const
 PdfAnnotation& PdfAnnotationCollection::getAnnot(const PdfReference& ref) const
 {
     const_cast<PdfAnnotationCollection&>(*this).initAnnotations();
-    unsigned index = (*m_annotMap).at(ref);
+    auto found = m_annotMap->find(ref);
+    if (found == m_annotMap->end())
+        PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
+
+    unsigned index = found->second;
+    PODOFO_ASSERT(index < m_Annots.size());
     auto ret = m_Annots[index].get();
     if (ret == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The exception at index {} is invalid", index);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The annotation at index {} is invalid", index);
 
     return *ret;
 }
@@ -204,10 +201,19 @@ void PdfAnnotationCollection::initAnnotations()
 
 void PdfAnnotationCollection::fixIndices(unsigned index)
 {
-    for (auto& pair : *m_annotMap)
+    for (auto it = m_annotMap->begin(); it != m_annotMap->end(); )
     {
+        if (it->second == index)
+        {
+            // The entry of the removed slot: it exists also for placeholders
+            it = m_annotMap->erase(it);
+            continue;
+        }
+
         // Decrement indices where needed
-        if (pair.second > index)
-            pair.second--;
+        if (it->second > index)
+            it->second--;
+
+        it++;
     }
 }
