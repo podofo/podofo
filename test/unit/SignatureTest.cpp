@@ -427,6 +427,32 @@ TEST_CASE("TestDocTimeStamp")
     REQUIRE(ssl::ComputeMD5Str(buff) == "9371BDDDB34023CB3ADBE244690E790A");
 }
 
+TEST_CASE("TestSignatureDumpRestoreFieldName")
+{
+    charbuff buff;
+    utls::ReadTo(buff, TestUtils::GetTestInputFilePath("blank.pdf"));
+
+    {
+        auto stream = std::make_shared<BufferStreamDevice>(buff);
+        PdfMemDocument doc(stream);
+        auto& signature = doc.GetPages().GetPageAt(0).CreateField<PdfSignature>("A&B", Rect());
+
+        PdfSignerDocTimeStampParams params;
+        params.ReservedSize = 8192;
+        PdfSigningContext ctx;
+        ctx.AddSigner(signature, std::make_shared<PdfSignerDocTimeStamp>(params));
+        PdfSigningResults results;
+        ctx.StartSigning(doc, stream, results, PdfSaveOptions::NoMetadataUpdate);
+        ctx.DumpInPlace();
+    }
+
+    auto newStream = std::make_shared<BufferStreamDevice>(buff);
+    PdfSigningContext newCtx;
+    auto doc = newCtx.Restore(newStream);
+    PdfReference signatureRef;
+    REQUIRE(newCtx.GetSigner("A&B", signatureRef) != nullptr);
+}
+
 // Create a RFC 3161 TimeStampToken for the given signed hash. A regular certificate is used
 // as the TSA signer, as only the message imprint is verified when signing
 static charbuff createTimeStampToken(const bufferview& signedHash, const bufferview& cert, const bufferview& pkey)
