@@ -349,8 +349,10 @@ void normalizeElement(xmlDocPtr doc, xmlNodePtr elem)
         if (shouldSkipAttribute(attr))
             continue;
 
+        // NOTE: The value is already decoded. xmlNewChild would parse it
+        // again, expanding entity references outside of the parser checks
         auto value = utls::GetAttributeValue(attr);
-        if (xmlNewChild(elem, attr->ns, attr->name, XMLCHAR value.data()) == nullptr)
+        if (xmlNewTextChild(elem, attr->ns, attr->name, XMLCHAR value.data()) == nullptr)
             THROW_LIBXML_EXCEPTION("Can't create value replacement node");
 
         attribsToRemove.push_back(attr);
