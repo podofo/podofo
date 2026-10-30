@@ -544,3 +544,32 @@ startxref
     annots.RemoveAnnotAt(0);
     REQUIRE(annots.GetCount() == 0);
 }
+
+TEST_CASE("TestAnnotationsRemovePlaceholder")
+{
+    // The first annotation has no /Subtype and is a placeholder: removing it by
+    // index must drop its reference too, so lookups by reference don't use a stale index
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Annots[4 0 R 5 0 R]>>endobj
+4 0 obj<</Type/Annot/Rect[0 0 5 5]>>endobj
+5 0 obj<</Type/Annot/Subtype/Text/Rect[0 0 5 5]>>endobj
+trailer<</Root 1 0 R/Size 6>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& annots = doc.GetPages().GetPageAt(0).GetAnnotations();
+    REQUIRE(annots.GetCount() == 2);
+    annots.RemoveAnnotAt(0);
+    REQUIRE(annots.GetCount() == 1);
+    ASSERT_THROW_WITH_ERROR_CODE(annots.GetAnnot(PdfReference(4, 0)), PdfErrorCode::ValueOutOfRange);
+    annots.RemoveAnnot(PdfReference(4, 0));
+    REQUIRE(annots.GetCount() == 1);
+    REQUIRE(annots.GetAnnot(PdfReference(5, 0)).GetType() == PdfAnnotationType::Text);
+    annots.RemoveAnnot(PdfReference(5, 0));
+    REQUIRE(annots.GetCount() == 0);
+}
