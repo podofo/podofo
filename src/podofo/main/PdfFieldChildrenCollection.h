@@ -121,6 +121,7 @@ namespace PoDoFo
         PdfArray* getKidsArray() const;
         void inlineKidsArray();
         void initFields();
+        void promoteDirectEntries();
         PdfField& getFieldAt(unsigned index) const;
         PdfField& getField(const PdfReference& ref) const;
         void fixIndices(unsigned index);
