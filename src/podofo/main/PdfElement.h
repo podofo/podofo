@@ -27,6 +27,7 @@ class PODOFO_API PdfElement
 {
     friend class PdfPage;
     friend class PdfNameTreeBase;
+    friend class PdfAnnotationCollection;
 
 public:
 

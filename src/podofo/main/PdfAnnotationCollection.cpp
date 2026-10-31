@@ -47,6 +47,7 @@ void PdfAnnotationCollection::RemoveAnnotAt(unsigned index)
         PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
     inlineAnnotationArray();
+    promoteDirectEntries();
     m_annotArray->RemoveAt(index);
     m_Annots.erase(m_Annots.begin() + index);
     fixIndices(index);
@@ -65,6 +66,7 @@ void PdfAnnotationCollection::RemoveAnnot(const PdfReference& ref)
     unsigned index = found->second;
     PODOFO_ASSERT(index < m_Annots.size());
     inlineAnnotationArray();
+    promoteDirectEntries();
     m_annotArray->RemoveAt(index);
     m_Annots.erase(m_Annots.begin() + index);
     fixIndices(index);
@@ -107,9 +109,14 @@ PdfAnnotation& PdfAnnotationCollection::addAnnotation(unique_ptr<PdfAnnotation>&
 {
     initAnnotations();
     if (m_annotArray == nullptr)
+    {
         m_annotArray = &m_Page->GetDictionary().AddKey("Annots"_n, PdfArray()).GetArray();
+    }
     else
+    {
         inlineAnnotationArray();
+        promoteDirectEntries();
+    }
 
     (*m_annotMap)[annot->GetObject().GetIndirectReference()] = (unsigned)m_Annots.size();
     m_annotArray->AddIndirectSafe(annot->GetObject());
@@ -127,6 +134,40 @@ void PdfAnnotationCollection::inlineAnnotationArray()
         return;
 
     m_annotArray = &m_Page->GetDictionary().AddKey("Annots"_n, PdfArray(*m_annotArray)).GetArray();
+}
+
+// Annotations from direct dictionaries point into the array storage, which a
+// modification can relocate or free: such entries are first moved to indirect
+// objects, as the specification requires, and the elements are rebound to them
+void PdfAnnotationCollection::promoteDirectEntries()
+{
+    PODOFO_ASSERT(m_annotArray->GetSize() == m_Annots.size());
+    bool promoted = false;
+    for (unsigned i = 0; i < m_annotArray->GetSize(); i++)
+    {
+        auto& elem = (*m_annotArray)[i];
+        if (elem.IsDictionary())
+        {
+            // It's an annotation stored directly in the array
+            auto& obj = PoDoFo::MoveToIndirect(elem);
+            if (m_Annots[i] != nullptr)
+                m_Annots[i]->SetObject(obj);
+
+            promoted = true;
+        }
+    }
+
+    if (!promoted)
+        return;
+
+    // Key the map again, as the promoted entries have their own references now
+    m_annotMap->clear();
+    unsigned i = 0;
+    for (auto obj : m_annotArray->GetIndirectIterator())
+    {
+        (void)m_annotMap->try_emplace(obj->GetIndirectReference(), i);
+        i++;
+    }
 }
 
 PdfArray* PdfAnnotationCollection::getAnnotationsArray() const

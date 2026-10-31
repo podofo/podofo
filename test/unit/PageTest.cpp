@@ -648,3 +648,41 @@ startxref
     annot.SetFlags(PdfAnnotationFlags::Hidden);
     REQUIRE(annot.GetFlags() == PdfAnnotationFlags::Hidden);
 }
+
+TEST_CASE("TestAnnotationsDirectDictionaries")
+{
+    // Direct annotation dictionaries live in the array storage, which the
+    // addition relocates: they must be moved to indirect objects and the
+    // existing wrappers rebound to them
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Annots[<</Type/Annot/Subtype/Text/Rect[1 1 5 5]>><</Type/Annot/Subtype/Square/Rect[1 1 6 6]>><</Type/Annot/Subtype/Square/Rect[1 1 7 7]>><</Type/Annot/Subtype/Square/Rect[1 1 8 8]>>]>>endobj
+trailer<</Root 1 0 R/Size 4>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto& annots = page.GetAnnotations();
+    REQUIRE(annots.GetCount() == 4);
+    auto& first = annots.GetAnnotAt(0);
+    auto& last = annots.GetAnnotAt(3);
+    REQUIRE(first.GetType() == PdfAnnotationType::Text);
+
+    annots.CreateAnnot(PdfAnnotationType::Link, Rect(0, 0, 5, 5));
+    REQUIRE(annots.GetCount() == 5);
+    REQUIRE(first.GetObject().IsIndirect());
+    REQUIRE(first.GetRectRaw().GetNormalized().Width == 4);
+    REQUIRE(&annots.GetAnnot(first.GetObject().GetIndirectReference()) == &first);
+    auto& arr = page.GetDictionary().MustGetKey("Annots").GetArray();
+    REQUIRE(arr[0].IsReference());
+    REQUIRE(arr[3].GetReference() == last.GetObject().GetIndirectReference());
+
+    annots.RemoveAnnotAt(0);
+    REQUIRE(annots.GetCount() == 4);
+    REQUIRE(last.GetRectRaw().GetNormalized().Width == 7);
+    REQUIRE(&annots.GetAnnotAt(2) == &last);
+}
