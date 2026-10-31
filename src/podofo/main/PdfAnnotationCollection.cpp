@@ -108,7 +108,7 @@ PdfAnnotation& PdfAnnotationCollection::addAnnotation(unique_ptr<PdfAnnotation>&
     {
         m_annotArray = &m_Page->GetDictionary().AddKey("Annots"_n, PdfArray()).GetArray();
     }
-    else if (m_annotArray->GetOwner() != &m_Page->GetObject())
+    else if (m_annotArray->GetOwner()->IsIndirect())
     {
         // The array is stored in its own object: inline it in the page instead.
         // On an incremental update the modification of a standalone array can't

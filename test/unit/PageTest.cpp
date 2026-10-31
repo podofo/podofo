@@ -600,3 +600,16 @@ startxref
     REQUIRE(annots.GetCount() == 4);
     REQUIRE(&annots.GetAnnot(created.GetObject().GetIndirectReference()) == &created);
 }
+
+TEST_CASE("TestAnnotationsInlineArrayKept")
+{
+    // Adding to an /Annots array inline in the page must not replace it with a copy
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    auto& annots = page.GetAnnotations();
+    annots.CreateAnnot(PdfAnnotationType::Text, Rect(0, 0, 5, 5));
+    auto arr = &page.GetDictionary().MustGetKey("Annots").GetArray();
+    annots.CreateAnnot(PdfAnnotationType::Text, Rect(0, 0, 5, 5));
+    REQUIRE(&page.GetDictionary().MustGetKey("Annots").GetArray() == arr);
+    REQUIRE(arr->GetSize() == 2);
+}
