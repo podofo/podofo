@@ -189,3 +189,39 @@ TEST_CASE("TestFieldNestedChildren")
     form.RemoveField(midRef);
     REQUIRE(form.GetFieldCount() == 0);
 }
+
+TEST_CASE("TestAcroFormDirectDictionaries")
+{
+    // Direct field dictionaries live in the /Fields array storage, which the
+    // addition relocates and the rescan of the next creation reads: they must
+    // be moved to indirect objects and the existing wrappers rebound to them
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/AcroForm<</Fields[<</FT/Tx/T(a)>><</FT/Tx/T(b)>><</FT/Tx/T(c)>><</FT/Tx/T(d)>>]>>>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]>>endobj
+trailer<</Root 1 0 R/Size 4>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& form = *doc.GetAcroForm();
+    REQUIRE(form.GetFieldCount() == 4);
+    auto& first = form.GetFieldAt(0);
+    auto& last = form.GetFieldAt(3);
+
+    form.CreateField<PdfTextBox>("x");
+    form.CreateField<PdfTextBox>("y");
+    REQUIRE(form.GetFieldCount() == 6);
+    REQUIRE(first.GetObject().IsIndirect());
+    REQUIRE(first.GetNameRaw()->GetString() == "a");
+    REQUIRE(&form.GetField(first.GetObject().GetIndirectReference()) == &first);
+    auto& arr = form.GetDictionary().MustGetKey("Fields").GetArray();
+    REQUIRE(arr[0].GetReference() == first.GetObject().GetIndirectReference());
+
+    form.RemoveFieldAt(0);
+    REQUIRE(form.GetFieldCount() == 5);
+    REQUIRE(last.GetNameRaw()->GetString() == "d");
+    REQUIRE(&form.GetFieldAt(2) == &last);
+}
