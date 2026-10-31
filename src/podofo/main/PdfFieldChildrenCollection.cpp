@@ -131,6 +131,17 @@ PdfField& PdfFieldChildrenCollectionBase::AddChild(shared_ptr<PdfField> field)
     return *ret;
 }
 
+shared_ptr<PdfField> PdfFieldChildrenCollectionBase::GetFieldPtr(const PdfReference& ref) const
+{
+    auto found = m_fieldMap.find(ref);
+    if (found == m_fieldMap.end())
+        return nullptr;
+
+    unsigned index = found->second;
+    PODOFO_ASSERT(index < m_Fields.size());
+    return m_Fields[index];
+}
+
 PdfArray* PdfFieldChildrenCollectionBase::getKidsArray() const
 {
     auto obj = const_cast<PdfFieldChildrenCollectionBase&>(*this).m_field->GetDictionary().FindKey("Kids");
