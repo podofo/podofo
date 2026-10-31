@@ -279,8 +279,13 @@ PdfObject* PdfSignature::getValueObject() const
 
 void PdfSignature::SetContentsByteRangeNoDirtySet(const bufferview& contents, PdfArray&& byteRange)
 {
-    m_ValueObj->GetDictionary().AddKeyNoDirtySet("ByteRange"_n, PdfVariant(std::move(byteRange)));
-    m_ValueObj->GetDictionary().AddKeyNoDirtySet("Contents"_n, PdfVariant(PdfString::FromRaw(contents, true)));
+    // The field of a restored signing context may have lost its value
+    if (m_ValueObj == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidObject, "The signature field has no value object");
+
+    auto& dict = m_ValueObj->GetDictionary();
+    dict.AddKeyNoDirtySet("ByteRange"_n, PdfVariant(std::move(byteRange)));
+    dict.AddKeyNoDirtySet("Contents"_n, PdfVariant(PdfString::FromRaw(contents, true)));
 }
 
 void PdfSignature::EnsureValueObject()
