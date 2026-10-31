@@ -613,3 +613,38 @@ TEST_CASE("TestAnnotationsInlineArrayKept")
     REQUIRE(&page.GetDictionary().MustGetKey("Annots").GetArray() == arr);
     REQUIRE(arr->GetSize() == 2);
 }
+
+TEST_CASE("TestAnnotationsSharedArrayRemoval")
+{
+    // Two pages reference the same /Annots array: a removal through one page
+    // must not drop the annotation the other still wraps, which the garbage
+    // collection on save would otherwise free
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R 4 0 R]/Count 2>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Annots 5 0 R>>endobj
+4 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Annots 5 0 R>>endobj
+5 0 obj[6 0 R]endobj
+6 0 obj<</Type/Annot/Subtype/Text/Rect[1 1 5 5]>>endobj
+trailer<</Root 1 0 R/Size 7>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& pages = doc.GetPages();
+    auto& annots0 = pages.GetPageAt(0).GetAnnotations();
+    auto& annots1 = pages.GetPageAt(1).GetAnnotations();
+    REQUIRE(annots0.GetCount() == 1);
+    REQUIRE(annots1.GetCount() == 1);
+    annots0.RemoveAnnotAt(0);
+    REQUIRE(annots0.GetCount() == 0);
+
+    doc.Save(TestUtils::GetTestOutputFilePath("TestAnnotationsSharedArrayRemoval.pdf"));
+    REQUIRE(annots1.GetCount() == 1);
+    auto& annot = annots1.GetAnnotAt(0);
+    REQUIRE(annot.GetRectRaw().GetNormalized().Width == 4);
+    annot.SetFlags(PdfAnnotationFlags::Hidden);
+    REQUIRE(annot.GetFlags() == PdfAnnotationFlags::Hidden);
+}
