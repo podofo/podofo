@@ -227,36 +227,43 @@ void PdfAcroForm::initFields()
     if (m_fieldMap != nullptr)
         return;
 
-    m_fieldMap.reset(new FieldMap());
-    m_fieldArray = getFieldArray();
-    if (m_fieldArray == nullptr)
-        return;
-
-    m_Fields.reserve(m_fieldArray->size());
-    unique_ptr<PdfField> field;
-    unsigned i = 0;
-    for (auto obj : m_fieldArray->GetIndirectIterator())
+    // The state is built in locals and committed at the end, so a throwing
+    // entry doesn't leave the form half initialized
+    unique_ptr<FieldMap> fieldMap(new FieldMap());
+    FieldList fields;
+    auto fieldArray = getFieldArray();
+    if (fieldArray != nullptr)
     {
-        auto& ref = obj->GetIndirectReference();
-        // NOTE: Direct fields all share the 0 0 R reference
-        if (!m_fieldMap->try_emplace(ref, i).second && ref.IsIndirect())
+        fields.reserve(fieldArray->size());
+        unique_ptr<PdfField> field;
+        unsigned i = 0;
+        for (auto obj : fieldArray->GetIndirectIterator())
         {
-            // A repeated reference is wrapped only once: the duplicate is a placeholder
-            m_Fields.push_back(nullptr);
-        }
-        else if (PdfField::TryCreateFromObject(*obj, field))
-        {
-            field->SetAcroForm(*this);
-            m_Fields.push_back(std::move(field));
-        }
-        else
-        {
-            // The field may be invalid. In that case we push a placeholder
-            m_Fields.push_back(nullptr);
-        }
+            auto& ref = obj->GetIndirectReference();
+            // NOTE: Direct fields all share the 0 0 R reference
+            if (!fieldMap->try_emplace(ref, i).second && ref.IsIndirect())
+            {
+                // A repeated reference is wrapped only once: the duplicate is a placeholder
+                fields.push_back(nullptr);
+            }
+            else if (PdfField::TryCreateFromObject(*obj, field))
+            {
+                field->SetAcroForm(*this);
+                fields.push_back(std::move(field));
+            }
+            else
+            {
+                // The field may be invalid. In that case we push a placeholder
+                fields.push_back(nullptr);
+            }
 
-        i++;
+            i++;
+        }
     }
+
+    m_fieldMap = std::move(fieldMap);
+    m_Fields = std::move(fields);
+    m_fieldArray = fieldArray;
 }
 
 void PdfAcroForm::fixIndices(unsigned index)
