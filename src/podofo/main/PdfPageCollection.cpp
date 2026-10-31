@@ -411,6 +411,14 @@ unsigned PdfPageCollection::traversePageTreeNode(PdfObject& obj, unsigned count,
         }
         case PdfPageTreeNodeType::Page:
         {
+            // A page listed more than once would get sibling wrappers sharing
+            // its inline arrays, which one of them could replace and free
+            if (!visitedNodes.insert(&obj).second)
+            {
+                PoDoFo::LogMessage(PdfLogSeverity::Warning, "Skipping a page listed more than once in the page tree");
+                return count;
+            }
+
             unsigned index = (unsigned)m_Pages.size();
             unique_ptr<PdfPage> page(new PdfPage(obj, vector<PdfObject*>(parents)));
             m_Pages.push_back(page.get());
