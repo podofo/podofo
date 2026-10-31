@@ -225,3 +225,37 @@ startxref
     REQUIRE(last.GetNameRaw()->GetString() == "d");
     REQUIRE(&form.GetFieldAt(2) == &last);
 }
+
+TEST_CASE("TestFieldChildrenDirectDictionaries")
+{
+    // Direct child dictionaries live in the /Kids array storage, which the
+    // addition relocates: they must be moved to indirect objects and the
+    // existing wrappers rebound to them
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/AcroForm<</Fields[4 0 R]>>>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]>>endobj
+4 0 obj<</FT/Tx/T(p)/Kids[<</T(a)>><</T(b)>><</T(c)>><</T(d)>>]>>endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& children = doc.GetAcroForm()->GetFieldAt(0).GetChildren();
+    REQUIRE(children.GetCount() == 4);
+    auto& first = children.GetFieldAt(0);
+    auto& last = children.GetFieldAt(3);
+
+    children.CreateChild();
+    REQUIRE(children.GetCount() == 5);
+    REQUIRE(first.GetObject().IsIndirect());
+    REQUIRE(first.GetNameRaw()->GetString() == "a");
+    REQUIRE(&children.GetField(first.GetObject().GetIndirectReference()) == &first);
+
+    children.RemoveFieldAt(0);
+    REQUIRE(children.GetCount() == 4);
+    REQUIRE(last.GetNameRaw()->GetString() == "d");
+    REQUIRE(&children.GetFieldAt(2) == &last);
+}

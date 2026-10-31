@@ -29,6 +29,7 @@ class PODOFO_API PdfElement
     friend class PdfNameTreeBase;
     friend class PdfAnnotationCollection;
     friend class PdfAcroForm;
+    friend class PdfFieldChildrenCollectionBase;
 
 public:
 
