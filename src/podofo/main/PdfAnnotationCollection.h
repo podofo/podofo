@@ -116,6 +116,7 @@ namespace PoDoFo
     private:
         PdfAnnotation& addAnnotation(std::unique_ptr<PdfAnnotation>&& annot);
         PdfArray* getAnnotationsArray() const;
+        void inlineAnnotationArray();
         void initAnnotations();
         PdfAnnotation& getAnnotAt(unsigned index) const;
         PdfAnnotation& getAnnot(const PdfReference& ref) const;

@@ -46,6 +46,7 @@ void PdfAnnotationCollection::RemoveAnnotAt(unsigned index)
     if (index >= m_Annots.size())
         PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
+    inlineAnnotationArray();
     m_annotArray->RemoveAt(index);
     m_Annots.erase(m_Annots.begin() + index);
     fixIndices(index);
@@ -63,6 +64,7 @@ void PdfAnnotationCollection::RemoveAnnot(const PdfReference& ref)
 
     unsigned index = found->second;
     PODOFO_ASSERT(index < m_Annots.size());
+    inlineAnnotationArray();
     m_annotArray->RemoveAt(index);
     m_Annots.erase(m_Annots.begin() + index);
     fixIndices(index);
@@ -105,23 +107,26 @@ PdfAnnotation& PdfAnnotationCollection::addAnnotation(unique_ptr<PdfAnnotation>&
 {
     initAnnotations();
     if (m_annotArray == nullptr)
-    {
         m_annotArray = &m_Page->GetDictionary().AddKey("Annots"_n, PdfArray()).GetArray();
-    }
-    else if (m_annotArray->GetOwner()->IsIndirect())
-    {
-        // The array is stored in its own object: inline it in the page instead.
-        // On an incremental update the modification of a standalone array can't
-        // be attributed to the page owning it, and is reported as a generic change
-        // in the DocMDP validation by Adobe Acrobat
-        m_annotArray = &m_Page->GetDictionary().AddKey("Annots"_n, PdfArray(*m_annotArray)).GetArray();
-    }
+    else
+        inlineAnnotationArray();
 
-    (*m_annotMap)[annot->GetObject().GetIndirectReference()] = m_annotArray->GetSize();
+    (*m_annotMap)[annot->GetObject().GetIndirectReference()] = (unsigned)m_Annots.size();
     m_annotArray->AddIndirectSafe(annot->GetObject());
     auto ret = annot.get();
     m_Annots.push_back(std::move(annot));
     return *ret;
+}
+
+// An /Annots array stored in its own object may be shared with other pages, and
+// Adobe Acrobat reports its change on an incremental update as a generic DocMDP
+// change: it's copied inline in the page before a modification
+void PdfAnnotationCollection::inlineAnnotationArray()
+{
+    if (!m_annotArray->GetOwner()->IsIndirect())
+        return;
+
+    m_annotArray = &m_Page->GetDictionary().AddKey("Annots"_n, PdfArray(*m_annotArray)).GetArray();
 }
 
 PdfArray* PdfAnnotationCollection::getAnnotationsArray() const
