@@ -573,3 +573,30 @@ startxref
     annots.RemoveAnnot(PdfReference(5, 0));
     REQUIRE(annots.GetCount() == 0);
 }
+
+TEST_CASE("TestAnnotationsNonDictionaryEntries")
+{
+    // A number and a dangling reference in /Annots are placeholders and
+    // must not leave the collection half initialized
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Annots[42 4 0 R 999 0 R]>>endobj
+4 0 obj<</Type/Annot/Subtype/Text/Rect[0 0 5 5]>>endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& annots = doc.GetPages().GetPageAt(0).GetAnnotations();
+    REQUIRE(annots.GetCount() == 3);
+    ASSERT_THROW_WITH_ERROR_CODE(annots.GetAnnotAt(0), PdfErrorCode::InvalidHandle);
+    REQUIRE(annots.GetAnnotAt(1).GetType() == PdfAnnotationType::Text);
+    ASSERT_THROW_WITH_ERROR_CODE(annots.GetAnnotAt(2), PdfErrorCode::InvalidHandle);
+
+    auto& created = annots.CreateAnnot(PdfAnnotationType::Square, Rect(0, 0, 5, 5));
+    REQUIRE(annots.GetCount() == 4);
+    REQUIRE(&annots.GetAnnot(created.GetObject().GetIndirectReference()) == &created);
+}
