@@ -94,7 +94,17 @@ PdfField& PdfAcroForm::getField(unsigned index) const
 PdfField& PdfAcroForm::getField(const PdfReference& ref) const
 {
     const_cast<PdfAcroForm&>(*this).initFields();
-    return *m_Fields[(*m_fieldMap).at(ref)];
+    auto found = m_fieldMap->find(ref);
+    if (found == m_fieldMap->end())
+        PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
+
+    unsigned index = found->second;
+    PODOFO_ASSERT(index < m_Fields.size());
+    auto ret = m_Fields[index].get();
+    if (ret == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The field at index {} is invalid", index);
+
+    return *ret;
 }
 
 void PdfAcroForm::RemoveFieldAt(unsigned index)
@@ -111,6 +121,7 @@ void PdfAcroForm::RemoveFieldAt(unsigned index)
             m_fieldMap->erase(found);
     }
 
+    inlineFieldsArray();
     m_fieldArray->RemoveAt(index);
     m_Fields.erase(m_Fields.begin() + index);
     fixIndices(index);
@@ -127,8 +138,10 @@ void PdfAcroForm::RemoveField(const PdfReference& ref)
         return;
 
     unsigned index = found->second;
-    m_Fields.erase(m_Fields.begin() + index);
+    PODOFO_ASSERT(index < m_Fields.size());
+    inlineFieldsArray();
     m_fieldArray->RemoveAt(index);
+    m_Fields.erase(m_Fields.begin() + index);
     m_fieldMap->erase(found);
     fixIndices(index);
 
@@ -176,8 +189,10 @@ PdfField& PdfAcroForm::AddField(unique_ptr<PdfField>&& field)
     initFields();
     if (m_fieldArray == nullptr)
         m_fieldArray = &GetDictionary().AddKey("Fields"_n, PdfArray()).GetArray();
+    else
+        inlineFieldsArray();
 
-    (*m_fieldMap)[field->GetObject().GetIndirectReference()] = m_fieldArray->GetSize();
+    (*m_fieldMap)[field->GetObject().GetIndirectReference()] = (unsigned)m_Fields.size();
     m_fieldArray->AddIndirectSafe(field->GetObject());
     m_Fields.push_back(std::move(field));
     return *m_Fields.back();
@@ -186,7 +201,9 @@ PdfField& PdfAcroForm::AddField(unique_ptr<PdfField>&& field)
 shared_ptr<PdfField> PdfAcroForm::GetFieldPtr(const PdfReference& ref)
 {
     PODOFO_INVARIANT(m_fieldMap != nullptr);
-    return m_Fields[(*m_fieldMap)[ref]];
+    unsigned index = (*m_fieldMap)[ref];
+    PODOFO_RAISE_LOGIC_IF(index >= m_Fields.size(), "Invalid field index");
+    return m_Fields[index];
 }
 
 void PdfAcroForm::SetNeedAppearances(bool needAppearances)
@@ -220,6 +237,16 @@ PdfArray* PdfAcroForm::getFieldArray() const
         return nullptr;
 
     return &obj->GetArray();
+}
+
+// A /Fields array stored in its own object may be shared with the /Kids of
+// a field: it's copied inline in the form before a modification
+void PdfAcroForm::inlineFieldsArray()
+{
+    if (!m_fieldArray->GetOwner()->IsIndirect())
+        return;
+
+    m_fieldArray = &GetDictionary().AddKey("Fields"_n, PdfArray(*m_fieldArray)).GetArray();
 }
 
 void PdfAcroForm::initFields()
