@@ -542,3 +542,31 @@ TEST_CASE("TestSignatureCorrupted")
         throw;
     }
 }
+
+TEST_CASE("TestGetPreviousRevisionUnsigned")
+{
+    // The first signature field has no value, the second a value that is
+    // not a dictionary: the previous revision lookup must just return false
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/AcroForm<</Fields[4 0 R 5 0 R]>>>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Annots[4 0 R 5 0 R]>>endobj
+4 0 obj<</Type/Annot/Subtype/Widget/FT/Sig/T(Unsigned)/Rect[0 0 5 5]/P 3 0 R>>endobj
+5 0 obj<</Type/Annot/Subtype/Widget/FT/Sig/T(Bogus)/V 42/Rect[0 0 5 5]/P 3 0 R>>endobj
+trailer<</Root 1 0 R/Size 6>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    SpanStreamDevice input(pdf);
+    charbuff prevBuffer;
+    BufferStreamDevice output(prevBuffer);
+    auto& form = *doc.GetAcroForm();
+    REQUIRE(!static_cast<PdfSignature&>(form.GetFieldAt(0)).TryGetPreviousRevision(input, output));
+    REQUIRE(!static_cast<PdfSignature&>(form.GetFieldAt(1)).TryGetPreviousRevision(input, output));
+
+    auto& created = doc.GetPages().GetPageAt(0).CreateField<PdfSignature>("New", Rect(0, 0, 5, 5));
+    REQUIRE(!created.TryGetPreviousRevision(input, output));
+}

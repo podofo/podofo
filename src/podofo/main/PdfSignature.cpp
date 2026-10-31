@@ -241,10 +241,14 @@ nullable<PdfDate> PdfSignature::GetSignatureDate() const
 
 bool PdfSignature::TryGetPreviousRevision(InputStreamDevice& input, OutputStreamDevice& output) const
 {
-    const PdfArray* byteRange = nullptr;
-    m_ValueObj->GetDictionary().TryFindKeyAs("ByteRange", byteRange);
-    if (byteRange == nullptr || byteRange->GetSize() < 4)
+    // The field may be unsigned, or carry an invalid value
+    const PdfDictionary* valueDict;
+    const PdfArray* byteRange;
+    if (m_ValueObj == nullptr || !m_ValueObj->TryGetDictionary(valueDict)
+        || !valueDict->TryFindKeyAs("ByteRange", byteRange) || byteRange->GetSize() < 4)
+    {
         return false;
+    }
 
     int64_t lastRangeOffset;
     int64_t lastRangeLength;
