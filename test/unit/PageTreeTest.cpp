@@ -254,6 +254,41 @@ startxref
     REQUIRE(annots.GetCount() == 2);
 }
 
+TEST_CASE("TestPageTreeDuplicatePageContents")
+{
+    // With two wrappers of the same page, appending content through one
+    // orphaned the stream still wrapped by the other, which the garbage
+    // collection on save then freed: the page must be wrapped once
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R 3 0 R]/Count 2>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 100 100]/Contents 4 0 R>>endobj
+4 0 obj<</Length 15>>stream
+0 0 m 50 50 l S
+endstream
+endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& pages = doc.GetPages();
+    REQUIRE(pages.GetCount() == 1);
+    {
+        PdfPainter painter;
+        painter.SetCanvas(pages.GetPageAt(0));
+        painter.DrawLine(0, 0, 50, 50);
+        painter.FinishDrawing();
+    }
+
+    doc.Save(TestUtils::GetTestOutputFilePath("TestPageTreeDuplicatePageContents.pdf"));
+    vector<PdfTextEntry> entries;
+    pages.GetPageAt(0).ExtractTextTo(entries);
+    REQUIRE(entries.size() == 0);
+}
+
 void testGetPages(PdfMemDocument& doc)
 {
     for (unsigned i = 0; i < TEST_NUM_PAGES; i++)
