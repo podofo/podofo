@@ -570,3 +570,32 @@ startxref
     auto& created = doc.GetPages().GetPageAt(0).CreateField<PdfSignature>("New", Rect(0, 0, 5, 5));
     REQUIRE(!created.TryGetPreviousRevision(input, output));
 }
+
+TEST_CASE("TestGetPreviousRevisionXRefStreamNoLength")
+{
+    // The signed revision ends with an xref stream without /Length: the parse
+    // of the previous revision runs without a document and must not use it.
+    // The trailing newline is part of the signed range
+    string_view pdf = R"(%PDF-1.5
+1 0 obj<</Type/Catalog/Pages 2 0 R/AcroForm<</Fields[4 0 R]/SigFlags 3>>>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Annots[4 0 R]>>endobj
+4 0 obj<</Type/Annot/Subtype/Widget/FT/Sig/T(Sig)/Rect[0 0 5 5]/P 3 0 R/V 5 0 R>>endobj
+5 0 obj<</Type/Sig/Filter/Adobe.PPKLite/ByteRange[0 373 377 181]/Contents<00>>>endobj
+6 0 obj<</Type/XRef/Size 7/W[1 2 1]/Root 1 0 R/Filter/ASCIIHexDecode>>stream
+000000FF0100090001005A0001008B000100D40001012C0001018200>
+endstream
+endobj
+startxref
+386
+%%EOF
+)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    SpanStreamDevice input(pdf);
+    charbuff prevBuffer;
+    BufferStreamDevice output(prevBuffer);
+    auto& signature = static_cast<PdfSignature&>(doc.GetAcroForm()->GetFieldAt(0));
+    REQUIRE(!signature.TryGetPreviousRevision(input, output));
+}
