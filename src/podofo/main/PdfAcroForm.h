@@ -184,6 +184,8 @@ private:
 
     PdfArray* getFieldArray() const;
 
+    void inlineFieldsArray();
+
     void initFields();
 
     PdfField& getField(unsigned index) const;

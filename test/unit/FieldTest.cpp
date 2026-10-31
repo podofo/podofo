@@ -127,3 +127,44 @@ startxref
     REQUIRE(kidsA.MustFindAt(0).GetIndirectReference() == refA);
     REQUIRE(doc.GetObjects().MustGetObject(PdfReference(6, 0)).GetArray().GetSize() == 0);
 }
+
+TEST_CASE("TestAcroFormSharedFieldsArray")
+{
+    // The /Fields array is also the /Kids array of its field: the form and the
+    // field get their own copy before a modification, without affecting the other
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/AcroForm<</Fields 5 0 R>>>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]>>endobj
+4 0 obj<</FT/Tx/T(A)/Kids 5 0 R>>endobj
+5 0 obj[4 0 R]endobj
+trailer<</Root 1 0 R/Size 6>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& form = *doc.GetAcroForm();
+    REQUIRE(form.GetFieldCount() == 1);
+    auto& fieldA = form.GetFieldAt(0);
+    auto& childrenA = fieldA.GetChildren();
+    REQUIRE(childrenA.GetCount() == 1);
+
+    auto& b = form.CreateField<PdfTextBox>("B");
+    auto ref = b.GetObject().GetIndirectReference();
+    REQUIRE(form.GetFieldCount() == 2);
+    REQUIRE(&form.GetField(ref) == &b);
+    auto& child = b.GetChildren().CreateChild();
+    REQUIRE(child.GetParentSafe() == &b);
+
+    childrenA.CreateChild();
+    REQUIRE(childrenA.GetCount() == 2);
+    childrenA.RemoveFieldAt(1);
+    REQUIRE(fieldA.GetDictionary().MustFindKey("Kids").GetArray().GetSize() == 1);
+
+    form.RemoveField(ref);
+    REQUIRE(form.GetFieldCount() == 1);
+    ASSERT_THROW_WITH_ERROR_CODE(form.GetField(ref), PdfErrorCode::ValueOutOfRange);
+    REQUIRE(doc.GetObjects().MustGetObject(PdfReference(5, 0)).GetArray().GetSize() == 1);
+}
