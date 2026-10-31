@@ -113,15 +113,8 @@ void PdfAcroForm::RemoveFieldAt(unsigned index)
     if (index >= m_Fields.size())
         PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
-    if (m_Fields[index] != nullptr)
-    {
-        // It may be null if the field is invalid
-        auto found = m_fieldMap->find(m_Fields[index]->GetObject().GetIndirectReference());
-        if (found != m_fieldMap->end())
-            m_fieldMap->erase(found);
-    }
-
     inlineFieldsArray();
+    promoteDirectEntries();
     m_fieldArray->RemoveAt(index);
     m_Fields.erase(m_Fields.begin() + index);
     fixIndices(index);
@@ -140,9 +133,9 @@ void PdfAcroForm::RemoveField(const PdfReference& ref)
     unsigned index = found->second;
     PODOFO_ASSERT(index < m_Fields.size());
     inlineFieldsArray();
+    promoteDirectEntries();
     m_fieldArray->RemoveAt(index);
     m_Fields.erase(m_Fields.begin() + index);
-    m_fieldMap->erase(found);
     fixIndices(index);
 
     // NOTE: No need to remove the object from the document
@@ -188,9 +181,14 @@ PdfField& PdfAcroForm::AddField(unique_ptr<PdfField>&& field)
 {
     initFields();
     if (m_fieldArray == nullptr)
+    {
         m_fieldArray = &GetDictionary().AddKey("Fields"_n, PdfArray()).GetArray();
+    }
     else
+    {
         inlineFieldsArray();
+        promoteDirectEntries();
+    }
 
     (*m_fieldMap)[field->GetObject().GetIndirectReference()] = (unsigned)m_Fields.size();
     m_fieldArray->AddIndirectSafe(field->GetObject());
@@ -297,12 +295,55 @@ void PdfAcroForm::initFields()
     m_fieldArray = fieldArray;
 }
 
+// Fields from direct dictionaries point into the array storage, which a
+// modification can relocate or free: such entries are first moved to indirect
+// objects, as the specification requires, and the elements are rebound to them
+void PdfAcroForm::promoteDirectEntries()
+{
+    PODOFO_ASSERT(m_fieldArray->GetSize() == m_Fields.size());
+    bool promoted = false;
+    for (unsigned i = 0; i < m_fieldArray->GetSize(); i++)
+    {
+        auto& elem = (*m_fieldArray)[i];
+        if (elem.IsDictionary())
+        {
+            // It's a field stored directly in the array
+            auto& obj = PoDoFo::MoveToIndirect(elem);
+            if (m_Fields[i] != nullptr)
+                m_Fields[i]->SetObject(obj);
+
+            promoted = true;
+        }
+    }
+
+    if (!promoted)
+        return;
+
+    // Key the map again, as the promoted entries have their own references now
+    m_fieldMap->clear();
+    unsigned i = 0;
+    for (auto obj : m_fieldArray->GetIndirectIterator())
+    {
+        (void)m_fieldMap->try_emplace(obj->GetIndirectReference(), i);
+        i++;
+    }
+}
+
 void PdfAcroForm::fixIndices(unsigned index)
 {
-    for (auto& pair : *m_fieldMap)
+    for (auto it = m_fieldMap->begin(); it != m_fieldMap->end(); )
     {
+        if (it->second == index)
+        {
+            // The entry of the removed slot: it exists also for placeholders
+            it = m_fieldMap->erase(it);
+            continue;
+        }
+
         // Decrement indices where needed
-        if (pair.second > index)
-            pair.second--;
+        if (it->second > index)
+            it->second--;
+
+        it++;
     }
 }

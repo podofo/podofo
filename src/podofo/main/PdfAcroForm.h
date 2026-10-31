@@ -187,6 +187,7 @@ private:
     void inlineFieldsArray();
 
     void initFields();
+    void promoteDirectEntries();
 
     PdfField& getField(unsigned index) const;
     PdfField& getField(const PdfReference& ref) const;
