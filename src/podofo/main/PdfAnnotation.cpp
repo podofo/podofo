@@ -568,9 +568,9 @@ bool PdfAnnotation::tryCreateFromObject(const PdfObject& obj, PdfAnnotationType 
 
 PdfAnnotationType PdfAnnotation::getAnnotationType(const PdfObject& obj)
 {
+    const PdfDictionary* dict;
     const PdfName* name;
-    auto subTypeObj = obj.GetDictionary().FindKey("Subtype");
-    if (subTypeObj == nullptr || !subTypeObj->TryGetName(name))
+    if (!obj.TryGetDictionary(dict) || !dict->TryFindKeyAs("Subtype", name))
         return PdfAnnotationType::Unknown;
 
     PdfAnnotationType ret;

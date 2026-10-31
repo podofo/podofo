@@ -167,36 +167,43 @@ void PdfAnnotationCollection::initAnnotations()
     if (m_annotMap != nullptr)
         return;
 
-    m_annotMap.reset(new AnnotationMap());
-    m_annotArray = getAnnotationsArray();
-    if (m_annotArray == nullptr)
-        return;
-
-    m_Annots.reserve(m_annotArray->size());
-    unique_ptr<PdfAnnotation> annot;
-    unsigned i = 0;
-    for (auto obj : m_annotArray->GetIndirectIterator())
+    // The state is built in locals and committed at the end, so a throwing
+    // entry doesn't leave the collection half initialized
+    unique_ptr<AnnotationMap> annotMap(new AnnotationMap());
+    AnnotationList annots;
+    auto annotArray = getAnnotationsArray();
+    if (annotArray != nullptr)
     {
-        auto& ref = obj->GetIndirectReference();
-        // NOTE: Direct annotations all share the 0 0 R reference
-        if (!m_annotMap->try_emplace(ref, i).second && ref.IsIndirect())
+        annots.reserve(annotArray->size());
+        unique_ptr<PdfAnnotation> annot;
+        unsigned i = 0;
+        for (auto obj : annotArray->GetIndirectIterator())
         {
-            // A repeated reference is wrapped only once: the duplicate is a placeholder
-            m_Annots.push_back(nullptr);
-        }
-        else if (PdfAnnotation::TryCreateFromObject(*obj, annot))
-        {
-            annot->SetPage(*m_Page);
-            m_Annots.push_back(std::move(annot));
-        }
-        else
-        {
-            // The annotation may be invalid. In that case we push a placeholder
-            m_Annots.push_back(nullptr);
-        }
+            auto& ref = obj->GetIndirectReference();
+            // NOTE: Direct annotations all share the 0 0 R reference
+            if (!annotMap->try_emplace(ref, i).second && ref.IsIndirect())
+            {
+                // A repeated reference is wrapped only once: the duplicate is a placeholder
+                annots.push_back(nullptr);
+            }
+            else if (PdfAnnotation::TryCreateFromObject(*obj, annot))
+            {
+                annot->SetPage(*m_Page);
+                annots.push_back(std::move(annot));
+            }
+            else
+            {
+                // The annotation may be invalid. In that case we push a placeholder
+                annots.push_back(nullptr);
+            }
 
-        i++;
+            i++;
+        }
     }
+
+    m_annotMap = std::move(annotMap);
+    m_Annots = std::move(annots);
+    m_annotArray = annotArray;
 }
 
 void PdfAnnotationCollection::fixIndices(unsigned index)
