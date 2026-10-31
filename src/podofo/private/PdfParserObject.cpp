@@ -287,8 +287,8 @@ ReadStream:
         m_device->Seek(streamOffset);
         if (!shallow)
         {
-            PODOFO_INVARIANT(GetDocument() != nullptr);
-            if (GetDocument()->IsStrictParsing())
+            // The document is null when parsing a previous revision
+            if (GetDocument() != nullptr && GetDocument()->IsStrictParsing())
             {
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidStream, "Oject {} {} R has invalid stream length",
                     GetIndirectReference().ObjectNumber(), GetIndirectReference().GenerationNumber());
