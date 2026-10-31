@@ -599,3 +599,32 @@ startxref
     auto& signature = static_cast<PdfSignature&>(doc.GetAcroForm()->GetFieldAt(0));
     REQUIRE(!signature.TryGetPreviousRevision(input, output));
 }
+
+TEST_CASE("TestSignatureReparentDirectValue")
+{
+    // Creating a field with the name of a loaded signature links the loaded
+    // field under a new parent and moves its direct /V there: the wrappers
+    // of the loaded field must not keep the removed value
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/AcroForm<</Fields[4 0 R]/SigFlags 3>>>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Annots[4 0 R]>>endobj
+4 0 obj<</Type/Annot/Subtype/Widget/FT/Sig/T(Signature)/Rect[0 0 5 5]/P 3 0 R/V<</Type/Sig/Name(Bob)>>>>endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto& widget = static_cast<PdfAnnotationWidget&>(page.GetAnnotations().GetAnnotAt(0));
+    auto& loaded = static_cast<PdfSignature&>(widget.GetField());
+    REQUIRE(loaded.GetSignerName()->GetString() == "Bob");
+
+    auto& created = page.CreateField<PdfSignature>("Signature", Rect(0, 0, 5, 5));
+    REQUIRE(loaded.GetSignerName() == nullptr);
+    REQUIRE(created.GetParent()->GetSignerName()->GetString() == "Bob");
+    loaded.SetSignerName(PdfString("Alice"));
+    REQUIRE(loaded.GetSignerName()->GetString() == "Alice");
+}

@@ -137,12 +137,9 @@ private:
     // To be called by SignDocument()
     void SetContentsByteRangeNoDirtySet(const bufferview& contents, PdfArray&& byteRange);
 
-    void ensureValueObject();
+    PdfDictionary& ensureValueDictionary();
 private:
     void init(PdfAcroForm& acroForm);
-
-private:
-    PdfObject* m_ValueObj;
 };
 
 }
