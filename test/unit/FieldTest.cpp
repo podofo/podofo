@@ -168,3 +168,24 @@ startxref
     ASSERT_THROW_WITH_ERROR_CODE(form.GetField(ref), PdfErrorCode::ValueOutOfRange);
     REQUIRE(doc.GetObjects().MustGetObject(PdfReference(5, 0)).GetArray().GetSize() == 1);
 }
+
+TEST_CASE("TestFieldNestedChildren")
+{
+    // A child field is owned by the children of its parent, not by the form:
+    // its own children must be parented to it, and a lookup of its reference
+    // in the form must not register it there
+    PdfMemDocument doc;
+    auto& form = doc.GetOrCreateAcroForm();
+    auto& root = form.CreateField<PdfTextBox>("root");
+    auto& mid = root.GetChildren().CreateChild();
+    auto& leaf = mid.GetChildren().CreateChild();
+    REQUIRE(leaf.GetParentSafe() == &mid);
+    REQUIRE(leaf.GetDictionary().MustGetKey("Parent").GetReference() == mid.GetObject().GetIndirectReference());
+
+    auto midRef = mid.GetObject().GetIndirectReference();
+    ASSERT_THROW_WITH_ERROR_CODE(form.GetField(midRef), PdfErrorCode::ValueOutOfRange);
+    form.RemoveField(root.GetObject().GetIndirectReference());
+    REQUIRE(form.GetFieldCount() == 0);
+    form.RemoveField(midRef);
+    REQUIRE(form.GetFieldCount() == 0);
+}

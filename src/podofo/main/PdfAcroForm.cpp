@@ -201,8 +201,12 @@ PdfField& PdfAcroForm::AddField(unique_ptr<PdfField>&& field)
 shared_ptr<PdfField> PdfAcroForm::GetFieldPtr(const PdfReference& ref)
 {
     PODOFO_INVARIANT(m_fieldMap != nullptr);
-    unsigned index = (*m_fieldMap)[ref];
-    PODOFO_RAISE_LOGIC_IF(index >= m_Fields.size(), "Invalid field index");
+    auto found = m_fieldMap->find(ref);
+    if (found == m_fieldMap->end())
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The field is not listed in the AcroForm");
+
+    unsigned index = found->second;
+    PODOFO_ASSERT(index < m_Fields.size());
     return m_Fields[index];
 }
 

@@ -349,6 +349,15 @@ unique_ptr<PdfField> PdfField::createField(PdfAnnotationWidget& widget,
 
 shared_ptr<PdfField> PdfField::GetPtr()
 {
+    if (m_Parent.has_value() && m_Parent->get() != nullptr)
+    {
+        // A child field is owned by the children collection of its parent:
+        // being bound to the AcroForm doesn't mean it's listed in /Fields
+        auto ret = (*m_Parent)->GetChildren().GetFieldPtr(GetObject().GetIndirectReference());
+        if (ret != nullptr)
+            return ret;
+    }
+
     if (m_AcroForm != nullptr)
         return m_AcroForm->GetFieldPtr(GetObject().GetIndirectReference());
     else if (m_Widget != nullptr)
