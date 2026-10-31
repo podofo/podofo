@@ -90,3 +90,40 @@ startxref
     ASSERT_THROW_WITH_ERROR_CODE(form.GetFieldCount(), PdfErrorCode::MaxRecursionReached);
     ASSERT_THROW_WITH_ERROR_CODE(form.CreateField<PdfTextBox>("Baz"), PdfErrorCode::MaxRecursionReached);
 }
+
+TEST_CASE("TestFieldChildrenSharedKidsArray")
+{
+    // Two fields share the same indirect /Kids array: each one gets its own copy
+    // before a modification, so the changes through one don't affect the other
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/AcroForm<</Fields[4 0 R 5 0 R]>>>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]>>endobj
+4 0 obj<</FT/Tx/T(A)/Kids 6 0 R>>endobj
+5 0 obj<</FT/Tx/T(B)/Kids 6 0 R>>endobj
+6 0 obj[]endobj
+trailer<</Root 1 0 R/Size 7>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& form = *doc.GetAcroForm();
+    auto& fieldA = form.GetFieldAt(0);
+    auto& childrenA = fieldA.GetChildren();
+    auto& childrenB = form.GetFieldAt(1).GetChildren();
+    auto refA = childrenA.CreateChild().GetObject().GetIndirectReference();
+    auto& child = childrenB.CreateChild();
+    auto ref = child.GetObject().GetIndirectReference();
+    REQUIRE(childrenB.GetCount() == 1);
+    REQUIRE(&childrenB.GetField(ref) == &child);
+    childrenB.RemoveField(ref);
+    REQUIRE(childrenB.GetCount() == 0);
+    ASSERT_THROW_WITH_ERROR_CODE(childrenB.GetField(ref), PdfErrorCode::ValueOutOfRange);
+
+    auto& kidsA = fieldA.GetDictionary().MustFindKey("Kids").GetArray();
+    REQUIRE(kidsA.GetSize() == 1);
+    REQUIRE(kidsA.MustFindAt(0).GetIndirectReference() == refA);
+    REQUIRE(doc.GetObjects().MustGetObject(PdfReference(6, 0)).GetArray().GetSize() == 0);
+}

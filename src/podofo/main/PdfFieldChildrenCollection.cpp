@@ -59,6 +59,7 @@ void PdfFieldChildrenCollectionBase::RemoveFieldAt(unsigned index)
             m_fieldMap.erase(found);
     }
 
+    inlineKidsArray();
     m_kidsArray->RemoveAt(index);
     m_Fields.erase(m_Fields.begin() + index);
     fixIndices(index);
@@ -74,8 +75,10 @@ void PdfFieldChildrenCollectionBase::RemoveField(const PdfReference& ref)
         return;
 
     unsigned index = found->second;
-    m_Fields.erase(m_Fields.begin() + index);
+    PODOFO_ASSERT(index < m_Fields.size());
+    inlineKidsArray();
     m_kidsArray->RemoveAt(index);
+    m_Fields.erase(m_Fields.begin() + index);
     m_fieldMap.erase(found);
     fixIndices(index);
 
@@ -118,8 +121,10 @@ PdfField& PdfFieldChildrenCollectionBase::AddChild(shared_ptr<PdfField> field)
     PODOFO_ASSERT(field != nullptr);
     if (m_kidsArray == nullptr)
         m_kidsArray = &m_field->GetDictionary().AddKey("Kids"_n, PdfArray()).GetArray();
+    else
+        inlineKidsArray();
 
-    m_fieldMap[field->GetObject().GetIndirectReference()] = m_kidsArray->GetSize();
+    m_fieldMap[field->GetObject().GetIndirectReference()] = (unsigned)m_Fields.size();
     m_kidsArray->AddIndirectSafe(field->GetObject());
     auto ret = field.get();
     m_Fields.push_back(std::move(field));
@@ -133,6 +138,16 @@ PdfArray* PdfFieldChildrenCollectionBase::getKidsArray() const
         return nullptr;
 
     return &obj->GetArray();
+}
+
+// A /Kids array stored in its own object may be shared with other fields:
+// it's copied inline in the field before a modification
+void PdfFieldChildrenCollectionBase::inlineKidsArray()
+{
+    if (!m_kidsArray->GetOwner()->IsIndirect())
+        return;
+
+    m_kidsArray = &m_field->GetDictionary().AddKey("Kids"_n, PdfArray(*m_kidsArray)).GetArray();
 }
 
 PdfField& PdfFieldChildrenCollectionBase::getFieldAt(unsigned index) const
@@ -149,7 +164,17 @@ PdfField& PdfFieldChildrenCollectionBase::getFieldAt(unsigned index) const
 
 PdfField& PdfFieldChildrenCollectionBase::getField(const PdfReference& ref) const
 {
-    return *m_Fields[m_fieldMap.at(ref)];
+    auto found = m_fieldMap.find(ref);
+    if (found == m_fieldMap.end())
+        PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
+
+    unsigned index = found->second;
+    PODOFO_ASSERT(index < m_Fields.size());
+    auto ret = m_Fields[index].get();
+    if (ret == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The field at index {} is invalid", index);
+
+    return *ret;
 }
 
 void PdfFieldChildrenCollectionBase::initFields()
