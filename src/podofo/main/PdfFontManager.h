@@ -162,6 +162,13 @@ private:
 private:
     const PdfFont* GetLoadedFont(const PdfResources& resources, const std::string_view& name);
 
+    /// Remove the cached inline font with the given name in the resources
+    void RemoveInlineFont(const PdfResources& resources, const std::string_view& name);
+
+    /// Remove the cached inline fonts of the resources, and of any other
+    /// resources having the same first indirect ancestor
+    void RemoveInlineFonts(const PdfResources& resources);
+
     /// Empty the internal font cache.
     /// This should be done whenever a new document
     /// is created or opened.

@@ -503,3 +503,80 @@ TEST_CASE("TestSubsetCFFDegenerate")
 }
 
 #endif // PODOFO_ENABLE_AFDKO
+
+TEST_CASE("TestInlineFontCacheStale")
+{
+    // Inline fonts are cached by the resources ancestor and the name: loading
+    // another document in the same instance, or replacing the resource, must
+    // not return the wrapper of the previous object
+    string_view pdf1 = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Resources<</Font<</F1<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>>>>>>>endobj
+trailer<</Root 1 0 R/Size 4>>
+startxref
+999999
+%%EOF)";
+    string_view pdf2 = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Resources<</Font<</F1<</Type/Font/Subtype/Type1/BaseFont/Courier>>>>>>>>endobj
+trailer<</Root 1 0 R/Size 4>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf1);
+    auto font = doc.GetPages().GetPageAt(0).GetResources().GetFont("F1");
+    REQUIRE(font != nullptr);
+    REQUIRE(font->GetMetrics().GetFontName() == "Helvetica");
+
+    doc.LoadFromBuffer(pdf2);
+    auto& resources = doc.GetPages().GetPageAt(0).GetResources();
+    font = resources.GetFont("F1");
+    REQUIRE(font != nullptr);
+    REQUIRE(&font->GetObject() == resources.GetResource(PdfResourceType::Font, "F1"));
+    REQUIRE(font->GetMetrics().GetFontName() == "Courier");
+
+    // NOTE: The replacement may reuse the address of the removed object
+    PdfObject fontDict;
+    fontDict.GetDictionary().AddKey("Type"_n, "Font"_n);
+    fontDict.GetDictionary().AddKey("Subtype"_n, "Type1"_n);
+    fontDict.GetDictionary().AddKey("BaseFont"_n, "Times-Roman"_n);
+    static_cast<PdfResourceOperations&>(resources).AddResource(PdfResourceType::Font, "F1"_n, fontDict);
+    font = resources.GetFont("F1");
+    REQUIRE(font != nullptr);
+    REQUIRE(&font->GetObject() == resources.GetResource(PdfResourceType::Font, "F1"));
+    REQUIRE(font->GetMetrics().GetFontName() == "Times-Roman");
+}
+
+TEST_CASE("TestInlineFontFillFromPageNoResources")
+{
+    // Filling a form from a page without /Resources keeps the
+    // form ones, so their cached inline fonts must stay valid
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R 4 0 R]/Count 2>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]>>endobj
+4 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Resources<</XObject<</X1 5 0 R>>>>>>endobj
+5 0 obj<</Type/XObject/Subtype/Form/BBox[0 0 9 9]/Resources<</Font<</F1<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>>>>>/Length 0>>stream
+
+endstream
+endobj
+trailer<</Root 1 0 R/Size 6>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    unique_ptr<PdfXObjectForm> form;
+    REQUIRE(PdfXObject::TryCreateFromObject(*doc.GetPages().GetPageAt(1).GetResources().GetResource(PdfResourceType::XObject, "X1"), form));
+    auto font = form->GetResources()->GetFont("F1");
+    REQUIRE(font != nullptr);
+
+    form->FillFromPage(doc.GetPages().GetPageAt(0));
+    REQUIRE(font->GetMetrics().GetFontName() == "Helvetica");
+    REQUIRE(form->GetResources()->GetFont("F1") == font);
+}

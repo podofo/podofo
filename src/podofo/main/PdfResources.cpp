@@ -86,6 +86,12 @@ PdfName PdfResources::AddResource(const PdfName& typeName, const PdfObject& obj)
 
 void PdfResources::AddResource(const PdfName& type, const PdfName& key, const PdfObject& obj)
 {
+    if (type == "Font")
+    {
+        // NOTE: A cached inline font with the replaced name would be stale
+        GetDocument().GetFonts().RemoveInlineFont(*this, key);
+    }
+
     auto& dict = getOrCreateResourceDictionary(type);
     dict.AddKeyIndirectSafe(key, obj);
 }
@@ -114,11 +120,17 @@ void PdfResources::RemoveResource(const string_view& type, const string_view& ke
     if (dict == nullptr)
         return;
 
+    if (type == "Font")
+        GetDocument().GetFonts().RemoveInlineFont(*this, key);
+
     dict->RemoveKey(key);
 }
 
 void PdfResources::RemoveResources(const string_view& type)
 {
+    if (type == "Font")
+        GetDocument().GetFonts().RemoveInlineFonts(*this);
+
     GetDictionary().RemoveKey(type);
 }
 
