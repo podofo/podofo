@@ -298,11 +298,20 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
     auto* resourcesObj = page.GetDictionary().FindKeyParent("Resources");
     if (resourcesObj != nullptr)
     {
-        // /Resources is going to be replaced: remove the cached inline fonts
-        // that would get stale. An indirect /Resources outlives the replacement
-        auto formResources = xobj.GetResources();
-        if (formResources != nullptr && !formResources->GetObject().IsIndirect())
-            m_FontManager.RemoveInlineFonts(*formResources);
+        if (resourcesObj->IsDictionary())
+        {
+            // /Resources is going to be replaced: remove the cached inline fonts
+            // that would get stale. An indirect /Resources outlives the replacement
+            auto formResources = xobj.GetResources();
+            if (formResources != nullptr && !formResources->GetObject().IsIndirect())
+                m_FontManager.RemoveInlineFonts(*formResources);
+        }
+        else
+        {
+            // The form keeps a wrapper on its /Resources, which a non dictionary would retype
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, "Skipping the page /Resources that is not a dictionary");
+            resourcesObj = nullptr;
+        }
     }
 
     unique_ptr<unordered_map<PdfReference, PdfObject*>> tempMap;

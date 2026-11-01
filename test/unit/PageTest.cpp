@@ -686,3 +686,17 @@ startxref
     REQUIRE(last.GetRectRaw().GetNormalized().Width == 7);
     REQUIRE(&annots.GetAnnotAt(2) == &last);
 }
+
+TEST_CASE("TestFillFromPageNonDictionaryResources")
+{
+    // The form already wraps its /Resources: a page /Resources that is not a
+    // dictionary must not be copied over it
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    auto form = doc.CreateXObjectForm(page.GetMediaBox());
+    form->GetOrCreateResources();
+    page.GetDictionary().AddKey("Resources"_n, static_cast<int64_t>(42));
+    form->FillFromPage(page);
+    REQUIRE(form->GetDictionary().MustGetKey("Resources").IsDictionary());
+    REQUIRE(&form->GetOrCreateResources().GetObject() == &form->GetDictionary().MustGetKey("Resources"));
+}
