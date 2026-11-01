@@ -214,3 +214,33 @@ TEST_CASE("TestLZWTableFull")
     filter->DecodeTo(decoded, bufferview(payload.data(), payload.size()));
     REQUIRE(decoded == string(4095 - 257, 'A') + "BCAB");
 }
+
+TEST_CASE("TestAbandonedDecodeStreamTeardown")
+{
+    // A read stopped before the end leaves the filters live: on teardown the
+    // hex stage flushes its dangling nibble into the ASCII85 stage, which
+    // rejects it. The error must not escape the destructor. The read consumes
+    // 8 raw bytes at a time, the blank makes the digit count odd at every stop
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Contents 4 0 R>>endobj
+4 0 obj<</Length 32/Filter[/ASCIIHexDecode/ASCII85Decode]>>stream
+414243444546474 8494A4B4C4D4E4F>
+endstream
+endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& obj = doc.GetObjects().MustGetObject(PdfReference(4, 0));
+    REQUIRE_NOTHROW([&]() {
+        auto input = obj.MustGetStream().GetInputStream();
+        char buffer[8];
+        bool eof;
+        (void)input.Read(buffer, sizeof(buffer), eof);
+    }());
+}
