@@ -696,6 +696,9 @@ const unsigned short PdfLZWFilter::s_masks[] = { 0x01FF, 0x03FF, 0x07FF, 0x0FFF 
 const unsigned short PdfLZWFilter::s_clear = 0x0100;      // clear table
 const unsigned short PdfLZWFilter::s_eod = 0x0101;      // end of data
 
+// Codes are at most 12 bits wide: entries past the code space can't be referenced
+constexpr size_t LzwTableMaxSize = 4096;
+
 PdfLZWFilter::PdfLZWFilter() :
     m_mask(0),
     m_code_len(0),
@@ -796,8 +799,12 @@ void PdfLZWFilter::DecodeBlockImpl(const char* buffer, size_t len)
                     data = m_table[old].value;
                 data.push_back(m_character);
 
-                item.value = data;
-                m_table.push_back(item);
+                // A stream without clear codes must not grow the table without bound
+                if (m_table.size() < LzwTableMaxSize)
+                {
+                    item.value = data;
+                    m_table.push_back(item);
+                }
 
                 old = code;
 
