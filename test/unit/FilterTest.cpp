@@ -103,3 +103,26 @@ void testFilter(PdfFilterType filterType, const bufferview& view)
 
     INFO("\t-> Test succeeded!");
 }
+
+TEST_CASE("TestFilterChainTooLong")
+{
+    // The decode chain is flushed and destroyed recursively, one frame per
+    // filter: a /Filter array beyond the supported length can't be decoded
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Contents 4 0 R>>endobj
+4 0 obj<</Length 11/Filter[/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx/AHx]>>stream
+48656C6C6F>
+endstream
+endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& objStream = doc.GetObjects().MustGetObject(PdfReference(4, 0)).MustGetStream();
+    ASSERT_THROW_WITH_ERROR_CODE(objStream.GetCopy(), PdfErrorCode::UnsupportedFilter);
+}

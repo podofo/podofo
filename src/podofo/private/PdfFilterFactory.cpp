@@ -12,6 +12,12 @@
 using namespace std;
 using namespace PoDoFo;
 
+// Real files chain a handful of filters at most: the filter chains are
+// flushed and destroyed recursively, so their depth is bounded
+constexpr unsigned MaxFilterCount = 32;
+
+static void checkFilterCount(const PdfFilterList& filters);
+
 // An OutputStream class that actually perform the encoding
 class PdfFilteredEncodeStream : public OutputStream
 {
@@ -254,6 +260,7 @@ unique_ptr<OutputStream> PdfFilterFactory::CreateEncodeStream(shared_ptr<OutputS
     const PdfFilterList& filters)
 {
     PODOFO_RAISE_LOGIC_IF(!filters.size(), "Cannot create an EncodeStream from an empty list of filters");
+    checkFilterCount(filters);
 
     PdfFilterList::const_iterator it = filters.begin();
     unique_ptr<OutputStream> filter(new PdfFilteredEncodeStream(std::move(stream), *it));
@@ -273,6 +280,7 @@ unique_ptr<InputStream> PdfFilterFactory::CreateDecodeStream(shared_ptr<InputStr
 {
     PODOFO_RAISE_LOGIC_IF(stream == nullptr, "Cannot create an DecodeStream from an empty stream");
     PODOFO_RAISE_LOGIC_IF(filters.size() == 0, "Cannot create an DecodeStream from an empty list of filters");
+    checkFilterCount(filters);
     return std::make_unique<PdfBufferedDecodeStream>(std::move(stream), filters, decodeParms);
 }
 
@@ -321,4 +329,13 @@ void PdfFilterFactory::addFilterTo(PdfFilterList& filters, const string_view& fi
 {
     auto type = PoDoFo::NameToFilter(filter, true);
     filters.push_back(type);
+}
+
+void checkFilterCount(const PdfFilterList& filters)
+{
+    if (filters.size() > MaxFilterCount)
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Filter list with {} entries exceeds the maximum of {}",
+            filters.size(), MaxFilterCount);
+    }
 }
