@@ -700,3 +700,37 @@ TEST_CASE("TestFillFromPageNonDictionaryResources")
     REQUIRE(form->GetDictionary().MustGetKey("Resources").IsDictionary());
     REQUIRE(&form->GetOrCreateResources().GetObject() == &form->GetDictionary().MustGetKey("Resources"));
 }
+
+TEST_CASE("TestFillFromPageParsedFormResources")
+{
+    // The parsed form wraps its indirect /Resources, which the fill replaces
+    // with a copy of the page one: the wrapper must follow, as the orphaned
+    // object is collected on save
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Resources<</XObject<</Fm0 4 0 R>>>>>>endobj
+4 0 obj<</Type/XObject/Subtype/Form/BBox[0 0 9 9]/Resources 5 0 R/Length 0>>stream
+
+endstream
+endobj
+5 0 obj<</ProcSet[/PDF]>>endobj
+trailer<</Root 1 0 R/Size 6>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& page = doc.GetPages().GetPageAt(0);
+    unique_ptr<PdfXObjectForm> form;
+    REQUIRE(PdfXObject::TryCreateFromObject<PdfXObjectForm>(
+        *page.GetResources().GetResource(PdfResourceType::XObject, "Fm0"), form));
+    form->FillFromPage(page);
+    REQUIRE(&form->GetOrCreateResources().GetObject() == &form->GetDictionary().MustGetKey("Resources"));
+
+    doc.Save(TestUtils::GetTestOutputFilePath("TestFillFromPageParsedFormResources.pdf"));
+    auto img = doc.CreateImage();
+    static_cast<PdfResourceOperations&>(form->GetOrCreateResources()).AddResource(PdfResourceType::XObject, img->GetObject());
+    REQUIRE(form->GetDictionary().MustGetKey("Resources").GetDictionary().HasKey("XObject"));
+}

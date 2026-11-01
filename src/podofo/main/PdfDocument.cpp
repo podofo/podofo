@@ -366,6 +366,11 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
         }
     }
 
+    // NOTE: The resources wrapper of the form may point to a replaced indirect
+    // /Resources, and the flattening of the annotations below adds resources
+    if (resourcesObj != nullptr)
+        xobj.RebindResources();
+
     // Copy the page content stream(s) into the xobject stream
     auto& xobjStream = xobj.GetObject().GetOrCreateStream();
     auto output = xobjStream.GetOutputStream({ PdfFilterType::FlateDecode });
