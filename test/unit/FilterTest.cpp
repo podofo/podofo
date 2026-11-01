@@ -171,3 +171,46 @@ startxref
     doc.LoadFromBuffer(pdf);
     REQUIRE(doc.GetObjects().MustGetObject(PdfReference(4, 0)).MustGetStream().GetCopy() == "Hello");
 }
+
+TEST_CASE("TestLZWTableFull")
+{
+    // A stream may defer the clear code after the table is full: the codes stay
+    // 12 bits wide and no entry is added, so the table stays bounded. Each code
+    // adds one entry to the 257 initial ones: the 'A' codes fill the table up to
+    // the last entry, which 'B' sets to "AB", and the code after it is the first
+    // one with the table full
+    vector<uint32_t> codes(4095 - 257, 'A');
+    codes.push_back('B');
+    codes.push_back('C');
+    codes.push_back(4095);
+    codes.push_back(0x101);
+
+    charbuff payload;
+    uint32_t bits = 0;
+    unsigned bitCount = 0;
+    unsigned codeLen = 9;
+    size_t tableSize = 257;
+    for (uint32_t code : codes)
+    {
+        bits = (bits << codeLen) | code;
+        bitCount += codeLen;
+        while (bitCount >= 8)
+        {
+            payload.push_back((char)(bits >> (bitCount - 8)));
+            bitCount -= 8;
+        }
+
+        // Grow the code length as the decoder does
+        if (tableSize < 4096)
+            tableSize++;
+        if (tableSize == 511 || tableSize == 1023 || tableSize == 2047)
+            codeLen++;
+    }
+    if (bitCount != 0)
+        payload.push_back((char)(bits << (8 - bitCount)));
+
+    auto filter = PdfFilterFactory::Create(PdfFilterType::LZWDecode);
+    charbuff decoded;
+    filter->DecodeTo(decoded, bufferview(payload.data(), payload.size()));
+    REQUIRE(decoded == string(4095 - 257, 'A') + "BCAB");
+}
