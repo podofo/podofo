@@ -39,6 +39,7 @@ namespace
 
 static bool tryAdaptSearchParams(const std::string_view& patternName, const PdfFontSearchParams& params,
     unique_ptr<AdaptedFontSearch>& adaptedParams);
+static string getInlineFontIdPrefix(const PdfObject& obj);
 
 #if defined(_WIN32) && defined(PODOFO_HAVE_WIN32GDI)
 
@@ -71,6 +72,7 @@ void PdfFontManager::Clear()
     m_cachedQueries.clear();
     m_cachedPaths.clear();
     m_fonts.clear();
+    m_inlineFonts.clear();
 }
 
 string PdfFontManager::GenerateSubsetPrefix()
@@ -136,23 +138,10 @@ const PdfFont* PdfFontManager::GetLoadedFont(const PdfResources& resources, cons
         // It's a specification invalid inline font. We must support
         // it anyway, since Adobe is lenient as usual. We create an id
         // for this font and put it in the inline fonts map
-        auto obj = &resources.GetObject();
-        PdfReference ref;
-        do
-        {
-            // Find the first indirect ancestor object
-            ref = obj->GetIndirectReference();
-            if (ref.IsIndirect())
-                break;
-
-            PODOFO_INVARIANT(obj->GetParent() != nullptr);
-            obj = obj->GetParent()->GetOwner();
-        } while (obj != nullptr);
-        auto inlineFontId = utls::Format("R{}_{}-{}", ref.ObjectNumber(), ref.GenerationNumber(), name);
+        auto inlineFontId = getInlineFontIdPrefix(resources.GetObject()).append(name);
         auto found = m_inlineFonts.find(inlineFontId);
         if (found != m_inlineFonts.end())
             return found->second.get();
-
 
         // Create a new font
         unique_ptr<PdfFont> font;
@@ -161,6 +150,26 @@ const PdfFont* PdfFontManager::GetLoadedFont(const PdfResources& resources, cons
 
         auto inserted = m_inlineFonts.emplace(inlineFontId, std::move(font));
         return inserted.first->second.get();
+    }
+}
+
+void PdfFontManager::RemoveInlineFont(const PdfResources& resources, const string_view& name)
+{
+    m_inlineFonts.erase(getInlineFontIdPrefix(resources.GetObject()).append(name));
+}
+
+void PdfFontManager::RemoveInlineFonts(const PdfResources& resources)
+{
+    auto prefix = getInlineFontIdPrefix(resources.GetObject());
+    for (auto it = m_inlineFonts.begin(); it != m_inlineFonts.end(); )
+    {
+        if (it->first.compare(0, prefix.size(), prefix) == 0)
+        {
+            it = m_inlineFonts.erase(it);
+            continue;
+        }
+
+        it++;
     }
 }
 
@@ -721,4 +730,22 @@ bool tryAdaptSearchParams(const string_view& fontName, const PdfFontSearchParams
         adaptedParams->Params.Style = style;
 
     return true;
+}
+
+// Inline fonts are keyed by the first indirect ancestor of their resources
+string getInlineFontIdPrefix(const PdfObject& obj)
+{
+    auto curr = &obj;
+    PdfReference ref;
+    do
+    {
+        ref = curr->GetIndirectReference();
+        if (ref.IsIndirect())
+            break;
+
+        PODOFO_INVARIANT(curr->GetParent() != nullptr);
+        curr = curr->GetParent()->GetOwner();
+    } while (curr != nullptr);
+
+    return utls::Format("R{}_{}-", ref.ObjectNumber(), ref.GenerationNumber());
 }

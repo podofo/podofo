@@ -295,11 +295,20 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
     auto& sourceDoc = page.GetDocument();
     bool isSameDoc = (this == &sourceDoc);
 
+    auto* resourcesObj = page.GetDictionary().FindKeyParent("Resources");
+    if (resourcesObj != nullptr)
+    {
+        // /Resources is going to be replaced: remove the cached inline fonts
+        // that would get stale. An indirect /Resources outlives the replacement
+        auto formResources = xobj.GetResources();
+        if (formResources != nullptr && !formResources->GetObject().IsIndirect())
+            m_FontManager.RemoveInlineFonts(*formResources);
+    }
+
     unique_ptr<unordered_map<PdfReference, PdfObject*>> tempMap;
     if (isSameDoc)
     {
         // Same document: just reference existing objects directly
-        auto* resourcesObj = page.GetDictionary().FindKeyParent("Resources");
         if (resourcesObj != nullptr)
             xobj.GetDictionary().AddKey("Resources"_n, *resourcesObj);
 
@@ -319,7 +328,6 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
         }
 
         // Cross-document: selectively copy referenced objects
-        auto* resourcesObj = page.GetDictionary().FindKeyParent("Resources");
         if (resourcesObj != nullptr)
         {
             PdfObject resourcesCopy(*resourcesObj);
