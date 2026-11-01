@@ -24,7 +24,24 @@ const unsigned s_Powers85[] = { 85 * 85 * 85 * 85, 85 * 85 * 85, 85 * 85, 85, 1 
 /// key of a PDF dictionary.
 class PdfPredictorDecoder
 {
+    // Bounds for the file supplied parameters: BitsPerComponent is at most 16
+    // by specification, DeviceN spaces have at most 32 components (doubled for
+    // headroom), and the row buffers are allocated for every filter of the chain
+    static constexpr int64_t MaxColors = 64;
+    static constexpr int64_t MaxBitsPerComponent = 16;
+    static constexpr uint64_t MaxRowSize = 1 << 22;
+
 public:
+    /// @returns null with no prediction, as the data is then passed through
+    static unique_ptr<PdfPredictorDecoder> Create(const PdfDictionary* decodeParms)
+    {
+        if (decodeParms == nullptr || decodeParms->FindKeyAsSafe<int64_t>("Predictor", 1) == 1)
+            return nullptr;
+
+        return unique_ptr<PdfPredictorDecoder>(new PdfPredictorDecoder(*decodeParms));
+    }
+
+private:
     PdfPredictorDecoder(const PdfDictionary& decodeParms)
     {
         // check that input values are in range (CVE-2018-20797)
@@ -40,17 +57,17 @@ public:
         m_Predictor = (unsigned)num;
 
         num = decodeParms.FindKeyAsSafe<int64_t>("Colors", 1);
-        if (num < 1)
+        if (num < 1 || num > MaxColors)
             goto OutOfRange;
         m_Colors = (unsigned)num;
 
         num = decodeParms.FindKeyAsSafe<int64_t>("BitsPerComponent", 8);
-        if (num < 1)
+        if (num < 1 || num > MaxBitsPerComponent)
             goto OutOfRange;
         m_BitsPerComponent = (unsigned)num;
 
         num = decodeParms.FindKeyAsSafe<int64_t>("Columns", 1);
-        if (num < 1)
+        if (num < 1 || num > (int64_t)MaxRowSize)
             goto OutOfRange;
         m_ColumnCount = (unsigned)num;
 
@@ -70,18 +87,11 @@ public:
         }
 
         m_CurrRowIndex = 0;
-        m_Rows = (m_ColumnCount * m_Colors * m_BitsPerComponent) / 8;
+        uint64_t rowSize = (uint64_t)m_ColumnCount * m_Colors * m_BitsPerComponent / 8;
+        if (rowSize < 1 || rowSize > MaxRowSize)
+            goto OutOfRange;
 
-        // check for multiplication overflow on buffer sizes (e.g. if m_nBPC=2 and m_nColors=SIZE_MAX/2+1)
-        if (utls::DoesMultiplicationOverflow(m_BitsPerComponent, m_Colors)
-            || utls::DoesMultiplicationOverflow(m_ColumnCount, (size_t)m_BitsPerComponent * m_Colors))
-        {
-            PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
-        }
-
-        // check that computed allocation sizes are > 0 (CVE-2018-20797)
-        if (m_Rows < 1 || m_BitsPerComponent < 1)
-            PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
+        m_Rows = (unsigned)rowSize;
 
         m_Prev.resize(m_Rows);
         memset(m_Prev.data(), 0, sizeof(char) * m_Rows);
@@ -90,14 +100,9 @@ public:
         memset(m_UpperLeftPixelComponents.data(), 0, sizeof(char) * m_BytesPerPixel);
     }
 
+public:
     void Decode(const char* buffer, size_t len, OutputStream& stream)
     {
-        if (m_Predictor == 1)
-        {
-            stream.Write(buffer, len);
-            return;
-        }
-
         while (len-- != 0)
         {
             if (m_NextByteIsPredictor)
@@ -538,8 +543,7 @@ void PdfFlateFilter::BeginDecodeImpl(const PdfDictionary* decodeParms)
     m_stream.zfree = Z_NULL;
     m_stream.opaque = Z_NULL;
 
-    if (decodeParms != nullptr)
-        m_Predictor.reset(new PdfPredictorDecoder(*decodeParms));
+    m_Predictor = PdfPredictorDecoder::Create(decodeParms);
 
     if (inflateInit(&m_stream) != Z_OK)
         PODOFO_RAISE_ERROR(PdfErrorCode::FlateError);
@@ -713,8 +717,7 @@ void PdfLZWFilter::BeginDecodeImpl(const PdfDictionary* decodeParms)
 
     m_First = true;
 
-    if (decodeParms != nullptr)
-        m_Predictor.reset(new PdfPredictorDecoder(*decodeParms));
+    m_Predictor = PdfPredictorDecoder::Create(decodeParms);
 
     InitTable();
 }

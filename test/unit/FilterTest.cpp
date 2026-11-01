@@ -126,3 +126,48 @@ startxref
     auto& objStream = doc.GetObjects().MustGetObject(PdfReference(4, 0)).MustGetStream();
     ASSERT_THROW_WITH_ERROR_CODE(objStream.GetCopy(), PdfErrorCode::UnsupportedFilter);
 }
+
+TEST_CASE("TestPredictorHugeColumns")
+{
+    // The predictor row buffers are sized from the file parameters and
+    // allocated for every filter of the chain: unreasonable values are rejected
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Contents 4 0 R>>endobj
+4 0 obj<</Length 1/Filter/FlateDecode/DecodeParms<</Predictor 12/Colors 4/BitsPerComponent 8/Columns 500000000>>>>stream
+x
+endstream
+endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    charbuff buffer;
+    ASSERT_THROW_WITH_ERROR_CODE(doc.GetObjects().MustGetObject(PdfReference(4, 0)).MustGetStream().CopyTo(buffer),
+        PdfErrorCode::ValueOutOfRange);
+}
+
+TEST_CASE("TestPredictorNone")
+{
+    // With no prediction the data is passed through, whatever the other parameters
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Contents 4 0 R>>endobj
+4 0 obj<</Length 27/Filter[/AHx/Fl]/DecodeParms[null<</Predictor 1/BitsPerComponent 1/Columns 500000000>>]>>stream
+789CF348CDC9C90700058C01F5>
+endstream
+endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    REQUIRE(doc.GetObjects().MustGetObject(PdfReference(4, 0)).MustGetStream().GetCopy() == "Hello");
+}
