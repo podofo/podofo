@@ -279,8 +279,11 @@ void PdfParserObject::parseStream(bool shallow, bool dryRun)
 
 ReadStream:
     // NOTE: Retrieve the first list before seeking, otherwise
-    // the following operation may also adjust the position
-    auto filters = PdfFilterFactory::CreateFilterList(*this);
+    // the following operation may also adjust the position.
+    // A dry run doesn't need it, and an invalid list must not stop it
+    PdfFilterList filters;
+    if (!dryRun)
+        filters = PdfFilterFactory::CreateFilterList(*this);
 
     if (size < 0)
     {
