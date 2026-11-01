@@ -126,6 +126,14 @@ PdfResources* PdfXObjectForm::getResources()
     return m_Resources.get();
 }
 
+void PdfXObjectForm::RebindResources()
+{
+    // The previous /Resources object may be orphaned and later collected
+    auto& resources = GetDictionary().MustFindKey("Resources");
+    PODOFO_ASSERT(resources.IsDictionary());
+    m_Resources.reset(new PdfResources(resources));
+}
+
 PdfDictionaryElement& PdfXObjectForm::getElement()
 {
     return *this;

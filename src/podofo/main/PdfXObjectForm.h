@@ -74,6 +74,9 @@ protected:
 private:
     PdfXObjectForm(PdfObject& obj);
 
+    // To be called by PdfDocument after replacing /Resources
+    void RebindResources();
+
 private:
     bool TryGetRotationRadians(double& teta) const override;
     Corners GetRectRaw() const override;
