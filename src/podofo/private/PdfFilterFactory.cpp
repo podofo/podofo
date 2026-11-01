@@ -112,8 +112,22 @@ public:
 
     ~PdfFilteredDecodeStream()
     {
-        if (m_filter != nullptr)
-            m_filter->EndDecode();
+        // Prevent and exception in the descructor: a read abandoned before
+        // the end leaves the filter live, and the bytes it flushes may be
+        // rejected downstream.
+        try
+        {
+            if (m_filter != nullptr)
+                m_filter->EndDecode();
+        }
+        catch (PdfError& e)
+        {
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, "Error while ending the decode stream: {}", PdfError::ErrorName(e.GetCode()));
+        }
+        catch (...)
+        {
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, "Error while ending the decode stream");
+        }
     }
 
 protected:
