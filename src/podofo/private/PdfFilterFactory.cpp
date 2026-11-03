@@ -27,21 +27,46 @@ private:
     void init(OutputStream& outputStream, PdfFilterType filterType)
     {
         m_filter = PdfFilterFactory::Create(filterType);
+        if (!m_filter->CanEncode())
+        {
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Filter {} doesn't support encoding",
+                PoDoFo::FilterToName(filterType));
+        }
+
         m_filter->BeginEncode(outputStream);
     }
     ~PdfFilteredEncodeStream()
     {
+        // The filter can fail here as well, and a destructor can't throw.
+        // A dropped filter already reported its failure
+        try
+        {
+            if (m_filter != nullptr)
+            {
+                encodePendingBytes();
+                m_filter->EndEncode();
+            }
+        }
+        catch (PdfError& e)
+        {
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, "Error while ending the encode stream: {}", PdfError::ErrorName(e.GetCode()));
+        }
+        catch (...)
+        {
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, "Error while ending the encode stream");
+        }
+
         // NOTE: Disarm the window as required by ~OutputStream()
-        encodePendingBytes();
         disableWriteWindow();
-        m_filter->EndEncode();
     }
 public:
     PdfFilteredEncodeStream(shared_ptr<OutputStream>&& outputStream, PdfFilterType filterType)
         : m_OutputStream(std::move(outputStream)), m_buffer(BUFFER_SIZE)
     {
-        enableWriteWindow(m_buffer.data(), m_buffer.data() + BUFFER_SIZE);
+        // NOTE: Arm the window only after the filter is created, so a
+        // failure doesn't leave it armed for ~OutputStream()
         init(*m_OutputStream, filterType);
+        enableWriteWindow(m_buffer.data(), m_buffer.data() + BUFFER_SIZE);
     }
 protected:
     void writeBuffer(const char* buffer, size_t len) override
@@ -50,7 +75,7 @@ protected:
         {
             // Big enough to encode on its own: don't pay for a copy
             encodePendingBytes();
-            m_filter->EncodeBlock({ buffer, len });
+            encodeBlock({ buffer, len });
             return;
         }
 
@@ -73,8 +98,25 @@ private:
         if (len == 0)
             return;
 
-        m_filter->EncodeBlock({ m_buffer.data(), len });
+        // The pending bytes are dropped also on failure, the filter can't take them again
         m_wcur = m_buffer.data();
+        encodeBlock({ m_buffer.data(), len });
+    }
+    void encodeBlock(const bufferview& view)
+    {
+        if (m_filter == nullptr)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The encode filter has failed");
+
+        try
+        {
+            m_filter->EncodeBlock(view);
+        }
+        catch (...)
+        {
+            // The filter dropped its output stream and can't be used again
+            m_filter = nullptr;
+            throw;
+        }
     }
 private:
     shared_ptr<OutputStream> m_OutputStream;
