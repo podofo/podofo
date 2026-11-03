@@ -504,6 +504,45 @@ TEST_CASE("TestConversionPBF2CFF")
     }
 }
 
+TEST_CASE("TestInlineFontDirectRoot")
+{
+    // /Root and /Pages are direct dictionaries in the trailer, so the inline
+    // font lookup walks up to the trailer without finding an indirect ancestor
+    // NOTE: Of the major viewers only pdf.js renders it. Adobe, Foxit and pdfium fail
+    string_view pdf = R"(%PDF-1.7
+1 0 obj
+<< /Type /Page /MediaBox [0 0 595 842] /Contents 2 0 R >>
+endobj
+2 0 obj
+<< /Length 42 >>
+stream
+BT /F1 24 Tf 72 770 Td (Hello World) Tj ET
+endstream
+endobj
+xref
+0 3
+0000000000 65535 f 
+0000000009 00000 n 
+0000000082 00000 n 
+trailer
+<< /Size 3 /Root << /Type /Catalog /Pages << /Type /Pages /Kids [1 0 R] /Count 1 /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> >> >> >>
+startxref
+174
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf, PdfLoadOptions::SkipXRefRecovery);
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto font = page.GetResources().GetFont("F1");
+    REQUIRE(font != nullptr);
+    REQUIRE(font->GetMetrics().GetFontName() == "Helvetica");
+
+    vector<PdfTextEntry> entries;
+    page.ExtractTextTo(entries);
+    REQUIRE(entries.size() == 1);
+    REQUIRE(entries[0].Text == "Hello World");
+}
+
 TEST_CASE("TestSubsetCFFDegenerate")
 {
     charbuff font1;

@@ -743,8 +743,14 @@ string getInlineFontIdPrefix(const PdfObject& obj)
         if (ref.IsIndirect())
             break;
 
-        PODOFO_INVARIANT(curr->GetParent() != nullptr);
-        curr = curr->GetParent()->GetOwner();
+        // The trailer is neither indirect nor contained: a font that is inlined
+        // in a chain of direct objects reaches it, albeit is a very unlikely case,
+        // possibly only fabricated. See TestInlineFontDirectRoot
+        auto parent = curr->GetParent();
+        if (parent == nullptr)
+            break;
+
+        curr = parent->GetOwner();
     } while (curr != nullptr);
 
     return utls::Format("R{}_{}-", ref.ObjectNumber(), ref.GenerationNumber());
