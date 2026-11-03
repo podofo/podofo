@@ -259,7 +259,6 @@ bool PdfTokenizer::TryReadNextVariant(InputStreamDevice& device, PdfVariant& var
 
 void PdfTokenizer::ReadNextVariant(InputStreamDevice& device, const string_view& token, PdfTokenType tokenType, PdfVariant& variant, const PdfStatefulEncrypt* encrypt)
 {
-    utls::RecursionGuard guard;
     ParsingOptions flags{ true, (m_Params.Flags & PdfTokenizerFlags::StrictParsing) != PdfTokenizerFlags::None };
     PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, variant, flags);
     (void)readDataType(device, dataType, variant, encrypt, flags);
@@ -267,7 +266,6 @@ void PdfTokenizer::ReadNextVariant(InputStreamDevice& device, const string_view&
 
 bool PdfTokenizer::TryReadNextVariant(InputStreamDevice& device, const string_view& token, PdfTokenType tokenType, PdfVariant& variant, const PdfStatefulEncrypt* encrypt)
 {
-    utls::RecursionGuard guard;
     ParsingOptions flags{ false, (m_Params.Flags & PdfTokenizerFlags::StrictParsing) != PdfTokenizerFlags::None };
     PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, variant, flags);
     return readDataType(device, dataType, variant, encrypt, flags);
@@ -476,6 +474,8 @@ bool PdfTokenizer::readDataType(InputStreamDevice& device, PdfLiteralDataType da
 bool PdfTokenizer::ReadDictionary(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt, ParsingOptions opts)
 {
     PODOFO_ASSERT(variant.GetDataType() == PdfDataType::Null);
+    // NOTE: Containers are the only recursive constructs: guard their nesting here
+    utls::RecursionGuard guard;
 
     PdfVariant nameVar;
     PdfTokenType tokenType;
@@ -570,6 +570,7 @@ bool PdfTokenizer::ReadDictionary(InputStreamDevice& device, PdfVariant& variant
 bool PdfTokenizer::ReadArray(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt* encrypt, ParsingOptions opts)
 {
     PODOFO_ASSERT(variant.GetDataType() == PdfDataType::Null);
+    utls::RecursionGuard guard;
 
     string_view token;
     PdfTokenType tokenType;

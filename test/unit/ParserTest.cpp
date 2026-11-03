@@ -2235,6 +2235,23 @@ void PdfParserTest::TestNestedDictionaries()
     }
 }
 
+// Dictionaries nested in value position must count towards the nesting depth
+TEST_CASE("TestNestedDictionaryValues")
+{
+    constexpr size_t maxNesting = 20000;
+    string buffer;
+    for (size_t i = 0; i < maxNesting; i++)
+        buffer.append("<</A ");
+    buffer.append("0");
+    for (size_t i = 0; i < maxNesting; i++)
+        buffer.append(">>");
+
+    SpanStreamDevice device(buffer);
+    PdfTokenizer tokenizer;
+    PdfVariant variant;
+    ASSERT_THROW_WITH_ERROR_CODE(tokenizer.ReadNextVariant(device, variant), PdfErrorCode::MaxRecursionReached);
+}
+
 void PdfParserTest::TestInvalidXRefEntries()
 {
     auto currentLogSeverity = PdfCommon::GetMaxLoggingSeverity();
