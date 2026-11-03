@@ -360,7 +360,10 @@ void PdfPageCollection::initPages()
     unsigned count = getChildCount(GetObject());
     if (count != 0)
     {
-        m_Pages.reserve(count);
+        // /Count is attacker-controlled and may be far larger than the real
+        // page tree: a page can't outnumber the document objects, so cap the
+        // reservation (only a hint) to avoid a huge allocation from a tiny file
+        m_Pages.reserve(std::min(count, GetDocument().GetObjects().GetObjectCount()));
         unordered_set<PdfObject*> visitedNodes;
         (void)traversePageTreeNode(GetObject(), count, parents, visitedNodes);
     }
