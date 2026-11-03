@@ -271,3 +271,35 @@ startxref
     REQUIRE(input.Read(buffer, sizeof(buffer), eof) == 0);
     REQUIRE(eof);
 }
+
+TEST_CASE("TestEncodeStreamUnsupportedFilter")
+{
+    // Filters that can't encode are rejected when the stream is created,
+    // instead of failing at the first block and again on destruction
+    PdfMemDocument doc;
+    auto& obj = doc.GetObjects().CreateDictionaryObject();
+    ASSERT_THROW_WITH_ERROR_CODE(obj.GetOrCreateStream().SetData(bufferview("abc", 3), { PdfFilterType::RunLengthDecode }),
+        PdfErrorCode::UnsupportedFilter);
+}
+
+namespace
+{
+    class ThrowingOutputStream final : public OutputStream
+    {
+    protected:
+        void writeBuffer(const char*, size_t) override
+        {
+            PODOFO_RAISE_ERROR(PdfErrorCode::IOError);
+        }
+    };
+}
+
+TEST_CASE("TestEncodeStreamSinkFailure")
+{
+    // The sink rejects the encoded bytes when the stream is destroyed: the
+    // failure must not escape the destructor nor enter the failed filter again
+    auto encode = PdfFilterFactory::CreateEncodeStream(std::make_shared<ThrowingOutputStream>(),
+        { PdfFilterType::FlateDecode });
+    encode->Write("abc", 3);
+    REQUIRE_NOTHROW(encode.reset());
+}
