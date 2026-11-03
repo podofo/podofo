@@ -244,3 +244,30 @@ startxref
         (void)input.Read(buffer, sizeof(buffer), eof);
     }());
 }
+
+TEST_CASE("TestDecodeStreamReadAfterError")
+{
+    // The invalid zlib header fails the first read and drops the filter: a
+    // following read must report the end of the data instead of using it
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Contents 4 0 R>>endobj
+4 0 obj<</Length 32/Filter/FlateDecode>>stream
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
+endstream
+endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto input = doc.GetObjects().MustGetObject(PdfReference(4, 0)).MustGetStream().GetInputStream();
+    char buffer[8];
+    bool eof;
+    ASSERT_THROW_WITH_ERROR_CODE(input.Read(buffer, sizeof(buffer), eof), PdfErrorCode::FlateError);
+    REQUIRE(input.Read(buffer, sizeof(buffer), eof) == 0);
+    REQUIRE(eof);
+}
