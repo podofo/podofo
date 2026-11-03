@@ -22,6 +22,33 @@ using namespace std;
 using namespace PoDoFo;
 using namespace chromium::base;
 
+namespace
+{
+    // Object stream decode chains are never legitimately deep, while each level
+    // of this recursion costs over 20 KB of native stack in a Debug build, where 44
+    // levels already overflow the 1 MB default stack of Windows: keep the cap small
+    constexpr unsigned MaxObjectStreamDecodingDepth = 16;
+    thread_local unsigned s_objectStreamDecodingDepth = 0;
+
+    struct ObjectStreamDecodingGuard final
+    {
+        ObjectStreamDecodingGuard()
+        {
+            // Check before incrementing: a guard whose constructor throws is
+            // not destroyed, so the counter must stay untouched
+            if (s_objectStreamDecodingDepth >= MaxObjectStreamDecodingDepth)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::MaxRecursionReached, "Object stream decoding nested too deeply");
+
+            s_objectStreamDecodingDepth++;
+        }
+
+        ~ObjectStreamDecodingGuard()
+        {
+            s_objectStreamDecodingDepth--;
+        }
+    };
+}
+
 void PdfObjectStreamParser::Parse(PdfParserObject& streamObj, PdfIndirectObjectList& objects,
     const shared_ptr<charbuff>& buffer, const vector<Entry>* entries)
 {
@@ -124,6 +151,9 @@ void PdfObjectStreamParser::ensureDecoded()
     if (m_decoding)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile, "Recursive object stream decoding");
 
+    // NOTE: m_decoding only blocks re-entry of this stream, while resolving
+    // its dictionary can chain into other object streams
+    ObjectStreamDecodingGuard decodingGuard;
     auto streamObj = m_objects->GetObject(m_streamRef);
     if (streamObj == nullptr)
     {
