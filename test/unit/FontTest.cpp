@@ -304,6 +304,28 @@ startxref
     ASSERT_EQUAL(metrics.GetGlyphWidth(1114111, PdfGlyphAccess::ReadMetrics), 0.5);
 }
 
+TEST_CASE("TestFontStretchString")
+{
+    // /FontStretch is a string instead of a name
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Resources<</Font<</F1 4 0 R>>>>>>endobj
+4 0 obj<</Type/Font/Subtype/TrueType/BaseFont/Test/Encoding/WinAnsiEncoding/FirstChar 32/LastChar 32/Widths[500]/FontDescriptor 5 0 R>>endobj
+5 0 obj<</Type/FontDescriptor/FontName/Test/Flags 32/FontStretch(Condensed)>>endobj
+trailer<</Root 1 0 R/Size 6>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& resources = doc.GetPages().GetPageAt(0).GetResources();
+    unique_ptr<PdfFont> font;
+    REQUIRE(PdfFont::TryCreateFromObject(*resources.GetResource(PdfResourceType::Font, "F1"), font));
+    REQUIRE(font->GetMetrics().GetFontStretch() == PdfFontStretch::Condensed);
+}
+
 TEST_CASE("TestGetOrCreateFontFromBufferInvalid")
 {
     // A buffer FreeType can't open as a font must raise instead of

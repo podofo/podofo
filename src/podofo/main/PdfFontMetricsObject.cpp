@@ -321,7 +321,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfDictionary& fontDict,
             if (stretchObj->TryGetName(name))
                 m_FontStretch = stretchFromString(name->GetString());
             else if (stretchObj->TryGetString(str))
-                m_FontStretch = stretchFromString(name->GetString());
+                m_FontStretch = stretchFromString(str->GetString());
             else
                 m_FontStretch = PdfFontStretch::Unknown;
         }
