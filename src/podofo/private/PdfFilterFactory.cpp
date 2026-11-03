@@ -133,6 +133,8 @@ public:
 protected:
     void writeBuffer(const char* buffer, size_t len) override
     {
+        // NOTE: The buffered stream stops writing after a failure
+        PODOFO_ASSERT(m_filter != nullptr);
         try
         {
             m_filter->DecodeBlock({ buffer, len });
@@ -183,7 +185,7 @@ class PdfBufferedDecodeStream : public InputStream, private OutputStream
 public:
     PdfBufferedDecodeStream(shared_ptr<InputStream>&& inputStream, const PdfFilterList& filters,
         const vector<const PdfDictionary*>& decodeParms)
-        : m_inputEof(false), m_inputStream(std::move(inputStream)), m_offset(0)
+        : m_inputEof(false), m_failed(false), m_inputStream(std::move(inputStream)), m_offset(0)
     {
         PODOFO_INVARIANT(filters.size() != 0);
         int i = (int)filters.size() - 1;
@@ -208,7 +210,8 @@ protected:
             return size;
         }
 
-        if (m_inputEof)
+        // A failed decode dropped the filters: the data ends there
+        if (m_inputEof || m_failed)
         {
             eof = true;
             return 0;
@@ -216,9 +219,17 @@ protected:
 
         auto readSize = ReadBuffer(*m_inputStream, buffer, size, m_inputEof);
         m_buffer.clear();
-        m_filterStream->Write(buffer, readSize);
-        if (m_inputEof)
-            m_filterStream->Flush();
+        try
+        {
+            m_filterStream->Write(buffer, readSize);
+            if (m_inputEof)
+                m_filterStream->Flush();
+        }
+        catch (...)
+        {
+            m_failed = true;
+            throw;
+        }
 
         size = std::min(size, m_buffer.size());
         std::memcpy(buffer, m_buffer.data(), size);
@@ -233,6 +244,7 @@ protected:
     }
 private:
     bool m_inputEof;
+    bool m_failed;
     shared_ptr<InputStream> m_inputStream;
     size_t m_offset;
     charbuff m_buffer;
