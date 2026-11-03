@@ -190,7 +190,8 @@ void PdfObjectStreamParser::decode(const PdfObject& streamObj)
     tokenizer.SetParameters(m_params);
 
     m_offsets.clear();
-    m_offsets.reserve((size_t)num);
+    // NOTE: /N comes from the file: each entry takes at least 4 bytes of the decoded data
+    m_offsets.reserve(std::min((size_t)num, m_contents.size() / 4));
     for (unsigned i = 0; i < (unsigned)num; i++)
     {
         int64_t objNo = tokenizer.ReadNextNumber(device);

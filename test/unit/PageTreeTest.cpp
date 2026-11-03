@@ -38,6 +38,33 @@ TEST_CASE("TestEmptyDoc")
     ASSERT_THROW_WITH_ERROR_CODE(doc.GetPages().GetPageAt(0), PdfErrorCode::ValueOutOfRange);
 }
 
+// GHSA-h2fg-3p95-qpgr: a tiny file with a huge /Pages /Count must not drive
+// a multi-gigabyte reserve before the real /Kids tree is walked
+TEST_CASE("TestHugePageCountReserve")
+{
+    static string_view hugeCountPdf = R"(%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [] /Count 4000000000 >>
+endobj
+xref
+0 3
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+trailer
+<< /Root 1 0 R /Size 3 >>
+startxref
+119
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(hugeCountPdf);
+    REQUIRE(doc.GetPages().GetCount() == 0);
+}
+
 TEST_CASE("TestCreateDelete")
 {
     PdfMemDocument doc;
