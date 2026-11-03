@@ -143,6 +143,11 @@ protected:
             m_filter = nullptr;
             throw;
         }
+        catch (...)
+        {
+            m_filter = nullptr;
+            throw;
+        }
     }
     void flush() override
     {
@@ -157,6 +162,11 @@ protected:
         {
             PODOFO_PUSH_FRAME_INFO(e, "PdfFilter::EndDecode() failed in filter of type {}",
                 PoDoFo::FilterToName(m_filter->GetType()));
+            m_filter = nullptr;
+            throw;
+        }
+        catch (...)
+        {
             m_filter = nullptr;
             throw;
         }
