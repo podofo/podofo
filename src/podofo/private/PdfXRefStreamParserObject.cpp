@@ -104,25 +104,19 @@ void PdfXRefStreamParserObject::ReadXRefTable()
 
 void PdfXRefStreamParserObject::parseStream(const int64_t wArray[W_ARRAY_SIZE], const vector<int64_t>& indices)
 {
-    for (int64_t lengthSum = 0, i = 0; i < W_ARRAY_SIZE; i++)
+    // NOTE: The widths are validated once, so the entries are decoded without checks
+    size_t entryLen = 0;
+    for (unsigned i = 0; i < W_ARRAY_SIZE; i++)
     {
-        if (wArray[i] < 0)
-        {
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRefStream,
-                "Negative field length in XRef stream");
-        }
-        if (numeric_limits<int64_t>::max() - lengthSum < wArray[i])
-        {
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRefStream,
-                "Invalid entry length in XRef stream");
-        }
-        else
-        {
-            lengthSum += wArray[i];
-        }
+        if (wArray[i] < 0 || wArray[i] > W_MAX_BYTES)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRefStream, "Invalid field length {} in XRef stream", wArray[i]);
+
+        entryLen += (size_t)wArray[i];
     }
 
-    const size_t entryLen = static_cast<size_t>(wArray[0] + wArray[1] + wArray[2]);
+    // A zero entry length carries no information and consumes no stream bytes
+    if (entryLen == 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRefStream, "Zero entry length in XRef stream");
 
     charbuff buffer;
     this->GetOrCreateStream().CopyTo(buffer);
@@ -195,15 +189,7 @@ void PdfXRefStreamParserObject::readXRefStreamEntry(PdfXRefEntry& entry, char* b
     uint64_t entryRaw[W_ARRAY_SIZE];
     for (unsigned i = 0; i < W_ARRAY_SIZE; i++)
     {
-        if (wArray[i] > W_MAX_BYTES)
-        {
-            PoDoFo::LogMessage(PdfLogSeverity::Error,
-                "The XRef stream dictionary has an entry in /W of size {}. The maximum supported value is {}",
-                wArray[i], W_MAX_BYTES);
-
-            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidXRefStream);
-        }
-
+        PODOFO_ASSERT(wArray[i] >= 0 && wArray[i] <= W_MAX_BYTES);
         entryRaw[i] = 0;
         for (int64_t z = W_MAX_BYTES - wArray[i]; z < W_MAX_BYTES; z++)
         {

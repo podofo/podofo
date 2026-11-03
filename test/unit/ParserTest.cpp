@@ -2298,6 +2298,25 @@ TEST_CASE("TestChainedObjectStreams")
     ASSERT_THROW_WITH_ERROR_CODE(doc.LoadFromBuffer(buffer, PdfLoadOptions::StrictParsing), PdfErrorCode::MaxRecursionReached);
 }
 
+// An all-zero /W consumes no stream bytes, so each /Index pair would
+// otherwise iterate up to the max object count regardless of the stream size
+TEST_CASE("TestXRefStreamZeroWidthEntries")
+{
+    static string_view zeroWidthPdf = R"(%PDF-1.5
+1 0 obj
+<< /Type /XRef /Size 1 /W [0 0 0] /Index [0 8388607 0 8388607] /Length 1 >>
+stream
+x
+endstream
+endobj
+startxref
+9
+%%EOF)";
+
+    PdfMemDocument doc;
+    ASSERT_THROW_WITH_ERROR_CODE(doc.LoadFromBuffer(zeroWidthPdf, PdfLoadOptions::SkipXRefRecovery), PdfErrorCode::InvalidXRefStream);
+}
+
 void PdfParserTest::TestInvalidXRefEntries()
 {
     auto currentLogSeverity = PdfCommon::GetMaxLoggingSeverity();
