@@ -2252,6 +2252,52 @@ TEST_CASE("TestNestedDictionaryValues")
     ASSERT_THROW_WITH_ERROR_CODE(tokenizer.ReadNextVariant(device, variant), PdfErrorCode::MaxRecursionReached);
 }
 
+// A chain of object streams where the /N of each stream is an indirect
+// reference to the single compressed object stored in the next stream:
+// decoding the first stream recurses through all the others
+TEST_CASE("TestChainedObjectStreams")
+{
+    constexpr unsigned streamCount = 32; // Above the object stream decoding cap
+    ostringstream oss;
+    vector<size_t> offsets(streamCount + 1);
+    oss << "%PDF-1.5\n";
+    for (unsigned i = 1; i <= streamCount; i++)
+    {
+        // The stream i stores the compressed object streamCount + i with value 1
+        string content = std::to_string(streamCount + i) + " 0 1";
+        offsets[i] = (size_t)oss.tellp();
+        oss << i << " 0 obj\n<< /Type /ObjStm /N ";
+        if (i == streamCount)
+            oss << "1";
+        else
+            oss << (streamCount + i + 1) << " 0 R";
+        oss << " /First " << content.size() - 1 << " /Length " << content.size() << " >>\nstream\n"
+            << content << "\nendstream\nendobj\n";
+    }
+
+    size_t xrefOffset = (size_t)oss.tellp();
+    ostringstream hex;
+    auto writeEntry = [&hex](unsigned type, size_t field2, unsigned field3)
+    {
+        hex << utls::Format("{:02X}{:06X}{:04X}", type, field2, field3);
+    };
+    writeEntry(0, 0, 0xFFFF);
+    for (unsigned i = 1; i <= streamCount; i++)
+        writeEntry(1, offsets[i], 0);
+    for (unsigned i = 1; i <= streamCount; i++)
+        writeEntry(2, i, 0);
+    writeEntry(1, xrefOffset, 0);
+    string entries = hex.str();
+    oss << (2 * streamCount + 1) << " 0 obj\n<< /Type /XRef /Size " << (2 * streamCount + 2)
+        << " /Root " << (streamCount + 1) << " 0 R /W [1 3 2] /Filter /ASCIIHexDecode /Length "
+        << entries.size() + 1 << " >>\nstream\n" << entries << ">\nendstream\nendobj\n"
+        << "startxref\n" << xrefOffset << "\n%%EOF";
+
+    string buffer = oss.str();
+    PdfMemDocument doc;
+    ASSERT_THROW_WITH_ERROR_CODE(doc.LoadFromBuffer(buffer, PdfLoadOptions::StrictParsing), PdfErrorCode::MaxRecursionReached);
+}
+
 void PdfParserTest::TestInvalidXRefEntries()
 {
     auto currentLogSeverity = PdfCommon::GetMaxLoggingSeverity();
