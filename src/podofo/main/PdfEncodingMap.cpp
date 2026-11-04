@@ -120,13 +120,17 @@ bool PdfEncodingMap::TryGetNextCID(string_view::iterator& it,
     if (GetType() == PdfEncodingMapType::CMap)
     {
         CodePointSpan codePoints;
-        bool success = tryGetNextCodePoints(it, end, cid.Unit, codePoints);
+        auto curr = it;
+        bool success = tryGetNextCodePoints(curr, end, cid.Unit, codePoints);
         if (!success || codePoints.GetSize() != 1)
         {
-            // Return false on missing lookup or malformed multiple code points found
+            // Return false on missing lookup or malformed multiple code
+            // points found, leaving the iterator for the caller fallback
             cid = { };
             return false;
         }
+
+        it = curr;
 
         // char32_t is also unsigned
         cid.Id = (unsigned)*codePoints;
