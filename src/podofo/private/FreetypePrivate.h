@@ -9,6 +9,7 @@
 #include FT_FREETYPE_H
 
 #include <podofo/main/PdfDeclarations.h>
+#include <podofo/main/PdfName.h>
 
 #define CHECK_FT_RC(rc, func) if (rc != 0)\
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::FreeTypeError, "Function " #func " failed")
@@ -40,7 +41,7 @@ namespace FT
     PoDoFo::charbuff GetDataFromFace(FT_Face face);
     bool TryGetFontFileFormat(FT_Face face, PoDoFo::PdfFontFileType& format);
     bool IsPdfSupported(FT_Face face);
-    std::unordered_map<std::string_view, unsigned> GetPostMap(FT_Face face);
+    PoDoFo::PdfNameHashMap<unsigned> GetPostMap(FT_Face face);
 }
 
 // Other legacy TrueType tables defined in Apple documentation
