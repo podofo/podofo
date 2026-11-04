@@ -339,6 +339,21 @@ TEST_CASE("TestTrueTypeHugeCmapRange")
     REQUIRE(font != nullptr);
 }
 
+TEST_CASE("TestTrueTypePostTableGlyphName")
+{
+    // The non-symbolic TrueType font has an empty cmap and names glyph 1
+    // "glyphone" in its post table, which /Differences maps code 65 to.
+    // The post table lookup must resolve the name to the glyph
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("Fonts", "PostTableGlyphNames.pdf"));
+    auto& resources = doc.GetPages().GetPageAt(0).GetResources();
+    unique_ptr<PdfFont> font;
+    REQUIRE(PdfFont::TryCreateFromObject(*resources.GetResource(PdfResourceType::Font, "F1"), font));
+    unsigned gid;
+    REQUIRE(font->TryGetGID(U'A', PdfGlyphAccess::FontProgram, gid));
+    REQUIRE(gid == 1);
+}
+
 TEST_CASE("TestGetOrCreateFontFromBufferInvalid")
 {
     // A buffer FreeType can't open as a font must raise instead of

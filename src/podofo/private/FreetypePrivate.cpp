@@ -212,9 +212,9 @@ bool FT::IsPdfSupported(FT_Face face)
     return true;
 }
 
-unordered_map<string_view, unsigned> FT::GetPostMap(FT_Face face)
+PdfNameHashMap<unsigned> FT::GetPostMap(FT_Face face)
 {
-    unordered_map<string_view, unsigned> ret;
+    PdfNameHashMap<unsigned> ret;
     if (!FT_HAS_GLYPH_NAMES(face))
         return ret;
 
@@ -226,7 +226,7 @@ unordered_map<string_view, unsigned> FT::GetPostMap(FT_Face face)
         if (rc != 0)
             continue;
 
-        ret[string_view(buffer)] = (FT_UInt)i;
+        ret[PdfName(string_view(buffer))] = (FT_UInt)i;
     }
 
     return ret;

@@ -834,8 +834,8 @@ PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapTrueType(FT_Face face, const PdfEn
     CIDToGIDMap map;
     const PdfName* name = nullptr;
     CodePointSpan codePoints;
-    unique_ptr<unordered_map<string_view, unsigned>> fontPostMap;
-    unordered_map<string_view, unsigned>::const_iterator found;
+    unique_ptr<PdfNameHashMap<unsigned>> fontPostMap;
+    PdfNameHashMap<unsigned>::const_iterator found;
     PdfCharCode charCode;
     FT_UInt index;
     auto& standardEncoding = PdfEncodingMapFactory::GetStandardEncodingInstance();
@@ -884,7 +884,7 @@ PdfCIDToGIDMapConstPtr getIntrinsicCIDToGIDMapTrueType(FT_Face face, const PdfEn
         // the glyph name shall be looked up in the font program’s "post" table
         // (if one is present) and the associated glyph description shall be used
         if (fontPostMap == nullptr)
-            fontPostMap.reset(new unordered_map<string_view, unsigned>(FT::GetPostMap(face)));
+            fontPostMap.reset(new PdfNameHashMap<unsigned>(FT::GetPostMap(face)));
 
         if ((found = fontPostMap->find(*name)) == fontPostMap->end())
             continue;
