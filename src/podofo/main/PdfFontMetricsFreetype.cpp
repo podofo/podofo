@@ -447,8 +447,10 @@ unique_ptr<PdfCMapEncoding> PdfFontMetricsFreetype::CreateToUnicodeMap(const Pdf
     FT_ULong charcode;
     FT_UInt gid;
 
+    // NOTE: A crafted cmap can make FreeType enumerate up to 2^32 codes
+    // in ascending order: stop at maximum Unicode code point
     charcode = FT_Get_First_Char(m_Face, &gid);
-    while (gid != 0)
+    while (gid != 0 && charcode <= MAX_UNICODE_CP)
     {
         map.PushMapping({ gid, limitHints.MinCodeSize }, (char32_t)charcode);
         charcode = FT_Get_Next_Char(m_Face, charcode, &gid);
@@ -651,10 +653,12 @@ void collectCharCodeToGIDMap(FT_Face face, bool symbolFont, unordered_map<unsign
     FT_ULong charcode;
     FT_UInt gid;
 
+    // NOTE: A crafted cmap can make FreeType enumerate up to 2^32 codes
+    // in ascending order: stop at maximum Unicode code point
     if (symbolFont)
     {
         charcode = FT_Get_First_Char(face, &gid);
-        while (gid != 0)
+        while (gid != 0 && charcode <= MAX_UNICODE_CP)
         {
             // https://learn.microsoft.com/en-us/typography/opentype/spec/recom#non-standard-symbol-fonts
             // "The character codes should start at 0xF000". We recover the intended code
@@ -665,7 +669,7 @@ void collectCharCodeToGIDMap(FT_Face face, bool symbolFont, unordered_map<unsign
     else
     {
         charcode = FT_Get_First_Char(face, &gid);
-        while (gid != 0)
+        while (gid != 0 && charcode <= MAX_UNICODE_CP)
         {
             codeToGidMap[(unsigned)charcode] = gid;
             charcode = FT_Get_Next_Char(face, charcode, &gid);

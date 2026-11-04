@@ -326,6 +326,19 @@ startxref
     REQUIRE(font->GetMetrics().GetFontStretch() == PdfFontStretch::Condensed);
 }
 
+TEST_CASE("TestTrueTypeHugeCmapRange")
+{
+    // The embedded symbolic TrueType font's only cmap subtable is format 13
+    // mapping the whole 32-bit range to a single glyph. Loading the font must
+    // not enumerate billions of codes while building the builtin CID-to-GID map
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("Fonts", "HugeCmapRange.pdf"));
+    auto& resources = doc.GetPages().GetPageAt(0).GetResources();
+    unique_ptr<PdfFont> font;
+    REQUIRE(PdfFont::TryCreateFromObject(*resources.GetResource(PdfResourceType::Font, "F1"), font));
+    REQUIRE(font != nullptr);
+}
+
 TEST_CASE("TestGetOrCreateFontFromBufferInvalid")
 {
     // A buffer FreeType can't open as a font must raise instead of
