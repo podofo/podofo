@@ -557,17 +557,15 @@ bool PdfEncoding::GetToUnicodeMapSafe(const PdfEncodingMap*& toUnicode) const
 // that is needed only when rendering the glyph
 PdfCharCode fetchFallbackCharCode(string_view::iterator& it, const string_view::iterator& end, const PdfEncodingLimits& limits)
 {
-    unsigned code = (unsigned char)*it;
-    unsigned char i = 1;
-    PODOFO_ASSERT(i <= limits.MinCodeSize);
-    while (true)
+    unsigned code = 0;
+    unsigned char i = 0;
+    while (it != end)
     {
-        it++;
-        if (it == end || i == limits.MinCodeSize)
-            break;
-
         code = code << 8 | (unsigned char)*it;
+        it++;
         i++;
+        if (i >= limits.MinCodeSize)
+            break;
     }
 
     return { code, i };

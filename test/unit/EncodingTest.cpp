@@ -230,6 +230,39 @@ end
     REQUIRE(map.GetCharMap().IsTrivialIdentity());
 }
 
+TEST_CASE("TestCMapMultiCodePointAtStringEnd")
+{
+    // The last code of the string maps to two code points: the lookup must
+    // leave the iterator before the code so that the fallback consumes it
+    string_view cmap =
+        "1 begincodespacerange\n"
+        "<00> <FF>\n"
+        "endcodespacerange\n"
+        "1 beginbfchar\n"
+        "<41> <00410042>\n"
+        "endbfchar\n"sv;
+
+    PdfMemDocument doc;
+    auto& cmapObj = doc.GetObjects().CreateDictionaryObject();
+    cmapObj.GetOrCreateStream().SetData(cmap);
+    PdfEncoding encoding(PdfEncodingMapFactory::ParseCMapEncoding(cmapObj));
+
+    vector<PdfCID> cids;
+    REQUIRE(!encoding.TryConvertToCIDs(PdfString::FromRaw("BA"sv), cids));
+    REQUIRE(cids.size() == 2);
+    REQUIRE(cids[0].Unit.Code == 0x42);
+    REQUIRE(cids[1].Unit.Code == 0x41);
+
+    auto str = PdfString::FromRaw("A"sv);
+    auto context = encoding.StartStringScan(str);
+    PdfCID cid;
+    string utf8str;
+    CodePointSpan codePoints;
+    REQUIRE(!context.TryScan(cid, utf8str, codePoints));
+    REQUIRE(cid.Unit.Code == 0x41);
+    REQUIRE(context.IsEndOfString());
+}
+
 void PdfEncodingTest::TestToUnicodeParse()
 {
     string_view toUnicode =
