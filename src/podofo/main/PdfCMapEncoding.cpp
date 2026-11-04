@@ -24,6 +24,10 @@ struct CodeLimits
     unsigned char MaxCodeSize = 0;
 };
 
+// ISO 32000-2:2020 "9.10.3 ToUnicode CMaps", for both beginbfchar and
+// beginbfrange: "The value of dstString can be a string of up to 512 bytes"
+constexpr unsigned MaxCMapDstStringSize = 512;
+
 static void readNextVariantSequence(PdfPostScriptTokenizer& tokenizer, InputStreamDevice& device,
     PdfVariant& variant, const string_view& endSequenceKeyword, bool& endOfSequence);
 static uint32_t getCodeFromVariant(const PdfVariant& var);
@@ -430,13 +434,21 @@ PdfCharCodeMap parseCMapObject(InputStreamDevice& device, PdfName& cmapName,
 }
 
 // Base Font 3 type CMap interprets strings as found in
-// beginbfchar and beginbfrange as UTF-16BE, see PdfReference 1.7
-// page 472. NOTE: Before UTF-16BE there was UCS-2 but UTF-16
+// beginbfchar and beginbfrange as UTF-16BE.
+// NOTE: Before UTF-16BE there was UCS-2 but UTF-16
 // is backward compatible with UCS-2
 void handleStringMapping(const PdfString& str, vector<char32_t>& codePoints)
 {
+    auto rawData = str.GetRawData();
+    if (rawData.size() > MaxCMapDstStringSize)
+    {
+        PoDoFo::LogMessage(PdfLogSeverity::Warning, "CMap destination string of {} bytes exceeds the maximum of {} and was truncated",
+            rawData.size(), MaxCMapDstStringSize);
+        rawData = rawData.substr(0, MaxCMapDstStringSize);
+    }
+
     string utf8;
-    utls::ReadUtf16BEString(str.GetRawData(), utf8);
+    utls::ReadUtf16BEString(rawData, utf8);
     return handleUtf8String(utf8, codePoints);
 }
 
