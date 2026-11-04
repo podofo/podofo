@@ -147,6 +147,21 @@ TEST_CASE("TestCMapRangeAtCodeSpaceEnd")
     REQUIRE(!map2.TryGetCodePoints(PdfCharCode(0xFFFFFFFF, 4), codePoints));
 }
 
+TEST_CASE("TestCMapHugeBfcharDestination")
+{
+    // The /ToUnicode of the font maps code 0x41 to a 100000 code points
+    // destination, which would become a ligature chain of one node per code
+    // point in the reverse map, walked recursively. The destination is cut
+    // to the 512 bytes the specification allows
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("Fonts", "HugeBfcharDestination.pdf"));
+    auto& resources = doc.GetPages().GetPageAt(0).GetResources();
+    unique_ptr<PdfFont> font;
+    REQUIRE(PdfFont::TryCreateFromObject(*resources.GetResource(PdfResourceType::Font, "F1"), font));
+    unsigned gid;
+    (void)font->TryGetGID(U'A', PdfGlyphAccess::FontProgram, gid);
+}
+
 TEST_CASE("TestCodeSpaceRange")
 {
     // Testing the begincodespacerange section for the same CMap tested in the
