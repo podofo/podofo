@@ -107,6 +107,46 @@ TEST_CASE("TestCMapHugeRangeReverseMap")
     REQUIRE(!map.TryGetCharCode((char32_t)(0x41 + 0x10FFFF), code));
 }
 
+TEST_CASE("TestCMapRangeAtCodeSpaceEnd")
+{
+    // A range reaching the last 4 byte code stops before it, so that the end
+    // past its last code fits 32 bits for the lookup and the overlap fixing
+    auto parse = [](const string_view& input)
+    {
+        SpanStreamDevice device(input);
+        return PdfCMapEncoding::Parse(device);
+    };
+
+    CodePointSpan codePoints;
+    PdfCharCode code;
+
+    // The later range cuts the previous one where they overlap
+    auto cmap1 = parse(
+        "2 beginbfrange\n"
+        "<FFFFFF00> <FFFFFFFF> <0041>\n"
+        "<FFFFFF80> <FFFFFF8F> <0061>\n"
+        "endbfrange\n"sv);
+    auto& map1 = cmap1.GetCharMap();
+    REQUIRE(map1.TryGetCodePoints(PdfCharCode(0xFFFFFF10, 4), codePoints));
+    REQUIRE(*codePoints == (char32_t)(0x41 + 0x10));
+    REQUIRE(map1.TryGetCodePoints(PdfCharCode(0xFFFFFF85, 4), codePoints));
+    REQUIRE(*codePoints == (char32_t)(0x61 + 0x5));
+    REQUIRE(!map1.TryGetCharCode((char32_t)(0x41 + 0x85), code));
+
+    // The later range drops the next range it covers
+    auto cmap2 = parse(
+        "2 beginbfrange\n"
+        "<FFFFFF80> <FFFFFF8F> <0061>\n"
+        "<FFFFFF00> <FFFFFFFF> <0041>\n"
+        "endbfrange\n"sv);
+    auto& map2 = cmap2.GetCharMap();
+    REQUIRE(map2.TryGetCodePoints(PdfCharCode(0xFFFFFF85, 4), codePoints));
+    REQUIRE(*codePoints == (char32_t)(0x41 + 0x85));
+    REQUIRE(map2.TryGetCodePoints(PdfCharCode(0xFFFFFFFE, 4), codePoints));
+    REQUIRE(*codePoints == (char32_t)(0x41 + 0xFE));
+    REQUIRE(!map2.TryGetCodePoints(PdfCharCode(0xFFFFFFFF, 4), codePoints));
+}
+
 TEST_CASE("TestCodeSpaceRange")
 {
     // Testing the begincodespacerange section for the same CMap tested in the
