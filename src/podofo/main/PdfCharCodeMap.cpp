@@ -29,6 +29,10 @@ namespace
     };
 }
 
+// Ranges are expanded one entry per code when building the reverse map:
+// bound the expansion to the Unicode code point count
+constexpr unsigned MaxReverseMapSize = MAX_UNICODE_CP + 1;
+
 static void appendRangesTo(vector<pair<PdfCharCode, CodePointSpan>>& mapppings, const CodeUnitMap& mappings, const CodeUnitRanges ranges);
 static void fetchCodePoints(vector<codepoint>& codePoints, const PdfCharCode& code, const CodeUnitRange& range);
 static void fetchCodePoints(CodePointSpan& codePoints, const PdfCharCode& code, const CodeUnitRange& range);
@@ -438,6 +442,12 @@ void appendRangesTo(vector<pair<PdfCharCode, CodePointSpan>>& allMapppings,
             // Skip the mapping if it's already mapped by the straight map
             if (mappings.find(code) != mappings.end())
                 continue;
+
+            if (allMapppings.size() >= MaxReverseMapSize)
+            {
+                PoDoFo::LogMessage(PdfLogSeverity::Warning, "Reverse code point map truncated at {} entries", MaxReverseMapSize);
+                return;
+            }
 
             fetchCodePoints(codePoints, code, range);
             allMapppings.push_back({ code, CodePointSpan(codePoints) });

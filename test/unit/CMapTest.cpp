@@ -76,6 +76,37 @@ TEST_CASE("TestCMapDuplicateRangeAtBegin")
     REQUIRE_NOTHROW(PdfCMapEncoding::Parse(device));
 }
 
+TEST_CASE("TestCMapHugeRangeReverseMap")
+{
+    // A range spanning nearly the whole 4 byte code space is expanded one entry
+    // per code when the reverse map is built, which stops at the Unicode code point
+    // count. The bfchar defeats the identity shortcut, as in GHSA-jhhv-w9v7-j258
+    string_view input =
+        "1 beginbfrange\n"
+        "<00000001> <FFFFFF00> <0041>\n"
+        "endbfrange\n"
+        "1 beginbfchar\n"
+        "<20> <0042>\n"
+        "endbfchar\n"sv;
+
+    SpanStreamDevice device(input);
+    auto cmap = PdfCMapEncoding::Parse(device);
+    auto& map = cmap.GetCharMap();
+
+    // The forward lookup is not truncated
+    CodePointSpan codePoints;
+    REQUIRE(map.TryGetCodePoints(PdfCharCode(0x20000, 4), codePoints));
+    REQUIRE(*codePoints == (char32_t)(0x41 + 0x1FFFF));
+
+    // The bfchar entry and the first 0x10FFFF codes of the range fill the reverse map
+    PdfCharCode code;
+    REQUIRE(map.TryGetCharCode(U'A', code));
+    REQUIRE(code == PdfCharCode(1, 4));
+    REQUIRE(map.TryGetCharCode((char32_t)(0x41 + 0x10FFFE), code));
+    REQUIRE(code == PdfCharCode(0x10FFFF, 4));
+    REQUIRE(!map.TryGetCharCode((char32_t)(0x41 + 0x10FFFF), code));
+}
+
 TEST_CASE("TestCodeSpaceRange")
 {
     // Testing the begincodespacerange section for the same CMap tested in the
