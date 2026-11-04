@@ -212,6 +212,9 @@ void PdfCharCodeMap::PushRange(const PdfCharCode& srcCodeLo, unsigned size, code
 
 void PdfCharCodeMap::PushRange(const PdfCharCode& srcCodeLo, unsigned rangeSize, const codepointview& dstCodeLo)
 {
+    // NOTE: Cap the range so its last code is not 0xFFFFFFFF,
+    // so computing the range end never overflows 32 bits
+    rangeSize = std::min(rangeSize, numeric_limits<unsigned>::max() - srcCodeLo.Code);
     if (rangeSize == 0 || dstCodeLo.size() == 0)
         return;
 
@@ -228,19 +231,22 @@ void PdfCharCodeMap::PushRange(const PdfCharCode& srcCodeLo, unsigned rangeSize,
     bool invalidRanges = false;
     if (inserted.second)
     {
-        auto it = inserted.first;
-        if (it != m_Ranges.begin() && ((--it)->SrcCodeLo.Code + it->Size) > srcCodeLo.Code)
+        if (inserted.first != m_Ranges.begin())
         {
-            // Previous range overlaps new one
-            invalidRanges = true;
-            unsigned newSize = srcCodeLo.Code - it->SrcCodeLo.Code;
-            auto node = m_Ranges.extract(it);
-            // If the new size of the previous node
-            // is valid update it and reinsert the node
-            if (newSize != 0)
+            auto it = std::prev(inserted.first);
+            if (it->SrcCodeLo.Code + it->Size > srcCodeLo.Code)
             {
-                node.value().Size = newSize;
-                m_Ranges.insert(inserted.first, std::move(node));
+                // Previous range overlaps new one
+                invalidRanges = true;
+                unsigned newSize = srcCodeLo.Code - it->SrcCodeLo.Code;
+                auto node = m_Ranges.extract(it);
+                // If the new size of the previous node
+                // is valid update it and reinsert the node
+                if (newSize != 0)
+                {
+                    node.value().Size = newSize;
+                    m_Ranges.insert(inserted.first, std::move(node));
+                }
             }
         }
 
@@ -298,14 +304,18 @@ bool PdfCharCodeMap::TryGetCodePoints(const PdfCharCode& codeUnit, CodePointSpan
     // ranges. Find the range with lower code <= of the searched
     // unit and verify if the range includes it
     auto foundRange = m_Ranges.upper_bound(codeUnit);
-    if (foundRange == m_Ranges.begin() || codeUnit.Code >= ((--foundRange)->SrcCodeLo.Code + foundRange->Size))
+    if (foundRange != m_Ranges.begin())
     {
-        codePoints = { };
-        return false;
+        foundRange--;
+        if (codeUnit.Code < foundRange->SrcCodeLo.Code + foundRange->Size)
+        {
+            fetchCodePoints(codePoints, codeUnit, *foundRange);
+            return true;
+        }
     }
 
-    fetchCodePoints(codePoints, codeUnit, *foundRange);
-    return true;
+    codePoints = { };
+    return false;
 }
 
 bool PdfCharCodeMap::TryGetNextCharCode(string_view::iterator& it, const string_view::iterator& end, PdfCharCode& code) const
