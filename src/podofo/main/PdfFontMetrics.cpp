@@ -295,10 +295,12 @@ PdfCIDToGIDMapConstPtr PdfFontMetrics::GetTrueTypeBuiltinCIDToGIDMap() const
     FT_ULong code;
     FT_UInt index;
 
+    // NOTE: A crafted cmap can make FreeType enumerate up to 2^32 codes
+    // in ascending order: stop at maximum Unicode code point
     if (FT_Select_Charmap(face, FT_ENCODING_MS_SYMBOL) == 0)
     {
         code = FT_Get_First_Char(face, &index);
-        while (index != 0)
+        while (index != 0 && code <= MAX_UNICODE_CP)
         {
             // "If the font contains a (3, 0) subtable, the range of character
             // codes shall be one of these: 0x0000 - 0x00FF,
@@ -323,7 +325,7 @@ PdfCIDToGIDMapConstPtr PdfFontMetrics::GetTrueTypeBuiltinCIDToGIDMap() const
         }
 
         code = FT_Get_First_Char(face, &index);
-        while (index != 0)
+        while (index != 0 && code <= MAX_UNICODE_CP)
         {
             map.insert({ (unsigned)code, index });
             code = FT_Get_Next_Char(face, code, &index);
