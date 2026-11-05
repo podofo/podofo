@@ -18,6 +18,10 @@ using namespace PoDoFo;
 // of N forms, each invoking the next one twice, costs 2^N executions
 constexpr unsigned MaxFormXObjectCount = 1U << 16;
 
+// Operators take at most a few dozen operands, but a stream of operands
+// with no operator would otherwise grow the stack with the decoded data
+constexpr unsigned MaxOperandCount = 1U << 16;
+
 PdfContentStreamReader::PdfContentStreamReader(const PdfCanvas& canvas,
         nullable<const PdfContentReaderArgs&> args) :
     PdfContentStreamReader(std::make_shared<PdfCanvasInputDevice>(canvas),
@@ -156,6 +160,14 @@ bool PdfContentStreamReader::tryReadNextContent(PdfContent& content)
             }
             case PdfPostScriptTokenType::Variant:
             {
+                if (content.Data.Stack.GetSize() == MaxOperandCount)
+                {
+                    // Past the limit the content is most likely malformed: drop the operands
+                    // read so far, as an operator takes the last ones from the top of the stack
+                    content.Data.Stack.Clear();
+                    content.Warnings |= PdfContentWarnings::OperandLimitReached;
+                }
+
                 content.Data.Stack.Push(std::move(m_temp.Variant));
                 continue;
             }

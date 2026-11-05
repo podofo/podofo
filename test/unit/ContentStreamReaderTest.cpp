@@ -117,3 +117,23 @@ startxref
     REQUIRE(followed == 65536);
     REQUIRE(skipped == 1);
 }
+
+TEST_CASE("TestContentStreamReaderOperandLimit")
+{
+    // Operands past the limit don't grow the stack, and the
+    // operator still gets the operands right before it
+    string input;
+    for (unsigned i = 0; i < 70000; i++)
+        input.append("0 ");
+    input.append("1 2 m");
+
+    PdfContentStreamReader reader(std::make_shared<SpanStreamDevice>(input));
+    PdfContent content;
+    REQUIRE(reader.TryReadNext(content));
+    REQUIRE(content.GetType() == PdfContentType::Operator);
+    REQUIRE(content->Operator == PdfOperator::m);
+    REQUIRE((content.GetWarnings() & PdfContentWarnings::OperandLimitReached) != PdfContentWarnings::None);
+    REQUIRE(content->Stack.GetSize() < 65536);
+    REQUIRE(content->Stack[1].GetNumber() == 1);
+    REQUIRE(content->Stack[0].GetNumber() == 2);
+}
