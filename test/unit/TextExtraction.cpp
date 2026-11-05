@@ -4,6 +4,8 @@
 
 #include <PdfTest.h>
 
+#include <clocale>
+
 using namespace std;
 using namespace PoDoFo;
 
@@ -326,4 +328,47 @@ startxref
     params.Flags |= PdfTextExtractFlags::MatchWholeWord | PdfTextExtractFlags::ExtractSubstring;
     page.ExtractTextTo(entries, "ZZ", params);
     REQUIRE(entries.size() == 0);
+}
+
+TEST_CASE("TestIgnoreCaseMatchUnderSingleByteLocale")
+{
+    // The case insensitive match lowers the text: under a single byte host
+    // locale std::tolower would also map the UTF-8 lead bytes, corrupting
+    // the sequence that precedes the matched word
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 100 100]/Contents 4 0 R>>endobj
+4 0 obj<</Length 19>>stream
+BT (\351 sum) Tj ET
+endstream
+endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& page = doc.GetPages().GetPageAt(0);
+    vector<PdfTextEntry> entries;
+    PdfTextExtractParams params;
+    params.Flags = PdfTextExtractFlags::IgnoreCase | PdfTextExtractFlags::MatchWholeWord
+        | PdfTextExtractFlags::ExtractSubstring;
+
+    string oldLocale = setlocale(LC_ALL, nullptr);
+    setlocale(LC_ALL, "de_DE");
+    try
+    {
+        page.ExtractTextTo(entries, "SUM", params);
+    }
+    catch (...)
+    {
+        setlocale(LC_ALL, oldLocale.c_str());
+        throw;
+    }
+
+    setlocale(LC_ALL, oldLocale.c_str());
+    REQUIRE(entries.size() == 1);
+    REQUIRE(entries[0].Text == "sum");
 }
