@@ -112,10 +112,12 @@ bool PdfCharCodeMap::IsTrivialIdentity() const
         auto it = m_Ranges.begin();
         do
         {
-            if (rangeUpper < it->SrcCodeLo.Code)
+            // The ranges must be continuous and each one must
+            // map its first code to itself to be an identity
+            if (rangeUpper < it->SrcCodeLo.Code
+                || it->DstCodeLo.GetSize() != 1
+                || it->SrcCodeLo.Code != *it->DstCodeLo)
             {
-                // If the ranges are not continuous
-                // then it's not an identity
                 return false;
             }
 
