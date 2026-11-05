@@ -620,6 +620,42 @@ TEST_CASE("TestSubsetCFFDegenerate")
     TestUtils::IsBufferEqual(cff, TestUtils::GetTestInputFilePath("FontsType1", "SubsetDegenerate1Glyph.cff"));
 }
 
+TEST_CASE("TestSubsetCFFCIDNoGlyphs")
+{
+    // A CID keyed CFF with an empty CharStrings INDEX: header, Name, Top DICT
+    // (ROS Adobe-Identity-0, CharStrings, FDArray, FDSelect), String and Global
+    // Subr INDEXes, CharStrings INDEX, FDSelect format 0, FDArray, Private DICT.
+    // Subsetting always looks up CID 0 first, which must fail without a glyph
+    const unsigned char cffData[] = {
+        0x01, 0x00, 0x04, 0x01,
+        0x00, 0x01, 0x01, 0x01, 0x02, 0x41,
+        0x00, 0x01, 0x01, 0x01, 0x1C,
+        0xF8, 0x1B, 0xF8, 0x1C, 0x8B, 0x0C, 0x1E,
+        0x1D, 0x00, 0x00, 0x00, 0x3F, 0x11,
+        0x1D, 0x00, 0x00, 0x00, 0x42, 0x0C, 0x24,
+        0x1D, 0x00, 0x00, 0x00, 0x41, 0x0C, 0x25,
+        0x00, 0x02, 0x01, 0x01, 0x06, 0x0E, 'A', 'd', 'o', 'b', 'e', 'I', 'd', 'e', 'n', 't', 'i', 't', 'y',
+        0x00, 0x00,
+        0x00, 0x00,
+        0x00,
+        0x00, 0x01, 0x01, 0x01, 0x08, 0x8D, 0x1D, 0x00, 0x00, 0x00, 0x4E, 0x12,
+        0x8B, 0x14,
+    };
+    auto metrics = PdfFontMetrics::CreateFromBuffer(bufferview((const char*)cffData, sizeof(cffData)));
+    REQUIRE(metrics->GetFontFileType() == PdfFontFileType::CIDKeyedCFF);
+
+    vector<PdfCharGIDInfo> subsetInfos;
+    subsetInfos.push_back({ 1, 1, PdfGID(0, 0) });
+
+    PdfCIDSystemInfo cidInfo;
+    cidInfo.Registry = PdfString("Adobe");
+    cidInfo.Ordering = PdfString("Identity");
+    cidInfo.Supplement = 0;
+
+    charbuff cff;
+    ASSERT_THROW_WITH_ERROR_CODE(afdko::SubsetFontCFF(*metrics, subsetInfos, cidInfo, cff), PdfErrorCode::InvalidFontData);
+}
+
 #endif // PODOFO_ENABLE_AFDKO
 
 TEST_CASE("TestInlineFontCacheStale")
