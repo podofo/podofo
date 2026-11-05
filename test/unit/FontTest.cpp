@@ -354,6 +354,35 @@ TEST_CASE("TestTrueTypePostTableGlyphName")
     REQUIRE(gid == 1);
 }
 
+TEST_CASE("TestType3ProxyFontMissingCharProc")
+{
+    // The /Differences name of the Type3 font has no entry in /CharProcs:
+    // embedding the proxy font must create a dummy glyph stream for it
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Resources<</Font<</F1 4 0 R>>>>>>endobj
+4 0 obj<</Type/Font/Subtype/Type3/FontBBox[0 0 1 1]/FontMatrix[1 0 0 1 0 0]/CharProcs 5 0 R/Encoding<</Type/Encoding/Differences[0/A]>>/FirstChar 0/LastChar 0/Widths[1]/Resources<<>>>>endobj
+5 0 obj<<>>endobj
+trailer<</Root 1 0 R/Size 6>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& resources = doc.GetPages().GetPageAt(0).GetResources();
+    unique_ptr<PdfFont> font;
+    REQUIRE(PdfFont::TryCreateFromObject(*resources.GetResource(PdfResourceType::Font, "F1"), font));
+    PdfFont* proxy;
+    REQUIRE(font->TryCreateProxyFont(proxy));
+    static_cast<PdfResourceOperations&>(resources).AddResource(PdfResourceType::Font, "F1", proxy->GetObject());
+    charbuff buffer;
+    BufferStreamDevice device(buffer);
+    doc.Save(device);
+    REQUIRE(proxy->GetDictionary().MustFindKey("CharProcs").GetDictionary().MustFindKey("A").HasStream());
+}
+
 TEST_CASE("TestGetOrCreateFontFromBufferInvalid")
 {
     // A buffer FreeType can't open as a font must raise instead of
