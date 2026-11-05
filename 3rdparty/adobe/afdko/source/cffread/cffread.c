@@ -3045,7 +3045,7 @@ int cfrGetGlyphByCID(cfrCtx h, unsigned short cid, abfGlyphCallbacks *glyph_cb) 
     volatile unsigned short gid; /* volatile suppresses optimizer warning */
     size_t index;
 
-    if (!(h->flags & CID_FONT))
+    if (!(h->flags & CID_FONT) || h->glyphs.cnt == 0)
         return cfrErrNoGlyph;
 
     if (h->glyphs.array[h->glyphs.cnt - 1].cid == h->glyphs.cnt - 1) {
