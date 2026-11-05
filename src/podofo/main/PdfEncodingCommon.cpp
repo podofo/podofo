@@ -241,17 +241,20 @@ CodePointSpan& CodePointSpan::operator=(const CodePointSpan& rhs)
 {
     if (this == &rhs)
         return *this;
-    this->~CodePointSpan();
     auto view = rhs.view();
     if (view.size() > std::size(m_Block.Data))
     {
-        auto data = new codepoint[view.size()];
-        std::memcpy(data, view.data(), view.size() * sizeof(char32_t));
-        new(&m_Array.Data)unique_ptr<codepoint[]>(data);
+        // Allocate before destroying the current state: a failed
+        // allocation must leave the span intact
+        unique_ptr<codepoint[]> data(new codepoint[view.size()]);
+        std::memcpy(data.get(), view.data(), view.size() * sizeof(char32_t));
+        this->~CodePointSpan();
+        new(&m_Array.Data)unique_ptr<codepoint[]>(std::move(data));
         m_Array.Size = (unsigned)view.size();
     }
     else
     {
+        this->~CodePointSpan();
         new(&m_Block.Data)array<codepoint, 3>{ };
         std::memcpy(m_Block.Data.data(), view.data(), view.size() * sizeof(char32_t));
         m_Block.Size = (unsigned)view.size();
