@@ -417,10 +417,11 @@ void PdfAnnotation::setAppearanceStream(PdfXObject& xobj, PdfSetAppearanceFlags 
     double teta;
     if ((flags & PdfSetAppearanceFlags::Raw) != PdfSetAppearanceFlags::None || !MustGetPage().TryGetRotationRadians(teta))
     {
+        unique_ptr<PdfXObjectForm> tempXobj;
         if (actualForm == nullptr)
         {
             // Create a trampoline form that just draw the xobject
-            auto tempXobj = GetDocument().CreateXObjectForm(xobj.GetRect());
+            tempXobj = GetDocument().CreateXObjectForm(xobj.GetRect());
             static_cast<PdfResourceOperations&>(tempXobj->GetOrCreateResources())
                 .AddResource(PdfResourceType::XObject, "XOb1"_n, xobj.GetObject());
             PdfStringStream sstream;
