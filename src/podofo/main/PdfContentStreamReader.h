@@ -39,6 +39,7 @@ enum class PdfContentWarnings : uint16_t
     InvalidImageDictionaryContent = 4,  ///< Found invalid content while reading inline image dictionary. Applies to ImageDictionary
     MissingEndImage = 8,                ///< Missing end inline image EI operator
     FormXObjectLimitReached = 16,       ///< The maximum count of followed Form XObjects was reached and this one is not followed. Applies to DoXObject
+    OperandLimitReached = 32,           ///< The maximum count of operands was reached and the operands read until then were dropped
 };
 
 enum class PdfContentErrors : uint16_t
