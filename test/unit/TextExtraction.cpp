@@ -295,3 +295,35 @@ startxref
     REQUIRE(entries.size() == 1);
     REQUIRE(entries[0].Text == "x");
 }
+
+TEST_CASE("TestWholeWordSubstringInvalidUtf8")
+{
+    // Shown without a font, the literal string is taken as is: the invalid
+    // UTF-8 after its BOM must not reach the whole word scan before the pattern
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 100 100]/Contents 4 0 R>>endobj
+4 0 obj<</Length 30>>stream
+BT (\357\273\277A\340ZZ) Tj ET
+endstream
+endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& page = doc.GetPages().GetPageAt(0);
+    vector<PdfTextEntry> entries;
+    PdfTextExtractParams params;
+    params.Flags = PdfTextExtractFlags::KeepWhiteTokens;
+    page.ExtractTextTo(entries, { }, params);
+    REQUIRE(entries.size() == 1);
+    REQUIRE(entries[0].Text == "A\xEF\xBF\xBD" "ZZ");
+    entries.clear();
+    params.Flags |= PdfTextExtractFlags::MatchWholeWord | PdfTextExtractFlags::ExtractSubstring;
+    page.ExtractTextTo(entries, "ZZ", params);
+    REQUIRE(entries.size() == 0);
+}

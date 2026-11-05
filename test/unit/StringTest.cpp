@@ -55,6 +55,13 @@ TEST_CASE("TestStringUtf8")
     REQUIRE(PdfString(stringJapUtf8) == stringJapUtf8);
 }
 
+TEST_CASE("TestStringInvalidUtf8AfterBom")
+{
+    // The bytes after a UTF-8 BOM are not trusted to be valid UTF-8
+    auto str = PdfString::FromRaw("\xEF\xBB\xBF" "A\xE0" "ZZ"sv);
+    REQUIRE(str.GetString() == "A\xEF\xBF\xBD" "ZZ");
+}
+
 TEST_CASE("TestPdfDocEncoding")
 {
     const string src = "This string contains PdfDocEncoding Characters: ÄÖÜ";
