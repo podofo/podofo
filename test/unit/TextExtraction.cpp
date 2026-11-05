@@ -372,3 +372,38 @@ startxref
     REQUIRE(entries.size() == 1);
     REQUIRE(entries[0].Text == "sum");
 }
+
+TEST_CASE("TestRegexPatternLongEntry")
+{
+    // The regex matching recurses per character in some runtimes, so an
+    // entry longer than the limit is skipped instead of being matched. The
+    // content is run length encoded: "BT (", 5120 times "7", ") Tj ET"
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 100 100]/Contents 4 0 R>>endobj
+4 0 obj<</Length 192/Filter[/ASCIIHexDecode/RunLengthDecode]>>stream
+034254202881378137813781378137813781378137813781378137813781
+378137813781378137813781378137813781378137813781378137813781
+37813781378137813781378137813781378137813781378137062920546A
+20455480>
+endstream
+endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& page = doc.GetPages().GetPageAt(0);
+    vector<PdfTextEntry> entries;
+    page.ExtractTextTo(entries);
+    REQUIRE(entries.size() == 1);
+    REQUIRE(entries[0].Text.length() == 5120);
+    entries.clear();
+    PdfTextExtractParams params;
+    params.Flags = PdfTextExtractFlags::RegexPattern;
+    page.ExtractTextTo(entries, "\\d+", params);
+    REQUIRE(entries.size() == 0);
+}
