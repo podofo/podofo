@@ -61,3 +61,59 @@ TEST_CASE("TestContentStreamReaderTerminates")
         REQUIRE(iterations < maxIterations);
     }
 }
+
+TEST_CASE("TestContentStreamReaderFormXObjectLimit")
+{
+    // Each form invokes the next one 16 times: without a limit
+    // the page would follow 1 + 16 + 256 + 4096 + 65536 forms
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Resources<</XObject<</F 5 0 R>>>>/Contents 4 0 R>>endobj
+4 0 obj<</Length 5>>stream
+/F Do
+endstream
+endobj
+5 0 obj<</Type/XObject/Subtype/Form/BBox[0 0 9 9]/Resources<</XObject<</F 6 0 R>>>>/Length 80>>stream
+/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do
+endstream
+endobj
+6 0 obj<</Type/XObject/Subtype/Form/BBox[0 0 9 9]/Resources<</XObject<</F 7 0 R>>>>/Length 80>>stream
+/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do
+endstream
+endobj
+7 0 obj<</Type/XObject/Subtype/Form/BBox[0 0 9 9]/Resources<</XObject<</F 8 0 R>>>>/Length 80>>stream
+/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do
+endstream
+endobj
+8 0 obj<</Type/XObject/Subtype/Form/BBox[0 0 9 9]/Resources<</XObject<</F 9 0 R>>>>/Length 80>>stream
+/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do/F Do
+endstream
+endobj
+9 0 obj<</Type/XObject/Subtype/Form/BBox[0 0 9 9]/Length 0>>stream
+endstream
+endobj
+trailer<</Root 1 0 R/Size 10>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    PdfContentStreamReader reader(doc.GetPages().GetPageAt(0));
+    PdfContent content;
+    unsigned followed = 0;
+    unsigned skipped = 0;
+    while (reader.TryReadNext(content))
+    {
+        if (content.GetType() == PdfContentType::BeginFormXObject)
+            followed++;
+        else if ((content.GetWarnings() & PdfContentWarnings::FormXObjectLimitReached) != PdfContentWarnings::None)
+            skipped++;
+    }
+
+    // The first form and 15 of its subtrees of 4369 forms reach
+    // the limit, so only the last invocation of the first form is skipped
+    REQUIRE(followed == 65536);
+    REQUIRE(skipped == 1);
+}
