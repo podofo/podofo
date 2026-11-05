@@ -1607,3 +1607,27 @@ TEST_CASE("TestSeparationColor")
     painter.FinishDrawing();
     doc.Save(TestUtils::GetTestOutputFilePath("TestSeparationColor.pdf"));
 }
+
+TEST_CASE("TestIndexedColorSpaceBaseCycle")
+{
+    // The base of the /Indexed color space is the color space itself
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Resources<</ColorSpace<</CS0 4 0 R>>>>>>endobj
+4 0 obj[/Indexed 4 0 R 1 5 0 R]endobj
+5 0 obj<</Length 6>>stream
+abcdef
+endstream
+endobj
+trailer<</Root 1 0 R/Size 6>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& csObj = doc.GetObjects().MustGetObject(PdfReference(4, 0));
+    PdfColorSpaceFilterPtr colorSpace;
+    REQUIRE(!PdfColorSpaceFilterFactory::TryCreateFromObject(csObj, colorSpace));
+}
