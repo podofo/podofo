@@ -782,7 +782,9 @@ extern "C"
     void os_raise(_t_Exc_buf* buf, int code, char* msg)
     {
         (void)buf;
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "AFDKO error {}: {}", code, msg);
+        // NOTE: The AFDKO libraries always raise with a null message
+        (void)msg;
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "AFDKO error {}", code);
     }
 #pragma warning(pop)
 }
