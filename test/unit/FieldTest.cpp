@@ -259,3 +259,22 @@ startxref
     REQUIRE(last.GetNameRaw()->GetString() == "d");
     REQUIRE(&children.GetFieldAt(2) == &last);
 }
+
+TEST_CASE("TestFieldFullNameParentCycle")
+{
+    // The /Parent of the field points to the field itself
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/AcroForm<</Fields[4 0 R]>>>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]>>endobj
+4 0 obj<</FT/Tx/T(a)/Parent 4 0 R>>endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& field = doc.GetAcroForm()->GetFieldAt(0);
+    ASSERT_THROW_WITH_ERROR_CODE(field.GetFullName(), PdfErrorCode::MaxRecursionReached);
+}

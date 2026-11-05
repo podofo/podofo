@@ -890,6 +890,8 @@ void PdfField::linkFieldObjectToParent(const shared_ptr<PdfField>& field, PdfFie
 
 void getFullName(const PdfObject& obj, bool skipEscapePartialName, string& fullname)
 {
+    // The /Parent chain of a hostile file can be a cycle
+    utls::RecursionGuard guard;
     auto& dict = obj.GetDictionary();
     auto parent = dict.FindKey("Parent");
     if (parent != nullptr)
