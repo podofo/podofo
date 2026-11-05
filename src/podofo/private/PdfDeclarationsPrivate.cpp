@@ -1415,12 +1415,14 @@ void utls::FormatTo(string& str, double value, unsigned short precision)
     removeTrailingZeroes(str, result.ptr - str.data());
 }
 
-// NOTE: This is clearly limited, since it's supporting only ASCII
+// NOTE: This is clearly limited, since it's supporting only ASCII. It does
+// not depend on the host locale: a single byte locale, such as Latin-1,
+// would also lower the UTF-8 lead bytes and corrupt the multi byte sequences
 string utls::ToLower(const string_view& str)
 {
     string ret = (string)str;
     std::transform(ret.begin(), ret.end(), ret.begin(),
-        [](unsigned char c) { return std::tolower(c); });
+        [](char c) { return c >= 'A' && c <= 'Z' ? (char)(c - 'A' + 'a') : c; });
     return ret;
 }
 
