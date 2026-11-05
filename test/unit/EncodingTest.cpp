@@ -230,6 +230,29 @@ end
     REQUIRE(map.GetCharMap().IsTrivialIdentity());
 }
 
+TEST_CASE("TestCMapShiftedRangeNotIdentity")
+{
+    // A single contiguous range that maps its codes to
+    // shifted code points must not be taken as an identity
+    string_view cmap =
+        "1 begincodespacerange\n"
+        "<0000> <FFFF>\n"
+        "endcodespacerange\n"
+        "1 beginbfrange\n"
+        "<0001> <00FF> <0041>\n"
+        "endbfrange\n"sv;
+
+    SpanStreamDevice device(cmap);
+    REQUIRE(!PdfCMapEncoding::Parse(device).GetCharMap().IsTrivialIdentity());
+
+    PdfMemDocument doc;
+    auto& cmapObj = doc.GetObjects().CreateDictionaryObject();
+    cmapObj.GetOrCreateStream().SetData(cmap);
+    PdfEncoding encoding(PdfEncodingMapFactory::GetHorizontalIdentityEncodingInstancePtr(),
+        PdfEncodingMapFactory::ParseCMapEncoding(cmapObj));
+    REQUIRE(encoding.ConvertToUtf8(PdfString::FromRaw("\x00\x01\x00\x02"sv)) == "AB");
+}
+
 TEST_CASE("TestCMapMultiCodePointAtStringEnd")
 {
     // The last code of the string maps to two code points: the lookup must
