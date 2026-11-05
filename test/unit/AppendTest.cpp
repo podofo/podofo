@@ -137,3 +137,31 @@ TEST_CASE("TestAppendPageWithLongObjectChain")
 
     REQUIRE(length == 100000);
 }
+
+TEST_CASE("TestAppendPageWithSelfReferencingDecodeParms")
+{
+    // The /DecodeParms of the content stream is the stream object itself:
+    // copying the stream must copy only its dictionary, not the stream again
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Contents 4 0 R>>endobj
+4 0 obj<</Length 0/DecodeParms 4 0 R>>stream
+
+endstream
+endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument src;
+    src.LoadFromBuffer(pdf);
+    PdfMemDocument dst;
+    dst.GetPages().AppendDocumentPages(src);
+    auto& contents = dst.GetPages().GetPageAt(0).GetDictionary().MustFindKey("Contents");
+    REQUIRE(contents.HasStream());
+    auto& decodeParms = contents.GetDictionary().MustGetKey("DecodeParms");
+    REQUIRE(!decodeParms.HasStream());
+    REQUIRE(decodeParms.GetDictionary().MustFindKey("Length").GetNumber() == 0);
+}

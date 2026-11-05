@@ -261,20 +261,23 @@ void PdfObjectStream::CopyFrom(const PdfObjectStream& rhs)
         this->SetData(stream, rhs.m_Filters, true);
     }
 
-    // Copy the /Filter and /DecodeParms keys
+    // Copy the /Filter and /DecodeParms keys. NOTE: Copy the resolved
+    // values only, not the objects: a hostile file can make them resolve
+    // to a stream object, even to this one, and copying its stream would
+    // re-enter this method without bound
     auto& lhsDict = m_Parent->GetDictionaryUnsafe();
     auto& rhsDict = rhs.m_Parent->GetDictionaryUnsafe();
     auto filter = rhsDict.FindKey("Filter");
     if (filter == nullptr)
         lhsDict.RemoveKeyNoDirtySet("Filter");
     else
-        lhsDict.AddKeyNoDirtySet("Filter"_n, PdfObject(*filter));
+        lhsDict.AddKeyNoDirtySet("Filter"_n, PdfVariant(filter->GetVariant()));
 
     auto decodeParms = rhsDict.FindKey("DecodeParms");
     if (decodeParms == nullptr)
         lhsDict.RemoveKeyNoDirtySet("DecodeParms");
     else
-        lhsDict.AddKeyNoDirtySet("DecodeParms"_n, PdfObject(*decodeParms));
+        lhsDict.AddKeyNoDirtySet("DecodeParms"_n, PdfVariant(decodeParms->GetVariant()));
 }
 
 void PdfObjectStream::SetData(const bufferview& buffer, bool raw)
