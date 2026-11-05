@@ -11,6 +11,8 @@
 using namespace std;
 using namespace PoDoFo;
 
+static bool isIndexedColorSpace(const PdfObject& obj);
+
 PdfColorSpaceFilter::PdfColorSpaceFilter() { }
 
 PdfColorSpaceFilter::~PdfColorSpaceFilter() { }
@@ -836,8 +838,13 @@ bool PdfColorSpaceFilterFactory::TryCreateFromObject(const PdfObject& obj, PdfCo
                 if (arr->GetSize() < 4)
                     goto InvalidIndexed; // Invalid array entry count
 
-                if (!TryCreateFromObject(arr->MustFindAt(1), baseColorSpace))
+                // ISO 32000-2:2020 8.6.6.3 Indexed colour spaces: the base shall
+                // not be another Indexed colour space, which also rules out a cycle
+                if (isIndexedColorSpace(arr->MustFindAt(1))
+                    || !TryCreateFromObject(arr->MustFindAt(1), baseColorSpace))
+                {
                     goto InvalidIndexed;
+                }
 
                 if (!arr->MustFindAt(2).TryGetNumber(maxIndex) || maxIndex < 1 || maxIndex > 255)
                     goto InvalidIndexed;
@@ -1084,4 +1091,13 @@ PdfColorSpaceFilterPtr PdfColorSpaceInitializer::Take(PdfVariant& expObj)
 {
     expObj = std::move(m_ExpVar);
     return std::move(m_Filter);
+}
+
+// Determine if the object is an /Indexed color space, without resolving its base
+bool isIndexedColorSpace(const PdfObject& obj)
+{
+    const PdfArray* arr;
+    const PdfName* name;
+    return obj.TryGetArray(arr) && arr->GetSize() != 0
+        && arr->MustFindAt(0).TryGetName(name) && *name == "Indexed";
 }
