@@ -476,7 +476,7 @@ void PdfFontMetricsObject::ExportType3GlyphData(PdfDictionary& fontDict, cspan<s
         for (unsigned i = 0; i < glyphs.size(); i++)
         {
             auto obj = srcCharProcs.FindKey(glyphs[i]);
-            if (obj->GetStream() == nullptr)
+            if (obj == nullptr || obj->GetStream() == nullptr)
             {
                 // Create an object with a dummy stream
                 auto& newObject = objects.CreateDictionaryObject();
