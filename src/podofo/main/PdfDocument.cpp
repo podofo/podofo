@@ -29,6 +29,9 @@ static PdfObject& copyPageObject(PdfIndirectObjectList& dest, const PdfObject& s
     unordered_map<PdfReference, PdfObject*>& mappedObjects);
 static void copyReferencedObjects(PdfObject& obj, const PdfIndirectObjectList& src,
     PdfIndirectObjectList& dest, unordered_map<PdfReference, PdfObject*>& mappedObjects);
+static void copyReferencedChild(PdfObject& child, const PdfIndirectObjectList& src,
+    PdfIndirectObjectList& dest, unordered_map<PdfReference, PdfObject*>& mappedObjects,
+    vector<PdfObject*>& pending);
 static PdfObject& copyIndirectObject(PdfIndirectObjectList& dest,
     const PdfObject& srcObj, unordered_map<PdfReference, PdfObject*>& mappedObjects);
 
@@ -845,92 +848,72 @@ PdfObject& copyPageObject(PdfIndirectObjectList& dest, const PdfObject& srcPageO
     return newPageObj;
 }
 
-// Recursively walk an object tree, copying any referenced indirect objects
-// into dest, and remapping references in-place.
+// Walk an object tree with an explicit stack, copying any referenced
+// indirect object into dest and remapping the references in-place.
+// The depth of the tree is unbounded in a hostile document
 static void copyReferencedObjects(PdfObject& obj, const PdfIndirectObjectList& src,
     PdfIndirectObjectList& dest, unordered_map<PdfReference, PdfObject*>& mappedObjects)
 {
     PdfDictionary* dict;
     PdfArray* arr;
-    PdfReference srcRef;
-    if (obj.TryGetDictionary(dict))
+    vector<PdfObject*> pending{ &obj };
+    while (pending.size() != 0)
     {
-        for (auto& pair : *dict)
+        auto curr = pending.back();
+        pending.pop_back();
+        if (curr->TryGetDictionary(dict))
         {
-            if (pair.second.TryGetReference(srcRef))
-            {
-                auto it = mappedObjects.find(srcRef);
-                if (it == mappedObjects.end())
-                {
-                    auto* srcChild = src.GetObject(srcRef);
-                    if (srcChild == nullptr)
-                    {
-                        // Unconditionally reset the reference to
-                        // a null "0 0 R" reference. This is helpful
-                        // to prevent silent corruptions of the document
-                        // in case a reference is pointing to a unexisting
-                        // object and a new object with the same reference
-                        // is added later by other means
-                        pair.second.SetReference(PdfReference());
-                    }
-                    else
-                    {
-                        auto& copied = copyIndirectObject(dest, *srcChild, mappedObjects);
-                        pair.second = PdfObject(copied.GetIndirectReference());
-                        copyReferencedObjects(copied, src, dest, mappedObjects);
-                    }
-                }
-                else
-                {
-                    pair.second = PdfObject(it->second->GetIndirectReference());
-                }
-            }
-            else if (pair.second.IsDictionary() || pair.second.IsArray())
-            {
-                copyReferencedObjects(pair.second, src, dest, mappedObjects);
-            }
+            for (auto& pair : *dict)
+                copyReferencedChild(pair.second, src, dest, mappedObjects, pending);
         }
-    }
-    else if (obj.TryGetArray(arr))
-    {
-        for (auto& child : *arr)
+        else if (curr->TryGetArray(arr))
         {
-            if (child.TryGetReference(srcRef))
-            {
-                auto it = mappedObjects.find(srcRef);
-                if (it == mappedObjects.end())
-                {
-                    auto* srcChild = src.GetObject(srcRef);
-                    if (srcChild == nullptr)
-                    {
-                        // Unconditionally reset the reference to
-                        // a null "0 0 R" reference. This is helpful
-                        // to prevent silent corruptions of the document
-                        // in case a reference is pointing to a unexisting
-                        // object and a new object with the same reference
-                        // is added later by other means
-                        child.SetReference(PdfReference());
-                    }
-                    else
-                    {
-                        auto& copied = copyIndirectObject(dest, *srcChild, mappedObjects);
-                        child = PdfObject(copied.GetIndirectReference());
-                        copyReferencedObjects(copied, src, dest, mappedObjects);
-                    }
-                }
-                else
-                {
-                    child = PdfObject(it->second->GetIndirectReference());
-                }
-            }
-            else if (child.IsDictionary() || child.IsArray())
-            {
-                copyReferencedObjects(child, src, dest, mappedObjects);
-            }
+            for (auto& child : *arr)
+                copyReferencedChild(child, src, dest, mappedObjects, pending);
         }
     }
 }
 
+// Remap a reference child, copying the referenced object when not done
+// yet, and queue the containers that still have to be walked
+static void copyReferencedChild(PdfObject& child, const PdfIndirectObjectList& src,
+    PdfIndirectObjectList& dest, unordered_map<PdfReference, PdfObject*>& mappedObjects,
+    vector<PdfObject*>& pending)
+{
+    PdfReference srcRef;
+    if (child.TryGetReference(srcRef))
+    {
+        auto it = mappedObjects.find(srcRef);
+        if (it == mappedObjects.end())
+        {
+            auto* srcChild = src.GetObject(srcRef);
+            if (srcChild == nullptr)
+            {
+                // Unconditionally reset the reference to
+                // a null "0 0 R" reference. This is helpful
+                // to prevent silent corruptions of the document
+                // in case a reference is pointing to a unexisting
+                // object and a new object with the same reference
+                // is added later by other means
+                child.SetReference(PdfReference());
+            }
+            else
+            {
+                auto& copied = copyIndirectObject(dest, *srcChild, mappedObjects);
+                child = PdfObject(copied.GetIndirectReference());
+                pending.push_back(&copied);
+            }
+        }
+        else
+        {
+            child = PdfObject(it->second->GetIndirectReference());
+        }
+    }
+    else if (child.IsDictionary() || child.IsArray())
+    {
+        pending.push_back(&child);
+    }
+}
 
 // Copy an indirect object from a source document into dest, registering it in mappedObjects.
 // If the object was already copied, returns the existing mapped object.
