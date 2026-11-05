@@ -734,3 +734,23 @@ startxref
     static_cast<PdfResourceOperations&>(form->GetOrCreateResources()).AddResource(PdfResourceType::XObject, img->GetObject());
     REQUIRE(form->GetDictionary().MustGetKey("Resources").GetDictionary().HasKey("XObject"));
 }
+
+TEST_CASE("TestSetAppearanceStreamImageUnrotatedPage")
+{
+    // A non-form XObject on an unrotated page gets a trampoline form
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    auto img = doc.CreateImage();
+    PdfImageInfo info;
+    info.Width = 2;
+    info.Height = 2;
+    info.ColorSpace = PdfColorSpaceType::DeviceGray;
+    info.BitsPerComponent = 8;
+    img->SetDataRaw(bufferview("\x00\xFF\xFF\x00", 4), info);
+    auto& annot = page.GetAnnotations().CreateAnnot<PdfAnnotationStamp>(Rect(10, 10, 100, 100));
+    annot.SetAppearanceStream(*img);
+
+    unique_ptr<PdfXObjectForm> form;
+    REQUIRE(PdfXObject::TryCreateFromObject<PdfXObjectForm>(*annot.GetAppearanceStream(), form));
+    REQUIRE(form->GetResources()->GetResource(PdfResourceType::XObject, "XOb1") == &img->GetObject());
+}
