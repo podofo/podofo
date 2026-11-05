@@ -14,24 +14,41 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfOutlineItem::PdfOutlineItem(PdfObject& obj, PdfOutlineItem* parentOutline, PdfOutlineItem* previous)
+PdfOutlineItem::PdfOutlineItem(PdfObject& obj, PdfOutlineItem* parentOutline, PdfOutlineItem* previous,
+        unordered_set<const PdfObject*>* visited)
     : PdfDictionaryElement(obj), m_ParentOutline(parentOutline), m_Prev(previous),
     m_Next(nullptr), m_First(nullptr), m_Last(nullptr), m_Destination(nullptr), m_Action(nullptr)
 {
     utls::RecursionGuard guard;
-    PdfReference first, next;
 
+    // NOTE: The depth guard can't bound the count of items: if /First and
+    // /Next of each object point to the same next object, every path to an
+    // object would create an item, so an object linked twice is rejected
+    unique_ptr<unordered_set<const PdfObject*>> rootVisited;
+    if (visited == nullptr)
+    {
+        rootVisited.reset(new unordered_set<const PdfObject*>());
+        visited = rootVisited.get();
+    }
+
+    if (!visited->insert(&obj).second)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile, "The outline item {} is linked more than once", obj.GetIndirectReference().ToString());
+
+    PdfReference first, next;
+    unique_ptr<PdfOutlineItem> firstItem;
     if (GetDictionary().HasKey("First"))
     {
         first = GetDictionary().GetKey("First")->GetReference();
-        m_First = new PdfOutlineItem(obj.GetDocument()->GetObjects().MustGetObject(first), this, nullptr);
+        firstItem.reset(new PdfOutlineItem(obj.GetDocument()->GetObjects().MustGetObject(first), this, nullptr, visited));
     }
 
     if (GetDictionary().HasKey("Next"))
     {
         next = GetDictionary().GetKey("Next")->GetReference();
-        m_Next = new PdfOutlineItem(obj.GetDocument()->GetObjects().MustGetObject(next), parentOutline, this);
+        m_Next = new PdfOutlineItem(obj.GetDocument()->GetObjects().MustGetObject(next), parentOutline, this, visited);
     }
+
+    m_First = firstItem.release();
 }
 
 PdfOutlineItem::PdfOutlineItem(PdfDocument& doc, PdfOutlineItem* parentOutline)

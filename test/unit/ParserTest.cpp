@@ -2773,13 +2773,13 @@ startxref
         PdfMemDocument doc;
         doc.LoadFromBuffer(strNextLoop);
 
-        // load should succeed, then GetOutlines goes recursive due to /Outlines loop
+        // load should succeed, then GetOutlines detects the /Outlines loop
         (void)doc.GetOutlines();
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::MaxRecursionReached);
+        REQUIRE(error.GetCode() == PdfErrorCode::BrokenFile);
     }
 
     // https://sourceforge.net/p/podofo/tickets/25/
@@ -2803,13 +2803,72 @@ startxref
         PdfMemDocument doc;
         doc.LoadFromBuffer(strSelfLoop);
 
-        // load should succeed, then GetOutlines goes recursive due to /Outlines loop
+        // load should succeed, then GetOutlines detects the /Outlines loop
         (void)doc.GetOutlines();
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetCode() == PdfErrorCode::MaxRecursionReached);
+        REQUIRE(error.GetCode() == PdfErrorCode::BrokenFile);
+    }
+}
+
+TEST_CASE("TestOutlinesItemLinkedTwice")
+{
+    // /First and /Next of each item point to the next one: creating an item
+    // per path would unfold 2^32 items from 32 objects, without ever
+    // exceeding the recursion depth limit
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Outlines 3 0 R/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj
+3 0 obj<</Type/Outlines/First 4 0 R/Last 4 0 R>>endobj
+4 0 obj<</Title(0)/First 5 0 R/Next 5 0 R>>endobj
+5 0 obj<</Title(1)/First 6 0 R/Next 6 0 R>>endobj
+6 0 obj<</Title(2)/First 7 0 R/Next 7 0 R>>endobj
+7 0 obj<</Title(3)/First 8 0 R/Next 8 0 R>>endobj
+8 0 obj<</Title(4)/First 9 0 R/Next 9 0 R>>endobj
+9 0 obj<</Title(5)/First 10 0 R/Next 10 0 R>>endobj
+10 0 obj<</Title(6)/First 11 0 R/Next 11 0 R>>endobj
+11 0 obj<</Title(7)/First 12 0 R/Next 12 0 R>>endobj
+12 0 obj<</Title(8)/First 13 0 R/Next 13 0 R>>endobj
+13 0 obj<</Title(9)/First 14 0 R/Next 14 0 R>>endobj
+14 0 obj<</Title(10)/First 15 0 R/Next 15 0 R>>endobj
+15 0 obj<</Title(11)/First 16 0 R/Next 16 0 R>>endobj
+16 0 obj<</Title(12)/First 17 0 R/Next 17 0 R>>endobj
+17 0 obj<</Title(13)/First 18 0 R/Next 18 0 R>>endobj
+18 0 obj<</Title(14)/First 19 0 R/Next 19 0 R>>endobj
+19 0 obj<</Title(15)/First 20 0 R/Next 20 0 R>>endobj
+20 0 obj<</Title(16)/First 21 0 R/Next 21 0 R>>endobj
+21 0 obj<</Title(17)/First 22 0 R/Next 22 0 R>>endobj
+22 0 obj<</Title(18)/First 23 0 R/Next 23 0 R>>endobj
+23 0 obj<</Title(19)/First 24 0 R/Next 24 0 R>>endobj
+24 0 obj<</Title(20)/First 25 0 R/Next 25 0 R>>endobj
+25 0 obj<</Title(21)/First 26 0 R/Next 26 0 R>>endobj
+26 0 obj<</Title(22)/First 27 0 R/Next 27 0 R>>endobj
+27 0 obj<</Title(23)/First 28 0 R/Next 28 0 R>>endobj
+28 0 obj<</Title(24)/First 29 0 R/Next 29 0 R>>endobj
+29 0 obj<</Title(25)/First 30 0 R/Next 30 0 R>>endobj
+30 0 obj<</Title(26)/First 31 0 R/Next 31 0 R>>endobj
+31 0 obj<</Title(27)/First 32 0 R/Next 32 0 R>>endobj
+32 0 obj<</Title(28)/First 33 0 R/Next 33 0 R>>endobj
+33 0 obj<</Title(29)/First 34 0 R/Next 34 0 R>>endobj
+34 0 obj<</Title(30)/First 35 0 R/Next 35 0 R>>endobj
+35 0 obj<</Title(31)>>endobj
+trailer<</Root 1 0 R/Size 36>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    try
+    {
+        (void)doc.GetOutlines();
+        FAIL("Should throw exception");
+    }
+    catch (PdfError& error)
+    {
+        REQUIRE(error.GetCode() == PdfErrorCode::BrokenFile);
     }
 }
 

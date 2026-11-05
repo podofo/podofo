@@ -46,7 +46,9 @@ private:
     /// @param parentOutline parent of this outline item
     ///                        in the outline item hierarchy
     /// @param previous previous item of this item
-    PdfOutlineItem(PdfObject& obj, PdfOutlineItem* parentOutline, PdfOutlineItem* previous);
+    /// @param visited the objects already wrapped in the parsed hierarchy, or nullptr for the root
+    PdfOutlineItem(PdfObject& obj, PdfOutlineItem* parentOutline, PdfOutlineItem* previous,
+        std::unordered_set<const PdfObject*>* visited = nullptr);
 
     PdfOutlineItem(const PdfOutlineItem&) = delete;
 
