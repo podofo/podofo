@@ -199,23 +199,30 @@ bool PdfCanvasInputDevice::tryGetNextBuffer()
 // popped out of the queue and is not empty
 bool PdfCanvasInputDevice::tryPopNextBuffer()
 {
-    while (m_contents.size() != 0)
+    // NOTE: CopyTo() reallocates the buffer, so the window must not be
+    // left pointing into the previous one. It stays unarmed until the
+    // newline separator owed for this switch is actually consumed
+    m_head = nullptr;
+    m_tail = nullptr;
+    try
     {
-        auto contents = m_contents.front()->GetStream();
-        m_contents.pop_front();
-        if (contents == nullptr)
-            continue;
+        while (m_contents.size() != 0)
+        {
+            auto contents = m_contents.front()->GetStream();
+            m_contents.pop_front();
+            if (contents == nullptr)
+                continue;
 
-        contents->CopyTo(m_buffer);
-        if (m_buffer.size() == 0)
-            continue;
-
-        // NOTE: CopyTo() reallocates the buffer, so the window must not be
-        // left pointing into the previous one. It stays unarmed until the
-        // newline separator owed for this switch is actually consumed
-        m_head = nullptr;
-        m_tail = nullptr;
-        return true;
+            contents->CopyTo(m_buffer);
+            if (m_buffer.size() != 0)
+                return true;
+        }
+    }
+    catch (...)
+    {
+        // Reads after a failed stream report the end of the contents
+        setEOF();
+        throw;
     }
 
     return false;

@@ -137,3 +137,91 @@ TEST_CASE("TestContentStreamReaderOperandLimit")
     REQUIRE(content->Stack[1].GetNumber() == 1);
     REQUIRE(content->Stack[0].GetNumber() == 2);
 }
+
+TEST_CASE("TestContentStreamReaderFailedStream")
+{
+    // The second content stream can't be decoded: the error is reported
+    // once and the reader is at the end afterwards, instead of reading
+    // through the stale window of the previous buffer
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 100 100]/Contents[4 0 R 5 0 R]>>endobj
+4 0 obj<</Length 19>>stream
+q 1 0 0 1 0 0 cm Q
+endstream
+endobj
+5 0 obj<</Length 4/Filter/DCTDecode>>stream
+AAAA
+endstream
+endobj
+trailer<</Root 1 0 R/Size 6>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    PdfContentStreamReader reader(doc.GetPages().GetPageAt(0));
+    PdfContent content;
+    vector<PdfOperator> operators;
+    try
+    {
+        while (reader.TryReadNext(content))
+            operators.push_back(content->Operator);
+
+        FAIL("The second content stream must fail");
+    }
+    catch (PdfError& error)
+    {
+        REQUIRE(error.GetCode() == PdfErrorCode::UnsupportedFilter);
+    }
+
+    REQUIRE(operators == vector<PdfOperator>{ PdfOperator::q, PdfOperator::cm, PdfOperator::Q });
+    REQUIRE(!reader.TryReadNext(content));
+}
+
+TEST_CASE("TestContentStreamReaderFailedStreamLoad")
+{
+    // With strict parsing the third content stream, which has no /Length,
+    // fails to load after an empty one: the reader is at the end afterwards
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 100 100]/Contents[4 0 R 5 0 R 6 0 R]>>endobj
+4 0 obj<</Length 19>>stream
+q 1 0 0 1 0 0 cm Q
+endstream
+endobj
+5 0 obj<</Length 0>>stream
+endstream
+endobj
+6 0 obj<<>>stream
+q
+endstream
+endobj
+trailer<</Root 1 0 R/Size 7>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf, PdfLoadOptions::StrictParsing);
+    PdfContentStreamReader reader(doc.GetPages().GetPageAt(0));
+    PdfContent content;
+    vector<PdfOperator> operators;
+    try
+    {
+        while (reader.TryReadNext(content))
+            operators.push_back(content->Operator);
+
+        FAIL("The third content stream must fail to load");
+    }
+    catch (PdfError& error)
+    {
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidStream);
+    }
+
+    REQUIRE(operators == vector<PdfOperator>{ PdfOperator::q, PdfOperator::cm, PdfOperator::Q });
+    REQUIRE(!reader.TryReadNext(content));
+}
