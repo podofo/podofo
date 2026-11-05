@@ -14,6 +14,10 @@
 using namespace std;
 using namespace PoDoFo;
 
+// Form XObjects are followed again each time they are invoked, so a chain
+// of N forms, each invoking the next one twice, costs 2^N executions
+constexpr unsigned MaxFormXObjectCount = 1U << 16;
+
 PdfContentStreamReader::PdfContentStreamReader(const PdfCanvas& canvas,
         nullable<const PdfContentReaderArgs&> args) :
     PdfContentStreamReader(std::make_shared<PdfCanvasInputDevice>(canvas),
@@ -29,6 +33,7 @@ PdfContentStreamReader::PdfContentStreamReader(shared_ptr<InputStreamDevice>&& d
     m_buffer(std::make_shared<charbuff>(PdfTokenizer::BufferSize)),
     m_tokenizer(m_buffer),
     m_readingInlineImgData(false),
+    m_formXObjectCount(0),
     m_temp{ }
 {
     if (device == nullptr)
@@ -383,7 +388,15 @@ bool PdfContentStreamReader::tryHandleXObject(PdfContent& content)
             return true;
         }
 
+        if (m_formXObjectCount >= MaxFormXObjectCount)
+        {
+            content.Type = PdfContentType::DoXObject;
+            content.Warnings |= PdfContentWarnings::FormXObjectLimitReached;
+            return true;
+        }
+
         // Select the Form XObject for next input source
+        m_formXObjectCount++;
         content.Type = PdfContentType::BeginFormXObject;
         m_inputs.push_back({
             content.Data.XObject,
