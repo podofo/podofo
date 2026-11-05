@@ -25,6 +25,9 @@ using namespace PoDoFo;
 
 constexpr double SAME_LINE_THRESHOLD = 0.01;
 constexpr double SEPARATION_EPSILON = 0.0000001;
+// The libstdc++ regex executor recurses once per matched character,
+// so a longer entry would overflow the stack
+constexpr size_t MaxRegexEntryLength = 4096;
 #define ASSERT(condition, message, ...) if (!condition)\
     PoDoFo::LogMessage(PdfLogSeverity::Warning, message, ##__VA_ARGS__);
 
@@ -576,14 +579,22 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
         if (options.RegexPattern)
         {
             PODOFO_ASSERT(!(options.MatchWholeWord || options.ExtractSubstring));
-            auto flags = regex_constants::ECMAScript;
-            if (options.IgnoreCase)
-                flags |= regex_constants::icase;
+            if (str.length() > MaxRegexEntryLength)
+            {
+                PoDoFo::LogMessage(PdfLogSeverity::Warning, "Skipped the regex match of an entry longer than {} bytes", MaxRegexEntryLength);
+                match = false;
+            }
+            else
+            {
+                auto flags = regex_constants::ECMAScript;
+                if (options.IgnoreCase)
+                    flags |= regex_constants::icase;
 
-            // NOTE: regex_search returns true when a sub-part of the string
-            // matches the regex
-            regex pieces_regex((string)pattern, flags);
-            match = std::regex_search(str, pieces_regex);
+                // NOTE: regex_search returns true when a sub-part of the string
+                // matches the regex
+                regex pieces_regex((string)pattern, flags);
+                match = std::regex_search(str, pieces_regex);
+            }
         }
         else
         {
