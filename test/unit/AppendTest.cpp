@@ -108,3 +108,32 @@ TEST_CASE("TestAppendInheritedAttributes")
     REQUIRE(tag != nullptr);
     REQUIRE(tag->GetString().GetString() == "INHERITED_MARKER");
 }
+
+TEST_CASE("TestAppendPageWithLongObjectChain")
+{
+    // The page references a chain of 100000 distinct indirect objects: the
+    // copy of the referenced objects must not recurse once per object
+    PdfMemDocument src;
+    auto& page = src.GetPages().CreatePage();
+    PdfObject* curr = &src.GetObjects().CreateArrayObject();
+    page.GetDictionary().AddKeyIndirect("Chain"_n, *curr);
+    for (unsigned i = 0; i < 100000; i++)
+    {
+        auto& next = src.GetObjects().CreateArrayObject();
+        curr->GetArray().Add(PdfObject(next.GetIndirectReference()));
+        curr = &next;
+    }
+
+    PdfMemDocument dst;
+    dst.GetPages().AppendDocumentPages(src);
+
+    unsigned length = 0;
+    auto obj = dst.GetPages().GetPageAt(0).GetDictionary().FindKey("Chain");
+    while (obj != nullptr && obj->GetArray().GetSize() != 0)
+    {
+        obj = obj->GetArray().FindAt(0);
+        length++;
+    }
+
+    REQUIRE(length == 100000);
+}
