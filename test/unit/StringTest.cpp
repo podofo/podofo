@@ -217,3 +217,14 @@ void TestWriteEscapeSequences(const string_view& str, const string_view& expecte
 
     REQUIRE(expected == ret);
 }
+
+TEST_CASE("TestStringSelfAssignment")
+{
+    // NOTE: A literal is only referenced, the shared data is allocated for a std::string
+    PdfString str(string("Hello World"));
+    PdfString& strRef = str;
+    str = strRef;
+    REQUIRE(str.GetString() == "Hello World");
+    str = std::move(strRef);
+    REQUIRE(str.GetString() == "Hello World");
+}
