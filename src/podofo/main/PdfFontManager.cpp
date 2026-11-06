@@ -408,8 +408,7 @@ unique_ptr<const PdfFontMetrics> PdfFontManager::searchFontMetrics(const string_
         {
             // NOTE: The font has been already extracted from collections at this point
             auto face = FT::CreateFaceFromBuffer(*data);
-            ret = PdfFontMetrics::CreateFromFace(face.get(), std::move(data), refMetrics, skipNormalization);
-            (void)face.release();
+            ret = PdfFontMetrics::CreateFromFace(std::move(face), std::move(data), refMetrics, skipNormalization);
         }
 #endif
     }
@@ -475,8 +474,7 @@ PdfFont& PdfFontManager::GetOrCreateFont(HFONT font, const PdfFontCreateParams& 
 
     // NOTE: The font has been already extracted from collections at this point
     auto face = FT::CreateFaceFromBuffer(*data);
-    auto metrics = PdfFontMetrics::CreateFromFace(face.get(), std::move(data), nullptr, false);
-    (void)face.release();
+    auto metrics = PdfFontMetrics::CreateFromFace(std::move(face), std::move(data), nullptr, false);
     if (metrics == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Could not create valid font!");
 

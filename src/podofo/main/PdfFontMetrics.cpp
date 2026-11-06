@@ -49,14 +49,13 @@ unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateFromFile(const string_vie
         PoDoFo::LogMessage(PdfLogSeverity::Error, "Error when loading the face from the file");
         return nullptr;
     }
-    auto ret = CreateFromFace(face.get(), std::make_unique<charbuff>(std::move(buffer)), refMetrics, skipNormalization);
+    auto ret = CreateFromFace(std::move(face), std::make_unique<charbuff>(std::move(buffer)), refMetrics, skipNormalization);
     if (ret != nullptr)
     {
         ret->m_FilePath = filepath;
         ret->m_FaceIndex = faceIndex;
     }
 
-    (void)face.release();
     return ret;
 }
 
@@ -76,11 +75,10 @@ unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateFromBuffer(const buffervi
         return nullptr;
     }
 
-    auto ret = CreateFromFace(face.get(), std::make_unique<charbuff>(std::move(buffer)), refMetrics, skipNormalization);
+    auto ret = CreateFromFace(std::move(face), std::make_unique<charbuff>(std::move(buffer)), refMetrics, skipNormalization);
     if (ret != nullptr)
         ret->m_FaceIndex = faceIndex;
 
-    (void)face.release();
     return ret;
 }
 
@@ -113,11 +111,11 @@ unique_ptr<const PdfFontMetrics> PdfFontMetrics::CreateMergedMetrics(bool skipNo
     return ret;
 }
 
-unique_ptr<PdfFontMetrics> PdfFontMetrics::CreateFromFace(FT_Face face, unique_ptr<charbuff>&& buffer,
+unique_ptr<PdfFontMetrics> PdfFontMetrics::CreateFromFace(FT::FT_FacePtr face, unique_ptr<charbuff>&& buffer,
     const PdfFontMetrics* refMetrics, bool skipNormalization)
 {
     PdfFontFileType fontType;
-    if (!FT::TryGetFontFileFormat(face, fontType))
+    if (!FT::TryGetFontFileFormat(face.get(), fontType))
         return nullptr;
 
 #ifdef PODOFO_ENABLE_AFDKO
@@ -141,7 +139,9 @@ unique_ptr<PdfFontMetrics> PdfFontMetrics::CreateFromFace(FT_Face face, unique_p
     (void)skipNormalization;
 #endif // PODOFO_ENABLE_AFDKO
 
-    return unique_ptr<PdfFontMetrics>(new PdfFontMetricsFreetype(face, datahandle(std::move(buffer)), refMetrics));
+    auto ret = unique_ptr<PdfFontMetrics>(new PdfFontMetricsFreetype(face.get(), datahandle(std::move(buffer)), refMetrics));
+    (void)face.release();
+    return ret;
 }
 
 unsigned PdfFontMetrics::GetGlyphCount() const

@@ -344,8 +344,8 @@ private:
     static std::unique_ptr<const PdfFontMetrics> CreateFromBuffer(const bufferview& buffer, unsigned faceIndex,
         const PdfFontMetrics* metrics, bool skipNormalization);
 
-    static std::unique_ptr<PdfFontMetrics> CreateFromFace(FT_Face face, std::unique_ptr<charbuff>&& buffer,
-        const PdfFontMetrics* metrics, bool skipNormalization);
+    static std::unique_ptr<PdfFontMetrics> CreateFromFace(std::unique_ptr<FT_FaceRec_, void(*)(FT_Face)> face,
+        std::unique_ptr<charbuff>&& buffer, const PdfFontMetrics* metrics, bool skipNormalization);
 
     /// Create a new font metrics by merging characteristics from this instance
     std::unique_ptr<const PdfFontMetrics> CreateMergedMetrics(bool skipNormalization) const;
