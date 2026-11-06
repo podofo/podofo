@@ -80,6 +80,9 @@ PdfName::PdfName(PdfName&& rhs) noexcept
 
 PdfName& PdfName::operator=(const PdfName& rhs)
 {
+    if (&rhs == this)
+        return *this;
+
     this->~PdfName();
     if (rhs.m_dataAllocated)
     {
@@ -96,6 +99,9 @@ PdfName& PdfName::operator=(const PdfName& rhs)
 
 PdfName& PdfName::operator=(PdfName&& rhs) noexcept
 {
+    if (&rhs == this)
+        return *this;
+
     this->~PdfName();
     moveFrom(std::move(rhs));
     return *this;
