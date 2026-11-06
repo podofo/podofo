@@ -85,11 +85,11 @@ PdfArray PdfArray::FromBools(cspan<bool> bools)
 PdfArray& PdfArray::operator=(const PdfArray& rhs)
 {
     AssertMutable();
-    if (&rhs == this)
-        return *this;
-
+    // NOTE: rhs may be this array or nested in it, so its
+    // elements are copied before the current ones are destroyed
+    PdfArray temp(rhs);
     destroyAll();
-    copyFrom(rhs);
+    moveFrom(std::move(temp));
     setChildrenParent();
     SetDirty();
     return *this;
@@ -98,10 +98,12 @@ PdfArray& PdfArray::operator=(const PdfArray& rhs)
 PdfArray& PdfArray::operator=(PdfArray&& rhs) noexcept
 {
     AssertMutable();
+    // NOTE: rhs may be this array or nested in it, so its elements are
+    // stolen and it's set dirty before the current ones are destroyed
+    PdfArray temp(std::move(rhs));
     destroyAll();
-    moveFrom(std::move(rhs));
+    moveFrom(std::move(temp));
     setChildrenParent();
-    rhs.SetDirty();
     SetDirty();
     return *this;
 }
