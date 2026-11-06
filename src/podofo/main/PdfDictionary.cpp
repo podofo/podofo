@@ -29,7 +29,10 @@ PdfDictionary::PdfDictionary(PdfDictionary&& rhs) noexcept
 PdfDictionary& PdfDictionary::operator=(const PdfDictionary& rhs)
 {
     AssertMutable();
-    m_Map = rhs.m_Map;
+    // NOTE: rhs may be nested in this dictionary, so its
+    // entries are copied before the current ones are destroyed
+    auto map = rhs.m_Map;
+    m_Map = std::move(map);
     setChildrenParent();
     SetDirty();
     return *this;
@@ -38,9 +41,12 @@ PdfDictionary& PdfDictionary::operator=(const PdfDictionary& rhs)
 PdfDictionary& PdfDictionary::operator=(PdfDictionary&& rhs) noexcept
 {
     AssertMutable();
-    m_Map = std::move(rhs.m_Map);
-    setChildrenParent();
+    // NOTE: rhs may be nested in this dictionary, so its entries are
+    // stolen and it's set dirty before the current ones are destroyed
+    auto map = std::move(rhs.m_Map);
     rhs.SetDirty();
+    m_Map = std::move(map);
+    setChildrenParent();
     SetDirty();
     return *this;
 }

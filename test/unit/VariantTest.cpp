@@ -227,3 +227,20 @@ TEST_CASE("TestAliasedAssignment")
     arr.SetAt(0, arr[0]);
     REQUIRE(arr[0].GetDictionary().MustGetKey("Kids").GetDictionary().MustGetKey("X").GetString().GetString() == "abc");
 }
+
+TEST_CASE("TestDictionaryAliasedAssignment")
+{
+    // Assigning a dictionary from one nested in its own entries
+    PdfDictionary inner;
+    inner.AddKey("X"_n, PdfObject(PdfString("abc")));
+    PdfDictionary dict;
+    dict.AddKey("Kids"_n, PdfObject(std::move(inner)));
+    dict = dict.MustGetKey("Kids").GetDictionary();
+    REQUIRE(dict.MustGetKey("X").GetString().GetString() == "abc");
+
+    inner.AddKey("Y"_n, PdfObject(static_cast<int64_t>(1)));
+    dict.AddKey("Kids"_n, PdfObject(std::move(inner)));
+    dict = std::move(dict.MustGetKey("Kids").GetDictionary());
+    REQUIRE(dict.MustGetKey("Y").GetNumber() == 1);
+    REQUIRE(!dict.HasKey("X"));
+}
