@@ -111,6 +111,9 @@ PdfString::PdfString(PdfString&& rhs) noexcept
 
 PdfString& PdfString::operator=(const PdfString& rhs)
 {
+    if (&rhs == this)
+        return *this;
+
     this->~PdfString();
     if (rhs.m_dataAllocated)
     {
@@ -129,6 +132,9 @@ PdfString& PdfString::operator=(const PdfString& rhs)
 
 PdfString& PdfString::operator=(PdfString&& rhs) noexcept
 {
+    if (&rhs == this)
+        return *this;
+
     this->~PdfString();
     moveFrom(std::move(rhs));
     return *this;
