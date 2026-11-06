@@ -870,3 +870,15 @@ void drawSquareWithCross(PdfPainter& painter, double x, double y)
     painter.DrawLine(x - SquareSize / 2, y, x + SquareSize / 2, y);
     painter.Restore();
 }
+
+TEST_CASE("TestPainterPathAddSelf")
+{
+    PdfPainterPath path;
+    path.MoveTo(1, 2);
+    for (int i = 0; i < 20; i++)
+        path.AddLineTo(i * 3.5, i * 7.25);
+
+    string content(path.GetContent());
+    path.AddPath(path, false);
+    REQUIRE(path.GetContent() == content + content);
+}

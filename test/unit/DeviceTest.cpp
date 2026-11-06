@@ -319,6 +319,23 @@ TEST_CASE("TestFileDeviceSeekRetainsBuffer")
     REQUIRE(ch == expected[fileSize - 1]);
 }
 
+TEST_CASE("TestStringStreamWriteOwnContent")
+{
+    // Writing the content of the stream into itself, which grows the buffer
+    PdfStringStream stream;
+    stream << "0123456789";
+    string content(stream.GetString());
+    for (unsigned i = 0; i < 4; i++)
+    {
+        stream << stream.GetString();
+        content += content;
+    }
+
+    stream << stream.GetString().substr(0, 10);
+    content += content.substr(0, 10);
+    REQUIRE(stream.GetString() == content);
+}
+
 string createTestFile(const string_view& filename, size_t size)
 {
     charbuff buffer(size);
