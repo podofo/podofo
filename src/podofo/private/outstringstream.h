@@ -5,6 +5,7 @@
 #define OUT_STRING_STREAM_H
 #pragma once
 
+#include <algorithm>
 #include <cstdlib>
 #include <limits>
 #include <ostream>
@@ -75,6 +76,32 @@ namespace cmn
                 this->pbump(1);
 
                 return ch;
+            }
+
+            std::streamsize xsputn(const CharT* s, std::streamsize n) override
+            {
+                // NOTE: s may point into this buffer: when growing, it's
+                // read before the previous storage is released
+                size_t size = this->size();
+                size_t required = size + (size_t)n;
+                if (required > m_str.size())
+                {
+                    std::basic_string<CharT> str;
+                    str.resize((std::max)(required, m_str.size() * 2));
+                    traits_type::copy(const_cast<CharT*>(str.data()), m_str.data(), size);
+                    traits_type::copy(const_cast<CharT*>(str.data()) + size, s, (size_t)n);
+                    m_str = std::move(str);
+                    this->setp(const_cast<CharT*>(m_str.data()),
+                        const_cast<CharT*>(m_str.data()) + m_str.size());
+                    this->safe_pbump((std::streamsize)required);
+                }
+                else
+                {
+                    traits_type::copy(this->pptr(), s, (size_t)n);
+                    this->safe_pbump(n);
+                }
+
+                return n;
             }
 
         public:
