@@ -120,3 +120,27 @@ TEST_CASE("TestArrayGrowthWithOwnElement")
     REQUIRE(arr[0].GetString().GetString() == "str0");
     REQUIRE(arr[5].IsNull());
 }
+
+TEST_CASE("TestArrayAliasedAssignment")
+{
+    // Assigning an array from one nested in its own elements
+    PdfArray inner;
+    inner.Add(PdfObject(PdfString("abc")));
+    PdfArray arr;
+    arr.Add(PdfObject(std::move(inner)));
+    arr = arr[0].GetArray();
+    REQUIRE(arr.GetSize() == 1);
+    REQUIRE(arr[0].GetString().GetString() == "abc");
+
+    inner.Add(PdfObject(static_cast<int64_t>(1)));
+    arr.Add(PdfObject(std::move(inner)));
+    arr = std::move(arr[1].GetArray());
+    REQUIRE(arr.GetSize() == 1);
+    REQUIRE(arr[0].GetNumber() == 1);
+
+    PdfArray& arrRef = arr;
+    arr = arrRef;
+    arr = std::move(arrRef);
+    REQUIRE(arr.GetSize() == 1);
+    REQUIRE(arr[0].GetNumber() == 1);
+}
