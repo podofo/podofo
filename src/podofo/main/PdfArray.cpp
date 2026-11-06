@@ -128,7 +128,6 @@ PdfObject& PdfArray::Add(PdfObject&& obj)
 {
     AssertMutable();
     auto& ret = add(std::move(obj));
-    obj.SetDirty();
     SetDirty();
     return ret;
 }
@@ -300,6 +299,15 @@ PdfArray::iterator PdfArray::insertAt(const iterator& pos, PdfObject&& obj)
     // invalidates the given position
     unsigned index = (unsigned)(pos - m_data);
     PODOFO_ASSERT(index <= m_size);
+
+    if (obj.GetParent() == this)
+    {
+        // The object is an element of this array: it's moved out
+        // first, as the growth or the shift would relocate it
+        PdfObject temp(std::move(obj));
+        return insertAt(pos, std::move(temp));
+    }
+
     ensureCapacity((size_t)m_size + 1);
     auto ret = m_data + index;
     if (index < m_size)
@@ -352,7 +360,6 @@ PdfArray::iterator PdfArray::insert(const iterator& pos, PdfObject&& obj)
 {
     AssertMutable();
     auto it = insertAt(pos, std::move(obj));
-    obj.SetDirty();
     SetDirty();
     return it;
 }
@@ -381,11 +388,13 @@ void PdfArray::Resize(unsigned count, const PdfObject& val)
     {
         eraseAt(count, currentSize - count);
     }
-    else
+    else if (count > currentSize)
     {
+        // NOTE: val may be an element of this array, which the growth relocates
+        PdfObject fill(val);
         ensureCapacity(count);
         while (m_size < count)
-            addAt(m_size, val);
+            addAt(m_size, fill);
     }
 
     if (currentSize != count)

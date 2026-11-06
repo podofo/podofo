@@ -98,3 +98,25 @@ TEST_CASE("TestArrayReserveKeepsChildrenAttached")
     REQUIRE(arr[0].GetDocument() == &doc);
     REQUIRE(arr[1].GetDocument() == &doc);
 }
+
+TEST_CASE("TestArrayGrowthWithOwnElement")
+{
+    // Growing the array with one of its own elements, which gets relocated
+    PdfArray arr;
+    for (int i = 0; i < 4; i++)
+        arr.Add(PdfObject(PdfString(utls::Format("str{}", i))));
+
+    arr.Add(std::move(arr[0]));
+    REQUIRE(arr.GetSize() == 5);
+    REQUIRE(arr[0].IsNull());
+    REQUIRE(arr[4].GetString().GetString() == "str0");
+
+    arr.Resize(16, arr[1]);
+    REQUIRE(arr.GetSize() == 16);
+    REQUIRE(arr[15].GetString().GetString() == "str1");
+
+    arr.insert(arr.begin(), std::move(arr[4]));
+    REQUIRE(arr.GetSize() == 17);
+    REQUIRE(arr[0].GetString().GetString() == "str0");
+    REQUIRE(arr[5].IsNull());
+}
