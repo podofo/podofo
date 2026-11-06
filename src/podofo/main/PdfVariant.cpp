@@ -231,15 +231,19 @@ void PdfVariant::ToString(string& str, PdfWriteFlags writeFlags) const
 
 PdfVariant& PdfVariant::operator=(const PdfVariant& rhs)
 {
+    // NOTE: rhs may be this very variant or a value nested in the
+    // container it owns, so it's copied before destroying the content
+    PdfVariant temp(rhs);
     this->~PdfVariant();
-    assign(rhs);
+    moveFrom(std::move(temp));
     return *this;
 }
 
 PdfVariant& PdfVariant::operator=(PdfVariant&& rhs) noexcept
 {
+    PdfVariant temp(std::move(rhs));
     this->~PdfVariant();
-    moveFrom(std::move(rhs));
+    moveFrom(std::move(temp));
     return *this;
 }
 
