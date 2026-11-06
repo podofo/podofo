@@ -198,3 +198,32 @@ void TestObjectsDirty(
     INFO(utls::Format("STREAM    IsDirty() == {}", testValue)); REQUIRE(objStream.IsDirty() == testValue);
     INFO(utls::Format("VARIANT   IsDirty() == {}", testValue)); REQUIRE(objVariant.IsDirty() == testValue);
 }
+
+TEST_CASE("TestAliasedAssignment")
+{
+    // Assigning a variant from itself or from a value nested in its own container
+    PdfDictionary inner;
+    inner.AddKey("X"_n, PdfObject(PdfString("abc")));
+    PdfDictionary outer;
+    outer.AddKey("Kids"_n, PdfObject(std::move(inner)));
+
+    PdfVariant var(outer);
+    PdfVariant& varRef = var;
+    var = varRef;
+    REQUIRE(var.GetDictionary().MustGetKey("Kids").GetDictionary().MustGetKey("X").GetString().GetString() == "abc");
+    var = var.GetDictionary().MustGetKey("Kids").GetVariant();
+    REQUIRE(var.GetDictionary().MustGetKey("X").GetString().GetString() == "abc");
+
+    PdfObject obj(outer);
+    obj = *obj.GetDictionary().GetKey("Kids");
+    REQUIRE(obj.GetDictionary().MustGetKey("X").GetString().GetString() == "abc");
+
+    obj = PdfObject(outer);
+    obj = std::move(*obj.GetDictionary().GetKey("Kids"));
+    REQUIRE(obj.GetDictionary().MustGetKey("X").GetString().GetString() == "abc");
+
+    PdfArray arr;
+    arr.Add(PdfObject(outer));
+    arr.SetAt(0, arr[0]);
+    REQUIRE(arr[0].GetDictionary().MustGetKey("Kids").GetDictionary().MustGetKey("X").GetString().GetString() == "abc");
+}
