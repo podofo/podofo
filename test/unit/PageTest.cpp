@@ -780,3 +780,22 @@ TEST_CASE("TestLinkSetDestinationSelf")
     link.SetDestination(*link.GetDestination());
     REQUIRE(link.GetDestination()->GetPage() == &page);
 }
+
+TEST_CASE("TestSetActionForeignDocument")
+{
+    // A failed insertion of the action must leave the cached one in place
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    auto& link = page.GetAnnotations().CreateAnnot<PdfAnnotationLink>(Rect(10, 10, 100, 20));
+    auto action = doc.CreateAction<PdfActionURI>();
+    link.SetAction(*action);
+    auto& item = doc.GetOrCreateOutlines().CreateRoot(PdfString("Root"));
+    item.SetAction(*action);
+
+    PdfMemDocument foreignDoc;
+    auto foreignAction = foreignDoc.CreateAction<PdfActionURI>();
+    ASSERT_THROW_WITH_ERROR_CODE(link.SetAction(*foreignAction), PdfErrorCode::InvalidHandle);
+    REQUIRE(&link.GetAction()->GetObject() == &action->GetObject());
+    ASSERT_THROW_WITH_ERROR_CODE(item.SetAction(*foreignAction), PdfErrorCode::InvalidHandle);
+    REQUIRE(&item.GetAction()->GetObject() == &action->GetObject());
+}
