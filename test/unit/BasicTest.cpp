@@ -430,3 +430,22 @@ TEST_CASE("TestIsDebugBuild")
     REQUIRE(PdfCommon::IsDebugBuild());
 #endif // NDEBUG
 }
+
+TEST_CASE("TestOutlineItemSettersSelf")
+{
+    // Setting the cached destination and action instances back
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    auto& item = doc.GetOrCreateOutlines().CreateRoot(PdfString("Root"));
+    auto dest = doc.CreateDestination();
+    dest->SetDestination(page);
+    item.SetDestination(*dest);
+    item.SetDestination(*item.GetDestination());
+    REQUIRE(item.GetDestination()->GetPage() == &page);
+
+    auto action = doc.CreateAction<PdfActionURI>();
+    item.SetAction(*action);
+    item.SetAction(*item.GetAction());
+    REQUIRE(&item.GetAction()->GetObject() == &action->GetObject());
+    REQUIRE(item.GetDestination() == nullptr);
+}
