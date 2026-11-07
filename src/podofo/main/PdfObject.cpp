@@ -645,6 +645,7 @@ void PdfObject::AssignNoDirtySet(PdfVariant&& rhs)
     m_Variant = std::move(rhs);
     m_IsDelayedLoadDone = true;
     SetVariantOwner();
+    removeStream();
     m_Stream = nullptr;
     m_IsDelayedLoadStreamDone = true;
 }
@@ -698,6 +699,8 @@ void PdfObject::assign(const PdfObject& rhs)
     m_Variant = rhs.m_Variant;
     SetVariantOwner();
     m_IsDelayedLoadDone = true;
+    // Drop a stream of this object still to be parsed
+    removeStream();
     copyStreamFrom(rhs);
     m_IsDelayedLoadStreamDone = true;
 }
@@ -720,6 +723,8 @@ void PdfObject::moveFrom(PdfObject&& rhs) noexcept
     m_Variant = std::move(rhs.m_Variant);
     SetVariantOwner();
     m_IsDelayedLoadDone = true;
+    // Drop a stream of this object still to be parsed
+    removeStream();
     m_Stream = std::move(rhs.m_Stream);
     if (m_Stream != nullptr)
         m_Stream->SetParent(*this);
