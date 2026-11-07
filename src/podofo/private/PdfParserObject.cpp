@@ -216,6 +216,8 @@ bool PdfParserObject::HasStreamToParse() const
 void PdfParserObject::parseStream(bool shallow, bool dryRun)
 {
     PODOFO_ASSERT(IsDelayedLoadDone());
+    // NOTE: Only a dictionary followed by "stream" sets m_HasStream
+    PODOFO_ASSERT(m_Variant.IsDictionary());
 
     char ch;
     ssize_t size;
@@ -377,6 +379,8 @@ bool PdfParserObject::TryUnload()
 
     m_Variant = PdfVariant();
     FreeStream();
+    // The stream is found again when reloading
+    removeStream();
     EnableDelayedLoading();
     EnableDelayedLoadingStream();
     return true;

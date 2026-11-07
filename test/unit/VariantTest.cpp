@@ -280,3 +280,22 @@ TEST_CASE("TestAssignDropsPendingStream")
     REQUIRE(!obj2.HasStream());
     REQUIRE(!PdfXObject::TryCreateFromObject(obj2, xobj));
 }
+
+TEST_CASE("TestUnloadFailedReload")
+{
+    // An object is unloaded, then reloading it fails because the device
+    // content changed: the stream of the null variant must not be parsed
+    constexpr string_view ValidObject = "10 0 obj<</Length 3>>stream\nabc\nendstream\nendobj\n";
+    constexpr string_view CorruptedObject = "xx x xxx<</Length 3>>stream\nabc\nendstream\nendobj\n";
+    string buffer(ValidObject);
+    auto device = std::make_shared<SpanStreamDevice>(buffer);
+    PdfParserObject obj(*device);
+    REQUIRE(obj.MustGetStream().GetLength() == 3);
+    REQUIRE(obj.TryUnload());
+
+    // Overwrite the bytes the device reads, in place
+    std::copy(CorruptedObject.begin(), CorruptedObject.end(), buffer.begin());
+    REQUIRE_THROWS_AS(obj.GetDictionary(), PdfError);
+    REQUIRE(obj.IsNull());
+    REQUIRE(obj.GetStream() == nullptr);
+}
