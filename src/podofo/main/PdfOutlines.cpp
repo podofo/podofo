@@ -212,10 +212,12 @@ void PdfOutlineItem::SetDestination(nullable<const PdfDestination&> destination)
     }
     else
     {
-        m_Destination = unique_ptr<PdfDestination>(new PdfDestination(*destination));
-        m_Action *= nullptr;
+        // NOTE: The dictionary is updated first, as destination may be
+        // the cached instance replaced by the assignment below
         destination->AddToDictionary(dict);
         dict.RemoveKey("A");
+        m_Destination = unique_ptr<PdfDestination>(new PdfDestination(*destination));
+        m_Action *= nullptr;
     }
 }
 
@@ -257,10 +259,13 @@ void PdfOutlineItem::SetAction(nullable<const PdfAction&> action)
     }
     else
     {
+        // NOTE: The dictionary is updated first, as action may be the
+        // cached instance replaced by the assignment below, and the
+        // caches must not change when the insertion fails
+        dict.AddKeyIndirect("A"_n, action->GetObject());
+        dict.RemoveKey("Dest");
         m_Action = PdfAction::Create(*action);
         m_Destination *= nullptr;
-        dict.RemoveKey("Dest");
-        dict.AddKeyIndirect("A"_n, action->GetObject());
     }
 }
 
