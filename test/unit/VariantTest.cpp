@@ -257,3 +257,26 @@ TEST_CASE("TestAssignDropsStream")
     REQUIRE(!obj.HasStream());
     doc.Save(TestUtils::GetTestOutputFilePath("TestAssignDropsStream.pdf"));
 }
+
+TEST_CASE("TestAssignDropsPendingStream")
+{
+    // Assigning over a parsed object whose stream is still to be parsed drops that stream
+    auto device = std::make_shared<SpanStreamDevice>("10 0 obj<</Length 3/BBox[0 0 1 1]>>stream\nabc\nendstream\nendobj\n"sv);
+    PdfParserObject parserObj(*device);
+    PdfObject& obj = parserObj;
+    REQUIRE(obj.IsDictionary());
+    REQUIRE(obj.HasStream());
+    obj = PdfObject::Null;
+    REQUIRE(obj.IsNull());
+    REQUIRE(!obj.HasStream());
+    unique_ptr<PdfXObject> xobj;
+    REQUIRE(!PdfXObject::TryCreateFromObject(obj, xobj));
+
+    auto device2 = std::make_shared<SpanStreamDevice>("10 0 obj<</Length 3/BBox[0 0 1 1]>>stream\nabc\nendstream\nendobj\n"sv);
+    PdfParserObject parserObj2(*device2);
+    PdfObject& obj2 = parserObj2;
+    REQUIRE(obj2.HasStream());
+    obj2 = PdfObject(static_cast<int64_t>(5));
+    REQUIRE(!obj2.HasStream());
+    REQUIRE(!PdfXObject::TryCreateFromObject(obj2, xobj));
+}

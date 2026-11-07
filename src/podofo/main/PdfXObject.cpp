@@ -86,8 +86,11 @@ PdfXObjectType getPdfXObjectType(const PdfObject& obj)
     // Table 93 of ISO 32000-2:2020(E), the /Type key is optional,
     // so we don't check for it. If present it should be "XObject"
     const PdfDictionary* dict;
+    if (!obj.TryGetDictionary(dict))
+        return PdfXObjectType::Unknown;
+
     const PdfName* name;
-    if (!obj.TryGetDictionary(dict) || !dict->TryFindKeyAs("Subtype", name))
+    if (!dict->TryFindKeyAs("Subtype", name))
     {
         // NOTE: There are some forms missing both /Type and /Subtype
         // We are a bit lenient here and consider it to be form if
