@@ -767,3 +767,16 @@ TEST_CASE("TestAnnotationSetActionSelf")
     link.SetAction(*link.GetAction());
     REQUIRE(&link.GetAction()->GetObject() == &action->GetObject());
 }
+
+TEST_CASE("TestLinkSetDestinationSelf")
+{
+    // Setting the cached destination instance back
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    auto& link = page.GetAnnotations().CreateAnnot<PdfAnnotationLink>(Rect(10, 10, 100, 20));
+    auto dest = doc.CreateDestination();
+    dest->SetDestination(page);
+    link.SetDestination(*dest);
+    link.SetDestination(*link.GetDestination());
+    REQUIRE(link.GetDestination()->GetPage() == &page);
+}

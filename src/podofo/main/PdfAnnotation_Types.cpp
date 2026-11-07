@@ -19,9 +19,11 @@ void PdfAnnotationLink::SetDestination(nullable<const PdfDestination&> destinati
     }
     else
     {
-        m_Destination = unique_ptr<PdfDestination>(new PdfDestination(*destination));
-        ResetAction();
+        // NOTE: The dictionary is updated first, as destination may be
+        // the cached instance replaced by the assignment below
         destination->AddToDictionary(GetDictionary());
+        ResetAction();
+        m_Destination = unique_ptr<PdfDestination>(new PdfDestination(*destination));
     }
 }
 
