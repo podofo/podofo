@@ -754,3 +754,16 @@ TEST_CASE("TestSetAppearanceStreamImageUnrotatedPage")
     REQUIRE(PdfXObject::TryCreateFromObject<PdfXObjectForm>(*annot.GetAppearanceStream(), form));
     REQUIRE(form->GetResources()->GetResource(PdfResourceType::XObject, "XOb1") == &img->GetObject());
 }
+
+TEST_CASE("TestAnnotationSetActionSelf")
+{
+    // Setting the cached action instance back
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    auto& link = page.GetAnnotations().CreateAnnot<PdfAnnotationLink>(Rect(10, 10, 100, 20));
+    auto action = doc.CreateAction<PdfActionURI>();
+    action->SetURI(PdfString("https://example.com"));
+    link.SetAction(*action);
+    link.SetAction(*link.GetAction());
+    REQUIRE(&link.GetAction()->GetObject() == &action->GetObject());
+}

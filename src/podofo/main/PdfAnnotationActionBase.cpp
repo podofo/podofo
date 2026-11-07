@@ -29,9 +29,12 @@ void PdfAnnotationActionBase::SetAction(nullable<const PdfAction&> action)
     }
     else
     {
+        // NOTE: The dictionary is updated first, as action may be the
+        // cached instance replaced by the assignment below, and the
+        // cache must not change when the insertion fails
+        dict.AddKeyIndirect("A"_n, action->GetObject());
         m_Action = PdfAction::Create(*action);
         onActionSet();
-        dict.AddKeyIndirect("A"_n, action->GetObject());
     }
 }
 
