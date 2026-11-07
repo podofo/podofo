@@ -244,3 +244,16 @@ TEST_CASE("TestDictionaryAliasedAssignment")
     REQUIRE(dict.MustGetKey("Y").GetNumber() == 1);
     REQUIRE(!dict.HasKey("X"));
 }
+
+TEST_CASE("TestAssignDropsStream")
+{
+    // Assigning an object without stream drops the stream of the target
+    PdfMemDocument doc;
+    auto& obj = doc.GetObjects().CreateDictionaryObject();
+    obj.GetOrCreateStream().SetData(string_view("abc"));
+    PdfObject num(static_cast<int64_t>(5));
+    obj = num;
+    REQUIRE(obj.GetNumber() == 5);
+    REQUIRE(!obj.HasStream());
+    doc.Save(TestUtils::GetTestOutputFilePath("TestAssignDropsStream.pdf"));
+}

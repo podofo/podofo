@@ -577,7 +577,13 @@ void PdfObject::copyStreamFrom(const PdfObject& obj)
         const_cast<PdfObject&>(obj).MakeDelayedLoadingStreamDone();
     }
 
-    if (obj.m_Stream != nullptr)
+    if (obj.m_Stream == nullptr)
+    {
+        // The stream mirrors the one of obj, so the stream
+        // of the replaced content, if any, is dropped
+        m_Stream = nullptr;
+    }
+    else
     {
         auto& stream = getOrCreateStream();
         stream.CopyFrom(*obj.m_Stream);
