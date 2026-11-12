@@ -1500,3 +1500,14 @@ TEST_CASE("TestRestoreSigningContextMissingByteRange")
     PdfSigningContext ctx;
     ASSERT_THROW_WITH_ERROR_CODE(ctx.Restore(std::make_shared<BufferStreamDevice>(buff)), PdfErrorCode::InvalidInput);
 }
+
+TEST_CASE("TestSignerCmsInvalidCertificateRetry")
+{
+    // A failed certificate load must not leave a half initialized context behind
+    string pkey;
+    TestUtils::ReadTestInputFileTo(pkey, "mykey-pkcs8.der");
+    PdfSignerCms signer(string_view("not a certificate"), pkey);
+    auto date = PdfDate::Parse("D:20250205192456+06'00'");
+    ASSERT_THROW_WITH_ERROR_CODE(signer.ValidateSignatureDate(date), PdfErrorCode::OpenSSLError);
+    ASSERT_THROW_WITH_ERROR_CODE(signer.ValidateSignatureDate(date), PdfErrorCode::OpenSSLError);
+}
