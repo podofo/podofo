@@ -70,12 +70,14 @@ unique_ptr<PdfMemDocument> PdfSigningContext::Restore(shared_ptr<StreamDevice> d
     device->Read(temp.data(), footer.XMLFragmentSize);
 
     unique_ptr<xmlDoc, decltype(&xmlFreeDoc)> doc(xmlReadMemory(temp.data(), (int)temp.size(), nullptr, nullptr, XML_PARSE_NOBLANKS), xmlFreeDoc);
-    xmlNodePtr sigCtxElem;
-    if (doc == nullptr
-        || (sigCtxElem = xmlDocGetRootElement(doc.get())) == nullptr)
+    if (doc == nullptr)
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::InvalidInput, "PdfSigningContext parsing failed");
+
+    auto sigCtxElem = xmlDocGetRootElement(doc.get());
+    if (sigCtxElem == nullptr)
     {
     DeserializationFailed:
-        THROW_LIBXML_EXCEPTION("PdfSigningContext deserialization failed");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "PdfSigningContext deserialization failed");
     }
 
     m_signers.clear();
@@ -292,7 +294,7 @@ void PdfSigningContext::DumpInPlace()
     if (sigCtxElem == nullptr)
     {
     SerializationFailed:
-        THROW_LIBXML_EXCEPTION("PdfSigningContext serialization failed");
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::OutOfMemory, "PdfSigningContext serialization failed");
     }
 
     // TODO: Persist and obtain load options from PdfMemDocument
@@ -417,7 +419,7 @@ void PdfSigningContext::DumpInPlace()
 
     string serialized;
     if (!utls::TrySerializeXmlDocTo(serialized, fragment.get()))
-        THROW_LIBXML_EXCEPTION("Can't serialize signing context");
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::OutOfMemory, "Can't serialize signing context");
 
     m_device->Write(serialized);
 

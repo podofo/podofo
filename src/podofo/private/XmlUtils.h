@@ -14,13 +14,13 @@
 // instead of BAD_CAST
 #define XMLCHAR (const xmlChar*)
 
-#define THROW_LIBXML_EXCEPTION(msg)\
+#define THROW_LIBXML_EXCEPTION(code, msg)\
 {\
     const xmlError* error_ = xmlGetLastError();\
     if (error_ == nullptr)\
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::XmpMetadataError, msg);\
+        PODOFO_RAISE_ERROR_INFO(code, msg);\
     else\
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::XmpMetadataError, "{}, internal error: {}", msg, error_->message);\
+        PODOFO_RAISE_ERROR_INFO(code, "{}, internal error: {}", msg, error_->message);\
 }
 
 namespace utls

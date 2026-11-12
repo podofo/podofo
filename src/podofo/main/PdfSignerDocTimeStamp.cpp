@@ -98,7 +98,7 @@ void PdfSignerDocTimeStamp::Dump(xmlNodePtr signerElem, string& temp)
     if (xmlNewChild(signerElem, nullptr, XMLCHAR "Hash", XMLCHAR temp.data()) == nullptr)
     {
     SerializationFailed:
-        THROW_LIBXML_EXCEPTION("PdfSignerDocTimeStamp serialization failed");
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::OutOfMemory, "PdfSignerDocTimeStamp serialization failed");
     }
 
     auto parametersElem = xmlNewChild(signerElem, nullptr, XMLCHAR "Parameters", nullptr);
@@ -129,7 +129,7 @@ void PdfSignerDocTimeStamp::Restore(xmlNodePtr signerElem, charbuff& temp)
     if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
     {
     DeserializationFailed:
-        THROW_LIBXML_EXCEPTION("PdfSignerDocTimeStamp deserialization failed");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "PdfSignerDocTimeStamp deserialization failed");
     }
     utls::DecodeHexStringTo(m_hash, (const char*)node->children->content);
 

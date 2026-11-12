@@ -1449,5 +1449,5 @@ TEST_CASE("TestRestoreSigningContextInvalidContextIndex")
     (void)createSigningContextDump(buff, signerId);
     tamperDump(buff, "<ContextIndex>0</ContextIndex>", "<ContextIndex>7</ContextIndex>");
     PdfSigningContext ctx;
-    ASSERT_THROW_WITH_ERROR_CODE(ctx.Restore(std::make_shared<BufferStreamDevice>(buff)), PdfErrorCode::XmpMetadataError);
+    ASSERT_THROW_WITH_ERROR_CODE(ctx.Restore(std::make_shared<BufferStreamDevice>(buff)), PdfErrorCode::InvalidInput);
 }
