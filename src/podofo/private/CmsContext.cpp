@@ -141,7 +141,7 @@ void CmsContext::Dump(xmlNodePtr ctxElem, string& temp)
     if (xmlNewChild(ctxElem, nullptr, XMLCHAR "Encoded", XMLCHAR temp.data()) == nullptr)
     {
     SerializationFailed:
-        THROW_LIBXML_EXCEPTION("PdfSignerCms serialization failed");
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::OutOfMemory, "CmsContext serialization failed");
     }
 
     auto parametersElem = xmlNewChild(ctxElem, nullptr, XMLCHAR "Parameters", nullptr);
@@ -194,7 +194,7 @@ void CmsContext::Restore(xmlNodePtr ctxElem, charbuff& temp)
     if (node == nullptr || node->children == nullptr || node->children->content == nullptr)
     {
     DeserializationFailed:
-        THROW_LIBXML_EXCEPTION("CmsContext deserialization failed");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "CmsContext deserialization failed");
     }
 
     utls::DecodeHexStringTo(temp, (const char*)node->children->content);

@@ -512,7 +512,7 @@ xmlNsPtr findOrCreateNamespace(xmlDocPtr doc, xmlNodePtr description, XMPNamespa
         xmlNs = xmlNewNs(description, XMLCHAR href.data(), XMLCHAR prefix.data());
 
     if (xmlNs == nullptr)
-        THROW_LIBXML_EXCEPTION(utls::Format("Can't find or create {} namespace", prefix));
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, utls::Format("Can't find or create {} namespace", prefix));
 
     return xmlNs;
 }
@@ -605,7 +605,7 @@ void addXMPProperty(xmlDocPtr doc, xmlNodePtr description, XMPMetadataKind prope
 
     auto element = xmlNewChild(description, xmlNs, XMLCHAR propName, nullptr);
     if (element == nullptr)
-        THROW_LIBXML_EXCEPTION(utls::Format("Can't create xmp:{} node", propName));
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, utls::Format("Can't create xmp:{} node", propName));
 
     switch (property)
     {
@@ -659,13 +659,13 @@ void utls::SetListNodeContent(xmlDocPtr doc, xmlNodePtr node, XMPListType seqTyp
     PODOFO_ASSERT(rdfNs != nullptr);
     auto innerElem = xmlNewChild(node, rdfNs, XMLCHAR elemName, nullptr);
     if (innerElem == nullptr)
-        THROW_LIBXML_EXCEPTION(utls::Format("Can't create rdf:{} node", elemName));
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, utls::Format("Can't create rdf:{} node", elemName));
 
     for (auto& view : values)
     {
         auto liElem = xmlNewChild(innerElem, rdfNs, XMLCHAR "li", nullptr);
         if (liElem == nullptr)
-            THROW_LIBXML_EXCEPTION(utls::Format("Can't create rdf:li node"));
+            THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, utls::Format("Can't create rdf:li node"));
 
         if (seqType == XMPListType::LangAlt)
         {
@@ -674,7 +674,7 @@ void utls::SetListNodeContent(xmlDocPtr doc, xmlNodePtr node, XMPListType seqTyp
             auto xmlNs = xmlSearchNs(doc, node, XMLCHAR "xml");
             PODOFO_ASSERT(xmlNs != nullptr);
             if (xmlSetNsProp(liElem, xmlNs, XMLCHAR "lang", XMLCHAR "x-default") == nullptr)
-                THROW_LIBXML_EXCEPTION(utls::Format("Can't set xml:lang attribute on rdf:li node"));
+                THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, utls::Format("Can't set xml:lang attribute on rdf:li node"));
         }
 
         xmlNodeAddContent(liElem, XMLCHAR view.data());
@@ -941,12 +941,12 @@ void addExtension(xmlDocPtr doc, xmlNodePtr description, string_view extensionSn
     xmlNodePtr newNode = NULL;
     auto rc = xmlParseInNodeContext(description, extensionSnippet.data(), (int)extensionSnippet.size(), XML_PARSE_NOBLANKS, &newNode);
     if (rc != XML_ERR_OK)
-        THROW_LIBXML_EXCEPTION("Could not parse extension fragment");
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Could not parse extension fragment");
 
     if (xmlAddChild(bag, newNode) == nullptr)
     {
         xmlFreeNode(newNode);
-        THROW_LIBXML_EXCEPTION("Can't add element to extension bag");
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Can't add element to extension bag");
     }
 }
 
@@ -963,7 +963,7 @@ xmlNodePtr getOrCreateExtensionBag(xmlDocPtr doc, xmlNodePtr description)
     {
         pdfaExtension = xmlNewChild(description, nullptr, XMLCHAR "schemas", nullptr);
         if (pdfaExtension == nullptr)
-            THROW_LIBXML_EXCEPTION("Can't create pdfaExtension:schemas node");
+            THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Can't create pdfaExtension:schemas node");
 
         xmlSetNs(pdfaExtension, pdfaExtNs);
     }
@@ -973,7 +973,7 @@ xmlNodePtr getOrCreateExtensionBag(xmlDocPtr doc, xmlNodePtr description)
     {
         bag = xmlNewChild(pdfaExtension, nullptr, XMLCHAR "Bag", nullptr);
         if (bag == nullptr)
-            THROW_LIBXML_EXCEPTION("Can't create rdf:Bag node");
+            THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Can't create rdf:Bag node");
 
         auto rdfNs = xmlSearchNsByHref(doc, description, XMLCHAR ("rdf"_ns).data());
         PODOFO_ASSERT(rdfNs != nullptr);

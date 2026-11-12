@@ -247,7 +247,7 @@ void normalizeXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, xmlNodePtr& descrip
     }
 
     if (xmlReconciliateNs(doc, description) == -1)
-        THROW_LIBXML_EXCEPTION("Error fixing namespaces");
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Error fixing namespaces");
 
     // Finally remove spurious rdf:Description elements
     for (auto descToRemove : descriptionsToRemove)
@@ -302,7 +302,7 @@ void normalizeElement(xmlDocPtr doc, xmlNodePtr elem)
         // ISO 16684-2:2014 "5.6 Qualifier serialization"
         auto descElem = xmlNewDocNode(doc, found->ns, XMLCHAR "Description", nullptr);
         if (descElem == nullptr)
-            THROW_LIBXML_EXCEPTION("Can't rdf:Description node");
+            THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Can't rdf:Description node");
 
         vector<xmlAttrPtr> attribsToMove;
         for (xmlAttrPtr attr = elem->properties; attr != nullptr; attr = attr->next)
@@ -317,7 +317,7 @@ void normalizeElement(xmlDocPtr doc, xmlNodePtr elem)
         {
             xmlUnlinkNode((xmlNodePtr)attr);
             if (xmlAddChild(descElem, (xmlNodePtr)attr) == nullptr)
-                THROW_LIBXML_EXCEPTION("Can't add attribute to new node");
+                THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Can't add attribute to new node");
         }
 
         // Finally remove the found rdf:parseType attribute
@@ -331,11 +331,11 @@ void normalizeElement(xmlDocPtr doc, xmlNodePtr elem)
         {
             xmlUnlinkNode(childElement);
             if (xmlAddChild(descElem, childElement) == nullptr)
-                THROW_LIBXML_EXCEPTION("Can't add children to rdf:Description");
+                THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Can't add children to rdf:Description");
         }
 
         if (xmlAddChild(elem, descElem) == nullptr)
-            THROW_LIBXML_EXCEPTION("Can't add rdf:Description to existing node");
+            THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Can't add rdf:Description to existing node");
 
         return;
     }
@@ -353,7 +353,7 @@ void normalizeElement(xmlDocPtr doc, xmlNodePtr elem)
         // again, expanding entity references outside of the parser checks
         auto value = utls::GetAttributeValue(attr);
         if (xmlNewTextChild(elem, attr->ns, attr->name, XMLCHAR value.data()) == nullptr)
-            THROW_LIBXML_EXCEPTION("Can't create value replacement node");
+            THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Can't create value replacement node");
 
         attribsToRemove.push_back(attr);
     }
@@ -417,11 +417,11 @@ xmlDocPtr createXMPDoc(xmlNodePtr& root)
     // and should be ignored by processors
     auto xmpmeta = xmlNewChild((xmlNodePtr)doc, nullptr, XMLCHAR "xmpmeta", nullptr);
     if (xmpmeta == nullptr)
-        THROW_LIBXML_EXCEPTION("Can't create x:xmpmeta node");
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Can't create x:xmpmeta node");
 
     auto nsAdobeMeta = xmlNewNs(xmpmeta, XMLCHAR "adobe:ns:meta/", XMLCHAR "x");
     if (nsAdobeMeta == nullptr)
-        THROW_LIBXML_EXCEPTION("Can't find or create x namespace");
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Can't find or create x namespace");
     xmlSetNs(xmpmeta, nsAdobeMeta);
 
     addXPacketEnd(doc);
@@ -443,7 +443,7 @@ xmlNodePtr createRDFElement(xmlNodePtr xmpmeta)
 {
     auto rdf = xmlNewChild(xmpmeta, nullptr, XMLCHAR "RDF", nullptr);
     if (rdf == nullptr)
-        THROW_LIBXML_EXCEPTION("Can't create rdf:RDF node");
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Can't create rdf:RDF node");
 
     createRDFNamespace(rdf);
     return rdf;
@@ -453,7 +453,7 @@ void createRDFNamespace(xmlNodePtr rdf)
 {
     auto rdfNs = xmlNewNs(rdf, XMLCHAR "http://www.w3.org/1999/02/22-rdf-syntax-ns#", XMLCHAR "rdf");
     if (rdfNs == nullptr)
-        THROW_LIBXML_EXCEPTION("Can't find or create rdf namespace");
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Can't find or create rdf namespace");
     xmlSetNs(rdf, rdfNs);
 }
 
@@ -461,15 +461,15 @@ xmlNodePtr createDescriptionElement(xmlNodePtr rdf)
 {
     auto description = xmlNewChild(rdf, nullptr, XMLCHAR "Description", nullptr);
     if (description == nullptr)
-        THROW_LIBXML_EXCEPTION("Can't create rdf:Description node");
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Can't create rdf:Description node");
 
     auto nsRDF = xmlNewNs(description, XMLCHAR "http://www.w3.org/1999/02/22-rdf-syntax-ns#", XMLCHAR "rdf");
     if (nsRDF == nullptr)
-        THROW_LIBXML_EXCEPTION("Can't find or create rdf namespace");
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Can't find or create rdf namespace");
 
     xmlSetNs(description, nsRDF);
     if (xmlSetNsProp(description, nsRDF, XMLCHAR "about", XMLCHAR "") == nullptr)
-        THROW_LIBXML_EXCEPTION(utls::Format("Can't set rdf:about attribute on rdf:Description node"));
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, utls::Format("Can't set rdf:about attribute on rdf:Description node"));
 
     return description;
 }
@@ -477,7 +477,7 @@ xmlNodePtr createDescriptionElement(xmlNodePtr rdf)
 void serializeXMPMetadataTo(string& str, xmlDocPtr xmpMeta)
 {
     if(!utls::TrySerializeXmlDocTo(str, xmpMeta))
-        THROW_LIBXML_EXCEPTION("Can't save XPM fragment");
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Can't save XPM fragment");
 }
 
 void addXPacketBegin(xmlDocPtr doc)
@@ -508,7 +508,7 @@ void addXPacketBegin(xmlDocPtr doc, string_view id, string_view moreData)
     {
     Fail:
         xmlFreeNode(xpacketBegin);
-        THROW_LIBXML_EXCEPTION("Can't create xpacket begin node");
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Can't create xpacket begin node");
     }
 
     auto node = doc->children;
@@ -527,7 +527,7 @@ void addXPacketEnd(xmlDocPtr doc)
     if (xpacketEnd == nullptr || xmlAddChild((xmlNodePtr)doc, xpacketEnd) == nullptr)
     {
         xmlFreeNode(xpacketEnd);
-        THROW_LIBXML_EXCEPTION("Can't create xpacket end node");
+        THROW_LIBXML_EXCEPTION(PdfErrorCode::XmpMetadataError, "Can't create xpacket end node");
     }
 }
 
