@@ -584,7 +584,9 @@ void addAttribute(CMS_SignerInfo* si, int(*addAttributeFun)(CMS_SignerInfo*, con
         }
 
         type = asn1type->type;
-        bytes = asn1type->value.ptr;
+        // NOTE: A decoded NULL has no value, OpenSSL stores just
+        // a presence marker in its place: the value must be null
+        bytes = type == V_ASN1_NULL ? nullptr : asn1type->value.ptr;
         len = -1;
     }
 
