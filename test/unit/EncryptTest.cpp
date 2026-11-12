@@ -662,3 +662,35 @@ void createEncryptedPdf(const string_view& filename)
 
     INFO(utls::Format("Wrote: {} (R={})", filename, doc.GetEncrypt()->GetRevision()));
 }
+
+TEST_CASE("TestAESInputStreamSmallReads")
+{
+    // The cipher may output more bytes than a read asks for: the excess must wait for the next read
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+        PdfEncryptionAlgorithm::AESV2, PdfKeyLength::L128);
+    PdfEncryptContext context;
+    encrypt->EnsureEncryptionInitialized(PdfString::FromHexData("BF37541A9083A51619AD5924ECF156DF"), context);
+    charbuff encrypted;
+    encrypt->EncryptTo(encrypted, s_encBuffer, context, PdfReference(7, 0));
+
+    SpanStreamDevice input(encrypted);
+    auto stream = encrypt->CreateEncryptionInputStream(input, encrypted.size(), context, PdfReference(7, 0));
+    string decrypted;
+    char ch;
+    while (stream->Read(ch))
+        decrypted.push_back(ch);
+
+    REQUIRE(decrypted == s_encBuffer);
+
+    SpanStreamDevice input2(encrypted);
+    stream = encrypt->CreateEncryptionInputStream(input2, encrypted.size(), context, PdfReference(7, 0));
+    decrypted.clear();
+    char buffer[7];
+    bool eof;
+    do
+    {
+        decrypted.append(buffer, stream->Read(buffer, sizeof(buffer), eof));
+    } while (!eof);
+
+    REQUIRE(decrypted == s_encBuffer);
+}
