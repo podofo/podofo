@@ -674,3 +674,14 @@ TEST_CASE("TestRestoreSigningContextInvalidContextIndex")
     PdfSigningContext ctx;
     ASSERT_THROW_WITH_ERROR_CODE(ctx.Restore(std::make_shared<BufferStreamDevice>(buff)), PdfErrorCode::InvalidInput);
 }
+
+TEST_CASE("TestRestoreSigningContextNonElementContext")
+{
+    // A text node after the last context is rejected when restoring
+    charbuff buff;
+    PdfSignerId signerId;
+    (void)createSigningContextDump(buff, signerId);
+    tamperDump(buff, "</Context>\n  </Contexts>", "</Context>x\n </Contexts>");
+    PdfSigningContext ctx;
+    ASSERT_THROW_WITH_ERROR_CODE(ctx.Restore(std::make_shared<BufferStreamDevice>(buff)), PdfErrorCode::InvalidInput);
+}

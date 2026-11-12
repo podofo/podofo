@@ -151,11 +151,10 @@ unique_ptr<PdfMemDocument> PdfSigningContext::Restore(shared_ptr<StreamDevice> d
     if (node == nullptr)
         goto DeserializationFailed;
 
-    unsigned i = 0;
-    m_contexts.resize(xmlChildElementCount(node));
+    m_contexts.reserve(xmlChildElementCount(node));
     for (auto child = node->children; child != nullptr; child = child->next)
     {
-        auto& ctx = m_contexts[i];
+        auto& ctx = m_contexts.emplace_back();
 
         node = utls::FindChildElement(child, "BeaconSize");
         if (node == nullptr || node->children == nullptr || node->children->content == nullptr
@@ -190,8 +189,6 @@ unique_ptr<PdfMemDocument> PdfSigningContext::Restore(shared_ptr<StreamDevice> d
                 || !utls::TryParse((const char*)node->children->content, num3))
             goto DeserializationFailed;
         *ctx.Beacons.ByteRangeOffset = (size_t)num3;
-
-        i++;
     }
 
     // The context indices come from the dump as well: check
