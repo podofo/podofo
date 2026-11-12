@@ -628,3 +628,49 @@ startxref
     loaded.SetSignerName(PdfString("Alice"));
     REQUIRE(loaded.GetSignerName()->GetString() == "Alice");
 }
+
+// Produce a signing context dump of TestSignature.pdf, returning the hash to sign
+static charbuff createSigningContextDump(charbuff& buff, PdfSignerId& signerId)
+{
+    utls::ReadTo(buff, TestUtils::GetTestInputFilePath("TestSignature.pdf"));
+    string cert;
+    TestUtils::ReadTestInputFileTo(cert, "mycert.der");
+
+    auto stream = std::make_shared<BufferStreamDevice>(buff);
+    PdfMemDocument doc(stream);
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto& signature = dynamic_cast<PdfSignature&>(dynamic_cast<PdfAnnotationWidget&>(page.GetAnnotations().GetAnnotAt(0)).GetField());
+    signature.SetSignatureDate(PdfDate::Parse("D:20250205192456+06'00'"));
+
+    PdfSignerCmsParams params;
+    PdfSigningContext ctx;
+    signerId = ctx.AddSigner(signature, std::make_shared<PdfSignerCms>(cert, params));
+    PdfSigningResults results;
+    ctx.StartSigning(doc, stream, results, PdfSaveOptions::NoMetadataUpdate);
+    ctx.DumpInPlace();
+    return results.Intermediate[signerId];
+}
+
+// Replace all the occurrences of a fragment with one of the same length
+static void tamperDump(charbuff& buff, const string_view& from, const string_view& to)
+{
+    REQUIRE(from.size() == to.size());
+    size_t pos = buff.find(from);
+    REQUIRE(pos != string::npos);
+    while (pos != string::npos)
+    {
+        buff.replace(pos, from.size(), to);
+        pos = buff.find(from, pos + to.size());
+    }
+}
+
+TEST_CASE("TestRestoreSigningContextInvalidContextIndex")
+{
+    // A context index outside the dumped contexts is rejected when restoring
+    charbuff buff;
+    PdfSignerId signerId;
+    (void)createSigningContextDump(buff, signerId);
+    tamperDump(buff, "<ContextIndex>0</ContextIndex>", "<ContextIndex>7</ContextIndex>");
+    PdfSigningContext ctx;
+    ASSERT_THROW_WITH_ERROR_CODE(ctx.Restore(std::make_shared<BufferStreamDevice>(buff)), PdfErrorCode::XmpMetadataError);
+}
