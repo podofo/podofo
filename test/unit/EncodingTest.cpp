@@ -6,6 +6,8 @@
 
 #include <ostream>
 #include <iostream>
+#include <thread>
+#include <atomic>
 
 using namespace std;
 using namespace PoDoFo;
@@ -359,4 +361,29 @@ void outofRangeHelper(PdfEncoding& encoding)
     REQUIRE(encoding.GetCodePoint(encoding.GetFirstChar().Code - 1) == U'\0');
     (void)encoding.GetCodePoint(encoding.GetLastChar());
     REQUIRE(encoding.GetCodePoint(encoding.GetLastChar().Code + 1) == U'\0');
+}
+
+TEST_CASE("TestBuiltInEncodingConcurrentLookup")
+{
+    // The reverse table of a shared built-in encoding is filled by the first lookup
+    auto& encoding = PdfEncodingMapFactory::GetMacRomanEncodingInstance();
+    atomic<unsigned> failures(0);
+    vector<thread> threads;
+    for (unsigned i = 0; i < 4; i++)
+    {
+        threads.emplace_back([&]
+        {
+            for (char32_t cp = U'A'; cp <= U'Z'; cp++)
+            {
+                PdfCharCode code;
+                if (!encoding.TryGetCharCode(cp, code) || code.Code != cp)
+                    failures++;
+            }
+        });
+    }
+
+    for (auto& thread : threads)
+        thread.join();
+
+    REQUIRE(failures.load() == 0);
 }

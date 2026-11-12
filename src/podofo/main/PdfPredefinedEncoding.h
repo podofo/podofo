@@ -26,7 +26,7 @@ namespace PoDoFo
         friend class PdfMacExpertEncoding;
 
     private:
-        PdfPredefinedEncoding(const PdfName& name);
+        PdfPredefinedEncoding(const PdfName& name, const char32_t* toUnicodeTable);
 
         PdfPredefinedEncodingType GetPredefinedEncodingType() const override;
 

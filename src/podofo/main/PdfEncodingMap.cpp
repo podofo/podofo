@@ -494,9 +494,11 @@ void PdfNullEncodingMap::AppendCIDMappingEntries(OutputStream& stream, const Pdf
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The null encoding must be bound to a PdfFont");
 }
 
-PdfBuiltInEncoding::PdfBuiltInEncoding(const PdfName& name)
+PdfBuiltInEncoding::PdfBuiltInEncoding(const PdfName& name, const char32_t* toUnicodeTable)
     : PdfEncodingMapSimple({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }), m_Name(name)
 {
+    for (unsigned i = 0; i < 256; i++)
+        m_EncodingTable[toUnicodeTable[i]] = static_cast<unsigned char>(i);
 }
 
 // Create an unicode to GID map, filtering on available GIDs
@@ -521,23 +523,8 @@ void PdfBuiltInEncoding::CreateUnicodeToGIDMap(const unordered_map<unsigned, uns
     }
 }
 
-void PdfBuiltInEncoding::initEncodingTable()
-{
-    if (!m_EncodingTable.empty())
-        return;
-
-    const char32_t* cpUnicodeTable = this->GetToUnicodeTable();
-    for (unsigned i = 0; i < 256; i++)
-    {
-        // fill the table with data
-        m_EncodingTable[cpUnicodeTable[i]] =
-            static_cast<unsigned char>(i);
-    }
-}
-
 bool PdfBuiltInEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const
 {
-    const_cast<PdfBuiltInEncoding*>(this)->initEncodingTable();
     auto found = m_EncodingTable.find(codePoint);
     if (found == m_EncodingTable.end())
     {

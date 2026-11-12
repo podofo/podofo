@@ -249,7 +249,7 @@ class PODOFO_API PdfBuiltInEncoding : public PdfEncodingMapSimple
     PODOFO_PRIVATE_FRIEND(class AppleLatin1Encoding);
 
 private:
-    PdfBuiltInEncoding(const PdfName& name);
+    PdfBuiltInEncoding(const PdfName& name, const char32_t* toUnicodeTable);
 
 public:
     /// Get the name of this encoding.
@@ -277,13 +277,10 @@ private:
         std::unordered_map<uint32_t, unsigned>& unicodeMap) const;
 
 private:
-    /// Initialize the internal table of mappings from Unicode code points
-    /// to encoded byte values.
-    void initEncodingTable();
-
-private:
     PdfName m_Name;         // The name of the encoding
-    std::unordered_map<char32_t, char> m_EncodingTable; // The helper table for conversions into this encoding
+    // The helper table for conversions into this encoding. NOTE: It's filled
+    // in the constructor, as the instances are shared by all threads
+    std::unordered_map<char32_t, char> m_EncodingTable;
 };
 
 /// Dummy encoding map that will just throw exception
