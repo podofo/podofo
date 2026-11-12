@@ -751,15 +751,33 @@ PdfSignerId::PdfSignerId()
 PdfSignerId::PdfSignerId(const PdfReference& ref, unsigned signerIndex)
     : m_SignatureRef(ref), m_SignerIndex(signerIndex) { }
 
+// NOTE: The reference and page index may come from a restored dump,
+// so the resolved annotation and field types are checked
 PdfSignature& getSignature(PdfDocument& doc, int pageIndex, const PdfReference& signatureRef)
 {
+    PdfField* field;
     if (pageIndex >= 0)
     {
         auto& page = doc.GetPages().GetPageAt((unsigned)pageIndex);
-        return static_cast<PdfSignature&>(static_cast<PdfAnnotationWidget&>(page.GetAnnotations().GetAnnot(signatureRef)).GetField());
+        auto& annot = page.GetAnnotations().GetAnnot(signatureRef);
+        if (annot.GetType() != PdfAnnotationType::Widget)
+        {
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "The annotation {} {} R is not a widget",
+                signatureRef.ObjectNumber(), signatureRef.GenerationNumber());
+        }
+
+        field = &static_cast<PdfAnnotationWidget&>(annot).GetField();
     }
     else
     {
-        return  static_cast<PdfSignature&>(doc.MustGetAcroForm().GetField(signatureRef));
+        field = &doc.MustGetAcroForm().GetField(signatureRef);
     }
+
+    if (field->GetType() != PdfFieldType::Signature)
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "The field {} {} R is not a signature",
+            signatureRef.ObjectNumber(), signatureRef.GenerationNumber());
+    }
+
+    return static_cast<PdfSignature&>(*field);
 }
