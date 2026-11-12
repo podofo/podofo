@@ -163,7 +163,7 @@ unique_ptr<PdfMemDocument> PdfSigningContext::Restore(shared_ptr<StreamDevice> d
         ctx.BeaconSize = num1;
 
         auto byteRangeArrElem = utls::FindChildElement(child, "ByteRangeArr");
-        if (node == nullptr)
+        if (byteRangeArrElem == nullptr)
             goto DeserializationFailed;
 
         for (auto item = byteRangeArrElem->children; item != nullptr; item = item->next)
@@ -175,7 +175,7 @@ unique_ptr<PdfMemDocument> PdfSigningContext::Restore(shared_ptr<StreamDevice> d
         }
 
         auto beaconsArrElem = utls::FindChildElement(child, "Beacons");
-        if (node == nullptr)
+        if (beaconsArrElem == nullptr)
             goto DeserializationFailed;
 
         node = utls::FindChildElement(beaconsArrElem, "ContentsOffset");

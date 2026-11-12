@@ -711,3 +711,15 @@ TEST_CASE("TestRestoreSigningContextNotASignature")
     ASSERT_THROW_WITH_ERROR_CODE(tryFinish("/FT/Sig", "/FT/Tx "), PdfErrorCode::InvalidInput);
     ASSERT_THROW_WITH_ERROR_CODE(tryFinish("/V 14 0 R", "         "), PdfErrorCode::InvalidObject);
 }
+
+TEST_CASE("TestRestoreSigningContextMissingByteRange")
+{
+    // A context without the byte range array is rejected when restoring
+    charbuff buff;
+    PdfSignerId signerId;
+    (void)createSigningContextDump(buff, signerId);
+    tamperDump(buff, "<ByteRangeArr>", "<ByteRangeXrr>");
+    tamperDump(buff, "</ByteRangeArr>", "</ByteRangeXrr>");
+    PdfSigningContext ctx;
+    ASSERT_THROW_WITH_ERROR_CODE(ctx.Restore(std::make_shared<BufferStreamDevice>(buff)), PdfErrorCode::InvalidInput);
+}
