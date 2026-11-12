@@ -463,6 +463,7 @@ TEST_CASE("TestFillFromPageWithoutGroupSameDocument")
 
     REQUIRE(xobj->GetDictionary().FindKey("Group") == nullptr);
 }
+
 TEST_CASE("TestAnnotationsIterationSkipsInvalid")
 {
     // The first annotation has no /Subtype: it is stored as a null
@@ -520,6 +521,7 @@ startxref
     auto form = doc.CreateXObjectForm(page.GetMediaBox());
     REQUIRE_NOTHROW(form->FillFromPage(page));
 }
+
 TEST_CASE("TestAnnotationsDuplicateReferences")
 {
     // The same annotation is referenced twice: the duplicate is not wrapped
