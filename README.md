@@ -261,9 +261,15 @@ instead represent a generic octet buffer.
 
 ## Thread safety
 
-For the most part PoDoFo is not a thread safe library. As a general rule: use any object on the same thread it was created on.
-Alternatively: guard access to objects obtained through a `PdfDocument` using a mutex. Explicit support is provided for freeing
-object instances in different threads, as is done in modern garbage collected languages.
+PoDoFo is reentrant:
+
+- Different documents can be used at the same time from different threads, while a `PdfDocument` and most objects
+  obtained through it must be used by one thread at a time: guard the access with a mutex when sharing them between
+  threads;
+- Instances shared by the whole process, such as the built-in encodings and the predefined CMaps, can be used from any
+  thread at the same time;
+- Object instances can be freed in a thread other than the one that used them, as is done in modern garbage collected
+  languages.
 
 ## PoDoFo Tools
 
