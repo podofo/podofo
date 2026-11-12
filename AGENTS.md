@@ -111,3 +111,4 @@ Refer to `CODING-STYLE.md`, but don't follow any hyperlink there. In addition:
 - Test files live in `test/unit/` and follow the naming pattern `<Topic>Test.cpp`
 - Tests include `<PdfTest.h>` (which pulls in Catch2, PoDoFo headers, and `TestUtils`). The macros `ASSERT_EQUAL` and `ASSERT_THROW_WITH_ERROR_CODE` are available for common assertions
 - Test resource files are read via `TestUtils::GetTestInputFilePath(...)` and output goes to `TestUtils::GetTestOutputFilePath(...)`
+- Thread safety: a document and the objects obtained through it are used by one thread at a time, so they need no synchronization. Instances shared by the whole process, such as the `PdfEncodingMapFactory` encodings and predefined CMaps, must stay safe for concurrent use: fill them completely in their constructor, which runs in a thread safe static initialization, or publish lazily built state atomically, e.g. with a compare and swap on a pointer
