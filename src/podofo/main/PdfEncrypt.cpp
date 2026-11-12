@@ -187,7 +187,8 @@ public:
         m_inputEof(false),
         m_init(true),
         m_keyLen(keylen),
-        m_drainLeft(0)
+        m_tempPos(0),
+        m_tempEnd(0)
     {
         m_ctx = EVP_CIPHER_CTX_new();
         if (m_ctx == nullptr)
@@ -204,11 +205,15 @@ public:
 protected:
     size_t readBuffer(char* buffer, size_t len, bool& eof) override
     {
-        int outlen = 0;
-        size_t drainLen;
-        size_t read;
-        if (m_inputEof)
-            goto DrainBuffer;
+        // NOTE: The cipher may output more bytes than requested, as it
+        // holds back up to a block between calls: the excess is kept
+        // in the temporary buffer and delivered first by the next call
+        size_t drained = drainTempBuffer(buffer, len);
+        if (drained == len || m_inputEof)
+        {
+            eof = m_inputEof && m_tempPos == m_tempEnd;
+            return drained;
+        }
 
         int rc;
         if (m_init)
@@ -216,8 +221,8 @@ protected:
             // Read the initialization vector separately first
             char iv[AES_IV_LENGTH];
             bool streameof;
-            read = ReadBuffer(*m_InputStream, iv, AES_IV_LENGTH, streameof);
-            if (read != AES_IV_LENGTH)
+            size_t ivRead = ReadBuffer(*m_InputStream, iv, AES_IV_LENGTH, streameof);
+            if (ivRead != AES_IV_LENGTH)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Can't read enough bytes for AES IV");
 
             const EVP_CIPHER* cipher;
@@ -245,48 +250,48 @@ protected:
             m_init = false;
         }
 
+        // The encrypted data is read in the free part of the buffer
         bool streameof;
-        read = ReadBuffer(*m_InputStream, buffer, std::min(len, m_inputLen), streameof);
+        size_t read = ReadBuffer(*m_InputStream, buffer + drained, std::min(len - drained, m_inputLen), streameof);
         m_inputLen -= read;
 
         // Quote openssl.org: "the decrypted data buffer out passed to EVP_DecryptUpdate() should have sufficient room
-        //  for (inl + cipher_block_size) bytes unless the cipher block size is 1 in which case inl bytes is sufficient."
-        // So we need to create a buffer that is bigger than len.
-        m_tempBuffer.resize(len + AES_BLOCK_SIZE);
-        rc = EVP_DecryptUpdate(m_ctx, m_tempBuffer.data(), &outlen, (unsigned char*)buffer, (int)read);
-
+        // for (inl + cipher_block_size) bytes unless the cipher block size is 1 in which case inl bytes is sufficient."
+        // Take into account also the size required for EVP_DecryptFinal_ex(), which is one more block
+        m_tempBuffer.resize(read + 2 * AES_BLOCK_SIZE);
+        int outlen;
+        rc = EVP_DecryptUpdate(m_ctx, m_tempBuffer.data(), &outlen, (unsigned char*)(buffer + drained), (int)read);
         if (rc != 1)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-decryption data");
 
-        PODOFO_ASSERT((size_t)outlen <= len);
-        std::memcpy(buffer, m_tempBuffer.data(), (size_t)outlen);
-
+        size_t produced = (size_t)outlen;
         if (m_inputLen == 0 || streameof)
         {
             m_inputEof = true;
 
-            int drainLeft;
-            rc = EVP_DecryptFinal_ex(m_ctx, m_tempBuffer.data(), &drainLeft);
+            int finalLen;
+            rc = EVP_DecryptFinal_ex(m_ctx, m_tempBuffer.data() + produced, &finalLen);
             if (rc != 1)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-decryption data padding");
 
-            m_drainLeft = (size_t)drainLeft;
-            goto DrainBuffer;
+            produced += (size_t)finalLen;
         }
 
-        eof = false;
-        return outlen;
+        m_tempPos = 0;
+        m_tempEnd = produced;
+        drained += drainTempBuffer(buffer + drained, len - drained);
+        eof = m_inputEof && m_tempPos == m_tempEnd;
+        return drained;
+    }
 
-    DrainBuffer:
-        drainLen = std::min(len - outlen, m_drainLeft);
-        std::memcpy(buffer + outlen, m_tempBuffer.data(), drainLen);
-        m_drainLeft -= (int)drainLen;
-        if (m_drainLeft == 0)
-            eof = true;
-        else
-            eof = false;
-
-        return outlen + drainLen;
+private:
+    /// Copy the pending decrypted bytes to the buffer, at most len
+    size_t drainTempBuffer(char* buffer, size_t len)
+    {
+        size_t count = std::min(len, m_tempEnd - m_tempPos);
+        std::memcpy(buffer, m_tempBuffer.data() + m_tempPos, count);
+        m_tempPos += count;
+        return count;
     }
 
 private:
@@ -298,7 +303,8 @@ private:
     unsigned char m_key[32];
     unsigned m_keyLen;
     vector<unsigned char> m_tempBuffer;
-    size_t m_drainLeft;
+    size_t m_tempPos;
+    size_t m_tempEnd;
 };
 
 struct RC4EncryptContext
