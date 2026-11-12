@@ -6,6 +6,7 @@
 #include "PdfFontManager.h"
 
 #include <algorithm>
+#include <mutex>
 #include <podofo/private/FileSystem.h>
 
 #if defined(_WIN32) && defined(PODOFO_HAVE_WIN32GDI)
@@ -57,6 +58,7 @@ static unique_ptr<charbuff> getWin32FontData(
 
 #if defined(PODOFO_HAVE_FONTCONFIG)
 shared_ptr<PdfFontConfigWrapper> PdfFontManager::m_fontConfig;
+static mutex s_fontConfigMutex;
 #endif
 
 static constexpr unsigned SUBSET_PREFIX_LEN = 6;
@@ -336,8 +338,8 @@ PdfFontMetricsConstPtr PdfFontManager::SearchFontMetrics(const string_view& font
 void PdfFontManager::AddFontDirectory(const string_view& path)
 {
 #ifdef PODOFO_HAVE_FONTCONFIG
-    auto& fc = GetFontConfigWrapper();
-    fc.AddFontDirectory(path);
+    auto fc = getFontConfigWrapper();
+    fc->AddFontDirectory(path);
 #endif
 #if defined(_WIN32) && defined(PODOFO_ENABLE_WIN32GDI_FONT_SEARCH)
     string fontDir(path);
@@ -391,8 +393,8 @@ unique_ptr<const PdfFontMetrics> PdfFontManager::searchFontMetrics(const string_
         ? PdfFontConfigSearchFlags::None
         : PdfFontConfigSearchFlags::SkipMatchPostScriptName;
 
-    auto& fc = GetFontConfigWrapper();
-    path = fc.SearchFontPath(fontName, fcParams, faceIndex);
+    auto fc = getFontConfigWrapper();
+    path = fc->SearchFontPath(fontName, fcParams, faceIndex);
 #endif
 
     unique_ptr<const PdfFontMetrics> ret = nullptr;
@@ -524,21 +526,25 @@ unique_ptr<charbuff> getWin32FontData(
 
 void PdfFontManager::SetFontConfigWrapper(const shared_ptr<PdfFontConfigWrapper>& fontConfig)
 {
-    if (m_fontConfig == fontConfig)
-        return;
-
     if (fontConfig == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Fontconfig wrapper can't be null");
 
+    lock_guard<mutex> lock(s_fontConfigMutex);
     m_fontConfig = fontConfig;
 }
 
 PdfFontConfigWrapper& PdfFontManager::GetFontConfigWrapper()
 {
+    return *getFontConfigWrapper();
+}
+
+shared_ptr<PdfFontConfigWrapper> PdfFontManager::getFontConfigWrapper()
+{
+    lock_guard<mutex> lock(s_fontConfigMutex);
     if (m_fontConfig == nullptr)
         m_fontConfig.reset(new PdfFontConfigWrapper());
 
-    return *m_fontConfig;
+    return m_fontConfig;
 }
 
 #endif // PODOFO_HAVE_FONTCONFIG

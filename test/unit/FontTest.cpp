@@ -4,6 +4,7 @@
 
 #include <PdfTest.h>
 
+#include <atomic>
 #include <thread>
 
 #include <podofo/private/FreetypePrivate.h>
@@ -447,6 +448,32 @@ TEST_CASE("TestFontConfigMatch")
         metrics = PdfFontManager::SearchFontMetrics("LiberationSans", parmas);
         REQUIRE(metrics->GetFontName() == "LiberationSans-Bold");
     }
+}
+
+TEST_CASE("TestFontConfigReplaceDuringSearch")
+{
+    // Searches keep using their wrapper while another thread replaces it
+    atomic<unsigned> running(4);
+    vector<thread> threads;
+    for (unsigned i = 0; i < 4; i++)
+    {
+        threads.emplace_back([&running]
+        {
+            PdfFontSearchParams params;
+            for (unsigned j = 0; j < 10; j++)
+                (void)PdfFontManager::SearchFontMetrics("Liberation Sans", params);
+
+            running--;
+        });
+    }
+
+    // Wrappers sharing the current config are quick to create
+    auto config = PdfFontManager::GetFontConfigWrapper().GetFcConfig();
+    while (running != 0)
+        PdfFontManager::SetFontConfigWrapper(std::make_shared<PdfFontConfigWrapper>(FcConfigReference(config)));
+
+    for (auto& thread : threads)
+        thread.join();
 }
 
 // Disable load all fonts for now
