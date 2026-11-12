@@ -208,6 +208,14 @@ unique_ptr<PdfMemDocument> PdfSigningContext::Restore(shared_ptr<StreamDevice> d
         i++;
     }
 
+    // The context indices come from the dump as well: check
+    // they address the contexts actually deserialized
+    for (auto& pair : m_signers)
+    {
+        if (pair.second.ContextIndex >= m_contexts.size())
+            goto DeserializationFailed;
+    }
+
     // Truncate the stream just before the XML fragment
     device->Seek(-(ssize_t)(sizeof(SigningContextDumpFooter) + footer.XMLFragmentSize), SeekDirection::End);
     device->Truncate();
