@@ -5,6 +5,7 @@
 #include "FreetypePrivate.h"
 
 #include <atomic>
+#include <mutex>
 
 #include FT_TRUETYPE_TAGS_H
 #include FT_TRUETYPE_TABLES_H
@@ -50,6 +51,9 @@ namespace
     struct FT_LibraryPtr
     {
         FT_Library Ptr = nullptr;
+        // NOTE: FreeType requires face creation and destruction on the
+        // same library to be serialized, and faces are freed by any thread
+        std::mutex Mutex;
 
         void Ref();
         void Unref();
@@ -115,16 +119,22 @@ void FT::FreeFace(FT_Face face)
     // NOTE: Store the hidden library pointer before freeing the face
     auto lib = static_cast<FT_LibraryPtr*>(face->extensions);
 
-    FT_Done_Face(face);
+    {
+        lock_guard<mutex> lock(lib->Mutex);
+        FT_Done_Face(face);
+    }
 
-    // Dereference the hidden library pointer
+    // Dereference the hidden library pointer. NOTE: It may
+    // delete the library, so it's done after releasing the lock
     lib->Unref();
 }
 
 void FT::ReferenceFace(FT_Face face)
 {
     // Reference the hidden library pointer
-    static_cast<FT_LibraryPtr*>(face->extensions)->Ref();
+    auto lib = static_cast<FT_LibraryPtr*>(face->extensions);
+    lib->Ref();
+    lock_guard<mutex> lock(lib->Mutex);
     FT_Reference_Face(face);
 }
 
@@ -140,11 +150,15 @@ FT::FT_FacePtr FT::CreateFaceFromFile(const string_view& filepath, unsigned face
         // NOTE: FT_New_Face reads the path as a NUL terminated C string,
         // so a non NUL terminated string_view must be copied first
         string filepathStr(filepath);
-        rc = FT_New_Face(lib.Ptr, filepathStr.data(), faceIndex, &face);
+        {
+            lock_guard<mutex> lock(lib.Mutex);
+            rc = FT_New_Face(lib.Ptr, filepathStr.data(), faceIndex, &face);
+        }
+
         if (rc != 0)
             return FT_FacePtr(nullptr, FT::FreeFace);
 
-        unique_ptr<struct FT_FaceRec_, decltype(&FT_Done_Face)> face_(face, FT_Done_Face);
+        unique_ptr<struct FT_FaceRec_, decltype(&freeFaceBare)> face_(face, freeFaceBare);
 
         // Try to extract data from the TTC font and re-create the face
         if (tryExtractDataFromTTC(face, buffer))
@@ -245,7 +259,11 @@ FT::FT_FacePtr createFaceFromBuffer(const bufferview& view, unsigned faceIndex, 
 
     auto& lib = getLibrary();
     FT_Face face;
-    rc = FT_Open_Face(lib.Ptr, &openArgs, faceIndex, &face);
+    {
+        lock_guard<mutex> lock(lib.Mutex);
+        rc = FT_Open_Face(lib.Ptr, &openArgs, faceIndex, &face);
+    }
+
     if (rc != 0)
         return FT::FT_FacePtr(nullptr, noOpFace);
 
@@ -453,7 +471,10 @@ FT_LibraryPtr& getLibrary()
 
 void freeFaceBare(FT_Face face)
 {
-    // Just call the bare FT free face function
+    // NOTE: Bare faces have no library extension and are freed by the thread
+    // that created them, but still require access to the library to be synchronized
+    auto& lib = getLibrary();
+    lock_guard<mutex> lock(lib.Mutex);
     (void)FT_Done_Face(face);
 }
 

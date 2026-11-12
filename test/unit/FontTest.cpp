@@ -5,6 +5,7 @@
 #include <PdfTest.h>
 
 #include <atomic>
+#include <mutex>
 #include <thread>
 
 #include <podofo/private/FreetypePrivate.h>
@@ -760,4 +761,33 @@ startxref
     form->FillFromPage(doc.GetPages().GetPageAt(0));
     REQUIRE(font->GetMetrics().GetFontName() == "Helvetica");
     REQUIRE(form->GetResources()->GetFont("F1") == font);
+}
+
+TEST_CASE("TestFreeFacesWhileCreatingOnAnotherThread")
+{
+    // Faces created on another thread are freed here while
+    // that thread keeps creating faces on its FreeType library
+    auto fontPath = TestUtils::GetTestInputFilePath("Fonts", "LiberationSans-Regular.ttf");
+    mutex createdMutex;
+    vector<unique_ptr<const PdfFontMetrics>> created;
+    atomic<bool> done(false);
+    thread creator([&]
+    {
+        for (unsigned i = 0; i < 40; i++)
+        {
+            auto metrics = PdfFontMetrics::Create(fontPath);
+            lock_guard<mutex> lock(createdMutex);
+            created.push_back(std::move(metrics));
+        }
+
+        done = true;
+    });
+
+    while (!done)
+    {
+        lock_guard<mutex> lock(createdMutex);
+        created.clear();
+    }
+
+    creator.join();
 }
