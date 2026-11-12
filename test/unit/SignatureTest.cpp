@@ -734,3 +734,13 @@ TEST_CASE("TestSignerCmsInvalidCertificateRetry")
     ASSERT_THROW_WITH_ERROR_CODE(signer.ValidateSignatureDate(date), PdfErrorCode::OpenSSLError);
     ASSERT_THROW_WITH_ERROR_CODE(signer.ValidateSignatureDate(date), PdfErrorCode::OpenSSLError);
 }
+
+TEST_CASE("TestSignerCmsAddNullAttribute")
+{
+    // A DER NULL attribute value has no data to copy
+    string cert;
+    TestUtils::ReadTestInputFileTo(cert, "mycert.der");
+    PdfSignerCms signer(cert);
+    signer.AddAttribute("1.2.3.4", string_view("\x05\x00", 2), PdfSignatureAttributeFlags::SignedAttribute);
+    signer.AddAttribute("1.2.3.5", string_view("\x05\x00", 2), PdfSignatureAttributeFlags::None);
+}
