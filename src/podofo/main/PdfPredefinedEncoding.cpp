@@ -13,8 +13,8 @@ using namespace std;
 using namespace PoDoFo;
 
 
-PdfPredefinedEncoding::PdfPredefinedEncoding(const PdfName& name)
-    : PdfBuiltInEncoding(name)
+PdfPredefinedEncoding::PdfPredefinedEncoding(const PdfName& name, const char32_t* toUnicodeTable)
+    : PdfBuiltInEncoding(name, toUnicodeTable)
 {
 }
 
@@ -36,7 +36,7 @@ void PdfPredefinedEncoding::getExportObject(PdfIndirectObjectList& objects, PdfN
 // -----------------------------------------------------
 
 PdfWinAnsiEncoding::PdfWinAnsiEncoding()
-    : PdfPredefinedEncoding("WinAnsiEncoding"_n)
+    : PdfPredefinedEncoding("WinAnsiEncoding"_n, s_cEncoding)
 {
 }
 
@@ -305,7 +305,7 @@ const char32_t PdfWinAnsiEncoding::s_cEncoding[] = {
 };
 
 PdfMacRomanEncoding::PdfMacRomanEncoding()
-    : PdfPredefinedEncoding("MacRomanEncoding"_n)
+    : PdfPredefinedEncoding("MacRomanEncoding"_n, s_cEncoding)
 {
 }
 
@@ -581,7 +581,7 @@ const char32_t PdfMacRomanEncoding::s_cEncoding[] = {
 //      --> glyphs to unicodes
 // -----------------------------------------------------
 PdfMacExpertEncoding::PdfMacExpertEncoding()
-    : PdfPredefinedEncoding("MacExpertEncoding"_n)
+    : PdfPredefinedEncoding("MacExpertEncoding"_n, s_cEncoding)
 {
 }
 
@@ -855,7 +855,7 @@ const char32_t PdfMacExpertEncoding::s_cEncoding[] = {
 // See: http://unicode.org/Public/MAPPINGS/VENDORS/ADOBE/stdenc.txt
 // -----------------------------------------------------
 PdfStandardEncoding::PdfStandardEncoding()
-    : PdfBuiltInEncoding("StandardEncoding")
+    : PdfBuiltInEncoding("StandardEncoding", s_cEncoding)
 {
 }
 
@@ -1134,7 +1134,7 @@ const char32_t PdfStandardEncoding::s_cEncoding[] = {
 // See: http://unicode.org/Public/MAPPINGS/VENDORS/ADOBE/symbol.txt
 // -----------------------------------------------------
 PdfSymbolEncoding::PdfSymbolEncoding()
-    : PdfBuiltInEncoding("SymbolEncoding")
+    : PdfBuiltInEncoding("SymbolEncoding", s_cEncoding)
 {
 }
 
@@ -1413,7 +1413,7 @@ const char32_t PdfSymbolEncoding::s_cEncoding[] = {
 // See: http://unicode.org/Public/MAPPINGS/VENDORS/ADOBE/zdingbat.txt
 // -----------------------------------------------------
 PdfZapfDingbatsEncoding::PdfZapfDingbatsEncoding()
-    : PdfBuiltInEncoding("ZapfDingbatsEncoding")
+    : PdfBuiltInEncoding("ZapfDingbatsEncoding", s_cEncoding)
 {
 }
 

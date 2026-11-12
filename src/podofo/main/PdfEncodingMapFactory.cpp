@@ -185,7 +185,7 @@ const PdfBuiltInEncodingConstPtr& PdfEncodingMapFactory::getStandard14FontEncodi
 
 // https://en.wikipedia.org/wiki/PostScript_Latin_1_Encoding
 AppleLatin1Encoding::AppleLatin1Encoding()
-    : PdfBuiltInEncoding("ISOLatin1Encoding")
+    : PdfBuiltInEncoding("ISOLatin1Encoding", s_encoding)
 {
 }
 
