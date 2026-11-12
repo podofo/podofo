@@ -348,11 +348,8 @@ void PdfSignerCms::checkContextInitialized()
 
 void PdfSignerCms::ensureContextInitialized()
 {
-    if (m_cmsContext != nullptr)
-        return;
-
-    m_cmsContext.reset(new CmsContext());
-    resetContext();
+    if (m_cmsContext == nullptr)
+        resetContext();
 }
 
 void PdfSignerCms::resetContext()
@@ -390,7 +387,10 @@ void PdfSignerCms::resetContext()
         }
     }
 
-    m_cmsContext->Reset(m_certificate, params);
+    // Replace the context only once the new one is initialized
+    unique_ptr<CmsContext> context(new CmsContext());
+    context->Reset(m_certificate, params);
+    m_cmsContext = std::move(context);
 }
 
 void PdfSignerCms::doSign(const bufferview& input, charbuff& output)
