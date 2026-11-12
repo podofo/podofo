@@ -265,6 +265,8 @@ private:
     std::unordered_map<std::string, std::unique_ptr<PdfFont>> m_inlineFonts;
 
 #ifdef PODOFO_HAVE_FONTCONFIG
+    static std::shared_ptr<PdfFontConfigWrapper> getFontConfigWrapper();
+
     static std::shared_ptr<PdfFontConfigWrapper> m_fontConfig;
 #endif
 };
