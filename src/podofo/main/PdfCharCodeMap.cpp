@@ -40,7 +40,7 @@ static void updateCodeSpaceRangeLoHi(unsigned refCodeLo, unsigned refCodeHi, uns
     unsigned& codeLo, unsigned& codeHi);
 
 PdfCharCodeMap::PdfCharCodeMap()
-    : m_MapDirty(false), m_codePointMapHead(nullptr) { }
+    : m_codePointMapHead(nullptr) { }
 
 PdfCharCodeMap::PdfCharCodeMap(PdfCharCodeMap&& map) noexcept
 {
@@ -49,7 +49,7 @@ PdfCharCodeMap::PdfCharCodeMap(PdfCharCodeMap&& map) noexcept
 
 PdfCharCodeMap::~PdfCharCodeMap()
 {
-    PoDoFo::DeleteNodeReverseMap(m_codePointMapHead);
+    PoDoFo::DeleteNodeReverseMap(m_codePointMapHead.load());
 }
 
 PdfCharCodeMap& PdfCharCodeMap::operator=(PdfCharCodeMap&& map) noexcept
@@ -59,7 +59,7 @@ PdfCharCodeMap& PdfCharCodeMap::operator=(PdfCharCodeMap&& map) noexcept
 }
 
 PdfCharCodeMap::PdfCharCodeMap(CodeUnitMap&& mappings, CodeUnitRanges&& ranges, const PdfEncodingLimits& limits)
-    : m_Limits(limits), m_Mappings(std::move(mappings)), m_Ranges(std::move(ranges)), m_MapDirty(true), m_codePointMapHead(nullptr)
+    : m_Limits(limits), m_Mappings(std::move(mappings)), m_Ranges(std::move(ranges)), m_codePointMapHead(nullptr)
 {
 }
 
@@ -189,8 +189,7 @@ void PdfCharCodeMap::move(PdfCharCodeMap& map) noexcept
     m_Mappings = std::move(map.m_Mappings);
     m_Ranges = std::move(map.m_Ranges);
     utls::move(map.m_Limits, m_Limits);
-    utls::move(map.m_MapDirty, m_MapDirty);
-    utls::move(map.m_codePointMapHead, m_codePointMapHead);
+    m_codePointMapHead = map.m_codePointMapHead.exchange(nullptr);
 }
 
 void PdfCharCodeMap::PushMapping(const PdfCharCode& codeUnit, const codepointview& codePoints)
@@ -289,7 +288,7 @@ void PdfCharCodeMap::PushRange(const PdfCharCode& srcCodeLo, unsigned rangeSize,
     if (srcCodeHi.Code > m_Limits.LastChar.Code)
         m_Limits.LastChar = srcCodeHi;
 
-    m_MapDirty = true;
+    resetCodePointMap();
 }
 
 bool PdfCharCodeMap::TryGetCodePoints(const PdfCharCode& codeUnit, CodePointSpan& codePoints) const
@@ -322,20 +321,17 @@ bool PdfCharCodeMap::TryGetCodePoints(const PdfCharCode& codeUnit, CodePointSpan
 
 bool PdfCharCodeMap::TryGetNextCharCode(string_view::iterator& it, const string_view::iterator& end, PdfCharCode& code) const
 {
-    const_cast<PdfCharCodeMap&>(*this).reviseCodePointMap();
-    return PoDoFo::TryGetCodeReverseMap(m_codePointMapHead, it, end, code);
+    return PoDoFo::TryGetCodeReverseMap(getCodePointMap(), it, end, code);
 }
 
 bool PdfCharCodeMap::TryGetCharCode(const codepointview& codePoints, PdfCharCode& code) const
 {
-    const_cast<PdfCharCodeMap&>(*this).reviseCodePointMap();
-    return PoDoFo::TryGetCodeReverseMap(m_codePointMapHead, codePoints, code);
+    return PoDoFo::TryGetCodeReverseMap(getCodePointMap(), codePoints, code);
 }
 
 bool PdfCharCodeMap::TryGetCharCode(codepoint codePoint, PdfCharCode& code) const
 {
-    const_cast<PdfCharCodeMap&>(*this).reviseCodePointMap();
-    return PoDoFo::TryGetCodeReverseMap(m_codePointMapHead, codePoint, code);
+    return PoDoFo::TryGetCodeReverseMap(getCodePointMap(), codePoint, code);
 }
 
 void PdfCharCodeMap::pushMapping(const PdfCharCode& codeUnit, const codepointview& codePoints)
@@ -347,7 +343,7 @@ void PdfCharCodeMap::pushMapping(const PdfCharCode& codeUnit, const codepointvie
 
     // Update limits
     updateLimits(codeUnit);
-    m_MapDirty = true;
+    resetCodePointMap();
 }
 
 void PdfCharCodeMap::updateLimits(const PdfCharCode& codeUnit)
@@ -362,17 +358,14 @@ void PdfCharCodeMap::updateLimits(const PdfCharCode& codeUnit)
         m_Limits.LastChar = codeUnit;
 }
 
-// Try to rebuild the inverse code point -> char code
-void PdfCharCodeMap::reviseCodePointMap()
+// Get the inverse code point -> char code map, building it on first use.
+// NOTE: Concurrent lookups on a shared map may build it more than once,
+// only the first map stored is kept
+const CodePointMapNode* PdfCharCodeMap::getCodePointMap() const
 {
-    if (!m_MapDirty)
-        return;
-
-    if (m_codePointMapHead != nullptr)
-    {
-        PoDoFo::DeleteNodeReverseMap(m_codePointMapHead);
-        m_codePointMapHead = nullptr;
-    }
+    auto head = m_codePointMapHead.load(std::memory_order_acquire);
+    if (head != nullptr || IsEmpty())
+        return head;
 
     vector<pair<PdfCharCode, CodePointSpan>> mappings;
     mappings.reserve(m_Mappings.size());
@@ -386,10 +379,22 @@ void PdfCharCodeMap::reviseCodePointMap()
     std::mt19937 e(random_device{}());
     std::shuffle(mappings.begin(), mappings.end(), e);
 
+    CodePointMapNode* newHead = nullptr;
     for (auto& pair : mappings)
-        PoDoFo::PushMappingReverseMap(m_codePointMapHead, pair.second.view(), pair.first);
+        PoDoFo::PushMappingReverseMap(newHead, pair.second.view(), pair.first);
 
-    m_MapDirty = false;
+    if (m_codePointMapHead.compare_exchange_strong(head, newHead, std::memory_order_acq_rel, std::memory_order_acquire))
+        return newHead;
+
+    // Another lookup stored its map first
+    PoDoFo::DeleteNodeReverseMap(newHead);
+    return head;
+}
+
+// Drop the inverse map, to be built again by the next lookup
+void PdfCharCodeMap::resetCodePointMap()
+{
+    PoDoFo::DeleteNodeReverseMap(m_codePointMapHead.exchange(nullptr));
 }
 
 // Returns true if there are invalid ranges
