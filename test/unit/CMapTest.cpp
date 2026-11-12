@@ -4,6 +4,8 @@
 #include <PdfTest.h>
 
 #include <podofo/private/XMPUtils.h>
+#include <thread>
+#include <atomic>
 
 using namespace std;
 using namespace PoDoFo;
@@ -198,4 +200,36 @@ TEST_CASE("TestCMapCIDsExceedingMaxCID")
     REQUIRE(*cids == 1114111);
     REQUIRE(!map.TryGetCodePoints(PdfCharCode(0x000C, 2), cids));
     REQUIRE(!map.TryGetCodePoints(PdfCharCode(0xFFFF, 2), cids));
+}
+
+TEST_CASE("TestPredefinedCMapConcurrentReverseLookup")
+{
+    // The reverse map of a shared predefined CMap is built by the first lookup
+    auto& cmap = PdfEncodingMapFactory::GetPredefinedCMapInstance("UniKS-UCS2-H");
+    atomic<unsigned> failures(0);
+    vector<thread> threads;
+    for (unsigned i = 0; i < 4; i++)
+    {
+        threads.emplace_back([&]
+        {
+            for (unsigned ch = 0x41; ch <= 0x5A; ch++)
+            {
+                CodePointSpan cids;
+                PdfCharCode reverse;
+                CodePointSpan reverseCids;
+                if (!cmap.GetCharMap().TryGetCodePoints(PdfCharCode(ch, 2), cids) || cids.GetSize() != 1
+                    || !cmap.GetCharMap().TryGetCharCode(*cids, reverse)
+                    || !cmap.GetCharMap().TryGetCodePoints(reverse, reverseCids)
+                    || reverseCids.GetSize() != 1 || *reverseCids != *cids)
+                {
+                    failures++;
+                }
+            }
+        });
+    }
+
+    for (auto& thread : threads)
+        thread.join();
+
+    REQUIRE(failures.load() == 0);
 }

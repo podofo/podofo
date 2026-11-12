@@ -4,6 +4,7 @@
 #ifndef PDF_CHAR_CODE_MAP_H
 #define PDF_CHAR_CODE_MAP_H
 
+#include <atomic>
 #include "PdfDeclarations.h"
 #include "PdfEncodingCommon.h"
 
@@ -145,15 +146,18 @@ namespace PoDoFo
 
     private:
         void updateLimits(const PdfCharCode& codeUnit);
-        void reviseCodePointMap();
+        const CodePointMapNode* getCodePointMap() const;
+        void resetCodePointMap();
         bool tryFixNextRanges(const CodeUnitRanges::iterator& it, unsigned prevRangeCodeUpper);
 
     private:
         PdfEncodingLimits m_Limits;
         CodeUnitMap m_Mappings;
         CodeUnitRanges m_Ranges;
-        bool m_MapDirty;
-        CodePointMapNode* m_codePointMapHead;           // Head of a BST to lookup code points
+        // Head of a BST to lookup code points. NOTE: It's built lazily by the
+        // const lookups, which may run concurrently on shared maps such as the
+        // predefined CMaps, so it's stored atomically
+        mutable std::atomic<CodePointMapNode*> m_codePointMapHead;
     };
 }
 
