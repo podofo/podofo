@@ -685,3 +685,29 @@ TEST_CASE("TestRestoreSigningContextNonElementContext")
     PdfSigningContext ctx;
     ASSERT_THROW_WITH_ERROR_CODE(ctx.Restore(std::make_shared<BufferStreamDevice>(buff)), PdfErrorCode::InvalidInput);
 }
+
+TEST_CASE("TestRestoreSigningContextNotASignature")
+{
+    // The restored reference must resolve to a signature widget and field
+    auto tryFinish = [](const string_view& from, const string_view& to)
+    {
+        charbuff buff;
+        PdfSignerId signerId;
+        auto hashToSign = createSigningContextDump(buff, signerId);
+        tamperDump(buff, from, to);
+        PdfSigningContext ctx;
+        auto doc = ctx.Restore(std::make_shared<BufferStreamDevice>(buff));
+
+        string pkey;
+        TestUtils::ReadTestInputFileTo(pkey, "mykey-pkcs8.der");
+        charbuff signedHash;
+        ssl::SignHash(hashToSign, pkey, PdfSignerCmsParams().Hashing, signedHash);
+        PdfSigningResults results;
+        results.Intermediate[signerId] = signedHash;
+        ctx.FinishSigning(results);
+    };
+
+    ASSERT_THROW_WITH_ERROR_CODE(tryFinish("/Subtype/Widget", "/Subtype/Text  "), PdfErrorCode::InvalidInput);
+    ASSERT_THROW_WITH_ERROR_CODE(tryFinish("/FT/Sig", "/FT/Tx "), PdfErrorCode::InvalidInput);
+    ASSERT_THROW_WITH_ERROR_CODE(tryFinish("/V 14 0 R", "         "), PdfErrorCode::InvalidObject);
+}
