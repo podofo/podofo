@@ -29,16 +29,17 @@ static const char* s_names[] = {
     "Rendition",
     "Trans",
     "GoTo3DView",
+    "RichMediaExecute",
 };
 
 PdfAction::PdfAction(PdfDocument& doc, PdfActionType type)
     : PdfDictionaryElement(doc, "Action"_n), m_Type(type)
 {
-    PdfName typeName(utls::TypeNameForIndex((unsigned)type, s_names, (unsigned)std::size(s_names)));
-    if (typeName.IsNull())
+    auto typeName = utls::TypeNameForIndex((unsigned)type, s_names, (unsigned)std::size(s_names));
+    if (typeName == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    GetDictionary().AddKey("S"_n, typeName);
+    GetDictionary().AddKey("S"_n, PdfName(typeName));
 }
 
 PdfAction::PdfAction(PdfObject& obj, PdfActionType type)

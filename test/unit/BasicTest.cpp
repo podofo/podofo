@@ -520,3 +520,11 @@ TEST_CASE("TestOutlineGettersWithoutValue")
     REQUIRE(item.GetDestination() != nullptr);
     REQUIRE(item.GetAction() == nullptr);
 }
+
+TEST_CASE("TestRichMediaExecuteAction")
+{
+    // Every action type has a name in the /S table
+    PdfMemDocument doc;
+    auto action = doc.CreateAction(PdfActionType::RichMediaExecute);
+    REQUIRE(action->GetDictionary().MustGetKey("S").GetName().GetString() == "RichMediaExecute");
+}
