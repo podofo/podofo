@@ -34,6 +34,8 @@ void Main(const cspan<string_view>& args)
         exit(-1);
     }
 
+    // NOTE: The buffer must outlive the document, which loads objects lazily from it
+    string buffer;
     if (args[1] == "-")
     {
         cin >> noskipws;
@@ -43,7 +45,7 @@ void Main(const cspan<string_view>& args)
 #endif
         istream_iterator<char> it(cin);
         istream_iterator<char> end;
-        string buffer(it, end);
+        buffer.assign(it, end);
         doc = new PdfMemDocument();
         doc->LoadFromBuffer(buffer);
     }
