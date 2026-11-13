@@ -258,7 +258,8 @@ nullable<PdfDestination&> PdfOutlineItem::getDestination()
             m_Destination = std::move(dest);
     }
 
-    if (m_Destination == nullptr)
+    // NOTE: The nullable has a value also when no destination was found
+    if (*m_Destination == nullptr)
         return { };
     else
         return **m_Destination;
@@ -311,7 +312,8 @@ nullable<PdfAction&> PdfOutlineItem::getAction()
         }
     }
 
-    if (m_Action == nullptr)
+    // NOTE: The nullable has a value also when no action was found
+    if (*m_Action == nullptr)
         return { };
     else
         return **m_Action;
