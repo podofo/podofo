@@ -791,3 +791,9 @@ TEST_CASE("TestFreeFacesWhileCreatingOnAnotherThread")
 
     creator.join();
 }
+
+TEST_CASE("TestGetOrCreateFontNullMetrics")
+{
+    PdfMemDocument doc;
+    ASSERT_THROW_WITH_ERROR_CODE(doc.GetFonts().GetOrCreateFont(PdfFontMetricsConstPtr()), PdfErrorCode::InvalidHandle);
+}
