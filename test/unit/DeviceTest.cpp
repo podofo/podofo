@@ -347,6 +347,16 @@ TEST_CASE("TestWriteOnlyDeviceCopyTo")
     ASSERT_THROW_WITH_ERROR_CODE(writeOnly.CopyTo(destination, 10), PdfErrorCode::InternalLogic);
 }
 
+TEST_CASE("TestReadOnlyDeviceFlush")
+{
+    // Flushing a read only device is rejected, also through an empty copy
+    istringstream in("data");
+    StandardStreamDevice readOnly(in);
+    ASSERT_THROW_WITH_ERROR_CODE(readOnly.Flush(), PdfErrorCode::InternalLogic);
+    SpanStreamDevice empty(""sv);
+    ASSERT_THROW_WITH_ERROR_CODE(empty.CopyTo(readOnly), PdfErrorCode::InternalLogic);
+}
+
 string createTestFile(const string_view& filename, size_t size)
 {
     charbuff buffer(size);
