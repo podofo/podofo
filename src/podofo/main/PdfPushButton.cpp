@@ -37,11 +37,11 @@ void PdfPushButton::SetRolloverCaption(nullable<const PdfString&> text)
 {
     if (text.has_value())
     {
-        GetWidget()->GetOrCreateAppearanceCharacteristics().SetRolloverCaption(*text);
+        MustGetWidget().GetOrCreateAppearanceCharacteristics().SetRolloverCaption(*text);
     }
     else
     {
-        auto apChars = GetWidget()->GetAppearanceCharacteristics();
+        auto apChars = MustGetWidget().GetAppearanceCharacteristics();
         if (apChars != nullptr)
             apChars->SetRolloverCaption(nullptr);
     }
@@ -49,7 +49,7 @@ void PdfPushButton::SetRolloverCaption(nullable<const PdfString&> text)
 
 nullable<const PdfString&>  PdfPushButton::GetRolloverCaption() const
 {
-    auto apChars = GetWidget()->GetAppearanceCharacteristics();
+    auto apChars = MustGetWidget().GetAppearanceCharacteristics();
     if (apChars == nullptr)
         return { };
 
@@ -60,11 +60,11 @@ void PdfPushButton::SetAlternateCaption(nullable<const PdfString&> text)
 {
     if (text.has_value())
     {
-        GetWidget()->GetOrCreateAppearanceCharacteristics().SetAlternateCaption(*text);
+        MustGetWidget().GetOrCreateAppearanceCharacteristics().SetAlternateCaption(*text);
     }
     else
     {
-        auto apChars = GetWidget()->GetAppearanceCharacteristics();
+        auto apChars = MustGetWidget().GetAppearanceCharacteristics();
         if (apChars != nullptr)
             apChars->SetAlternateCaption(nullptr);
     }
@@ -73,7 +73,7 @@ void PdfPushButton::SetAlternateCaption(nullable<const PdfString&> text)
 
 nullable<const PdfString&> PdfPushButton::GetAlternateCaption() const
 {
-    auto apChars = GetWidget()->GetAppearanceCharacteristics();
+    auto apChars = MustGetWidget().GetAppearanceCharacteristics();
     if (apChars == nullptr)
         return { };
 

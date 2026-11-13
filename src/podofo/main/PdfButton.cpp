@@ -46,11 +46,11 @@ void PdfButton::SetCaption(nullable<const PdfString&> text)
 {
     if (text.has_value())
     {
-        GetWidget()->GetOrCreateAppearanceCharacteristics().SetCaption(*text);
+        MustGetWidget().GetOrCreateAppearanceCharacteristics().SetCaption(*text);
     }
     else
     {
-        auto apChars = GetWidget()->GetAppearanceCharacteristics();
+        auto apChars = MustGetWidget().GetAppearanceCharacteristics();
         if (apChars != nullptr)
             apChars->SetCaption(nullptr);
     }
@@ -58,7 +58,7 @@ void PdfButton::SetCaption(nullable<const PdfString&> text)
 
 nullable<const PdfString&> PdfButton::GetCaption() const
 {
-    auto apChars = GetWidget()->GetAppearanceCharacteristics();
+    auto apChars = MustGetWidget().GetAppearanceCharacteristics();
     if (apChars == nullptr)
         return { };
 

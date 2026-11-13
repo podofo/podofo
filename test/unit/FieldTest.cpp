@@ -278,3 +278,15 @@ startxref
     auto& field = doc.GetAcroForm()->GetFieldAt(0);
     ASSERT_THROW_WITH_ERROR_CODE(field.GetFullName(), PdfErrorCode::MaxRecursionReached);
 }
+
+TEST_CASE("TestButtonCaptionsWithoutWidget")
+{
+    // The caption accessors of a field without widget must raise instead of dereferencing null
+    PdfMemDocument doc;
+    auto& form = doc.GetOrCreateAcroForm();
+    auto& button = form.CreateField<PdfPushButton>("button");
+    ASSERT_THROW_WITH_ERROR_CODE(button.GetCaption(), PdfErrorCode::InvalidHandle);
+    ASSERT_THROW_WITH_ERROR_CODE(button.SetCaption(PdfString("Push")), PdfErrorCode::InvalidHandle);
+    ASSERT_THROW_WITH_ERROR_CODE(button.GetRolloverCaption(), PdfErrorCode::InvalidHandle);
+    ASSERT_THROW_WITH_ERROR_CODE(button.SetAlternateCaption(PdfString("Alt")), PdfErrorCode::InvalidHandle);
+}
