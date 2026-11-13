@@ -449,3 +449,22 @@ TEST_CASE("TestOutlineItemSettersSelf")
     REQUIRE(&item.GetAction()->GetObject() == &action->GetObject());
     REQUIRE(item.GetDestination() == nullptr);
 }
+
+TEST_CASE("TestOutlineEraseCreatedItems")
+{
+    // Created items know their parent, so erasing them unlinks them from it
+    PdfMemDocument doc;
+    auto& root = doc.GetOrCreateOutlines();
+    auto& a = root.CreateChild(PdfString("A"));
+    auto& b = a.CreateNext(PdfString("B"));
+    REQUIRE(a.GetParentOutline() == &root);
+    REQUIRE(b.GetParentOutline() == &root);
+    REQUIRE(root.Last() == &b);
+    a.Erase();
+    REQUIRE(root.First() == &b);
+    b.Erase();
+    REQUIRE(root.First() == nullptr);
+    REQUIRE(root.Last() == nullptr);
+    auto& c = root.CreateChild(PdfString("C"));
+    REQUIRE(root.First() == &c);
+}
