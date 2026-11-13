@@ -528,3 +528,23 @@ TEST_CASE("TestRichMediaExecuteAction")
     auto action = doc.CreateAction(PdfActionType::RichMediaExecute);
     REQUIRE(action->GetDictionary().MustGetKey("S").GetName().GetString() == "RichMediaExecute");
 }
+
+TEST_CASE("TestFileSpecFromObject")
+{
+    // The /Type check must read a name and reject other values without crashing
+    PdfMemDocument doc;
+    auto& filespecObj = doc.GetObjects().CreateDictionaryObject();
+    filespecObj.GetDictionary().AddKey("Type"_n, PdfName("Filespec"));
+    unique_ptr<PdfFileSpec> filespec;
+    REQUIRE(PdfFileSpec::TryCreateFromObject(filespecObj, filespec));
+    REQUIRE(filespec != nullptr);
+
+    auto& numberTypeObj = doc.GetObjects().CreateDictionaryObject();
+    numberTypeObj.GetDictionary().AddKey("Type"_n, PdfObject(static_cast<int64_t>(5)));
+    REQUIRE(!PdfFileSpec::TryCreateFromObject(numberTypeObj, filespec));
+    REQUIRE(filespec == nullptr);
+
+    auto& otherTypeObj = doc.GetObjects().CreateDictionaryObject();
+    otherTypeObj.GetDictionary().AddKey("Type"_n, PdfName("Other"));
+    REQUIRE(!PdfFileSpec::TryCreateFromObject(otherTypeObj, filespec));
+}

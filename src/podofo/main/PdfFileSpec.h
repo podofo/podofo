@@ -30,7 +30,7 @@ private:
     PdfFileSpec(const PdfFileSpec& fileSpec) = default;
 
 public:
-    bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfFileSpec>& filespec);
+    static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfFileSpec>& filespec);
 
     /// Gets file name for the FileSpec
     /// @returns the filename of this file specification
