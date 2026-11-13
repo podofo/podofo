@@ -106,12 +106,12 @@ private:
     template <typename TNameTree>
     static constexpr PdfKnownNameTree getType()
     {
-        if (std::is_same_v<TNameTree, PdfEmbeddedFiles>)
+        if constexpr (std::is_same_v<TNameTree, PdfEmbeddedFiles>)
             return PdfKnownNameTree::EmbeddedFiles;
-        else if (std::is_same_v<TNameTree, PdfDestinations>)
+        else if constexpr (std::is_same_v<TNameTree, PdfDestinations>)
             return PdfKnownNameTree::Dests;
         else
-            return PdfKnownNameTree::Unknown;
+            static_assert(always_false<TNameTree>, "Unsupported name tree type");
     }
 
 private:
