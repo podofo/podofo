@@ -119,6 +119,7 @@ size_t InputStream::readSlowPath(char* buffer, size_t size, bool& eof)
 
 void InputStream::CopyTo(OutputStream& stream)
 {
+    checkRead();
     bool eof;
     size_t read = 0;
     char buffer[BUFFER_SIZE];
@@ -157,6 +158,7 @@ void InputStream::CopyTo(OutputStream& stream)
 
 void InputStream::CopyTo(OutputStream& stream, size_t size)
 {
+    checkRead();
     bool eof;
     size_t read = 0;
     char buffer[BUFFER_SIZE];

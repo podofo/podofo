@@ -336,6 +336,17 @@ TEST_CASE("TestStringStreamWriteOwnContent")
     REQUIRE(stream.GetString() == content);
 }
 
+TEST_CASE("TestWriteOnlyDeviceCopyTo")
+{
+    // Reading from a write only device is rejected also when copying
+    ostringstream out;
+    StandardStreamDevice writeOnly(out);
+    charbuff buffer;
+    BufferStreamDevice destination(buffer);
+    ASSERT_THROW_WITH_ERROR_CODE(writeOnly.CopyTo(destination), PdfErrorCode::InternalLogic);
+    ASSERT_THROW_WITH_ERROR_CODE(writeOnly.CopyTo(destination, 10), PdfErrorCode::InternalLogic);
+}
+
 string createTestFile(const string_view& filename, size_t size)
 {
     charbuff buffer(size);
