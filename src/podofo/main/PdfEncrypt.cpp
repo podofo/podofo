@@ -11,6 +11,8 @@
 #include <podofo/private/OpenSSLInternal.h>
 #include "PdfEncrypt.h"
 
+#include <algorithm>
+#include <limits>
 #include <openssl/md5.h>
 #include <openssl/rand.h>
 #include <podofo/private/SASLprep.h>
@@ -34,6 +36,12 @@ constexpr PdfPermissions DefaultPermsMask = ~(PdfPermissions::Default | (PdfPerm
 #define AES_IV_LENGTH 16
 #define AES_BLOCK_SIZE 16
 
+// The EVP update functions take and return an int length: pick the maximum chunk size
+// that is int and block aligned (2^31 - 32), so that the update functions won't fail
+// because the output, which may also include the bytes buffered by previous updates,
+// exceeds an int
+constexpr size_t CIPHER_MAX_CHUNK_SIZE = (size_t)numeric_limits<int>::max() / EVP_MAX_BLOCK_LENGTH * EVP_MAX_BLOCK_LENGTH;
+
 constexpr unsigned char padding[] =
 "\x28\xBF\x4E\x5E\x4E\x75\x8A\x41\x64\x00\x4E\x56\xFF\xFA\x01\x08\x2E\x2E\x00\xB6\xD0\x68\x3E\x80\x2F\x0C\xA9\xFE\x64\x53\x69\x7A";
 
@@ -47,6 +55,9 @@ static void AESEncrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned k
 static void RC4Encrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned keylen,
     const unsigned char* textin, size_t textlen,
     unsigned char* textout, size_t textoutlen);
+
+static bool cipherUpdate(int(*update)(EVP_CIPHER_CTX*, unsigned char*, int*, const unsigned char*, int),
+    EVP_CIPHER_CTX* ctx, unsigned char* out, size_t& outLen, const unsigned char* in, size_t inLen);
 
 namespace
 {
@@ -252,7 +263,8 @@ protected:
 
         // The encrypted data is read in the free part of the buffer
         bool streameof;
-        size_t read = ReadBuffer(*m_InputStream, buffer + drained, std::min(len - drained, m_inputLen), streameof);
+        size_t read = ReadBuffer(*m_InputStream, buffer + drained,
+            std::min({ len - drained, m_inputLen, CIPHER_MAX_CHUNK_SIZE }), streameof);
         m_inputLen -= read;
 
         // Quote openssl.org: "the decrypted data buffer out passed to EVP_DecryptUpdate() should have sufficient room
@@ -950,12 +962,12 @@ void RC4Encrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned keylen,
     if (status != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing RC4 encryption engine");
 
-    int dataOutMoved;
-    status = EVP_EncryptUpdate(ctx, textout, &dataOutMoved, textin, (int)textlen);
-    if (status != 1)
+    size_t outLen;
+    if (!cipherUpdate(EVP_EncryptUpdate, ctx, textout, outLen, textin, textlen))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error RC4-encrypting data");
 
-    status = EVP_EncryptFinal_ex(ctx, &textout[dataOutMoved], &dataOutMoved);
+    int dataOutMoved;
+    status = EVP_EncryptFinal_ex(ctx, textout + outLen, &dataOutMoved);
     if (status != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error RC4-encrypting data");
 }
@@ -1218,12 +1230,10 @@ void AESDecrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned keyLen, 
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES decryption engine");
 
-    int dataOutMoved;
-    rc = EVP_DecryptUpdate(ctx, textout, &dataOutMoved, textin, (int)textlen);
-    outLen = dataOutMoved;
-    if (rc != 1)
+    if (!cipherUpdate(EVP_DecryptUpdate, ctx, textout, outLen, textin, textlen))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-decryption data");
 
+    int dataOutMoved;
     rc = EVP_DecryptFinal_ex(ctx, textout + outLen, &dataOutMoved);
     outLen += dataOutMoved;
     if (rc != 1)
@@ -1247,14 +1257,34 @@ void AESEncrypt(EVP_CIPHER_CTX* ctx, const unsigned char* key, unsigned keyLen, 
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
 
-    int dataOutMoved;
-    rc = EVP_EncryptUpdate(ctx, textout, &dataOutMoved, textin, (int)textlen);
-    if (rc != 1)
+    size_t outLen;
+    if (!cipherUpdate(EVP_EncryptUpdate, ctx, textout, outLen, textin, textlen))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 
-    rc = EVP_EncryptFinal_ex(ctx, &textout[dataOutMoved], &dataOutMoved);
+    int dataOutMoved;
+    rc = EVP_EncryptFinal_ex(ctx, textout + outLen, &dataOutMoved);
     if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
+}
+
+// Feed the data to the EVP update function in chunks of at most CIPHER_MAX_CHUNK_SIZE
+bool cipherUpdate(int(*update)(EVP_CIPHER_CTX*, unsigned char*, int*, const unsigned char*, int),
+    EVP_CIPHER_CTX* ctx, unsigned char* out, size_t& outLen, const unsigned char* in, size_t inLen)
+{
+    outLen = 0;
+    do
+    {
+        int chunkLen = (int)std::min(inLen, CIPHER_MAX_CHUNK_SIZE);
+        int moved;
+        if (update(ctx, out + outLen, &moved, in, chunkLen) != 1)
+            return false;
+
+        outLen += (size_t)moved;
+        in += chunkLen;
+        inLen -= (size_t)chunkLen;
+    } while (inLen != 0);
+
+    return true;
 }
 
 void PdfEncryptAESV2::GenerateEncryptionKey(
