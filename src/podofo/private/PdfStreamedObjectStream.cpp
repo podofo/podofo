@@ -30,8 +30,20 @@ public:
 
     ~ObjectOutputStream()
     {
-        Flush(*m_outputStream);
-        m_objectStream->FinishOutput();
+        // NOTE: Destructors can't throw: a failure leaves the stream truncated
+        try
+        {
+            Flush(*m_outputStream);
+            m_objectStream->FinishOutput();
+        }
+        catch (const std::exception& e)
+        {
+            PoDoFo::LogMessage(PdfLogSeverity::Error, "Error while finishing the streamed object stream: {}", e.what());
+        }
+        catch (...)
+        {
+            PoDoFo::LogMessage(PdfLogSeverity::Error, "Unknown error while finishing the streamed object stream");
+        }
     }
 
 protected:

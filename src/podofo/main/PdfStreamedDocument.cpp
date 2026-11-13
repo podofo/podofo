@@ -28,7 +28,19 @@ PdfStreamedDocument::PdfStreamedDocument(const string_view& filename, PdfVersion
 
 PdfStreamedDocument::~PdfStreamedDocument()
 {
-    GetFonts().EmbedFonts();
+    // NOTE: Destructors can't throw: a failure leaves the document truncated
+    try
+    {
+        GetFonts().EmbedFonts();
+    }
+    catch (const std::exception& e)
+    {
+        PoDoFo::LogMessage(PdfLogSeverity::Error, "Error while embedding the fonts of the streamed document: {}", e.what());
+    }
+    catch (...)
+    {
+        PoDoFo::LogMessage(PdfLogSeverity::Error, "Unknown error while embedding the fonts of the streamed document");
+    }
 }
 
 void PdfStreamedDocument::init(PdfVersion version, PdfSaveOptions opts)

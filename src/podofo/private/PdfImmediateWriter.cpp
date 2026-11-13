@@ -57,7 +57,20 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
 
 PdfImmediateWriter::~PdfImmediateWriter()
 {
-    finish();
+    // NOTE: Destructors can't throw: a failure leaves the document truncated
+    try
+    {
+        finish();
+    }
+    catch (const std::exception& e)
+    {
+        PoDoFo::LogMessage(PdfLogSeverity::Error, "Error while finishing the streamed document: {}", e.what());
+    }
+    catch (...)
+    {
+        PoDoFo::LogMessage(PdfLogSeverity::Error, "Unknown error while finishing the streamed document");
+    }
+
     // The object list outlives this writer, so the registrations
     // it holds would be left dangling
     GetObjects().DetachObserver();
