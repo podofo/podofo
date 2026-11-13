@@ -194,13 +194,10 @@ void PdfDocument::appendOutlineItems(PdfOutlineItem& destParent, const PdfOutlin
         // Remap references within the item (e.g. Dest array entries, action objects)
         copyReferencedObjects(newObj, srcObjects, m_Objects, mappedObjects);
 
-        // Construct without parent so InsertChild's same-tree check passes,
-        // then set the parent relationship after insertion
+        // Construct without parent so InsertChild's same-tree check passes
         unique_ptr<PdfOutlineItem> destItem(new PdfOutlineItem(newObj, nullptr, nullptr));
         auto* destItemPtr = destItem.get();
         destParent.InsertChild(std::move(destItem));
-        destItemPtr->m_ParentOutline = &destParent;
-        newObj.GetDictionary().AddKey("Parent"_n, destParent.GetObject().GetIndirectReference());
 
         // Recurse into children
         if (srcItem->First() != nullptr)

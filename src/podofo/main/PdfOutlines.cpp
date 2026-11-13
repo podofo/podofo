@@ -52,7 +52,7 @@ PdfOutlineItem::PdfOutlineItem(PdfObject& obj, PdfOutlineItem* parentOutline, Pd
 }
 
 PdfOutlineItem::PdfOutlineItem(PdfDocument& doc, PdfOutlineItem* parentOutline)
-    : PdfDictionaryElement(doc, "Outlines"_n), m_ParentOutline(nullptr), m_Prev(nullptr),
+    : PdfDictionaryElement(doc, "Outlines"_n), m_ParentOutline(parentOutline), m_Prev(nullptr),
     m_Next(nullptr), m_First(nullptr), m_Last(nullptr), m_Destination(nullptr), m_Action(nullptr)
 {
     if (parentOutline != nullptr)
@@ -69,7 +69,7 @@ PdfOutlineItem::~PdfOutlineItem()
 
 PdfOutlineItem& PdfOutlineItem::CreateChild(const PdfString& title)
 {
-    unique_ptr< PdfOutlineItem> item(new PdfOutlineItem(GetDocument(), this));
+    unique_ptr<PdfOutlineItem> item(new PdfOutlineItem(GetDocument()));
     item->SetTitle(title);
     this->insertChildInternal(item.get(), false);
     return *item.release();
@@ -100,6 +100,10 @@ void PdfOutlineItem::insertChildInternal(PdfOutlineItem* item, bool checkSameTre
         if (itemRoot == thisRoot) // item is in the same tree as this
             PODOFO_RAISE_ERROR(PdfErrorCode::ItemAlreadyPresent);
     }
+
+    // The item belongs to this outline from now on
+    item->m_ParentOutline = this;
+    item->GetDictionary().AddKey("Parent"_n, GetObject().GetIndirectReference());
 
     if (m_Last != nullptr)
     {
