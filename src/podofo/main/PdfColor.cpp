@@ -622,7 +622,7 @@ PdfColor PdfColor::CreateFromString(const string_view& name)
         pair<const PdfNamedColor*, const PdfNamedColor*> iterators =
             std::equal_range(&(s_NamedColors[0]),
                 s_NamedColors + s_NamedColorsCount,
-                PdfNamedColor(name.data(), PdfColor()), NamedColorComparatorPredicate());
+                PdfNamedColor(name, PdfColor()), NamedColorComparatorPredicate());
 
         if (iterators.first != iterators.second)
             return iterators.first->GetColor();
