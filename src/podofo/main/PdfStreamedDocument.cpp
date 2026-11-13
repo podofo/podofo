@@ -48,6 +48,11 @@ void PdfStreamedDocument::init(PdfVersion version, PdfSaveOptions opts)
     m_Writer.reset(new PdfImmediateWriter(this->GetObjects(), this->GetTrailer().GetObject(), *m_Device, version, m_Encrypt, opts));
 }
 
+void PdfStreamedDocument::clear()
+{
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Resetting a streamed document is not supported");
+}
+
 PdfVersion PdfStreamedDocument::GetPdfVersion() const
 {
     return m_Writer->GetPdfVersion();
