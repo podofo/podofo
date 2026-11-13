@@ -491,8 +491,6 @@ PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
     if (append)
         stream.CopyTo(buffer);
 
-    m_stream->m_locked = true;
-
     if (filters_.has_value())
     {
         auto& filters = *filters_;
@@ -553,6 +551,9 @@ PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
         // Unconditionally set the object as dirty on the stream creation
         stream.GetParent().SetDirty();
     }
+
+    // Lock last, as the destructor that unlocks won't run on a failure above
+    m_stream->m_locked = true;
 }
 
 void PdfObjectOutputStream::writeBuffer(const char* buffer, size_t size)

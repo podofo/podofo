@@ -373,6 +373,18 @@ TEST_CASE("TestStreamedDocumentUnwrittenStream")
     REQUIRE(string_view(buffer).substr(0, 5) == "%PDF-");
 }
 
+TEST_CASE("TestStreamedDocumentRewriteStream")
+{
+    // An object stream can be written to the streamed device only once
+    charbuff buffer;
+    auto device = std::make_shared<BufferStreamDevice>(buffer);
+    PdfStreamedDocument doc(device);
+    auto form = doc.CreateXObjectForm(Rect(0, 0, 10, 10));
+    auto& objStream = form->GetObject().GetOrCreateStream();
+    objStream.SetData(string_view("0 0 m 10 10 l S"));
+    ASSERT_THROW_WITH_ERROR_CODE(objStream.SetData(string_view("1 1 m 9 9 l S")), PdfErrorCode::ChangeOnImmutable);
+}
+
 TEST_CASE("TestStreamedDocumentDeviceFailure")
 {
     // A device failing while the streams and the document are finished:
