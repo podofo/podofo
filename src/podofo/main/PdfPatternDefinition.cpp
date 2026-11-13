@@ -13,6 +13,7 @@ using namespace PoDoFo;
 
 static Matrix readMatrixFromDict(const PdfDictionary& dict);
 static Rect readBBoxFromDict(const PdfDictionary& dict);
+static PdfShadingDefinitionPtr getShadingPlaceholder();
 
 PdfPatternDefinition::PdfPatternDefinition(nullable<const Matrix&> matrix)
 {
@@ -86,9 +87,11 @@ PdfShadingPatternDefinition::PdfShadingPatternDefinition(const PdfShadingDiction
 }
 
 PdfShadingPatternDefinition::PdfShadingPatternDefinition(const PdfDictionary& dict) :
-    PdfPatternDefinition(readMatrixFromDict(dict))
+    PdfPatternDefinition(readMatrixFromDict(dict)),
+    m_Shading(getShadingPlaceholder())
 {
-    // TODO: Deserialize m_Shading and m_ExtGState from the dictionary
+    // TODO: Deserialize m_Shading and m_ExtGState from the dictionary,
+    // until then m_Shading is a placeholder for GetShading() to return
 }
 
 void PdfShadingPatternDefinition::fillExportDictionary(PdfDictionary& dict) const
@@ -489,4 +492,14 @@ Rect readBBoxFromDict(const PdfDictionary& dict)
         return Rect::FromArray(*arr);
 
     return Rect();
+}
+
+PdfShadingDefinitionPtr getShadingPlaceholder()
+{
+    // A gray axial shading without functions. It's never exported, as the
+    // export of a loaded shading pattern raises before reading the shading
+    static PdfShadingDefinitionPtr s_placeholder = std::make_shared<PdfAxialShadingDefinition>(
+        PdfColorSpaceFilterFactory::GetDeviceGrayInstancePtr(), vector<PdfFunctionDefinitionPtr>(),
+        array<double, 4>{ }, array<bool, 2>{ }, array<double, 2>{ 0, 1 }, PdfColorRaw{ }, Rect(), false);
+    return s_placeholder;
 }

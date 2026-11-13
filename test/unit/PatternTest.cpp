@@ -863,3 +863,21 @@ TEST_CASE("TestType3RadialShading")
     doc.Save(TestUtils::GetTestOutputFilePath("TestType3RadialShading.pdf"), PdfSaveOptions::NoMetadataUpdate);
     TestUtils::AreFilesEqual(TestUtils::GetTestOutputFilePath("TestType3RadialShading.pdf"), TestUtils::GetTestInputFilePath("TestType3RadialShadingRef.pdf"));
 }
+
+TEST_CASE("TestShadingPatternFromObject")
+{
+    // A pattern loaded from an object has a shading, a placeholder until it's deserialized
+    PdfMemDocument doc;
+    auto expFoo = doc.CreateFunction(std::make_shared<PdfExponentialFunctionDefinition>(1.048, vector<double>{ 0, 1 },
+        vector<double>{ 0.929, 0.357, 1, 0.298 }, vector<double>{ 0.631, 0.278, 1, 0.027 }));
+    auto radialShadingDef = std::make_shared<PdfRadialShadingDefinition>(PdfColorSpaceType::DeviceCMYK,
+        *expFoo, array<double, 6>{ 0, 0, 0.096, 0, 0, 1 }, array<bool, 2>{ true, true });
+    auto radialShading = doc.CreateShadingDictionary(radialShadingDef);
+    auto pattern = doc.CreateShadingPattern(std::make_shared<PdfShadingPatternDefinition>(*radialShading));
+    REQUIRE_NOTHROW(pattern->GetDefinition().GetShading());
+
+    unique_ptr<PdfShadingPattern> loaded;
+    REQUIRE(PdfPattern::TryCreateFromObject<PdfShadingPattern>(pattern->GetObject(), loaded));
+    REQUIRE(loaded->GetDefinition().GetShadingPtr() != nullptr);
+    REQUIRE_NOTHROW(loaded->GetDefinition().GetShading().GetShadingType());
+}
