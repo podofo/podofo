@@ -77,7 +77,8 @@ private:
     PdfDictionary& getOrCreateResourceDictionary(const PdfName& type);
 
 private:
-    std::array<unsigned, (unsigned)PdfResourceType::Properties> m_currResourceIds;
+    // NOTE: The array is indexed by the enum value, so the last one is included
+    std::array<unsigned, (unsigned)PdfResourceType::Properties + 1> m_currResourceIds;
 };
 
 };
