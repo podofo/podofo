@@ -246,6 +246,9 @@ PdfFont& PdfFontManager::GetOrCreateFontFromBuffer(const bufferview& buffer, con
 
 PdfFont& PdfFontManager::GetOrCreateFont(PdfFontMetricsConstPtr metrics, const PdfFontCreateParams& params)
 {
+    if (metrics == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The font metrics must not be null");
+
     return getOrCreateFontHashed(std::move(metrics), params);
 }
 
