@@ -69,6 +69,8 @@ public:
     ///
     /// @param buffer a memory area containing the PDF data
     /// @param password optional password for encrypted documents
+    /// @remarks The buffer is not copied and must outlive the document,
+    /// as objects are loaded from it lazily
     ///
     /// @see WriteUpdate, Load, LoadFromDevice
     void LoadFromBuffer(const bufferview& buffer, const std::string_view& password);
@@ -78,6 +80,8 @@ public:
     /// @param buffer a memory area containing the PDF data
     /// @param opts load options
     /// @param password optional password for encrypted documents
+    /// @remarks The buffer is not copied and must outlive the document,
+    /// as objects are loaded from it lazily
     ///
     /// @see WriteUpdate, Load, LoadFromDevice
     void LoadFromBuffer(const bufferview& buffer, PdfLoadOptions opts = PdfLoadOptions::None, const std::string_view& password = { });
