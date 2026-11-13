@@ -73,6 +73,7 @@ void PdfObjectStream::CopyToSafe(charbuff& buffer) const
 
 void PdfObjectStream::CopyTo(OutputStream& stream, bool raw) const
 {
+    ensureClosed();
     PdfFilterList mediaFilters;
     vector<const PdfDictionary*> decodeParms;
     auto inputStream = const_cast<PdfObjectStream&>(*this).getInputStream(raw, mediaFilters, decodeParms);
@@ -85,6 +86,7 @@ void PdfObjectStream::CopyTo(OutputStream& stream, bool raw) const
 
 void PdfObjectStream::CopyToSafe(OutputStream& stream) const
 {
+    ensureClosed();
     PdfFilterList mediaFilters;
     vector<const PdfDictionary*> decodeParms;
     auto inputStream = const_cast<PdfObjectStream&>(*this).getInputStream(false, mediaFilters, decodeParms);
