@@ -89,6 +89,10 @@ protected:
 
     void SetPdfVersion(PdfVersion version) override;
 
+    /// Not supported, so Reset() raises: the writer keeps the trailer
+    /// and the objects already streamed
+    void clear() override;
+
 private:
     /// Initialize the PdfStreamedDocument.
     /// @param version the PDF version of the document to write.

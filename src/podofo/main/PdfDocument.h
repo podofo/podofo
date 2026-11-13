@@ -385,6 +385,7 @@ protected:
     /// Clear all variables that have internal memory usage
     void Clear();
 
+    /// Called by Clear() before anything is cleared
     virtual void clear();
 
     /// Get the PDF version of the document

@@ -75,8 +75,8 @@ PdfDocument::~PdfDocument()
 void PdfDocument::Reset()
 {
     Clear();
-    resetPrivate();
     reset();
+    resetPrivate();
 }
 
 void PdfDocument::reset()
@@ -86,6 +86,7 @@ void PdfDocument::reset()
 
 void PdfDocument::Clear()
 {
+    clear();
     m_FontManager.Clear();
     m_Metadata.Invalidate();
     m_TrailerObj = nullptr;
@@ -100,7 +101,6 @@ void PdfDocument::Clear()
     m_InfoLazyLoaded = false;
     m_OutlinesLazyLoaded = false;
     m_Objects.Clear();
-    clear();
 }
 
 void PdfDocument::clear()

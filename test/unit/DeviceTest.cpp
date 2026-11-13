@@ -385,6 +385,26 @@ TEST_CASE("TestStreamedDocumentRewriteStream")
     ASSERT_THROW_WITH_ERROR_CODE(objStream.SetData(string_view("1 1 m 9 9 l S")), PdfErrorCode::ChangeOnImmutable);
 }
 
+TEST_CASE("TestStreamedDocumentResetRejected")
+{
+    // Reset is rejected before anything is cleared, as the writer keeps
+    // pointers to the trailer and to the objects already streamed
+    charbuff buffer;
+    {
+        auto device = std::make_shared<BufferStreamDevice>(buffer);
+        PdfStreamedDocument doc(device);
+        doc.GetPages().CreatePage(PdfPageSize::A4);
+        auto form = doc.CreateXObjectForm(Rect(0, 0, 10, 10));
+        form->GetObject().GetOrCreateStream().SetData(string_view("0 0 m 10 10 l S"));
+        ASSERT_THROW_WITH_ERROR_CODE(doc.Reset(), PdfErrorCode::NotImplemented);
+        REQUIRE(doc.GetPages().GetCount() == 1);
+    }
+
+    PdfMemDocument loaded;
+    loaded.LoadFromBuffer(buffer);
+    REQUIRE(loaded.GetPages().GetCount() == 1);
+}
+
 TEST_CASE("TestStreamedDocumentDeviceFailure")
 {
     // A device failing while the streams and the document are finished:
