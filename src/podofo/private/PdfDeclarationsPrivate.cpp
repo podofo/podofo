@@ -1859,23 +1859,21 @@ utls::RecursionGuard::~RecursionGuard()
 
 void removeTrailingZeroes(string& str, size_t len)
 {
-    // Remove trailing zeroes
+    // NOTE: Trim only after a decimal point: without one, as with precision 0,
+    // the trailing zeroes are significant, with one the loop stops there at worst
     const char* cursor = str.data();
-    while (cursor[len - 1] == '0')
-        len--;
-
-    if (cursor[len - 1] == '.')
-        len--;
-
-    if (len == 0)
+    if (std::memchr(cursor, '.', len) != nullptr)
     {
-        str.resize(1);
-        str[0] = '0';
+        // Remove trailing zeroes
+        while (cursor[len - 1] == '0')
+            len--;
+
+        if (cursor[len - 1] == '.')
+            len--;
     }
-    else
-    {
-        str.resize(len);
-    }
+
+    PODOFO_INVARIANT(len != 0);
+    str.resize(len);
 }
 
 char getEscapedCharacter(char ch)
