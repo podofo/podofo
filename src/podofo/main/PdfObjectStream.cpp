@@ -589,7 +589,22 @@ void PdfObjectOutputStream::release()
 
         auto document = m_stream->GetParent().GetDocument();
         if (document != nullptr)
-            document->GetObjects().EndAppendStream(*m_stream);
+        {
+            // NOTE: The destructor and the move assignment can't throw:
+            // a failure leaves the stream truncated
+            try
+            {
+                document->GetObjects().EndAppendStream(*m_stream);
+            }
+            catch (const std::exception& e)
+            {
+                PoDoFo::LogMessage(PdfLogSeverity::Error, "Error while ending the stream append: {}", e.what());
+            }
+            catch (...)
+            {
+                PoDoFo::LogMessage(PdfLogSeverity::Error, "Unknown error while ending the stream append");
+            }
+        }
 
         m_stream = nullptr;
     }

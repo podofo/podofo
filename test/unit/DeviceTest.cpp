@@ -357,6 +357,58 @@ TEST_CASE("TestReadOnlyDeviceFlush")
     ASSERT_THROW_WITH_ERROR_CODE(empty.CopyTo(readOnly), PdfErrorCode::InternalLogic);
 }
 
+TEST_CASE("TestStreamedDocumentUnwrittenStream")
+{
+    // A stream never written can't be read back when finishing the document:
+    // the failure is reported instead of escaping the destructor
+    charbuff buffer;
+    {
+        auto device = std::make_shared<BufferStreamDevice>(buffer);
+        PdfStreamedDocument doc(device);
+        doc.GetPages().CreatePage(PdfPageSize::A4);
+        auto& obj = doc.GetObjects().CreateDictionaryObject();
+        obj.GetOrCreateStream();
+    }
+
+    REQUIRE(string_view(buffer).substr(0, 5) == "%PDF-");
+}
+
+TEST_CASE("TestStreamedDocumentDeviceFailure")
+{
+    // A device failing while the streams and the document are finished:
+    // the failures are reported instead of escaping the destructors
+    class FailingStringBuf final : public stringbuf
+    {
+    public:
+        bool Fail = false;
+    protected:
+        streamsize xsputn(const char* s, streamsize n) override
+        {
+            return Fail ? 0 : stringbuf::xsputn(s, n);
+        }
+        int_type overflow(int_type ch) override
+        {
+            return Fail ? traits_type::eof() : stringbuf::overflow(ch);
+        }
+        int sync() override
+        {
+            return Fail ? -1 : stringbuf::sync();
+        }
+    };
+
+    FailingStringBuf buf;
+    ostream stream(&buf);
+    {
+        PdfStreamedDocument doc(std::make_shared<StandardStreamDevice>(stream));
+        auto& obj = doc.GetObjects().CreateDictionaryObject();
+        auto output = obj.GetOrCreateStream().GetOutputStreamRaw();
+        output.Write("data"sv);
+        buf.Fail = true;
+    }
+
+    REQUIRE(buf.str().substr(0, 5) == "%PDF-");
+}
+
 string createTestFile(const string_view& filename, size_t size)
 {
     charbuff buffer(size);
