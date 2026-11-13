@@ -63,6 +63,8 @@ protected:
 public:
     PdfObjectOutputStream& operator=(PdfObjectOutputStream&& rhs) noexcept;
 private:
+    void release();
+private:
     PdfObjectStream* m_stream;
     std::unique_ptr<OutputStream> m_output;
 };

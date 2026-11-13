@@ -313,3 +313,30 @@ TEST_CASE("TestObjectStreamCopyWhileAppending")
     ASSERT_THROW_WITH_ERROR_CODE(objStream.CopyTo(device), PdfErrorCode::InternalLogic);
     ASSERT_THROW_WITH_ERROR_CODE(objStream.CopyToSafe(device), PdfErrorCode::InternalLogic);
 }
+
+TEST_CASE("TestObjectStreamWrappersMove")
+{
+    // Moved wrappers keep the wrapped streams, and assigning over
+    // a wrapper releases the object stream it was wrapping
+    PdfMemDocument doc;
+    auto& stream = doc.GetObjects().CreateDictionaryObject().GetOrCreateStream();
+    stream.SetData(string_view("Hello"));
+
+    auto input = stream.GetInputStream();
+    PdfObjectInputStream movedInput(std::move(input));
+    PdfObjectInputStream assignedInput;
+    assignedInput = std::move(movedInput);
+    char data[5];
+    assignedInput.Read(data, sizeof(data));
+    REQUIRE(string_view(data, sizeof(data)) == "Hello");
+    assignedInput = PdfObjectInputStream();
+
+    auto output = stream.GetOutputStreamRaw(true);
+    PdfObjectOutputStream movedOutput(std::move(output));
+    PdfObjectOutputStream assignedOutput;
+    assignedOutput = std::move(movedOutput);
+    assignedOutput.Write(string_view(" World"));
+    assignedOutput = PdfObjectOutputStream();
+
+    REQUIRE(stream.GetCopy() == "Hello World");
+}

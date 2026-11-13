@@ -417,6 +417,8 @@ PdfObjectInputStream::~PdfObjectInputStream()
 PdfObjectInputStream::PdfObjectInputStream(PdfObjectInputStream&& rhs) noexcept
 {
     utls::move(rhs.m_stream, m_stream);
+    m_input = std::move(rhs.m_input);
+    utls::move(rhs.m_MediaFilters, m_MediaFilters);
     utls::move(rhs.m_MediaDecodeParms, m_MediaDecodeParms);
 }
 
@@ -439,7 +441,17 @@ bool PdfObjectInputStream::readChar(char& ch)
 
 PdfObjectInputStream& PdfObjectInputStream::operator=(PdfObjectInputStream&& rhs) noexcept
 {
+    if (&rhs == this)
+        return *this;
+
+    // Unlock the stream currently wrapped, if any
+    if (m_stream != nullptr)
+        m_stream->m_locked = false;
+
     utls::move(rhs.m_stream, m_stream);
+    m_input = std::move(rhs.m_input);
+    utls::move(rhs.m_MediaFilters, m_MediaFilters);
+    utls::move(rhs.m_MediaDecodeParms, m_MediaDecodeParms);
     return *this;
 }
 
@@ -448,23 +460,13 @@ PdfObjectOutputStream::PdfObjectOutputStream()
 
 PdfObjectOutputStream::~PdfObjectOutputStream()
 {
-    // NOTE: Dispose the actual output stream now, so
-    // all data can be flushed before ending appending
-    m_output = nullptr;
-    if (m_stream != nullptr)
-    {
-        // Unlock the stream
-        m_stream->m_locked = false;
-
-        auto document = m_stream->GetParent().GetDocument();
-        if (document != nullptr)
-            document->GetObjects().EndAppendStream(*m_stream);
-    }
+    release();
 }
 
 PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectOutputStream&& rhs) noexcept
 {
     utls::move(rhs.m_stream, m_stream);
+    m_output = std::move(rhs.m_output);
 }
 
 PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
@@ -565,9 +567,32 @@ void PdfObjectOutputStream::flush()
 
 PdfObjectOutputStream& PdfObjectOutputStream::operator=(PdfObjectOutputStream&& rhs) noexcept
 {
+    if (&rhs == this)
+        return *this;
+
+    // Finish the stream currently wrapped, if any
+    release();
     utls::move(rhs.m_stream, m_stream);
     m_output = std::move(rhs.m_output);
     return *this;
+}
+
+void PdfObjectOutputStream::release()
+{
+    // NOTE: Dispose the actual output stream now, so
+    // all data can be flushed before ending appending
+    m_output = nullptr;
+    if (m_stream != nullptr)
+    {
+        // Unlock the stream
+        m_stream->m_locked = false;
+
+        auto document = m_stream->GetParent().GetDocument();
+        if (document != nullptr)
+            document->GetObjects().EndAppendStream(*m_stream);
+
+        m_stream = nullptr;
+    }
 }
 
 PdfObjectStreamProvider::~PdfObjectStreamProvider() { }
