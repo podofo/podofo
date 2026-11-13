@@ -24,7 +24,9 @@ PdfFontConfigWrapper::PdfFontConfigWrapper(const string_view& configStr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Could not allocate font config");
 
     // No system config found, supply a fallback configuration
-    if (!FcConfigParseAndLoadFromMemory(m_FcConfig, (const FcChar8*)configStr.data(), true))
+    // NOTE: Fontconfig takes NUL terminated strings, the view is copied
+    string configStrCopy(configStr);
+    if (!FcConfigParseAndLoadFromMemory(m_FcConfig, (const FcChar8*)configStrCopy.c_str(), true))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Could not parse font config");
 
     if (!FcConfigBuildFonts(m_FcConfig))
@@ -59,6 +61,8 @@ string PdfFontConfigWrapper::SearchFontPath(const string_view fontPattern,
     FcValue value;
     string path;
     faceIndex = 0;
+    // NOTE: Fontconfig takes NUL terminated strings, the view is copied
+    string fontPatternStr(fontPattern);
 
     auto cleanup = [&]()
     {
@@ -75,7 +79,7 @@ string PdfFontConfigWrapper::SearchFontPath(const string_view fontPattern,
             if (pattern == nullptr)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternCreate returned NULL");
 
-            if (!FcPatternAddString(pattern.get(), FC_POSTSCRIPT_NAME, (const FcChar8*)fontPattern.data()))
+            if (!FcPatternAddString(pattern.get(), FC_POSTSCRIPT_NAME, (const FcChar8*)fontPatternStr.c_str()))
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternAddString");
 
             if (params.Style.has_value())
@@ -124,12 +128,12 @@ string PdfFontConfigWrapper::SearchFontPath(const string_view fontPattern,
 
             if (params.FontFamilyPattern.length() == 0)
             {
-                if (!FcPatternAddString(pattern.get(), FC_FAMILY, (const FcChar8*)fontPattern.data()))
+                if (!FcPatternAddString(pattern.get(), FC_FAMILY, (const FcChar8*)fontPatternStr.c_str()))
                     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternAddString");
             }
             else
             {
-                if (!FcPatternAddString(pattern.get(), FC_FAMILY, (const FcChar8*)params.FontFamilyPattern.data()))
+                if (!FcPatternAddString(pattern.get(), FC_FAMILY, (const FcChar8*)params.FontFamilyPattern.c_str()))
                     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternAddString");
             }
 
@@ -184,7 +188,9 @@ string PdfFontConfigWrapper::SearchFontPath(const string_view fontPattern,
 
 void PdfFontConfigWrapper::AddFontDirectory(const string_view& path)
 {
-    if (!FcConfigAppFontAddDir(m_FcConfig, (const FcChar8*)path.data()))
+    // NOTE: Fontconfig takes NUL terminated strings, the view is copied
+    string pathStr(path);
+    if (!FcConfigAppFontAddDir(m_FcConfig, (const FcChar8*)pathStr.c_str()))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to add font directory");
 }
 
