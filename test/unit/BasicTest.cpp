@@ -548,3 +548,19 @@ TEST_CASE("TestFileSpecFromObject")
     otherTypeObj.GetDictionary().AddKey("Type"_n, PdfName("Other"));
     REQUIRE(!PdfFileSpec::TryCreateFromObject(otherTypeObj, filespec));
 }
+
+TEST_CASE("TestFormatNumberPrecisionZero")
+{
+    // With precision 0 there's no decimal point: nothing is trimmed and no byte before the buffer is read
+    PdfStringStream stream;
+    stream.SetPrecision(0);
+    stream << 0.3;
+    REQUIRE(stream.GetString() == "0");
+    stream.Clear();
+    stream << 10.0;
+    REQUIRE(stream.GetString() == "10");
+    stream.SetPrecision(2);
+    stream.Clear();
+    stream << 1.5;
+    REQUIRE(stream.GetString() == "1.5");
+}
