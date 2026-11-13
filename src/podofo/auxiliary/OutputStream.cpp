@@ -80,6 +80,7 @@ void OutputStream::disableWriteWindow()
 
 void OutputStream::Flush()
 {
+    checkWrite();
     flush();
 }
 
