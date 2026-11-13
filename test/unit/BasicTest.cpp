@@ -468,3 +468,14 @@ TEST_CASE("TestOutlineEraseCreatedItems")
     auto& c = root.CreateChild(PdfString("C"));
     REQUIRE(root.First() == &c);
 }
+
+TEST_CASE("TestOutlineRootEraseRejected")
+{
+    // The outlines root is owned by the document
+    PdfMemDocument doc;
+    auto& root = doc.GetOrCreateOutlines();
+    root.CreateChild(PdfString("A"));
+    ASSERT_THROW_WITH_ERROR_CODE(root.Erase(), PdfErrorCode::UnsupportedOperation);
+    REQUIRE(doc.GetOutlines() == &root);
+    REQUIRE(root.First() != nullptr);
+}

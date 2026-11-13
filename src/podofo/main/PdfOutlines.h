@@ -84,6 +84,7 @@ public:
     /// the list of PdfObjects
     /// All pointers to this item will be invalid after this function
     /// call.
+    /// @remarks The outlines root can't be erased
     void Erase();
 
     /// Set the destination of this outline.

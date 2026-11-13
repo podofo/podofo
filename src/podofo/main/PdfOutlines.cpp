@@ -181,6 +181,10 @@ void PdfOutlineItem::setFirst(PdfOutlineItem* item)
 
 void PdfOutlineItem::Erase()
 {
+    // The root is owned by the document and can't erase itself
+    if (m_ParentOutline == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedOperation, "The outlines root can't be erased");
+
     while (m_First != nullptr)
     {
         // Erase will set a new first
