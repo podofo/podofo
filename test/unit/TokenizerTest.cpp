@@ -349,6 +349,28 @@ TEST_CASE("TestMaxRecursionReachedKeepsDepth")
     REQUIRE(variant.IsArray());
 }
 
+TEST_CASE("TestTokenizerSmallBuffer")
+{
+    // The buffer must hold the longest token plus the null termination
+    auto buffer = std::make_shared<charbuff>(MAX_TOKEN_LENGTH);
+    ASSERT_THROW_WITH_ERROR_CODE(PdfTokenizer tokenizer(buffer), PdfErrorCode::InvalidHandle);
+    ASSERT_THROW_WITH_ERROR_CODE(PdfPostScriptTokenizer psTokenizer(buffer), PdfErrorCode::InvalidHandle);
+}
+
+TEST_CASE("TestTokenizerLongToken")
+{
+    // A token longer than the maximum is cut and its remaining characters skipped
+    string input(MAX_TOKEN_LENGTH + 45, 'a');
+    input.append(" endobj");
+    SpanStreamDevice device(input);
+    PdfTokenizer tokenizer;
+    string_view token;
+    REQUIRE(tokenizer.TryReadNextToken(device, token));
+    REQUIRE(token == string(MAX_TOKEN_LENGTH, 'a'));
+    REQUIRE(tokenizer.TryReadNextToken(device, token));
+    REQUIRE(token == "endobj");
+}
+
 void Test(const string_view& buffer, PdfDataType dataType, string_view expected)
 {
     expected = expected.empty() ? buffer : expected;
