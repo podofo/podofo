@@ -479,3 +479,32 @@ TEST_CASE("TestOutlineRootEraseRejected")
     REQUIRE(doc.GetOutlines() == &root);
     REQUIRE(root.First() != nullptr);
 }
+
+TEST_CASE("TestOutlineParsedChainLast")
+{
+    // The tail of the parsed children chain must be known to append after it
+    constexpr string_view pdf = R"(%PDF-1.4
+1 0 obj<</Type/Catalog/Pages 2 0 R/Outlines 4 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]>>endobj
+4 0 obj<</Type/Outlines/First 5 0 R/Last 6 0 R/Count 2>>endobj
+5 0 obj<</Title(A)/Parent 4 0 R/Next 6 0 R>>endobj
+6 0 obj<</Title(B)/Parent 4 0 R/Prev 5 0 R>>endobj
+trailer<</Root 1 0 R/Size 7>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& root = doc.MustGetOutlines();
+    auto first = root.First();
+    REQUIRE(first != nullptr);
+    REQUIRE(first->GetTitle().GetString() == "A");
+    REQUIRE(root.Last() == first->Next());
+    auto& c = root.CreateChild(PdfString("C"));
+    REQUIRE(root.Last() == &c);
+    REQUIRE(first->Next()->Next() == &c);
+    first->Erase();
+    REQUIRE(root.First()->GetTitle().GetString() == "B");
+}

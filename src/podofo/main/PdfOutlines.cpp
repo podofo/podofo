@@ -49,6 +49,13 @@ PdfOutlineItem::PdfOutlineItem(PdfObject& obj, PdfOutlineItem* parentOutline, Pd
     }
 
     m_First = firstItem.release();
+
+    // The children are chained from /First: the last one is the tail of the chain
+    auto last = m_First;
+    while (last != nullptr && last->m_Next != nullptr)
+        last = last->m_Next;
+
+    m_Last = last;
 }
 
 PdfOutlineItem::PdfOutlineItem(PdfDocument& doc, PdfOutlineItem* parentOutline)
