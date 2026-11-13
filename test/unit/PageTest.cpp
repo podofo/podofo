@@ -801,3 +801,18 @@ TEST_CASE("TestSetActionForeignDocument")
     ASSERT_THROW_WITH_ERROR_CODE(item.SetAction(*foreignAction), PdfErrorCode::InvalidHandle);
     REQUIRE(&item.GetAction()->GetObject() == &action->GetObject());
 }
+
+TEST_CASE("TestResourcesAddProperties")
+{
+    // The resource id counters cover all the resource types, Properties included
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    auto& resources = static_cast<PdfResourceOperations&>(page.GetResources());
+    auto& obj1 = doc.GetObjects().CreateDictionaryObject();
+    auto& obj2 = doc.GetObjects().CreateDictionaryObject();
+    auto name1 = resources.AddResource(PdfResourceType::Properties, obj1);
+    auto name2 = resources.AddResource(PdfResourceType::Properties, obj2);
+    REQUIRE(name1 != name2);
+    REQUIRE(resources.GetResource(PdfResourceType::Properties, name1.GetString()) == &obj1);
+    REQUIRE(resources.GetResource(PdfResourceType::Properties, name2.GetString()) == &obj2);
+}
