@@ -106,6 +106,13 @@ unique_ptr<InputStream> PdfStreamedObjectStream::GetInputStream(PdfObject& obj)
 
 unique_ptr<OutputStream> PdfStreamedObjectStream::GetOutputStream(PdfObject& obj)
 {
+    // The object is written to the device together with its first stream
+    if (obj.IsImmutable())
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::ChangeOnImmutable, "The object {} was already written to the device",
+            obj.GetIndirectReference().ToString());
+    }
+
     if (m_Encrypt == nullptr)
     {
         return std::make_unique<ObjectOutputStream>(*this, *m_Device);
