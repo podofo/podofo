@@ -441,6 +441,16 @@ TEST_CASE("TestStreamedDocumentDeviceFailure")
     REQUIRE(buf.str().substr(0, 5) == "%PDF-");
 }
 
+TEST_CASE("TestStreamedDocumentCollectGarbageRejected")
+{
+    // Garbage collection would free objects the writer still references
+    charbuff buffer;
+    auto device = std::make_shared<BufferStreamDevice>(buffer);
+    PdfStreamedDocument doc(device);
+    ASSERT_THROW_WITH_ERROR_CODE(doc.CollectGarbage(), PdfErrorCode::NotImplemented);
+    ASSERT_THROW_WITH_ERROR_CODE(doc.GetObjects().CollectGarbage(), PdfErrorCode::NotImplemented);
+}
+
 string createTestFile(const string_view& filename, size_t size)
 {
     charbuff buffer(size);

@@ -388,6 +388,10 @@ void PdfIndirectObjectList::CollectGarbage(PdfGarbageCollectionFlags flags)
     if (m_Document == nullptr)
         return;
 
+    // The observer is the streamed document writer, which keeps the objects it already wrote
+    if (m_observer != nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Collecting garbage in a streamed document is not supported");
+
     CollectGarbage(m_Document->GetTrailer().GetObject(),
         (flags & PdfGarbageCollectionFlags::SkipFixInvalidRefs) == PdfGarbageCollectionFlags::None);
 }

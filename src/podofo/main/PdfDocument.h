@@ -139,6 +139,7 @@ public:
     /// @returns PdfObject the AcroForm dictionary
     PdfAcroForm& GetOrCreateAcroForm(PdfAcroFormDefaulAppearance eDefaultAppearance = PdfAcroFormDefaulAppearance::ArialBlack);
 
+    /// @remarks Not supported on a PdfStreamedDocument
     void CollectGarbage(PdfGarbageCollectionFlags flags = PdfGarbageCollectionFlags::None);
 
     /// Construct a new PdfImage object

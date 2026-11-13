@@ -93,6 +93,7 @@ public:
     /// Deletes all objects that are not references by other objects
     /// besides the trailer (which references the root dictionary, which in
     /// turn should reference all other objects).
+    /// @remarks Not supported on a PdfStreamedDocument
     void CollectGarbage(PdfGarbageCollectionFlags flags = PdfGarbageCollectionFlags::None);
 
 public:
