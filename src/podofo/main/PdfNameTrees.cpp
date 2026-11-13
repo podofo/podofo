@@ -95,6 +95,10 @@ void PdfNameTrees::ToDictionary(const string_view& treeName, PdfStringMap<PdfObj
 
 PdfNameTreeBase* PdfNameTrees::getNameTree(PdfKnownNameTree tree) const
 {
+    // The template accessors allow only the supported trees, which are
+    // indexed by the enum value minus one
+    PODOFO_ASSERT(tree == PdfKnownNameTree::Dests || tree == PdfKnownNameTree::EmbeddedFiles);
+
     if (m_Trees[(unsigned)tree - 1] != nullptr)
         return (*const_cast<PdfNameTrees&>(*this).m_Trees[(unsigned)tree - 1]).get();
 
