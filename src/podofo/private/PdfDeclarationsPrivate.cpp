@@ -1209,7 +1209,8 @@ FILE* utls::fopen(const string_view& filename, const string_view& mode)
     auto mode16 = utf8::utf8to16((string)mode);
     return _wfopen((wchar_t*)filename16.c_str(), (wchar_t*)mode16.c_str());
 #else
-    return std::fopen(filename.data(), mode.data());
+    // NOTE: The views may not be NUL terminated
+    return std::fopen(string(filename).c_str(), string(mode).c_str());
 #endif
 }
 
