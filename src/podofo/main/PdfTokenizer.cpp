@@ -49,6 +49,10 @@ PdfTokenizer::PdfTokenizer(std::in_place_t, shared_ptr<charbuff>&& buffer)
 {
     if (m_buffer == nullptr)
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+
+    // Room for the longest token plus the null termination
+    if (m_buffer->size() < MAX_TOKEN_LENGTH + 1)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The tokenizer buffer must be at least {} bytes", MAX_TOKEN_LENGTH + 1);
 }
 
 bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& token)
@@ -60,8 +64,6 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
 bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& token, PdfTokenType& tokenType)
 {
     char* buffer = m_buffer->data();
-    // NOTE: Reserve 1 byte for the null termination
-    size_t bufferSize = m_buffer->size() - 1;
 
     // check first if there are queued tokens and return them first
     if (m_tokenQueue.size() != 0)
@@ -69,7 +71,7 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
         auto& pair = m_tokenQueue.front();
         tokenType = pair.second;
 
-        size_t size = std::min(bufferSize, pair.first.size());
+        size_t size = std::min((size_t)MAX_TOKEN_LENGTH, pair.first.size());
         // make sure buffer is \0 terminated
         std::memcpy(buffer, pair.first.data(), size);
         buffer[size] = '\0';
@@ -84,7 +86,7 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
     char ch1;
     char ch2;
     size_t count = 0;
-    while (count < bufferSize)
+    while (count < MAX_TOKEN_LENGTH)
     {
         if (!device.Peek(ch1))
             goto Eof;
@@ -176,6 +178,15 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
                 break;
             }
         }
+    }
+
+    if (count == MAX_TOKEN_LENGTH && device.Peek(ch1) && !IsCharWhitespace(ch1) && !IsCharDelimiter(ch1))
+    {
+        PoDoFo::LogMessage(PdfLogSeverity::Warning, "Token longer than {} characters cut", MAX_TOKEN_LENGTH);
+        do
+        {
+            (void)device.ReadChar();
+        } while (device.Peek(ch1) && !IsCharWhitespace(ch1) && !IsCharDelimiter(ch1));
     }
 
 Exit:

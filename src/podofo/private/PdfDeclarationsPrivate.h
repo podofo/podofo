@@ -180,6 +180,8 @@ namespace PoDoFo
     // maximum Unicode code point, which is also the maximum CID PoDoFo
     // can encode
     constexpr unsigned MAX_CID = MAX_UNICODE_CP;
+    // Keywords, numbers and names longer than this are cut by the tokenizer
+    constexpr unsigned MAX_TOKEN_LENGTH = 255;
 
     /// Transform the given raw rect accordingly to the page rotation
     Rect TransformCornersPage(const Corners& rect, const PdfPage& page);
