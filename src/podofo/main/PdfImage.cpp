@@ -944,7 +944,8 @@ void PdfImage::loadFromTiff(const string_view& filename, const PdfImageLoadParam
     auto filename16 = utf8::utf8to16((string)filename);
     TIFF* handle = TIFFOpenW((wchar_t*)filename16.c_str(), "rb");
 #else
-    TIFF* handle = TIFFOpen(filename.data(), "rb");
+    // NOTE: The view may not be NUL terminated
+    TIFF* handle = TIFFOpen(string(filename).c_str(), "rb");
 #endif
 
     if (handle == nullptr)
