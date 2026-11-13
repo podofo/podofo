@@ -299,3 +299,17 @@ TEST_CASE("TestUnloadFailedReload")
     REQUIRE(obj.IsNull());
     REQUIRE(obj.GetStream() == nullptr);
 }
+
+TEST_CASE("TestObjectStreamCopyWhileAppending")
+{
+    // Copying the content while an output stream is open is rejected
+    PdfMemDocument doc;
+    auto& obj = doc.GetObjects().CreateDictionaryObject();
+    auto& objStream = obj.GetOrCreateStream();
+    objStream.SetData(string_view("Hello"));
+    auto output = objStream.GetOutputStreamRaw(true);
+    charbuff buffer;
+    BufferStreamDevice device(buffer);
+    ASSERT_THROW_WITH_ERROR_CODE(objStream.CopyTo(device), PdfErrorCode::InternalLogic);
+    ASSERT_THROW_WITH_ERROR_CODE(objStream.CopyToSafe(device), PdfErrorCode::InternalLogic);
+}
