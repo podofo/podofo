@@ -508,3 +508,15 @@ startxref
     first->Erase();
     REQUIRE(root.First()->GetTitle().GetString() == "B");
 }
+
+TEST_CASE("TestOutlineGettersWithoutValue")
+{
+    // Items without destination or action report none
+    PdfMemDocument doc;
+    auto& item = doc.GetOrCreateOutlines().CreateChild(PdfString("A"));
+    REQUIRE(item.GetDestination() == nullptr);
+    REQUIRE(item.GetAction() == nullptr);
+    item.SetDestination(*doc.CreateDestination());
+    REQUIRE(item.GetDestination() != nullptr);
+    REQUIRE(item.GetAction() == nullptr);
+}
