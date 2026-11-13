@@ -1631,3 +1631,11 @@ startxref
     PdfColorSpaceFilterPtr colorSpace;
     REQUIRE(!PdfColorSpaceFilterFactory::TryCreateFromObject(csObj, colorSpace));
 }
+
+TEST_CASE("TestCreateFromStringNamedColorView")
+{
+    // The name lookup must use the view length, not a NUL terminator
+    auto color = PdfColor::CreateFromString(string_view("aliceblue-trailing", 9));
+    REQUIRE(color.IsRGB());
+    REQUIRE(color == PdfColor::CreateFromString("aliceblue"));
+}
