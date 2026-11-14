@@ -672,3 +672,28 @@ startxref
     doc.GetNames()->MustGetTree<PdfDestinations>().AddValue(PdfString("Bar"), bar);
     REQUIRE(item.GetDestination()->GetType() == PdfDestinationType::Fit);
 }
+
+TEST_CASE("TestOutlineDestinationAfterGarbageCollection")
+{
+    // The cache must not wrap the caller's unreferenced destination object
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    auto& item = doc.GetOrCreateOutlines().CreateChild(PdfString("A"));
+    auto dest = doc.CreateDestination();
+    dest->SetDestination(page);
+    item.SetDestination(*dest);
+    REQUIRE(&item.GetDestination()->GetObject() != &dest->GetObject());
+    doc.CollectGarbage();
+    REQUIRE(item.GetDestination()->GetPage() == &page);
+}
+
+TEST_CASE("TestOutlineCreateRootWithoutDestination")
+{
+    // Only the outlines and the item objects are created, with no destination
+    PdfMemDocument doc;
+    unsigned count = doc.GetObjects().GetSize();
+    auto& root = doc.GetOrCreateOutlines().CreateRoot(PdfString("Root"));
+    REQUIRE(root.GetDestination() == nullptr);
+    REQUIRE(!root.GetDictionary().HasKey("Dest"));
+    REQUIRE(doc.GetObjects().GetSize() == count + 2);
+}

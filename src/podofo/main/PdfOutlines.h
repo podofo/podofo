@@ -89,6 +89,9 @@ public:
 
     /// Set the destination of this outline.
     /// @param dest the destination
+    /// @remarks The destination array is copied into the item: the given
+    /// instance is not the stored destination and the object behind it is
+    /// collected if nothing else references it
     void SetDestination(nullable<const PdfDestination&> dest);
 
     /// Get the destination of this outline.
