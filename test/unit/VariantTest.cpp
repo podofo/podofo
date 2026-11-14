@@ -340,3 +340,16 @@ TEST_CASE("TestObjectStreamWrappersMove")
 
     REQUIRE(stream.GetCopy() == "Hello World");
 }
+
+TEST_CASE("TestFindKeyParentOwnerless")
+{
+    // A dictionary without owner with a direct /Parent dictionary
+    PdfDictionary parent;
+    parent.AddKey("Foo"_n, PdfObject(static_cast<int64_t>(1)));
+    PdfDictionary dict;
+    dict.AddKey("Parent"_n, PdfObject(parent));
+    auto found = dict.FindKeyParent("Foo");
+    REQUIRE(found != nullptr);
+    REQUIRE(found->GetNumber() == 1);
+    REQUIRE(dict.FindKeyParent("Bar") == nullptr);
+}

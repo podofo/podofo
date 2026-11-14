@@ -199,7 +199,7 @@ PdfObject* PdfDictionary::findKeyParent(const string_view& key) const
     if (obj == nullptr)
     {
         auto parent = findKey("Parent");
-        if (parent == nullptr || parent->GetIndirectReference() == GetOwner()->GetIndirectReference())
+        if (parent == nullptr || parent == GetOwner())
         {
             return nullptr;
         }
