@@ -884,6 +884,10 @@ void PdfFont::AddSubsetCIDs(const PdfString& encodedStr)
             "Can't add more subsetting glyphs on an already embedded font");
     }
 
+    // No subset maps are allocated without subsetting
+    if (!m_SubsettingEnabled)
+        return;
+
     PODOFO_ASSERT(!m_Encoding->IsDynamicEncoding());
 
     vector<PdfCID> cids;
