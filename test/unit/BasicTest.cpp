@@ -269,6 +269,33 @@ startxref
         PdfErrorCode::MaxRecursionReached);
 }
 
+TEST_CASE("TestNameTreeMalformedLookup")
+{
+    // Malformed kids, limits and keys are skipped: a number and a non dictionary
+    // kid, a short and a non string /Limits, a number key. /EmbeddedFiles is no tree
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/Names 5 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]>>endobj
+4 0 obj<</Kids[1 6 0 R 7 0 R 8 0 R]>>endobj
+5 0 obj<</Dests 4 0 R/EmbeddedFiles 6 0 R>>endobj
+6 0 obj 42 endobj
+7 0 obj<</Limits[(X)]/Names[1 2(X)[3 0 R/Fit]]>>endobj
+8 0 obj<</Limits[1 2]/Names[(A)[3 0 R/FitH 0]]>>endobj
+trailer<</Root 1 0 R/Size 9>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto names = doc.GetNames();
+    REQUIRE(names->GetValue(PdfKnownNameTree::Dests, "X") != nullptr);
+    REQUIRE(names->GetValue(PdfKnownNameTree::Dests, "A") != nullptr);
+    REQUIRE(names->GetValue(PdfKnownNameTree::Dests, "M") == nullptr);
+    REQUIRE(names->GetValue(PdfKnownNameTree::EmbeddedFiles, "X") == nullptr);
+}
+
 TEST_CASE("TestNameTreeCacheAfterAddValue")
 {
     // The destination of Foo is stored directly in the /Names array, which the

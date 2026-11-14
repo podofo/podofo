@@ -199,7 +199,7 @@ PdfObject& PdfNameTrees::getOrCreateRootNode(const PdfName& treeName)
 PdfObject* PdfNameTrees::getValue(const string_view& name, const string_view& key) const
 {
     auto obj = this->getRootNode(name);
-    if (obj == nullptr)
+    if (obj == nullptr || !obj->IsDictionary())
         return nullptr;
 
     PdfNameTreeNode node(nullptr, *obj);
