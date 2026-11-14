@@ -98,6 +98,25 @@ TEST_CASE("TestMalformedAnnotationAction")
     REQUIRE(action == nullptr);
 }
 
+TEST_CASE("TestNonDictionaryAnnotationAction")
+{
+    // The /A entry of the link is a number
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Annots[4 0 R]>>endobj
+4 0 obj<</Type/Annot/Subtype/Link/Rect[0 0 9 9]/A 42>>endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& link = static_cast<PdfAnnotationLink&>(doc.GetPages().GetPageAt(0).GetAnnotations().GetAnnotAt(0));
+    REQUIRE(link.GetAction() == nullptr);
+}
+
 TEST_CASE("TestDecodeParmsArrayLongerThanFilter")
 {
     // The /DecodeParms array has more entries than the /Filter array. The
