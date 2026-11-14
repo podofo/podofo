@@ -310,7 +310,7 @@ void PdfPageCollection::AppendDocumentPages(const PdfDocument& doc, unsigned pag
     if (map == nullptr)
     {
         // If a map is not supplied create one now
-        unordered_map<PdfReference, PdfObject*> mappedObjects;
+        unordered_map<PdfReference, PdfReference> mappedObjects;
         return GetDocument().AppendDocumentPages(doc, pageIndex, pageCount, mappedObjects);
     }
 
@@ -322,7 +322,7 @@ void PdfPageCollection::InsertDocumentPageAt(unsigned atIndex, const PdfDocument
     if (map == nullptr)
     {
         // If a map is not supplied create one now
-        unordered_map<PdfReference, PdfObject*> mappedObjects;
+        unordered_map<PdfReference, PdfReference> mappedObjects;
         return GetDocument().InsertDocumentPageAt(atIndex, doc, pageIndex, mappedObjects);
     }
 

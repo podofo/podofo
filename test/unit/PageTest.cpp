@@ -816,3 +816,21 @@ TEST_CASE("TestResourcesAddProperties")
     REQUIRE(resources.GetResource(PdfResourceType::Properties, name1.GetString()) == &obj1);
     REQUIRE(resources.GetResource(PdfResourceType::Properties, name2.GetString()) == &obj2);
 }
+
+TEST_CASE("TestRelocationMapAfterGarbageCollection")
+{
+    // Mapped objects removed from the destination must be copied again instead of reused
+    PdfMemDocument src;
+    auto& srcPage = src.GetPages().CreatePage(PdfPageSize::A4);
+    auto form = src.CreateXObjectForm(Rect(0, 0, 10, 10));
+    static_cast<PdfResourceOperations&>(srcPage.GetResources()).AddResource(PdfResourceType::XObject, "Fm0"_n, form->GetObject());
+
+    PdfMemDocument dst;
+    PdfObjectRelocationMap map;
+    dst.GetPages().AppendDocumentPages(src, 0, 1, &map);
+    dst.GetPages().RemovePageAt(0);
+    dst.CollectGarbage();
+    dst.GetPages().AppendDocumentPages(src, 0, 1, &map);
+    REQUIRE(dst.GetPages().GetCount() == 1);
+    REQUIRE(dst.GetPages().GetPageAt(0).GetResources().GetResource(PdfResourceType::XObject, "Fm0") != nullptr);
+}
