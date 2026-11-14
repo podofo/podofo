@@ -797,3 +797,16 @@ TEST_CASE("TestGetOrCreateFontNullMetrics")
     PdfMemDocument doc;
     ASSERT_THROW_WITH_ERROR_CODE(doc.GetFonts().GetOrCreateFont(PdfFontMetricsConstPtr()), PdfErrorCode::InvalidHandle);
 }
+
+TEST_CASE("TestAddSubsetCIDsWithoutSubsetting")
+{
+    // Adding CIDs to a proxy font created without subsetting is a no-op
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TestEmbedFont.pdf"));
+    unique_ptr<PdfFont> font;
+    REQUIRE(PdfFont::TryCreateFromObject(doc.GetObjects().MustGetObject(PdfReference(6, 0)), font));
+    PdfFont* proxy;
+    REQUIRE(font->TryCreateProxyFont(PdfFontCreateFlags::DontSubset, proxy));
+    REQUIRE(!proxy->IsSubsettingEnabled());
+    proxy->AddSubsetCIDs(PdfString::FromRaw("TEST"));
+}
