@@ -57,6 +57,8 @@ namespace PoDoFo
         }
     };
 
+    // NOTE: Comparing with a key of the wrong type
+    // never matches a lookup nor bounds it
     template <>
     struct PdfTreeKeyAccess<PdfString>
     {
@@ -69,17 +71,20 @@ namespace PoDoFo
 
         static bool Equals(const PdfObject& obj, std::string_view key)
         {
-            return obj.GetString().GetString() == key;
+            const PdfString* str;
+            return obj.TryGetString(str) && str->GetString() == key;
         }
 
         static bool GreaterThan(const PdfObject& obj, std::string_view key)
         {
-            return obj.GetString().GetString() > key;
+            const PdfString* str;
+            return obj.TryGetString(str) && str->GetString() > key;
         }
 
         static bool LessThan(const PdfObject& obj, std::string_view key)
         {
-            return obj.GetString().GetString() < key;
+            const PdfString* str;
+            return obj.TryGetString(str) && str->GetString() < key;
         }
 
         static PdfName GetKeyStoreName()
@@ -105,17 +110,20 @@ namespace PoDoFo
 
         static bool Equals(const PdfObject& obj, int64_t key)
         {
-            return obj.GetNumber() == key;
+            int64_t num;
+            return obj.TryGetNumber(num) && num == key;
         }
 
         static bool GreaterThan(const PdfObject& obj, int64_t key)
         {
-            return obj.GetNumber() > key;
+            int64_t num;
+            return obj.TryGetNumber(num) && num > key;
         }
 
         static bool LessThan(const PdfObject& obj, int64_t key)
         {
-            return obj.GetNumber() < key;
+            int64_t num;
+            return obj.TryGetNumber(num) && num < key;
         }
 
         static PdfName GetKeyStoreName()
@@ -514,20 +522,18 @@ namespace PoDoFo
     template <typename TKey>
     typename PdfTreeNode<TKey>::PdfNameLimits PdfTreeNode<TKey>::checkLimits(const PdfObject& obj, typename PdfTreeKeyAccess<TKey>::TLookup key)
     {
-        auto limitsObj = obj.GetDictionary().FindKey("Limits");
-        if (limitsObj != nullptr)
+        const PdfArray* limits;
+        if (obj.GetDictionary().TryFindKeyAs("Limits", limits) && limits->GetSize() >= 2)
         {
-            auto& limits = limitsObj->GetArray();
-
-            if (PdfTreeKeyAccess<TKey>::GreaterThan(limits[0], key))
+            if (PdfTreeKeyAccess<TKey>::GreaterThan((*limits)[0], key))
                 return PdfNameLimits::Before;
 
-            if (PdfTreeKeyAccess<TKey>::LessThan(limits[1], key))
+            if (PdfTreeKeyAccess<TKey>::LessThan((*limits)[1], key))
                 return PdfNameLimits::After;
         }
         else
         {
-            PoDoFo::LogMessage(PdfLogSeverity::Debug, "Name tree object {} {} R does not have a limits key!",
+            PoDoFo::LogMessage(PdfLogSeverity::Debug, "Name tree object {} {} R does not have a valid limits key!",
                 obj.GetIndirectReference().ObjectNumber(),
                 obj.GetIndirectReference().GenerationNumber());
         }
@@ -547,20 +553,23 @@ namespace PoDoFo
         if (checkLimits(obj, key) != PdfNameLimits::Inside)
             return nullptr;
 
-        auto kidsObj = obj.GetDictionary().FindKey("Kids");
-        if (kidsObj != nullptr)
+        // NOTE: Kids that aren't references to dictionaries are skipped
+        PdfArray* kids;
+        if (obj.GetDictionary().TryFindKeyAs("Kids", kids))
         {
-            auto& kids = kidsObj->GetArray();
-            for (auto& child : kids)
+            for (auto& child : *kids)
             {
-                auto childObj = objects.GetObject(child.GetReference());
+                PdfReference ref;
+                if (!child.TryGetReference(ref))
+                    continue;
+
+                auto childObj = objects.GetObject(ref);
                 if (childObj == nullptr)
                 {
                     PoDoFo::LogMessage(PdfLogSeverity::Debug, "Object {} {} R is child of nametree but was not found!",
-                        child.GetReference().ObjectNumber(),
-                        child.GetReference().GenerationNumber());
+                        ref.ObjectNumber(), ref.GenerationNumber());
                 }
-                else
+                else if (childObj->IsDictionary())
                 {
                     auto result = getKeyValue(*childObj, key, objects);
                     if (result != nullptr)
