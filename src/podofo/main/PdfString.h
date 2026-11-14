@@ -5,6 +5,7 @@
 #ifndef PDF_STRING_H
 #define PDF_STRING_H
 
+#include <algorithm>
 #include "PdfBaseDataTypes.h"
 
 namespace PoDoFo {
@@ -27,11 +28,23 @@ public:
 
     ~PdfString();
 
+    /// Construct a new PdfString from a string literal
+    /// @remarks The characters are referenced, not copied, so
+    /// the array must have static storage duration
     template<std::size_t N>
     PdfString(const char(&str)[N])
         : PdfDataMember(PdfDataType::String), m_isHex(false)
     {
         initFromUtf8String(str, N - 1, true);
+    }
+
+    /// Construct a new PdfString from a character buffer, which
+    /// is copied up to its NUL termination or its size
+    template<std::size_t N>
+    PdfString(char(&str)[N])
+        : PdfDataMember(PdfDataType::String), m_isHex(false)
+    {
+        initFromUtf8String(str, (size_t)(std::find(str, str + N, '\0') - str), false);
     }
 
     template<typename T, typename = std::enable_if_t<std::is_same_v<T, const char*>>>
