@@ -681,9 +681,7 @@ void Main(const cspan<string_view>& args)
     }
     else
     {
-        char fldName[96]; // use bigger buffer to make sure sprintf does not overflow
-        sprintf(fldName, "PodofoSignatureField%u", document.GetObjects().GetObjectCount());
-
+        string fldName = "PodofoSignatureField" + std::to_string(document.GetObjects().GetObjectCount());
         name = PdfString(fldName);
     }
 

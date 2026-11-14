@@ -228,3 +228,12 @@ TEST_CASE("TestStringSelfAssignment")
     str = std::move(strRef);
     REQUIRE(str.GetString() == "Hello World");
 }
+
+TEST_CASE("TestStringFromCharBufferCopies")
+{
+    // A mutable character buffer is copied, unlike a string literal
+    char buffer[16] = "Hello";
+    PdfString str(buffer);
+    buffer[0] = 'J';
+    REQUIRE(str.GetString() == "Hello");
+}
