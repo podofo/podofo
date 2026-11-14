@@ -514,6 +514,7 @@ private:
     void save();
     void restore();
     void reset();
+    void rebindStateWrappers();
     void drawRectangle(double x, double y, double width, double height, PdfPathDrawMode mode, double roundX, double roundY);
     void drawPath(PdfPathDrawMode mode);
     void stroke();

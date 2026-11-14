@@ -882,3 +882,22 @@ TEST_CASE("TestPainterPathAddSelf")
     path.AddPath(path, false);
     REQUIRE(path.GetContent() == content + content);
 }
+
+TEST_CASE("TestPainterResetWithOpenStates")
+{
+    // Finishing with saved states left must clear them all and re-point the state wrappers
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    PdfPainter painter;
+    painter.SetCanvas(page);
+    painter.Save();
+    painter.Save();
+    painter.GraphicsState.SetLineWidth(5);
+    painter.FinishDrawing();
+    REQUIRE(painter.GetStateStack().GetSize() == 1);
+
+    painter.SetCanvas(page);
+    painter.GraphicsState.SetLineWidth(3);
+    REQUIRE(painter.GetStateStack().Current->GraphicsState.LineWidth == 3);
+    painter.FinishDrawing();
+}

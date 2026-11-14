@@ -82,7 +82,7 @@ namespace PoDoFo
     template <typename StateT>
     void StateStack<StateT>::Clear()
     {
-        for (unsigned i = 0; i < m_states.size(); i++)
+        while (m_states.size() != 0)
             m_states.pop();
 
         push({ });
