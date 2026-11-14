@@ -248,14 +248,18 @@ nullable<PdfDestination&> PdfOutlineItem::GetDestination()
 
 nullable<PdfDestination&> PdfOutlineItem::getDestination()
 {
-    if (m_Destination == nullptr)
+    // NOTE: /Dest is resolved on every access: a name tree insertion can relocate
+    // the destination array, and a setter writing an aliased /Dests entry can retype it
+    PdfObject* destObj;
+    auto obj = GetDictionary().FindKey("Dest");
+    if (obj == nullptr || (destObj = PdfDestination::FindDestinationObject(GetDocument(), *obj)) == nullptr)
     {
-        auto obj = GetDictionary().FindKey("Dest");
-        unique_ptr<PdfDestination> dest;
-        if (obj == nullptr || !PdfDestination::TryCreateFromObject(*obj, dest))
-            m_Destination *= nullptr;
-        else
-            m_Destination = std::move(dest);
+        m_Destination *= nullptr;
+    }
+    else if (!m_Destination.has_value() || *m_Destination == nullptr
+        || &(*m_Destination)->GetObject() != destObj)
+    {
+        m_Destination = unique_ptr<PdfDestination>(new PdfDestination(*destObj));
     }
 
     // NOTE: The nullable has a value also when no destination was found
