@@ -14,16 +14,21 @@
 using namespace std;
 using namespace PoDoFo;
 
+static void deleteItems(PdfOutlineItem* item);
+
 PdfOutlineItem::PdfOutlineItem(PdfObject& obj, PdfOutlineItem* parentOutline, PdfOutlineItem* previous,
         unordered_set<const PdfObject*>* visited)
     : PdfDictionaryElement(obj), m_ParentOutline(parentOutline), m_Prev(previous),
     m_Next(nullptr), m_First(nullptr), m_Last(nullptr), m_Destination(nullptr), m_Action(nullptr)
 {
+    // NOTE: Only the nesting recurses, as the children are built
+    // below in a loop along /Next, by the parent that owns them
     utls::RecursionGuard guard;
 
     // NOTE: The depth guard can't bound the count of items: if /First and
     // /Next of each object point to the same next object, every path to an
-    // object would create an item, so an object linked twice is rejected
+    // object would create an item, so an object linked twice is rejected,
+    // which also ends a /Next cycle
     unique_ptr<unordered_set<const PdfObject*>> rootVisited;
     if (visited == nullptr)
     {
@@ -34,28 +39,24 @@ PdfOutlineItem::PdfOutlineItem(PdfObject& obj, PdfOutlineItem* parentOutline, Pd
     if (!visited->insert(&obj).second)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile, "The outline item {} is linked more than once", obj.GetIndirectReference().ToString());
 
-    PdfReference first, next;
-    unique_ptr<PdfOutlineItem> firstItem;
-    if (GetDictionary().HasKey("First"))
+    // NOTE: The chain is owned by a local guard until it's complete, as
+    // the destructor doesn't run for a throwing constructor
+    unique_ptr<PdfOutlineItem, void(*)(PdfOutlineItem*)> first(nullptr, deleteItems);
+    auto& objects = GetDocument().GetObjects();
+    auto childRef = GetDictionary().GetKey("First");
+    while (childRef != nullptr)
     {
-        first = GetDictionary().GetKey("First")->GetReference();
-        firstItem.reset(new PdfOutlineItem(obj.GetDocument()->GetObjects().MustGetObject(first), this, nullptr, visited));
+        auto child = new PdfOutlineItem(objects.MustGetObject(childRef->GetReference()), this, m_Last, visited);
+        if (m_Last == nullptr)
+            first.reset(child);
+        else
+            m_Last->m_Next = child;
+
+        m_Last = child;
+        childRef = child->GetDictionary().GetKey("Next");
     }
 
-    if (GetDictionary().HasKey("Next"))
-    {
-        next = GetDictionary().GetKey("Next")->GetReference();
-        m_Next = new PdfOutlineItem(obj.GetDocument()->GetObjects().MustGetObject(next), parentOutline, this, visited);
-    }
-
-    m_First = firstItem.release();
-
-    // The children are chained from /First: the last one is the tail of the chain
-    auto last = m_First;
-    while (last != nullptr && last->m_Next != nullptr)
-        last = last->m_Next;
-
-    m_Last = last;
+    m_First = first.release();
 }
 
 PdfOutlineItem::PdfOutlineItem(PdfDocument& doc, PdfOutlineItem* parentOutline)
@@ -68,10 +69,7 @@ PdfOutlineItem::PdfOutlineItem(PdfDocument& doc, PdfOutlineItem* parentOutline)
 
 PdfOutlineItem::~PdfOutlineItem()
 {
-    delete m_Next;
-    delete m_First;
-    m_Next = nullptr;
-    m_First = nullptr;
+    deleteItems(m_First);
 }
 
 PdfOutlineItem& PdfOutlineItem::CreateChild(const PdfString& title)
@@ -129,6 +127,10 @@ void PdfOutlineItem::insertChildInternal(PdfOutlineItem* item, bool checkSameTre
 
 PdfOutlineItem& PdfOutlineItem::CreateNext(const PdfString& title)
 {
+    // The siblings are owned by the parent, which the root doesn't have
+    if (m_ParentOutline == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedOperation, "The outlines root can't have siblings");
+
     unique_ptr<PdfOutlineItem> item(new PdfOutlineItem(GetDocument(), m_ParentOutline));
     item->SetTitle(title);
 
@@ -143,7 +145,7 @@ PdfOutlineItem& PdfOutlineItem::CreateNext(const PdfString& title)
 
     GetDictionary().AddKey("Next"_n, item->GetObject().GetIndirectReference());
 
-    if (m_ParentOutline != nullptr && item->Next() == nullptr)
+    if (item->Next() == nullptr)
         m_ParentOutline->setLast(item.get());
 
     return *item.release();
@@ -213,7 +215,6 @@ void PdfOutlineItem::Erase()
     if (m_Next == nullptr && m_ParentOutline != nullptr && m_ParentOutline->Last() == this)
         m_ParentOutline->setLast(m_Prev);
 
-    m_Next = nullptr;
     delete this;
 }
 
@@ -381,4 +382,15 @@ PdfOutlines::PdfOutlines(PdfObject& obj)
 PdfOutlineItem& PdfOutlines::CreateRoot(const PdfString& title)
 {
     return this->CreateChild(title);
+}
+
+// Delete a chain of sibling items in a loop, as each item owns only its children
+void deleteItems(PdfOutlineItem* item)
+{
+    while (item != nullptr)
+    {
+        auto next = item->Next();
+        delete item;
+        item = next;
+    }
 }

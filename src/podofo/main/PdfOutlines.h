@@ -55,12 +55,13 @@ private:
 public:
     virtual ~PdfOutlineItem();
 
-    /// Create a PdfOutlineItem that is on the same level and follows the current item.
+    /// Create a PdfOutlineItem that is the last child of the current item.
     /// @param title title of this item
     PdfOutlineItem& CreateChild(const PdfString& title);
 
     /// Create a PdfOutlineItem that is on the same level and follows the current item.
     /// @param title title of this item
+    /// @remarks The outlines root can't have siblings
     PdfOutlineItem& CreateNext(const PdfString& title);
 
     /// @returns the previous item or nullptr if this is the first on the current level
