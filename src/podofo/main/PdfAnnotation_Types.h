@@ -150,6 +150,9 @@ namespace PoDoFo {
     public:
         /// Set the destination for link annotations
         /// @param destination target of the link
+        /// @remarks The destination array is copied into the annotation: the
+        /// given instance is not the stored destination and the object behind
+        /// it is collected if nothing else references it
         ///
         /// @see GetDestination
         void SetDestination(nullable<const PdfDestination&> destination);

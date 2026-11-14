@@ -856,3 +856,18 @@ startxref
     link.SetFlags(PdfAnnotationFlags::Hidden);
     REQUIRE(link.GetDestination() == nullptr);
 }
+
+TEST_CASE("TestLinkDestinationAfterGarbageCollection")
+{
+    // The cache must not wrap the caller's unreferenced destination object
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    auto& link = page.GetAnnotations().CreateAnnot<PdfAnnotationLink>(Rect(10, 10, 100, 20));
+    auto dest = doc.CreateDestination();
+    dest->SetDestination(page);
+    link.SetDestination(*dest);
+    REQUIRE(&link.GetDestination()->GetObject() != &dest->GetObject());
+    doc.CollectGarbage();
+    REQUIRE(link.GetDestination()->GetPage() == &page);
+    REQUIRE(link.GetDestination()->GetType() == PdfDestinationType::Fit);
+}
