@@ -498,13 +498,39 @@ TEST_CASE("TestOutlineEraseCreatedItems")
 
 TEST_CASE("TestOutlineRootEraseRejected")
 {
-    // The outlines root is owned by the document
+    // The outlines root is owned by the document and has no siblings
     PdfMemDocument doc;
     auto& root = doc.GetOrCreateOutlines();
     root.CreateChild(PdfString("A"));
     ASSERT_THROW_WITH_ERROR_CODE(root.Erase(), PdfErrorCode::UnsupportedOperation);
+    ASSERT_THROW_WITH_ERROR_CODE(root.CreateNext(PdfString("B")), PdfErrorCode::UnsupportedOperation);
     REQUIRE(doc.GetOutlines() == &root);
     REQUIRE(root.First() != nullptr);
+    REQUIRE(root.First()->Next() == nullptr);
+}
+
+TEST_CASE("TestOutlineManySiblings")
+{
+    // The siblings are more than the default recursion limit
+    PdfMemDocument doc;
+    doc.GetPages().CreatePage(PdfPageSize::A4);
+    auto& root = doc.GetOrCreateOutlines();
+    for (unsigned i = 0; i < 300; i++)
+        root.CreateChild(PdfString(std::to_string(i)));
+
+    charbuff buffer;
+    StringStreamDevice device(buffer);
+    doc.Save(device);
+
+    PdfMemDocument loaded;
+    loaded.LoadFromBuffer(buffer);
+    auto& loadedRoot = loaded.MustGetOutlines();
+    unsigned count = 0;
+    for (auto item = loadedRoot.First(); item != nullptr; item = item->Next())
+        count++;
+
+    REQUIRE(count == 300);
+    REQUIRE(loadedRoot.Last()->GetTitle().GetString() == "299");
 }
 
 TEST_CASE("TestOutlineParsedChainLast")
