@@ -863,3 +863,14 @@ TEST_CASE("TestSampledFunctionEncode")
     };
     ASSERT_THROW_WITH_ERROR_CODE(createEmpty(), PdfErrorCode::InvalidInput);
 }
+
+TEST_CASE("TestFunctionExportRange")
+{
+    // The range is exported as /Range, leaving /Domain untouched
+    PdfMemDocument doc;
+    auto fn = doc.CreateFunction(std::make_shared<PdfExponentialFunctionDefinition>(1, vector<double>{ 0, 1 },
+        vector<double>{ 0 }, vector<double>{ 1 }, vector<double>{ 0, 2 }));
+    auto& dict = fn->GetDictionary();
+    REQUIRE(dict.MustGetKey("Domain").GetArray()[1].GetReal() == 1);
+    REQUIRE(dict.MustGetKey("Range").GetArray()[1].GetReal() == 2);
+}
