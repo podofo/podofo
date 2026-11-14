@@ -144,6 +144,10 @@ private:
     ///
     /// @param dictionary the destination will be added to this dictionary
     void AddToDictionary(PdfDictionary& dictionary) const;
+
+    /// Find the array a destination object refers to, resolving named destinations
+    /// @returns the array to wrap, or nullptr if there's none
+    static PdfObject* FindDestinationObject(PdfDocument& doc, PdfObject& obj);
 };
 
 };

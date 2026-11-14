@@ -834,3 +834,25 @@ TEST_CASE("TestRelocationMapAfterGarbageCollection")
     REQUIRE(dst.GetPages().GetCount() == 1);
     REQUIRE(dst.GetPages().GetPageAt(0).GetResources().GetResource(PdfResourceType::XObject, "Fm0") != nullptr);
 }
+
+TEST_CASE("TestLinkAliasedDestsRetyped")
+{
+    // The PDF 1.1 /Dests table aliases the annotation dictionary: SetFlags
+    // writes the key the named destination selects and retypes the array
+    constexpr string_view pdf = R"(%PDF-1.4
+1 0 obj<</Type/Catalog/Pages 2 0 R/Dests 4 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Annots[4 0 R]>>endobj
+4 0 obj<</Type/Annot/Subtype/Link/Rect[0 0 9 9]/Dest/F/F[3 0 R/Fit]>>endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& link = static_cast<PdfAnnotationLink&>(doc.GetPages().GetPageAt(0).GetAnnotations().GetAnnotAt(0));
+    REQUIRE(link.GetDestination()->GetType() == PdfDestinationType::Fit);
+    link.SetFlags(PdfAnnotationFlags::Hidden);
+    REQUIRE(link.GetDestination() == nullptr);
+}

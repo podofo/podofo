@@ -77,51 +77,55 @@ void PdfDestination::SetDestination(const PdfPage& page, PdfDestinationFit fit, 
 
 bool PdfDestination::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfDestination>& dest)
 {
-    auto& doc = obj.MustGetDocument();
-    if (obj.GetDataType() == PdfDataType::Array)
+    PdfObject* destObj;
+    auto doc = obj.GetDocument();
+    if (doc == nullptr || (destObj = FindDestinationObject(*doc, obj)) == nullptr)
     {
-        dest.reset(new PdfDestination(obj));
-        return true;
+        dest.reset();
+        return false;
     }
 
-    PdfObject* value = nullptr;
+    dest.reset(new PdfDestination(*destObj));
+    return true;
+}
+
+PdfObject* PdfDestination::FindDestinationObject(PdfDocument& doc, PdfObject& obj)
+{
+    if (obj.GetDataType() == PdfDataType::Array)
+        return &obj;
+
+    PdfObject* value;
     if (obj.GetDataType() == PdfDataType::String)
     {
         auto names = doc.GetNames();
         if (names == nullptr)
-            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+            return nullptr;
 
         value = names->GetValue(PdfKnownNameTree::Dests, obj.GetString());
     }
     else if (obj.GetDataType() == PdfDataType::Name)
     {
-        auto dests = doc.GetCatalog().GetDictionary().FindKey("Dests");
-        if (dests == nullptr)
-        {
-            // The error code has been chosen for its distinguishability.
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidKey,
-                "No PDF-1.1-compatible destination dictionary found");
-        }
-        value = dests->GetDictionary().FindKey(obj.GetName());
+        PdfDictionary* dests;
+        if (!doc.GetCatalog().GetDictionary().TryFindKeyAs("Dests", dests))
+            return nullptr;
+
+        value = dests->FindKey(obj.GetName());
+    }
+    else
+    {
+        return nullptr;
     }
 
     if (value == nullptr)
-        goto Exit;
+        return nullptr;
 
-    if (value->IsArray())
-    {
-        dest.reset(new PdfDestination(*value));
-        return true;
-    }
-    else if (value->IsDictionary())
-    {
-        dest.reset(new PdfDestination(value->GetDictionary().MustFindKey("D")));
-        return true;
-    }
+    if (value->IsDictionary())
+        value = value->GetDictionary().FindKey("D");
 
-Exit:
-    dest.reset();
-    return false;
+    if (value == nullptr || !value->IsArray())
+        return nullptr;
+
+    return value;
 }
 
 void PdfDestination::AddToDictionary(PdfDictionary& dictionary) const

@@ -516,7 +516,9 @@ TEST_CASE("TestOutlineGettersWithoutValue")
     auto& item = doc.GetOrCreateOutlines().CreateChild(PdfString("A"));
     REQUIRE(item.GetDestination() == nullptr);
     REQUIRE(item.GetAction() == nullptr);
-    item.SetDestination(*doc.CreateDestination());
+    auto dest = doc.CreateDestination();
+    dest->SetDestination(doc.GetPages().CreatePage(PdfPageSize::A4));
+    item.SetDestination(*dest);
     REQUIRE(item.GetDestination() != nullptr);
     REQUIRE(item.GetAction() == nullptr);
 }
@@ -591,4 +593,55 @@ TEST_CASE("TestErrorExternalFilePath")
     string longPath = "/external/" + string(300, 'a') + ".cpp";
     PdfError longError(PdfErrorCode::InvalidHandle, longPath, 1, "Some info");
     REQUIRE(longError.GetCallStack().front().GetFilePath() == longPath);
+}
+
+TEST_CASE("TestOutlineAliasedDestsRetyped")
+{
+    // The PDF 1.1 /Dests table aliases the item dictionary: a setter writing
+    // the key the named destination selects retypes the cached array
+    constexpr string_view pdf = R"(%PDF-1.4
+1 0 obj<</Type/Catalog/Pages 2 0 R/Outlines 4 0 R/Dests 5 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]>>endobj
+4 0 obj<</Type/Outlines/First 5 0 R/Last 5 0 R/Count 1>>endobj
+5 0 obj<</Title(A)/Parent 4 0 R/Dest/F/F[3 0 R/Fit]>>endobj
+trailer<</Root 1 0 R/Size 6>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto item = doc.MustGetOutlines().First();
+    REQUIRE(item != nullptr);
+    REQUIRE(item->GetDestination()->GetType() == PdfDestinationType::Fit);
+    item->SetTextFormat(PdfOutlineFormat::Bold);
+    REQUIRE(item->GetDestination() == nullptr);
+}
+
+TEST_CASE("TestOutlineDestinationAfterNameTreeInsertion")
+{
+    // The named destination is a direct value in the /Names array: an insertion
+    // through the typed name tree API relocates it
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R/Names 5 0 R/Outlines 6 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]>>endobj
+4 0 obj<</Names[(Foo)[3 0 R/Fit]]>>endobj
+5 0 obj<</Dests 4 0 R>>endobj
+6 0 obj<</Type/Outlines/First 7 0 R/Last 7 0 R/Count 1>>endobj
+7 0 obj<</Title(A)/Parent 6 0 R/Dest(Foo)>>endobj
+trailer<</Root 1 0 R/Size 8>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& item = *doc.MustGetOutlines().First();
+    REQUIRE(item.GetDestination()->GetType() == PdfDestinationType::Fit);
+    shared_ptr<PdfDestination> bar = doc.CreateDestination();
+    bar->SetDestination(doc.GetPages().GetPageAt(0));
+    doc.GetNames()->MustGetTree<PdfDestinations>().AddValue(PdfString("Bar"), bar);
+    REQUIRE(item.GetDestination()->GetType() == PdfDestinationType::Fit);
 }
