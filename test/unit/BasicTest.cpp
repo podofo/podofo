@@ -581,3 +581,14 @@ TEST_CASE("TestFormatLargeNumbers")
     REQUIRE(str.size() == 310);
     REQUIRE(str.substr(0, 18) == "-17976931348623157");
 }
+
+TEST_CASE("TestErrorExternalFilePath")
+{
+    // Frames from outside the library keep their path, whatever its length
+    PdfError shortError(PdfErrorCode::InvalidHandle, "x.cpp", 1, "Some info");
+    REQUIRE(string_view(shortError.what()).find("Some info") != string_view::npos);
+    REQUIRE(shortError.GetCallStack().front().GetFilePath() == "x.cpp");
+    string longPath = "/external/" + string(300, 'a') + ".cpp";
+    PdfError longError(PdfErrorCode::InvalidHandle, longPath, 1, "Some info");
+    REQUIRE(longError.GetCallStack().front().GetFilePath() == longPath);
+}
