@@ -20,17 +20,17 @@ PdfFunctionDefinition::PdfFunctionDefinition(PdfFunctionType type, vector<double
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "The domain must define at least one input");
 
     if (m_Domain.size() % 2 != 0)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "The domain range must be even");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "The domain size must be even");
 
     if (m_Range.size() % 2 != 0)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "The domain range must be even");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "The range size must be even");
 }
 
 void PdfFunctionDefinition::FillExportDictionary(PdfDictionary& dict) const
 {
     dict.AddKey("Domain"_n, PdfArray::FromReals((cspan<double>)m_Domain));
     if (m_Range.size() != 0)
-        dict.AddKey("Domain"_n, PdfArray::FromReals((cspan<double>)m_Range));
+        dict.AddKey("Range"_n, PdfArray::FromReals((cspan<double>)m_Range));
     fillExportDictionary(dict);
 }
 
