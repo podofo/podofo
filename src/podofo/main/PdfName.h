@@ -5,6 +5,7 @@
 #ifndef PDF_NAME_H
 #define PDF_NAME_H
 
+#include <algorithm>
 #include "PdfBaseDataTypes.h"
 
 namespace PoDoFo {
@@ -35,6 +36,14 @@ public:
         : PdfDataMember(PdfDataType::Name)
     {
         initFromUtf8String(str, N - 1);
+    }
+
+    /// Construct a new PdfName from a character buffer, up to its NUL termination or its size
+    template<std::size_t N>
+    PdfName(char(&str)[N])
+        : PdfDataMember(PdfDataType::Name)
+    {
+        initFromUtf8String(str, (size_t)(std::find(str, str + N, '\0') - str));
     }
 
     template<typename T, typename = std::enable_if_t<std::is_same_v<T, const char*>>>
