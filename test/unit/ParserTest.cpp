@@ -3148,6 +3148,19 @@ TEST_CASE("TestModifiedCompressedObjectPreservesObjectStream")
     ASSERT_EQUAL(doc.GetPages().GetCount(), 1u);
 }
 
+TEST_CASE("TestElementAccessorsAfterUnload")
+{
+    // The wrapper accessors reload an unloaded object instead of using the freed container
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TestImage2.pdf"));
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto mediaBox = page.GetMediaBox();
+    REQUIRE(page.GetObject().TryUnload());
+    REQUIRE(!page.GetObject().IsDelayedLoadDone());
+    REQUIRE(page.GetMediaBox() == mediaBox);
+    REQUIRE(page.GetDictionary().HasKey("Type"));
+}
+
 string generateXRefEntries(size_t count)
 {
     string strXRefEntries;
