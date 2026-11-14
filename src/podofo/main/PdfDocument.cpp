@@ -15,14 +15,14 @@ using namespace std;
 using namespace PoDoFo;
 
 static PdfObject& copyPageObject(PdfIndirectObjectList& dest, const PdfObject& srcPageObj,
-    unordered_map<PdfReference, PdfObject*>& mappedObjects);
+    unordered_map<PdfReference, PdfReference>& mappedObjects);
 static void copyReferencedObjects(PdfObject& obj, const PdfIndirectObjectList& src,
-    PdfIndirectObjectList& dest, unordered_map<PdfReference, PdfObject*>& mappedObjects);
+    PdfIndirectObjectList& dest, unordered_map<PdfReference, PdfReference>& mappedObjects);
 static void copyReferencedChild(PdfObject& child, const PdfIndirectObjectList& src,
-    PdfIndirectObjectList& dest, unordered_map<PdfReference, PdfObject*>& mappedObjects,
+    PdfIndirectObjectList& dest, unordered_map<PdfReference, PdfReference>& mappedObjects,
     vector<PdfObject*>& pending);
 static PdfObject& copyIndirectObject(PdfIndirectObjectList& dest,
-    const PdfObject& srcObj, unordered_map<PdfReference, PdfObject*>& mappedObjects);
+    const PdfObject& srcObj, unordered_map<PdfReference, PdfReference>& mappedObjects);
 
 PdfDocument::PdfDocument(bool empty) :
     m_Objects(*this),
@@ -122,7 +122,7 @@ void PdfDocument::Init()
 
 void PdfDocument::AppendDocumentPages(const PdfDocument& doc)
 {
-    unordered_map<PdfReference, PdfObject*> mappedObjects;
+    unordered_map<PdfReference, PdfReference> mappedObjects;
 
     // Copy all pages
     for (unsigned i = 0; i < doc.GetPages().GetCount(); i++)
@@ -144,7 +144,7 @@ void PdfDocument::AppendDocumentPages(const PdfDocument& doc)
 }
 
 void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex,
-    unordered_map<PdfReference, PdfObject*>& mappedObjects)
+    unordered_map<PdfReference, PdfReference>& mappedObjects)
 {
     auto& newObj = copyPageObject(m_Objects, doc.GetPages().GetPageAt(pageIndex).GetObject(), mappedObjects);
     m_Pages->InsertPageAt(atIndex, unique_ptr<PdfPage>(new PdfPage(newObj)));
@@ -153,7 +153,7 @@ void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc,
 }
 
 void PdfDocument::AppendDocumentPages(const PdfDocument& doc, unsigned pageIndex, unsigned pageCount,
-    unordered_map<PdfReference, PdfObject*>& mappedObjects)
+    unordered_map<PdfReference, PdfReference>& mappedObjects)
 {
     for (unsigned i = 0; i < pageCount; i++)
     {
@@ -165,7 +165,7 @@ void PdfDocument::AppendDocumentPages(const PdfDocument& doc, unsigned pageIndex
 }
 
 void PdfDocument::appendOutlineItems(PdfOutlineItem& destParent, const PdfOutlineItem* srcItem,
-    const PdfIndirectObjectList& srcObjects, unordered_map<PdfReference, PdfObject*>& mappedObjects)
+    const PdfIndirectObjectList& srcObjects, unordered_map<PdfReference, PdfReference>& mappedObjects)
 {
     while (srcItem != nullptr)
     {
@@ -281,7 +281,7 @@ void PdfDocument::createAction(PdfActionType type, unique_ptr<PdfAction>& action
 }
 
 Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page, PdfFillFormFlags flags,
-    unordered_map<PdfReference, PdfObject*>* mappedObjects)
+    unordered_map<PdfReference, PdfReference>* mappedObjects)
 {
     Rect box = page.GetMediaBox();
 
@@ -314,7 +314,7 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
         }
     }
 
-    unique_ptr<unordered_map<PdfReference, PdfObject*>> tempMap;
+    unique_ptr<unordered_map<PdfReference, PdfReference>> tempMap;
     if (isSameDoc)
     {
         // Same document: just reference existing objects directly
@@ -332,7 +332,7 @@ Rect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page,
         if (mappedObjects == nullptr)
         {
             // If a map is not supplied create one now
-            tempMap.reset(new unordered_map<PdfReference, PdfObject*>());
+            tempMap.reset(new unordered_map<PdfReference, PdfReference>());
             mappedObjects = tempMap.get();
         }
 
@@ -770,7 +770,7 @@ unique_ptr<PdfFileSpec> PdfDocument::CreateFileSpec()
 }
 
 PdfObject& copyPageObject(PdfIndirectObjectList& dest, const PdfObject& srcPageObj,
-    unordered_map<PdfReference, PdfObject*>& mappedObjects)
+    unordered_map<PdfReference, PdfReference>& mappedObjects)
 {
     auto& srcObjects = srcPageObj.MustGetDocument().GetObjects();
 
@@ -812,7 +812,7 @@ PdfObject& copyPageObject(PdfIndirectObjectList& dest, const PdfObject& srcPageO
 // indirect object into dest and remapping the references in-place.
 // The depth of the tree is unbounded in a hostile document
 static void copyReferencedObjects(PdfObject& obj, const PdfIndirectObjectList& src,
-    PdfIndirectObjectList& dest, unordered_map<PdfReference, PdfObject*>& mappedObjects)
+    PdfIndirectObjectList& dest, unordered_map<PdfReference, PdfReference>& mappedObjects)
 {
     PdfDictionary* dict;
     PdfArray* arr;
@@ -837,14 +837,17 @@ static void copyReferencedObjects(PdfObject& obj, const PdfIndirectObjectList& s
 // Remap a reference child, copying the referenced object when not done
 // yet, and queue the containers that still have to be walked
 static void copyReferencedChild(PdfObject& child, const PdfIndirectObjectList& src,
-    PdfIndirectObjectList& dest, unordered_map<PdfReference, PdfObject*>& mappedObjects,
+    PdfIndirectObjectList& dest, unordered_map<PdfReference, PdfReference>& mappedObjects,
     vector<PdfObject*>& pending)
 {
     PdfReference srcRef;
     if (child.TryGetReference(srcRef))
     {
+        // NOTE: The mapped object may have been removed meanwhile,
+        // e.g. by a garbage collection, so it's resolved every time
         auto it = mappedObjects.find(srcRef);
-        if (it == mappedObjects.end())
+        PdfObject* mapped = it == mappedObjects.end() ? nullptr : dest.GetObject(it->second);
+        if (mapped == nullptr)
         {
             auto* srcChild = src.GetObject(srcRef);
             if (srcChild == nullptr)
@@ -866,7 +869,7 @@ static void copyReferencedChild(PdfObject& child, const PdfIndirectObjectList& s
         }
         else
         {
-            child = PdfObject(it->second->GetIndirectReference());
+            child = PdfObject(mapped->GetIndirectReference());
         }
     }
     else if (child.IsDictionary() || child.IsArray())
@@ -878,15 +881,21 @@ static void copyReferencedChild(PdfObject& child, const PdfIndirectObjectList& s
 // Copy an indirect object from a source document into dest, registering it in mappedObjects.
 // If the object was already copied, returns the existing mapped object.
 static PdfObject& copyIndirectObject(PdfIndirectObjectList& dest,
-    const PdfObject& srcObj, unordered_map<PdfReference, PdfObject*>& mappedObjects)
+    const PdfObject& srcObj, unordered_map<PdfReference, PdfReference>& mappedObjects)
 {
     auto srcRef = srcObj.GetIndirectReference();
     auto found = mappedObjects.find(srcRef);
     if (found != mappedObjects.end())
-        return *found->second;
+    {
+        // NOTE: The mapped object may have been removed meanwhile, e.g. by
+        // a garbage collection: in that case the source is copied again
+        auto mapped = dest.GetObject(found->second);
+        if (mapped != nullptr)
+            return *mapped;
+    }
 
     // Create the new indirect object as a copy of the source
     auto& newObj = dest.CreateObject(srcObj);
-    mappedObjects[srcRef] = &newObj;
+    mappedObjects[srcRef] = newObj.GetIndirectReference();
     return newObj;
 }

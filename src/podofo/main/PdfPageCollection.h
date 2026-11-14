@@ -26,7 +26,9 @@ namespace PoDoFo {
         PdfObjectRelocationMap& operator=(const PdfObjectRelocationMap& rhs) = delete;
 
     private:
-        std::unordered_map<PdfReference, PdfObject*> Map;
+        // Maps the source references to the destination ones. NOTE: The
+        // destination objects are resolved on use, as they may be removed
+        std::unordered_map<PdfReference, PdfReference> Map;
     };
 
     /// Class for managing the tree of Pages in a PDF document
