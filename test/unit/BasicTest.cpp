@@ -564,3 +564,20 @@ TEST_CASE("TestFormatNumberPrecisionZero")
     stream << 1.5;
     REQUIRE(stream.GetString() == "1.5");
 }
+
+TEST_CASE("TestFormatLargeNumbers")
+{
+    // The output fits the longest number of each type
+    string str;
+    utls::FormatTo(str, numeric_limits<int>::max());
+    REQUIRE(str == "2147483647");
+    utls::FormatTo(str, numeric_limits<long long>::min());
+    REQUIRE(str == "-9223372036854775808");
+    utls::FormatTo(str, 1e8f, 6);
+    REQUIRE(str == "100000000");
+    utls::FormatTo(str, 1e20, 6);
+    REQUIRE(str == "100000000000000000000");
+    utls::FormatTo(str, -numeric_limits<double>::max(), 2);
+    REQUIRE(str.size() == 310);
+    REQUIRE(str.substr(0, 18) == "-17976931348623157");
+}

@@ -74,9 +74,29 @@ template<typename TInt, class = typename std::enable_if_t<std::is_integral_v<TIn
 void formatTo(string& str, TInt value)
 {
     str.clear();
-    array<char, numeric_limits<TInt>::digits10> arr;
+    // As in fmt, digits10 + 1 is the digit count of the maximum, plus the sign
+    array<char, numeric_limits<TInt>::digits10 + 2> arr;
     auto res = std::to_chars(arr.data(), arr.data() + arr.size(), value);
     str.append(arr.data(), res.ptr - arr.data());
+}
+
+template<typename TFloat>
+void formatTo(string& str, TFloat value, unsigned short precision)
+{
+    // Grow until the fixed notation fits: almost every number fits the first size
+    size_t size = FloatFormatDefaultSize;
+    while (true)
+    {
+        str.resize(size);
+        auto result = std::to_chars(str.data(), str.data() + size, value, chars_format::fixed, precision);
+        if (result.ec == errc{ })
+        {
+            removeTrailingZeroes(str, result.ptr - str.data());
+            return;
+        }
+
+        size *= 2;
+    }
 }
 
 void PoDoFo::LogMessage(PdfLogSeverity logSeverity, const string_view& msg)
@@ -1394,26 +1414,12 @@ void utls::FormatTo(string& str, unsigned long long value)
 
 void utls::FormatTo(string& str, float value, unsigned short precision)
 {
-    // The default size should be large enough to format all
-    // numbers with fixed notation. See https://stackoverflow.com/a/52045523/213871
-    str.resize(FloatFormatDefaultSize);
-    auto result = std::to_chars(str.data(), str.data() + FloatFormatDefaultSize, value, chars_format::fixed, precision);
-    removeTrailingZeroes(str, result.ptr - str.data());
+    formatTo(str, value, precision);
 }
 
 void utls::FormatTo(string& str, double value, unsigned short precision)
 {
-    str.resize(FloatFormatDefaultSize);
-    auto result = std::to_chars(str.data(), str.data() + FloatFormatDefaultSize, value, chars_format::fixed, precision);
-    if (result.ec == errc::value_too_large)
-    {
-        // See https://stackoverflow.com/a/52045523/213871
-        // 24 recommended - 5 (unnecessary) exponent = 19
-        constexpr unsigned DoubleFormatDefaultSize = 19;
-        str.resize(DoubleFormatDefaultSize);
-        result = std::to_chars(str.data(), str.data() + DoubleFormatDefaultSize, value, chars_format::fixed, precision);
-    }
-    removeTrailingZeroes(str, result.ptr - str.data());
+    formatTo(str, value, precision);
 }
 
 // NOTE: This is clearly limited, since it's supporting only ASCII. It does
