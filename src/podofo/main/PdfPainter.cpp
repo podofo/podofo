@@ -135,12 +135,21 @@ void PdfPainter::reset()
     m_flags = PdfPainterFlags::None;
     m_painterStatus = PainterStatus::StatusDefault;
     m_StateStack.Clear();
+    rebindStateWrappers();
     m_textStackCount = 0;
     m_objStream = nullptr;
     m_canvas = nullptr;
     m_stream.Clear();
     m_resNameCache.clear();
     m_rotationPending = false;
+}
+
+void PdfPainter::rebindStateWrappers()
+{
+    // The wrappers must point to the current state, after it's pushed, popped or recreated
+    auto& current = *m_StateStack.Current;
+    GraphicsState.SetState(current.GraphicsState);
+    TextState.SetState(current.TextState);
 }
 
 void PdfPainter::SetStrokeStyle(PdfStrokeStyle strokeStyle, bool inverted, double scale, bool subtractJoinCap)
@@ -589,9 +598,7 @@ void PdfPainter::save()
 {
     PoDoFo::WriteOperator_q(m_stream);
     m_StateStack.Push();
-    auto& current = *m_StateStack.Current;
-    GraphicsState.SetState(current.GraphicsState);
-    TextState.SetState(current.TextState);
+    rebindStateWrappers();
 }
 
 void PdfPainter::Restore()
@@ -609,9 +616,7 @@ void PdfPainter::restore()
 {
     PoDoFo::WriteOperator_Q(m_stream);
     m_StateStack.Pop();
-    auto& current = *m_StateStack.Current;
-    GraphicsState.SetState(current.GraphicsState);
-    TextState.SetState(current.TextState);
+    rebindStateWrappers();
 }
 
 void PdfPainter::SetExtGState(const PdfExtGState& extGState)
