@@ -50,14 +50,16 @@ PdfDictionaryElement::PdfDictionaryElement(PdfObject& obj)
 {
 }
 
+// NOTE: The checked accessors are used, as the object may have been
+// unloaded or retyped since the wrapper validated it at construction
 PdfDictionary& PdfDictionaryElement::GetDictionary()
 {
-    return GetObject().GetDictionaryUnsafe();
+    return GetObject().GetDictionary();
 }
 
 const PdfDictionary& PdfDictionaryElement::GetDictionary() const
 {
-    return GetObject().GetDictionaryUnsafe();
+    return GetObject().GetDictionary();
 }
 
 PdfArrayElement::PdfArrayElement(PdfDocument& parent)
@@ -73,10 +75,10 @@ PdfArrayElement::PdfArrayElement(PdfObject& obj)
 
 PdfArray& PdfArrayElement::GetArray()
 {
-    return GetObject().GetArrayUnsafe();
+    return GetObject().GetArray();
 }
 
 const PdfArray& PdfArrayElement::GetArray() const
 {
-    return GetObject().GetArrayUnsafe();
+    return GetObject().GetArray();
 }
