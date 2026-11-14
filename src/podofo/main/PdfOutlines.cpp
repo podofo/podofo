@@ -228,10 +228,11 @@ void PdfOutlineItem::SetDestination(nullable<const PdfDestination&> destination)
     else
     {
         // NOTE: The dictionary is updated first, as destination may be
-        // the cached instance replaced by the assignment below
+        // the cached instance. The cache is then rebuilt from the stored
+        // /Dest on access, as the caller's object is not the stored one
         destination->AddToDictionary(dict);
         dict.RemoveKey("A");
-        m_Destination = unique_ptr<PdfDestination>(new PdfDestination(*destination));
+        m_Destination = { };
         m_Action *= nullptr;
     }
 }
@@ -379,7 +380,5 @@ PdfOutlines::PdfOutlines(PdfObject& obj)
 
 PdfOutlineItem& PdfOutlines::CreateRoot(const PdfString& title)
 {
-    auto& ret = this->CreateChild(title);
-    ret.SetDestination(*GetDocument().CreateDestination());
-    return ret;
+    return this->CreateChild(title);
 }
