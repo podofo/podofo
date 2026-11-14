@@ -167,3 +167,11 @@ TEST_CASE("TestNameSelfAssignment")
     name = std::move(nameRef);
     REQUIRE(name.GetString() == "TestName");
 }
+
+TEST_CASE("TestNameFromCharBuffer")
+{
+    // A character buffer is read up to its NUL termination, not its size
+    char buffer[16] = "Name";
+    PdfName name(buffer);
+    REQUIRE(name.GetString() == "Name");
+}
