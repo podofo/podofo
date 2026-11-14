@@ -13,16 +13,16 @@ using namespace std;
 using namespace cmn;
 using namespace PoDoFo;
 
-// Retrieve the basepath of the source directory
-struct SourcePathOffset
+// Retrieve the basepath of the source directory, with the trailing separator
+struct SourcePathPrefix
 {
-    SourcePathOffset()
-        : Value(fs::u8path(__FILE__).parent_path().parent_path()
+    SourcePathPrefix()
+        : Value(__FILE__, fs::u8path(__FILE__).parent_path().parent_path()
             .u8string().length() + 1) { }
-    const size_t Value;
+    const string_view Value;
 };
 
-static SourcePathOffset s_PathOffset;
+static SourcePathPrefix s_PathPrefix;
 
 PdfError::PdfError(PdfErrorCode code, string filepath, unsigned line,
     string information)
@@ -309,5 +309,10 @@ PdfErrorInfo::PdfErrorInfo(string filepath, unsigned line, string info)
 
 string_view PdfErrorInfo::GetFilePath() const
 {
-    return ((string_view)m_FilePath).substr(s_PathOffset.Value);
+    // NOTE: A frame added from outside the library has no sources prefix
+    string_view path = m_FilePath;
+    if (path.compare(0, s_PathPrefix.Value.size(), s_PathPrefix.Value) != 0)
+        return path;
+
+    return path.substr(s_PathPrefix.Value.size());
 }
