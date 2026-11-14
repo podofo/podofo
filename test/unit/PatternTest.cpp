@@ -881,3 +881,21 @@ TEST_CASE("TestShadingPatternFromObject")
     REQUIRE(loaded->GetDefinition().GetShadingPtr() != nullptr);
     REQUIRE_NOTHROW(loaded->GetDefinition().GetShading().GetShadingType());
 }
+
+TEST_CASE("TestSampledFunctionEncode")
+{
+    // The /Encode check walks the inputs, not the range, and a function needs an input
+    PdfMemDocument doc;
+    auto fn = doc.CreateFunction(std::make_shared<PdfSampledFunctionDefinition>(vector<unsigned>{ 2, 3 }, 8,
+        vector<unsigned>{ 0, 1, 2, 3, 4, 5 }, vector<double>{ 0, 1, 0, 1 }, vector<double>{ 0, 1 }));
+    REQUIRE(!fn->GetDictionary().HasKey("Encode"));
+    auto fn2 = doc.CreateFunction(std::make_shared<PdfSampledFunctionDefinition>(vector<unsigned>{ 2 }, 8,
+        vector<unsigned>{ 0, 255 }, vector<double>{ 0, 1 }, vector<double>{ 0, 1 },
+        PdfSampledFunctionOrder::Linear, vector<double>{ 0, 0.5 }));
+    REQUIRE(fn2->GetDictionary().HasKey("Encode"));
+    auto createEmpty = []()
+    {
+        PdfSampledFunctionDefinition def(vector<unsigned>{ }, 8, vector<unsigned>{ 0 }, vector<double>{ }, vector<double>{ 0, 1 });
+    };
+    ASSERT_THROW_WITH_ERROR_CODE(createEmpty(), PdfErrorCode::InvalidInput);
+}

@@ -16,6 +16,9 @@ PdfFunctionDefinition::~PdfFunctionDefinition() { }
 PdfFunctionDefinition::PdfFunctionDefinition(PdfFunctionType type, vector<double>&& domain, vector<double>&& range)
     : m_Domain(std::move(domain)), m_Range(std::move(range)), m_Type(type)
 {
+    if (m_Domain.size() == 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "The domain must define at least one input");
+
     if (m_Domain.size() % 2 != 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "The domain range must be even");
 
@@ -136,19 +139,14 @@ void PdfSampledFunctionDefinition::fillExportDictionary(PdfDictionary& dict) con
     if (m_Order != PdfSampledFunctionOrder::Linear)
         dict.AddKey("Order"_n, static_cast<int64_t>(m_Order));
 
-    for (unsigned i = 0; i < GetRange().size(); i++)
+    // Write /Encode if different than the default [0 (Size0 - 1) 0 (Size1 - 1) ...]
+    for (unsigned i = 0; i < m_Size.size(); i++)
     {
-        // Write /Encode if different than default
-        if (m_Encode[i + 0] != 0)
-            goto WriteEncode;
-        if (m_Encode[i + 1] != GetRange()[i] - 1)
-            goto WriteEncode;
-
-        continue;
-
-    WriteEncode:
-        dict.AddKey("Encode"_n, PdfArray::FromReals((cspan<double>)m_Encode));
-        break;
+        if (m_Encode[i * 2 + 0] != 0 || m_Encode[i * 2 + 1] != m_Size[i] - 1)
+        {
+            dict.AddKey("Encode"_n, PdfArray::FromReals((cspan<double>)m_Encode));
+            break;
+        }
     }
 
     if (m_Decode != GetRange())
