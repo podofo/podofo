@@ -77,6 +77,40 @@ void PdfFontManager::Clear()
     m_inlineFonts.clear();
 }
 
+void PdfFontManager::RemoveCollected(const unordered_set<PdfReference>& collected)
+{
+    for (auto it = m_fonts.begin(); it != m_fonts.end(); )
+    {
+        if (collected.find(it->first) == collected.end())
+        {
+            it++;
+            continue;
+        }
+
+        // Remove the font from the query and path caches as well
+        auto font = it->second.Font.get();
+        for (auto qit = m_cachedQueries.begin(); qit != m_cachedQueries.end(); )
+        {
+            auto& fonts = qit->second;
+            fonts.erase(std::remove(fonts.begin(), fonts.end(), font), fonts.end());
+            if (fonts.size() == 0)
+                qit = m_cachedQueries.erase(qit);
+            else
+                qit++;
+        }
+
+        for (auto pit = m_cachedPaths.begin(); pit != m_cachedPaths.end(); )
+        {
+            if (pit->second == font)
+                pit = m_cachedPaths.erase(pit);
+            else
+                pit++;
+        }
+
+        it = m_fonts.erase(it);
+    }
+}
+
 string PdfFontManager::GenerateSubsetPrefix()
 {
     for (unsigned i = 0; i < SUBSET_PREFIX_LEN; i++)

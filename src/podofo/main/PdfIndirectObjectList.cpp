@@ -417,6 +417,7 @@ void PdfIndirectObjectList::CollectGarbage(PdfObject& trailer, bool fixInvalidRe
     }
 
     vector<PdfObject*> objectsToDelete;
+    unordered_set<PdfReference> collected;
     ObjectList newlist;
     for (PdfObject* obj : m_Objects)
     {
@@ -427,11 +428,16 @@ void PdfIndirectObjectList::CollectGarbage(PdfObject& trailer, bool fixInvalidRe
         {
             markObjectFree(ref, true);
             objectsToDelete.push_back(obj);
+            collected.insert(ref);
             continue;
         }
 
         newlist.insert(obj);
     }
+
+    // The document drops its caches over the collected objects before they are deleted
+    if (m_Document != nullptr && collected.size() != 0)
+        m_Document->onObjectsCollected(collected);
 
     for (auto obj : objectsToDelete)
         delete obj;

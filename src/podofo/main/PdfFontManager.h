@@ -45,6 +45,11 @@ struct PODOFO_API PdfFontSearchParams final
 /// a PDF file (i.e. it does also font embedding)
 /// and PdfFontMetrics provides only metrics information.
 ///
+/// @remarks The fonts created here are indirect objects referenced only
+/// once used, e.g. drawn with PdfPainter: a garbage collection, run by
+/// default when saving, deletes the unused ones and invalidates the
+/// PdfFont instances returned for them
+///
 /// @see PdfDocument
 class PODOFO_API PdfFontManager final
 {
@@ -173,6 +178,9 @@ private:
     /// This should be done whenever a new document
     /// is created or opened.
     void Clear();
+
+    /// Remove the fonts whose object is being garbage collected
+    void RemoveCollected(const std::unordered_set<PdfReference>& collected);
 
     PdfFont* AddImported(std::unique_ptr<PdfFont>&& font);
 

@@ -111,6 +111,7 @@ class PODOFO_API PdfDocument
     friend class PdfPageCollection;
     friend class PdfMemDocument;
     friend class PdfStreamedDocument;
+    friend class PdfIndirectObjectList;
 
 public:
     /// Close down/destruct the PdfDocument
@@ -429,6 +430,9 @@ private:
 
     void lazyLoadOutlines();
     void lazyLoadInfo();
+
+    // Called by PdfIndirectObjectList::CollectGarbage before deleting the objects
+    void onObjectsCollected(const std::unordered_set<PdfReference>& collected);
 
 private:
     PdfDocument& operator=(const PdfDocument&) = delete;

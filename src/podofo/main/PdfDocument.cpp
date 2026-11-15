@@ -439,6 +439,11 @@ void PdfDocument::CollectGarbage(PdfGarbageCollectionFlags flags)
     m_Objects.CollectGarbage(flags);
 }
 
+void PdfDocument::onObjectsCollected(const unordered_set<PdfReference>& collected)
+{
+    m_FontManager.RemoveCollected(collected);
+}
+
 PdfOutlines& PdfDocument::GetOrCreateOutlines()
 {
     lazyLoadOutlines();
