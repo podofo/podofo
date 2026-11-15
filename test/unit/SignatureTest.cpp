@@ -1501,6 +1501,15 @@ TEST_CASE("TestRestoreSigningContextMissingByteRange")
     ASSERT_THROW_WITH_ERROR_CODE(ctx.Restore(std::make_shared<BufferStreamDevice>(buff)), PdfErrorCode::InvalidInput);
 }
 
+TEST_CASE("TestRestoreSigningContextHugeFragment")
+{
+    // The footer alone declares a fragment of 16 MiB and 1 byte: the size is
+    // rejected before the seek, which would fail the short dump otherwise
+    charbuff buff(string_view("SC\x01\x00\x01\x00\x00\x01", 8));
+    PdfSigningContext ctx;
+    ASSERT_THROW_WITH_ERROR_CODE(ctx.Restore(std::make_shared<BufferStreamDevice>(buff)), PdfErrorCode::InvalidInput);
+}
+
 TEST_CASE("TestSignerCmsInvalidCertificateRetry")
 {
     // A failed certificate load must not leave a half initialized context behind

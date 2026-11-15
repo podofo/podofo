@@ -25,6 +25,9 @@ static void prepareBeaconsData(size_t signatureSize, string& contentsBeacon, str
 
 constexpr uint16_t DumpFooterMagic = 0x5343; // "SC" -> Signing Context
 constexpr uint8_t DumpFooterVersion = 1;
+// A fragment takes a few KiB per signer: the size read from the footer
+// is bounded before it drives a seek and an allocation
+constexpr uint32_t MaxXMLFragmentSize = 16 * 1024 * 1024;
 
 namespace
 {
@@ -63,6 +66,9 @@ unique_ptr<PdfMemDocument> PdfSigningContext::Restore(shared_ptr<StreamDevice> d
 
     if (footer.Version != DumpFooterVersion)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "Unsupported PdfSigningContext footer version");
+
+    if (footer.XMLFragmentSize > MaxXMLFragmentSize)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidInput, "The PdfSigningContext XML fragment exceeds the maximum size of {} bytes", MaxXMLFragmentSize);
 
     device->Seek(-(ssize_t)(sizeof(SigningContextDumpFooter) + footer.XMLFragmentSize), SeekDirection::End);
 
