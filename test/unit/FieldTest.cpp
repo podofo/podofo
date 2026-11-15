@@ -290,3 +290,19 @@ TEST_CASE("TestButtonCaptionsWithoutWidget")
     ASSERT_THROW_WITH_ERROR_CODE(button.GetRolloverCaption(), PdfErrorCode::InvalidHandle);
     ASSERT_THROW_WITH_ERROR_CODE(button.SetAlternateCaption(PdfString("Alt")), PdfErrorCode::InvalidHandle);
 }
+
+TEST_CASE("TestFieldWidgetAfterPageRemoval")
+{
+    // A child field bound to a widget of a removed page loses the widget
+    PdfMemDocument doc;
+    doc.GetPages().CreatePage(PdfPageSize::A4);
+    auto& page = doc.GetPages().CreatePage(PdfPageSize::A4);
+    auto& group = doc.GetOrCreateAcroForm().CreateField<PdfRadioButton>("Group");
+    auto& child = group.GetChildren().CreateChild(page, Rect(10, 10, 20, 20));
+    REQUIRE(child.GetWidget() != nullptr);
+    doc.GetPages().RemovePageAt(1);
+    auto& found = doc.GetAcroForm()->GetFieldAt(0).GetChildren().GetFieldAt(0);
+    REQUIRE(&found == &child);
+    REQUIRE(child.GetWidget() == nullptr);
+    ASSERT_THROW_WITH_ERROR_CODE(child.MustGetWidget(), PdfErrorCode::InvalidHandle);
+}

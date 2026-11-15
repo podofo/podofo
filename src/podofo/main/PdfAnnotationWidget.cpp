@@ -18,6 +18,13 @@ PdfAnnotationWidget::PdfAnnotationWidget(PdfObject& obj)
 {
 }
 
+PdfAnnotationWidget::~PdfAnnotationWidget()
+{
+    // The field may outlive the widget in the AcroForm hierarchy
+    if (m_Field != nullptr)
+        m_Field->m_Widget = nullptr;
+}
+
 void PdfAnnotationWidget::SetField(shared_ptr<PdfField>&& field)
 {
     m_Field = std::move(field);
