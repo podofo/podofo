@@ -86,6 +86,7 @@ private:
 private:
     int m_count;
     unsigned m_tuple;
+    bool m_endReached;
 };
 
 /// The Flate filter.
