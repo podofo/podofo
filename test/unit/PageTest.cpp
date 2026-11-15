@@ -311,6 +311,31 @@ startxref
     REQUIRE(dict.MustFindKey("MediaBox").GetArray()[2].GetReal() == 200);
 }
 
+TEST_CASE("TestCreatePageDoesntInheritRootAttributes")
+{
+    // The root attributes must stay on the existing page only
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1/CropBox[0 0 100 100]/Rotate 90>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]>>endobj
+trailer<</Root 1 0 R/Size 4>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& pages = doc.GetPages();
+    auto& newPage = pages.CreatePage(PdfPageSize::A4);
+
+    double rotation;
+    REQUIRE(!newPage.TryGetRotationRaw(rotation));
+    REQUIRE(newPage.GetCropBox().Width == newPage.GetMediaBox().Width);
+    auto& page = pages.GetPageAt(0);
+    REQUIRE(page.GetRotation() == 90);
+    REQUIRE(page.GetCropBox().Width == 100);
+}
+
 TEST_CASE("TestFlattenInlineKids")
 {
     // The page and the intermediate node inline in /Kids must survive
