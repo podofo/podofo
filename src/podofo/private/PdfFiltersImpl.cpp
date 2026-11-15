@@ -315,7 +315,7 @@ void PdfHexFilter::EndDecodeImpl()
 // Paul Haahr - http://www.webcom.com/~haahr/
 
 PdfAscii85Filter::PdfAscii85Filter()
-    : m_count(0), m_tuple(0)
+    : m_count(0), m_tuple(0), m_endReached(false)
 {
 }
 
@@ -391,13 +391,12 @@ void PdfAscii85Filter::BeginDecodeImpl(const PdfDictionary*)
 {
     m_count = 0;
     m_tuple = 0;
+    m_endReached = false;
 }
 
 void PdfAscii85Filter::DecodeBlockImpl(const char* buffer, size_t len)
 {
-    bool foundEndMarker = false;
-
-    while (len != 0 && !foundEndMarker)
+    while (len != 0 && !m_endReached)
     {
         switch (*buffer)
         {
@@ -424,12 +423,9 @@ void PdfAscii85Filter::DecodeBlockImpl(const char* buffer, size_t len)
                 this->WidePut(0, 4);
                 break;
             case '~':
-                buffer++;
-                len--;
-                if (len != 0 && *buffer != '>')
-                    PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
-
-                foundEndMarker = true;
+                // ISO 32000-2:2020 7.4.3 "ASCII85Decode filter": the EOD marker
+                // is ~>. The data ends leniently at the ~, the > is not checked
+                m_endReached = true;
                 break;
             case '\n': case '\r': case '\t': case ' ':
             case '\0': case '\f': case '\b': case 0177:

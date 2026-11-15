@@ -64,6 +64,19 @@ TEST_CASE("TestHexDecodeFilter")
     REQUIRE(decoded == "Hellop");
 }
 
+TEST_CASE("TestAscii85DecodeFilter")
+{
+    // The end marker is split between two blocks: nothing is decoded past it
+    auto filter = PdfFilterFactory::Create(PdfFilterType::ASCII85Decode);
+    charbuff decoded;
+    BufferStreamDevice device(decoded);
+    filter->BeginDecode(device);
+    filter->DecodeBlock(string_view("87cURDZ~"));
+    filter->DecodeBlock(string_view(">87cUR"));
+    filter->EndDecode();
+    REQUIRE(decoded == "Hello");
+}
+
 void testFilter(PdfFilterType filterType, const bufferview& view)
 {
     charbuff encoded;
