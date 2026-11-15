@@ -438,6 +438,11 @@ void PdfPageCollection::FlattenStructure()
     for (unsigned i = 0; i < m_Pages.size(); i++)
         m_Pages[i]->FlattenStructure();
 
+    // The pages now hold their own copy of the attributes inherited from
+    // the root: remove them, so the pages inserted later don't inherit them
+    for (auto& name : PdfPage::GetInheritableAttributes())
+        GetDictionary().RemoveKey(name);
+
     auto& kidsObj = GetDocument().GetObjects().CreateArrayObject();
     GetDictionary().AddKeyIndirect("Kids"_n, kidsObj);
     m_kidsArray = &kidsObj.GetArray();
