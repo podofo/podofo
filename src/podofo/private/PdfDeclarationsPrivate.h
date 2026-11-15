@@ -182,6 +182,9 @@ namespace PoDoFo
     constexpr unsigned MAX_CID = MAX_UNICODE_CP;
     // Keywords, numbers and names longer than this are cut by the tokenizer
     constexpr unsigned MAX_TOKEN_LENGTH = 255;
+    // Maximum entries of a parsed array or dictionary: far above real ones, such as
+    // a flat /Kids or a CIDFont /W, it bounds the memory of a single literal
+    constexpr unsigned MAX_CONTAINER_ENTRY_COUNT = 1U << 20;
 
     /// Transform the given raw rect accordingly to the page rotation
     Rect TransformCornersPage(const Corners& rect, const PdfPage& page);

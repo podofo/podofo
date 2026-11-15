@@ -371,6 +371,25 @@ TEST_CASE("TestTokenizerLongToken")
     REQUIRE(token == "endobj");
 }
 
+TEST_CASE("TestArrayEntryCountLimit")
+{
+    // The elements past the limit are dropped, also when the first one is an
+    // array, and reading resumes after the outer array
+    string input("[");
+    for (unsigned i = 0; i < MAX_CONTAINER_ENTRY_COUNT; i++)
+        input.append("0 ");
+    input.append("[1] 2] /Next");
+
+    SpanStreamDevice device(input);
+    PdfTokenizer tokenizer;
+    PdfVariant variant;
+    REQUIRE(tokenizer.TryReadNextVariant(device, variant));
+    REQUIRE(variant.GetArray().GetSize() == MAX_CONTAINER_ENTRY_COUNT);
+    PdfVariant next;
+    REQUIRE(tokenizer.TryReadNextVariant(device, next));
+    REQUIRE(next.GetName() == "Next");
+}
+
 void Test(const string_view& buffer, PdfDataType dataType, string_view expected)
 {
     expected = expected.empty() ? buffer : expected;

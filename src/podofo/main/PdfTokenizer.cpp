@@ -527,6 +527,9 @@ bool PdfTokenizer::ReadDictionary(InputStreamDevice& device, PdfVariant& variant
             return handleContainerInnerError(device, endDelim, opts, PdfErrorCode::InvalidDataType, "Expected a name as dictionary key");
 
         auto& key = nameVar.GetName();
+        if (dict.GetSize() == MAX_CONTAINER_ENTRY_COUNT && !dict.HasKey(key.GetString()))
+            return handleContainerInnerError(device, endDelim, opts, PdfErrorCode::ValueOutOfRange, "Dictionary entry count exceeds maximum allowed size");
+
         gotToken = this->TryReadNextToken(device, token, tokenType);
         if (!gotToken)
             return handleContainerTruncation(opts, PdfErrorCode::UnexpectedEOF, "Expected variant");
@@ -619,6 +622,14 @@ bool PdfTokenizer::ReadArray(InputStreamDevice& device, PdfVariant& variant, con
 
         if (!success)
             return handleContainerInnerError(device, endDelim, opts, PdfErrorCode::InvalidDataType, "Could not read a variant");
+
+        if (arr.GetSize() > MAX_CONTAINER_ENTRY_COUNT)
+        {
+            // NOTE: The element past the limit must be read whole before
+            // actually dropping it, otherwise it may unbalance drain tracking
+            arr.eraseAt(arr.GetSize() - 1, 1);
+            return handleContainerInnerError(device, endDelim, opts, PdfErrorCode::ValueOutOfRange, "Array element count exceeds maximum allowed size");
+        }
     }
 
     return true;
