@@ -52,6 +52,7 @@ public:
 private:
     char m_DecodedByte;
     bool m_Low;
+    bool m_EndReached;
 };
 
 /// The Ascii85 filter.
