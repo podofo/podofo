@@ -307,6 +307,9 @@ public:
     /// or root object.
     ///
     /// @returns PdfObject the documents catalog
+    /// @remarks Editing through the raw dictionary the entries managed by the typed
+    /// accessors, such as /Pages, /AcroForm, /Outlines or /Names, is not supported,
+    /// see PdfElement
     PdfCatalog& GetCatalog() { return *m_Catalog; }
 
     /// Get access to the internal Catalog dictionary
@@ -327,6 +330,8 @@ public:
     /// or root object.
     ///
     /// @returns PdfTrailer the document's trailer
+    /// @remarks Editing through the raw dictionary the /Root or /Info entries is
+    /// not supported, see PdfElement
     PdfTrailer &GetTrailer() { return *m_Trailer; }
 
     /// Get access to the internal trailer dictionary
