@@ -701,7 +701,7 @@ TEST_CASE("TestRestoreSigningContextNotASignature")
         string pkey;
         TestUtils::ReadTestInputFileTo(pkey, "mykey-pkcs8.der");
         charbuff signedHash;
-        ssl::SignHash(hashToSign, pkey, PdfSignerCmsParams().Hashing, signedHash);
+        ssl::DoSignHash(hashToSign, pkey, PdfSignerCmsParams().Hashing, signedHash);
         PdfSigningResults results;
         results.Intermediate[signerId] = signedHash;
         ctx.FinishSigning(results);
@@ -739,9 +739,8 @@ TEST_CASE("TestSignerCmsInvalidCertificateRetry")
     string pkey;
     TestUtils::ReadTestInputFileTo(pkey, "mykey-pkcs8.der");
     PdfSignerCms signer(string_view("not a certificate"), pkey);
-    auto date = PdfDate::Parse("D:20250205192456+06'00'");
-    ASSERT_THROW_WITH_ERROR_CODE(signer.ValidateSignatureDate(date), PdfErrorCode::OpenSSLError);
-    ASSERT_THROW_WITH_ERROR_CODE(signer.ValidateSignatureDate(date), PdfErrorCode::OpenSSLError);
+    ASSERT_THROW_WITH_ERROR_CODE(signer.GetSignedHashSize(), PdfErrorCode::OpenSSLError);
+    ASSERT_THROW_WITH_ERROR_CODE(signer.GetSignedHashSize(), PdfErrorCode::OpenSSLError);
 }
 
 TEST_CASE("TestSignerCmsAddNullAttribute")
