@@ -22,6 +22,9 @@ constexpr unsigned MaxFormXObjectCount = 1U << 16;
 // with no operator would otherwise grow the stack with the decoded data
 constexpr unsigned MaxOperandCount = 1U << 16;
 
+// An inline image dictionary has a dozen known keys
+constexpr unsigned MaxInlineImageKeyCount = 256;
+
 PdfContentStreamReader::PdfContentStreamReader(const PdfCanvas& canvas,
         nullable<const PdfContentReaderArgs&> args) :
     PdfContentStreamReader(std::make_shared<PdfCanvasInputDevice>(canvas),
@@ -337,10 +340,15 @@ bool PdfContentStreamReader::tryReadInlineImgDict(PdfContent& content)
             }
         }
 
-        if (m_tokenizer.TryReadNextVariant(*m_inputs.back().Device, m_temp.Variant))
-            content.Data.InlineImageDictionary.AddKey(m_temp.Name, std::move(m_temp.Variant));
-        else
+        if (!m_tokenizer.TryReadNextVariant(*m_inputs.back().Device, m_temp.Variant))
             return false;
+
+        // Past the limit the dictionary is malformed: drop the new keys
+        auto& dict = content.Data.InlineImageDictionary;
+        if (dict.GetSize() == MaxInlineImageKeyCount && !dict.HasKey(m_temp.Name.GetString()))
+            content.Warnings |= PdfContentWarnings::InvalidImageDictionaryContent;
+        else
+            dict.AddKey(m_temp.Name, std::move(m_temp.Variant));
     }
 }
 

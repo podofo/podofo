@@ -138,6 +138,26 @@ TEST_CASE("TestContentStreamReaderOperandLimit")
     REQUIRE(content->Stack[0].GetNumber() == 2);
 }
 
+TEST_CASE("TestContentStreamReaderInlineImageKeyLimit")
+{
+    // The keys of an inline image dictionary past the limit of 256 are dropped
+    string input("BI");
+    for (unsigned i = 0; i < 300; i++)
+    {
+        input.append(" /K");
+        input.append(std::to_string(i));
+        input.append(" 0");
+    }
+    input.append(" ID x EI");
+
+    PdfContentStreamReader reader(std::make_shared<SpanStreamDevice>(input));
+    PdfContent content;
+    REQUIRE(reader.TryReadNext(content));
+    REQUIRE(content.GetType() == PdfContentType::ImageDictionary);
+    REQUIRE((content.GetWarnings() & PdfContentWarnings::InvalidImageDictionaryContent) != PdfContentWarnings::None);
+    REQUIRE(content.GetInlineImageDictionary().GetSize() == 256);
+}
+
 TEST_CASE("TestContentStreamReaderFailedStream")
 {
     // The second content stream can't be decoded: the error is reported
