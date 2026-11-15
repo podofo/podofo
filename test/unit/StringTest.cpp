@@ -237,3 +237,23 @@ TEST_CASE("TestStringFromCharBufferCopies")
     buffer[0] = 'J';
     REQUIRE(str.GetString() == "Hello");
 }
+
+TEST_CASE("TestStringCompareSameContents")
+{
+    // NOTE: Each std::string gets its own allocated data
+    PdfString str1(string("Hello"));
+    PdfString str2(string("Hello"));
+    REQUIRE(str1 == str2);
+    REQUIRE(!(str1 != str2));
+}
+
+TEST_CASE("TestStringCompareRawWithEvaluated")
+{
+    // The raw bytes C3 84 are PdfDocEncoding for U+00C3 U+2014, while the
+    // same bytes evaluated are UTF-8 for U+00C4: the strings are different
+    auto raw = PdfString::FromRaw(bufferview("\xC3\x84", 2));
+    PdfString evaluated(string("\xC3\x84"));
+    REQUIRE(!(raw == evaluated));
+    REQUIRE(raw != evaluated);
+    REQUIRE(!raw.IsStringEvaluated());
+}

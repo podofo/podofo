@@ -315,7 +315,7 @@ bool PdfString::operator==(const PdfString& rhs) const
             if (this->m_data == rhs.m_data)
                 return true;
 
-            if (this->m_data->StringEvaluated != this->m_data->StringEvaluated)
+            if (this->m_data->StringEvaluated != rhs.m_data->StringEvaluated)
                 return false;
 
             return this->m_data->Chars == rhs.m_data->Chars;
@@ -373,10 +373,10 @@ bool PdfString::operator!=(const PdfString& rhs) const
     {
         if (rhs.m_dataAllocated)
         {
-            if (this->m_data != rhs.m_data)
-                return true;
+            if (this->m_data == rhs.m_data)
+                return false;
 
-            if (this->m_data->StringEvaluated != this->m_data->StringEvaluated)
+            if (this->m_data->StringEvaluated != rhs.m_data->StringEvaluated)
                 return true;
 
             return this->m_data->Chars != rhs.m_data->Chars;
