@@ -34,6 +34,10 @@ PODOFO_EXPORT ssl::OpenSSLMain s_SSL;
 
 static unsigned s_MaxObjectCount = MAX_OBJECT_COUNT;
 
+// A few compressed bytes may decode to orders of magnitude more: this
+// fits a color A4 page scanned at 1200 dpi or an A0 one at 300 dpi
+static size_t s_MaxDecodedStreamSize = 512 * 1024 * 1024;
+
 #if OPENSSL_VERSION_MAJOR >= 3
 OSSL_LIB_CTX* ssl::Init()
 #else // OPENSSL_VERSION_MAJOR < 3
@@ -106,4 +110,14 @@ void PdfCommon::SetMaxRecursionDepth(unsigned maxRecursionDepth)
 unsigned PdfCommon::GetMaxRecursionDepth()
 {
     return s_MaxRecursionDepth;
+}
+
+void PdfCommon::SetMaxDecodedStreamSize(size_t maxDecodedStreamSize)
+{
+    s_MaxDecodedStreamSize = maxDecodedStreamSize;
+}
+
+size_t PdfCommon::GetMaxDecodedStreamSize()
+{
+    return s_MaxDecodedStreamSize;
 }

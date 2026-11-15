@@ -46,6 +46,13 @@ public:
     /// @remarks Values above 4294967294 are capped, so the object
     /// number following the last one never wraps to 0
     static void SetMaxObjectCount(unsigned maxObjectCount);
+
+    /// Set the maximum count of bytes the filters of a stream may produce while
+    /// decoding it, summed across the filter chain. The default is 512 MiB
+    /// @remarks Decoding a stream that exceeds it raises PdfErrorCode::ValueOutOfRange
+    static void SetMaxDecodedStreamSize(size_t maxDecodedStreamSize);
+
+    static size_t GetMaxDecodedStreamSize();
 };
 
 }

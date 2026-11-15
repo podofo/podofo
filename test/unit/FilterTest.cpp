@@ -282,6 +282,39 @@ TEST_CASE("TestEncodeStreamUnsupportedFilter")
         PdfErrorCode::UnsupportedFilter);
 }
 
+TEST_CASE("TestDecodedStreamSizeLimit")
+{
+    // The bytes produced by every filter count: the first one produces 40
+    // blanks and "48656C6C6F", 50 bytes, the second one discards the blanks
+    // and produces "Hello", 5 bytes
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Contents 4 0 R>>endobj
+4 0 obj<</Length 100/Filter[/AHx/AHx]>>stream
+2020202020202020202020202020202020202020202020202020202020202020202020202020202034383635364336433646
+endstream
+endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    struct LimitRestore
+    {
+        size_t Previous = PdfCommon::GetMaxDecodedStreamSize();
+        ~LimitRestore() { PdfCommon::SetMaxDecodedStreamSize(Previous); }
+    } restore;
+
+    PdfMemDocument doc;
+    doc.LoadFromBuffer(pdf);
+    auto& objStream = doc.GetObjects().MustGetObject(PdfReference(4, 0)).MustGetStream();
+    PdfCommon::SetMaxDecodedStreamSize(54);
+    ASSERT_THROW_WITH_ERROR_CODE(objStream.GetCopy(), PdfErrorCode::ValueOutOfRange);
+    PdfCommon::SetMaxDecodedStreamSize(55);
+    REQUIRE(objStream.GetCopy() == "Hello");
+}
+
 namespace
 {
     class ThrowingOutputStream final : public OutputStream
