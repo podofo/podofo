@@ -810,3 +810,19 @@ TEST_CASE("TestAddSubsetCIDsWithoutSubsetting")
     REQUIRE(!proxy->IsSubsettingEnabled());
     proxy->AddSubsetCIDs(PdfString::FromRaw("TEST"));
 }
+
+TEST_CASE("TestFontManagerAfterGarbageCollection")
+{
+    // Imported fonts not yet used are collected: the manager drops them
+    // instead of embedding through the freed object at the next save
+    PdfMemDocument doc;
+    doc.GetPages().CreatePage(PdfPageSize::A4);
+    auto& font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica);
+    auto ref = font.GetObject().GetIndirectReference();
+    doc.CollectGarbage();
+    REQUIRE(doc.GetFonts().GetCachedFont(ref) == nullptr);
+    doc.GetFonts().EmbedFonts();
+    auto& font2 = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica);
+    REQUIRE(font2.GetObject().GetIndirectReference() != ref);
+    doc.Save(TestUtils::GetTestOutputFilePath("TestFontManagerAfterGarbageCollection.pdf"));
+}
