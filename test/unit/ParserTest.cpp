@@ -45,7 +45,6 @@ namespace PoDoFo
 
         static void TestReadXRefContents();
         static void TestMaxObjectCount();
-        static void TestMaxObjectCount2();
         static void TestReadXRefStreamContents();
         static void TestReadObjects();
         static void TestIsPdfFile();
@@ -105,7 +104,6 @@ namespace PoDoFo
 
 METHOD_AS_TEST_CASE(PdfParserTest::TestReadXRefContents, "TestReadXRefContents");
 METHOD_AS_TEST_CASE(PdfParserTest::TestMaxObjectCount, "TestMaxObjectCount");
-METHOD_AS_TEST_CASE(PdfParserTest::TestMaxObjectCount2, "TestMaxObjectCount2", "[.]");
 METHOD_AS_TEST_CASE(PdfParserTest::TestReadXRefStreamContents, "TestReadXRefStreamContents");
 METHOD_AS_TEST_CASE(PdfParserTest::TestIsPdfFile, "TestIsPdfFile");
 METHOD_AS_TEST_CASE(PdfParserTest::TestNestedArrays, "TestNestedArrays");
@@ -184,13 +182,6 @@ void PdfParserTest::TestMaxObjectCount()
     testReadXRefSubsection();
 
     PdfCommon::SetMaxObjectCount(maxNumberOfIndirectObjects);
-    testReadXRefSubsection();
-}
-
-// NOTE: This test is too long to be normally done on every run
-void PdfParserTest::TestMaxObjectCount2()
-{
-    PdfCommon::SetMaxObjectCount(numeric_limits<unsigned>::max());
     testReadXRefSubsection();
 }
 
