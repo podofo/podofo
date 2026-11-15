@@ -95,8 +95,11 @@ endif()
 
 option(PODOFO_BUILD_STATIC "Build static libraries (.a/.lib)" FALSE)
 option(PODOFO_WITH_AFDKO "Enable AFDKO support" ON)
-# NOTE: It lets the compiler inline across translation units
-option(PODOFO_WITH_LTO "Enable link time optimization in optimized builds" ON)
+# NOTE: It lets the compiler inline across translation units. When left empty it's
+# enabled only in shared builds, as static libraries objects would contain compiler
+# specific intermediate code that consumers may have to link with LTO
+set(PODOFO_WITH_LTO "" CACHE STRING "Enable link time optimization in optimized builds")
+set_property(CACHE PODOFO_WITH_LTO PROPERTY STRINGS "" ON OFF)
 option(PODOFO_WITH_ASAN "Compile with address sanitizer instrumentation" FALSE)
 
 if(PODOFO_WITH_AFDKO)
@@ -109,6 +112,18 @@ if(PODOFO_BUILD_STATIC)
 else()
     set(PODOFO_BUILD_SHARED TRUE)
     add_compile_definitions(PODOFO_SHARED)
+endif()
+
+if(PODOFO_WITH_LTO STREQUAL "")
+    set(PODOFO_ENABLE_LTO ${PODOFO_BUILD_SHARED})
+else()
+    set(PODOFO_ENABLE_LTO ${PODOFO_WITH_LTO})
+endif()
+
+if(PODOFO_ENABLE_LTO)
+    message("Link time optimization in optimized builds: ON")
+else()
+    message("Link time optimization in optimized builds: OFF")
 endif()
 
 message("Will install libraries to ${CMAKE_INSTALL_FULL_LIBDIR}")
@@ -425,7 +440,7 @@ function(add_source subdir subdir_path dstsources dstheaders)
     set(${dstheaders} ${${dstheaders}} PARENT_SCOPE)
 endfunction()
 
-if(PODOFO_WITH_LTO)
+if(PODOFO_ENABLE_LTO)
     # NOTE: Only optimized configurations are considered. It must be enabled on
     # all the targets linked in the library, or the compiler won't be able to
     # inline across their translation units
@@ -446,7 +461,6 @@ if(PODOFO_WITH_LTO)
                 endforeach()
             endforeach()
         endif()
-        message(STATUS "Link time optimization enabled in optimized builds")
     else()
         message(WARNING "Link time optimization is not supported: ${LTO_NOT_SUPPORTED_REASON}")
     endif()
