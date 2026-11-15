@@ -124,6 +124,13 @@ PdfField& PdfFieldChildrenCollectionBase::AddChild(shared_ptr<PdfField> field)
 
     m_fieldMap[field->GetObject().GetIndirectReference()] = (unsigned)m_Fields.size();
     m_kidsArray->AddIndirectSafe(field->GetObject());
+
+    // A widget bound field is co-owned by its widget, which
+    // unlinks itself from the field when destroyed
+    auto widget = field->GetWidget();
+    if (widget != nullptr && widget->GetFieldPtr() == nullptr)
+        widget->SetField(shared_ptr<PdfField>(field));
+
     auto ret = field.get();
     m_Fields.push_back(std::move(field));
     return *ret;
