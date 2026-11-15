@@ -50,6 +50,20 @@ TEST_CASE("TestRunLengthDecodeFilter")
     REQUIRE(decoded == "ABCZZZQ");
 }
 
+TEST_CASE("TestHexDecodeFilter")
+{
+    // Invalid characters are skipped, an odd digit count is completed with 0
+    // and nothing is decoded past the end marker, also in a following block
+    auto filter = PdfFilterFactory::Create(PdfFilterType::ASCIIHexDecode);
+    charbuff decoded;
+    BufferStreamDevice device(decoded);
+    filter->BeginDecode(device);
+    filter->DecodeBlock(string_view("48 6x5\n6C6C 6F 7>4142"));
+    filter->DecodeBlock(string_view("4344"));
+    filter->EndDecode();
+    REQUIRE(decoded == "Hellop");
+}
+
 void testFilter(PdfFilterType filterType, const bufferview& view)
 {
     charbuff encoded;
@@ -218,15 +232,16 @@ TEST_CASE("TestLZWTableFull")
 TEST_CASE("TestAbandonedDecodeStreamTeardown")
 {
     // A read stopped before the end leaves the filters live: on teardown the
-    // hex stage flushes its dangling nibble into the ASCII85 stage, which
-    // rejects it. The error must not escape the destructor. The read consumes
-    // 8 raw bytes at a time, the blank makes the digit count odd at every stop
+    // hex stage flushes its dangling digit, the 8 of 8C, into the ASCII85
+    // stage as 0x80, which is rejected. The error must not escape the destructor.
+    // The read consumes 8 raw bytes at a time, the blank makes the digit count
+    // odd at every stop
     string_view pdf = R"(%PDF-1.7
 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
 3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Contents 4 0 R>>endobj
 4 0 obj<</Length 32/Filter[/ASCIIHexDecode/ASCII85Decode]>>stream
-414243444546474 8494A4B4C4D4E4F>
+414243444546474 8494A4B8C4D4E4F>
 endstream
 endobj
 trailer<</Root 1 0 R/Size 5>>

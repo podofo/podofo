@@ -240,7 +240,7 @@ private:
 #pragma region PdfHexFilter
 
 PdfHexFilter::PdfHexFilter()
-    : m_DecodedByte(0), m_Low(true)
+    : m_DecodedByte(0), m_Low(true), m_EndReached(false)
 {
 }
 
@@ -259,23 +259,32 @@ void PdfHexFilter::BeginDecodeImpl(const PdfDictionary*)
 {
     m_DecodedByte = 0;
     m_Low = true;
+    m_EndReached = false;
 }
 
 void PdfHexFilter::DecodeBlockImpl(const char* buffer, size_t len)
 {
+    if (m_EndReached)
+        return;
+
     unsigned char val;
-    while (len-- != 0)
+    for (size_t i = 0; i < len; i++)
     {
-        if (PoDoFo::IsCharWhitespace(*buffer))
+        // ISO 32000-2:2020 7.4.2 "ASCIIHexDecode filter": "A GREATER-THAN
+        // SIGN (3Eh) indicates EOD (End Of Data)."
+        if (buffer[i] == '>')
         {
-            buffer++;
-            continue;
+            m_EndReached = true;
+            return;
         }
 
-        (void)utls::TryGetHexValue(*buffer, val);
+        // NOTE: Whitespace and, leniently, any other invalid character are skipped
+        if (!utls::TryGetHexValue(buffer[i], val))
+            continue;
+
         if (m_Low)
         {
-            m_DecodedByte = (char)(val & 0x0F);
+            m_DecodedByte = (char)val;
             m_Low = false;
         }
         else
@@ -285,19 +294,15 @@ void PdfHexFilter::DecodeBlockImpl(const char* buffer, size_t len)
 
             GetStream().Write(m_DecodedByte);
         }
-
-        buffer++;
     }
 }
 
 void PdfHexFilter::EndDecodeImpl()
 {
+    // An odd number of digits was read: the
+    // missing last one is assumed to be 0
     if (!m_Low)
-    {
-        // an odd number of bytes was read,
-        // so the last byte is 0
-        GetStream().Write(m_DecodedByte);
-    }
+        GetStream().Write((char)(m_DecodedByte << 4));
 }
 
 #pragma endregion // PdfHexFilter
