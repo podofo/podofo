@@ -287,6 +287,7 @@ private:
     // To be called by PdfPageCollection
     void FlattenStructure();
     void SetIndex(unsigned index) { m_Index = index; }
+    static cspan<PdfName> GetInheritableAttributes();
 
     void CopyContentsTo(OutputStream& stream) const override;
 

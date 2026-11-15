@@ -302,15 +302,12 @@ void PdfPage::FlattenStructure()
     if (m_parents.size() == 0)
         return;
 
-    static PdfName inheritableAttributes[] = { "Resources"_n, "MediaBox"_n, "CropBox"_n, "Rotate"_n };
-
     // Copy the attributes inherited from the ancestors to the page: the
-    // flattening re-parents the page to the root and the nodes that held
-    // them become unreachable
+    // flattening re-parents the page to the root, which drops them, and
+    // the intermediate nodes that held them become unreachable
     auto& dict = GetDictionary();
-    for (unsigned i = 0; i < std::size(inheritableAttributes); i++)
+    for (auto& name : GetInheritableAttributes())
     {
-        auto& name = inheritableAttributes[i];
         if (dict.HasKey(name))
             continue;
 
@@ -400,6 +397,12 @@ PdfObject* PdfPage::getContentsObject()
 PdfDictionaryElement& PdfPage::getElement()
 {
     return *this;
+}
+
+cspan<PdfName> PdfPage::GetInheritableAttributes()
+{
+    static PdfName inheritableAttributes[] = { "Resources"_n, "MediaBox"_n, "CropBox"_n, "Rotate"_n };
+    return inheritableAttributes;
 }
 
 PdfObject* PdfPage::findInheritableAttribute(const string_view& name) const
