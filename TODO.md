@@ -1,10 +1,8 @@
 ### After 1.1
 - PdfTokenizer: Evaluate making sure data type is set also in case of errors, in DetermineDataType/tryReadDataType. This would help leaving the object operable with the right type even in case of parsing errors. This is done already for dictionaries/arrays, see ReadDictionary/ReadArray
 - PdfPredictorDecoder: Support BitsPerComponent != 8
-- PdfColorSpaceFilterIndexed::GetSourceScanLineSize() handle bitsPerComponent != 8
 - Cleanup PdfTreeNode
-- Add subsetting of PdfDifferenceEncoding
-- PdfDifferenceList: Validate insertion for the public Add methods (like for example enforce "Adobe Glyph List For New Fonts")
+- PdfDifferenceEncoding: Subset the exported /Differences array. The glyph data of Type 3 fonts is already subset
 - Optimize compilation SALSprep
 - Optimize small allocations in tryGetCodePointsFromCharNameLigatures(),
   tryGetCodePointsFromUnicodeHexLigatures() in PdfDifferenceEncoding.cpp
@@ -12,14 +10,11 @@
 - PdfVariant/PdfObject: Evaluate adding a TryGetStringLenient(string_view& str)
   that catches both PdfString/PdfName
 - Add remaining PdfNameTree(s) (also stub)
-- Add remaining PdfContentStreamOperators
+- PdfContentStreamOperators: Add the missing F, T*, ', ", d0, d1, BI, ID, EI operators
 - According to 5014.CIDFont_Spec page 71-72-73 begincidchar, begincidrange,
   beginbfchar, beginbfrange have a limit of 100 entries. Fix it where relevant
 - noexcept nullable<T> methods
 - Check/Review doxygen doc
-- If the doc is updated, then should not allow to set an encryption
-- If the doc is updated and has an encryption, it should not allow to remove it
-  in a following update
 - Evaluate make PdfObjectStream not flate filter by default in PdfMemDocument?
 - Evaluate move more utf8::next to utf8::unchecked::next
 - PdfToggleButton: Add proper IsChecked/ExportValue handling
@@ -32,10 +27,10 @@
 - PdfMemDocument: Check the DeviceStream is not empty before doing an incremental update/signing operation
 - PdfMemDocument: Prevent Save() operation after signing operation
 - PdfMemDocument: Evaluate release the device after all objects have been loaded (eg. after a full Save())
-- PdfParserObject: Evaluate release the device after loading
+- PdfParserObject: Evaluate release the device after loading. NOTE: TryUnload() needs it to reload the object
 - PdfElement: Optimize, keep dictionary/array pointer. Evaluate Add shared_ptr PdfElement::GetObjectPtr() 
-- Check what do with tools/restore manuals
-- Fix/complete handling of text extraction in rotated pages (??? Done?)
+- Decide what to do with the manuals in man/: they are not installed, as no CMakeLists adds
+  the folder, and the tools are unsupported
 - Add method to retrieve shared_ptr from PdfObject, PdfFont (and
   maybe others) to possibly outlive document destruction
 - Do more overflow checks using Chromium numerics, which is now
@@ -45,9 +40,8 @@
   "Digital Signature Appearances" document specification
 - Add text shaping with Harfbuzz https://github.com/harfbuzz/harfbuzz
 - Add fail safe sign/update mechanism, meaning the stream gets trimmed
-  to initial length if there's a crash. Not so easy, especially since
-  we are now using STL streams and it's not easy to trim files
-  without access to native handle and low level I/O operations
+  to initial length if there's a crash. FileStreamDevice now uses low
+  level I/O and OutputStreamDevice::Truncate() is available
 - Option to unfold Unicode ligatures to separate codepoints during encoded -> utf8 conversion
 - Option to convert Unicode ligatures <-> separate codepoints when drawing strings/converting to encoded
 - Optimize charbuff to not initialize memory, keeping std::string compatibility,
