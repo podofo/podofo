@@ -1,8 +1,7 @@
 # Security Policy
 
- ~Please use GitHub security advisiories to [report](https://github.com/podofo/podofo/security/advisories/new) vulnerabilities~.
-
-> **NOTE**: GitHub security advisories are temporarily disabled until 15th November 2026, at the latest, to avoid congesting the release of version 1.1.3.
+Please use GitHub security advisiories to [report](https://github.com/podofo/podofo/security/advisories/new)
+vulnerabilities.
 
 > **Warning**: Please, do not use regular public issues!
 
