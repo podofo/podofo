@@ -1,3 +1,8 @@
+### 1.2.0
+
+- Evaluate restoring API backward compatibility with 1.1.3
+- Evaluate avoiding matrix rotation caching in PdfPainter as done in 1.1.x
+
 ### After 1.1
 - PdfTokenizer: Evaluate making sure data type is set also in case of errors, in DetermineDataType/tryReadDataType. This would help leaving the object operable with the right type even in case of parsing errors. This is done already for dictionaries/arrays, see ReadDictionary/ReadArray
 - PdfPredictorDecoder: Support BitsPerComponent != 8
