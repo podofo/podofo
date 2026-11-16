@@ -2,14 +2,127 @@
 - Added PQC signing: supported for now are ML-DSA ([RFC 9882](https://www.rfc-editor.org/info/rfc9882/)) and SLH-DSA ([RFC 9814](https://www.rfc-editor.org/info/rfc9814/))
 - Added `PdfSignature::TryVerifySignature()`
 - Added `PdfDocument::GetSortedSignatures()`
-- Added `PdfSigningAlgorithm`, deprecating `PdfSignatureEncryption`
-- Added `PdfCommon::IsDebugBuild()`
-- `PdfWriter`: Preserve the XRef layout of the parsed document when saving. A document
-  parsed with XRef streams was previously always rewritten with a legacy XRef table
-- Added `PdfSaveOptions::ForceXRefTable`, `PdfSaveOptions::ForceXRefStream` to force
-  writing a specific XRef layout
-- `PdfIndirectObjectList::CollectGarbage()`: On a full save collect also the object stream
-  containers, whose content is rewritten as top level objects
+- Added `PdfSigningAlgorithm`, replacing `PdfSignatureEncryption` which is deprecated since 1.1.3
+- Added `PdfSignerDocTimeStamp`, to compute a `/DocTimeStamp` signature (ISO 32000-2:2020 12.8.5)
+- `PdfSignerCms`: Added `SetTrustedTimestamp()` to insert a RFC 3161 timestamp in the signature
+- `PdfSignerCms`: Verify the signed hash supplied by an external signing service or by a deferred signing,
+  and the message imprint of the trusted timestamp. It can be disabled with `PdfSignerCmsFlags::SkipVerification`
+- `PdfSignerCms`: Validate the signature date against the validity period of the certificate. This is a
+  behavioral change, the validation can be disabled with `PdfSignerCmsFlags::SkipDateValidation`
+- Added `PdfSignerCmsFlags::Deterministic` to compute deterministic ECDSA, ML-DSA and SLH-DSA signatures
+- Added `PdfPattern::TryCreateFromObject()`
+- Added `PdfPageCollection::TryGetPage()`
+- `PdfAnnotation`: Added `SetAppearanceStream()` overloads accepting `PdfSetAppearanceFlags`. With
+  `PdfSetAppearanceFlags::InplaceRotation` the appearance is set on rotated pages without a XObject trampoline.
+  Deprecated `SetAppearanceStreamRaw()` and the `SetAppearanceStream()` overload with `skipSelectedState`
+- `PdfColorSpaceFilter`: Added limited support for images with `/Separation` color spaces, ignoring the tint transform
+- `PdfInfo`: Removed the public constructors, use `PdfInfo::TryCreateFromObject()`
+- `PdfChoiceField`: Changed the index type of `GetItemDisplayText()` from `int` to `unsigned`
+- `PdfShadingDefinition`: Reduced the size of the bit size properties from `unsigned` to `unsigned char`
+
+## Version 1.1.3
+- This release is ABI incompatible with previous 1.1.x releases (SOVERSION bumped to 5).
+  Source compatibility is preserved with few minor exceptions, see API-MIGRATION.md
+- Fixed a large number of memory safety issues, crashes and denial of service conditions reachable from
+  crafted documents, found in a security audit or reported through GitHub security advisories. The most relevant follow
+- `PdfObjectStream`: Fixed out of bounds write with a `/DecodeParms` array longer than `/Filter`,
+  [GHSA-hqgh-2xx9-869p](https://github.com/podofo/podofo/security/advisories/GHSA-hqgh-2xx9-869p),
+  [GHSA-r33j-65rv-35vp](https://github.com/podofo/podofo/security/advisories/GHSA-r33j-65rv-35vp),
+  [GHSA-rgww-8j72-wh8r](https://github.com/podofo/podofo/security/advisories/GHSA-rgww-8j72-wh8r)
+- `PdfFontMetricsObject`: Fixed out of bounds write parsing CIDFont `/W` ranges,
+  [GHSA-hqgh-2xx9-869p](https://github.com/podofo/podofo/security/advisories/GHSA-hqgh-2xx9-869p),
+  [GHSA-mjc7-vcp5-jw6g](https://github.com/podofo/podofo/security/advisories/GHSA-mjc7-vcp5-jw6g),
+  [GHSA-x9qx-2q5f-57mw](https://github.com/podofo/podofo/security/advisories/GHSA-x9qx-2q5f-57mw)
+- Capped the CIDs read from `/W`, CMaps and `/CIDToGIDMap` and written to `/CIDSet`,
+  [GHSA-6936-rp4g-6qpq](https://github.com/podofo/podofo/security/advisories/GHSA-6936-rp4g-6qpq)
+- `PdfFontMetricsObject`: Fixed null dereference reading a `/FontStretch` string,
+  [GHSA-r3h2-3g9p-m75q](https://github.com/podofo/podofo/security/advisories/GHSA-r3h2-3g9p-m75q)
+- `PdfImage`: Fixed out of bounds write decoding a DCTDecode image with mismatched dimensions,
+  [GHSA-373f-63f7-xmvh](https://github.com/podofo/podofo/security/advisories/GHSA-373f-63f7-xmvh),
+  [GHSA-gcgw-rcj3-5r5m](https://github.com/podofo/podofo/security/advisories/GHSA-gcgw-rcj3-5r5m),
+  [GHSA-hqgh-2xx9-869p](https://github.com/podofo/podofo/security/advisories/GHSA-hqgh-2xx9-869p),
+  [GHSA-x34j-xmwm-3f29](https://github.com/podofo/podofo/security/advisories/GHSA-x34j-xmwm-3f29)
+- `PdfImage`: Fixed over reads and null dereferences decoding CCITT images, images without `/ColorSpace`
+  and soft masks of 1 bpp palette PNG images,
+  [GHSA-9cx7-pc3c-3m2f](https://github.com/podofo/podofo/security/advisories/GHSA-9cx7-pc3c-3m2f),
+  [GHSA-rvfm-7v66-893j](https://github.com/podofo/podofo/security/advisories/GHSA-rvfm-7v66-893j),
+  [GHSA-pp79-gj4p-q4h8](https://github.com/podofo/podofo/security/advisories/GHSA-pp79-gj4p-q4h8)
+- `PdfImage`: Fixed libpng errors jumping into a returned stack frame, [#374](https://github.com/podofo/podofo/issues/374).
+  Capped the image dimensions and fixed the source buffer size check on 32-bit builds
+- `FontTrueTypeSubset`: Fixed out of bounds writes remapping compound glyph components and patching `head`, `maxp`
+  and `hhea`, stack overflow on deeply nested compound glyphs,
+  [GHSA-hqgh-2xx9-869p](https://github.com/podofo/podofo/security/advisories/GHSA-hqgh-2xx9-869p)
+- `FreetypePrivate`: Fixed heap overflow extracting a TTC face with oversized tables
+- `PdfContentStreamReader`: Fixed use after free with a Form XObject invoking itself. Capped the followed Form XObjects
+  and the operands kept before an operator,
+  [GHSA-jhhv-w9v7-j258](https://github.com/podofo/podofo/security/advisories/GHSA-jhhv-w9v7-j258)
+- `PdfCharCodeMap`: Bounded the reverse map built from CMap ranges,
+  [GHSA-jhhv-w9v7-j258](https://github.com/podofo/podofo/security/advisories/GHSA-jhhv-w9v7-j258)
+- `PdfTreeNode`: Fixed out of bounds reads and writes on odd sized `/Names` arrays and stack overflow on `/Kids` loops,
+  [GHSA-vrr3-29rc-4236](https://github.com/podofo/podofo/security/advisories/GHSA-vrr3-29rc-4236)
+- `PdfPageCollection`: Fixed use after free of page dictionaries inline in `/Kids`, handle pages listed more than once,
+  capped the page reservation taken from `/Count`,
+  [GHSA-h2fg-3p95-qpgr](https://github.com/podofo/podofo/security/advisories/GHSA-h2fg-3p95-qpgr)
+- `PdfAnnotationCollection`, `PdfAcroForm`, `PdfFieldChildrenCollection`: Fixed use after free and stale wrappers
+  with repeated, shared or direct `/Annots`, `/Fields` and `/Kids` entries
+- `PdfSignature`: Fixed use after free of the cached value object when a loaded signature field is reparented
+- `PdfAnnotation`: Fixed use after free of the trampoline form in `SetAppearanceStream()` with a non form XObject
+- `PdfVariant`, `PdfArray`, `PdfDictionary`, `PdfName`, `PdfString`: Fixed self and aliased assignments
+- `PdfString`, `PdfName`: Copy the characters of a non const character array instead of referencing it as a literal
+- `PdfTokenizer`, `PdfParser`, `PdfObjectStreamParser`: Guarded the nesting of arrays and dictionaries, capped the token
+  length, the entries of arrays and dictionaries, the object numbers and generations
+- Filters: Capped the filter chains, the predictor parameters, the LZW table and the bytes produced while decoding
+  a stream, see `PdfCommon::SetMaxDecodedStreamSize()` (512 MiB by default),
+  [GHSA-8r87-qgfw-x53f](https://github.com/podofo/podofo/security/advisories/GHSA-8r87-qgfw-x53f)
+- `PdfSigningContext`: Hardened `Restore()` against malformed dumps,
+  [GHSA-977f-69j9-mxw2](https://github.com/podofo/podofo/security/advisories/GHSA-977f-69j9-mxw2).
+  Fixed the dump of signature field names with XML special characters
+- `PdfSignerCms`: Handle non deterministic signature sizes (e.g. ECDSA) centrally. Retry the context initialization
+  after a failed certificate load
+- `PdfEncrypt`: Fixed `PdfAESInputStream` dropping the decrypted bytes exceeding a read request
+- Thread safety fixes in `PdfBuiltInEncoding`, `PdfCharCodeMap`, `PdfFontManager` fontconfig wrapper creation
+  and FreeType face creation/destruction
+- `PdfOutlineItem`, `PdfField`, `PdfDocument`: Guarded against cycles and deep recursion in outlines,
+  `/Parent` chains and copied objects
+- `PdfStreamedDocument`: Reject `Reset()` and garbage collection, which are not supported
+- `PdfCommon`: The default maximum recursion depth is now 256
+- Parsing/writing performance improvements: `PdfArray` manages its storage directly, reduced `PdfObject`
+  memory footprint, inline read/write windows in `InputStream`/`OutputStream`, `FileStreamDevice`
+  migrated to low-level file I/O with its own buffering, lazy loaded objects in object streams
+- `PdfMemDocument`: Preserve the XRef layout (legacy table or XRef stream) and the compressed object streams
+  of the parsed document when saving. A document parsed with XRef streams was previously always rewritten
+  with a legacy XRef table. Added `PdfSaveOptions::ForceXRefTable` and `PdfSaveOptions::ForceXRefStream`
+  to force writing a specific XRef layout
+- `PdfIndirectObjectList::CollectGarbage()`: On a full save collect also the object stream containers whose
+  content is rewritten as top level objects
+- `PdfMemDocument`/`PdfWriter`: Preserve the existing `/Encrypt` object upon saving, never modify it
+  on incremental updates and prevent encryption re-keys on incremental updates
+- `PdfObject`: Don't encrypt the `/Metadata` stream on save if `/Encrypt` has `/EncryptMetadata false`
+- `PdfIndirectObjectList`: Write only the modified free/unavailable entries on incremental updates
+- `PdfParser`: Fixed `/XRefStm`, XRef stream `/Prev` and XRef stream entry offsets in files with a magic offset
+- `PdfParser`: Enlarged the cap on maximum read xref subsections
+- `PdfReference`: `IsIndirect()` now returns false for references with object number 0
+- `PdfObject`/`PdfVariant`/`PdfDictionary`: Fixed disequality operators
+- `PdfArray`/`PdfDictionary`: Fixed missing `SetDirty()` on `operator=`
+- `PdfArray`: Fixed operations relocating the internal list detaching the children from the parent
+- `PdfObject`: Fixed delayed loading of the stream and move to also ensure the data block is loaded
+- `PdfSignature`: Add `PdfAcroFormSigFlags::SignaturesExist` to `/SigFlags` only if needed
+- `PdfAnnotationCollection`: Workaround DocMDP validation issues on `/Annots` residing outside of the page object
+- `PdfSigningContext`: Remove `/NeedAppearances` only when found true
+- `PdfAnnotation`: Fixed `TryCreateFromObject()` returning success when requesting a conflicting type
+- `CmsContext`: Fixed wrong return code check when adding attributes to the signer
+- `NullStreamDevice`: Fixed `readChar()` returning false on success
+- `OpenSSLInternal`: Use OpenSSL library context aware functions, warn if OpenSSL is built without threads support
+- Added `PdfCommon::IsDebugBuild()`. Fixed detection of debug builds
+- Fixed typos with deprecation: `PdfAuthResult::Unknown`, `PdfIdentityOrientation::Unknown`, `PdfFontMetrics::GetFontFamilyNameSafe()`
+- Deprecated `PdfSignatureEncryption`, which has no use in the public API
+- Updated the PoDoFo producer string to `PoDoFo - https://podofo.github.io/`
+- CMake: The `podofo::podofo` target now carries the public include directories, the C++17 requirement and `PODOFO_STATIC`
+- CMake: Link-time optimization is enabled by default in optimized builds of the shared library, it can be
+  forced with `PODOFO_WITH_LTO=ON` or disabled with `PODOFO_WITH_LTO=OFF`
+- CMake: Added `PODOFO_WITH_ASAN` to compile with Address Sanitizer instrumentation
+- CMake: Enabled large file support on non Windows platforms
+- `charconv_compat`: `std::to_chars` is available in iOS with version >= 16.3
 
 ## Version 1.1.2
 - `CodePointSpan`: Fixed constructor with base view plus one code point, [GHSA](https://github.com/podofo/podofo/security/advisories/GHSA-7vfg-cp83-9rxr)
