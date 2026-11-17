@@ -2,40 +2,35 @@
 - This release is ABI incompatible with previous 1.1.x releases (SOVERSION bumped to 5).
   Source compatibility is preserved with few minor exceptions, see API-MIGRATION.md
 - Fixed a large number of memory safety issues, crashes and denial of service conditions reachable from
-  crafted documents, found in a security audit or reported through GitHub security advisories. The most relevant follow
+  crafted documents, found in a security audit or reported through GitHub security advisories. The most relevant ones follow:
 - `PdfObjectStream`: Fixed out of bounds write with a `/DecodeParms` array longer than `/Filter`,
-  [GHSA-hqgh-2xx9-869p](https://github.com/podofo/podofo/security/advisories/GHSA-hqgh-2xx9-869p),
-  [GHSA-r33j-65rv-35vp](https://github.com/podofo/podofo/security/advisories/GHSA-r33j-65rv-35vp),
-  [GHSA-rgww-8j72-wh8r](https://github.com/podofo/podofo/security/advisories/GHSA-rgww-8j72-wh8r)
+  [GHSA-r33j-65rv-35vp](https://github.com/podofo/podofo/security/advisories/GHSA-r33j-65rv-35vp)
 - `PdfFontMetricsObject`: Fixed out of bounds write parsing CIDFont `/W` ranges,
-  [GHSA-hqgh-2xx9-869p](https://github.com/podofo/podofo/security/advisories/GHSA-hqgh-2xx9-869p),
-  [GHSA-mjc7-vcp5-jw6g](https://github.com/podofo/podofo/security/advisories/GHSA-mjc7-vcp5-jw6g),
-  [GHSA-x9qx-2q5f-57mw](https://github.com/podofo/podofo/security/advisories/GHSA-x9qx-2q5f-57mw)
+  [GHSA-mjc7-vcp5-jw6g](https://github.com/podofo/podofo/security/advisories/GHSA-mjc7-vcp5-jw6g)
 - Capped the CIDs read from `/W`, CMaps and `/CIDToGIDMap` and written to `/CIDSet`,
   [GHSA-6936-rp4g-6qpq](https://github.com/podofo/podofo/security/advisories/GHSA-6936-rp4g-6qpq)
 - `PdfFontMetricsObject`: Fixed null dereference reading a `/FontStretch` string,
   [GHSA-r3h2-3g9p-m75q](https://github.com/podofo/podofo/security/advisories/GHSA-r3h2-3g9p-m75q)
 - `PdfImage`: Fixed out of bounds write decoding a DCTDecode image with mismatched dimensions,
-  [GHSA-373f-63f7-xmvh](https://github.com/podofo/podofo/security/advisories/GHSA-373f-63f7-xmvh),
-  [GHSA-gcgw-rcj3-5r5m](https://github.com/podofo/podofo/security/advisories/GHSA-gcgw-rcj3-5r5m),
-  [GHSA-hqgh-2xx9-869p](https://github.com/podofo/podofo/security/advisories/GHSA-hqgh-2xx9-869p),
   [GHSA-x34j-xmwm-3f29](https://github.com/podofo/podofo/security/advisories/GHSA-x34j-xmwm-3f29)
 - `PdfImage`: Fixed over reads and null dereferences decoding CCITT images, images without `/ColorSpace`
   and soft masks of 1 bpp palette PNG images,
   [GHSA-9cx7-pc3c-3m2f](https://github.com/podofo/podofo/security/advisories/GHSA-9cx7-pc3c-3m2f),
+  [GHSA-m6vf-wm9f-8wr9](https://github.com/podofo/podofo/security/advisories/GHSA-m6vf-wm9f-8wr9),
   [GHSA-rvfm-7v66-893j](https://github.com/podofo/podofo/security/advisories/GHSA-rvfm-7v66-893j),
   [GHSA-pp79-gj4p-q4h8](https://github.com/podofo/podofo/security/advisories/GHSA-pp79-gj4p-q4h8)
 - `PdfImage`: Fixed libpng errors jumping into a returned stack frame, [#374](https://github.com/podofo/podofo/issues/374).
   Capped the image dimensions and fixed the source buffer size check on 32-bit builds
 - `FontTrueTypeSubset`: Fixed out of bounds writes remapping compound glyph components and patching `head`, `maxp`
   and `hhea`, stack overflow on deeply nested compound glyphs,
+  [GHSA-x2px-93r9-c7q7](https://github.com/podofo/podofo/security/advisories/GHSA-x2px-93r9-c7q7),
   [GHSA-hqgh-2xx9-869p](https://github.com/podofo/podofo/security/advisories/GHSA-hqgh-2xx9-869p)
 - `FreetypePrivate`: Fixed heap overflow extracting a TTC face with oversized tables
 - `PdfContentStreamReader`: Fixed use after free with a Form XObject invoking itself. Capped the followed Form XObjects
   and the operands kept before an operator,
   [GHSA-jhhv-w9v7-j258](https://github.com/podofo/podofo/security/advisories/GHSA-jhhv-w9v7-j258)
 - `PdfCharCodeMap`: Bounded the reverse map built from CMap ranges,
-  [GHSA-jhhv-w9v7-j258](https://github.com/podofo/podofo/security/advisories/GHSA-jhhv-w9v7-j258)
+  [GHSA-9mv6-xh2r-xp6h](https://github.com/podofo/podofo/security/advisories/GHSA-9mv6-xh2r-xp6h)
 - `PdfTreeNode`: Fixed out of bounds reads and writes on odd sized `/Names` arrays and stack overflow on `/Kids` loops,
   [GHSA-vrr3-29rc-4236](https://github.com/podofo/podofo/security/advisories/GHSA-vrr3-29rc-4236)
 - `PdfPageCollection`: Fixed use after free of page dictionaries inline in `/Kids`, handle pages listed more than once,
