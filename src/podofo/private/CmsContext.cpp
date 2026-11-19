@@ -319,7 +319,7 @@ void CmsContext::Restore(xmlNodePtr ctxElem, charbuff& temp)
         goto DeserializationFailed;
 
     auto parametersNode = utls::FindChildElement(ctxElem, "Parameters");
-    if (node == nullptr)
+    if (parametersNode == nullptr)
         goto DeserializationFailed;
 
     node = utls::FindChildElement(parametersNode, "Hashing");

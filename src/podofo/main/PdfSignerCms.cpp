@@ -303,7 +303,7 @@ void PdfSignerCms::Restore(xmlNodePtr signerElem, charbuff& temp)
     m_cmsContext->Restore(node, temp);
 
     auto parametersNode = utls::FindChildElement(signerElem, "Parameters");
-    if (node == nullptr)
+    if (parametersNode == nullptr)
         goto DeserializationFailed;
 
     node = utls::FindChildElement(parametersNode, "SignatureType");
