@@ -585,6 +585,26 @@ TEST_CASE("TestChangeEncryptionOnUpdateRejected")
     saveUpdate(encryptedPath);
 }
 
+// A copy of an AES-256 document must keep the whole /UE and /OE values,
+// or the saved copy can't be decrypted with either password
+TEST_CASE("TestCopyAESV3Document")
+{
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("AESV3R6-256.pdf"), "userpass");
+    PdfMemDocument copy(doc);
+    charbuff pdfBuffer;
+    BufferStreamDevice device(pdfBuffer);
+    copy.Save(device);
+
+    charbuff objBuffer;
+    for (auto password : { "userpass", "ownerpass" })
+    {
+        doc.LoadFromBuffer(pdfBuffer, password);
+        doc.GetObjects().MustGetObject(PdfReference(11, 0)).MustGetStream().CopyTo(objBuffer);
+        REQUIRE(ssl::ComputeMD5Str(objBuffer) == ReferenceHash_R_11_0);
+    }
+}
+
 void testEncrypt(PdfEncrypt& encrypt, PdfEncryptContext& context)
 {
     charbuff encrypted;
