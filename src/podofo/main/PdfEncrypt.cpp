@@ -1937,8 +1937,8 @@ PdfEncryptAESV3::PdfEncryptAESV3(const PdfEncryptAESV3& rhs)
     : PdfEncrypt(rhs)
 {
     std::memcpy(m_permsValue, rhs.m_permsValue, std::size(m_permsValue));
-    std::memcpy(m_ueValue, rhs.m_ueValue, std::size(m_permsValue));
-    std::memcpy(m_oeValue, rhs.m_oeValue, std::size(m_permsValue));
+    std::memcpy(m_ueValue, rhs.m_ueValue, std::size(m_ueValue));
+    std::memcpy(m_oeValue, rhs.m_oeValue, std::size(m_oeValue));
 }
 
 size_t PdfEncryptAESV3::CalculateStreamLength(size_t length) const
