@@ -4,3 +4,7 @@
 [submodule "extern/resources"]
 	path = extern/resources
 	url = https://github.com/podofo/podofo-resources.git
+[submodule "governance/security-scanner"]
+	path = governance/security-scanner
+	url = https://github.com/podofo/podofo-security-scanner.git
+	update = none
