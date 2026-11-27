@@ -191,10 +191,11 @@ private:
     unsigned m_code_len;
     unsigned char m_character;
 
-    // Bits of an incomplete code and previous code, carried to the next block
+    // Bits of an incomplete code, previous code and end marker, carried to the next block
     uint32_t m_codeBuff;
     unsigned m_codeBuffSize;
     uint32_t m_old;
+    bool m_endReached;
 
     std::shared_ptr<PdfPredictorDecoder> m_Predictor;
 };

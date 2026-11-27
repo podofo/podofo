@@ -706,7 +706,8 @@ PdfLZWFilter::PdfLZWFilter() :
     m_character(0),
     m_codeBuff(0),
     m_codeBuffSize(0),
-    m_old(0)
+    m_old(0),
+    m_endReached(false)
 {
 }
 
@@ -723,6 +724,7 @@ void PdfLZWFilter::BeginDecodeImpl(const PdfDictionary* decodeParms)
     m_codeBuff = 0;
     m_codeBuffSize = 0;
     m_old = 0;
+    m_endReached = false;
 
     m_Predictor = PdfPredictorDecoder::Create(decodeParms);
 
@@ -739,7 +741,7 @@ void PdfLZWFilter::DecodeBlockImpl(const char* buffer, size_t len)
 
     vector<unsigned char> data;
 
-    while (len != 0)
+    while (len != 0 && !m_endReached)
     {
         // Fill the buffer
         while (m_codeBuffSize <= (buffer_max - 8) && len)
@@ -767,6 +769,7 @@ void PdfLZWFilter::DecodeBlockImpl(const char* buffer, size_t len)
             }
             else if (code == PdfLZWFilter::s_eod)
             {
+                m_endReached = true;
                 len = 0;
                 break;
             }

@@ -223,6 +223,20 @@ TEST_CASE("TestLZWDecodeBlocks")
     REQUIRE(decoded == string(4095 - 257, 'A') + "BCAB");
 }
 
+TEST_CASE("TestLZWDecodeEndMarkerBlocks")
+{
+    // Nothing is decoded past the end marker, also in a following block. Both
+    // blocks are 9-bit codes: clear, ABCDEF, EOD and then clear, G, EOD
+    auto filter = PdfFilterFactory::Create(PdfFilterType::LZWDecode);
+    charbuff decoded;
+    BufferStreamDevice device(decoded);
+    filter->BeginDecode(device);
+    filter->DecodeBlock(string_view("\x80\x10\x48\x44\x32\x21\x14\x8D\x01", 9));
+    filter->DecodeBlock(string_view("\x80\x11\xE0\x20", 4));
+    filter->EndDecode();
+    REQUIRE(decoded == "ABCDEF");
+}
+
 charbuff getLzwTableFullPayload()
 {
     // A stream may defer the clear code after the table is full: the codes stay
