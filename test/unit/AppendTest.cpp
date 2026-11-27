@@ -165,3 +165,40 @@ startxref
     REQUIRE(!decodeParms.HasStream());
     REQUIRE(decodeParms.GetDictionary().MustFindKey("Length").GetNumber() == 0);
 }
+
+TEST_CASE("TestImportSamePageTwiceWithMap")
+{
+    // Each import places a new page object, also when the imports share a map.
+    // Walking the first copy again would take its references, which already
+    // point into the destination, as source ones
+    string_view pdf = R"(%PDF-1.7
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 9 9]/Contents 4 0 R>>endobj
+4 0 obj<</Length 5>>stream
+BT ET
+endstream
+endobj
+trailer<</Root 1 0 R/Size 5>>
+startxref
+999999
+%%EOF)";
+
+    PdfMemDocument src;
+    src.LoadFromBuffer(pdf);
+    PdfMemDocument dst;
+    PdfObjectRelocationMap map;
+    auto& pages = dst.GetPages();
+    pages.AppendDocumentPages(src, 0, 1, &map);
+    pages.InsertDocumentPageAt(0, src, 0, &map);
+    REQUIRE(&pages.GetPageAt(0).GetObject() != &pages.GetPageAt(1).GetObject());
+    for (unsigned i = 0; i < 2; i++)
+        REQUIRE(pages.GetPageAt(i).GetDictionary().MustFindKey("Contents").MustGetStream().GetCopy() == "BT ET");
+
+    charbuff buffer;
+    BufferStreamDevice device(buffer);
+    dst.Save(device);
+    PdfMemDocument reloaded;
+    reloaded.LoadFromBuffer(buffer);
+    REQUIRE(reloaded.GetPages().GetCount() == 2);
+}
