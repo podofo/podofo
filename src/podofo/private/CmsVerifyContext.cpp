@@ -135,9 +135,9 @@ bool CmsVerifyContext::TryVerifySigningCertificateV2(bool& attrMissing)
     if (value == nullptr || value->type != V_ASN1_SEQUENCE)
         return false;
 
-    auto in = (const unsigned char*)value->value.sequence->data;
+    auto in = ASN1_STRING_get0_data(value->value.sequence);
     auto certV2 = (MY_ESS_SIGNING_CERT_V2*)ASN1_item_d2i(nullptr, &in,
-        value->value.sequence->length, ASN1_ITEM_rptr(MY_ESS_SIGNING_CERT_V2));
+        ASN1_STRING_length(value->value.sequence), ASN1_ITEM_rptr(MY_ESS_SIGNING_CERT_V2));
     if (certV2 == nullptr)
         return false;
 
@@ -176,8 +176,8 @@ bool CmsVerifyContext::TryVerifySigningCertificateV2(bool& attrMissing)
         if (X509_digest(cert, md, hash, &hashLen) <= 0)
             goto Exit;
 
-        matches = (unsigned)certId->hash->length == hashLen
-            && std::memcmp(certId->hash->data, hash, hashLen) == 0;
+        matches = (unsigned)ASN1_STRING_length(certId->hash) == hashLen
+            && std::memcmp(ASN1_STRING_get0_data(certId->hash), hash, hashLen) == 0;
     }
 
 Exit:
