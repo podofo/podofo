@@ -588,7 +588,7 @@ int64_t PdfEncrypt::GetPValueForSerialization() const
 void PdfEncrypt::InitFromValues(PdfEncryptionAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision, PdfPermissions pValue,
     const bufferview& uValue, const bufferview& oValue, bool encryptedMetadata)
 {
-    PODOFO_ASSERT((size_t)keyLength / 8 <= std::size(((PdfEncryptContext*)nullptr)->m_encryptionKey));
+    PODOFO_ASSERT((size_t)keyLength / 8 <= sizeof(PdfEncryptContext::m_encryptionKey));
     m_Algorithm = algorithm;
     m_KeyLength = keyLength;
     m_rValue = revision;
@@ -603,7 +603,7 @@ void PdfEncrypt::InitFromValues(PdfEncryptionAlgorithm algorithm, PdfKeyLength k
 void PdfEncrypt::InitFromScratch(const string_view& userPassword, const string_view& ownerPassword,
     PdfEncryptionAlgorithm algorithm, PdfKeyLength keyLength, unsigned char revision, PdfPermissions pValue, bool encryptedMetadata)
 {
-    PODOFO_ASSERT((size_t)keyLength / 8 <= std::size(((PdfEncryptContext*)nullptr)->m_encryptionKey));
+    PODOFO_ASSERT((size_t)keyLength / 8 <= sizeof(PdfEncryptContext::m_encryptionKey));
     m_userPass = userPassword;
     m_ownerPass = ownerPassword;
     m_Algorithm = algorithm;
