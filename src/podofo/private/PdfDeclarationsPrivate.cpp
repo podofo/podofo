@@ -1814,7 +1814,7 @@ void utls::ReadInt32BE(const char* buf, int32_t& value)
           (int32_t)((uint8_t)buf[3] << 0)
         | (int32_t)((uint8_t)buf[2] << 8)
         | (int32_t)((uint8_t)buf[1] << 16)
-        | (int32_t)((int8_t)buf[0]  << 24);
+        | (int32_t)((uint8_t)buf[0] << 24);
 }
 
 void utls::ReadUInt24BE(const char* buf, uint24_t& value)
@@ -1837,7 +1837,7 @@ void utls::ReadInt16BE(const char* buf, int16_t& value)
 {
     value =
           (int16_t)((uint8_t)buf[1] << 0)
-        | (int16_t)((int8_t)buf[0]  << 8);
+        | (int16_t)((uint8_t)buf[0] << 8);
 }
 
 utls::RecursionGuard::RecursionGuard()

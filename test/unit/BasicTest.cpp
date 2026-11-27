@@ -162,6 +162,17 @@ TEST_CASE("TestNormalizeRangeRotations")
     ASSERT_EQUAL(utls::NormalizePageRotation(180.5), 270);
 }
 
+TEST_CASE("TestReadNegativeIntBE")
+{
+    int16_t value16;
+    utls::ReadInt16BE("\xFF\xF4", value16);
+    REQUIRE(value16 == -12);
+
+    int32_t value32;
+    utls::ReadInt32BE("\x80\x00\x00\x01", value32);
+    REQUIRE(value32 == numeric_limits<int32_t>::min() + 1);
+}
+
 TEST_CASE("TestFileSpecAttachment")
 {
     PdfMemDocument doc;
