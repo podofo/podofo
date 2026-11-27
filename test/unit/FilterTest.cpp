@@ -50,6 +50,19 @@ TEST_CASE("TestRunLengthDecodeFilter")
     REQUIRE(decoded == "ABCZZZQ");
 }
 
+TEST_CASE("TestRunLengthDecodeEndMarkerBlocks")
+{
+    // Nothing is decoded past the end marker, also in a following block
+    auto filter = PdfFilterFactory::Create(PdfFilterType::RunLengthDecode);
+    charbuff decoded;
+    BufferStreamDevice device(decoded);
+    filter->BeginDecode(device);
+    filter->DecodeBlock(string_view("\x01" "AB" "\x80" "\x00" "C", 6));
+    filter->DecodeBlock(string_view("\x00" "D", 2));
+    filter->EndDecode();
+    REQUIRE(decoded == "AB");
+}
+
 TEST_CASE("TestHexDecodeFilter")
 {
     // Invalid characters are skipped, an odd digit count is completed with 0
