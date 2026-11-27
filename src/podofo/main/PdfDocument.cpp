@@ -816,8 +816,10 @@ PdfObject& copyPageObject(PdfIndirectObjectList& dest, const PdfObject& srcPageO
 {
     auto& srcObjects = srcPageObj.MustGetDocument().GetObjects();
 
-    // Create the new page object as a copy of the source page
-    auto& newPageObj = copyIndirectObject(dest, srcPageObj, mappedObjects);
+    // Create the new page object as a copy of the source page. A page already
+    // imported with the same map is copied again, as it is placed once more
+    auto& newPageObj = dest.CreateObject(srcPageObj);
+    mappedObjects[srcPageObj.GetIndirectReference()] = newPageObj.GetIndirectReference();
 
     // Remove the Parent key - it will be set by the destination page tree
     newPageObj.GetDictionary().RemoveKey("Parent");
