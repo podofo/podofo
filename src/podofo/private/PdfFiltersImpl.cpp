@@ -623,7 +623,7 @@ void PdfFlateFilter::EndDecodeImpl()
 #pragma region PdfRLEFilter
 
 PdfRLEFilter::PdfRLEFilter()
-    : m_CodeLen(0), m_AwaitingControlByte(true)
+    : m_CodeLen(0), m_AwaitingControlByte(true), m_endReached(false)
 {
 }
 
@@ -636,12 +636,13 @@ void PdfRLEFilter::BeginDecodeImpl(const PdfDictionary*)
 {
     m_CodeLen = 0;
     m_AwaitingControlByte = true;
+    m_endReached = false;
 }
 
 void PdfRLEFilter::DecodeBlockImpl(const char* buffer, size_t len)
 {
     // See ISO 32000-2:2020, 7.4.5 "RunLengthDecode filter"
-    while (len-- != 0)
+    while (len-- != 0 && !m_endReached)
     {
         if (m_AwaitingControlByte)
         {
@@ -651,6 +652,7 @@ void PdfRLEFilter::DecodeBlockImpl(const char* buffer, size_t len)
             if (m_CodeLen == 128)
             {
                 // EOD marker
+                m_endReached = true;
                 break;
             }
             else if (m_CodeLen <= 127)
