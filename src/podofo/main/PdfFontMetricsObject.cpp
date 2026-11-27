@@ -398,7 +398,8 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfDictionary& fontDict,
         }
     }
 
-    m_LineSpacing = m_Ascent + m_Descent;
+    // NOTE: /Descent is negative
+    m_LineSpacing = m_Ascent - m_Descent;
 
     // Try to fine some sensible values
     m_UnderlineThickness = 1.0;
