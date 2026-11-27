@@ -9,6 +9,7 @@ using namespace std;
 using namespace PoDoFo;
 
 static void testFilter(PdfFilterType filterType, const bufferview& buffer);
+static charbuff getLzwTableFullPayload();
 
 static string_view s_testBuffer1 = "Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure.";
 
@@ -201,6 +202,43 @@ startxref
 
 TEST_CASE("TestLZWTableFull")
 {
+    auto filter = PdfFilterFactory::Create(PdfFilterType::LZWDecode);
+    charbuff decoded;
+    filter->DecodeTo(decoded, getLzwTableFullPayload());
+    REQUIRE(decoded == string(4095 - 257, 'A') + "BCAB");
+}
+
+TEST_CASE("TestLZWDecodeBlocks")
+{
+    // Blocks of growing size split the codes of every width at every bit offset
+    auto payload = getLzwTableFullPayload();
+    auto filter = PdfFilterFactory::Create(PdfFilterType::LZWDecode);
+    charbuff decoded;
+    BufferStreamDevice device(decoded);
+    filter->BeginDecode(device);
+    size_t blockSize = 1;
+    for (size_t offset = 0; offset < payload.size(); offset += blockSize, blockSize++)
+        filter->DecodeBlock(bufferview(payload.data() + offset, std::min(blockSize, payload.size() - offset)));
+    filter->EndDecode();
+    REQUIRE(decoded == string(4095 - 257, 'A') + "BCAB");
+}
+
+TEST_CASE("TestLZWDecodeEndMarkerBlocks")
+{
+    // Nothing is decoded past the end marker, also in a following block. Both
+    // blocks are 9-bit codes: clear, ABCDEF, EOD and then clear, G, EOD
+    auto filter = PdfFilterFactory::Create(PdfFilterType::LZWDecode);
+    charbuff decoded;
+    BufferStreamDevice device(decoded);
+    filter->BeginDecode(device);
+    filter->DecodeBlock(string_view("\x80\x10\x48\x44\x32\x21\x14\x8D\x01", 9));
+    filter->DecodeBlock(string_view("\x80\x11\xE0\x20", 4));
+    filter->EndDecode();
+    REQUIRE(decoded == "ABCDEF");
+}
+
+charbuff getLzwTableFullPayload()
+{
     // A stream may defer the clear code after the table is full: the codes stay
     // 12 bits wide and no entry is added, so the table stays bounded. Each code
     // adds one entry to the 257 initial ones: the 'A' codes fill the table up to
@@ -236,10 +274,7 @@ TEST_CASE("TestLZWTableFull")
     if (bitCount != 0)
         payload.push_back((char)(bits << (8 - bitCount)));
 
-    auto filter = PdfFilterFactory::Create(PdfFilterType::LZWDecode);
-    charbuff decoded;
-    filter->DecodeTo(decoded, bufferview(payload.data(), payload.size()));
-    REQUIRE(decoded == string(4095 - 257, 'A') + "BCAB");
+    return payload;
 }
 
 TEST_CASE("TestAbandonedDecodeStreamTeardown")

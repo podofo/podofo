@@ -704,7 +704,10 @@ PdfLZWFilter::PdfLZWFilter() :
     m_mask(0),
     m_code_len(0),
     m_character(0),
-    m_First(false)
+    m_codeBuff(0),
+    m_codeBuffSize(0),
+    m_old(0),
+    m_endReached(false)
 {
 }
 
@@ -718,8 +721,10 @@ void PdfLZWFilter::BeginDecodeImpl(const PdfDictionary* decodeParms)
     m_mask = 0;
     m_code_len = 9;
     m_character = 0;
-
-    m_First = true;
+    m_codeBuff = 0;
+    m_codeBuffSize = 0;
+    m_old = 0;
+    m_endReached = false;
 
     m_Predictor = PdfPredictorDecoder::Create(decodeParms);
 
@@ -728,40 +733,32 @@ void PdfLZWFilter::BeginDecodeImpl(const PdfDictionary* decodeParms)
 
 void PdfLZWFilter::DecodeBlockImpl(const char* buffer, size_t len)
 {
-    unsigned buffer_size = 0;
     const unsigned buffer_max = 24;
 
-    uint32_t old = 0;
     uint32_t code = 0;
-    uint32_t codeBuff = 0;
 
     TLzwItem item;
 
     vector<unsigned char> data;
-    if (m_First)
-    {
-        m_character = *buffer;
-        m_First = false;
-    }
 
-    while (len != 0)
+    while (len != 0 && !m_endReached)
     {
         // Fill the buffer
-        while (buffer_size <= (buffer_max - 8) && len)
+        while (m_codeBuffSize <= (buffer_max - 8) && len)
         {
-            codeBuff <<= 8;
-            codeBuff |= static_cast<uint32_t>(static_cast<unsigned char>(*buffer));
-            buffer_size += 8;
+            m_codeBuff <<= 8;
+            m_codeBuff |= static_cast<uint32_t>(static_cast<unsigned char>(*buffer));
+            m_codeBuffSize += 8;
 
             buffer++;
             len--;
         }
 
         // read from the buffer
-        while (buffer_size >= m_code_len)
+        while (m_codeBuffSize >= m_code_len)
         {
-            code = (codeBuff >> (buffer_size - m_code_len)) & PdfLZWFilter::s_masks[m_mask];
-            buffer_size -= m_code_len;
+            code = (m_codeBuff >> (m_codeBuffSize - m_code_len)) & PdfLZWFilter::s_masks[m_mask];
+            m_codeBuffSize -= m_code_len;
 
             if (code == PdfLZWFilter::s_clear)
             {
@@ -772,6 +769,7 @@ void PdfLZWFilter::DecodeBlockImpl(const char* buffer, size_t len)
             }
             else if (code == PdfLZWFilter::s_eod)
             {
+                m_endReached = true;
                 len = 0;
                 break;
             }
@@ -779,11 +777,11 @@ void PdfLZWFilter::DecodeBlockImpl(const char* buffer, size_t len)
             {
                 if (code >= m_table.size())
                 {
-                    if (old >= m_table.size())
+                    if (m_old >= m_table.size())
                     {
                         PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
                     }
-                    data = m_table[old].value;
+                    data = m_table[m_old].value;
                     data.push_back(m_character);
                 }
                 else
@@ -796,8 +794,8 @@ void PdfLZWFilter::DecodeBlockImpl(const char* buffer, size_t len)
                     GetStream().Write(reinterpret_cast<char*>(data.data()), data.size());
 
                 m_character = data[0];
-                if (old < m_table.size()) // fix the first loop
-                    data = m_table[old].value;
+                if (m_old < m_table.size()) // fix the first loop
+                    data = m_table[m_old].value;
                 data.push_back(m_character);
 
                 // A stream without clear codes must not grow the table without bound
@@ -807,7 +805,7 @@ void PdfLZWFilter::DecodeBlockImpl(const char* buffer, size_t len)
                     m_table.push_back(item);
                 }
 
-                old = code;
+                m_old = code;
 
                 switch (m_table.size())
                 {
